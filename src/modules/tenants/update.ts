@@ -1,0 +1,175 @@
+import { and, eq } from "drizzle-orm";
+import { z } from "zod";
+import { env } from "@/config/env";
+import type { Transaction } from "@/db/client";
+import { plans, tenantDomains, tenants, type TenantBrand } from "@/db/schema";
+import { HEX_COLOR } from "@/lib/colors";
+import { AppError } from "@/modules/errors";
+import { normalizePhone } from "@/modules/phone";
+import { assertValidSlug } from "./slug";
+
+async function loadTenant(tx: Transaction, tenantId: string) {
+  const [tenant] = await tx.select().from(tenants).where(eq(tenants.id, tenantId));
+  if (!tenant) throw new AppError("not_found");
+  return tenant;
+}
+
+const optionalText = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .optional()
+    .transform((value) => value || null);
+
+// ─── Coordonnées ──────────────────────────────────────────────────────────────
+
+export const identityInput = z.object({
+  name: z.string().trim().min(2).max(120),
+  slug: z.string().trim().toLowerCase(),
+  legalName: optionalText(160),
+  siret: optionalText(20),
+  vatNumber: optionalText(20),
+  phone: optionalText(40),
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .optional()
+    .transform((value) => value || null)
+    .pipe(z.email().nullable()),
+  addressLine1: optionalText(160),
+  addressLine2: optionalText(160),
+  postalCode: optionalText(12),
+  city: optionalText(80),
+  country: z.string().length(2),
+  timezone: z.string().min(1),
+});
+
+/** Met à jour les coordonnées ; un changement d'adresse nom.horaneo.com suit le slug. */
+export async function updateIdentity(tx: Transaction, tenantId: string, raw: z.input<typeof identityInput>) {
+  const input = identityInput.parse(raw);
+  const tenant = await loadTenant(tx, tenantId);
+  if (input.slug !== tenant.slug) {
+    assertValidSlug(input.slug);
+    const hostname = `${input.slug}.${env().MAIN_DOMAIN}`;
+    const [taken] = await tx.select({ id: tenants.id }).from(tenants).where(eq(tenants.slug, input.slug));
+    const [hostTaken] = await tx
+      .select({ id: tenantDomains.id })
+      .from(tenantDomains)
+      .where(eq(tenantDomains.hostname, hostname));
+    if (taken || hostTaken) throw new AppError("slug_taken", "slug");
+    await tx
+      .update(tenantDomains)
+      .set({ hostname })
+      .where(and(eq(tenantDomains.tenantId, tenantId), eq(tenantDomains.type, "subdomain")));
+  }
+  const [updated] = await tx
+    .update(tenants)
+    .set({
+      ...input,
+      country: input.country.toUpperCase(),
+      phone: normalizePhone(input.phone, input.country),
+    })
+    .where(eq(tenants.id, tenantId))
+    .returning();
+  return updated;
+}
+
+// ─── Métier, modèle et apparence ─────────────────────────────────────────────
+
+export const TEMPLATE_KEYS = ["wellness"] as const;
+
+export const appearanceInput = z.object({
+  businessCategory: optionalText(60),
+  templateKey: z.enum(TEMPLATE_KEYS),
+  theme: z.enum(["light", "dark", "nature"]),
+  primary: z.string().regex(HEX_COLOR),
+  secondary: z.string().regex(HEX_COLOR),
+});
+
+export async function updateAppearance(
+  tx: Transaction,
+  tenantId: string,
+  raw: z.input<typeof appearanceInput>,
+) {
+  const input = appearanceInput.parse(raw);
+  const tenant = await loadTenant(tx, tenantId);
+  const brand: TenantBrand = {
+    ...tenant.brand,
+    colors: {
+      ...tenant.brand.colors,
+      primary: input.primary.toLowerCase(),
+      secondary: input.secondary.toLowerCase(),
+    },
+  };
+  const [updated] = await tx
+    .update(tenants)
+    .set({
+      businessCategory: input.businessCategory,
+      templateKey: input.templateKey,
+      theme: input.theme,
+      brand,
+    })
+    .where(eq(tenants.id, tenantId))
+    .returning();
+  return updated;
+}
+
+export async function setLogo(tx: Transaction, tenantId: string, logoAssetId: string | null) {
+  const tenant = await loadTenant(tx, tenantId);
+  await tx
+    .update(tenants)
+    .set({ brand: { ...tenant.brand, logoAssetId } })
+    .where(eq(tenants.id, tenantId));
+}
+
+// ─── Statut ───────────────────────────────────────────────────────────────────
+
+export type TenantStatusAction = "activate" | "suspend" | "reactivate";
+
+/** Mise en ligne, suspension et réactivation d'un site. */
+export async function changeStatus(tx: Transaction, tenantId: string, action: TenantStatusAction) {
+  const tenant = await loadTenant(tx, tenantId);
+  const allowed: Record<TenantStatusAction, string[]> = {
+    activate: ["draft"],
+    suspend: ["active", "cancelled"],
+    reactivate: ["suspended"],
+  };
+  if (!allowed[action].includes(tenant.status)) throw new AppError("invalid", "status");
+  const [updated] = await tx
+    .update(tenants)
+    .set(
+      action === "suspend"
+        ? { status: "suspended" }
+        : { status: "active", activatedAt: tenant.activatedAt ?? new Date() },
+    )
+    .where(eq(tenants.id, tenantId))
+    .returning();
+  return { before: tenant.status, after: updated.status };
+}
+
+// ─── Pack ─────────────────────────────────────────────────────────────────────
+
+/**
+ * Change le pack. Si le nouveau pack n'autorise pas de domaine propre, le site
+ * revient sur son adresse nom.horaneo.com (le domaine propre est conservé, inactif).
+ * Le prélèvement Stripe sera branché à l'étape 10.
+ */
+export async function changePlan(tx: Transaction, tenantId: string, planCode: string) {
+  const tenant = await loadTenant(tx, tenantId);
+  const [plan] = await tx.select().from(plans).where(eq(plans.code, planCode));
+  if (!plan) throw new AppError("invalid", "planCode");
+  await tx.update(tenants).set({ planId: plan.id }).where(eq(tenants.id, tenantId));
+  if (!plan.features.customDomain) {
+    await tx
+      .update(tenantDomains)
+      .set({ isPrimary: false })
+      .where(and(eq(tenantDomains.tenantId, tenantId), eq(tenantDomains.type, "custom")));
+    await tx
+      .update(tenantDomains)
+      .set({ isPrimary: true })
+      .where(and(eq(tenantDomains.tenantId, tenantId), eq(tenantDomains.type, "subdomain")));
+  }
+  return { before: tenant.planId, after: plan.id, planCode: plan.code };
+}

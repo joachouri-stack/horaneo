@@ -1,0 +1,32 @@
+/**
+ * Erreur métier compréhensible : son code correspond à un texte traduit
+ * (messages/<langue>.json → "errors.<code>"), et `field` désigne le champ concerné.
+ */
+export class AppError extends Error {
+  constructor(
+    public readonly code: AppErrorCode,
+    public readonly field?: string,
+  ) {
+    super(code);
+  }
+}
+
+export type AppErrorCode =
+  | "invalid"
+  | "not_found"
+  | "slug_taken"
+  | "slug_reserved"
+  | "slug_invalid"
+  | "hostname_taken"
+  | "hostname_invalid"
+  | "feature_unavailable"
+  | "quota_reached"
+  | "hours_overlap"
+  | "hours_invalid"
+  | "phone_invalid"
+  | "image_too_large"
+  | "image_unsupported"
+  | "image_too_small"
+  | "image_empty"
+  | "category_not_empty"
+  | "domain_not_active";

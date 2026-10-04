@@ -10,6 +10,7 @@ import {
   staffMembers,
   tenants,
   usageCounters,
+  users,
 } from "@/db/schema";
 import { hasTestDatabase, openTestDb, pgErrorCode, type TestDb } from "../setup/db";
 
@@ -219,6 +220,19 @@ describe.skipIf(!hasTestDatabase)("garde-fous de la base de données", () => {
   });
 
   describe("journal de l'administratrice", () => {
+    it("n'empêche pas de supprimer un compte ou un client, et garde leur trace", async () => {
+      const { tenant } = await createTenant();
+      const [user] = await db
+        .insert(users)
+        .values({ email: `trace-${Date.now()}@example.com` })
+        .returning();
+      await db.insert(auditLog).values({ action: "test.trace", tenantId: tenant.id, actorUserId: user.id });
+      await db.delete(users).where(eq(users.id, user.id));
+      await db.delete(tenants).where(eq(tenants.id, tenant.id));
+      const [entry] = await db.select().from(auditLog).where(eq(auditLog.tenantId, tenant.id));
+      expect(entry.actorUserId).toBe(user.id);
+    });
+
     it("accepte l'ajout mais refuse modification et suppression", async () => {
       const [entry] = await db.insert(auditLog).values({ action: "test.created" }).returning();
       expect(

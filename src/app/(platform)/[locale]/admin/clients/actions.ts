@@ -1,0 +1,375 @@
+"use server";
+
+import { getLocale, getTranslations } from "next-intl/server";
+import { z } from "zod";
+import { redirect } from "@/i18n/navigation";
+import { resolveLocale } from "@/i18n/translator";
+import { adminMutation, form, type ActionResult } from "@/lib/admin/mutation";
+import { storage } from "@/lib/storage";
+import { deleteCategory, deleteService, saveCategory, saveService } from "@/modules/catalog/services";
+import { SITE_PAGE_KEYS, PAGE_TEXT_FIELDS, updatePage } from "@/modules/content/pages";
+import { deleteTestimonial, saveTestimonial } from "@/modules/content/testimonials";
+import { restoreAsset, retireAsset, uploadAsset, uploadLogo } from "@/modules/media/assets";
+import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
+import { deleteStaff, saveStaff } from "@/modules/team/staff";
+import { createTenant } from "@/modules/tenants/create";
+import {
+  addCustomDomain,
+  markDomainActive,
+  removeCustomDomain,
+  setPrimaryDomain,
+} from "@/modules/tenants/domains";
+import { changePlan, changeStatus, updateAppearance, updateIdentity } from "@/modules/tenants/update";
+import type { LogoPalette } from "@/lib/images/palette";
+
+/**
+ * Actions de l'espace admin sur les clients. Chacune passe par adminMutation :
+ * droits revérifiés, transaction, journal.
+ */
+
+type Previous = ActionResult<unknown> | null;
+
+const uuid = z.uuid();
+const tenantIdOf = (data: FormData) => uuid.parse(form.text(data, "tenantId"));
+const idOf = (data: FormData, key = "id") => {
+  const value = form.optional(data, key);
+  return value ? uuid.parse(value) : undefined;
+};
+
+// ─── Création ─────────────────────────────────────────────────────────────────
+
+export async function createTenantAction(
+  _previous: Previous,
+  data: FormData,
+): Promise<ActionResult<unknown>> {
+  const result = await adminMutation(
+    (created: Awaited<ReturnType<typeof createTenant>>) => ({
+      action: "tenant.created",
+      tenantId: created.tenant.id,
+      details: { slug: created.tenant.slug, planCode: form.text(data, "planCode") },
+    }),
+    (tx) =>
+      createTenant(tx, {
+        name: form.text(data, "name"),
+        slug: form.text(data, "slug"),
+        planCode: form.text(data, "planCode"),
+        managerEmail: form.text(data, "managerEmail"),
+        managerName: form.optional(data, "managerName"),
+        phone: form.optional(data, "phone"),
+        email: form.optional(data, "email"),
+      }),
+  );
+  if (!result.ok) return result;
+  redirect({
+    href: { pathname: `/admin/clients/${result.data!.tenant.id}/modele`, query: { assistant: "1" } },
+    locale: resolveLocale(await getLocale()),
+  });
+  return { ok: true };
+}
+
+// ─── Fiche : statut, pack, domaines ──────────────────────────────────────────
+
+export async function changeStatusAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const action = z.enum(["activate", "suspend", "reactivate"]).parse(form.text(data, "statusAction"));
+  return adminMutation(
+    (change: Awaited<ReturnType<typeof changeStatus>>) => ({
+      action: `tenant.${action}`,
+      tenantId,
+      details: change,
+    }),
+    (tx) => changeStatus(tx, tenantId, action),
+  );
+}
+
+export async function changePlanAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const planCode = form.text(data, "planCode");
+  return adminMutation(
+    (change: Awaited<ReturnType<typeof changePlan>>) => ({
+      action: "tenant.plan_changed",
+      tenantId,
+      details: change,
+    }),
+    (tx) => changePlan(tx, tenantId, planCode),
+  );
+}
+
+export async function addDomainAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const hostname = form.text(data, "hostname");
+  return adminMutation(
+    (domain: { hostname: string }) => ({
+      action: "domain.added",
+      tenantId,
+      details: { hostname: domain.hostname },
+    }),
+    (tx) => addCustomDomain(tx, tenantId, hostname),
+  );
+}
+
+export async function domainAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const domainId = idOf(data, "domainId")!;
+  const operation = z.enum(["activate", "primary", "remove"]).parse(form.text(data, "operation"));
+  const run = { activate: markDomainActive, primary: setPrimaryDomain, remove: removeCustomDomain }[
+    operation
+  ];
+  return adminMutation(
+    (domain: { hostname: string }) => ({
+      action: `domain.${operation}`,
+      tenantId,
+      details: { hostname: domain.hostname },
+    }),
+    (tx) => run(tx, tenantId, domainId),
+  );
+}
+
+// ─── Coordonnées, modèle, logo ───────────────────────────────────────────────
+
+export async function updateIdentityAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const keys = [
+    "name",
+    "slug",
+    "legalName",
+    "siret",
+    "vatNumber",
+    "phone",
+    "email",
+    "addressLine1",
+    "addressLine2",
+    "postalCode",
+    "city",
+    "country",
+    "timezone",
+  ] as const;
+  const input = Object.fromEntries(keys.map((key) => [key, form.text(data, key)])) as Record<
+    (typeof keys)[number],
+    string
+  >;
+  return adminMutation({ action: "tenant.identity_updated", tenantId }, (tx) =>
+    updateIdentity(tx, tenantId, input),
+  );
+}
+
+export async function updateAppearanceAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return adminMutation({ action: "tenant.appearance_updated", tenantId }, (tx) =>
+    updateAppearance(tx, tenantId, {
+      businessCategory: form.optional(data, "businessCategory"),
+      templateKey: form.text(data, "templateKey") as "wellness",
+      theme: form.text(data, "theme") as "light",
+      primary: form.text(data, "primary"),
+      secondary: form.text(data, "secondary"),
+    }),
+  );
+}
+
+export async function uploadLogoAction(
+  _previous: Previous,
+  data: FormData,
+): Promise<ActionResult<LogoPalette>> {
+  const tenantId = tenantIdOf(data);
+  const bytes = (await form.file(data, "file")) ?? new Uint8Array();
+  const result = await adminMutation(
+    (logo: { assetId: string }) => ({
+      action: "asset.logo_uploaded",
+      tenantId,
+      targetType: "asset",
+      targetId: logo.assetId,
+    }),
+    (tx, context) => uploadLogo(tx, storage(), tenantId, bytes, context.userId),
+  );
+  return result.ok ? { ok: true, data: result.data!.palette } : result;
+}
+
+// ─── Prestations ──────────────────────────────────────────────────────────────
+
+export async function saveCategoryAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const id = idOf(data);
+  return adminMutation({ action: id ? "category.updated" : "category.created", tenantId }, (tx) =>
+    saveCategory(
+      tx,
+      tenantId,
+      { name: form.text(data, "name"), description: form.optional(data, "description") },
+      id,
+    ),
+  );
+}
+
+export async function deleteCategoryAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const id = idOf(data)!;
+  return adminMutation({ action: "category.deleted", tenantId, targetId: id }, (tx) =>
+    deleteCategory(tx, tenantId, id),
+  );
+}
+
+export async function saveServiceAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const id = idOf(data);
+  return adminMutation({ action: id ? "service.updated" : "service.created", tenantId, targetId: id }, (tx) =>
+    saveService(
+      tx,
+      tenantId,
+      {
+        name: form.text(data, "name"),
+        description: form.optional(data, "description"),
+        categoryId: form.optional(data, "categoryId") ?? null,
+        durationMinutes: form.text(data, "durationMinutes") as unknown as number,
+        bufferMinutes: (form.optional(data, "bufferMinutes") ?? "0") as unknown as number,
+        price: form.text(data, "price"),
+        priceFrom: form.bool(data, "priceFrom"),
+        isOnlineBookable: form.bool(data, "isOnlineBookable"),
+        isActive: form.bool(data, "isActive"),
+      },
+      id,
+    ),
+  );
+}
+
+export async function deleteServiceAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const id = idOf(data)!;
+  const result = await adminMutation({ action: "service.deleted", tenantId, targetId: id }, (tx) =>
+    deleteService(tx, tenantId, id),
+  );
+  if (result.ok && result.data?.deleted === false) {
+    const t = await getTranslations("admin.tenant.services");
+    return { ...result, message: t("deactivatedInstead") };
+  }
+  return result;
+}
+
+// ─── Équipe ───────────────────────────────────────────────────────────────────
+
+export async function saveStaffAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const id = idOf(data);
+  return adminMutation({ action: id ? "staff.updated" : "staff.created", tenantId, targetId: id }, (tx) =>
+    saveStaff(
+      tx,
+      tenantId,
+      {
+        name: form.text(data, "name"),
+        bio: form.optional(data, "bio"),
+        color: form.optional(data, "color"),
+        isActive: form.bool(data, "isActive"),
+        serviceIds: form.all(data, "serviceIds"),
+        photoAssetId: form.optional(data, "photoAssetId") ?? null,
+      },
+      id,
+    ),
+  );
+}
+
+export async function deleteStaffAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const id = idOf(data)!;
+  return adminMutation({ action: "staff.deleted", tenantId, targetId: id }, (tx) =>
+    deleteStaff(tx, tenantId, id),
+  );
+}
+
+// ─── Horaires ─────────────────────────────────────────────────────────────────
+
+export async function saveHoursAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const ranges = form
+    .all(data, "range")
+    .map((value) => {
+      const [weekday, opensAt, closesAt] = value.split("|");
+      return { weekday: Number(weekday), opensAt, closesAt };
+    })
+    .filter((range) => range.opensAt && range.closesAt);
+  return adminMutation({ action: "hours.updated", tenantId }, (tx) =>
+    replaceOpeningHours(tx, tenantId, ranges),
+  );
+}
+
+// ─── Textes des pages ─────────────────────────────────────────────────────────
+
+export async function savePageAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const pageKey = z.enum(SITE_PAGE_KEYS).parse(form.text(data, "pageKey"));
+  const texts = Object.fromEntries(
+    PAGE_TEXT_FIELDS[pageKey].map((field) => [field, form.text(data, `text.${field}`)]),
+  );
+  const photo = data.has("photoAssetId") ? (form.optional(data, "photoAssetId") ?? null) : undefined;
+  return adminMutation({ action: "page.updated", tenantId, details: { pageKey } }, (tx) =>
+    updatePage(tx, tenantId, {
+      pageKey,
+      texts,
+      seoTitle: form.text(data, "seoTitle"),
+      seoDescription: form.text(data, "seoDescription"),
+      photoAssetId: photo,
+      isPublished: form.bool(data, "isPublished"),
+    }),
+  );
+}
+
+// ─── Photos ───────────────────────────────────────────────────────────────────
+
+export async function uploadPhotoAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const kind = z.enum(["gallery", "cover", "staff", "service", "other"]).parse(form.text(data, "kind"));
+  const bytes = (await form.file(data, "file")) ?? new Uint8Array();
+  return adminMutation(
+    (asset: { id: string }) => ({
+      action: "asset.uploaded",
+      tenantId,
+      targetType: "asset",
+      targetId: asset.id,
+      details: { kind },
+    }),
+    (tx, context) =>
+      uploadAsset(tx, storage(), tenantId, {
+        bytes,
+        kind,
+        uploadedByUserId: context.userId,
+        alt: form.optional(data, "alt"),
+      }),
+  );
+}
+
+export async function photoAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const id = idOf(data)!;
+  const operation = z.enum(["retire", "restore"]).parse(form.text(data, "operation"));
+  return adminMutation(
+    { action: `asset.${operation}d`, tenantId, targetType: "asset", targetId: id },
+    (tx) => (operation === "retire" ? retireAsset(tx, tenantId, id) : restoreAsset(tx, tenantId, id)),
+  );
+}
+
+// ─── Témoignages ──────────────────────────────────────────────────────────────
+
+export async function saveTestimonialAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const id = idOf(data);
+  return adminMutation(
+    { action: id ? "testimonial.updated" : "testimonial.created", tenantId, targetId: id },
+    (tx) =>
+      saveTestimonial(
+        tx,
+        tenantId,
+        {
+          authorName: form.text(data, "authorName"),
+          text: form.text(data, "text"),
+          rating: form.optional(data, "rating") ? Number(form.text(data, "rating")) : null,
+          isPublished: form.bool(data, "isPublished"),
+        },
+        id,
+      ),
+  );
+}
+
+export async function deleteTestimonialAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const id = idOf(data)!;
+  return adminMutation({ action: "testimonial.deleted", tenantId, targetId: id }, (tx) =>
+    deleteTestimonial(tx, tenantId, id),
+  );
+}

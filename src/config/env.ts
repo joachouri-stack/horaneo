@@ -50,6 +50,14 @@ const envSchema = z.object({
   /** En-têtes donnant l'adresse IP réelle du visiteur (limitation des tentatives). */
   CLIENT_IP_HEADERS: z.string().default("x-forwarded-for"),
 
+  // Stockage des fichiers (Cloudflare R2 ; sinon dossier local en développement)
+  R2_ACCOUNT_ID: z.string().min(1).optional(),
+  R2_ACCESS_KEY_ID: z.string().min(1).optional(),
+  R2_SECRET_ACCESS_KEY: z.string().min(1).optional(),
+  R2_BUCKET: z.string().min(1).optional(),
+  R2_PUBLIC_URL: z.url().optional(),
+  LOCAL_STORAGE_DIR: z.string().default("storage"),
+
   // E-mails (Brevo)
   BREVO_API_KEY: z.string().min(1).optional(),
   EMAIL_FROM_ADDRESS: z.email().optional(),

@@ -15,6 +15,10 @@ for (const locale of enabledLocales) {
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  experimental: {
+    // Envoi de photos jusqu'à 10 Mo (plus la marge du formulaire).
+    serverActions: { bodySizeLimit: "12mb" },
+  },
   env: {
     NEXT_PUBLIC_ENABLED_LOCALES: enabledLocales.join(","),
   },

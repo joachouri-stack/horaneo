@@ -54,7 +54,7 @@ export async function proxy(request: NextRequest) {
       return notFound();
     case "platform":
       if (hasPrefix(url.pathname, SITES_PREFIX)) return notFound();
-      if (hasPrefix(url.pathname, "/api")) return NextResponse.next();
+      if (hasPrefix(url.pathname, "/api") || hasPrefix(url.pathname, "/media")) return NextResponse.next();
       return intl(request);
     case "tenant": {
       // La connexion n'existe que sur le domaine principal.
@@ -68,7 +68,7 @@ export async function proxy(request: NextRequest) {
       if (route.kind === "redirect") {
         return NextResponse.redirect(isProduction ? route.location : devLocation(route.location, url), 301);
       }
-      if (hasPrefix(url.pathname, "/api")) return NextResponse.next();
+      if (hasPrefix(url.pathname, "/api") || hasPrefix(url.pathname, "/media")) return NextResponse.next();
       const target = url.clone();
       target.pathname = `${SITES_PREFIX}/${route.tenantId}${url.pathname === "/" ? "" : url.pathname}`;
       return NextResponse.rewrite(target);

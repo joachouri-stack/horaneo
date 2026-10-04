@@ -37,3 +37,9 @@ h3 {
   outline-offset: 2px;
   border-radius: 4px;
 }
+
+/* Champ signalé en erreur par un formulaire */
+[aria-invalid="true"] {
+  border-color: var(--color-coral);
+  background-color: color-mix(in srgb, var(--color-coral) 6%, white);
+}

@@ -43,6 +43,20 @@
       "when": 1791128937326,
       "tag": "0005_auth_access",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791129832103,
+      "tag": "0006_page_content_object",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791130498103,
+      "tag": "0007_audit_log_no_fk",
+      "breakpoints": true
     }
   ]
 }

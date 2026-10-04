@@ -1,0 +1,153 @@
+import { and, asc, count, desc, eq, gte, ilike, inArray, or, sql, type SQL } from "drizzle-orm";
+import type { Transaction } from "@/db/client";
+import { memberships, plans, tenantDomains, tenants, usageCounters, users } from "@/db/schema";
+import { countUsage } from "@/modules/quotas";
+
+/** Lectures de l'espace admin (rôle plateforme : tous les tenants). */
+
+export type TenantFilters = { q?: string; plan?: string; status?: string };
+
+const STATUSES = ["draft", "active", "suspended", "cancelled", "deleted"] as const;
+
+/** Mois en cours au format AAAA-MM dans un fuseau donné. */
+export function currentPeriod(timezone: string, now = new Date()): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+  }).formatToParts(now);
+  return `${parts.find((p) => p.type === "year")!.value}-${parts.find((p) => p.type === "month")!.value}`;
+}
+
+export async function listTenants(tx: Transaction, filters: TenantFilters = {}) {
+  const conditions: SQL[] = [];
+  const q = filters.q?.trim();
+  if (q) {
+    const pattern = `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+    conditions.push(
+      or(
+        ilike(tenants.name, pattern),
+        ilike(tenants.slug, pattern),
+        ilike(tenants.email, pattern),
+        ilike(tenants.city, pattern),
+        sql`exists (select 1 from ${tenantDomains} d where d.tenant_id = ${tenants.id} and d.hostname ilike ${pattern})`,
+      )!,
+    );
+  }
+  if (filters.plan) conditions.push(eq(plans.code, filters.plan));
+  if (filters.status && (STATUSES as readonly string[]).includes(filters.status)) {
+    conditions.push(eq(tenants.status, filters.status as (typeof STATUSES)[number]));
+  } else {
+    conditions.push(inArray(tenants.status, ["draft", "active", "suspended", "cancelled"]));
+  }
+
+  return tx
+    .select({
+      id: tenants.id,
+      name: tenants.name,
+      slug: tenants.slug,
+      status: tenants.status,
+      city: tenants.city,
+      planCode: plans.code,
+      planName: plans.name,
+      createdAt: tenants.createdAt,
+      primaryHostname: sql<
+        string | null
+      >`(select d.hostname from ${tenantDomains} d where d.tenant_id = ${tenants.id} and d.is_primary limit 1)`,
+    })
+    .from(tenants)
+    .innerJoin(plans, eq(plans.id, tenants.planId))
+    .where(and(...conditions))
+    .orderBy(desc(tenants.createdAt))
+    .limit(200);
+}
+
+export async function getTenantOverview(tx: Transaction, tenantId: string) {
+  const [row] = await tx
+    .select({ tenant: tenants, plan: plans })
+    .from(tenants)
+    .innerJoin(plans, eq(plans.id, tenants.planId))
+    .where(eq(tenants.id, tenantId));
+  if (!row) return null;
+  const [domains, managers, usage, servicesCount, membersCount, photosCount] = await Promise.all([
+    tx
+      .select()
+      .from(tenantDomains)
+      .where(eq(tenantDomains.tenantId, tenantId))
+      .orderBy(desc(tenantDomains.isPrimary), asc(tenantDomains.createdAt)),
+    tx
+      .select({ id: users.id, email: users.email, name: users.name, lastLoginAt: users.lastLoginAt })
+      .from(memberships)
+      .innerJoin(users, eq(users.id, memberships.userId))
+      .where(eq(memberships.tenantId, tenantId)),
+    tx
+      .select()
+      .from(usageCounters)
+      .where(
+        and(
+          eq(usageCounters.tenantId, tenantId),
+          eq(usageCounters.period, currentPeriod(row.tenant.timezone)),
+        ),
+      ),
+    countUsage(tx, tenantId, "services"),
+    countUsage(tx, tenantId, "members"),
+    countUsage(tx, tenantId, "photos"),
+  ]);
+  return {
+    ...row,
+    domains,
+    managers,
+    usage: usage[0] ?? null,
+    counts: { services: servicesCount, members: membersCount, photos: photosCount },
+  };
+}
+
+export async function listPlans(tx: Transaction) {
+  return tx.select().from(plans).orderBy(asc(plans.sortOrder));
+}
+
+/** Chiffres de l'accueil admin. */
+export async function getDashboardStats(tx: Transaction, now = new Date()) {
+  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const byPlan = await tx
+    .select({ code: plans.code, name: plans.name, priceCents: plans.priceCents, count: count(tenants.id) })
+    .from(plans)
+    .leftJoin(tenants, and(eq(tenants.planId, plans.id), eq(tenants.status, "active")))
+    .groupBy(plans.id)
+    .orderBy(asc(plans.sortOrder));
+  const [[{ value: newThisMonth }], [{ value: cancelledThisMonth }], [{ value: drafts }]] = await Promise.all(
+    [
+      tx.select({ value: count() }).from(tenants).where(gte(tenants.createdAt, monthStart)),
+      tx.select({ value: count() }).from(tenants).where(gte(tenants.cancelledAt, monthStart)),
+      tx.select({ value: count() }).from(tenants).where(eq(tenants.status, "draft")),
+    ],
+  );
+  // Clients Basic ayant atteint leur quota de réservations ce mois-ci.
+  const basicAtLimit = await tx
+    .select({
+      id: tenants.id,
+      name: tenants.name,
+      bookings: usageCounters.onlineBookings,
+      limits: plans.limits,
+    })
+    .from(usageCounters)
+    .innerJoin(tenants, eq(tenants.id, usageCounters.tenantId))
+    .innerJoin(plans, eq(plans.id, tenants.planId))
+    .where(
+      and(
+        eq(usageCounters.period, currentPeriod("Europe/Paris", now)),
+        sql`(${plans.limits}->>'onlineBookingsPerMonth') is not null`,
+        sql`${usageCounters.onlineBookings} >= (${plans.limits}->>'onlineBookingsPerMonth')::int`,
+      ),
+    );
+  return {
+    byPlan,
+    activeClients: byPlan.reduce((sum, plan) => sum + plan.count, 0),
+    /** Revenu mensuel estimé des abonnements actifs (en centimes). */
+    monthlyRevenueCents: byPlan.reduce((sum, plan) => sum + plan.count * plan.priceCents, 0),
+    newThisMonth,
+    cancelledThisMonth,
+    drafts,
+    basicAtLimit,
+  };
+}

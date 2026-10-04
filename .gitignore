@@ -43,3 +43,6 @@ next-env.d.ts
 
 # drizzle
 /.drizzle
+
+# fichiers envoyés en développement
+/storage

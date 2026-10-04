@@ -1,0 +1,1 @@
+ALTER TABLE "site_pages" ALTER COLUMN "content" SET DEFAULT '{}'::jsonb;

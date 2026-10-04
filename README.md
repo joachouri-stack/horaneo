@@ -3,7 +3,7 @@
 SaaS multi-tenant : chaque professionnel travaillant sur rendez-vous reçoit son propre site web, avec réservation et paiement d'acompte en ligne.
 
 - Brief et décisions : [`docs/01-base-de-donnees.md`](docs/01-base-de-donnees.md)
-- Avancement : étape 3 sur 14 (connexion : Google, Apple, lien magique ; rôles gérante et administratrice)
+- Avancement : étape 4 sur 14 (espace admin : création d'un client, modèle, contenus, photos)
 
 ## Technologies
 
@@ -72,6 +72,10 @@ src/
   i18n/              langues, routage par langue, chargement des traductions
   app/(tenant)/sites/[tenantId]/  sites des clients (adresse interne, jamais visible)
   db/access.ts       withTenant / withPlatform : SEULE porte d'accès aux données
+  modules/           règles métier (clients, prestations, équipe, horaires, textes, photos, quotas)
+  lib/admin/         actions de l'espace admin (droits revérifiés, journal)
+  lib/storage/       stockage des fichiers (dossier local ou Cloudflare R2)
+  lib/images/        préparation des photos, couleurs du logo
   lib/tenancy/       reconnaissance des domaines et aiguillage des requêtes
   proxy.ts           traitement de chaque requête (domaine, langue, redirections)
 tests/               tests automatiques
@@ -143,13 +147,36 @@ Une même adresse e-mail donne toujours le même compte, quel que soit le moyen 
 
 **Protection dans la base** : Better Auth utilise un rôle (`app_auth`) limité aux tables de connexion. Un garde-fou dans la base l'empêche de donner le statut d'administratrice ou de valider une double vérification.
 
+## Espace admin
+
+Adresse : `horaneo.com/fr/admin` (administratrice avec double vérification).
+
+| Écran             | Contenu                                                                                                                                                           |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Accueil           | clients en ligne par pack, revenu mensuel estimé, nouveaux clients et résiliations du mois, alertes (sites en création, clients Basic au maximum de réservations) |
+| Clients           | liste avec recherche (nom, adresse, ville, domaine) et filtres (pack, statut)                                                                                     |
+| Nouveau client    | formulaire par étapes : coordonnées → métier et modèle → logo et couleurs → prestations → horaires → domaine                                                      |
+| Fiche d'un client | statut (mise en ligne, suspension), changement de pack, utilisation du mois par rapport au pack, gérante et dernière connexion, adresses du site                  |
+| Contenus          | coordonnées, modèle et ambiance, logo et couleurs (déduites du logo), prestations et catégories, équipe, horaires, textes des pages, photos, témoignages          |
+
+- Toutes les actions revérifient les droits (administratrice + double vérification), s'exécutent dans une transaction et sont **inscrites au journal**.
+- Les **limites du pack** s'appliquent aussi ici : prestations, membres et photos. Le domaine propre et les témoignages ne sont disponibles que dans les packs qui les incluent.
+- Les règles métier sont dans `src/modules/`. Chaque fonction reçoit la transaction : la même fonction servira à l'espace gérante (étape 7), où la base garantit l'isolation.
+
+### Photos
+
+- Formats acceptés : JPEG, PNG, WebP, HEIC et AVIF, plus SVG pour le logo. Taille maximale : 10 Mo.
+- Chaque photo est vérifiée (son vrai format, pas seulement son nom), redressée, débarrassée de ses données cachées (position GPS…), redimensionnée et convertie en WebP.
+- Une photo retirée est conservée 7 jours (réglage `replaced_asset_retention_days`) et peut être restaurée. La suppression définitive des fichiers sera faite par une tâche planifiée (étape 9).
+- Stockage : un dossier local `storage/` en développement, servi par `/media/…`. En production : Cloudflare R2 (variables `R2_*`, et `R2_PUBLIC_URL` pour un domaine public comme `media.horaneo.com`).
+
 ## Autres garde-fous de la base de données
 
 Ces règles sont vérifiées par les tests (`tests/db/`) :
 
 - **Pas de double réservation** : deux rendez-vous actifs d'un même membre ne peuvent pas se chevaucher (temps de battement compris).
 - **Pas de lien entre clients** : une donnée d'un tenant ne peut pas pointer vers une donnée d'un autre tenant.
-- **Journal de l'administratrice** en ajout seul : impossible de modifier ou supprimer une ligne, même pour l'espace admin.
+- **Journal de l'administratrice** en ajout seul : impossible de modifier ou supprimer une ligne, même pour l'espace admin. Il garde la trace des comptes et des clients supprimés.
 - Téléphones au format international, montants positifs, acompte ≤ total, adresses de site valides.
 
 ## Déployer (VPS Hostinger + Coolify)
@@ -157,7 +184,7 @@ Ces règles sont vérifiées par les tests (`tests/db/`) :
 Le déploiement complet (image Docker, sauvegardes horaires vers R2, alertes, procédure de restauration) sera finalisé aux étapes 12 et 13. Le principe :
 
 1. Dans Coolify, créer une base **PostgreSQL 16** sans port public.
-2. Créer une application reliée au dépôt GitHub (branche `main`). Renseigner les variables de `.env.example`, avec l'adresse interne de la base dans `DATABASE_URL` (propriétaire) et `APP_DATABASE_URL` (rôle `app_runtime`, avec un long mot de passe aléatoire), ainsi que `BETTER_AUTH_SECRET` (`openssl rand -base64 32`) et `BREVO_API_KEY`.
+2. Créer une application reliée au dépôt GitHub (branche `main`). Renseigner les variables de `.env.example`, avec l'adresse interne de la base dans `DATABASE_URL` (propriétaire) et `APP_DATABASE_URL` (rôle `app_runtime`, avec un long mot de passe aléatoire), ainsi que `BETTER_AUTH_SECRET` (`openssl rand -base64 32`), `BREVO_API_KEY` et les variables `R2_*` du stockage des photos.
 3. Commande de construction : `pnpm install --frozen-lockfile && pnpm build`. Avant chaque mise en ligne : `pnpm db:migrate && pnpm db:roles`. Démarrage : `pnpm start`.
 4. Pointer `horaneo.com` et `horaneo.fr` vers l'application. `horaneo.fr` redirige automatiquement vers `horaneo.com/fr`.
 5. Se donner le statut d'administratrice depuis le terminal Coolify : `pnpm admin:grant votre@email.fr`.

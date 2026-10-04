@@ -8,7 +8,22 @@
     "login": "Connexion",
     "language": "Langue",
     "homeLink": "{product}, accueil",
-    "logout": "Se déconnecter"
+    "logout": "Se déconnecter",
+    "save": "Enregistrer",
+    "saved": "Enregistré.",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "add": "Ajouter",
+    "yes": "Oui",
+    "no": "Non",
+    "back": "Retour",
+    "optional": "facultatif",
+    "search": "Rechercher",
+    "all": "Tous",
+    "none": "Aucun",
+    "continue": "Continuer",
+    "confirmDelete": "Confirmer la suppression ?"
   },
   "languages": {
     "fr": "Français",
@@ -100,6 +115,288 @@
     "errors": {
       "invalidCode": "Ce code n'est pas valable. Vérifiez l'heure de votre téléphone et réessayez.",
       "tooManyAttempts": "Trop de tentatives. Merci de patienter quelques minutes."
+    },
+    "nav": {
+      "home": "Accueil",
+      "clients": "Clients",
+      "newClient": "Nouveau client"
+    },
+    "dashboard": {
+      "activeClients": "Clients en ligne",
+      "monthlyRevenue": "Revenu mensuel des abonnements",
+      "newThisMonth": "Nouveaux ce mois-ci",
+      "cancelledThisMonth": "Résiliations ce mois-ci",
+      "byPlan": "Clients en ligne par pack",
+      "drafts": "Sites en création",
+      "draftsLink": "Voir les sites en création",
+      "alerts": "Alertes à traiter",
+      "noAlerts": "Rien à signaler.",
+      "basicAtLimit": "{name} a atteint ses {count} réservations du mois (pack Basic)."
+    },
+    "clients": {
+      "title": "Clients",
+      "searchPlaceholder": "Nom, adresse, ville, domaine…",
+      "plan": "Pack",
+      "status": "Statut",
+      "activeOnly": "Tous (sauf supprimés)",
+      "empty": "Aucun client ne correspond.",
+      "count": "{count, plural, =0 {Aucun client} one {# client} other {# clients}}",
+      "createdOn": "Créé le {date}"
+    },
+    "create": {
+      "title": "Nouveau client",
+      "intro": "Étape 1 : les coordonnées. Le site est créé « en création » : il ne sera visible qu'après sa mise en ligne.",
+      "name": "Nom de l'établissement",
+      "slug": "Adresse du site",
+      "slugHint": "Le site sera visible à l'adresse {example}.",
+      "plan": "Pack",
+      "managerEmail": "E-mail de la gérante",
+      "managerEmailHint": "Elle se connectera avec cette adresse (Google ou lien par e-mail).",
+      "managerName": "Nom de la gérante",
+      "phone": "Téléphone de l'établissement",
+      "email": "E-mail de contact affiché",
+      "submit": "Créer et continuer"
+    },
+    "wizard": {
+      "step": "Étape {current} sur {total}",
+      "next": "Étape suivante",
+      "finish": "Terminer",
+      "steps": {
+        "coordonnees": "Coordonnées",
+        "modele": "Métier et modèle",
+        "logo": "Logo et couleurs",
+        "prestations": "Prestations",
+        "horaires": "Horaires",
+        "domaine": "Domaine"
+      }
+    },
+    "tenant": {
+      "tabs": {
+        "overview": "Fiche",
+        "coordonnees": "Coordonnées",
+        "modele": "Modèle",
+        "logo": "Logo et couleurs",
+        "prestations": "Prestations",
+        "equipe": "Équipe",
+        "horaires": "Horaires",
+        "pages": "Textes",
+        "photos": "Photos",
+        "temoignages": "Témoignages"
+      },
+      "viewSite": "Voir le site",
+      "backToList": "Tous les clients",
+      "overview": {
+        "plan": "Pack",
+        "changePlan": "Changer de pack",
+        "changePlanHint": "Le prélèvement sera ajusté automatiquement une fois les paiements branchés.",
+        "status": "Statut",
+        "activate": "Mettre en ligne",
+        "suspend": "Suspendre",
+        "reactivate": "Réactiver",
+        "activateHint": "Le site devient visible du public.",
+        "suspendHint": "Le site affiche « temporairement indisponible ».",
+        "usage": "Ce mois-ci",
+        "onlineBookings": "Réservations en ligne",
+        "usageOf": "{used} / {limit}",
+        "unlimited": "illimité",
+        "services": "Prestations",
+        "members": "Membres",
+        "photos": "Photos",
+        "managers": "Gérante",
+        "lastLogin": "Dernière connexion : {date}",
+        "neverLoggedIn": "Jamais connectée",
+        "domains": "Adresses du site",
+        "primary": "Principale",
+        "pending": "En attente de branchement",
+        "active": "Active",
+        "error": "Erreur",
+        "addDomain": "Ajouter un domaine propre",
+        "domainPlaceholder": "www.institut-lea.fr",
+        "markActive": "Marquer comme branché",
+        "markActiveHint": "Temporaire : la vérification automatique arrive avec Cloudflare.",
+        "makePrimary": "Définir comme principale",
+        "removeDomain": "Retirer",
+        "noCustomDomain": "Le pack de ce client n'inclut pas de domaine propre.",
+        "created": "Client depuis le {date}",
+        "countryTimezone": "{country} · {timezone} · {currency}"
+      },
+      "identity": {
+        "title": "Coordonnées",
+        "legalName": "Raison sociale",
+        "siret": "SIRET",
+        "vatNumber": "N° de TVA",
+        "address1": "Adresse",
+        "address2": "Complément d'adresse",
+        "postalCode": "Code postal",
+        "city": "Ville",
+        "country": "Pays (code à 2 lettres)",
+        "timezone": "Fuseau horaire"
+      },
+      "appearance": {
+        "title": "Métier et modèle",
+        "businessCategory": "Métier",
+        "businessCategoryHint": "Exemple : institut de beauté, coiffure, massage. Sert au classement, jamais à changer le fonctionnement.",
+        "template": "Modèle",
+        "theme": "Ambiance"
+      },
+      "logo": {
+        "title": "Logo et couleurs",
+        "current": "Logo actuel",
+        "none": "Pas encore de logo.",
+        "upload": "Envoyer un logo",
+        "uploadHint": "PNG, SVG, JPEG ou WebP. Les couleurs sont proposées à partir du logo.",
+        "suggested": "Couleurs proposées d'après le logo : vérifiez-les puis enregistrez.",
+        "primary": "Couleur principale",
+        "secondary": "Couleur secondaire",
+        "preview": "Aperçu",
+        "previewButton": "Réserver",
+        "contrastWarning": "Attention : le texte sera peu lisible sur cette couleur.",
+        "file": "Fichier du logo"
+      },
+      "services": {
+        "title": "Prestations",
+        "categories": "Catégories",
+        "newCategory": "Nouvelle catégorie",
+        "categoryName": "Nom de la catégorie",
+        "noCategory": "Sans catégorie",
+        "newService": "Nouvelle prestation",
+        "name": "Nom",
+        "description": "Description",
+        "category": "Catégorie",
+        "duration": "Durée (minutes)",
+        "buffer": "Temps de battement (minutes)",
+        "bufferHint": "Pause après la prestation, invisible pour la cliente.",
+        "price": "Prix (€)",
+        "priceFrom": "Afficher « à partir de »",
+        "onlineBookable": "Réservable en ligne",
+        "active": "Active",
+        "empty": "Aucune prestation pour le moment.",
+        "quota": "{used} prestation(s) sur {limit}",
+        "minutes": "{count} min",
+        "disabled": "désactivée",
+        "deactivatedInstead": "Prestation déjà réservée : elle a été désactivée au lieu d'être supprimée."
+      },
+      "team": {
+        "title": "Équipe",
+        "newMember": "Nouveau membre",
+        "name": "Prénom ou nom",
+        "bio": "Présentation",
+        "color": "Couleur dans l'agenda",
+        "services": "Prestations réalisées",
+        "active": "Actif",
+        "empty": "Aucun membre pour le moment.",
+        "quota": "{used} membre(s) sur {limit}",
+        "hoursHint": "Un nouveau membre travaille par défaut aux horaires d'ouverture."
+      },
+      "hours": {
+        "title": "Horaires d'ouverture",
+        "closed": "Fermé",
+        "addRange": "Ajouter une plage",
+        "removeRange": "Retirer",
+        "opens": "Ouverture",
+        "closes": "Fermeture",
+        "hint": "Ajoutez deux plages pour une pause déjeuner (ex. 9:00-12:00 et 14:00-19:00)."
+      },
+      "pages": {
+        "title": "Textes du site",
+        "language": "Textes en {language} (langue principale du site).",
+        "seoTitle": "Titre pour Google",
+        "seoDescription": "Description pour Google",
+        "published": "Page publiée",
+        "photo": "Photo de la page",
+        "noPhoto": "Aucune photo",
+        "pageNames": {
+          "home": "Accueil",
+          "about": "L'établissement",
+          "team": "L'équipe",
+          "gallery": "Galerie",
+          "testimonials": "Témoignages",
+          "practical": "Infos pratiques",
+          "legal": "Mentions légales"
+        },
+        "fields": {
+          "tagline": "Phrase d'accroche",
+          "intro": "Présentation",
+          "title": "Titre",
+          "body": "Texte",
+          "access": "Accès, parking, transports",
+          "extra": "Informations complémentaires"
+        }
+      },
+      "photos": {
+        "title": "Photos",
+        "upload": "Ajouter une photo",
+        "kind": "Emplacement",
+        "kinds": {
+          "gallery": "Galerie",
+          "cover": "Grande photo d'accueil",
+          "staff": "Photo d'un membre",
+          "service": "Photo d'une prestation",
+          "other": "Autre"
+        },
+        "alt": "Description (pour l'accessibilité)",
+        "quota": "{used} photo(s) sur {limit}",
+        "empty": "Aucune photo pour le moment.",
+        "remove": "Retirer",
+        "restore": "Restaurer",
+        "trash": "Photos retirées (récupérables jusqu'au {date})",
+        "trashItem": "Récupérable jusqu'au {date}",
+        "uploadHint": "JPEG, PNG, WebP ou HEIC, 10 Mo maximum. Les photos sont redimensionnées, compressées et nettoyées (position GPS retirée).",
+        "file": "Fichier de la photo"
+      },
+      "testimonials": {
+        "title": "Témoignages",
+        "new": "Nouveau témoignage",
+        "author": "Prénom de la cliente",
+        "text": "Témoignage",
+        "rating": "Note (1 à 5)",
+        "published": "Publié",
+        "empty": "Aucun témoignage pour le moment."
+      }
     }
+  },
+  "errors": {
+    "invalid": "Certaines informations sont incomplètes ou invalides.",
+    "not_found": "Élément introuvable. Il a peut-être été supprimé.",
+    "slug_taken": "Cette adresse est déjà utilisée par un autre établissement.",
+    "slug_reserved": "Cette adresse est réservée. Choisissez-en une autre.",
+    "slug_invalid": "L'adresse ne peut contenir que des lettres minuscules sans accent, des chiffres et des tirets.",
+    "hostname_taken": "Ce domaine est déjà rattaché à un établissement.",
+    "hostname_invalid": "Ce nom de domaine n'est pas valide (exemple : www.institut-lea.fr).",
+    "feature_unavailable": "Cette fonction n'est pas incluse dans le pack de ce client.",
+    "quota_reached": "La limite du pack est atteinte. Passez à un pack supérieur ou retirez un élément.",
+    "hours_overlap": "Deux plages horaires se chevauchent dans la même journée.",
+    "hours_invalid": "L'heure de fin doit être après l'heure de début.",
+    "phone_invalid": "Ce numéro de téléphone n'est pas valide.",
+    "image_too_large": "La photo est trop lourde (10 Mo maximum).",
+    "image_unsupported": "Ce fichier n'est pas une image acceptée (JPEG, PNG, WebP, HEIC ; SVG pour le logo).",
+    "image_too_small": "Cette image est trop petite.",
+    "image_empty": "Aucun fichier choisi.",
+    "category_not_empty": "Cette catégorie contient encore des prestations.",
+    "domain_not_active": "Ce domaine doit d'abord être branché (actif)."
+  },
+  "status": {
+    "draft": "En création",
+    "active": "En ligne",
+    "suspended": "Suspendu",
+    "cancelled": "Résilié",
+    "deleted": "Supprimé"
+  },
+  "themes": {
+    "light": "Claire",
+    "dark": "Sombre",
+    "nature": "Nature"
+  },
+  "templates": {
+    "wellness": "Bien-être et coiffure"
+  },
+  "weekdays": {
+    "1": "Lundi",
+    "2": "Mardi",
+    "3": "Mercredi",
+    "4": "Jeudi",
+    "5": "Vendredi",
+    "6": "Samedi",
+    "7": "Dimanche"
   }
 }

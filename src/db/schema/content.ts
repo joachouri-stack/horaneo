@@ -81,7 +81,7 @@ export const sitePages = pgTable(
     id: id(),
     tenantId: tenantRef(),
     pageKey: sitePageKeyEnum().notNull(),
-    content: jsonb().notNull().default([]),
+    content: jsonb().notNull().default({}),
     seoTitle: localized(),
     seoDescription: localized(),
     isPublished: boolean().notNull().default(false),

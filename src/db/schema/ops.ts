@@ -115,9 +115,11 @@ export const auditLog = pgTable(
   "audit_log",
   {
     id: id(),
-    actorUserId: uuid().references(() => users.id, { onDelete: "set null" }),
+    // Pas de lien (clé étrangère) vers users / tenants : le journal garde la trace
+    // même après la suppression d'un compte ou d'un client, et n'est jamais modifié.
+    actorUserId: uuid(),
     action: text().notNull(),
-    tenantId: uuid().references(() => tenants.id, { onDelete: "set null" }),
+    tenantId: uuid(),
     targetType: text(),
     targetId: text(),
     details: jsonb().notNull().default({}),
