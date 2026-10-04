@@ -1,7 +1,18 @@
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
-import { businessSettings, businesses, memberships, services, tenants, users } from "@/db/schema";
+import {
+  assets,
+  businessSettings,
+  businesses,
+  memberships,
+  services,
+  tenants,
+  users,
+  type BusinessProfile,
+} from "@/db/schema";
+import { setLocalized } from "@/modules/content/localized";
+import { slugify } from "@/modules/tenants/slug";
 import { AppError } from "@/modules/errors";
 import { normalizePhone } from "@/modules/phone";
 
@@ -175,4 +186,63 @@ export async function businessOfServices(tx: Transaction, tenantId: string, serv
 export async function assertPrimaryBusiness(tx: Transaction, tenantId: string, businessId: string) {
   const business = await getBusiness(tx, tenantId, businessId);
   if (!business.isPrimary) throw new AppError("primary_business_only");
+}
+
+const BUSINESS_SLUG = /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/;
+
+export const businessProfileInput = z.object({
+  /** Adresse de sa page : /avec/<slug> (proposée à partir du nom si vide). */
+  slug: z.string().trim().toLowerCase().max(40).optional(),
+  title: z.string().trim().max(60).optional(),
+  role: z.string().trim().max(120).optional(),
+  bio: z.string().trim().max(2000).optional(),
+  availability: z.string().trim().max(80).optional(),
+  photoAssetId: z.uuid().nullable().optional(),
+});
+
+/**
+ * Présentation publique d'une entreprise (sa page sur le site). Les textes
+ * sont rangés sous la langue principale du site, sans effacer les traductions.
+ */
+export async function updateBusinessProfile(
+  tx: Transaction,
+  tenantId: string,
+  businessId: string,
+  raw: z.input<typeof businessProfileInput>,
+) {
+  const input = businessProfileInput.parse(raw);
+  const business = await getBusiness(tx, tenantId, businessId);
+  const [tenant] = await tx
+    .select({ locale: tenants.defaultLocale })
+    .from(tenants)
+    .where(eq(tenants.id, tenantId));
+  const locale = tenant?.locale ?? "fr";
+  const slug = input.slug || slugify(business.name).slice(0, 40).replace(/-+$/, "");
+  if (!BUSINESS_SLUG.test(slug) || slug.includes("--")) throw new AppError("slug_invalid", "slug");
+  const [taken] = await tx
+    .select({ id: businesses.id })
+    .from(businesses)
+    .where(and(eq(businesses.tenantId, tenantId), eq(businesses.slug, slug)));
+  if (taken && taken.id !== businessId) throw new AppError("slug_taken", "slug");
+  if (input.photoAssetId) {
+    const [photo] = await tx
+      .select({ id: assets.id })
+      .from(assets)
+      .where(and(eq(assets.tenantId, tenantId), eq(assets.id, input.photoAssetId)));
+    if (!photo) throw new AppError("invalid", "photoAssetId");
+  }
+  const previous = business.profile ?? {};
+  const profile: BusinessProfile = {
+    title: setLocalized(previous.title, locale, input.title),
+    role: setLocalized(previous.role, locale, input.role),
+    bio: setLocalized(previous.bio, locale, input.bio),
+    availability: setLocalized(previous.availability, locale, input.availability),
+    photoAssetId: input.photoAssetId !== undefined ? input.photoAssetId : (previous.photoAssetId ?? null),
+  };
+  const [updated] = await tx
+    .update(businesses)
+    .set({ slug, profile })
+    .where(and(eq(businesses.tenantId, tenantId), eq(businesses.id, businessId)))
+    .returning();
+  return updated;
 }

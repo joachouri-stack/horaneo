@@ -25,6 +25,13 @@ export function formatTime(time: string, locale: string): string {
   );
 }
 
+/** Heure à la française « 9 h » / « 9 h 30 » ; ailleurs, le format de la langue. */
+export function formatClock(time: string, locale: string): string {
+  if (!locale.startsWith("fr")) return formatTime(time, locale);
+  const [h, m] = time.split(":").map(Number);
+  return m ? `${h} h ${String(m).padStart(2, "0")}` : `${h} h`;
+}
+
 /** Lien d'itinéraire (ouvre l'application de cartes du téléphone). */
 export function directionsUrl(parts: (string | null | undefined)[]): string {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(parts.filter(Boolean).join(", "))}`;
@@ -37,4 +44,33 @@ export function osmEmbedUrl(latitude: number, longitude: number): string {
     .map((n) => n.toFixed(5))
     .join(",");
   return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${latitude.toFixed(5)},${longitude.toFixed(5)}`;
+}
+
+type HourRange = { weekday: number; opensAt: string; closesAt: string };
+
+/**
+ * Horaires résumés par groupes de jours consécutifs identiques :
+ * [{ from: 1, to: 5, ranges: [...] }, { from: 6, to: 6, ranges: [...] }, { from: 7, to: 7, ranges: [] }].
+ */
+export function groupHours(hours: HourRange[]) {
+  const key = (day: number) =>
+    hours
+      .filter((range) => range.weekday === day)
+      .map((range) => `${range.opensAt}-${range.closesAt}`)
+      .join(",");
+  const groups: { from: number; to: number; ranges: HourRange[] }[] = [];
+  for (let day = 1; day <= 7; day += 1) {
+    const last = groups.at(-1);
+    if (last && key(last.to) === key(day)) last.to = day;
+    else groups.push({ from: day, to: day, ranges: hours.filter((range) => range.weekday === day) });
+  }
+  return groups;
+}
+
+/** Premier et dernier jour d'ouverture s'ils se suivent (ex. lundi → samedi), sinon null. */
+export function openDaysSpan(hours: HourRange[]) {
+  const days = [...new Set(hours.map((range) => range.weekday))].sort();
+  if (days.length < 2) return null;
+  const contiguous = days.every((day, index) => index === 0 || day === days[index - 1] + 1);
+  return contiguous ? { from: days[0], to: days.at(-1)! } : null;
 }

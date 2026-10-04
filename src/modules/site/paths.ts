@@ -19,3 +19,6 @@ export const SITE_PATHS = {
 export type SitePathKey = keyof typeof SITE_PATHS;
 
 export const categoryPath = (slug: string) => `${SITE_PATHS.services}/${slug}`;
+
+/** Page d'une professionnelle (entreprise) : /avec/laila. */
+export const businessPath = (slug: string) => `/avec/${slug}`;

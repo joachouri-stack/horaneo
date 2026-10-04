@@ -7,7 +7,8 @@ import { resolveManagerAccess } from "@/lib/manager/role";
 import { createBooking } from "@/modules/booking/create";
 import { businessOfManageToken, findByManageToken } from "@/modules/booking/manage";
 import { localToUtc } from "@/modules/booking/time";
-import { businessOfServices, createBusiness } from "@/modules/businesses/businesses";
+import { businessOfServices, createBusiness, updateBusinessProfile } from "@/modules/businesses/businesses";
+import { loadSiteData } from "@/modules/site/data";
 import { listServices, saveService } from "@/modules/catalog/services";
 import { AppError } from "@/modules/errors";
 import { countUsage } from "@/modules/quotas";
@@ -274,5 +275,46 @@ describe.skipIf(!hasTestDatabase)("plusieurs entreprises sur un même site", () 
         platform((tx) => createBusiness(tx, site.tenantId, { name: "Troisième", managerEmail: laila.email })),
       ),
     ).toBe("manager_already_linked");
+  });
+
+  it("chaque entreprise a sa page sur le site (adresse unique, textes, photo du site seulement)", async () => {
+    await platform((tx) =>
+      updateBusinessProfile(tx, site.tenantId, site.laila.id, {
+        slug: "laila",
+        title: "Esthétique",
+        role: "Esthéticienne, spécialiste du regard",
+        availability: "Du lundi au samedi",
+      }),
+    );
+    expect(
+      await errorCode(
+        platform((tx) => updateBusinessProfile(tx, site.tenantId, site.natacha.id, { slug: "laila" })),
+      ),
+    ).toBe("slug_taken");
+    expect(
+      await errorCode(
+        platform((tx) => updateBusinessProfile(tx, site.tenantId, site.natacha.id, { slug: "Pas valide !" })),
+      ),
+    ).toBe("slug_invalid");
+    expect(
+      await errorCode(
+        platform((tx) =>
+          updateBusinessProfile(tx, site.tenantId, site.natacha.id, {
+            photoAssetId: "01890000-0000-7000-8000-000000000000",
+          }),
+        ),
+      ),
+    ).toBe("invalid");
+    // Sans adresse saisie : proposée à partir du nom.
+    await platform((tx) => updateBusinessProfile(tx, site.tenantId, site.natacha.id, { title: "Massages" }));
+    const data = await asBusiness(null, (tx) => loadSiteData(tx, site.tenantId));
+    expect(data?.businesses.map((business) => [business.slug, business.title])).toEqual([
+      ["laila", "Esthétique"],
+      ["natacha", "Massages"],
+    ]);
+    expect(data?.businesses[0]).toMatchObject({
+      role: "Esthéticienne, spécialiste du regard",
+      availability: "Du lundi au samedi",
+    });
   });
 });

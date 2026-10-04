@@ -46,6 +46,10 @@ export type SiteCategory = {
   name: string;
   slug: string;
   description: string;
+  icon: string | null;
+  isFeatured: boolean;
+  /** Prix le plus bas de la catégorie (« dès 45 € »). */
+  minPriceCents: number;
   services: SiteService[];
 };
 
@@ -175,6 +179,11 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
       name: text(category.name),
       slug: text(category.slug),
       description: text(category.description),
+      icon: category.icon,
+      isFeatured: category.isFeatured,
+      minPriceCents: Math.min(
+        ...siteServices.filter((service) => service.categoryId === category.id).map((s) => s.priceCents),
+      ),
       services: siteServices.filter((service) => service.categoryId === category.id),
     }))
     .filter((category) => category.services.length > 0 && category.slug);
@@ -200,7 +209,9 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
       currency: tenant.currency,
       businessCategory: tenant.businessCategory,
       theme: tenant.theme,
+      templateKey: tenant.templateKey,
       colors: tenant.brand.colors,
+      social: tenant.brand.social ?? {},
     },
     locale: lang,
     features: {
@@ -227,6 +238,13 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
         .filter(Boolean)
         .join(", "),
       isPrimary: business.isPrimary,
+      /** Sa page sur le site (modèle Atelier) : /avec/<slug>. */
+      slug: business.slug,
+      title: text(business.profile.title),
+      role: text(business.profile.role),
+      bio: text(business.profile.bio),
+      availability: text(business.profile.availability),
+      photo: image(business.profile.photoAssetId),
     })),
     staff: staffRows.map((member) => ({
       id: member.id,
@@ -244,12 +262,14 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
           rating: item.rating,
         }))
       : [],
-    openingHours: hourRows.map((range) => ({
-      businessId: range.businessId,
-      weekday: range.weekday,
-      opensAt: range.opensAt.slice(0, 5),
-      closesAt: range.closesAt.slice(0, 5),
-    })),
+    /** Horaires du lieu : ceux de toutes ses entreprises, sans doublon. */
+    openingHours: mergeHours(
+      hourRows.map((range) => ({
+        weekday: range.weekday,
+        opensAt: range.opensAt.slice(0, 5),
+        closesAt: range.closesAt.slice(0, 5),
+      })),
+    ),
     gallery: assetRows
       .filter((asset) => asset.kind === "gallery")
       .map((asset) => ({
@@ -259,6 +279,23 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
         alt: text(asset.alt),
       })),
   };
+}
+
+type HourRange = { weekday: number; opensAt: string; closesAt: string };
+
+/** Réunit les plages de plusieurs entreprises : une plage par période d'ouverture du lieu. */
+export function mergeHours(ranges: HourRange[]): HourRange[] {
+  const merged: HourRange[] = [];
+  const sorted = [...ranges].sort((a, b) => a.weekday - b.weekday || a.opensAt.localeCompare(b.opensAt));
+  for (const range of sorted) {
+    const last = merged.at(-1);
+    if (last && last.weekday === range.weekday && range.opensAt <= last.closesAt) {
+      if (range.closesAt > last.closesAt) last.closesAt = range.closesAt;
+    } else {
+      merged.push({ ...range });
+    }
+  }
+  return merged;
 }
 
 /** Pages du menu d'un site complet : seules celles qui ont du contenu (et ne sont pas masquées). */

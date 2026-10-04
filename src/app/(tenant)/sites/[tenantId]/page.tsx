@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { AtelierHome } from "@/components/site/atelier/AtelierHome";
 import { BookButton } from "@/components/site/BookButton";
 import { GalleryGrid, Prose, TestimonialList } from "@/components/site/blocks";
 import { AddressBlock, OpeningHoursTable } from "@/components/site/PracticalInfo";
@@ -20,6 +21,7 @@ export default async function TenantHomePage({ params }: PageProps<"/sites/[tena
   const home = site.pages.home;
   const cover = home?.photo ?? null;
   const sections = visibleSections(site);
+  if (site.tenant.templateKey === "atelier" && site.features.fullSite) return <AtelierHome site={site} />;
 
   const hero = (
     <section className="relative overflow-hidden">

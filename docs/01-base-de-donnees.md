@@ -107,7 +107,7 @@ Une même personne peut ainsi gérer plusieurs établissements.
 `hostname` (unique : `institut-lea.horaneo.com` ou `www.institut-lea.fr`), `type` (`subdomain` / `custom`), `is_primary`, `status` (`pending`, `active`, `error`), `cloudflare_hostname_id`, `ssl_status`, `verified_at`.
 
 **`businesses`** (migration 0012) : entreprises d'un site (une le plus souvent ; deux indépendantes dans un même institut en ont deux).
-`name` (nom affiché, ex. prénom), `legal_name`, `siret`, `vat_number`, `email`, `phone`, `address_line1`, `postal_code`, `city`, `stripe_account_id` (unique), `stripe_charges_enabled`, `is_primary` (une seule par site : elle règle l'abonnement), `sort_order`.
+`name` (nom affiché, ex. prénom), `legal_name`, `siret`, `vat_number`, `email`, `phone`, `address_line1`, `postal_code`, `city`, `stripe_account_id` (unique), `stripe_charges_enabled`, `slug` (adresse de sa page, unique dans le site), `profile` (JSON : titre, métier, présentation, disponibilités, photo), `is_primary` (une seule par site : elle règle l'abonnement), `sort_order`.
 Les tables d'une entreprise (prestations, équipe, horaires, indisponibilités, clientes, rendez-vous, paiements, remboursements, codes promo, gérantes, messages) portent un `business_id`, avec une clé étrangère `(tenant_id, business_id)` qui empêche de mélanger deux sites. Les clientes, rendez-vous et paiements ne sont visibles que de leur entreprise.
 
 **`business_settings`** (ancienne `tenant_settings`) : règles de réservation et préférences (une ligne par entreprise, valeurs par défaut du brief).

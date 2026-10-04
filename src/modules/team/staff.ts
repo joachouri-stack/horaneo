@@ -100,7 +100,10 @@ export async function saveStaff(
     .returning();
   await setServices(tx, tenantId, created.id, input.serviceIds);
   // Par défaut, un nouveau membre travaille aux horaires d'ouverture (modifiable ensuite).
-  const hours = await tx.select().from(openingHours).where(eq(openingHours.tenantId, tenantId));
+  const hours = await tx
+    .select()
+    .from(openingHours)
+    .where(and(eq(openingHours.tenantId, tenantId), eq(openingHours.businessId, created.businessId)));
   if (hours.length > 0) {
     await tx.insert(staffSchedules).values(
       hours.map((range) => ({

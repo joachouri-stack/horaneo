@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { sql, type AnyColumn } from "drizzle-orm";
 import { appDb, type Database, type Transaction } from "./client";
 
 /**
@@ -65,6 +65,14 @@ export async function declareBusiness(tx: Transaction, businessId: string | null
   if (businessId && !UUID.test(businessId))
     throw new Error(`Identifiant d'entreprise invalide : ${businessId}`);
   await tx.execute(sql`SELECT set_config('app.business_id', ${businessId ?? ""}, true)`);
+}
+
+/**
+ * Condition « lignes de l'entreprise déclarée » (toutes si aucune), en plus des
+ * règles de la base : utile aux écritures en masse (remplacer les horaires…).
+ */
+export function inCurrentBusiness(column: AnyColumn) {
+  return sql`(app_current_business() IS NULL OR ${column} = app_current_business())`;
 }
 
 /** Entreprise déclarée pour la transaction (null : vue « site »). */

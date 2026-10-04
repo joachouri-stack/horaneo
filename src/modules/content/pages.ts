@@ -24,13 +24,25 @@ export type SitePageKey = (typeof SITE_PAGE_KEYS)[number];
 
 /** Champs texte de chaque page (tous facultatifs). */
 export const PAGE_TEXT_FIELDS = {
-  home: ["tagline", "intro"],
+  home: [
+    "tagline",
+    "intro",
+    // Modèle Atelier : fin du titre en italique, petite étiquette au-dessus, chiffres clés.
+    "taglineAccent",
+    "badge",
+    "highlight1Value",
+    "highlight1Label",
+    "highlight2Value",
+    "highlight2Label",
+    "highlight3Value",
+    "highlight3Label",
+  ],
   about: ["title", "body"],
   team: ["intro"],
   gallery: ["intro"],
   testimonials: ["intro"],
   practical: ["access"],
-  legal: ["extra"],
+  legal: ["extra", "credit"],
 } as const satisfies Record<SitePageKey, readonly string[]>;
 
 /** Photo associée à certaines pages. */

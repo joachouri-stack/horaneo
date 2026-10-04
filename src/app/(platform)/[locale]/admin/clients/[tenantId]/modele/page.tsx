@@ -3,7 +3,7 @@ import { ActionForm } from "@/components/admin/ActionForm";
 import { Hidden, Section, SelectField, TextField } from "@/components/admin/fields";
 import { WizardNav } from "@/components/admin/WizardNav";
 import { loadTenantOverview } from "@/lib/admin/tenant";
-import { TEMPLATE_KEYS } from "@/modules/tenants/update";
+import { TEMPLATE_KEYS, THEME_KEYS } from "@/modules/tenants/update";
 import { updateAppearanceAction } from "../../actions";
 
 export default async function TemplatePage({
@@ -47,7 +47,7 @@ export default async function TemplatePage({
             name="theme"
             label={t("theme")}
             defaultValue={tenant.theme}
-            options={(["light", "dark", "nature"] as const).map((key) => ({
+            options={THEME_KEYS.map((key) => ({
               value: key,
               label: tThemes(key),
             }))}

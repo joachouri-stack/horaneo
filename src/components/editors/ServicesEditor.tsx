@@ -1,10 +1,11 @@
 import { getTranslations } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
-import { Hidden, Section, TextField } from "@/components/admin/fields";
+import { CheckboxField, Hidden, Section, SelectField, TextField } from "@/components/admin/fields";
 import { ServiceFields } from "@/components/admin/ServiceFields";
 import { pickLocalized, type LocalizedText } from "@/i18n/locales";
 import type { ActionResult } from "@/lib/actions/result";
 import { formatMoney } from "@/lib/format";
+import { CATEGORY_ICONS } from "@/modules/catalog/icons";
 import type { listCategories, listServices } from "@/modules/catalog/services";
 
 type Action = (previous: ActionResult<unknown> | null, data: FormData) => Promise<ActionResult<unknown>>;
@@ -36,6 +37,10 @@ export async function ServicesEditor({
     getTranslations("common"),
   ]);
   const text = (value: LocalizedText | null) => pickLocalized(value, locale as "fr");
+  const iconOptions = [
+    { value: "", label: t("noIcon") },
+    ...CATEGORY_ICONS.map((icon) => ({ value: icon, label: t(`icons.${icon}`) })),
+  ];
   const categoryOptions = categories.map((category) => ({ value: category.id, label: text(category.name) }));
 
   return (
@@ -48,18 +53,30 @@ export async function ServicesEditor({
                 action={actions.saveCategory}
                 submitLabel={tCommon("save")}
                 variant="link"
-                className="flex flex-1 flex-wrap items-end gap-3"
+                className="grid flex-1 items-end gap-3 sm:grid-cols-2"
               >
                 <Hidden values={{ tenantId, businessId, id: category.id }} />
-                <div className="min-w-48 flex-1">
-                  <TextField
-                    id={`cat-${category.id}`}
-                    name="name"
-                    label={t("categoryName")}
-                    defaultValue={text(category.name)}
-                    required
-                  />
-                </div>
+                <TextField
+                  id={`cat-${category.id}`}
+                  name="name"
+                  label={t("categoryName")}
+                  defaultValue={text(category.name)}
+                  required
+                />
+                <TextField
+                  id={`cat-desc-${category.id}`}
+                  name="description"
+                  label={t("categoryDescription")}
+                  defaultValue={text(category.description)}
+                />
+                <SelectField
+                  id={`cat-icon-${category.id}`}
+                  name="icon"
+                  label={t("icon")}
+                  defaultValue={category.icon ?? ""}
+                  options={iconOptions}
+                />
+                <CheckboxField name="isFeatured" label={t("featured")} defaultChecked={category.isFeatured} />
               </ActionForm>
               <ActionForm
                 action={actions.deleteCategory}

@@ -257,7 +257,55 @@
     },
     "homeLabel": "Accueil",
     "notFound": "Cette page n'existe pas ou a été déplacée.",
-    "backHome": "Retour à l'accueil"
+    "backHome": "Retour à l'accueil",
+    "atelier": {
+      "nav": {
+        "about": "L'institut",
+        "testimonials": "Témoignages",
+        "practical": "Infos pratiques"
+      },
+      "bookMoment": "Réserver un moment",
+      "seeAllServices": "Voir tous les soins",
+      "onlineBooking": "24 h/24",
+      "onlineBookingLabel": "réservation en ligne",
+      "byAppointment": "Sur rendez-vous",
+      "daysSpan": "Du {from} au {to}",
+      "servicesTitle": "Que souhaitez-vous",
+      "servicesTitleAccent": "réserver ?",
+      "servicesIntro": "Choisissez un soin pour voir les tarifs et les créneaux.",
+      "filterAll": "Tous les soins",
+      "filterWith": "Avec {name}",
+      "from": "dès {price}",
+      "seeCategory": "Voir : {category}",
+      "speciality": "Spécialité",
+      "teamTitle": "{count, plural, =1 {Une professionnelle,} =2 {Deux professionnelles,} =3 {Trois professionnelles,} other {# professionnelles,}}",
+      "teamTitleAccent": "à votre écoute.",
+      "allTheirServices": "Tous ses soins",
+      "aboutTitle": "L'institut",
+      "takeAppointment": "Prendre rendez-vous",
+      "testimonialsTitle": "Elles nous font confiance",
+      "hoursTitle": "Horaires",
+      "findUs": "Nous trouver",
+      "ctaTitle": "Un moment rien que pour vous",
+      "ctaText": "Réservez en ligne, à toute heure.",
+      "closed": "Fermé",
+      "range": "{from} à {to}",
+      "groupDays": "{from} au {to}",
+      "footerAbout": "{city, select, none {Sur rendez-vous.} other {À {city}, sur rendez-vous.}}",
+      "footerServices": "Les soins",
+      "businessLink": "{title}, avec {name}",
+      "phoneOf": "{name} :",
+      "rights": "© {year} {name} · Tous droits réservés",
+      "pageIntro": "Choisissez votre soin, puis votre créneau. La réservation se fait en quelques gestes.",
+      "withName": "Avec {name}",
+      "bookWith": "Réserver avec {name}",
+      "servicesCount": "{count, plural, one {# prestation} other {# prestations}}",
+      "bookService": "Réserver : {service}",
+      "onRequest": "Sur demande",
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "otherPhotos": "Photo de l'institut"
+    }
   },
   "emails": {
     "magicLink": {
@@ -476,7 +524,10 @@
         "timezone": "Fuseau horaire",
         "latitude": "Latitude",
         "longitude": "Longitude",
-        "coordinatesHint": "Facultatif : pour afficher le plan sur le site. Clic droit sur le lieu dans Google Maps pour copier les coordonnées."
+        "coordinatesHint": "Facultatif : pour afficher le plan sur le site. Clic droit sur le lieu dans Google Maps pour copier les coordonnées.",
+        "social": "Réseaux sociaux",
+        "instagram": "Page Instagram (adresse complète)",
+        "facebook": "Page Facebook (adresse complète)"
       },
       "appearance": {
         "title": "Métier et modèle",
@@ -520,7 +571,27 @@
         "quota": "{used} prestation(s) sur {limit}",
         "minutes": "{count} min",
         "disabled": "désactivée",
-        "deactivatedInstead": "Prestation déjà réservée : elle a été désactivée au lieu d'être supprimée."
+        "deactivatedInstead": "Prestation déjà réservée : elle a été désactivée au lieu d'être supprimée.",
+        "icon": "Pictogramme (modèle Atelier)",
+        "noIcon": "Aucun",
+        "featured": "Mettre en avant (« Spécialité »)",
+        "categoryDescription": "Courte description de la catégorie",
+        "icons": {
+          "eye": "Regard",
+          "sparkles": "Éclat",
+          "leaf": "Feuille",
+          "hand": "Main",
+          "face": "Visage",
+          "drop": "Goutte",
+          "waves": "Vagues",
+          "sun": "Soleil",
+          "pen": "Crayon",
+          "graduation": "Formation",
+          "flower": "Fleur",
+          "heart": "Cœur",
+          "scissors": "Ciseaux",
+          "star": "Étoile"
+        }
       },
       "team": {
         "title": "Équipe",
@@ -561,12 +632,21 @@
           "legal": "Mentions légales"
         },
         "fields": {
-          "tagline": "Phrase d'accroche",
+          "tagline": "Phrase d'accroche (titre de l'accueil)",
           "intro": "Présentation",
           "title": "Titre",
           "body": "Texte",
           "access": "Accès, parking, transports",
-          "extra": "Informations complémentaires"
+          "extra": "Informations complémentaires",
+          "taglineAccent": "Fin du titre, en italique (modèle Atelier)",
+          "badge": "Petite étiquette au-dessus du titre (ex. « Institut de beauté à Avignon »)",
+          "highlight1Value": "Chiffre clé 1 (ex. « + 3 ans »)",
+          "highlight1Label": "Légende du chiffre clé 1 (ex. « à votre service »)",
+          "highlight2Value": "Chiffre clé 2",
+          "highlight2Label": "Légende du chiffre clé 2",
+          "highlight3Value": "Chiffre clé 3",
+          "highlight3Label": "Légende du chiffre clé 3",
+          "credit": "Crédit en bas du site (ex. « Design by … »)"
         }
       },
       "photos": {
@@ -628,7 +708,18 @@
         "managerEmail": "E-mail de sa gérante",
         "managerName": "Nom de sa gérante",
         "addSubmit": "Ajouter l'entreprise",
-        "added": "Entreprise ajoutée. Ajoutez maintenant son équipe et ses prestations (onglets Équipe et Prestations, en choisissant l'entreprise)."
+        "added": "Entreprise ajoutée. Ajoutez maintenant son équipe et ses prestations (onglets Équipe et Prestations, en choisissant l'entreprise).",
+        "profile": "Sa page sur le site",
+        "profileHint": "Modèle Atelier : chaque professionnelle a sa page, avec ses soins et le bouton « Réserver avec … ».",
+        "slug": "Adresse de sa page (/avec/…)",
+        "slugHint": "Lettres, chiffres et tirets. Vide : proposée à partir du nom.",
+        "pageTitle": "Titre de sa page et du menu (ex. « Esthétique »)",
+        "role": "Métier (ex. « Esthéticienne, spécialiste du regard »)",
+        "bio": "Présentation",
+        "availability": "Disponibilités (ex. « Du lundi au samedi »)",
+        "photo": "Photo",
+        "noPhoto": "Aucune photo",
+        "saveProfile": "Enregistrer sa page"
       }
     },
     "requests": {
@@ -805,10 +896,12 @@
   "themes": {
     "light": "Claire",
     "dark": "Sombre",
-    "nature": "Nature"
+    "nature": "Nature",
+    "blush": "Rose poudré"
   },
   "templates": {
-    "wellness": "Bien-être et coiffure"
+    "wellness": "Bien-être et coiffure",
+    "atelier": "Atelier (institut, une page par professionnelle)"
   },
   "weekdays": {
     "1": "Lundi",
@@ -823,13 +916,13 @@
     "title": "Réserver",
     "steps": {
       "services": "Prestation",
-      "slot": "Créneau",
+      "slot": "Quand ?",
       "details": "Coordonnées",
       "payment": "Acompte"
     },
     "stepOf": "Étape {current} sur {total} : {label}",
     "services": {
-      "choose": "Choisissez votre prestation",
+      "choose": "Quel soin ?",
       "chooseMany": "Choisissez jusqu'à {max} prestations",
       "maxReached": "Vous avez atteint le nombre maximum de prestations pour un rendez-vous.",
       "selected": "{count, plural, one {# prestation} other {# prestations}} · {duration} · {price}",
@@ -883,16 +976,19 @@
       "expired": "Le délai de paiement est dépassé et le créneau a été libéré. Vous pouvez reprendre la réservation.",
       "restart": "Reprendre la réservation",
       "checking": "Vérification du paiement…",
-      "unavailable": "Le paiement en ligne n'est pas disponible pour le moment. Merci de contacter l'établissement."
+      "unavailable": "Le paiement en ligne n'est pas disponible pour le moment. Merci de contacter l'établissement.",
+      "secureTo": "Paiement sécurisé, versé directement à {name}."
     },
     "confirmation": {
-      "title": "Rendez-vous confirmé",
+      "title": "C'est confirmé",
       "pendingTitle": "Créneau réservé",
       "summary": "{date} à {time}, avec {name}",
       "keepLink": "Gardez ce lien : il permet d'annuler ou de déplacer votre rendez-vous gratuitement jusqu'à {hours} h avant.",
       "manageLink": "Gérer mon rendez-vous",
       "emailSoon": "Vous recevrez aussi une confirmation par e-mail.",
-      "paidTitle": "Acompte payé, rendez-vous confirmé"
+      "paidTitle": "C'est confirmé",
+      "addToCalendar": "Ajouter à mon agenda",
+      "emailSent": "Un e-mail de confirmation vient de vous être envoyé."
     },
     "back": "Retour",
     "continue": "Continuer",
@@ -937,9 +1033,10 @@
       "discount": "Réduction"
     },
     "business": {
-      "title": "Avec qui ?",
+      "title": "Avec qui souhaitez-vous réserver ?",
       "intro": "Choisissez la professionnelle qui réalisera votre soin.",
-      "choose": "Réserver avec {name}"
+      "choose": "Réserver avec {name}",
+      "stepLabel": "Avec qui"
     }
   },
   "manager": {

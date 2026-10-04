@@ -36,7 +36,8 @@ pnpm db:seed
 
 # 5. (facultatif) Démos : http://institut-demo.localhost:3000 (Basic),
 #    http://spa-demo.localhost:3000 (Sérénité, site complet)
-#    et http://duo-demo.localhost:3000 (un site, deux entreprises)
+#    http://duo-demo.localhost:3000 (un site, deux entreprises)
+#    et http://ma-beaute-demo.localhost:3000 (modèle Atelier ; photos : DEMO_PHOTOS_DIR=dossier)
 pnpm db:seed-demo
 
 # 6. (facultatif) Se donner le statut d'administratrice
@@ -143,6 +144,16 @@ Un site (tenant) porte le domaine, le modèle, le logo, les couleurs, les pages 
 - Mentions légales : chaque entreprise avec son SIRET.
 
 Tests : `tests/db/businesses.test.ts`.
+
+## Modèles de site
+
+- **wellness** : modèle sobre (claire, sombre, nature).
+- **atelier** : institut avec une page par professionnelle (maquettes de Ma Beauté Institut). Ambiance conseillée : « Rose poudré » (`blush`). On le choisit dans l'admin, onglet Modèle.
+  - Accueil : accroche avec fin en italique, chiffres clés, bandeau des soins, cartes des catégories (pictogramme, « dès … », filtre par professionnelle, catégories « Spécialité » en grand), les professionnelles, l'institut, les avis, horaires et adresse.
+  - Page de chaque professionnelle : `/avec/<adresse>` (présentation, ses soins par catégorie, « Réserver avec … »).
+  - Réservation : « Avec qui ? » (étape 1), soin, créneau, coordonnées, acompte « versé directement à … », puis « C'est confirmé » avec « Ajouter à mon agenda ».
+  - Pied de page brun, nom en filigrane, réseaux sociaux, crédit facultatif. Aucune marque du SaaS sur un site payant.
+- Tout se saisit dans l'admin : Entreprises → « Sa page sur le site » ; Prestations → pictogramme et « Spécialité » de chaque catégorie ; Textes → accroche, étiquette, chiffres clés, crédit ; Coordonnées → réseaux sociaux.
 
 ## Connexion et rôles
 

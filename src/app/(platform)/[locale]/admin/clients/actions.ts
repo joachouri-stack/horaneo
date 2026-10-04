@@ -1,5 +1,6 @@
 "use server";
 
+import { categoryFields } from "@/modules/catalog/icons";
 import { billingGateway } from "@/lib/payments/stripe-billing";
 import { changePlanManually } from "@/modules/billing/subscriptions";
 import { completeOrdersOfTenant, linkOrderToTenant } from "@/modules/orders/orders";
@@ -15,7 +16,7 @@ import { deleteTestimonial, saveTestimonial } from "@/modules/content/testimonia
 import { restoreAsset, retireAsset, uploadAsset, uploadLogo } from "@/modules/media/assets";
 import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
 import { deleteStaff, saveStaff } from "@/modules/team/staff";
-import { createBusiness, updateBusiness } from "@/modules/businesses/businesses";
+import { createBusiness, updateBusiness, updateBusinessProfile } from "@/modules/businesses/businesses";
 import { createTenant } from "@/modules/tenants/create";
 import {
   addCustomDomain,
@@ -23,7 +24,7 @@ import {
   removeCustomDomain,
   setPrimaryDomain,
 } from "@/modules/tenants/domains";
-import { changeStatus, updateAppearance, updateIdentity } from "@/modules/tenants/update";
+import { changeStatus, updateAppearance, updateIdentity, updateSocial } from "@/modules/tenants/update";
 import type { LogoPalette } from "@/lib/images/palette";
 
 /**
@@ -188,6 +189,33 @@ export async function updateBusinessAction(_previous: Previous, data: FormData) 
   );
 }
 
+export async function updateBusinessProfileAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const businessId = businessIdOf(data);
+  return adminMutation(
+    { action: "business.profile_updated", tenantId, targetType: "business", targetId: businessId },
+    (tx) =>
+      updateBusinessProfile(tx, tenantId, businessId, {
+        slug: form.optional(data, "slug"),
+        title: form.text(data, "title"),
+        role: form.text(data, "role"),
+        bio: form.text(data, "bio"),
+        availability: form.text(data, "availability"),
+        photoAssetId: form.optional(data, "photoAssetId") ?? null,
+      }),
+  );
+}
+
+export async function updateSocialAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return adminMutation({ action: "tenant.social_updated", tenantId }, (tx) =>
+    updateSocial(tx, tenantId, {
+      instagram: form.optional(data, "instagram"),
+      facebook: form.optional(data, "facebook"),
+    }),
+  );
+}
+
 export async function createBusinessAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   const result = await adminMutation(
@@ -249,13 +277,7 @@ export async function saveCategoryAction(_previous: Previous, data: FormData) {
   const id = idOf(data);
   return adminMutation(
     { action: id ? "category.updated" : "category.created", tenantId, businessId: businessIdOf(data) },
-    (tx) =>
-      saveCategory(
-        tx,
-        tenantId,
-        { name: form.text(data, "name"), description: form.optional(data, "description") },
-        id,
-      ),
+    (tx) => saveCategory(tx, tenantId, categoryFields(data), id),
   );
 }
 

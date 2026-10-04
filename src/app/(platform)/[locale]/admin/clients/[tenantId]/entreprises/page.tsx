@@ -1,10 +1,13 @@
 import { getTranslations } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
-import { Hidden, Section, TextField } from "@/components/admin/fields";
+import { Hidden, Section, SelectField, TextArea, TextField } from "@/components/admin/fields";
+import { pickLocalized } from "@/i18n/locales";
+import { adminQuery } from "@/lib/admin/mutation";
+import { listActiveAssets } from "@/modules/media/assets";
 import { Link } from "@/i18n/navigation";
 import { loadTenantOverview } from "@/lib/admin/tenant";
 import { connectState } from "@/modules/payments/connect";
-import { createBusinessAction, updateBusinessAction } from "../../actions";
+import { createBusinessAction, updateBusinessAction, updateBusinessProfileAction } from "../../actions";
 
 /** Entreprises d'un site : identité légale, gérante, compte Stripe ; ajout d'une entreprise. */
 export default async function BusinessesPage({
@@ -17,6 +20,17 @@ export default async function BusinessesPage({
     getTranslations("common"),
     loadTenantOverview(tenantId),
   ]);
+  const photos = await adminQuery((tx) => listActiveAssets(tx, tenantId));
+  const locale = overview.tenant.defaultLocale as "fr";
+  const photoOptions = [
+    { value: "", label: t("noPhoto") },
+    ...photos
+      .filter((photo) => photo.kind !== "logo")
+      .map((photo, index) => ({
+        value: photo.id,
+        label: pickLocalized(photo.alt, locale) || `Photo ${index + 1}`,
+      })),
+  ];
   const fields = (business?: (typeof overview.businesses)[number]) => (
     <>
       <TextField name="name" label={t("name")} defaultValue={business?.name} required />
@@ -73,6 +87,56 @@ export default async function BusinessesPage({
               <Hidden values={{ tenantId, businessId: business.id }} />
               {fields(business)}
             </ActionForm>
+            <div className="mt-6 border-t border-navy/10 pt-6">
+              <h3 className="text-lg font-bold">{t("profile")}</h3>
+              <p className="mb-4 text-sm text-ink/70">{t("profileHint")}</p>
+              <ActionForm
+                action={updateBusinessProfileAction}
+                submitLabel={t("saveProfile")}
+                className="grid gap-4 sm:grid-cols-2"
+              >
+                <Hidden values={{ tenantId, businessId: business.id }} />
+                <TextField
+                  id={`slug-${business.id}`}
+                  name="slug"
+                  label={t("slug")}
+                  hint={t("slugHint")}
+                  defaultValue={business.slug}
+                />
+                <TextField
+                  id={`title-${business.id}`}
+                  name="title"
+                  label={t("pageTitle")}
+                  defaultValue={pickLocalized(business.profile.title, locale)}
+                />
+                <TextField
+                  id={`role-${business.id}`}
+                  name="role"
+                  label={t("role")}
+                  defaultValue={pickLocalized(business.profile.role, locale)}
+                />
+                <TextField
+                  id={`availability-${business.id}`}
+                  name="availability"
+                  label={t("availability")}
+                  defaultValue={pickLocalized(business.profile.availability, locale)}
+                />
+                <TextArea
+                  id={`bio-${business.id}`}
+                  name="bio"
+                  label={t("bio")}
+                  rows={3}
+                  defaultValue={pickLocalized(business.profile.bio, locale)}
+                />
+                <SelectField
+                  id={`photo-${business.id}`}
+                  name="photoAssetId"
+                  label={t("photo")}
+                  options={photoOptions}
+                  defaultValue={business.profile.photoAssetId ?? ""}
+                />
+              </ActionForm>
+            </div>
           </Section>
         );
       })}

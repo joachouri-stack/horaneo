@@ -17,6 +17,7 @@ import {
   uuid,
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
+import type { LocalizedText } from "@/i18n/locales";
 import { currency, id, timestamps, utc } from "./_helpers";
 import { plans } from "./platform";
 
@@ -32,7 +33,7 @@ export const tenantStatusEnum = pgEnum("tenant_status", [
   "deleted",
 ]);
 
-export const siteThemeEnum = pgEnum("site_theme", ["light", "dark", "nature"]);
+export const siteThemeEnum = pgEnum("site_theme", ["light", "dark", "nature", "blush"]);
 
 export type TenantBrand = {
   logoAssetId?: string | null;
@@ -43,6 +44,20 @@ export type TenantBrand = {
     background?: string;
     text?: string;
   };
+  /** Pages des réseaux sociaux (adresses complètes). */
+  social?: { instagram?: string; facebook?: string };
+};
+
+/** Présentation publique d'une entreprise (sa page sur le site : « Esthétique, avec Laïla »). */
+export type BusinessProfile = {
+  /** Titre de sa page et du menu (ex. « Esthétique »). */
+  title?: LocalizedText;
+  /** Métier affiché sous le nom (ex. « Esthéticienne, spécialiste du regard »). */
+  role?: LocalizedText;
+  bio?: LocalizedText;
+  /** Disponibilités en clair (ex. « Du lundi au samedi »). */
+  availability?: LocalizedText;
+  photoAssetId?: string | null;
 };
 
 export const tenants = pgTable(
@@ -124,6 +139,9 @@ export const businesses = pgTable(
     // Stripe Connect (acomptes, encaissés par cette entreprise)
     stripeAccountId: text(),
     stripeChargesEnabled: boolean().notNull().default(false),
+    /** Adresse de sa page sur le site : /avec/<slug>. */
+    slug: text(),
+    profile: jsonb().$type<BusinessProfile>().notNull().default({}),
     /** Entreprise principale : celle qui règle l'abonnement du site. */
     isPrimary: boolean().notNull().default(false),
     sortOrder: integer().notNull().default(0),
@@ -136,6 +154,7 @@ export const businesses = pgTable(
       .on(t.tenantId)
       .where(sql`${t.isPrimary}`),
     index("businesses_tenant_idx").on(t.tenantId),
+    uniqueIndex("businesses_tenant_slug_key").on(t.tenantId, t.slug),
   ],
 );
 

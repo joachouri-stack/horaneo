@@ -5,7 +5,6 @@ import { PageTitle } from "@/components/site/blocks";
 import { withTenant } from "@/db/access";
 import { pickLocalized } from "@/i18n/locales";
 import { paymentGateway } from "@/lib/payments/stripe";
-import Link from "next/link";
 import { SiteImage } from "@/components/site/SiteImage";
 import { getSite } from "@/lib/site/load";
 import { isOnlineQuotaReached, loadBookingContext } from "@/modules/booking/availability";
@@ -41,41 +40,84 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
       : site.businesses.find(
           (item) => item.id === (requestedService ? requestedService.businessId : query.avec),
         );
+  const multi = site.businesses.length > 1;
   if (!business) {
+    // Nombre d'étapes affiché : « Avec qui ? », puis le parcours (avec l'acompte si l'une le demande).
+    const contexts = await Promise.all(
+      site.businesses.map((item) =>
+        withTenant(tenantId, (tx) => loadBookingContext(tx, tenantId), undefined, item.id).catch(() => null),
+      ),
+    );
+    const anyDeposit = contexts.some(
+      (context) =>
+        context?.settings.depositEnabled &&
+        onlinePaymentReady(context.business, context.features, paymentGateway()),
+    );
+    const total = anyDeposit ? 5 : 4;
     return (
       <main id="contenu" className="mx-auto max-w-3xl px-4 py-10">
-        <PageTitle title={t("business.title")} intro={t("business.intro")} />
-        <ul className="grid gap-4 sm:grid-cols-2">
-          {site.businesses.map((item) => {
-            const team = site.staff.filter((member) => member.businessId === item.id);
-            const names = team.map((member) => member.name).filter((name) => name !== item.name);
-            const photo = team.find((member) => member.photo)?.photo;
-            return (
-              <li key={item.id}>
-                <Link
-                  href={`${SITE_PATHS.booking}?avec=${item.id}`}
-                  className="flex h-full flex-col gap-3 rounded-site border border-site-border bg-site-surface p-5 hover:border-site-accent"
+        <h1 className="sr-only">{t("title")}</h1>
+        <p className="text-sm text-site-muted">
+          {t("stepOf", { current: 1, total, label: t("business.stepLabel") })}
+        </p>
+        <ol className="mt-6 flex gap-2" aria-hidden="true">
+          {Array.from({ length: total }, (_, i) => (
+            <li
+              key={i}
+              className={`h-1.5 flex-1 rounded-full ${i === 0 ? "bg-site-button" : "bg-site-border"}`}
+            />
+          ))}
+        </ol>
+        <form action={SITE_PATHS.booking} className="mt-6 space-y-4">
+          <fieldset className="space-y-3">
+            <legend className="mb-4 font-site-display text-3xl font-semibold text-site-accent">
+              {t("business.title")}
+            </legend>
+            {site.businesses.map((item, index) => {
+              const team = site.staff.filter((member) => member.businessId === item.id);
+              const detail =
+                item.role ||
+                team
+                  .map((member) => member.name)
+                  .filter((name) => name !== item.name)
+                  .join(", ");
+              const photo = item.photo ?? team.find((member) => member.photo)?.photo;
+              return (
+                <label
+                  key={item.id}
+                  className="flex cursor-pointer items-center gap-4 rounded-site border-2 border-site-border bg-site-card p-4 has-[:checked]:border-site-button has-[:focus-visible]:outline has-[:focus-visible]:outline-2"
                 >
+                  <input
+                    type="radio"
+                    name="avec"
+                    value={item.id}
+                    required
+                    defaultChecked={index === 0}
+                    className="h-5 w-5 accent-[var(--site-button)]"
+                  />
                   {photo && (
                     <SiteImage
                       image={photo}
                       alt=""
-                      sizes="80px"
-                      className="h-20 w-20 rounded-full object-cover"
+                      sizes="56px"
+                      className="h-14 w-14 rounded-full object-cover"
                     />
                   )}
-                  <span className="font-site-display text-2xl font-semibold text-site-accent">
-                    {item.name}
+                  <span>
+                    <span className="block text-lg font-semibold">{item.name}</span>
+                    {detail && <span className="block text-sm text-site-muted">{detail}</span>}
                   </span>
-                  {names.length > 0 && <span className="text-site-muted">{names.join(", ")}</span>}
-                  <span className="mt-auto font-semibold underline">
-                    {t("business.choose", { name: item.name })}
-                  </span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+                </label>
+              );
+            })}
+          </fieldset>
+          <button
+            type="submit"
+            className="inline-flex min-h-14 w-full items-center justify-center rounded-site bg-site-button px-6 text-lg font-semibold text-site-on-button sm:w-auto"
+          >
+            {t("continue")}
+          </button>
+        </form>
       </main>
     );
   }
@@ -129,7 +171,9 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
 
   return (
     <main id="contenu" className="mx-auto max-w-3xl px-4 py-10">
-      <h1 className="mb-6 font-site-display text-4xl font-semibold text-site-accent">{t("title")}</h1>
+      <h1 className={multi ? "sr-only" : "mb-6 font-site-display text-4xl font-semibold text-site-accent"}>
+        {t("title")}
+      </h1>
       <BookingFlow
         locale={site.locale}
         timezone={context.tenant.timezone}
@@ -163,6 +207,13 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
         cancellationHours={context.settings.cancellationDeadlineHours}
         privacyPath={SITE_PATHS.privacy}
         managePath={SITE_PATHS.appointment}
+        stepOffset={multi ? 1 : 0}
+        previousHref={multi ? SITE_PATHS.booking : undefined}
+        payeeName={multi ? business.name : site.tenant.name}
+        siteName={site.tenant.name}
+        address={[site.tenant.address, [site.tenant.postalCode, site.tenant.city].filter(Boolean).join(" ")]
+          .filter(Boolean)
+          .join(", ")}
       />
     </main>
   );

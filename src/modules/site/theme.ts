@@ -6,7 +6,7 @@ import { contrastRatio, ensureContrast, HEX_COLOR, luminance, mixColors, readabl
  * boutons restent lisibles (norme WCAG : 4,5 pour un texte courant).
  */
 
-export type ThemeKey = "light" | "dark" | "nature";
+export type ThemeKey = "light" | "dark" | "nature" | "blush";
 
 export type SiteTheme = {
   key: ThemeKey;
@@ -20,6 +20,8 @@ export type SiteTheme = {
     button: string;
     onButton: string;
     secondary: string;
+    /** Fond des cartes (blanc sur les ambiances claires). */
+    card: string;
   };
   radius: string;
   displayFont: "classic" | "organic";
@@ -35,6 +37,8 @@ const BASES: Record<
   light: { bg: "#ffffff", text: "#1f1f1f", muted: "#595959", radius: "0.5rem", displayFont: "classic" },
   dark: { bg: "#141414", text: "#f3f1ee", muted: "#b8b2ab", radius: "0.25rem", displayFont: "classic" },
   nature: { bg: "#f5f1e8", text: "#25322a", muted: "#566259", radius: "1.25rem", displayFont: "organic" },
+  // Rose poudré et brun chaud (modèle Atelier) : fond légèrement rosé, texte brun.
+  blush: { bg: "#fcf6f4", text: "#3f2723", muted: "#6b5350", radius: "1.25rem", displayFont: "classic" },
 };
 
 export function buildTheme(
@@ -50,7 +54,7 @@ export function buildTheme(
 
   // Fond des blocs : une touche de la couleur secondaire (ou de la principale en sombre).
   // On réduit la teinte tant que le texte n'y reste pas très lisible (contraste ≥ 7).
-  let tint = isDark ? 0.12 : key === "nature" ? 0.45 : 0.3;
+  let tint = isDark ? 0.12 : key === "nature" || key === "blush" ? 0.45 : 0.3;
   let surface = mixColors(base.bg, isDark ? primary : secondary, tint);
   while (contrastRatio(base.text, surface) < 7 && tint > 0) {
     tint = Math.max(0, tint - 0.05);
@@ -85,6 +89,7 @@ export function buildTheme(
       button: buttonVisible,
       onButton: readableTextOn(buttonVisible),
       secondary,
+      card: isDark ? mixColors(base.bg, base.text, 0.06) : "#ffffff",
     },
     radius: base.radius,
     displayFont: base.displayFont,
@@ -104,6 +109,7 @@ export function themeCssVariables(theme: SiteTheme): Record<string, string> {
     "--site-button": c.button,
     "--site-on-button": c.onButton,
     "--site-secondary": c.secondary,
+    "--site-card": c.card,
     "--site-radius": theme.radius,
   };
 }

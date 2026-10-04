@@ -68,7 +68,18 @@
   --color-site-button: var(--site-button);
   --color-site-on-button: var(--site-on-button);
   --color-site-secondary: var(--site-secondary);
+  --color-site-card: var(--site-card);
   --radius-site: var(--site-radius);
   --font-site-display: var(--site-font-display);
-  --font-site-body: var(--font-inter), system-ui, sans-serif;
+  --font-site-body: var(--site-font-body), var(--font-inter), system-ui, sans-serif;
+}
+
+/* Bandeau défilant (modèle Atelier). */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }

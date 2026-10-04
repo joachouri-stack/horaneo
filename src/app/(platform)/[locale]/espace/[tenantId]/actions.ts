@@ -1,5 +1,6 @@
 "use server";
 
+import { categoryFields } from "@/modules/catalog/icons";
 import { redirect as redirectTo } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import { publicAppUrl } from "@/config/env";
@@ -247,7 +248,7 @@ export async function saveCustomerAction(
 export async function saveCategoryAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   return managerMutation(tenantId, "category.saved", (tx) =>
-    saveCategory(tx, tenantId, { name: form.text(data, "name") }, idOf(data)),
+    saveCategory(tx, tenantId, categoryFields(data), idOf(data)),
   );
 }
 
