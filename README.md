@@ -3,7 +3,7 @@
 SaaS multi-tenant : chaque professionnel travaillant sur rendez-vous reçoit son propre site web, avec réservation et paiement d'acompte en ligne.
 
 - Brief et décisions : [`docs/01-base-de-donnees.md`](docs/01-base-de-donnees.md)
-- Avancement : étape 4 sur 14 (espace admin : création d'un client, modèle, contenus, photos)
+- Avancement : étape 5 sur 14 (site client : modèle bien-être en trois ambiances, fiche Basic)
 
 ## Technologies
 
@@ -34,7 +34,8 @@ pnpm db:migrate
 pnpm db:roles
 pnpm db:seed
 
-# 5. (facultatif) Un institut de démonstration : http://institut-demo.localhost:3000
+# 5. (facultatif) Deux démos : http://institut-demo.localhost:3000 (Basic)
+#    et http://spa-demo.localhost:3000 (Sérénité, site complet)
 pnpm db:seed-demo
 
 # 6. (facultatif) Se donner le statut d'administratrice
@@ -71,6 +72,8 @@ src/
   db/schema/         structure de la base, rangée par famille de tables
   i18n/              langues, routage par langue, chargement des traductions
   app/(tenant)/sites/[tenantId]/  sites des clients (adresse interne, jamais visible)
+  components/site/   éléments des sites clients (en-tête, prestations, horaires…)
+  modules/site/      données, ambiances, adresses des pages, référencement
   db/access.ts       withTenant / withPlatform : SEULE porte d'accès aux données
   modules/           règles métier (clients, prestations, équipe, horaires, textes, photos, quotas)
   lib/admin/         actions de l'espace admin (droits revérifiés, journal)
@@ -169,6 +172,23 @@ Adresse : `horaneo.com/fr/admin` (administratrice avec double vérification).
 - Chaque photo est vérifiée (son vrai format, pas seulement son nom), redressée, débarrassée de ses données cachées (position GPS…), redimensionnée et convertie en WebP.
 - Une photo retirée est conservée 7 jours (réglage `replaced_asset_retention_days`) et peut être restaurée. La suppression définitive des fichiers sera faite par une tâche planifiée (étape 9).
 - Stockage : un dossier local `storage/` en développement, servi par `/media/…`. En production : Cloudflare R2 (variables `R2_*`, et `R2_PUBLIC_URL` pour un domaine public comme `media.horaneo.com`).
+
+## Sites des clients
+
+Un seul modèle (bien-être et coiffure), en trois ambiances : **claire**, **sombre** et **nature**. Les couleurs viennent du client (logo, puis réglage dans l'admin). Les contrastes sont recalculés automatiquement pour que titres, textes et bouton « Réserver » restent lisibles (norme WCAG). La palette du SaaS n'est jamais utilisée sur un site client.
+
+| Pack                | Site                                                                                                                                                                        |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Basic               | **fiche d'une page** : logo, présentation, prestations, horaires, adresse, bouton « Réserver », et la signature « Site créé par … »                                         |
+| Essentiel, Sérénité | **site complet** : accueil, prestations et tarifs, une page par catégorie, l'établissement et l'équipe, galerie, avis, infos pratiques (horaires, adresse, plan, téléphone) |
+
+- Le bouton **« Réserver » reste toujours visible** : dans l'en-tête sur ordinateur, dans une barre fixe en bas de l'écran (avec « Appeler ») sur téléphone.
+- Une page vide (pas de photos, pas d'avis…) n'apparaît pas dans le menu. L'administratrice peut aussi masquer une page (case « Page publiée »).
+- **Pages légales** générées à partir des coordonnées du client : mentions légales (seul endroit où apparaît le nom du SaaS, comme hébergeur) et confidentialité. Ces textes sont des modèles **à faire valider juridiquement**.
+- **Référencement local** : titre et description par page, adresse canonique sur le domaine principal, fiche « établissement local » pour Google (adresse, téléphone, horaires, coordonnées GPS), `sitemap.xml` et `robots.txt` propres à chaque site. Rien n'est indexé tant qu'un site n'est pas en ligne.
+- **Rapidité** : pages préparées côté serveur (environ 30 ms en local), photos servies à la taille de l'écran en AVIF/WebP.
+- **Aperçu** : un site « en création » n'est visible que par l'administratrice, avec le lien « Aperçu du site » de sa fiche (valable 1 heure, signé, jamais indexé).
+- La page `/reserver` est provisoire : le parcours de réservation arrive à l'étape 6.
 
 ## Autres garde-fous de la base de données
 

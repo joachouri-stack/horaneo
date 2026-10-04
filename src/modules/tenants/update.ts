@@ -24,6 +24,14 @@ const optionalText = (max: number) =>
 
 // ─── Coordonnées ──────────────────────────────────────────────────────────────
 
+const coordinate = (min: number, max: number) =>
+  z
+    .string()
+    .trim()
+    .optional()
+    .transform((value) => (value ? Number(value.replace(",", ".")) : null))
+    .pipe(z.number().min(min).max(max).nullable());
+
 export const identityInput = z.object({
   name: z.string().trim().min(2).max(120),
   slug: z.string().trim().toLowerCase(),
@@ -44,6 +52,9 @@ export const identityInput = z.object({
   city: optionalText(80),
   country: z.string().length(2),
   timezone: z.string().min(1),
+  /** Coordonnées GPS facultatives (« 45,7640 » ou « 45.7640 ») pour afficher le plan. */
+  latitude: coordinate(-90, 90),
+  longitude: coordinate(-180, 180),
 });
 
 /** Met à jour les coordonnées ; un changement d'adresse nom.horaneo.com suit le slug. */

@@ -1,11 +1,17 @@
 import { type NextRequest, NextResponse } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
-import { env } from "@/config/env";
+import { authSecret, env } from "@/config/env";
 import { resolveHostname } from "@/db/access";
 import { routing } from "@/i18n/routing";
 import { classifyHost, type HostConfig } from "@/lib/tenancy/hosts";
 import { parseLocaleRedirectDomains } from "@/lib/tenancy/locale-redirect";
-import { SITES_PREFIX } from "@/lib/tenancy/paths";
+import { PREVIEW_HEADER, SITES_PREFIX } from "@/lib/tenancy/paths";
+import {
+  PREVIEW_COOKIE,
+  PREVIEW_PARAM,
+  PREVIEW_TTL_SECONDS,
+  verifyPreviewToken,
+} from "@/lib/tenancy/preview";
 import { cachedLookup, routeTenantHost } from "@/lib/tenancy/resolve";
 
 /**
@@ -27,6 +33,11 @@ const hostConfig: HostConfig = {
 };
 
 const lookup = cachedLookup((hostname) => resolveHostname(hostname));
+
+const INTERNAL_PATHS: Record<string, string> = {
+  "/sitemap.xml": "/seo/sitemap",
+  "/robots.txt": "/seo/robots",
+};
 
 function hasPrefix(pathname: string, prefix: string) {
   return pathname === prefix || pathname.startsWith(`${prefix}/`);
@@ -69,9 +80,36 @@ export async function proxy(request: NextRequest) {
         return NextResponse.redirect(isProduction ? route.location : devLocation(route.location, url), 301);
       }
       if (hasPrefix(url.pathname, "/api") || hasPrefix(url.pathname, "/media")) return NextResponse.next();
+
+      // Aperçu admin : le jeton reçu dans l'adresse est rangé dans un cookie, puis retiré de l'adresse.
+      const secret = authSecret();
+      const tokenInUrl = url.searchParams.get(PREVIEW_PARAM);
+      if (tokenInUrl !== null) {
+        const clean = url.clone();
+        clean.searchParams.delete(PREVIEW_PARAM);
+        if (!verifyPreviewToken(tokenInUrl, route.tenantId, secret)) return notFound();
+        const response = NextResponse.redirect(clean, 307);
+        response.cookies.set(PREVIEW_COOKIE, tokenInUrl, {
+          httpOnly: true,
+          secure: isProduction,
+          sameSite: "lax",
+          path: "/",
+          maxAge: PREVIEW_TTL_SECONDS,
+        });
+        return response;
+      }
+      const preview = verifyPreviewToken(request.cookies.get(PREVIEW_COOKIE)?.value, route.tenantId, secret);
+      if (route.previewOnly && !preview) return notFound();
+
       const target = url.clone();
-      target.pathname = `${SITES_PREFIX}/${route.tenantId}${url.pathname === "/" ? "" : url.pathname}`;
-      return NextResponse.rewrite(target);
+      // sitemap.xml et robots.txt ont une adresse interne dédiée.
+      const internalPath = INTERNAL_PATHS[url.pathname] ?? (url.pathname === "/" ? "" : url.pathname);
+      target.pathname = `${SITES_PREFIX}/${route.tenantId}${internalPath}`;
+      const headers = new Headers(request.headers);
+      // Jamais transmis tel quel par le visiteur : seul le proxy le pose.
+      headers.delete(PREVIEW_HEADER);
+      if (preview) headers.set(PREVIEW_HEADER, "1");
+      return NextResponse.rewrite(target, { request: { headers } });
     }
   }
 }
@@ -89,5 +127,6 @@ function devLocation(location: string, url: URL): string {
 
 export const config = {
   // Tout sauf les fichiers techniques de Next.js et les fichiers avec extension.
-  matcher: ["/((?!_next|_vercel|.*\\..*).*)"],
+  // Plus sitemap.xml et robots.txt, propres à chaque site client.
+  matcher: ["/((?!_next|_vercel|.*\\..*).*)", "/sitemap.xml", "/robots.txt"],
 };

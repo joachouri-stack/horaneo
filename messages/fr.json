@@ -37,7 +37,111 @@
     "cta": "Créer mon site"
   },
   "site": {
-    "suspended": "Ce site est temporairement indisponible. Merci de contacter l'établissement par téléphone."
+    "suspended": "Ce site est temporairement indisponible. Merci de contacter l'établissement par téléphone.",
+    "book": "Réserver",
+    "bookService": "Réserver : {service}",
+    "call": "Appeler",
+    "callNumber": "Appeler le {phone}",
+    "menu": "Menu",
+    "closeMenu": "Fermer le menu",
+    "skipToContent": "Aller au contenu",
+    "home": {
+      "discover": "Découvrir nos prestations",
+      "featured": "Nos prestations",
+      "testimonialsTitle": "Ils nous font confiance"
+    },
+    "previewBanner": "Aperçu : ce site n'est pas encore en ligne. Seule l'administratrice le voit.",
+    "nav": {
+      "services": "Prestations et tarifs",
+      "about": "L'établissement",
+      "gallery": "Galerie",
+      "testimonials": "Avis",
+      "practical": "Infos pratiques"
+    },
+    "services": {
+      "title": "Prestations et tarifs",
+      "metaTitle": "Prestations et tarifs",
+      "metaDescription": "Prestations, durées et tarifs de {name}{city, select, none {} other { à {city}}}. Réservez en ligne.",
+      "priceFrom": "à partir de {price}",
+      "other": "Autres prestations",
+      "seeAll": "Voir toutes les prestations",
+      "empty": "Les prestations seront bientôt présentées ici.",
+      "categoryMetaTitle": "{category}{city, select, none {} other { à {city}}}",
+      "categoryMetaDescription": "{category} chez {name}{city, select, none {} other { à {city}}} : prestations, durées et tarifs. Réservez en ligne.",
+      "otherCategories": "Autres prestations",
+      "durationMinutes": "{minutes} min",
+      "durationHours": "{hours} h",
+      "durationHoursMinutes": "{hours} h {minutes}"
+    },
+    "about": {
+      "title": "L'établissement",
+      "team": "L'équipe",
+      "teamTitle": "Notre équipe"
+    },
+    "gallery": {
+      "title": "Galerie"
+    },
+    "testimonials": {
+      "title": "Avis de nos clientes",
+      "rating": "{rating} sur 5"
+    },
+    "practical": {
+      "title": "Infos pratiques",
+      "hours": "Horaires",
+      "closed": "Fermé",
+      "address": "Adresse",
+      "directions": "Itinéraire",
+      "contact": "Contact",
+      "access": "Accès",
+      "map": "Plan d'accès",
+      "today": "Aujourd'hui"
+    },
+    "booking": {
+      "title": "Réservation",
+      "soon": "La réservation en ligne sera disponible très prochainement.",
+      "callUs": "En attendant, appelez-nous pour prendre rendez-vous :",
+      "noPhone": "Contactez directement l'établissement pour prendre rendez-vous."
+    },
+    "footer": {
+      "legal": "Mentions légales",
+      "privacy": "Confidentialité",
+      "madeBy": "Site créé par {product}"
+    },
+    "legal": {
+      "title": "Mentions légales",
+      "publisher": "Éditeur du site",
+      "publisherName": "Raison sociale : {name}",
+      "siret": "SIRET : {siret}",
+      "vat": "N° de TVA : {vat}",
+      "address": "Adresse : {address}",
+      "phone": "Téléphone : {phone}",
+      "email": "E-mail : {email}",
+      "host": "Réalisation et hébergement",
+      "hostText": "Site réalisé et hébergé par le service {product} ({domain}).",
+      "infrastructure": "Infrastructure",
+      "intellectual": "Propriété intellectuelle",
+      "intellectualText": "Les textes, photos et logos de ce site appartiennent à {name} ou sont utilisés avec autorisation. Toute reproduction sans accord préalable est interdite."
+    },
+    "privacy": {
+      "title": "Politique de confidentialité",
+      "controller": "Responsable du traitement",
+      "controllerText": "{name} est responsable des données personnelles collectées sur ce site.",
+      "data": "Données collectées",
+      "dataText": "Lors d'une réservation : vos nom, prénom, adresse e-mail, numéro de téléphone et, le cas échéant, votre message. Aucune donnée n'est collectée si vous consultez simplement le site.",
+      "purpose": "Utilisation",
+      "purposeText": "Ces données servent uniquement à gérer vos rendez-vous : confirmation, rappel, modification ou annulation. Elles ne sont jamais vendues. Les messages commerciaux ne vous sont envoyés qu'avec votre accord.",
+      "processor": "Sous-traitant",
+      "processorText": "Le site et les réservations sont gérés par le service {product}, qui agit pour le compte de l'établissement. Les paiements d'acompte sont traités par Stripe.",
+      "retention": "Durée de conservation",
+      "retentionText": "Vos données sont conservées pendant la durée de la relation avec l'établissement, puis au maximum 3 ans après votre dernier rendez-vous.",
+      "rights": "Vos droits",
+      "rightsText": "Vous pouvez demander l'accès, la correction ou la suppression de vos données en écrivant à l'établissement{email, select, none {} other { : {email}}}. Vous pouvez aussi saisir la CNIL (cnil.fr).",
+      "cookies": "Cookies",
+      "cookiesText": "Ce site n'utilise aucun cookie publicitaire ni de mesure d'audience."
+    },
+    "homeLabel": "Accueil",
+    "notFound": "Cette page n'existe pas ou a été déplacée.",
+    "backHome": "Retour à l'accueil"
   },
   "emails": {
     "magicLink": {
@@ -230,7 +334,10 @@
         "postalCode": "Code postal",
         "city": "Ville",
         "country": "Pays (code à 2 lettres)",
-        "timezone": "Fuseau horaire"
+        "timezone": "Fuseau horaire",
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "coordinatesHint": "Facultatif : pour afficher le plan sur le site. Clic droit sur le lieu dans Google Maps pour copier les coordonnées."
       },
       "appearance": {
         "title": "Métier et modèle",
@@ -352,7 +459,8 @@
         "rating": "Note (1 à 5)",
         "published": "Publié",
         "empty": "Aucun témoignage pour le moment."
-      }
+      },
+      "preview": "Aperçu du site (1 h)"
     }
   },
   "errors": {

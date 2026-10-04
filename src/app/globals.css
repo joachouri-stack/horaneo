@@ -18,28 +18,57 @@
   --radius-card: 0.75rem;
 }
 
-body {
-  background: var(--color-ivory);
-  color: var(--color-ink);
-  font-family: var(--font-sans);
-}
+/*
+ * Styles de base du SaaS, limités à ses propres pages (classe .saas sur <body>).
+ * En couche « base » : les classes utilitaires restent prioritaires.
+ */
+@layer base {
+  body.saas {
+    background: var(--color-ivory);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+  }
 
-h1,
-h2,
-h3 {
-  color: var(--color-navy);
-  font-family: var(--font-display);
-}
+  .saas h1,
+  .saas h2,
+  .saas h3 {
+    color: var(--color-navy);
+    font-family: var(--font-display);
+  }
 
-/* Navigation au clavier : contour bien visible */
-:focus-visible {
-  outline: 3px solid var(--color-navy);
-  outline-offset: 2px;
-  border-radius: 4px;
+  /* Navigation au clavier : contour bien visible (couleur du texte sur les sites clients) */
+  :focus-visible {
+    outline: 3px solid currentColor;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  .saas :focus-visible {
+    outline-color: var(--color-navy);
+  }
 }
 
 /* Champ signalé en erreur par un formulaire */
-[aria-invalid="true"] {
+.saas [aria-invalid="true"] {
   border-color: var(--color-coral);
   background-color: color-mix(in srgb, var(--color-coral) 6%, white);
+}
+
+/*
+ * Sites des clients : couleurs calculées par src/modules/site/theme.ts et
+ * posées en variables sur <body>. Utilitaires : bg-site-bg, text-site-accent…
+ */
+@theme inline {
+  --color-site-bg: var(--site-bg);
+  --color-site-surface: var(--site-surface);
+  --color-site-text: var(--site-text);
+  --color-site-muted: var(--site-muted);
+  --color-site-border: var(--site-border);
+  --color-site-accent: var(--site-accent);
+  --color-site-button: var(--site-button);
+  --color-site-on-button: var(--site-on-button);
+  --color-site-secondary: var(--site-secondary);
+  --radius-site: var(--site-radius);
+  --font-site-display: var(--site-font-display);
+  --font-site-body: var(--font-inter), system-ui, sans-serif;
 }

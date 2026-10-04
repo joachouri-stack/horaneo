@@ -5,7 +5,10 @@ import type { ResolvedHostname } from "@/db/access";
  * afficher son site, rediriger vers son adresse principale, ou répondre 404.
  */
 export type TenantRoute =
-  { kind: "site"; tenantId: string } | { kind: "redirect"; location: string } | { kind: "not_found" };
+  /** previewOnly : site en création, visible seulement avec un aperçu admin. */
+  | { kind: "site"; tenantId: string; previewOnly: boolean }
+  | { kind: "redirect"; location: string }
+  | { kind: "not_found" };
 
 type Lookup = (hostname: string) => Promise<ResolvedHostname | null>;
 
@@ -24,13 +27,15 @@ export async function routeTenantHost(hostname: string, url: URL, lookup: Lookup
     requested = alternateHostname(hostname);
     found = await lookup(requested);
   }
-  if (!found || !VISIBLE_STATUSES.has(found.tenantStatus)) return { kind: "not_found" };
+  if (!found || (!VISIBLE_STATUSES.has(found.tenantStatus) && found.tenantStatus !== "draft")) {
+    return { kind: "not_found" };
+  }
 
   const canonical = found.primaryHostname ?? found.hostname;
   if (canonical !== hostname) {
     return { kind: "redirect", location: `https://${canonical}${url.pathname}${url.search}` };
   }
-  return { kind: "site", tenantId: found.tenantId };
+  return { kind: "site", tenantId: found.tenantId, previewOnly: found.tenantStatus === "draft" };
 }
 
 /**

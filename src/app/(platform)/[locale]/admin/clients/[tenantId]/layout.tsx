@@ -6,6 +6,8 @@ import { resolveLocale } from "@/i18n/translator";
 import { loadTenantOverview } from "@/lib/admin/tenant";
 import { requireAdmin } from "@/lib/auth/session";
 import { tenantSiteUrl } from "@/lib/tenancy/urls";
+import { createPreviewToken, PREVIEW_PARAM } from "@/lib/tenancy/preview";
+import { authSecret } from "@/config/env";
 
 /** En-tête commun aux écrans d'un client : nom, statut, lien vers le site, onglets. */
 export default async function TenantAdminLayout({
@@ -31,12 +33,16 @@ export default async function TenantAdminLayout({
         </div>
         {primary && (
           <a
-            href={tenantSiteUrl(primary.hostname)}
+            href={
+              overview.tenant.status === "draft"
+                ? `${tenantSiteUrl(primary.hostname)}/?${PREVIEW_PARAM}=${createPreviewToken(tenantId, authSecret())}`
+                : tenantSiteUrl(primary.hostname)
+            }
             target="_blank"
             rel="noreferrer"
             className="font-semibold text-navy underline"
           >
-            {t("viewSite")} ↗
+            {overview.tenant.status === "draft" ? t("preview") : t("viewSite")} ↗
           </a>
         )}
       </div>

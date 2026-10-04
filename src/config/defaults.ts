@@ -21,6 +21,8 @@ export const DEFAULT_PLATFORM_SETTINGS = {
   retention_days_after_cancel: 30,
   /** Jours de conservation d'une photo remplacée. */
   replaced_asset_retention_days: 7,
+  /** Hébergeur de l'infrastructure, affiché dans les mentions légales des sites (à vérifier). */
+  legal_infrastructure: "Hostinger International Ltd, 61 Lordou Vironos Street, 6023 Larnaca, Chypre",
 } as const;
 
 export type PlatformSettingKey = keyof typeof DEFAULT_PLATFORM_SETTINGS;

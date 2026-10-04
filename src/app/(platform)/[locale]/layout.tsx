@@ -36,7 +36,7 @@ export default async function PlatformLayout({ children, params }: LayoutProps<"
 
   return (
     <html lang={locale} className={`${nunito.variable} ${inter.variable} antialiased`}>
-      <body className="min-h-dvh">
+      <body className="saas min-h-dvh">
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
       </body>
     </html>

@@ -27,6 +27,7 @@ describe("aiguillage d'un domaine client", () => {
     expect(await routeTenantHost("lea.horaneo.com", url(), lookup)).toEqual({
       kind: "site",
       tenantId: TENANT,
+      previewOnly: false,
     });
   });
 
@@ -52,11 +53,18 @@ describe("aiguillage d'un domaine client", () => {
     expect(await routeTenantHost("inconnu.fr", url(), domains({}))).toEqual({ kind: "not_found" });
   });
 
-  it("répond 404 pour un site en création ou supprimé", async () => {
-    for (const tenantStatus of ["draft", "deleted"] as const) {
-      const lookup = domains({ "lea.horaneo.com": { tenantStatus } });
-      expect(await routeTenantHost("lea.horaneo.com", url(), lookup)).toEqual({ kind: "not_found" });
-    }
+  it("répond 404 pour un site supprimé", async () => {
+    const lookup = domains({ "lea.horaneo.com": { tenantStatus: "deleted" } });
+    expect(await routeTenantHost("lea.horaneo.com", url(), lookup)).toEqual({ kind: "not_found" });
+  });
+
+  it("réserve un site en création à l'aperçu admin", async () => {
+    const lookup = domains({ "lea.horaneo.com": { tenantStatus: "draft" } });
+    expect(await routeTenantHost("lea.horaneo.com", url(), lookup)).toEqual({
+      kind: "site",
+      tenantId: TENANT,
+      previewOnly: true,
+    });
   });
 
   it("garde en ligne un site suspendu ou résilié (période de conservation)", async () => {

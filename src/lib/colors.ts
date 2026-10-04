@@ -51,3 +51,24 @@ export function saturationLightness(r: number, g: number, b: number): { s: numbe
   const s = max === min ? 0 : l > 0.5 ? (max - min) / (2 - max - min) : (max - min) / (max + min);
   return { s, l };
 }
+
+/** Mélange deux couleurs : t = 0 → a, t = 1 → b. */
+export function mixColors(a: string, b: string, t: number): string {
+  const [r1, g1, b1] = hexToRgb(a);
+  const [r2, g2, b2] = hexToRgb(b);
+  return rgbToHex(r1 + (r2 - r1) * t, g1 + (g2 - g1) * t, b1 + (b2 - b1) * t);
+}
+
+/**
+ * Rapproche une couleur de `toward` (noir, blanc ou couleur du texte) jusqu'à
+ * obtenir le contraste voulu avec le fond. La teinte de la marque est gardée
+ * autant que possible.
+ */
+export function ensureContrast(color: string, background: string, minRatio: number, toward: string): string {
+  if (contrastRatio(color, background) >= minRatio) return color;
+  for (let step = 1; step <= 20; step++) {
+    const candidate = mixColors(color, toward, step / 20);
+    if (contrastRatio(candidate, background) >= minRatio) return candidate;
+  }
+  return toward;
+}

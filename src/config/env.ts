@@ -57,6 +57,8 @@ const envSchema = z.object({
   R2_BUCKET: z.string().min(1).optional(),
   R2_PUBLIC_URL: z.url().optional(),
   LOCAL_STORAGE_DIR: z.string().default("storage"),
+  /** auto : R2 si configuré, sinon dossier local (refusé en production sauf choix explicite « local »). */
+  STORAGE_DRIVER: z.enum(["auto", "local", "r2"]).default("auto"),
 
   // E-mails (Brevo)
   BREVO_API_KEY: z.string().min(1).optional(),

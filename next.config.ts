@@ -15,6 +15,14 @@ for (const locale of enabledLocales) {
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  images: {
+    // Photos des clients : stockage local (/media) ou domaine public R2.
+    localPatterns: [{ pathname: "/media/**", search: "" }],
+    remotePatterns: process.env.R2_PUBLIC_URL
+      ? [new URL(`${process.env.R2_PUBLIC_URL.replace(/\/$/, "")}/**`)]
+      : [],
+    formats: ["image/avif", "image/webp"],
+  },
   experimental: {
     // Envoi de photos jusqu'à 10 Mo (plus la marge du formulaire).
     serverActions: { bodySizeLimit: "12mb" },

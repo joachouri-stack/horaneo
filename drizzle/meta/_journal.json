@@ -57,6 +57,13 @@
       "when": 1791130498103,
       "tag": "0007_audit_log_no_fk",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791131210358,
+      "tag": "0008_site_pages_published",
+      "breakpoints": true
     }
   ]
 }

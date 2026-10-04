@@ -84,7 +84,8 @@ export const sitePages = pgTable(
     content: jsonb().notNull().default({}),
     seoTitle: localized(),
     seoDescription: localized(),
-    isPublished: boolean().notNull().default(false),
+    /** Interrupteur de l'administratrice : une page vide est de toute façon masquée. */
+    isPublished: boolean().notNull().default(true),
     ...timestamps(),
   },
   (t) => [uniqueIndex("site_pages_tenant_page_key").on(t.tenantId, t.pageKey)],
