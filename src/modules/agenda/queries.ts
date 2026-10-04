@@ -32,6 +32,7 @@ export async function listAgenda(
       status: appointments.status,
       source: appointments.source,
       totalCents: appointments.totalCents,
+      discountCents: appointments.discountCents,
       depositCents: appointments.depositCents,
       currency: appointments.currency,
       customerNote: appointments.customerNote,

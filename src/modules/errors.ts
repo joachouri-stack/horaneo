@@ -37,4 +37,9 @@ export type AppErrorCode =
   | "service_unavailable"
   | "cancellation_deadline_passed"
   | "booking_not_modifiable"
-  | "rate_limited";
+  | "rate_limited"
+  | "promo_code_invalid"
+  | "promo_code_taken"
+  | "payments_unavailable"
+  | "payment_not_refundable"
+  | "payment_provider_error";

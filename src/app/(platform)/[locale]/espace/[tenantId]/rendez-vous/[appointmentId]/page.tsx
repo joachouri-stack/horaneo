@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
-import { Hidden, SelectField, TextArea, TextField } from "@/components/admin/fields";
+import { CheckboxField, Hidden, SelectField, TextArea, TextField } from "@/components/admin/fields";
 import { ui } from "@/components/ui/styles";
 import { withTenant } from "@/db/access";
 import { Link } from "@/i18n/navigation";
@@ -9,6 +9,7 @@ import { managerPage } from "@/lib/manager/page";
 import { getAppointmentDetail } from "@/modules/agenda/queries";
 import { loadBookingContext } from "@/modules/booking/availability";
 import { utcToLocal } from "@/modules/booking/time";
+import { depositSummary } from "@/modules/payments/refunds";
 import { formatPhone } from "@/modules/phone";
 import {
   cancelAppointmentAction,
@@ -25,9 +26,10 @@ export default async function AppointmentPage({
   const { appointmentId } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(appointmentId)) notFound();
   const [t, tCommon] = await Promise.all([getTranslations("manager"), getTranslations("common")]);
-  const { item, staff } = await withTenant(page.tenantId, async (tx) => ({
+  const { item, staff, deposit } = await withTenant(page.tenantId, async (tx) => ({
     item: await getAppointmentDetail(tx, page.tenantId, appointmentId, page.locale),
     staff: (await loadBookingContext(tx, page.tenantId)).staff,
+    deposit: await depositSummary(tx, page.tenantId, appointmentId),
   }));
   if (!item) notFound();
   const local = utcToLocal(item.startsAt, page.tenant.timezone);
@@ -92,11 +94,32 @@ export default async function AppointmentPage({
             </li>
           ))}
         </ul>
+        {item.discountCents > 0 && (
+          <p className="mt-2 text-ink/70">
+            {t("appointment.discount", { amount: page.fmt.money(item.discountCents, item.currency) })}
+          </p>
+        )}
         <p className="mt-2">
           {t("appointment.total")} : <strong>{page.fmt.money(item.totalCents, item.currency)}</strong>
-          {item.depositCents > 0 &&
-            ` · ${t("appointment.deposit")} : ${page.fmt.money(item.depositCents, item.currency)}`}
         </p>
+        {deposit && (
+          <p className="mt-1">
+            {deposit.status === "succeeded"
+              ? t("appointment.depositPaid", {
+                  amount: page.fmt.money(deposit.amountCents, deposit.currency),
+                })
+              : t("appointment.depositWaiting", {
+                  amount: page.fmt.money(deposit.amountCents, deposit.currency),
+                })}
+            {deposit.refundedCents > 0 &&
+              ` · ${t(
+                deposit.refundPending ? "appointment.depositRefundPending" : "appointment.depositRefunded",
+                {
+                  amount: page.fmt.money(deposit.refundedCents, deposit.currency),
+                },
+              )}`}
+          </p>
+        )}
         {item.customerNote && (
           <p className="mt-3 rounded bg-ivory p-3">
             <span className="block text-sm font-semibold text-ink/60">{t("appointment.customerNote")}</span>
@@ -200,7 +223,17 @@ export default async function AppointmentPage({
           >
             <Hidden values={hidden} />
             <TextField name="reason" label={t("appointment.cancelReason")} />
-            {item.depositCents > 0 && <p className="text-sm text-ink/70">{t("appointment.refundSoon")}</p>}
+            {deposit?.refundable && (
+              <div>
+                <CheckboxField
+                  name="refund"
+                  label={t("appointment.refund", {
+                    amount: page.fmt.money(deposit.amountCents - deposit.refundedCents, deposit.currency),
+                  })}
+                />
+                <p className="text-sm text-ink/70">{t("appointment.refundHint")}</p>
+              </div>
+            )}
           </ActionForm>
         </details>
       )}

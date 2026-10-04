@@ -1,13 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   bookAction,
+  checkPromoAction,
+  confirmPaymentAction,
   getAvailabilityAction,
   type BookingConfirmation,
+  type PromoPreview,
 } from "@/app/(tenant)/sites/[tenantId]/reserver/actions";
+import { DepositPayment } from "./DepositPayment";
 import { durationLabel, formatLongDate, formatTimeOf, money } from "./format";
 import { SlotPicker, type PickedSlot } from "./SlotPicker";
 
@@ -30,6 +35,7 @@ type Props = {
   maxServices: number;
   preselectedServiceId: string | null;
   deposit: { enabled: boolean; type: "percent" | "fixed"; value: number };
+  promoEnabled: boolean;
   holdMinutes: number;
   cancellationHours: number;
   privacyPath: string;
@@ -50,6 +56,7 @@ const primaryClass =
 export function BookingFlow(props: Props) {
   const t = useTranslations("booking");
   const tErrors = useTranslations("errors");
+  const router = useRouter();
   const [step, setStep] = useState<Step>("services");
   const [selected, setSelected] = useState<string[]>(
     props.preselectedServiceId ? [props.preselectedServiceId] : [],
@@ -58,6 +65,10 @@ export function BookingFlow(props: Props) {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [confirmation, setConfirmation] = useState<BookingConfirmation | null>(null);
+  const [promo, setPromo] = useState<PromoPreview | null>(null);
+  const [promoCode, setPromoCode] = useState("");
+  const [promoError, setPromoError] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   // À chaque étape, le titre reçoit le focus (lecteurs d'écran, navigation au clavier).
@@ -68,11 +79,14 @@ export function BookingFlow(props: Props) {
   const chosen = props.services.filter((service) => selected.includes(service.id));
   const totalCents = chosen.reduce((sum, service) => sum + service.priceCents, 0);
   const totalMinutes = chosen.reduce((sum, service) => sum + service.durationMinutes, 0);
-  const depositCents = !props.deposit.enabled
+  const baseDepositCents = !props.deposit.enabled
     ? 0
     : props.deposit.type === "percent"
       ? Math.round((totalCents * props.deposit.value) / 100)
       : Math.min(props.deposit.value, totalCents);
+  // Avec un code promo, les montants viennent du serveur (total réduit, acompte recalculé).
+  const finalTotalCents = promo ? promo.totalCents : totalCents;
+  const depositCents = promo ? promo.depositCents : baseDepositCents;
   const eligibleStaff = props.staff.filter((member) =>
     selected.every((id) => member.serviceIds.includes(id)),
   );
@@ -88,6 +102,7 @@ export function BookingFlow(props: Props) {
   const toggle = (id: string) => {
     setError(null);
     setSlot(null);
+    setPromo(null);
     if (selected.includes(id)) setSelected(selected.filter((item) => item !== id));
     else if (props.maxServices === 1) setSelected([id]);
     else if (selected.length < props.maxServices) setSelected([...selected, id]);
@@ -99,6 +114,36 @@ export function BookingFlow(props: Props) {
     [selected],
   );
 
+  async function applyPromo() {
+    if (!promoCode.trim()) return;
+    setPromoError(null);
+    const result = await checkPromoAction({ code: promoCode, serviceIds: selected });
+    if (!result.ok) {
+      setPromo(null);
+      setPromoError(result.error);
+      return;
+    }
+    setPromo(result.data);
+  }
+
+  async function paid() {
+    if (!confirmation) return;
+    setChecking(true);
+    // Stripe peut mettre quelques secondes à confirmer : jusqu'à 5 vérifications.
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const result = await confirmPaymentAction(confirmation.manageToken);
+      if (result.ok && result.data.status === "confirmed") {
+        setConfirmation({ ...confirmation, status: "confirmed", payment: null });
+        setChecking(false);
+        return;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+    }
+    setChecking(false);
+    // Le lien de gestion affichera l'état final dès que Stripe l'aura confirmé.
+    router.push(`${props.managePath}/${confirmation.manageToken}`);
+  }
+
   async function submit(form: FormData) {
     if (!slot) return;
     setPending(true);
@@ -107,6 +152,7 @@ export function BookingFlow(props: Props) {
       serviceIds: selected,
       staffId: slot.staffId,
       start: slot.start,
+      promoCode: promo?.code,
       website: String(form.get("website") ?? ""),
       customer: {
         firstName: String(form.get("firstName") ?? ""),
@@ -120,6 +166,7 @@ export function BookingFlow(props: Props) {
     setPending(false);
     if (!result.ok) {
       setError(result.error);
+      if (result.error === "promo_code_invalid") setPromo(null);
       if (result.error === "slot_unavailable") {
         setSlot(null);
         setStep("slot");
@@ -151,7 +198,9 @@ export function BookingFlow(props: Props) {
           tabIndex={-1}
           className="scroll-mt-28 font-site-display text-3xl font-semibold text-site-accent"
         >
-          {pendingPayment ? t("confirmation.pendingTitle") : `✓ ${t("confirmation.title")}`}
+          {pendingPayment
+            ? t("confirmation.pendingTitle")
+            : `✓ ${confirmation.depositCents > 0 ? t("confirmation.paidTitle") : t("confirmation.title")}`}
         </h2>
         <p className="mt-4 text-lg">
           {t("confirmation.summary", {
@@ -168,13 +217,32 @@ export function BookingFlow(props: Props) {
         <p className="mt-2 font-semibold">
           {t("details.total")} : {money(confirmation.totalCents, confirmation.currency, props.locale)}
         </p>
+        {confirmation.discountCents > 0 && (
+          <p className="text-site-muted">
+            {t("details.discount")} : −{" "}
+            {money(confirmation.discountCents, confirmation.currency, props.locale)}
+          </p>
+        )}
         {pendingPayment && (
           <div className="mt-6 rounded-site border border-site-border p-4">
-            <h3 className="font-semibold">
-              {t("payment.title")} : {money(confirmation.depositCents, confirmation.currency, props.locale)}
-            </h3>
-            <p className="mt-2">{t("payment.held", { minutes: props.holdMinutes })}</p>
-            <p className="mt-2 text-site-muted">{t("payment.soon")}</p>
+            <p className="mb-4">{t("payment.held", { minutes: props.holdMinutes })}</p>
+            {checking ? (
+              <p role="status" className="font-semibold">
+                {t("payment.checking")}
+              </p>
+            ) : confirmation.payment ? (
+              <DepositPayment
+                checkout={confirmation.payment}
+                amountCents={confirmation.depositCents}
+                currency={confirmation.currency}
+                locale={props.locale}
+                holdExpiresAt={confirmation.holdExpiresAt}
+                returnPath={manageUrl}
+                onPaid={paid}
+              />
+            ) : (
+              <p>{t("payment.unavailable")}</p>
+            )}
           </div>
         )}
         <p className="mt-6">{t("confirmation.keepLink", { hours: props.cancellationHours })}</p>
@@ -355,8 +423,13 @@ export function BookingFlow(props: Props) {
               </button>
             </p>
             <p className="text-site-muted">{chosen.map((service) => service.name).join(" + ")}</p>
+            {promo && (
+              <p className="mt-1 text-site-muted">
+                {t("details.discount")} : − {money(promo.discountCents, props.currency, props.locale)}
+              </p>
+            )}
             <p className="mt-1 font-semibold">
-              {t("details.total")} : {money(totalCents, props.currency, props.locale)}
+              {t("details.total")} : {money(finalTotalCents, props.currency, props.locale)}
             </p>
             {depositCents > 0 && (
               <p className="font-semibold">
@@ -364,6 +437,64 @@ export function BookingFlow(props: Props) {
               </p>
             )}
           </div>
+          {props.promoEnabled && (
+            <div>
+              <label htmlFor="b-promo" className="mb-2 block font-semibold text-site-text">
+                {t("details.promo")}
+              </label>
+              {promo ? (
+                <p className="flex flex-wrap items-center gap-3" role="status">
+                  <span>
+                    {t("details.promoApplied", {
+                      code: promo.code,
+                      amount: money(promo.discountCents, props.currency, props.locale),
+                    })}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPromo(null);
+                      setPromoCode("");
+                    }}
+                    className="font-semibold text-site-accent underline"
+                  >
+                    {t("details.promoRemove")}
+                  </button>
+                </p>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    id="b-promo"
+                    value={promoCode}
+                    onChange={(event) => setPromoCode(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        void applyPromo();
+                      }
+                    }}
+                    maxLength={30}
+                    autoComplete="off"
+                    autoCapitalize="characters"
+                    aria-describedby={promoError ? "b-promo-error" : undefined}
+                    className={`${inputClass} min-w-0 flex-1 uppercase`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void applyPromo()}
+                    className="min-h-12 shrink-0 rounded-site border border-site-button px-4 font-semibold text-site-text"
+                  >
+                    {t("details.promoApply")}
+                  </button>
+                </div>
+              )}
+              {promoError && (
+                <p id="b-promo-error" role="alert" className="mt-1 font-semibold text-site-text">
+                  {tErrors(promoError as "invalid")}
+                </p>
+              )}
+            </div>
+          )}
           {errorBox}
           <form action={submit} className="space-y-4">
             {/* Champ piège pour les robots : invisible pour les personnes. */}

@@ -7,6 +7,7 @@ import {
   appointments,
   customers,
   tenantSettings,
+  tenants,
   timeOff,
   usageCounters,
 } from "@/db/schema";
@@ -20,6 +21,7 @@ import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
 import { saveStaff } from "@/modules/team/staff";
 import { createTenant } from "@/modules/tenants/create";
 import { changeStatus } from "@/modules/tenants/update";
+import { createFakeGateway } from "../setup/fake-gateway";
 import { hasTestDatabase, openAppDb, openTestDb, type TestDb } from "../setup/db";
 
 /**
@@ -99,6 +101,8 @@ describe.skipIf(!hasTestDatabase)("moteur de réservation", () => {
     phone: "06 12 34 56 78",
   });
 
+  const fake = createFakeGateway();
+
   function book(
     tenantId: string,
     input: Partial<BookingInput> & Pick<BookingInput, "serviceIds">,
@@ -109,9 +113,17 @@ describe.skipIf(!hasTestDatabase)("moteur de réservation", () => {
         tx,
         tenantId,
         { staffId: null, start: at("10:00"), customer: customer(), ...input },
-        { now },
+        { now, gateway: fake.gateway },
       ),
     );
+  }
+
+  /** Compte Stripe prêt à encaisser. */
+  async function connectStripe(tenantId: string) {
+    await owner
+      .update(tenants)
+      .set({ stripeAccountId: `acct_${tenantId.replaceAll("-", "")}`, stripeChargesEnabled: true })
+      .where(eq(tenants.id, tenantId));
   }
 
   async function slotTimes(tenantId: string, serviceIds: string[], staffId: string | null = null, now = NOW) {
@@ -355,6 +367,7 @@ describe.skipIf(!hasTestDatabase)("moteur de réservation", () => {
   describe("acompte : réservation temporaire de 10 minutes", () => {
     it("bloque le créneau pendant 10 minutes, puis le libère", async () => {
       const s = await setup("serenite");
+      await connectStripe(s.id);
       await owner
         .update(tenantSettings)
         .set({ depositEnabled: true, depositType: "percent", depositValue: 30 })
@@ -383,8 +396,18 @@ describe.skipIf(!hasTestDatabase)("moteur de réservation", () => {
       expect(expired.status).toBe("expired");
     });
 
+    it("pas d'acompte tant que le compte Stripe ne peut pas encaisser", async () => {
+      const s = await setup("serenite");
+      await owner
+        .update(tenantSettings)
+        .set({ depositEnabled: true })
+        .where(eq(tenantSettings.tenantId, s.id));
+      expect((await book(s.id, { serviceIds: [s.soin.id] })).status).toBe("confirmed");
+    });
+
     it("pas d'acompte sur un pack sans paiement en ligne", async () => {
       const s = await setup("basic");
+      await connectStripe(s.id);
       await owner
         .update(tenantSettings)
         .set({ depositEnabled: true })

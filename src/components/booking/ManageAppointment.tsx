@@ -8,11 +8,14 @@ import {
   getAvailabilityAction,
   rescheduleAction,
 } from "@/app/(tenant)/sites/[tenantId]/reserver/actions";
-import { formatLongDate, formatTimeOf } from "./format";
+import { formatLongDate, formatTimeOf, money } from "./format";
 import { SlotPicker, type PickedSlot } from "./SlotPicker";
 
 type Props = {
   token: string;
+  /** Acompte payé qui sera remboursé en cas d'annulation (0 sinon). */
+  refundableCents: number;
+  currency: string;
   locale: string;
   timezone: string;
   canModify: boolean;
@@ -25,6 +28,8 @@ type Props = {
 /** Boutons « Annuler » et « Déplacer » de la page de gestion d'un rendez-vous. */
 export function ManageAppointment({
   token,
+  refundableCents,
+  currency,
   locale,
   timezone,
   canModify,
@@ -40,6 +45,7 @@ export function ManageAppointment({
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [newToken, setNewToken] = useState<string | null>(null);
+  const [refunded, setRefunded] = useState(0);
 
   const loadDays = useCallback(
     (staffId: string | null, fromDate?: string) =>
@@ -53,6 +59,7 @@ export function ManageAppointment({
     return (
       <div role="status" className="space-y-4">
         <p className="text-lg font-semibold">{t("cancelled")}</p>
+        {refunded > 0 && <p>{t("refunded", { amount: money(refunded, currency, locale) })}</p>}
         <Link href={bookingPath} className={`${button} bg-site-button text-site-on-button`}>
           {t("rebook")}
         </Link>
@@ -81,6 +88,11 @@ export function ManageAppointment({
           {tErrors(error as "invalid")}
         </p>
       )}
+      {mode === "idle" && refundableCents > 0 && (
+        <p className="text-site-muted">
+          {t("refundInfo", { amount: money(refundableCents, currency, locale) })}
+        </p>
+      )}
       {mode === "idle" && (
         <div className="flex flex-wrap gap-3">
           <button
@@ -98,8 +110,10 @@ export function ManageAppointment({
               setPending(true);
               const result = await cancelAction(token);
               setPending(false);
-              if (result.ok) setMode("cancelled");
-              else setError(result.error);
+              if (result.ok) {
+                setRefunded(result.data.refundedCents);
+                setMode("cancelled");
+              } else setError(result.error);
             }}
             className={`${button} border border-site-border text-site-text`}
           >

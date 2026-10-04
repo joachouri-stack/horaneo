@@ -68,6 +68,12 @@ const envSchema = z.object({
     .regex(/^\d{8,15}$/)
     .optional(),
 
+  // Paiements des acomptes (Stripe Connect, comptes Standard). Sans ces trois clés, le paiement en ligne est désactivé.
+  STRIPE_SECRET_KEY: z.string().startsWith("sk_").optional(),
+  STRIPE_PUBLISHABLE_KEY: z.string().startsWith("pk_").optional(),
+  /** Secret du point de réception « Connect » (événements des comptes des professionnels). */
+  STRIPE_CONNECT_WEBHOOK_SECRET: z.string().startsWith("whsec_").optional(),
+
   // E-mails (Brevo)
   BREVO_API_KEY: z.string().min(1).optional(),
   EMAIL_FROM_ADDRESS: z.email().optional(),

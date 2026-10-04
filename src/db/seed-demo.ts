@@ -5,6 +5,7 @@ import { createLocalStorage } from "@/lib/storage/local";
 import { saveCategory, saveService } from "@/modules/catalog/services";
 import { updatePage } from "@/modules/content/pages";
 import { saveTestimonial } from "@/modules/content/testimonials";
+import { savePromoCode } from "@/modules/promo/codes";
 import { uploadAsset, uploadLogo } from "@/modules/media/assets";
 import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
 import { saveStaff } from "@/modules/team/staff";
@@ -235,6 +236,7 @@ async function seedFull(tx: Transaction) {
     text: "Très bon massage, je recommande !",
     rating: 4,
   });
+  await savePromoCode(tx, id, { code: "BIENVENUE10", discountType: "percent", discountValue: "10" });
   await changeStatus(tx, id, "activate");
 }
 

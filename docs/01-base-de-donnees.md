@@ -165,7 +165,7 @@ Une même adresse e-mail chez un même tenant = une seule fiche.
 | `status` | `pending_payment` (créneau retenu 10 min), `confirmed`, `cancelled`, `attended`, `no_show`, `expired` |
 | `source` | `online` / `manual` (seul `online` compte dans le quota Basic) |
 | `hold_expires_at` | fin des 10 minutes de réservation du créneau |
-| `total_cents`, `discount_cents`, `deposit_cents`, `currency` | montants figés au moment de la réservation |
+| `total_cents`, `discount_cents`, `deposit_cents`, `currency` | montants figés au moment de la réservation (`total_cents` = montant dû, après réduction) |
 | `promo_code_id` | code utilisé |
 | `manage_token_hash` | lien « annuler / déplacer » de l'e-mail (seule une empreinte est stockée) |
 | `cancelled_at`, `cancelled_by` (`customer` / `manager` / `system`), `cancellation_reason` | |
@@ -246,3 +246,10 @@ Je préfère vous les signaler plutôt que deviner. Pour chacun, une proposition
 10. **Double vérification de l'administratrice.** Sans mot de passe, la double vérification se fait ainsi : connexion Google + code à 6 chiffres d'une application (Google Authenticator…). → *À confirmer.*
 11. **Annulation par la gérante.** → *Proposition :* elle choisit à chaque fois de rembourser l'acompte ou non (le brief le prévoit), et la cliente est prévenue automatiquement.
 12. **Clientes en double.** → *Proposition :* même e-mail chez un même tenant = même fiche. Sans e-mail, rapprochement par téléphone.
+
+## 7. Décisions de l'étape 8 (paiements)
+
+- **Comptes Stripe « Standard »** (validé) : chaque professionnel a son propre compte Stripe complet et son tableau de bord. Il gère lui-même les litiges ; la plateforme n'est pas responsable de son argent et ne paie aucun frais Stripe par compte.
+- **Carte uniquement** (Apple Pay et Google Pay compris) : les moyens de paiement lents (prélèvement SEPA…) sont exclus car incompatibles avec la réservation du créneau pendant 10 minutes.
+- **Frais Stripe** : prélevés sur le compte du professionnel ; Stripe ne les rend pas en cas de remboursement.
+- **Code promo et annulation** : une utilisation de code n'est pas rendue quand le rendez-vous est annulé (comme le quota Basic).

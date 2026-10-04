@@ -92,6 +92,29 @@ export async function managerMutation<T>(
   }
 }
 
+/**
+ * Action de la gérante qui modifie la fiche de l'établissement (ex. compte
+ * Stripe) : droits revérifiés, puis rôle plateforme, toujours journalisée.
+ */
+export async function managerPlatformAction<T>(
+  tenantId: string,
+  action: string,
+  fn: (tx: Transaction) => Promise<T>,
+): Promise<T> {
+  const session = await getCurrentSession();
+  const role = session ? await resolveManagerRole(session, tenantId) : null;
+  if (!session || !role) throw new AppError("not_found");
+  return withPlatform(async (tx) => {
+    const result = await fn(tx);
+    await recordAudit(tx, {
+      actorUserId: session.user.id,
+      action: role === "admin" ? `impersonation.${action}` : action,
+      tenantId,
+    });
+    return result;
+  });
+}
+
 /** Établissements gérés par une personne (pour choisir lequel ouvrir). */
 export async function managedTenantIds(userId: string): Promise<string[]> {
   const rows = await withPlatform((tx) =>

@@ -4,9 +4,12 @@ import { BookingFlow } from "@/components/booking/BookingFlow";
 import { PageTitle } from "@/components/site/blocks";
 import { withTenant } from "@/db/access";
 import { pickLocalized } from "@/i18n/locales";
+import { paymentGateway } from "@/lib/payments/stripe";
 import { getSite } from "@/lib/site/load";
 import { isOnlineQuotaReached, loadBookingContext } from "@/modules/booking/availability";
+import { onlinePaymentReady } from "@/modules/payments/deposits";
 import { formatPhone } from "@/modules/phone";
+import { hasActivePromoCodes } from "@/modules/promo/codes";
 import { SITE_PATHS } from "@/modules/site/paths";
 
 export async function generateMetadata({
@@ -26,9 +29,13 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
   const site = await getSite(tenantId);
   const t = await getTranslations("booking");
   const query = await searchParams;
-  const { context, quotaReached } = await withTenant(tenantId, async (tx) => {
+  const { context, quotaReached, promoEnabled } = await withTenant(tenantId, async (tx) => {
     const context = await loadBookingContext(tx, tenantId);
-    return { context, quotaReached: await isOnlineQuotaReached(tx, context) };
+    return {
+      context,
+      quotaReached: await isOnlineQuotaReached(tx, context),
+      promoEnabled: Boolean(context.features.promoCodes) && (await hasActivePromoCodes(tx, tenantId)),
+    };
   });
 
   const bookable = context.services.filter(
@@ -90,10 +97,14 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
         maxServices={context.settings.maxServicesPerBooking}
         preselectedServiceId={preselected}
         deposit={{
-          enabled: context.settings.depositEnabled && Boolean(context.features.onlinePayment),
+          // Acompte demandé seulement si le compte Stripe de l'établissement peut encaisser.
+          enabled:
+            context.settings.depositEnabled &&
+            onlinePaymentReady(context.tenant, context.features, paymentGateway()),
           type: context.settings.depositType,
           value: context.settings.depositValue,
         }}
+        promoEnabled={promoEnabled}
         holdMinutes={context.settings.holdMinutes}
         cancellationHours={context.settings.cancellationDeadlineHours}
         privacyPath={SITE_PATHS.privacy}

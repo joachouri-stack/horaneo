@@ -8,6 +8,7 @@ import { resolveLocale } from "@/i18n/translator";
 import { adminQuery } from "@/lib/admin/mutation";
 import { loadTenantOverview } from "@/lib/admin/tenant";
 import { formatDate, formatDateTime } from "@/lib/format";
+import { connectState } from "@/modules/payments/connect";
 import { formatPhone } from "@/modules/phone";
 import { listPlans } from "@/modules/tenants/queries";
 import { addDomainAction, changePlanAction, changeStatusAction, domainAction } from "../actions";
@@ -104,6 +105,7 @@ export default async function TenantOverviewPage({
               { label: t("services"), value: usageLine(counts.services, limits.services) },
               { label: t("members"), value: usageLine(counts.members, limits.members) },
               { label: t("photos"), value: usageLine(counts.photos, limits.photos) },
+              { label: t("stripe"), value: t(`stripeState.${connectState(tenant, plan.features)}`) },
             ].map((item) => (
               <div key={item.label}>
                 <dt className="text-sm text-ink/70">{item.label}</dt>

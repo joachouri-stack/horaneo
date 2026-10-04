@@ -2,12 +2,21 @@
 
 import { z } from "zod";
 import { withTenant } from "@/db/access";
+import { paymentGateway } from "@/lib/payments/stripe";
 import { currentSiteTenant, publicLimits } from "@/lib/site/current";
-import { getSlotsForRange, isOnlineQuotaReached, loadBookingContext } from "@/modules/booking/availability";
+import {
+  getSlotsForRange,
+  isOnlineQuotaReached,
+  loadBookingContext,
+  resolveServices,
+} from "@/modules/booking/availability";
 import { createBooking } from "@/modules/booking/create";
 import { cancelByCustomer, findByManageToken, rescheduleByCustomer } from "@/modules/booking/manage";
 import { addDays, DATE_PATTERN, utcToLocal } from "@/modules/booking/time";
+import { computeDeposit } from "@/modules/booking/pricing";
 import { AppError, type AppErrorCode } from "@/modules/errors";
+import { onlinePaymentReady, syncDeposit } from "@/modules/payments/deposits";
+import { previewPromo } from "@/modules/promo/codes";
 
 /**
  * Actions du parcours de réservation (site public, sans compte).
@@ -98,6 +107,7 @@ const bookInput = z.object({
     note: z.string().optional(),
     marketingConsent: z.boolean(),
   }),
+  promoCode: z.string().max(30).optional(),
   /** Champ piège invisible : rempli seulement par les robots. */
   website: z.string().max(0).optional(),
 });
@@ -108,10 +118,13 @@ export type BookingConfirmation = {
   endsAt: string;
   staffName: string;
   totalCents: number;
+  discountCents: number;
   depositCents: number;
   currency: string;
   manageToken: string;
   holdExpiresAt: string | null;
+  /** Formulaire de carte Stripe (acompte), sur le compte du professionnel. */
+  payment: { clientSecret: string; accountId: string; publishableKey: string } | null;
 };
 
 export async function bookAction(raw: z.input<typeof bookInput>): Promise<PublicResult<BookingConfirmation>> {
@@ -128,8 +141,9 @@ export async function bookAction(raw: z.input<typeof bookInput>): Promise<Public
           staffId: input.staffId,
           start: input.start,
           customer: input.customer,
+          promoCode: input.promoCode || undefined,
         },
-        { allowDraft: site.preview },
+        { allowDraft: site.preview, gateway: paymentGateway() },
       );
       const context = await loadBookingContext(tx, site.tenantId);
       return {
@@ -138,23 +152,82 @@ export async function bookAction(raw: z.input<typeof bookInput>): Promise<Public
         endsAt: result.endsAt.toISOString(),
         staffName: context.staff.find((member) => member.id === result.staffId)?.name ?? "",
         totalCents: result.totalCents,
+        discountCents: result.discountCents,
         depositCents: result.depositCents,
         currency: result.currency,
         manageToken: result.manageToken,
         holdExpiresAt: result.holdExpiresAt?.toISOString() ?? null,
+        payment: result.payment,
       };
     });
   });
 }
 
-export async function cancelAction(token: string): Promise<PublicResult<{ cancelled: true }>> {
+const promoInput = z.object({
+  code: z.string().trim().min(1).max(30),
+  serviceIds: z.array(z.uuid()).min(1).max(10),
+});
+
+export type PromoPreview = { code: string; totalCents: number; discountCents: number; depositCents: number };
+
+/** Vérifie un code promo avant la réservation (le code n'est consommé qu'à la réservation). */
+export async function checkPromoAction(raw: z.input<typeof promoInput>): Promise<PublicResult<PromoPreview>> {
+  return run(async () => {
+    const input = promoInput.parse(raw);
+    const site = await currentSiteTenant();
+    if (!publicLimits.promo.attempt(site.ip)) throw new AppError("rate_limited");
+    return withTenant(site.tenantId, async (tx) => {
+      const context = await loadBookingContext(tx, site.tenantId);
+      const { totals } = resolveServices(context, input.serviceIds);
+      const promo = await previewPromo(tx, site.tenantId, input.code, totals.totalCents);
+      const totalCents = totals.totalCents - promo.discountCents;
+      const ready = onlinePaymentReady(context.tenant, context.features, paymentGateway());
+      return {
+        code: promo.code,
+        totalCents,
+        discountCents: promo.discountCents,
+        depositCents: computeDeposit(totalCents, context.settings, ready),
+      };
+    });
+  });
+}
+
+/** Après le paiement dans le navigateur : relit le paiement chez Stripe et confirme le rendez-vous. */
+export async function confirmPaymentAction(
+  token: string,
+): Promise<PublicResult<{ status: "confirmed" | "pending_payment" | "other" }>> {
   return run(async () => {
     const site = await currentSiteTenant();
     if (!publicLimits.manage.attempt(site.ip)) throw new AppError("rate_limited");
-    await withTenant(site.tenantId, (tx) =>
-      cancelByCustomer(tx, site.tenantId, z.string().max(80).parse(token)),
-    );
-    return { cancelled: true as const };
+    return withTenant(site.tenantId, async (tx) => {
+      const managed = await findByManageToken(tx, site.tenantId, z.string().max(80).parse(token));
+      if (!managed) throw new AppError("not_found");
+      await syncDeposit(tx, site.tenantId, managed.appointment.id, paymentGateway());
+      const after = await findByManageToken(tx, site.tenantId, token);
+      const status = after?.appointment.status;
+      return { status: status === "confirmed" || status === "pending_payment" ? status : "other" };
+    });
+  });
+}
+
+export async function cancelAction(
+  token: string,
+): Promise<PublicResult<{ cancelled: true; refundedCents: number; currency: string }>> {
+  return run(async () => {
+    const site = await currentSiteTenant();
+    if (!publicLimits.manage.attempt(site.ip)) throw new AppError("rate_limited");
+    const result = await withTenant(site.tenantId, async (tx) => {
+      const cancelled = await cancelByCustomer(
+        tx,
+        site.tenantId,
+        z.string().max(80).parse(token),
+        new Date(),
+        paymentGateway(),
+      );
+      const context = await loadBookingContext(tx, site.tenantId);
+      return { ...cancelled, currency: context.tenant.currency };
+    });
+    return { cancelled: true as const, refundedCents: result.refundedCents, currency: result.currency };
   });
 }
 

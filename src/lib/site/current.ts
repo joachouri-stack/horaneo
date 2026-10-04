@@ -36,4 +36,6 @@ export const publicLimits = {
   availability: createRateLimiter({ max: 120, windowMs: 60 * 1000 }),
   booking: createRateLimiter({ max: 10, windowMs: 10 * 60 * 1000 }),
   manage: createRateLimiter({ max: 30, windowMs: 10 * 60 * 1000 }),
+  /** Essais de codes promo : limités pour empêcher de les deviner. */
+  promo: createRateLimiter({ max: 10, windowMs: 10 * 60 * 1000 }),
 };

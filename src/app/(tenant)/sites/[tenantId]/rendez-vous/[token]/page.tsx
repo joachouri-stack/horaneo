@@ -2,11 +2,16 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { formatLongDate, formatTimeOf } from "@/components/booking/format";
 import { ManageAppointment } from "@/components/booking/ManageAppointment";
+import { PendingPayment } from "@/components/booking/PendingPayment";
 import { PageTitle } from "@/components/site/blocks";
 import { withTenant } from "@/db/access";
 import { formatMoney } from "@/lib/format";
+import { paymentGateway } from "@/lib/payments/stripe";
 import { getSite } from "@/lib/site/load";
 import { canModify, findByManageToken } from "@/modules/booking/manage";
+import { AppError } from "@/modules/errors";
+import { depositCheckout, syncDeposit } from "@/modules/payments/deposits";
+import { depositSummary } from "@/modules/payments/refunds";
 import { formatPhone } from "@/modules/phone";
 import { SITE_PATHS } from "@/modules/site/paths";
 
@@ -20,7 +25,25 @@ export default async function ManageAppointmentPage({
   const { tenantId, token } = await params;
   const site = await getSite(tenantId);
   const t = await getTranslations("booking.manage");
-  const managed = await withTenant(tenantId, (tx) => findByManageToken(tx, tenantId, token, site.locale));
+  const gateway = paymentGateway();
+  const { managed, deposit, checkout } = await withTenant(tenantId, async (tx) => {
+    let managed = await findByManageToken(tx, tenantId, token, site.locale);
+    if (!managed) return { managed: null, deposit: null, checkout: null };
+    const id = managed.appointment.id;
+    let checkout = null;
+    if (managed.appointment.status === "pending_payment" || managed.appointment.status === "expired") {
+      // Retour après le paiement (ou paiement non terminé) : l'état est relu chez Stripe.
+      try {
+        await syncDeposit(tx, tenantId, id, gateway);
+        managed = (await findByManageToken(tx, tenantId, token, site.locale)) ?? managed;
+        if (managed.appointment.status === "pending_payment")
+          checkout = await depositCheckout(tx, tenantId, id, gateway);
+      } catch (error) {
+        if (!(error instanceof AppError)) throw error;
+      }
+    }
+    return { managed, deposit: await depositSummary(tx, tenantId, id), checkout };
+  });
   const phone = site.tenant.phone;
 
   if (!managed) {
@@ -60,11 +83,26 @@ export default async function ManageAppointmentPage({
             <li key={index}>{item.name}</li>
           ))}
         </ul>
+        {appointment.discountCents > 0 && (
+          <p className="mt-2 text-site-muted">
+            {t("discount")} : − {formatMoney(appointment.discountCents, appointment.currency, site.locale)}
+          </p>
+        )}
         <p className="mt-2 font-semibold">
           {t("total")} : {formatMoney(appointment.totalCents, appointment.currency, site.locale)}
           {appointment.depositCents > 0 &&
+            deposit?.status !== "succeeded" &&
             ` · ${t("deposit")} : ${formatMoney(appointment.depositCents, appointment.currency, site.locale)}`}
         </p>
+        {deposit?.status === "succeeded" && (
+          <p className="mt-1">
+            {deposit.refundedCents > 0
+              ? t(deposit.refundPending ? "depositRefundPending" : "depositRefunded", {
+                  amount: formatMoney(deposit.refundedCents, deposit.currency, site.locale),
+                })
+              : t("depositPaid", { amount: formatMoney(deposit.amountCents, deposit.currency, site.locale) })}
+          </p>
+        )}
         {modifiable && (
           <p className="mt-4 text-sm text-site-muted">
             {t("deadline", {
@@ -86,8 +124,22 @@ export default async function ManageAppointmentPage({
         </p>
       )}
 
+      {checkout && (
+        <PendingPayment
+          token={token}
+          checkout={checkout}
+          amountCents={checkout.amountCents}
+          currency={checkout.currency}
+          locale={site.locale}
+          holdExpiresAt={appointment.holdExpiresAt?.toISOString() ?? null}
+          returnPath={`${SITE_PATHS.appointment}/${token}`}
+        />
+      )}
+
       <ManageAppointment
         token={token}
+        refundableCents={deposit?.refundable ? deposit.amountCents - deposit.refundedCents : 0}
+        currency={appointment.currency}
         locale={site.locale}
         timezone={timezone}
         canModify={modifiable}

@@ -3,7 +3,7 @@
 SaaS multi-tenant : chaque professionnel travaillant sur rendez-vous reçoit son propre site web, avec réservation et paiement d'acompte en ligne.
 
 - Brief et décisions : [`docs/01-base-de-donnees.md`](docs/01-base-de-donnees.md)
-- Avancement : étape 7 sur 14 (espace gérante)
+- Avancement : étape 8 sur 14 (paiement des acomptes et remboursements)
 
 ## Technologies
 
@@ -207,7 +207,7 @@ Parcours sur le site du client (`/reserver`), **sans compte**, en 4 étapes : pr
 - « Sans préférence » : membre le moins chargé ce jour-là (minutes réservées), puis l'ordre de l'équipe. Un seul membre réalise toutes les prestations d'un rendez-vous.
 - Le créneau est **recalculé sur le serveur** au moment de réserver. La base refuse deux rendez-vous qui se chevauchent pour un même membre, même si deux clientes valident à la même seconde.
 - **Pack Basic** : 5 réservations en ligne par mois, comptées au mois où elles sont prises (une annulation ne libère pas de place ; un report ne compte pas). Le compteur est atomique. Une fois la limite atteinte, la page affiche le téléphone, sans message d'erreur. Les ajouts manuels de la gérante ne comptent pas.
-- **Acompte** (packs avec paiement en ligne) : 30 % ou montant fixe, calculé sur le total. Le créneau est retenu 10 minutes, puis libéré si le paiement n'aboutit pas. Le paiement Stripe arrive à l'étape 8.
+- **Acompte** (packs avec paiement en ligne) : 30 % ou montant fixe, calculé sur le total (après code promo). Le créneau est retenu 10 minutes, puis libéré si le paiement n'aboutit pas (voir « Paiements des acomptes »).
 - **Gestion par lien** : après la réservation, la cliente reçoit un lien personnel (`/rendez-vous/<jeton>`, jamais indexé). Il permet d'annuler ou de déplacer jusqu'au délai ; un report conserve l'acompte. Seule une empreinte du jeton est stockée. L'envoi de ce lien par e-mail arrive à l'étape 9.
 - Fiche cliente retrouvée par l'e-mail (même établissement). Consentement aux offres facultatif et décoché par défaut.
 - Anti-abus : nombre de tentatives limité par adresse IP, champ piège contre les robots. Le tenant est recalculé à partir du domaine, jamais fourni par le visiteur.
@@ -229,7 +229,28 @@ Adresse : `/<langue>/espace` sur le domaine principal (un lien `/espace` sur le 
 - Toutes les données passent par la base en rôle « établissement » : une gérante ne peut techniquement voir que son établissement.
 - L'administratrice peut ouvrir l'espace d'un client (« Voir comme le client », 2FA obligatoire) ; chaque modification faite ainsi est tracée dans le journal (`impersonation.*`).
 - Les demandes de modification envoyées par les gérantes arrivent dans `/admin/demandes`.
-- Le remboursement de l'acompte lors d'une annulation sera ajouté avec Stripe (étape 8).
+- En annulant un rendez-vous dont l'acompte est payé, la gérante choisit de le rembourser ou non.
+
+## Paiements des acomptes (Stripe Connect)
+
+L'argent va **directement sur le compte Stripe du professionnel** (comptes Stripe « Standard », paiements directs). La plateforme ne touche pas les fonds ; sa commission est un réglage (`deposit_commission_percent`), à 0.
+
+| Qui           | Ce qui se passe                                                                                                                                                                                             |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Gérante       | « Plus → Paiements en ligne » : bouton « Ouvrir mon compte Stripe », puis étapes guidées chez Stripe (identité, activité, compte bancaire). Le nom de l'établissement apparaît sur le relevé de la cliente. |
+| Cliente       | Après ses coordonnées, elle paie l'acompte par carte (Apple Pay et Google Pay compris) sans quitter le site. Un compte à rebours montre les 10 minutes de réservation du créneau.                           |
+| Remboursement | Automatique si la cliente annule dans le délai. Au choix de la gérante quand c'est elle qui annule. Conservé si la cliente est absente ou hors délai. Un report garde l'acompte.                            |
+
+- L'acompte n'est demandé que si les trois conditions sont réunies : pack avec paiement en ligne, acompte activé dans les réglages, compte Stripe actif. Sinon la réservation se fait sans acompte.
+- Le rendez-vous est confirmé dès que le paiement aboutit, que l'information arrive par le navigateur ou par Stripe (la cliente peut fermer la page). Un paiement arrivé après les 10 minutes reprend le créneau s'il est encore libre, sinon il est **remboursé automatiquement**.
+- Si Stripe refuse un remboursement, l'annulation n'est pas faite et un message invite à réessayer : jamais d'annulation « à moitié ».
+- Un remboursement fait directement depuis le tableau de bord Stripe du professionnel est aussi enregistré.
+- **Événements Stripe** : point de réception `/api/stripe/connect` (signature vérifiée). Chaque événement est enregistré avec son identifiant : reçu deux fois, il n'est traité qu'une fois. En cas d'erreur, Stripe le renvoie plus tard.
+- **Sans les clés Stripe** (`STRIPE_*` dans `.env`), le paiement en ligne est simplement désactivé. En local : clés de test et `stripe listen --forward-connect-to localhost:3000/api/stripe/connect`.
+
+### Codes promo
+
+Packs avec l'option « codes promo » : « Plus → Codes promo » (pourcentage ou montant, dates de validité, nombre d'utilisations). Le champ n'apparaît sur le site que s'il existe un code actif. La réduction s'applique au total, l'acompte est calculé ensuite. Le nombre d'utilisations est respecté même si deux clientes valident en même temps. Un code déjà utilisé est désactivé plutôt que supprimé. Les essais de codes sont limités par adresse IP.
 
 ## Autres garde-fous de la base de données
 

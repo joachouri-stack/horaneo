@@ -4,7 +4,10 @@ import { z } from "zod";
 import type { Transaction } from "@/db/client";
 import { appointmentItems, appointments, customers, usageCounters } from "@/db/schema";
 import { AppError } from "@/modules/errors";
+import { createDepositIntent, onlinePaymentReady } from "@/modules/payments/deposits";
+import type { PaymentGateway } from "@/modules/payments/gateway";
 import { normalizePhone } from "@/modules/phone";
+import { redeemPromo } from "@/modules/promo/codes";
 import { currentPeriod } from "@/modules/tenants/queries";
 import {
   bookedMinutesOn,
@@ -39,6 +42,8 @@ export const bookingInput = z.object({
   start: z.coerce.date(),
   customer: customerInput,
   locale: z.string().min(2).max(5).default("fr"),
+  /** Code promo saisi par la cliente (réservation en ligne uniquement). */
+  promoCode: z.string().trim().max(30).optional(),
 });
 
 export type BookingInput = z.input<typeof bookingInput>;
@@ -48,6 +53,8 @@ export type BookingOptions = {
   source?: "online" | "manual";
   /** Aperçu admin d'un site en création : la réservation est permise. */
   allowDraft?: boolean;
+  /** Prestataire de paiement (acompte en ligne). Sans lui, aucun acompte n'est demandé. */
+  gateway?: PaymentGateway | null;
 };
 
 export function hashManageToken(token: string): string {
@@ -162,11 +169,8 @@ export async function createBooking(
   const { services, totals } = resolveServices(context, input.serviceIds, {
     onlineOnly: source === "online",
   });
-  const depositCents = computeDeposit(
-    totals.totalCents,
-    context.settings,
-    Boolean(context.features.onlinePayment),
-  );
+  const paymentReady =
+    source === "online" && onlinePaymentReady(context.tenant, context.features, options.gateway);
 
   await expireStaleHolds(tx, tenantId, now);
 
@@ -193,6 +197,15 @@ export async function createBooking(
   if (source === "online" && !(await consumeOnlineQuota(tx, context, now)))
     throw new AppError("booking_quota_reached");
 
+  // Code promo : réduction sur le total, puis acompte calculé sur le total réduit (décision n° 8).
+  const promo =
+    source === "online" && input.promoCode
+      ? await redeemPromo(tx, tenantId, input.promoCode, totals.totalCents, now)
+      : null;
+  const discountCents = promo?.discountCents ?? 0;
+  const totalCents = totals.totalCents - discountCents;
+  const depositCents = computeDeposit(totalCents, context.settings, paymentReady);
+
   const customerId = await upsertCustomer(tx, context, input.customer, input.locale, now);
   const manage = newManageToken();
   const endsAt = addMinutes(input.start, totals.durationMinutes);
@@ -212,9 +225,11 @@ export async function createBooking(
         status: pending ? "pending_payment" : "confirmed",
         source,
         holdExpiresAt: pending ? addMinutes(now, context.settings.holdMinutes) : null,
-        totalCents: totals.totalCents,
+        totalCents,
+        discountCents,
         depositCents,
         currency: totals.currency,
+        promoCodeId: promo?.promoCodeId ?? null,
         manageTokenHash: manage.hash,
         locale: input.locale,
         customerNote: input.customer.note || null,
@@ -239,7 +254,31 @@ export async function createBooking(
     })),
   );
 
+  let payment: { clientSecret: string; accountId: string; publishableKey: string } | null = null;
+  if (pending && options.gateway && context.tenant.stripeAccountId) {
+    const intent = await createDepositIntent(
+      tx,
+      tenantId,
+      {
+        appointmentId: appointment.id,
+        amountCents: depositCents,
+        currency: totals.currency,
+        accountId: context.tenant.stripeAccountId,
+        receiptEmail: input.customer.email,
+      },
+      options.gateway,
+    );
+    if (!intent.clientSecret) throw new AppError("payment_provider_error");
+    payment = {
+      clientSecret: intent.clientSecret,
+      accountId: context.tenant.stripeAccountId,
+      publishableKey: options.gateway.publishableKey,
+    };
+  }
+
   return {
+    payment,
+    discountCents,
     appointmentId: appointment.id,
     manageToken: manage.token,
     status: appointment.status,

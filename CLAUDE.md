@@ -10,3 +10,4 @@
 - Les droits sensibles (statut d'administratrice, double vérification) ne se modifient que via `withPlatform` ou les scripts : un garde-fou en base refuse tout autre accès.
 - Règles métier dans `src/modules/` : fonctions `(tx, tenantId, input)` utilisables avec `withPlatform` (admin) comme `withTenant` (gérante). Erreurs métier : `AppError` avec un code traduit dans `errors.*`.
 - Toute action de l'espace admin passe par `adminMutation` (droits revérifiés, transaction, journal).
+- Paiements : jamais d'appel direct à Stripe dans les modules. Ils reçoivent un `PaymentGateway` (`src/modules/payments/gateway.ts`) ; l'implémentation réelle est `paymentGateway()` (`src/lib/payments/stripe.ts`), les tests utilisent `tests/setup/fake-gateway.ts`.

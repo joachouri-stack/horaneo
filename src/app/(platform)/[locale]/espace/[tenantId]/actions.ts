@@ -1,12 +1,15 @@
 "use server";
 
+import { redirect as redirectTo } from "next/navigation";
 import { getLocale } from "next-intl/server";
+import { publicAppUrl } from "@/config/env";
 import { z } from "zod";
 import { redirect } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/translator";
 import type { ActionResult } from "@/lib/actions/result";
 import { form } from "@/lib/admin/mutation";
-import { managerMutation, managerQuery } from "@/lib/manager/access";
+import { managerMutation, managerPlatformAction, managerQuery } from "@/lib/manager/access";
+import { paymentGateway } from "@/lib/payments/stripe";
 import { storage } from "@/lib/storage";
 import {
   cancelByManager,
@@ -22,6 +25,9 @@ import { deleteCategory, deleteService, saveCategory, saveService } from "@/modu
 import { deleteTestimonial, saveTestimonial } from "@/modules/content/testimonials";
 import { saveCustomer, searchCustomers } from "@/modules/customers/customers";
 import { restoreAsset, retireAsset, uploadAsset } from "@/modules/media/assets";
+import { AppError } from "@/modules/errors";
+import { refreshAccount, startOnboarding } from "@/modules/payments/connect";
+import { deletePromoCode, savePromoCode } from "@/modules/promo/codes";
 import { createUpdateRequest } from "@/modules/requests/update-requests";
 import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
 import { createTimeOff, deleteTimeOff } from "@/modules/schedule/time-off";
@@ -73,8 +79,15 @@ export async function setAttendanceAction(_previous: Previous, data: FormData) {
 
 export async function cancelAppointmentAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "appointment.cancelled", (tx) =>
-    cancelByManager(tx, tenantId, idOf(data)!, form.optional(data, "reason")),
+  const refund = form.bool(data, "refund");
+  return managerMutation(
+    tenantId,
+    refund ? "appointment.cancelled_refunded" : "appointment.cancelled",
+    (tx) =>
+      cancelByManager(tx, tenantId, idOf(data)!, form.optional(data, "reason"), {
+        refund,
+        gateway: paymentGateway(),
+      }),
   );
 }
 
@@ -389,4 +402,65 @@ export async function createRequestAction(_previous: Previous, data: FormData) {
       message: form.text(data, "message"),
     }),
   );
+}
+
+// ─── Paiements (compte Stripe) et codes promo ────────────────────────────────
+
+function paymentsPage(locale: string, tenantId: string) {
+  return `${publicAppUrl()}/${locale}/espace/${tenantId}/plus/paiements`;
+}
+
+/** Ouvre (ou reprend) les étapes guidées de Stripe pour le compte de l'établissement. */
+export async function openStripeOnboarding(rawLocale: string, rawTenantId: string): Promise<string> {
+  const tenantId = uuid.parse(rawTenantId);
+  const page = paymentsPage(resolveLocale(rawLocale), tenantId);
+  try {
+    const { url } = await managerPlatformAction(tenantId, "stripe.onboarding", (tx) =>
+      startOnboarding(tx, tenantId, paymentGateway(), {
+        returnUrl: `${page}?retour=1`,
+        refreshUrl: `${page}/relance`,
+      }),
+    );
+    return url;
+  } catch (error) {
+    if (error instanceof AppError) return `${page}?erreur=${error.code}`;
+    throw error;
+  }
+}
+
+export async function startStripeOnboardingAction(data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const locale = resolveLocale(await getLocale());
+  redirectTo(await openStripeOnboarding(locale, tenantId));
+}
+
+/** Relit l'état du compte Stripe (retour des étapes guidées). */
+export async function refreshStripeAccount(tenantId: string) {
+  return managerPlatformAction(tenantId, "stripe.refresh", (tx) =>
+    refreshAccount(tx, tenantId, paymentGateway()),
+  );
+}
+
+function promoValues(data: FormData) {
+  return {
+    code: form.text(data, "code"),
+    discountType: z.enum(["percent", "fixed"]).parse(form.text(data, "discountType")),
+    discountValue: form.text(data, "discountValue"),
+    validFrom: form.optional(data, "validFrom") ?? "",
+    validUntil: form.optional(data, "validUntil") ?? "",
+    maxUses: form.optional(data, "maxUses") ?? "",
+    isActive: form.bool(data, "isActive"),
+  };
+}
+
+export async function savePromoCodeAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "promo.saved", (tx) =>
+    savePromoCode(tx, tenantId, promoValues(data), idOf(data)),
+  );
+}
+
+export async function deletePromoCodeAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "promo.deleted", (tx) => deletePromoCode(tx, tenantId, idOf(data)!));
 }

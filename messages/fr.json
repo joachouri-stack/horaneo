@@ -325,7 +325,14 @@
         "noCustomDomain": "Le pack de ce client n'inclut pas de domaine propre.",
         "created": "Client depuis le {date}",
         "countryTimezone": "{country} · {timezone} · {currency}",
-        "noMembers": "Aucun membre dans l'équipe : la réservation en ligne est impossible. Ajoutez au moins un membre (onglet Équipe) et cochez ses prestations."
+        "noMembers": "Aucun membre dans l'équipe : la réservation en ligne est impossible. Ajoutez au moins un membre (onglet Équipe) et cochez ses prestations.",
+        "stripe": "Paiement en ligne (Stripe)",
+        "stripeState": {
+          "unavailable": "Non inclus dans le pack",
+          "not_started": "Compte non ouvert",
+          "incomplete": "Compte ouvert, en attente de validation",
+          "active": "Compte actif"
+        }
       },
       "identity": {
         "title": "Coordonnées",
@@ -509,7 +516,12 @@
     "service_unavailable": "Cette prestation n'est plus disponible en ligne.",
     "cancellation_deadline_passed": "Le délai pour annuler ou déplacer en ligne est dépassé. Merci d'appeler l'établissement.",
     "booking_not_modifiable": "Ce rendez-vous ne peut plus être modifié.",
-    "rate_limited": "Trop de tentatives. Merci de patienter quelques minutes."
+    "rate_limited": "Trop de tentatives. Merci de patienter quelques minutes.",
+    "promo_code_invalid": "Ce code promo n'est pas valable.",
+    "promo_code_taken": "Ce code existe déjà.",
+    "payments_unavailable": "Le paiement en ligne n'est pas disponible pour le moment.",
+    "payment_not_refundable": "Il n'y a pas d'acompte à rembourser.",
+    "payment_provider_error": "Le service de paiement ne répond pas. Merci de réessayer dans un instant."
   },
   "status": {
     "draft": "En création",
@@ -581,12 +593,25 @@
       "deposit": "Acompte à régler maintenant",
       "confirm": "Confirmer le rendez-vous",
       "confirmPay": "Continuer vers le paiement",
-      "sending": "Enregistrement…"
+      "sending": "Enregistrement…",
+      "promo": "Code promo",
+      "promoApply": "Appliquer",
+      "promoApplied": "Code {code} appliqué : − {amount}",
+      "promoRemove": "Retirer",
+      "discount": "Réduction"
     },
     "payment": {
-      "title": "Paiement de l'acompte",
-      "held": "Votre créneau est réservé pendant {minutes} minutes.",
-      "soon": "Le paiement en ligne de l'acompte arrive très bientôt. L'établissement vous recontactera pour le régler."
+      "title": "Acompte à régler",
+      "held": "Votre créneau est réservé pendant {minutes} minutes, le temps de régler l'acompte.",
+      "remaining": "Temps restant pour payer : {time}",
+      "pay": "Payer l'acompte",
+      "paying": "Paiement en cours…",
+      "failed": "Le paiement n'a pas abouti. Vous pouvez réessayer.",
+      "secure": "Paiement sécurisé par Stripe. L'acompte est versé directement à l'établissement.",
+      "expired": "Le délai de paiement est dépassé et le créneau a été libéré. Vous pouvez reprendre la réservation.",
+      "restart": "Reprendre la réservation",
+      "checking": "Vérification du paiement…",
+      "unavailable": "Le paiement en ligne n'est pas disponible pour le moment. Merci de contacter l'établissement."
     },
     "confirmation": {
       "title": "Rendez-vous confirmé",
@@ -594,7 +619,8 @@
       "summary": "{date} à {time}, avec {name}",
       "keepLink": "Gardez ce lien : il permet d'annuler ou de déplacer votre rendez-vous gratuitement jusqu'à {hours} h avant.",
       "manageLink": "Gérer mon rendez-vous",
-      "emailSoon": "Vous recevrez aussi une confirmation par e-mail."
+      "emailSoon": "Vous recevrez aussi une confirmation par e-mail.",
+      "paidTitle": "Acompte payé, rendez-vous confirmé"
     },
     "back": "Retour",
     "continue": "Continuer",
@@ -629,7 +655,14 @@
       "deadline": "Annulation et report gratuits jusqu'au {date} à {time}.",
       "tooLate": "Le délai pour annuler ou déplacer en ligne est dépassé. Merci d'appeler l'établissement :",
       "notFound": "Ce lien n'est pas valable ou le rendez-vous a été modifié.",
-      "rebook": "Prendre un nouveau rendez-vous"
+      "rebook": "Prendre un nouveau rendez-vous",
+      "depositPaid": "Acompte payé : {amount}",
+      "depositRefunded": "Acompte remboursé : {amount}",
+      "depositRefundPending": "Remboursement de l'acompte en cours : {amount}",
+      "refundInfo": "L'acompte de {amount} vous sera remboursé automatiquement.",
+      "refunded": "L'acompte de {amount} vous est remboursé. Il apparaît sur votre compte sous 5 à 10 jours.",
+      "payNow": "Régler l'acompte pour confirmer le rendez-vous",
+      "discount": "Réduction"
     }
   },
   "manager": {
@@ -695,8 +728,14 @@
       "cancel": "Annuler le rendez-vous",
       "cancelReason": "Motif (facultatif)",
       "cancelConfirm": "Annuler ce rendez-vous ? La cliente sera prévenue.",
-      "refundSoon": "Le remboursement de l'acompte sera possible dès l'activation des paiements en ligne.",
-      "openCustomer": "Voir la fiche"
+      "openCustomer": "Voir la fiche",
+      "depositPaid": "Acompte payé : {amount}",
+      "depositWaiting": "Acompte en attente de paiement : {amount}",
+      "depositRefunded": "Remboursé : {amount}",
+      "depositRefundPending": "Remboursement en cours : {amount}",
+      "refund": "Rembourser l'acompte ({amount})",
+      "refundHint": "Le remboursement part immédiatement sur la carte de la cliente (5 à 10 jours pour apparaître). Sans remboursement, l'acompte reste acquis.",
+      "discount": "Réduction : {amount}"
     },
     "manual": {
       "title": "Nouveau rendez-vous",
@@ -801,7 +840,9 @@
       "subscription": "Abonnement",
       "settings": "Réglages",
       "requests": "Demandes de modification",
-      "help": "Aide"
+      "help": "Aide",
+      "payments": "Paiements en ligne",
+      "promo": "Codes promo"
     },
     "stats": {
       "title": "Statistiques",
@@ -852,10 +893,13 @@
       "percent": "Pourcentage du prix",
       "fixed": "Montant fixe",
       "depositValue": "Valeur (% ou €)",
-      "depositUnavailable": "L'acompte en ligne est inclus dans les packs Essentiel et Sérénité.",
+      "depositUnavailable": "L'acompte en ligne n'est pas inclus dans votre pack.",
       "summaries": "Résumés par e-mail",
       "daily": "Résumé du lendemain, chaque soir",
-      "monthly": "Résumé mensuel, le 1er du mois"
+      "monthly": "Résumé mensuel, le 1er du mois",
+      "depositNeedsStripe": "L'acompte ne sera demandé qu'une fois votre compte Stripe actif.",
+      "depositStripeLink": "Ouvrir mon compte Stripe",
+      "depositRefundRule": "Remboursé automatiquement si la cliente annule dans le délai ; conservé sinon ou en cas d'absence."
     },
     "requests": {
       "title": "Demandes de modification",
@@ -884,6 +928,54 @@
       "a2": "Dans « Plus » → « Indisponibilités », choisissez « Fermer l'établissement » et la date.",
       "q3": "Comment changer mon logo ou mes textes ?",
       "a3": "Envoyez une demande depuis « Mon site » → « Demander une modification »."
+    },
+    "payments": {
+      "title": "Paiements en ligne",
+      "intro": "Les acomptes de vos clientes sont versés directement sur votre compte Stripe, puis sur votre compte bancaire. {product} ne touche pas cet argent et ne prend aucune commission.",
+      "state": {
+        "unavailable": "Le paiement en ligne n'est pas inclus dans votre pack.",
+        "not_started": "Votre compte Stripe n'est pas encore ouvert.",
+        "incomplete": "Votre compte Stripe est ouvert mais pas encore validé : il manque des informations.",
+        "active": "✓ Votre compte Stripe est actif : vous pouvez demander un acompte."
+      },
+      "start": "Ouvrir mon compte Stripe",
+      "resume": "Compléter mon compte Stripe",
+      "steps": "Stripe vous demande, en quelques étapes : votre identité, votre activité et le compte bancaire qui recevra les acomptes. Comptez environ 10 minutes.",
+      "dashboard": "Ouvrir mon tableau de bord Stripe",
+      "dashboardHint": "Vos paiements, virements et éventuelles contestations se gèrent dans votre tableau de bord Stripe.",
+      "depositOff": "L'acompte n'est pas activé. Vous pouvez l'activer dans les réglages.",
+      "depositOn": "Acompte activé : {value}.",
+      "settingsLink": "Régler l'acompte",
+      "notConfigured": "Le paiement en ligne n'est pas encore disponible sur la plateforme. L'équipe vous préviendra.",
+      "fees": "Stripe prélève ses frais sur chaque paiement, directement sur votre compte. En cas de remboursement, Stripe ne rend pas ces frais.",
+      "returned": "Vos informations ont bien été transmises à Stripe.",
+      "upgrade": "Le paiement en ligne s'ajoute en changeant de pack (page Abonnement)."
+    },
+    "promo": {
+      "title": "Codes promo",
+      "intro": "Vos clientes saisissent le code au moment de réserver en ligne. La réduction s'applique au total ; l'acompte est calculé sur le total réduit.",
+      "unavailable": "Les codes promo ne sont pas inclus dans votre pack.",
+      "empty": "Aucun code pour le moment.",
+      "new": "Nouveau code",
+      "edit": "Modifier",
+      "code": "Code",
+      "codeHint": "3 à 30 lettres ou chiffres, sans espace (ex. BIENVENUE10).",
+      "discountType": "Type de réduction",
+      "percent": "Pourcentage",
+      "fixed": "Montant en euros",
+      "discountValue": "Valeur",
+      "validFrom": "Valable à partir du (facultatif)",
+      "validUntil": "Jusqu'au, inclus (facultatif)",
+      "maxUses": "Nombre d'utilisations maximum (facultatif)",
+      "isActive": "Code actif",
+      "uses": "{count, plural, =0 {Jamais utilisé} one {Utilisé # fois} other {Utilisé # fois}}",
+      "usesOf": "Utilisé {count} fois sur {max}",
+      "inactive": "Désactivé",
+      "period": "Du {from} au {until}",
+      "from": "À partir du {from}",
+      "until": "Jusqu'au {until}",
+      "delete": "Supprimer",
+      "deleteConfirm": "Supprimer ce code ? S'il a déjà servi, il sera seulement désactivé."
     }
   }
 }

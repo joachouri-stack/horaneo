@@ -6,6 +6,8 @@ import { newManageToken } from "@/modules/booking/create";
 import { computeTotals } from "@/modules/booking/pricing";
 import { addMinutes } from "@/modules/booking/time";
 import { AppError } from "@/modules/errors";
+import type { PaymentGateway } from "@/modules/payments/gateway";
+import { refundDeposit } from "@/modules/payments/refunds";
 import { normalizePhone } from "@/modules/phone";
 
 /**
@@ -43,11 +45,13 @@ export async function setAttendance(
   return { before: appointment.status, after: status };
 }
 
+/** Annulation par la gérante : elle choisit à chaque fois de rembourser l'acompte ou non (décision n° 11). */
 export async function cancelByManager(
   tx: Transaction,
   tenantId: string,
   appointmentId: string,
   reason?: string,
+  payment: { refund: boolean; gateway: PaymentGateway | null } = { refund: false, gateway: null },
 ) {
   const appointment = await loadAppointment(tx, tenantId, appointmentId);
   if (!["confirmed", "pending_payment"].includes(appointment.status))
@@ -61,8 +65,10 @@ export async function cancelByManager(
       cancellationReason: reason?.slice(0, 300) || null,
     })
     .where(eq(appointments.id, appointment.id));
-  // Remboursement de l'acompte (au choix de la gérante) : branché avec les paiements (étape 8).
-  return { depositCents: appointment.depositCents };
+  const refund = payment.refund
+    ? await refundDeposit(tx, tenantId, appointment.id, payment.gateway, { reason: "manager_cancelled" })
+    : null;
+  return { depositCents: appointment.depositCents, refundedCents: refund?.amountCents ?? 0 };
 }
 
 async function assertStaffDoesServices(

@@ -3,6 +3,9 @@ import type { Transaction } from "@/db/client";
 import { appointmentItems, appointments, staffMembers } from "@/db/schema";
 import { pickLocalized, type Locale } from "@/i18n/locales";
 import { AppError } from "@/modules/errors";
+import { moveDeposit } from "@/modules/payments/deposits";
+import type { PaymentGateway } from "@/modules/payments/gateway";
+import { refundDeposit } from "@/modules/payments/refunds";
 import { getSlotsForRange, loadBookingContext } from "./availability";
 import { hashManageToken, newManageToken } from "./create";
 import { addMinutes, utcToLocal } from "./time";
@@ -73,15 +76,32 @@ function assertModifiable(
   if (now > managed.deadline) throw new AppError("cancellation_deadline_passed");
 }
 
-export async function cancelByCustomer(tx: Transaction, tenantId: string, token: string, now = new Date()) {
+/**
+ * Annulation par la cliente, dans le délai : l'acompte éventuel est remboursé
+ * automatiquement (après le délai, l'annulation en ligne n'est plus possible).
+ */
+export async function cancelByCustomer(
+  tx: Transaction,
+  tenantId: string,
+  token: string,
+  now = new Date(),
+  gateway: PaymentGateway | null = null,
+) {
   const managed = await findByManageToken(tx, tenantId, token);
   assertModifiable(managed, now);
   await tx
     .update(appointments)
     .set({ status: "cancelled", cancelledAt: now, cancelledBy: "customer" })
     .where(eq(appointments.id, managed.appointment.id));
-  // Le remboursement automatique de l'acompte sera branché avec les paiements (étape 8).
-  return { appointmentId: managed.appointment.id, depositCents: managed.appointment.depositCents };
+  const refund = await refundDeposit(tx, tenantId, managed.appointment.id, gateway, {
+    reason: "customer_cancelled",
+    now,
+  });
+  return {
+    appointmentId: managed.appointment.id,
+    depositCents: managed.appointment.depositCents,
+    refundedCents: refund?.amountCents ?? 0,
+  };
 }
 
 /**
@@ -156,6 +176,7 @@ export async function rescheduleByCustomer(
       })
       .returning(),
   );
+  await moveDeposit(tx, tenantId, old.id, created.id);
   const items = await tx.select().from(appointmentItems).where(eq(appointmentItems.appointmentId, old.id));
   await tx.insert(appointmentItems).values(
     items.map((item) => ({
