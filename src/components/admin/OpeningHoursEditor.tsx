@@ -2,15 +2,26 @@
 
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { saveHoursAction } from "@/app/(platform)/[locale]/admin/clients/actions";
 import { ui } from "@/components/ui/styles";
+import type { ActionResult } from "@/lib/actions/result";
 import { ActionForm } from "./ActionForm";
 import { Hidden } from "./fields";
 
 type Range = { weekday: number; opensAt: string; closesAt: string };
 
 /** Horaires d'ouverture : une ou plusieurs plages par jour, ou fermé. */
-export function OpeningHoursEditor({ tenantId, initial }: { tenantId: string; initial: Range[] }) {
+export function OpeningHoursEditor({
+  tenantId,
+  initial,
+  action,
+  extra,
+}: {
+  tenantId: string;
+  initial: Range[];
+  action: (previous: ActionResult<unknown> | null, data: FormData) => Promise<ActionResult<unknown>>;
+  /** Champs cachés supplémentaires (ex. identifiant du membre). */
+  extra?: Record<string, string>;
+}) {
   const t = useTranslations("admin.tenant.hours");
   const tDays = useTranslations("weekdays");
   const tCommon = useTranslations("common");
@@ -23,8 +34,8 @@ export function OpeningHoursEditor({ tenantId, initial }: { tenantId: string; in
     setRanges((all) => all.map((r) => (r.key === key ? { ...r, ...patch } : r)));
 
   return (
-    <ActionForm action={saveHoursAction} submitLabel={tCommon("save")}>
-      <Hidden values={{ tenantId }} />
+    <ActionForm action={action} submitLabel={tCommon("save")}>
+      <Hidden values={{ tenantId, ...extra }} />
       <p className="text-sm text-ink/70">{t("hint")}</p>
       <ul className="divide-y divide-navy/10">
         {[1, 2, 3, 4, 5, 6, 7].map((day) => {

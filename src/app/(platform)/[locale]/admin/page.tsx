@@ -74,6 +74,13 @@ export default async function AdminHomePage({ params }: PageProps<"/[locale]/adm
                 </Link>
               </li>
             )}
+            {stats.openRequests > 0 && (
+              <li>
+                <Link href="/admin/demandes" className="font-semibold text-navy underline">
+                  {t("dashboard.openRequests", { count: stats.openRequests })}
+                </Link>
+              </li>
+            )}
             {stats.basicAtLimit.map((tenant) => (
               <li key={tenant.id}>
                 <Link href={`/admin/clients/${tenant.id}`} className="text-navy underline">
@@ -81,7 +88,7 @@ export default async function AdminHomePage({ params }: PageProps<"/[locale]/adm
                 </Link>
               </li>
             ))}
-            {stats.drafts === 0 && stats.basicAtLimit.length === 0 && (
+            {stats.drafts === 0 && stats.openRequests === 0 && stats.basicAtLimit.length === 0 && (
               <li className="text-ink/70">{t("dashboard.noAlerts")}</li>
             )}
           </ul>

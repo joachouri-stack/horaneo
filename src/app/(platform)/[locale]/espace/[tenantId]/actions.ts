@@ -1,0 +1,392 @@
+"use server";
+
+import { getLocale } from "next-intl/server";
+import { z } from "zod";
+import { redirect } from "@/i18n/navigation";
+import { resolveLocale } from "@/i18n/translator";
+import type { ActionResult } from "@/lib/actions/result";
+import { form } from "@/lib/admin/mutation";
+import { managerMutation, managerQuery } from "@/lib/manager/access";
+import { storage } from "@/lib/storage";
+import {
+  cancelByManager,
+  createManualAppointment,
+  moveAppointment,
+  setAttendance,
+  updateInternalNote,
+} from "@/modules/agenda/actions";
+import { getSlotsForRange, loadBookingContext } from "@/modules/booking/availability";
+import { updateBookingSettings } from "@/modules/booking/settings";
+import { DATE_PATTERN, localToUtc } from "@/modules/booking/time";
+import { deleteCategory, deleteService, saveCategory, saveService } from "@/modules/catalog/services";
+import { deleteTestimonial, saveTestimonial } from "@/modules/content/testimonials";
+import { saveCustomer, searchCustomers } from "@/modules/customers/customers";
+import { restoreAsset, retireAsset, uploadAsset } from "@/modules/media/assets";
+import { createUpdateRequest } from "@/modules/requests/update-requests";
+import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
+import { createTimeOff, deleteTimeOff } from "@/modules/schedule/time-off";
+import { replaceStaffSchedules } from "@/modules/team/schedules";
+import { deleteStaff, saveStaff } from "@/modules/team/staff";
+import { tenants } from "@/db/schema";
+import { eq } from "drizzle-orm";
+
+/**
+ * Actions de l'espace gérante. Chacune revérifie que la personne connectée gère
+ * bien cet établissement (ou est l'administratrice, et alors c'est journalisé),
+ * puis agit avec le rôle du tenant.
+ */
+
+type Previous = ActionResult<unknown> | null;
+
+const uuid = z.uuid();
+const tenantIdOf = (data: FormData) => uuid.parse(form.text(data, "tenantId"));
+const idOf = (data: FormData, key = "id") => {
+  const value = form.optional(data, key);
+  return value ? uuid.parse(value) : undefined;
+};
+const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+async function tenantTimezone(tenantId: string) {
+  return managerQuery(
+    tenantId,
+    async (tx) =>
+      (await tx.select({ timezone: tenants.timezone }).from(tenants).where(eq(tenants.id, tenantId)))[0]
+        .timezone,
+  );
+}
+
+async function localStart(tenantId: string, data: FormData) {
+  const date = z.string().regex(DATE_PATTERN).parse(form.text(data, "date"));
+  const time = z.string().regex(TIME).parse(form.text(data, "time"));
+  return localToUtc(date, time, await tenantTimezone(tenantId));
+}
+
+// ─── Rendez-vous ──────────────────────────────────────────────────────────────
+
+export async function setAttendanceAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const status = z.enum(["attended", "no_show", "confirmed"]).parse(form.text(data, "status"));
+  return managerMutation(tenantId, `appointment.${status}`, (tx) =>
+    setAttendance(tx, tenantId, idOf(data)!, status),
+  );
+}
+
+export async function cancelAppointmentAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "appointment.cancelled", (tx) =>
+    cancelByManager(tx, tenantId, idOf(data)!, form.optional(data, "reason")),
+  );
+}
+
+export async function moveAppointmentAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const start = await localStart(tenantId, data);
+  return managerMutation(tenantId, "appointment.moved", (tx) =>
+    moveAppointment(tx, tenantId, idOf(data)!, { start, staffId: idOf(data, "staffId")! }),
+  );
+}
+
+export async function updateNoteAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "appointment.note", (tx) =>
+    updateInternalNote(tx, tenantId, idOf(data)!, form.text(data, "internalNote")),
+  );
+}
+
+export async function createManualAction(
+  _previous: Previous,
+  data: FormData,
+): Promise<ActionResult<unknown>> {
+  const tenantId = tenantIdOf(data);
+  const start = await localStart(tenantId, data);
+  const customerId = idOf(data, "customerId");
+  const result = await managerMutation(tenantId, "appointment.created", (tx) =>
+    createManualAppointment(tx, tenantId, {
+      serviceIds: form.all(data, "serviceIds"),
+      staffId: form.text(data, "staffId"),
+      start,
+      customerId,
+      newCustomer: customerId
+        ? undefined
+        : {
+            firstName: form.text(data, "firstName"),
+            lastName: form.optional(data, "lastName"),
+            phone: form.optional(data, "phone"),
+            email: form.optional(data, "email"),
+          },
+      internalNote: form.optional(data, "internalNote"),
+    }),
+  );
+  if (!result.ok) return result;
+  redirect({
+    href: `/espace/${tenantId}/rendez-vous/${result.data!.appointmentId}`,
+    locale: resolveLocale(await getLocale()),
+  });
+  return result;
+}
+
+/** Créneaux libres d'un jour (aide à la saisie d'un rendez-vous manuel). */
+export async function freeSlotsAction(tenantId: string, serviceIds: string[], staffId: string, date: string) {
+  const ids = z.array(uuid).min(1).max(10).parse(serviceIds);
+  const member = uuid.parse(staffId);
+  const day = z.string().regex(DATE_PATTERN).parse(date);
+  return managerQuery(uuid.parse(tenantId), async (tx) => {
+    const context = await loadBookingContext(tx, tenantId);
+    const slots =
+      (
+        await getSlotsForRange(
+          tx,
+          { ...context, settings: { ...context.settings, minNoticeMinutes: 0 } },
+          { serviceIds: ids, staffId: member, fromDate: day, days: 1, now: new Date(), onlineOnly: false },
+        )
+      ).get(day) ?? [];
+    return slots.map((slot) => slot.time);
+  }).catch(() => [] as string[]);
+}
+
+export async function searchCustomersAction(tenantId: string, query: string) {
+  return managerQuery(uuid.parse(tenantId), (tx) =>
+    searchCustomers(tx, tenantId, z.string().max(80).parse(query), 8),
+  );
+}
+
+// ─── Indisponibilités ─────────────────────────────────────────────────────────
+
+export type TimeOffResult = ActionResult<{ conflicts: { id: string; startsAt: Date }[] }>;
+
+export async function createTimeOffAction(
+  _previous: Previous,
+  data: FormData,
+): Promise<ActionResult<unknown>> {
+  const tenantId = tenantIdOf(data);
+  const kind = form.text(data, "kind");
+  const reason = form.optional(data, "reason");
+  const input =
+    kind === "block"
+      ? {
+          kind: "block" as const,
+          staffId: form.text(data, "staffId"),
+          date: form.text(data, "date"),
+          from: form.text(data, "from"),
+          to: form.text(data, "to"),
+          reason,
+        }
+      : kind === "leave"
+        ? {
+            kind: "leave" as const,
+            staffId: form.text(data, "staffId"),
+            startDate: form.text(data, "startDate"),
+            endDate: form.text(data, "endDate"),
+            reason,
+          }
+        : {
+            kind: "closure" as const,
+            startDate: form.text(data, "startDate"),
+            endDate: form.text(data, "endDate"),
+            reason,
+          };
+  return managerMutation(tenantId, `time_off.${kind}`, async (tx) => {
+    const result = await createTimeOff(tx, tenantId, input);
+    return { conflicts: result.conflicts };
+  });
+}
+
+export async function deleteTimeOffAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "time_off.deleted", (tx) => deleteTimeOff(tx, tenantId, idOf(data)!));
+}
+
+// ─── Clientes ─────────────────────────────────────────────────────────────────
+
+export async function saveCustomerAction(
+  _previous: Previous,
+  data: FormData,
+): Promise<ActionResult<unknown>> {
+  const tenantId = tenantIdOf(data);
+  const id = idOf(data);
+  const result = await managerMutation(tenantId, id ? "customer.updated" : "customer.created", (tx) =>
+    saveCustomer(
+      tx,
+      tenantId,
+      {
+        firstName: form.text(data, "firstName"),
+        lastName: form.optional(data, "lastName"),
+        phone: form.optional(data, "phone"),
+        email: form.optional(data, "email"),
+        notes: form.optional(data, "notes"),
+      },
+      id,
+    ),
+  );
+  if (result.ok && !id)
+    redirect({
+      href: `/espace/${tenantId}/clientes/${(result.data as { id: string }).id}`,
+      locale: resolveLocale(await getLocale()),
+    });
+  return result;
+}
+
+// ─── Mon site ─────────────────────────────────────────────────────────────────
+
+export async function saveCategoryAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "category.saved", (tx) =>
+    saveCategory(tx, tenantId, { name: form.text(data, "name") }, idOf(data)),
+  );
+}
+
+export async function deleteCategoryAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "category.deleted", (tx) => deleteCategory(tx, tenantId, idOf(data)!));
+}
+
+export async function saveServiceAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "service.saved", (tx) =>
+    saveService(
+      tx,
+      tenantId,
+      {
+        name: form.text(data, "name"),
+        description: form.optional(data, "description"),
+        categoryId: form.optional(data, "categoryId") ?? null,
+        durationMinutes: form.text(data, "durationMinutes") as unknown as number,
+        bufferMinutes: (form.optional(data, "bufferMinutes") ?? "0") as unknown as number,
+        price: form.text(data, "price"),
+        priceFrom: form.bool(data, "priceFrom"),
+        isOnlineBookable: form.bool(data, "isOnlineBookable"),
+        isActive: form.bool(data, "isActive"),
+      },
+      idOf(data),
+    ),
+  );
+}
+
+export async function deleteServiceAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "service.deleted", (tx) => deleteService(tx, tenantId, idOf(data)!));
+}
+
+export async function saveHoursAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "hours.updated", (tx) =>
+    replaceOpeningHours(tx, tenantId, parseRanges(data)),
+  );
+}
+
+function parseRanges(data: FormData) {
+  return form
+    .all(data, "range")
+    .map((value) => {
+      const [weekday, opensAt, closesAt] = value.split("|");
+      return { weekday: Number(weekday), opensAt, closesAt };
+    })
+    .filter((range) => range.opensAt && range.closesAt);
+}
+
+export async function uploadPhotoAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const kind = z.enum(["gallery", "cover", "staff", "service", "other"]).parse(form.text(data, "kind"));
+  const bytes = (await form.file(data, "file")) ?? new Uint8Array();
+  return managerMutation(tenantId, "asset.uploaded", (tx, context) =>
+    uploadAsset(tx, storage(), tenantId, {
+      bytes,
+      kind,
+      uploadedByUserId: context.userId,
+      alt: form.optional(data, "alt"),
+    }),
+  );
+}
+
+export async function photoAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const id = idOf(data)!;
+  const operation = z.enum(["retire", "restore"]).parse(form.text(data, "operation"));
+  return managerMutation(tenantId, `asset.${operation}`, (tx) =>
+    operation === "retire" ? retireAsset(tx, tenantId, id) : restoreAsset(tx, tenantId, id),
+  );
+}
+
+export async function saveTestimonialAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "testimonial.saved", (tx) =>
+    saveTestimonial(
+      tx,
+      tenantId,
+      {
+        authorName: form.text(data, "authorName"),
+        text: form.text(data, "text"),
+        rating: form.optional(data, "rating") ? Number(form.text(data, "rating")) : null,
+        isPublished: form.bool(data, "isPublished"),
+      },
+      idOf(data),
+    ),
+  );
+}
+
+export async function deleteTestimonialAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "testimonial.deleted", (tx) =>
+    deleteTestimonial(tx, tenantId, idOf(data)!),
+  );
+}
+
+// ─── Plus : équipe, réglages, demandes ───────────────────────────────────────
+
+export async function saveStaffAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "staff.saved", (tx) =>
+    saveStaff(
+      tx,
+      tenantId,
+      {
+        name: form.text(data, "name"),
+        bio: form.optional(data, "bio"),
+        color: form.optional(data, "color"),
+        isActive: form.bool(data, "isActive"),
+        serviceIds: form.all(data, "serviceIds"),
+      },
+      idOf(data),
+    ),
+  );
+}
+
+export async function deleteStaffAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "staff.deleted", (tx) => deleteStaff(tx, tenantId, idOf(data)!));
+}
+
+export async function saveStaffScheduleAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "staff.schedule", (tx) =>
+    replaceStaffSchedules(tx, tenantId, idOf(data, "staffId")!, parseRanges(data)),
+  );
+}
+
+export async function updateSettingsAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "settings.updated", (tx) =>
+    updateBookingSettings(tx, tenantId, {
+      minNoticeHours: form.text(data, "minNoticeHours"),
+      maxAdvanceDays: form.text(data, "maxAdvanceDays"),
+      slotIntervalMinutes: form.text(data, "slotIntervalMinutes"),
+      maxServicesPerBooking: form.text(data, "maxServicesPerBooking"),
+      cancellationDeadlineHours: form.text(data, "cancellationDeadlineHours"),
+      depositEnabled: form.bool(data, "depositEnabled"),
+      depositType: form.text(data, "depositType") as "percent",
+      depositValue: form.text(data, "depositValue"),
+      dailySummaryEnabled: form.bool(data, "dailySummaryEnabled"),
+      monthlySummaryEnabled: form.bool(data, "monthlySummaryEnabled"),
+    } as never),
+  );
+}
+
+export async function createRequestAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "update_request.created", (tx, context) =>
+    createUpdateRequest(tx, tenantId, context.role === "owner" ? context.userId : null, {
+      subject: form.text(data, "subject"),
+      message: form.text(data, "message"),
+    }),
+  );
+}

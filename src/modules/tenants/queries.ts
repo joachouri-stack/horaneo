@@ -1,6 +1,14 @@
 import { and, asc, count, desc, eq, gte, ilike, inArray, or, sql, type SQL } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
-import { memberships, plans, tenantDomains, tenants, usageCounters, users } from "@/db/schema";
+import {
+  memberships,
+  plans,
+  tenantDomains,
+  tenants,
+  updateRequests,
+  usageCounters,
+  users,
+} from "@/db/schema";
 import { countUsage } from "@/modules/quotas";
 
 /** Lectures de l'espace admin (rôle plateforme : tous les tenants). */
@@ -115,13 +123,17 @@ export async function getDashboardStats(tx: Transaction, now = new Date()) {
     .leftJoin(tenants, and(eq(tenants.planId, plans.id), eq(tenants.status, "active")))
     .groupBy(plans.id)
     .orderBy(asc(plans.sortOrder));
-  const [[{ value: newThisMonth }], [{ value: cancelledThisMonth }], [{ value: drafts }]] = await Promise.all(
-    [
-      tx.select({ value: count() }).from(tenants).where(gte(tenants.createdAt, monthStart)),
-      tx.select({ value: count() }).from(tenants).where(gte(tenants.cancelledAt, monthStart)),
-      tx.select({ value: count() }).from(tenants).where(eq(tenants.status, "draft")),
-    ],
-  );
+  const [
+    [{ value: newThisMonth }],
+    [{ value: cancelledThisMonth }],
+    [{ value: drafts }],
+    [{ value: openRequests }],
+  ] = await Promise.all([
+    tx.select({ value: count() }).from(tenants).where(gte(tenants.createdAt, monthStart)),
+    tx.select({ value: count() }).from(tenants).where(gte(tenants.cancelledAt, monthStart)),
+    tx.select({ value: count() }).from(tenants).where(eq(tenants.status, "draft")),
+    tx.select({ value: count() }).from(updateRequests).where(eq(updateRequests.status, "new")),
+  ]);
   // Clients Basic ayant atteint leur quota de réservations ce mois-ci.
   const basicAtLimit = await tx
     .select({
@@ -148,6 +160,7 @@ export async function getDashboardStats(tx: Transaction, now = new Date()) {
     newThisMonth,
     cancelledThisMonth,
     drafts,
+    openRequests,
     basicAtLimit,
   };
 }

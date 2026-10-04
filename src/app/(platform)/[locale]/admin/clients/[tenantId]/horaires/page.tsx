@@ -5,6 +5,7 @@ import { WizardNav } from "@/components/admin/WizardNav";
 import { adminQuery } from "@/lib/admin/mutation";
 import { loadTenantOverview } from "@/lib/admin/tenant";
 import { listOpeningHours } from "@/modules/schedule/opening-hours";
+import { saveHoursAction } from "../../actions";
 
 export default async function HoursPage({
   params,
@@ -22,6 +23,7 @@ export default async function HoursPage({
       <WizardNav tenantId={tenantId} current="horaires" active={assistant} />
       <Section title={t("title")}>
         <OpeningHoursEditor
+          action={saveHoursAction}
           tenantId={tenantId}
           initial={hours.map((range) => ({
             weekday: range.weekday,

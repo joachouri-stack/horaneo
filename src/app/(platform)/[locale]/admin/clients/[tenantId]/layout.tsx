@@ -31,20 +31,25 @@ export default async function TenantAdminLayout({
           <h1 className="text-3xl font-extrabold">{overview.tenant.name}</h1>
           <StatusBadge status={overview.tenant.status} />
         </div>
-        {primary && (
-          <a
-            href={
-              overview.tenant.status === "draft"
-                ? `${tenantSiteUrl(primary.hostname)}/?${PREVIEW_PARAM}=${createPreviewToken(tenantId, authSecret())}`
-                : tenantSiteUrl(primary.hostname)
-            }
-            target="_blank"
-            rel="noreferrer"
-            className="font-semibold text-navy underline"
-          >
-            {overview.tenant.status === "draft" ? t("preview") : t("viewSite")} ↗
-          </a>
-        )}
+        <div className="flex flex-wrap items-center gap-4">
+          <Link href={`/espace/${tenantId}`} className="font-semibold text-navy underline">
+            {t("viewAsClient")} →
+          </Link>
+          {primary && (
+            <a
+              href={
+                overview.tenant.status === "draft"
+                  ? `${tenantSiteUrl(primary.hostname)}/?${PREVIEW_PARAM}=${createPreviewToken(tenantId, authSecret())}`
+                  : tenantSiteUrl(primary.hostname)
+              }
+              target="_blank"
+              rel="noreferrer"
+              className="font-semibold text-navy underline"
+            >
+              {overview.tenant.status === "draft" ? t("preview") : t("viewSite")} ↗
+            </a>
+          )}
+        </div>
       </div>
       <TenantTabs tenantId={tenantId} />
       <div className="space-y-6 pt-2">{children}</div>

@@ -223,7 +223,8 @@
     "nav": {
       "home": "Accueil",
       "clients": "Clients",
-      "newClient": "Nouveau client"
+      "newClient": "Nouveau client",
+      "requests": "Demandes"
     },
     "dashboard": {
       "activeClients": "Clients en ligne",
@@ -235,7 +236,8 @@
       "draftsLink": "Voir les sites en création",
       "alerts": "Alertes à traiter",
       "noAlerts": "Rien à signaler.",
-      "basicAtLimit": "{name} a atteint ses {count} réservations du mois (pack Basic)."
+      "basicAtLimit": "{name} a atteint ses {count} réservations du mois (pack Basic).",
+      "openRequests": "{count, plural, one {# demande de mise à jour à traiter} other {# demandes de mise à jour à traiter}}"
     },
     "clients": {
       "title": "Clients",
@@ -450,7 +452,8 @@
         "trash": "Photos retirées (récupérables jusqu'au {date})",
         "trashItem": "Récupérable jusqu'au {date}",
         "uploadHint": "JPEG, PNG, WebP ou HEIC, 10 Mo maximum. Les photos sont redimensionnées, compressées et nettoyées (position GPS retirée).",
-        "file": "Fichier de la photo"
+        "file": "Fichier de la photo",
+        "uploadNoCrop": "Envoyer sans recadrage"
       },
       "testimonials": {
         "title": "Témoignages",
@@ -461,7 +464,23 @@
         "published": "Publié",
         "empty": "Aucun témoignage pour le moment."
       },
-      "preview": "Aperçu du site (1 h)"
+      "preview": "Aperçu du site (1 h)",
+      "viewAsClient": "Voir comme le client"
+    },
+    "requests": {
+      "title": "Demandes de mise à jour",
+      "filter": "Statut",
+      "open": "À traiter (reçues et en cours)",
+      "empty": "Aucune demande.",
+      "thisMonth": "{count, plural, one {# demande} other {# demandes}} ce mois-ci",
+      "from": "De {email} · {date}",
+      "setStatus": "Changer le statut",
+      "status": {
+        "new": "Reçue",
+        "in_progress": "En cours",
+        "done": "Faite",
+        "rejected": "Refusée"
+      }
     }
   },
   "errors": {
@@ -611,6 +630,260 @@
       "tooLate": "Le délai pour annuler ou déplacer en ligne est dépassé. Merci d'appeler l'établissement :",
       "notFound": "Ce lien n'est pas valable ou le rendez-vous a été modifié.",
       "rebook": "Prendre un nouveau rendez-vous"
+    }
+  },
+  "manager": {
+    "metaTitle": "Mon espace",
+    "tabs": {
+      "today": "Aujourd'hui",
+      "agenda": "Agenda",
+      "customers": "Clientes",
+      "site": "Mon site",
+      "more": "Plus"
+    },
+    "impersonating": "Vous voyez l'espace de {name} en tant qu'administratrice. Vos modifications sont journalisées.",
+    "backToAdmin": "Retour à l'admin",
+    "switchTenant": "Changer d'établissement",
+    "chooseTenant": "Choisissez un établissement",
+    "viewSite": "Voir mon site",
+    "today": {
+      "title": "Aujourd'hui",
+      "appointments": "Rendez-vous du jour",
+      "revenue": "Chiffre d'affaires prévu",
+      "newBookings": "Nouvelles réservations (24 h)",
+      "empty": "Aucun rendez-vous aujourd'hui.",
+      "next": "Prochain",
+      "add": "Ajouter un rendez-vous",
+      "quick": "Actions rapides",
+      "block": "Bloquer un créneau",
+      "leave": "Poser un congé",
+      "closure": "Fermer une journée"
+    },
+    "status": {
+      "confirmed": "Confirmé",
+      "pending_payment": "Paiement en attente",
+      "cancelled": "Annulé",
+      "attended": "Venue",
+      "no_show": "Absente",
+      "expired": "Expiré"
+    },
+    "source": {
+      "online": "En ligne",
+      "manual": "Ajouté à la main"
+    },
+    "appointment": {
+      "title": "Rendez-vous",
+      "when": "{date} · {time} – {end}",
+      "with": "Avec {name}",
+      "customer": "Cliente",
+      "call": "Appeler",
+      "sms": "SMS",
+      "email": "E-mail",
+      "services": "Prestations",
+      "total": "Total",
+      "deposit": "Acompte",
+      "customerNote": "Message de la cliente",
+      "internalNote": "Note interne (invisible pour la cliente)",
+      "attended": "Venue",
+      "noShow": "Absente",
+      "undo": "Remettre « confirmé »",
+      "move": "Déplacer",
+      "moveTitle": "Déplacer le rendez-vous",
+      "date": "Date",
+      "time": "Heure",
+      "staff": "Membre",
+      "cancel": "Annuler le rendez-vous",
+      "cancelReason": "Motif (facultatif)",
+      "cancelConfirm": "Annuler ce rendez-vous ? La cliente sera prévenue.",
+      "refundSoon": "Le remboursement de l'acompte sera possible dès l'activation des paiements en ligne.",
+      "openCustomer": "Voir la fiche"
+    },
+    "manual": {
+      "title": "Nouveau rendez-vous",
+      "services": "Prestations",
+      "staff": "Avec",
+      "date": "Date",
+      "time": "Heure",
+      "freeSlots": "Créneaux libres ce jour-là",
+      "noFreeSlots": "Aucun créneau libre selon les horaires. Vous pouvez quand même saisir une heure.",
+      "customer": "Cliente",
+      "search": "Rechercher une cliente (nom, téléphone)",
+      "newCustomer": "Nouvelle cliente",
+      "existing": "Cliente existante",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "phone": "Téléphone",
+      "email": "E-mail",
+      "note": "Note interne",
+      "submit": "Enregistrer le rendez-vous",
+      "pickServices": "Choisissez au moins une prestation."
+    },
+    "agenda": {
+      "title": "Agenda",
+      "day": "Jour",
+      "week": "Semaine",
+      "today": "Aujourd'hui",
+      "previous": "Précédent",
+      "next": "Suivant",
+      "allStaff": "Toute l'équipe",
+      "empty": "Aucun rendez-vous.",
+      "closed": "Fermé",
+      "timeOff": {
+        "leave": "Congé",
+        "block": "Bloqué",
+        "closure": "Fermeture"
+      },
+      "add": "Ajouter"
+    },
+    "unavailability": {
+      "title": "Indisponibilités",
+      "block": "Bloquer un créneau",
+      "leave": "Poser un congé",
+      "closure": "Fermer l'établissement",
+      "staff": "Membre",
+      "date": "Date",
+      "from": "De",
+      "to": "À",
+      "startDate": "Du",
+      "endDate": "Au (inclus)",
+      "reason": "Motif (facultatif)",
+      "save": "Enregistrer",
+      "upcoming": "À venir",
+      "none": "Aucune indisponibilité prévue.",
+      "everyone": "Tout l'établissement",
+      "remove": "Supprimer",
+      "conflicts": "Attention : {count, plural, one {# rendez-vous est déjà pris} other {# rendez-vous sont déjà pris}} sur cette période. Pensez à prévenir ou déplacer."
+    },
+    "customers": {
+      "title": "Clientes",
+      "search": "Rechercher (nom, téléphone, e-mail)",
+      "empty": "Aucune cliente trouvée.",
+      "new": "Nouvelle cliente",
+      "lastVisit": "Dernière visite : {date}",
+      "never": "Pas encore venue",
+      "visits": "Visites",
+      "noShows": "Absences",
+      "spent": "Dépensé",
+      "notes": "Notes",
+      "notesHint": "Préférences, allergies… Visible uniquement par vous.",
+      "contact": "Coordonnées",
+      "history": "Historique",
+      "noHistory": "Aucun rendez-vous.",
+      "book": "Nouveau rendez-vous pour elle"
+    },
+    "site": {
+      "title": "Mon site",
+      "intro": "Modifiez vous-même vos prestations, horaires, photos et témoignages.",
+      "services": "Prestations et prix",
+      "hours": "Horaires d'ouverture",
+      "photos": "Photos",
+      "testimonials": "Témoignages",
+      "view": "Voir mon site",
+      "requestTitle": "Logo, couleurs, textes de présentation",
+      "requestText": "Ces éléments sont modifiés par notre équipe. Envoyez-nous votre demande.",
+      "requestCta": "Demander une modification"
+    },
+    "photos": {
+      "choose": "Choisir une photo",
+      "crop": "Cadrage",
+      "zoom": "Zoom",
+      "send": "Envoyer la photo",
+      "sending": "Envoi…",
+      "cancel": "Annuler",
+      "noCrop": "Le recadrage n'est pas possible pour ce format : la photo sera envoyée telle quelle.",
+      "tooLarge": "Cette photo dépasse 10 Mo. Choisissez-en une plus légère."
+    },
+    "more": {
+      "title": "Plus",
+      "stats": "Statistiques",
+      "team": "Équipe",
+      "unavailability": "Indisponibilités",
+      "subscription": "Abonnement",
+      "settings": "Réglages",
+      "requests": "Demandes de modification",
+      "help": "Aide"
+    },
+    "stats": {
+      "title": "Statistiques",
+      "appointments": "Rendez-vous",
+      "online": "En ligne",
+      "manual": "Ajoutés à la main",
+      "cancelled": "Annulés",
+      "noShows": "Absences",
+      "noShowRate": "Taux d'absence",
+      "revenue": "Chiffre d'affaires",
+      "newCustomers": "Nouvelles clientes",
+      "topServices": "Prestations les plus réservées",
+      "none": "Pas encore de données ce mois-ci.",
+      "previous": "Mois précédent",
+      "next": "Mois suivant",
+      "detailed": "Les statistiques détaillées sont incluses dans le pack Sérénité."
+    },
+    "team": {
+      "title": "Équipe",
+      "schedule": "Horaires de travail",
+      "scheduleHint": "Les créneaux proposés en ligne tiennent compte de ces horaires et des horaires d'ouverture."
+    },
+    "subscription": {
+      "title": "Abonnement",
+      "plan": "Votre pack : {name}",
+      "usage": "Utilisation ce mois-ci",
+      "onlineBookings": "Réservations en ligne",
+      "members": "Membres",
+      "photos": "Photos",
+      "services": "Prestations",
+      "sms": "SMS de rappel",
+      "unlimited": "illimité",
+      "of": "{used} sur {limit}",
+      "change": "Pour changer de pack, contactez-nous : le changement en ligne arrive bientôt."
+    },
+    "settings": {
+      "title": "Réglages",
+      "booking": "Réservation en ligne",
+      "minNotice": "Délai minimum avant un rendez-vous (heures)",
+      "maxAdvance": "Réservation au plus tard (jours à l'avance)",
+      "interval": "Créneaux proposés toutes les",
+      "minutes": "{count} minutes",
+      "maxServices": "Prestations maximum par rendez-vous",
+      "cancellation": "Annulation et report gratuits jusqu'à (heures avant)",
+      "deposit": "Acompte",
+      "depositEnabled": "Demander un acompte à la réservation",
+      "depositType": "Type d'acompte",
+      "percent": "Pourcentage du prix",
+      "fixed": "Montant fixe",
+      "depositValue": "Valeur (% ou €)",
+      "depositUnavailable": "L'acompte en ligne est inclus dans les packs Essentiel et Sérénité.",
+      "summaries": "Résumés par e-mail",
+      "daily": "Résumé du lendemain, chaque soir",
+      "monthly": "Résumé mensuel, le 1er du mois"
+    },
+    "requests": {
+      "title": "Demandes de modification",
+      "intro": "Logo, couleurs, mise en page, textes de présentation : décrivez ce que vous souhaitez changer.",
+      "subject": "Sujet",
+      "message": "Votre demande",
+      "send": "Envoyer la demande",
+      "sent": "Demande envoyée. Nous revenons vers vous rapidement.",
+      "history": "Vos demandes",
+      "none": "Aucune demande pour le moment.",
+      "status": {
+        "new": "Reçue",
+        "in_progress": "En cours",
+        "done": "Faite",
+        "rejected": "Refusée"
+      }
+    },
+    "help": {
+      "title": "Aide",
+      "email": "Écrire au support",
+      "whatsapp": "Assistance prioritaire par WhatsApp",
+      "faq": "Questions fréquentes",
+      "q1": "Comment ajouter un rendez-vous pris par téléphone ?",
+      "a1": "Dans « Aujourd'hui » ou « Agenda », touchez « + », choisissez la prestation, l'heure et la cliente.",
+      "q2": "Comment fermer l'institut un jour férié ?",
+      "a2": "Dans « Plus » → « Indisponibilités », choisissez « Fermer l'établissement » et la date.",
+      "q3": "Comment changer mon logo ou mes textes ?",
+      "a3": "Envoyez une demande depuis « Mon site » → « Demander une modification »."
     }
   }
 }

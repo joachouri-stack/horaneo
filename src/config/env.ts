@@ -60,6 +60,14 @@ const envSchema = z.object({
   /** auto : R2 si configuré, sinon dossier local (refusé en production sauf choix explicite « local »). */
   STORAGE_DRIVER: z.enum(["auto", "local", "r2"]).default("auto"),
 
+  // Assistance (affichée dans l'espace gérante)
+  SUPPORT_EMAIL: z.email().optional(),
+  /** Numéro WhatsApp de l'assistance prioritaire (format international, ex. 33612345678). */
+  SUPPORT_WHATSAPP: z
+    .string()
+    .regex(/^\d{8,15}$/)
+    .optional(),
+
   // E-mails (Brevo)
   BREVO_API_KEY: z.string().min(1).optional(),
   EMAIL_FROM_ADDRESS: z.email().optional(),

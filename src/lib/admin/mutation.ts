@@ -1,7 +1,6 @@
 import "server-only";
 import { headers } from "next/headers";
 import { refresh } from "next/cache";
-import { ZodError } from "zod";
 import { env } from "@/config/env";
 import { withPlatform } from "@/db/access";
 import type { Transaction } from "@/db/client";
@@ -9,7 +8,7 @@ import { recordAudit } from "@/lib/audit";
 import { decideAdminAccess } from "@/lib/auth/admin-access";
 import { getCurrentSession } from "@/lib/auth/session";
 import { getAdminSecurityState } from "@/lib/auth/two-factor-service";
-import { AppError, type AppErrorCode } from "@/modules/errors";
+import { toActionError, type ActionResult } from "@/lib/actions/result";
 
 /**
  * Exécution sûre d'une action de l'espace admin :
@@ -19,9 +18,7 @@ import { AppError, type AppErrorCode } from "@/modules/errors";
  * 4. renvoie un résultat simple, avec un code d'erreur traduisible.
  */
 
-export type ActionResult<T = undefined> =
-  | { ok: true; data?: T; message?: string }
-  | { ok: false; error: AppErrorCode; field?: string; fields?: string[] };
+export type { ActionResult } from "@/lib/actions/result";
 
 export type AdminContext = { userId: string; ip: string | null };
 
@@ -67,12 +64,7 @@ export async function adminMutation<T>(
     refresh();
     return { ok: true, data };
   } catch (error) {
-    if (error instanceof AppError) return { ok: false, error: error.code, field: error.field };
-    if (error instanceof ZodError) {
-      const fields = [...new Set(error.issues.map((issue) => String(issue.path[0] ?? "")))].filter(Boolean);
-      return { ok: false, error: "invalid", field: fields[0], fields };
-    }
-    throw error;
+    return toActionError(error);
   }
 }
 

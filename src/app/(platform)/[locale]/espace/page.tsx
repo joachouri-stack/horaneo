@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { ui } from "@/components/ui/styles";
-import { Link } from "@/i18n/navigation";
+import { Link, redirect } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/translator";
 import { getManagedTenants, requireSession } from "@/lib/auth/session";
 
@@ -21,6 +21,8 @@ export default async function AccountPage({ params }: PageProps<"/[locale]/espac
   const session = await requireSession(locale, "/espace");
   const [t, managed] = await Promise.all([getTranslations("account"), getManagedTenants(session.user.id)]);
   const { user } = session;
+  // Un seul établissement : on l'ouvre directement.
+  if (managed.length === 1) redirect({ href: `/espace/${managed[0].id}`, locale });
 
   return (
     <>
@@ -46,12 +48,13 @@ export default async function AccountPage({ params }: PageProps<"/[locale]/espac
             <h2 className="text-xl font-bold">{t("tenantsTitle")}</h2>
             <ul className="mt-4 space-y-2">
               {managed.map((tenant) => (
-                <li key={tenant.id} className="font-semibold text-navy">
-                  {tenant.name}
+                <li key={tenant.id}>
+                  <Link href={`/espace/${tenant.id}`} className={`${ui.secondaryButton} justify-start`}>
+                    {tenant.name}
+                  </Link>
                 </li>
               ))}
             </ul>
-            <p className="mt-4 text-ink/70">{t("comingSoon")}</p>
           </section>
         )}
 

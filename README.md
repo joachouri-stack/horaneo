@@ -3,7 +3,7 @@
 SaaS multi-tenant : chaque professionnel travaillant sur rendez-vous reçoit son propre site web, avec réservation et paiement d'acompte en ligne.
 
 - Brief et décisions : [`docs/01-base-de-donnees.md`](docs/01-base-de-donnees.md)
-- Avancement : étape 6 sur 14 (moteur de réservation et parcours en 4 étapes)
+- Avancement : étape 7 sur 14 (espace gérante)
 
 ## Technologies
 
@@ -212,6 +212,24 @@ Parcours sur le site du client (`/reserver`), **sans compte**, en 4 étapes : pr
 - Fiche cliente retrouvée par l'e-mail (même établissement). Consentement aux offres facultatif et décoché par défaut.
 - Anti-abus : nombre de tentatives limité par adresse IP, champ piège contre les robots. Le tenant est recalculé à partir du domaine, jamais fourni par le visiteur.
 - Les fuseaux horaires et les changements d'heure sont gérés : les heures affichées sont celles de l'établissement.
+
+## Espace gérante
+
+Adresse : `/<langue>/espace` sur le domaine principal (un lien `/espace` sur le domaine d'un client y redirige). Pensé d'abord pour le téléphone : 5 onglets fixés en bas de l'écran.
+
+| Onglet      | Contenu                                                                                                                         |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Aujourd'hui | rendez-vous du jour, statut (venue, absente), ajout manuel d'un rendez-vous avec créneaux libres proposés                       |
+| Agenda      | vue jour ou semaine, par membre, blocage d'un créneau ou d'une période (congés, fermeture)                                      |
+| Clientes    | recherche (nom, e-mail, téléphone même saisi « 06… »), fiche, historique, notes                                                 |
+| Mon site    | prestations, horaires, photos (recadrage), témoignages ; les autres changements passent par une demande à l'équipe              |
+| Plus        | statistiques du mois, équipe et horaires de chaque membre, règles de réservation, abonnement, demandes, aide (e-mail, WhatsApp) |
+
+- Les ajouts manuels ne comptent pas dans le quota Basic. Les limites du pack (membres, photos, prestations) s'appliquent.
+- Toutes les données passent par la base en rôle « établissement » : une gérante ne peut techniquement voir que son établissement.
+- L'administratrice peut ouvrir l'espace d'un client (« Voir comme le client », 2FA obligatoire) ; chaque modification faite ainsi est tracée dans le journal (`impersonation.*`).
+- Les demandes de modification envoyées par les gérantes arrivent dans `/admin/demandes`.
+- Le remboursement de l'acompte lors d'une annulation sera ajouté avec Stripe (étape 8).
 
 ## Autres garde-fous de la base de données
 
