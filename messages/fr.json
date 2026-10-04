@@ -1,0 +1,23 @@
+{
+  "metadata": {
+    "title": "{product} : votre site avec réservation en ligne",
+    "description": "Un site web à votre image, avec prise de rendez-vous et acomptes en ligne, pour les professionnels qui travaillent sur rendez-vous."
+  },
+  "common": {
+    "skipToContent": "Aller au contenu",
+    "login": "Connexion",
+    "language": "Langue",
+    "homeLink": "{product}, accueil"
+  },
+  "languages": {
+    "fr": "Français",
+    "en": "English",
+    "es": "Español",
+    "ru": "Русский"
+  },
+  "home": {
+    "title": "Votre site, votre agenda et vos acomptes, enfin réunis.",
+    "subtitle": "Vos clientes réservent et paient leur acompte en ligne, sur votre propre site. Vous gérez tout depuis votre téléphone.",
+    "cta": "Créer mon site"
+  }
+}

@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+/*
+ * Identité visuelle du SaaS (site commercial, espace admin, espace gérante).
+ * Les sites des clients n'utilisent PAS cette palette : ils ont leurs propres couleurs.
+ */
+@theme {
+  --color-navy: #1b2a4a; /* titres, menu */
+  --color-coral: #e8503f; /* boutons d'action uniquement */
+  --color-coral-dark: #c93e2f; /* survol des boutons */
+  --color-ivory: #faf7f2; /* fonds */
+  --color-ink: #2b2b2b; /* textes */
+  --color-success: #2e9e6b; /* confirmations */
+
+  --font-display: var(--font-nunito), ui-rounded, system-ui, sans-serif;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+
+  --radius-card: 0.75rem;
+}
+
+body {
+  background: var(--color-ivory);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+h1,
+h2,
+h3 {
+  color: var(--color-navy);
+  font-family: var(--font-display);
+}
+
+/* Navigation au clavier : contour bien visible */
+:focus-visible {
+  outline: 3px solid var(--color-navy);
+  outline-offset: 2px;
+  border-radius: 4px;
+}

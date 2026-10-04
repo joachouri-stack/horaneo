@@ -1,6 +1,6 @@
 # Horaneo : proposition de structure de la base de données (V1)
 
-> Document à valider avant tout développement. Rien n'est encore codé.
+> **Validé le 4 octobre 2026**, avec toutes les propositions de la section 6. Mis en place à l'étape 1 (`src/db/schema/`, `drizzle/`).
 
 ## 1. Principes généraux
 
