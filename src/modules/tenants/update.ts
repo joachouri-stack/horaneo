@@ -35,9 +35,6 @@ const coordinate = (min: number, max: number) =>
 export const identityInput = z.object({
   name: z.string().trim().min(2).max(120),
   slug: z.string().trim().toLowerCase(),
-  legalName: optionalText(160),
-  siret: optionalText(20),
-  vatNumber: optionalText(20),
   phone: optionalText(40),
   email: z
     .string()
@@ -89,12 +86,14 @@ export async function updateIdentity(tx: Transaction, tenantId: string, raw: z.i
 
 // ─── Métier, modèle et apparence ─────────────────────────────────────────────
 
-export const TEMPLATE_KEYS = ["wellness"] as const;
+/** Modèles de site : « wellness » (sobre), « atelier » (institut, une page par professionnelle). */
+export const TEMPLATE_KEYS = ["wellness", "atelier"] as const;
+export const THEME_KEYS = ["light", "dark", "nature", "blush"] as const;
 
 export const appearanceInput = z.object({
   businessCategory: optionalText(60),
   templateKey: z.enum(TEMPLATE_KEYS),
-  theme: z.enum(["light", "dark", "nature"]),
+  theme: z.enum(THEME_KEYS),
   primary: z.string().regex(HEX_COLOR),
   secondary: z.string().regex(HEX_COLOR),
 });
@@ -132,6 +131,32 @@ export async function setLogo(tx: Transaction, tenantId: string, logoAssetId: st
   await tx
     .update(tenants)
     .set({ brand: { ...tenant.brand, logoAssetId } })
+    .where(eq(tenants.id, tenantId));
+}
+
+// ─── Réseaux sociaux ──────────────────────────────────────────────────────────
+
+const socialUrl = (host: RegExp) =>
+  z
+    .string()
+    .trim()
+    .max(200)
+    .optional()
+    .transform((value) => value || undefined)
+    .refine((value) => !value || (URL.canParse(value) && host.test(new URL(value).hostname)), "invalid");
+
+export const socialInput = z.object({
+  instagram: socialUrl(/(^|\.)instagram\.com$/),
+  facebook: socialUrl(/(^|\.)(facebook\.com|fb\.com)$/),
+});
+
+/** Liens vers les pages Instagram et Facebook (affichés dans le pied de page). */
+export async function updateSocial(tx: Transaction, tenantId: string, raw: z.input<typeof socialInput>) {
+  const input = socialInput.parse(raw);
+  const tenant = await loadTenant(tx, tenantId);
+  await tx
+    .update(tenants)
+    .set({ brand: { ...tenant.brand, social: input } })
     .where(eq(tenants.id, tenantId));
 }
 

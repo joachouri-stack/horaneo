@@ -5,6 +5,7 @@ import { Link, usePathname } from "@/i18n/navigation";
 
 export const TENANT_SECTIONS = [
   "coordonnees",
+  "entreprises",
   "modele",
   "logo",
   "prestations",

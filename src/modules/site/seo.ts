@@ -62,12 +62,16 @@ export function sitemapPaths(
   if (site.features.fullSite) {
     if (sections.services)
       list.push(paths.services, ...site.categories.map((category) => categoryPath(category.slug)));
+    // Page de chaque professionnelle (modèle Atelier).
+    if (site.tenant.templateKey === "atelier")
+      list.push(...site.businesses.filter((b) => b.slug).map((b) => `/avec/${b.slug}`));
     if (sections.about) list.push(paths.about);
     if (sections.gallery) list.push(paths.gallery);
     if (sections.testimonials) list.push(paths.testimonials);
     list.push(paths.practical);
   }
   list.push(paths.legal, paths.privacy);
+  if (paths.cancellation) list.push(paths.cancellation);
   return list;
 }
 

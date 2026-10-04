@@ -1,7 +1,10 @@
 "use server";
 
+import { categoryFields } from "@/modules/catalog/icons";
+import { redeemOnSite, updateGiftCardSettings } from "@/modules/giftcards/giftcards";
+import { deletePromotion, savePromotion } from "@/modules/promotions/promotions";
 import { redirect as redirectTo } from "next/navigation";
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { publicAppUrl } from "@/config/env";
 import { z } from "zod";
 import { redirect } from "@/i18n/navigation";
@@ -10,6 +13,9 @@ import type { ActionResult } from "@/lib/actions/result";
 import { form } from "@/lib/admin/mutation";
 import { managerMutation, managerPlatformAction, managerQuery } from "@/lib/manager/access";
 import { paymentGateway } from "@/lib/payments/stripe";
+import { billingGateway } from "@/lib/payments/stripe-billing";
+import { openBillingPortal, requestPlanChange } from "@/modules/billing/subscriptions";
+import { assertPrimaryBusiness } from "@/modules/businesses/businesses";
 import { storage } from "@/lib/storage";
 import {
   cancelByManager,
@@ -244,7 +250,7 @@ export async function saveCustomerAction(
 export async function saveCategoryAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   return managerMutation(tenantId, "category.saved", (tx) =>
-    saveCategory(tx, tenantId, { name: form.text(data, "name") }, idOf(data)),
+    saveCategory(tx, tenantId, categoryFields(data), idOf(data)),
   );
 }
 
@@ -415,8 +421,8 @@ export async function openStripeOnboarding(rawLocale: string, rawTenantId: strin
   const tenantId = uuid.parse(rawTenantId);
   const page = paymentsPage(resolveLocale(rawLocale), tenantId);
   try {
-    const { url } = await managerPlatformAction(tenantId, "stripe.onboarding", (tx) =>
-      startOnboarding(tx, tenantId, paymentGateway(), {
+    const { url } = await managerPlatformAction(tenantId, "stripe.onboarding", (tx, { businessId }) =>
+      startOnboarding(tx, tenantId, businessId, paymentGateway(), {
         returnUrl: `${page}?retour=1`,
         refreshUrl: `${page}/relance`,
       }),
@@ -436,8 +442,8 @@ export async function startStripeOnboardingAction(data: FormData) {
 
 /** Relit l'état du compte Stripe (retour des étapes guidées). */
 export async function refreshStripeAccount(tenantId: string) {
-  return managerPlatformAction(tenantId, "stripe.refresh", (tx) =>
-    refreshAccount(tx, tenantId, paymentGateway()),
+  return managerPlatformAction(tenantId, "stripe.refresh", (tx, { businessId }) =>
+    refreshAccount(tx, tenantId, businessId, paymentGateway()),
   );
 }
 
@@ -463,4 +469,118 @@ export async function savePromoCodeAction(_previous: Previous, data: FormData) {
 export async function deletePromoCodeAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   return managerMutation(tenantId, "promo.deleted", (tx) => deletePromoCode(tx, tenantId, idOf(data)!));
+}
+
+// ─── Promotions datées ───────────────────────────────────────────────────────
+
+export async function savePromotionAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "promotion.saved", (tx) =>
+    savePromotion(
+      tx,
+      tenantId,
+      {
+        title: form.text(data, "title"),
+        serviceIds: form.all(data, "serviceIds"),
+        discountType: form.text(data, "discountType") as "percent",
+        discountValue: form.text(data, "discountValue"),
+        startsOn: form.text(data, "startsOn"),
+        endsOn: form.text(data, "endsOn"),
+      },
+      idOf(data),
+    ),
+  );
+}
+
+export async function deletePromotionAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "promotion.deleted", (tx) => deletePromotion(tx, tenantId, idOf(data)!));
+}
+
+// ─── Cartes cadeaux ──────────────────────────────────────────────────────────
+
+/** Sur place : la gérante saisit le code et le montant du soin. */
+export async function redeemGiftCardAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const result = await managerMutation(tenantId, "gift_card.redeemed", (tx, { userId }) =>
+    redeemOnSite(
+      tx,
+      tenantId,
+      { code: form.text(data, "code"), amount: form.text(data, "amount"), note: form.optional(data, "note") },
+      userId,
+    ),
+  );
+  if (result.ok && result.data) {
+    const t = await getTranslations("manager.giftCards");
+    const amount = new Intl.NumberFormat(await getLocale(), {
+      style: "currency",
+      currency: result.data.currency,
+    }).format(result.data.balanceCents / 100);
+    return { ...result, message: t("redeemed", { last4: result.data.codeLast4, balance: amount }) };
+  }
+  return result;
+}
+
+export async function saveGiftCardSettingsAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "gift_card.settings", (tx) =>
+    updateGiftCardSettings(tx, tenantId, {
+      enabled: form.bool(data, "enabled"),
+      validityMonths: form.text(data, "validityMonths") as unknown as number,
+      amounts: form.text(data, "amounts"),
+      min: form.text(data, "min"),
+      max: form.text(data, "max"),
+    }),
+  );
+}
+
+// ─── Abonnement ──────────────────────────────────────────────────────────────
+
+function subscriptionPage(locale: string, tenantId: string) {
+  return `${publicAppUrl()}/${locale}/espace/${tenantId}/plus/abonnement`;
+}
+
+/** Changement de pack : page de paiement Stripe depuis le Basic, sinon changement direct. */
+export async function changeSubscriptionAction(data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const planId = uuid.parse(form.text(data, "planId"));
+  const locale = resolveLocale(await getLocale());
+  const page = subscriptionPage(locale, tenantId);
+  let target: string;
+  try {
+    const result = await managerPlatformAction(
+      tenantId,
+      "subscription.change",
+      async (tx, { businessId }) => {
+        await assertPrimaryBusiness(tx, tenantId, businessId);
+        return requestPlanChange(tx, tenantId, planId, billingGateway(), {
+          successUrl: `${page}?retour=ok`,
+          cancelUrl: `${page}?retour=annule`,
+        });
+      },
+    );
+    target = result.kind === "redirect" ? result.url : `${page}?resultat=${result.kind}`;
+  } catch (error) {
+    if (!(error instanceof AppError)) throw error;
+    target = `${page}?erreur=${error.code}`;
+  }
+  redirectTo(target);
+}
+
+/** Portail Stripe : carte bancaire et factures. */
+export async function openBillingPortalAction(data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const locale = resolveLocale(await getLocale());
+  const page = subscriptionPage(locale, tenantId);
+  let target: string;
+  try {
+    target = await managerPlatformAction(tenantId, "subscription.portal", async (tx, { businessId }) => {
+      await assertPrimaryBusiness(tx, tenantId, businessId);
+      return openBillingPortal(tx, tenantId, billingGateway(), page);
+    });
+  } catch (error) {
+    if (!(error instanceof AppError)) throw error;
+    target = `${page}?erreur=${error.code}`;
+  }
+  redirectTo(target);
 }

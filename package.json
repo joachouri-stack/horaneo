@@ -19,7 +19,8 @@
     "db:roles": "tsx src/db/setup-roles.ts",
     "db:seed-demo": "tsx src/db/seed-demo.ts",
     "admin:grant": "tsx src/db/admin-role.ts grant",
-    "admin:revoke": "tsx src/db/admin-role.ts revoke"
+    "admin:revoke": "tsx src/db/admin-role.ts revoke",
+    "jobs:tick": "tsx src/jobs/tick.ts"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^7.0.0",

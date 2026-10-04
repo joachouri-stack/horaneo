@@ -6,3 +6,4 @@ export * from "./availability";
 export * from "./bookings";
 export * from "./billing";
 export * from "./ops";
+export * from "./offers";

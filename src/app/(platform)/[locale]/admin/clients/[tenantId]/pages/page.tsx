@@ -56,7 +56,7 @@ export default async function PagesPage({ params }: PageProps<"/[locale]/admin/c
                   name={`text.${field}`}
                   label={t(`fields.${field}`)}
                   defaultValue={pickLocalized(content[field] as LocalizedText | undefined, locale)}
-                  rows={field === "tagline" || field === "title" ? 1 : 4}
+                  rows={["intro", "body", "access", "extra"].includes(field) ? 4 : 1}
                 />
               ))}
               {photoField && (

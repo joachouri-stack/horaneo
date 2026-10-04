@@ -1,6 +1,5 @@
 import { getTranslations } from "next-intl/server";
 import { ui } from "@/components/ui/styles";
-import { withTenant } from "@/db/access";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
 import { searchCustomers } from "@/modules/customers/customers";
@@ -15,7 +14,7 @@ export default async function CustomersPage({
   const q = typeof (await searchParams).q === "string" ? ((await searchParams).q as string) : "";
   const t = await getTranslations("manager.customers");
   const tCommon = await getTranslations("common");
-  const list = await withTenant(page.tenantId, (tx) => searchCustomers(tx, page.tenantId, q, 100));
+  const list = await page.db((tx) => searchCustomers(tx, page.tenantId, q, 100));
 
   return (
     <div className="space-y-4">

@@ -93,7 +93,7 @@ Une même personne peut ainsi gérer plusieurs établissements.
 | Colonne | Rôle |
 |---|---|
 | `slug` | `institut-lea` → `institut-lea.horaneo.com` (mots réservés interdits : www, admin, api, app…) |
-| `name`, `legal_name`, `siret`, `vat_number` | identité |
+| `name` | nom du site (enseigne) |
 | `status` | `draft` (en création), `active`, `suspended`, `cancelled` (période de 30 jours), `deleted` |
 | `plan_id` | pack actuel |
 | `country`, `default_locale`, `enabled_locales`, `currency`, `timezone` | international : `FR`, `fr`, `{fr}`, `EUR`, `Europe/Paris` |
@@ -101,13 +101,16 @@ Une même personne peut ainsi gérer plusieurs établissements.
 | `business_category` | texte de configuration (`beaute`, `coiffure`…), **jamais** utilisé dans une règle `si … alors` |
 | `template_key`, `theme` | `wellness`, et `light` / `dark` / `nature` |
 | `brand` (JSON) | logo, couleurs (`primary`, `secondary`, `accent`…) |
-| `stripe_account_id`, `stripe_charges_enabled` | compte Stripe Connect de la gérante |
 | `activated_at`, `cancelled_at`, `deletion_scheduled_at` | cycle de vie |
 
 **`tenant_domains`** : adresses du site.
 `hostname` (unique : `institut-lea.horaneo.com` ou `www.institut-lea.fr`), `type` (`subdomain` / `custom`), `is_primary`, `status` (`pending`, `active`, `error`), `cloudflare_hostname_id`, `ssl_status`, `verified_at`.
 
-**`tenant_settings`** : règles de réservation et préférences (une ligne par tenant, valeurs par défaut du brief).
+**`businesses`** (migration 0012) : entreprises d'un site (une le plus souvent ; deux indépendantes dans un même institut en ont deux).
+`name` (nom affiché, ex. prénom), `legal_name`, `siret`, `vat_number`, `email`, `phone`, `address_line1`, `postal_code`, `city`, `stripe_account_id` (unique), `stripe_charges_enabled`, `slug` (adresse de sa page, unique dans le site), `profile` (JSON : titre, métier, présentation, disponibilités, photo), `is_primary` (une seule par site : elle règle l'abonnement), `sort_order`.
+Les tables d'une entreprise (prestations, équipe, horaires, indisponibilités, clientes, rendez-vous, paiements, remboursements, codes promo, gérantes, messages) portent un `business_id`, avec une clé étrangère `(tenant_id, business_id)` qui empêche de mélanger deux sites. Les clientes, rendez-vous et paiements ne sont visibles que de leur entreprise.
+
+**`business_settings`** (ancienne `tenant_settings`) : règles de réservation et préférences (une ligne par entreprise, valeurs par défaut du brief).
 | Colonne | Défaut |
 |---|---|
 | `min_notice_minutes` | 120 (2 h) |
@@ -253,3 +256,41 @@ Je préfère vous les signaler plutôt que deviner. Pour chacun, une proposition
 - **Carte uniquement** (Apple Pay et Google Pay compris) : les moyens de paiement lents (prélèvement SEPA…) sont exclus car incompatibles avec la réservation du créneau pendant 10 minutes.
 - **Frais Stripe** : prélevés sur le compte du professionnel ; Stripe ne les rend pas en cas de remboursement.
 - **Code promo et annulation** : une utilisation de code n'est pas rendue quand le rendez-vous est annulé (comme le quota Basic).
+
+## 8. Décisions de l'étape 9 (messages)
+
+- **`message_log` devient une file d'envoi** (migration 0009) : ajout de `data` (informations du message), `dedupe_key` (unique : jamais deux fois le même message), `attempts` et `next_attempt_at` (réessais), statut `skipped` ; le destinataire est renseigné à l'envoi.
+- **Lien de gestion recalculable** : dérivé de l'identifiant du rendez-vous et de la clé secrète (HMAC), seule son empreinte est stockée.
+- **Ajouts manuels** : la cliente reçoit aussi la confirmation et les rappels si son e-mail ou son téléphone est connu ; la gérante n'est pas alertée de ses propres ajouts.
+- **Report par la cliente** : la gérante est prévenue (comme pour une annulation).
+- **Résumé du lendemain** : envoyé vers 19 h seulement s'il y a au moins un rendez-vous.
+- **E-mails aux gérantes** : au nom du SaaS ; ceux aux clientes, au nom de l'établissement.
+- **Tâche planifiée** : tâche Coolify toutes les 5 minutes qui appelle une adresse protégée par un secret (pas de service supplémentaire).
+
+## 9. Décisions de l'étape 10 (abonnements)
+
+- **Impayé définitif** (validé) : retour automatique au pack Basic, rien n'est supprimé.
+- **Changement de pack par la gérante** (validé) : pack supérieur immédiat au prorata, pack inférieur à la fin de la période, passage au Basic = fin du pack payant.
+- **Engagement** (validé) : une demande de passage au Basic prend effet à la fin de l'engagement ; les prélèvements continuent jusque-là.
+- **`subscriptions`** (migration 0010) : une ligne par établissement ; ajout de `scheduled_plan_id` (pack inférieur programmé), `cancel_requested_at`, `payment_failed_at`, `last_payment_error`. **`plans.stripe_product_id`** : produit Stripe du pack.
+- **Prix Stripe** : un nouveau tarif ne change pas les abonnements en cours (ils gardent leur prix).
+- **Rappel SMS** : corrigé pour respecter la décision n° 6 (pas de rappel si le rendez-vous est pris moins de 24 h avant).
+
+## 10. Décisions de l'étape 11 (site commercial)
+
+- **Paiement à la commande** (comme le prévoit le brief) : l'abonnement et l'engagement démarrent au paiement, avant la mise en ligne du site (délai annoncé : réglage `go_live_delay_days`).
+- **`orders`** (migration 0011) : ajout de `stripe_customer_id`, `stripe_subscription_id`, `paid_at`, `rejection_reason`. L'abonnement payé est rattaché à l'établissement quand l'administratrice crée le site.
+- **Commande refusée après paiement** : l'abonnement est arrêté automatiquement ; le remboursement se fait à la main dans Stripe.
+- **Chiffres du comparatif** : uniquement des faits sur le produit (24 h/24, 2 rappels, acompte, commission), aucune promesse chiffrée de résultat. Modifiables dans `messages/fr.json`.
+- **Formulaires** : la saisie est conservée en cas d'erreur.
+
+
+### Étape 9 bis (migration 0014)
+
+- **`service_price_history`** : prix successifs d'une prestation (rempli par un déclencheur à chaque création ou changement de prix) ; sert au prix barré des promotions.
+- **`promotions`** + **`promotion_services`** : intitulé, type (`percent` / `fixed`), valeur, `starts_on`, `ends_on` ; prestations concernées (même entreprise).
+- **`gift_cards`** : `code_hash`, `code_last4`, `status` (`pending_payment`, `active`, `cancelled` ; « utilisée » et « expirée » se déduisent du solde et de la date), montants, acheteuse, destinataire, message, `send_at`, `expires_at`, paiement Stripe.
+- **`gift_card_transactions`** : achat, utilisation en ligne ou sur place, recrédit (montant signé, rendez-vous éventuel).
+- **`google_reviews`** : copie des avis d'une fiche Google (note, nombre, 5 avis, lien, date de lecture, dernière erreur).
+- `business_settings` : réglages des cartes ; `businesses.google_place_id` : fiche Google.
+- Vitrine (prix, promotions, avis) lisible par tout le site ; cartes et mouvements visibles uniquement par l'entreprise qui les a encaissées.

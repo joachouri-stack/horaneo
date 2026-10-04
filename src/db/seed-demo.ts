@@ -1,23 +1,32 @@
 import "dotenv/config";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { eq } from "drizzle-orm";
 import sharp from "sharp";
 import { createLocalStorage } from "@/lib/storage/local";
-import { saveCategory, saveService } from "@/modules/catalog/services";
+import type { CategoryIcon } from "@/modules/catalog/icons";
+import { listServices, saveCategory, saveService } from "@/modules/catalog/services";
+import { updateGiftCardSettings } from "@/modules/giftcards/giftcards";
+import { savePromotion } from "@/modules/promotions/promotions";
 import { updatePage } from "@/modules/content/pages";
 import { saveTestimonial } from "@/modules/content/testimonials";
 import { savePromoCode } from "@/modules/promo/codes";
 import { uploadAsset, uploadLogo } from "@/modules/media/assets";
 import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
 import { saveStaff } from "@/modules/team/staff";
+import { createBusiness, updateBusiness, updateBusinessProfile } from "@/modules/businesses/businesses";
 import { createTenant } from "@/modules/tenants/create";
-import { changeStatus, updateAppearance, updateIdentity } from "@/modules/tenants/update";
+import { changeStatus, updateAppearance, updateIdentity, updateSocial } from "@/modules/tenants/update";
+import { declareBusiness } from "./access";
 import { createDb, type Transaction } from "./client";
 import { tenants } from "./schema";
 
 /**
- * Deux établissements de démonstration pour le développement local :
+ * Établissements de démonstration pour le développement local :
  * - http://institut-demo.localhost:3000 : pack Basic (fiche d'une page) ;
- * - http://spa-demo.localhost:3000 : pack Sérénité (site complet, ambiance nature).
+ * - http://spa-demo.localhost:3000 : pack Sérénité (site complet, ambiance nature) ;
+ * - http://duo-demo.localhost:3000 : un site, deux entreprises (deux indépendantes) ;
+ * - http://ma-beaute-demo.localhost:3000 : modèle Atelier (maquettes de Ma Beauté Institut).
  * Refuse de s'exécuter en production. Relançable : ne recrée pas ce qui existe.
  */
 
@@ -49,13 +58,14 @@ const weekHours = (days: number[], ranges: [string, string][]) =>
 
 async function seedBasic(tx: Transaction) {
   if (await exists(tx, "institut-demo")) return;
-  const { tenant } = await createTenant(tx, {
+  const { tenant, business } = await createTenant(tx, {
     name: "Institut Démo",
     slug: "institut-demo",
     planCode: "basic",
     managerEmail: "gerante@institut-demo.test",
     phone: "04 78 00 00 00",
   });
+  await declareBusiness(tx, business.id);
   await updateIdentity(tx, tenant.id, {
     name: "Institut Démo",
     slug: "institut-demo",
@@ -103,7 +113,7 @@ async function seedBasic(tx: Transaction) {
 
 async function seedFull(tx: Transaction) {
   if (await exists(tx, "spa-demo")) return;
-  const { tenant } = await createTenant(tx, {
+  const { tenant, business } = await createTenant(tx, {
     name: "Spa Démo Lyon",
     slug: "spa-demo",
     planCode: "serenite",
@@ -111,11 +121,20 @@ async function seedFull(tx: Transaction) {
     phone: "04 72 00 00 00",
   });
   const id = tenant.id;
+  await declareBusiness(tx, business.id);
+  await updateBusiness(tx, id, business.id, {
+    name: "Spa Démo Lyon",
+    legalName: "Spa Démo SARL",
+    siret: "123 456 789 00012",
+    email: "contact@spa-demo.test",
+    phone: "04 72 00 00 00",
+    addressLine1: "8 quai Saint-Antoine",
+    postalCode: "69002",
+    city: "Lyon",
+  });
   await updateIdentity(tx, id, {
     name: "Spa Démo Lyon",
     slug: "spa-demo",
-    legalName: "Spa Démo SARL",
-    siret: "123 456 789 00012",
     phone: "04 72 00 00 00",
     email: "contact@spa-demo.test",
     addressLine1: "8 quai Saint-Antoine",
@@ -240,6 +259,333 @@ async function seedFull(tx: Transaction) {
   await changeStatus(tx, id, "activate");
 }
 
+/** Deux indépendantes dans le même institut, chacune avec son SIRET (un site, deux entreprises). */
+async function seedDuo(tx: Transaction) {
+  if (await exists(tx, "duo-demo")) return;
+  const { tenant, business: first } = await createTenant(tx, {
+    name: "Institut Duo Démo",
+    slug: "duo-demo",
+    planCode: "serenite",
+    managerEmail: "lea@duo-demo.test",
+    managerName: "Léa",
+  });
+  const id = tenant.id;
+  await updateIdentity(tx, id, {
+    name: "Institut Duo Démo",
+    slug: "duo-demo",
+    phone: "04 90 00 00 00",
+    addressLine1: "10 avenue des Platanes",
+    postalCode: "84000",
+    city: "Avignon",
+    country: "FR",
+    timezone: "Europe/Paris",
+  });
+  await updateAppearance(tx, id, {
+    templateKey: "wellness",
+    theme: "light",
+    primary: "#b5654a",
+    secondary: "#f7e4dc",
+  });
+  await updatePage(tx, id, {
+    pageKey: "home",
+    texts: { tagline: "Esthétique et massages", intro: "Deux professionnelles, un même lieu." },
+  });
+  await updateBusiness(tx, id, first.id, {
+    name: "Léa",
+    legalName: "Léa Martin EI",
+    siret: "111 222 333 00011",
+    phone: "06 00 00 00 01",
+    email: "lea@duo-demo.test",
+  });
+  const { business: second } = await createBusiness(tx, id, {
+    name: "Inès",
+    legalName: "Inès Durand EI",
+    siret: "444 555 666 00022",
+    phone: "06 00 00 00 02",
+    email: "ines@duo-demo.test",
+    managerEmail: "ines@duo-demo.test",
+    managerName: "Inès",
+  });
+  const hours = [
+    ...weekHours([1, 2, 3, 4, 5], [["09:00", "19:00"]]),
+    ...weekHours([6], [["10:00", "20:00"]]),
+  ];
+  for (const [business, staff, category, catalog] of [
+    [
+      first.id,
+      "Léa",
+      "Beauté du regard",
+      [
+        ["Réhaussement de cils", 60, "55"],
+        ["Browlift", 35, "45"],
+      ],
+    ],
+    [
+      second.id,
+      "Inès",
+      "Massages",
+      [
+        ["Deep tissue 30 min", 30, "55"],
+        ["Aromathérapie", 60, "60"],
+      ],
+    ],
+  ] as const) {
+    await declareBusiness(tx, business);
+    await replaceOpeningHours(tx, id, hours);
+    const saved = await saveCategory(tx, id, { name: category });
+    const serviceIds: string[] = [];
+    for (const [name, duration, price] of catalog) {
+      serviceIds.push(
+        (await saveService(tx, id, { categoryId: saved.id, name, durationMinutes: duration, price })).id,
+      );
+    }
+    await saveStaff(tx, id, { name: staff, serviceIds });
+  }
+  await declareBusiness(tx, null);
+  await changeStatus(tx, id, "activate");
+}
+
+/**
+ * Démo du modèle Atelier, avec les textes et tarifs des maquettes de Ma Beauté
+ * Institut. Photos : fichiers du dossier DEMO_PHOTOS_DIR s'il est fourni
+ * (laila.jpg, natacha.jpg, facade.jpg, logo.png), sinon des dégradés.
+ */
+async function seedAtelier(tx: Transaction) {
+  if (await exists(tx, "ma-beaute-demo")) return;
+  const photo = async (file: string, from: string, to: string) => {
+    const dir = process.env.DEMO_PHOTOS_DIR;
+    const path = dir ? join(dir, file) : "";
+    return path && existsSync(path) ? new Uint8Array(readFileSync(path)) : demoImage(from, to);
+  };
+  const { tenant, business: laila } = await createTenant(tx, {
+    name: "Ma Beauté Institut",
+    slug: "ma-beaute-demo",
+    planCode: "serenite",
+    managerEmail: "laila@ma-beaute-demo.test",
+    managerName: "Laïla",
+    phone: "06 52 17 06 08",
+  });
+  const id = tenant.id;
+  await updateIdentity(tx, id, {
+    name: "Ma Beauté Institut",
+    slug: "ma-beaute-demo",
+    phone: "06 52 17 06 08",
+    email: "contact@ma-beaute-demo.test",
+    addressLine1: "458 avenue des Vertes Rives",
+    postalCode: "84140",
+    city: "Avignon-Montfavet",
+    country: "FR",
+    timezone: "Europe/Paris",
+  });
+  await updateAppearance(tx, id, {
+    templateKey: "atelier",
+    theme: "blush",
+    primary: "#a0545a",
+    secondary: "#f1d6d4",
+  });
+  await updateSocial(tx, id, {
+    instagram: "https://www.instagram.com/",
+    facebook: "https://www.facebook.com/",
+  });
+  const logoPath = process.env.DEMO_PHOTOS_DIR ? join(process.env.DEMO_PHOTOS_DIR, "logo.png") : "";
+  if (logoPath && existsSync(logoPath)) {
+    await uploadLogo(tx, storage, id, new Uint8Array(readFileSync(logoPath)), null);
+  }
+  const lailaPhoto = await uploadAsset(tx, storage, id, {
+    bytes: await photo("laila.jpg", "#e9c4c2", "#f8ecea"),
+    kind: "cover",
+    uploadedByUserId: null,
+    alt: "La cabine de Laïla",
+  });
+  const natachaPhoto = await uploadAsset(tx, storage, id, {
+    bytes: await photo("natacha.jpg", "#6b4a42", "#d9c3bb"),
+    kind: "gallery",
+    uploadedByUserId: null,
+    alt: "La cabine de massage de Natacha",
+  });
+  await uploadAsset(tx, storage, id, {
+    bytes: await photo("facade.jpg", "#e2b77a", "#f4e3c4"),
+    kind: "gallery",
+    uploadedByUserId: null,
+    alt: "L'entrée de l'institut",
+  });
+  await updatePage(tx, id, {
+    pageKey: "home",
+    texts: {
+      badge: "Institut de beauté à Avignon-Montfavet",
+      tagline: "Beauté et bien-être,",
+      taglineAccent: "dans un même lieu.",
+      intro:
+        "Soins du visage, beauté du regard, épilation, onglerie et massages. Réservez votre moment en ligne, à toute heure.",
+      highlight1Value: "+ 3 ans",
+      highlight1Label: "à votre service",
+      highlight2Value: "Qualiopi",
+      highlight2Label: "Formations certifiées",
+    },
+    photoAssetId: lailaPhoto.id,
+  });
+  await updatePage(tx, id, {
+    pageKey: "about",
+    texts: {
+      title: "L'institut",
+      body: "Ma Beauté Institut réunit deux professionnelles : Laïla, spécialiste de la beauté du regard et des soins esthétiques, et Natacha, pour les massages.\nChacune vous reçoit dans sa propre cabine, sur rendez-vous.",
+    },
+    photoAssetId: natachaPhoto.id,
+  });
+  await updatePage(tx, id, {
+    pageKey: "practical",
+    texts: { access: "Espace médical, 1er étage. Parking à l'arrière." },
+  });
+  await updatePage(tx, id, { pageKey: "legal", texts: { credit: "Design by Johane A." } });
+
+  await updateBusiness(tx, id, laila.id, { name: "Laïla", phone: "06 52 17 06 08" });
+  await updateBusinessProfile(tx, id, laila.id, {
+    slug: "laila",
+    title: "Esthétique",
+    role: "Esthéticienne, spécialiste du regard",
+    bio: "Formée aux techniques les plus récentes, Laïla prend soin de votre regard, de votre visage et de votre peau.",
+    availability: "Du lundi au samedi",
+    photoAssetId: lailaPhoto.id,
+  });
+  const { business: natacha } = await createBusiness(tx, id, {
+    name: "Natacha",
+    phone: "06 12 01 73 85",
+    managerEmail: "natacha@ma-beaute-demo.test",
+    managerName: "Natacha",
+  });
+  await updateBusinessProfile(tx, id, natacha.id, {
+    slug: "natacha",
+    title: "Massages",
+    role: "Praticienne en massage et soins du corps",
+    bio: "Natacha prend le temps de vous écouter pour adapter chaque massage à vos besoins du moment.",
+    availability: "Sur rendez-vous",
+    photoAssetId: natachaPhoto.id,
+  });
+
+  const hours = [
+    ...weekHours([1, 2, 3, 5], [["09:00", "19:00"]]),
+    ...weekHours([4], [["09:30", "19:00"]]),
+    ...weekHours([6], [["10:00", "20:00"]]),
+  ];
+  type Item = readonly [name: string, minutes: number, price: string, online?: boolean];
+  type Category = {
+    name: string;
+    icon: CategoryIcon;
+    description?: string;
+    featured?: boolean;
+    items: Item[];
+  };
+  const catalog: [string, string, Category[]][] = [
+    [
+      laila.id,
+      "Laïla",
+      [
+        {
+          name: "Beauté du regard",
+          icon: "eye",
+          featured: true,
+          description: "Notre spécialité : réhaussement de cils, browlift, teinture.",
+          items: [
+            ["Réhaussement de cils, teinture offerte", 60, "55"],
+            ["Browlift sans teinture", 35, "45"],
+            ["Browlift avec teinture", 45, "50"],
+            ["Browlift et restructuration des sourcils", 70, "55"],
+          ],
+        },
+        {
+          name: "Soins du visage",
+          icon: "sparkles",
+          description: "Éclat, hydratation, lifting.",
+          items: [["Soin coup d'éclat", 60, "50"]],
+        },
+        {
+          name: "Épilation",
+          icon: "leaf",
+          description: "Au fil ou à la cire, visage et corps.",
+          items: [["Épilation des sourcils", 15, "12"]],
+        },
+        {
+          name: "Formations",
+          icon: "graduation",
+          description: "Formations professionnelles certifiées Qualiopi.",
+          items: [["Réhaussement de cils et browlift (formation, 1 journée)", 420, "900", false]],
+        },
+      ],
+    ],
+    [
+      natacha.id,
+      "Natacha",
+      [
+        {
+          name: "Massages et soins du corps",
+          icon: "drop",
+          featured: true,
+          description: "Deep tissue, aromathérapie, soin du dos : un moment adapté à vos besoins.",
+          items: [
+            ["Deep tissue, massage musculaire", 30, "55"],
+            ["Soin purifiant du dos", 60, "60"],
+            ["Aromathérapie, relaxation profonde", 60, "60"],
+            ["Deep tissue, massage musculaire", 60, "65"],
+            ["Deep tissue, massage musculaire", 90, "80"],
+          ],
+        },
+        {
+          name: "Madérothérapie et drainage lymphatique",
+          icon: "waves",
+          description: "Bras, ventre, jambes ou corps complet.",
+          items: [["Madérothérapie des jambes", 45, "45"]],
+        },
+      ],
+    ],
+  ];
+  for (const [business, staff, categories] of catalog) {
+    await declareBusiness(tx, business);
+    await replaceOpeningHours(tx, id, hours);
+    const serviceIds: string[] = [];
+    for (const category of categories) {
+      const saved = await saveCategory(tx, id, {
+        name: category.name,
+        description: category.description,
+        icon: category.icon,
+        isFeatured: category.featured ?? false,
+      });
+      for (const [name, minutes, price, online = true] of category.items) {
+        const service = await saveService(tx, id, {
+          categoryId: saved.id,
+          name,
+          durationMinutes: minutes,
+          price,
+          isOnlineBookable: online,
+        });
+        if (online) serviceIds.push(service.id);
+      }
+    }
+    await saveStaff(tx, id, { name: staff, serviceIds });
+  }
+  // Étape 9 bis : une promotion en cours chez Laïla, cartes cadeaux proposées (avec un compte Stripe actif).
+  await declareBusiness(tx, laila.id);
+  const browlifts = (await listServices(tx, id)).filter((service) => service.name.fr?.startsWith("Browlift"));
+  const today = new Date().toISOString().slice(0, 10);
+  const inThreeWeeks = new Date(Date.now() + 21 * 86_400_000).toISOString().slice(0, 10);
+  await savePromotion(tx, id, {
+    title: "Offre d'automne",
+    serviceIds: browlifts.map((service) => service.id),
+    discountType: "percent",
+    discountValue: "20",
+    startsOn: today,
+    endsOn: inThreeWeeks,
+  });
+  await updateGiftCardSettings(tx, id, {
+    enabled: true,
+    validityMonths: 12,
+    amounts: "30, 50, 100",
+    min: "10",
+    max: "500",
+  });
+  await declareBusiness(tx, null);
+  await changeStatus(tx, id, "activate");
+}
+
 async function main() {
   if (process.env.NODE_ENV === "production") throw new Error("Démo interdite en production.");
   const url = process.env.DATABASE_URL;
@@ -249,9 +595,11 @@ async function main() {
     await database.transaction(async (tx) => {
       await seedBasic(tx);
       await seedFull(tx);
+      await seedDuo(tx);
+      await seedAtelier(tx);
     });
     console.log(
-      "Démos prêtes : http://institut-demo.localhost:3000 (Basic) et http://spa-demo.localhost:3000 (Sérénité)",
+      "Démos prêtes : http://institut-demo.localhost:3000 (Basic), http://spa-demo.localhost:3000 (Sérénité), http://duo-demo.localhost:3000 (deux entreprises) et http://ma-beaute-demo.localhost:3000 (modèle Atelier)",
     );
   } finally {
     await database.$client.end();

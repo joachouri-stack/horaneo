@@ -32,7 +32,9 @@ export function PendingPayment(props: {
 
   return (
     <section className="rounded-site border border-site-border p-6">
-      <h2 className="mb-4 font-site-display text-2xl font-semibold text-site-accent">{t("manage.payNow")}</h2>
+      <h2 className="mb-4 font-site-display text-2xl font-semibold text-site-heading">
+        {t("manage.payNow")}
+      </h2>
       {checking ? (
         <p role="status" className="font-semibold">
           {t("payment.checking")}

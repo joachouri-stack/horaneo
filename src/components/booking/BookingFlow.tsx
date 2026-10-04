@@ -9,7 +9,9 @@ import {
   checkPromoAction,
   confirmPaymentAction,
   getAvailabilityAction,
+  checkGiftCardAction,
   type BookingConfirmation,
+  type GiftPreview,
   type PromoPreview,
 } from "@/app/(tenant)/sites/[tenantId]/reserver/actions";
 import { DepositPayment } from "./DepositPayment";
@@ -24,6 +26,8 @@ export type FlowService = {
   priceCents: number;
   priceFrom: boolean;
   categoryName: string | null;
+  /** Promotion en cours : ancien prix barré. */
+  regularPriceCents?: number | null;
 };
 
 type Props = {
@@ -36,10 +40,21 @@ type Props = {
   preselectedServiceId: string | null;
   deposit: { enabled: boolean; type: "percent" | "fixed"; value: number };
   promoEnabled: boolean;
+  /** Pack avec cartes cadeaux : la carte peut remplacer l'acompte. */
+  giftCardsEnabled?: boolean;
   holdMinutes: number;
   cancellationHours: number;
   privacyPath: string;
   managePath: string;
+  /** Étapes déjà franchies avant ce parcours (ex. « Avec qui ? » sur un site à plusieurs entreprises). */
+  stepOffset?: number;
+  /** Adresse de l'étape précédente (retour au choix de la professionnelle). */
+  previousHref?: string;
+  /** Qui reçoit l'acompte (« versé directement à … »). */
+  payeeName?: string;
+  /** Adresse de l'établissement, rappelée sur la confirmation. */
+  address?: string;
+  siteName?: string;
 };
 
 type Step = "services" | "slot" | "details" | "done";
@@ -69,6 +84,9 @@ export function BookingFlow(props: Props) {
   const [promoCode, setPromoCode] = useState("");
   const [promoError, setPromoError] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
+  const [giftCode, setGiftCode] = useState("");
+  const [gift, setGift] = useState<GiftPreview | null>(null);
+  const [giftError, setGiftError] = useState<string | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   // À chaque étape, le titre reçoit le focus (lecteurs d'écran, navigation au clavier).
@@ -91,7 +109,7 @@ export function BookingFlow(props: Props) {
     selected.every((id) => member.serviceIds.includes(id)),
   );
   const steps: Step[] =
-    depositCents > 0 ? ["services", "slot", "details", "done"] : ["services", "slot", "details"];
+    depositCents > 0 && !gift ? ["services", "slot", "details", "done"] : ["services", "slot", "details"];
   const stepLabels: Record<Step, string> = {
     services: t("steps.services"),
     slot: t("steps.slot"),
@@ -103,6 +121,7 @@ export function BookingFlow(props: Props) {
     setError(null);
     setSlot(null);
     setPromo(null);
+    setGift(null);
     if (selected.includes(id)) setSelected(selected.filter((item) => item !== id));
     else if (props.maxServices === 1) setSelected([id]);
     else if (selected.length < props.maxServices) setSelected([...selected, id]);
@@ -113,6 +132,22 @@ export function BookingFlow(props: Props) {
       getAvailabilityAction({ serviceIds: selected, staffId, fromDate, days: 14 }),
     [selected],
   );
+
+  async function applyGiftCard() {
+    if (!giftCode.trim()) return;
+    setGiftError(null);
+    const result = await checkGiftCardAction({
+      code: giftCode,
+      serviceIds: selected,
+      promoCode: promo?.code,
+    });
+    if (!result.ok) {
+      setGift(null);
+      setGiftError(result.error);
+      return;
+    }
+    setGift(result.data);
+  }
 
   async function applyPromo() {
     if (!promoCode.trim()) return;
@@ -153,6 +188,7 @@ export function BookingFlow(props: Props) {
       staffId: slot.staffId,
       start: slot.start,
       promoCode: promo?.code,
+      giftCardCode: gift ? giftCode : undefined,
       website: String(form.get("website") ?? ""),
       customer: {
         firstName: String(form.get("firstName") ?? ""),
@@ -191,32 +227,46 @@ export function BookingFlow(props: Props) {
     const pendingPayment = confirmation.status === "pending_payment";
     const manageUrl = `${props.managePath}/${confirmation.manageToken}`;
     return (
-      <section aria-labelledby="titre-etape" className="rounded-site bg-site-surface p-6 sm:p-8">
+      <section aria-labelledby="titre-etape" className="rounded-site bg-site-panel p-6 sm:p-8">
         <h2
           id="titre-etape"
           ref={headingRef}
           tabIndex={-1}
-          className="scroll-mt-28 font-site-display text-3xl font-semibold text-site-accent"
+          className="scroll-mt-28 font-site-display text-3xl font-semibold text-site-heading"
         >
-          {pendingPayment
-            ? t("confirmation.pendingTitle")
-            : `✓ ${confirmation.depositCents > 0 ? t("confirmation.paidTitle") : t("confirmation.title")}`}
+          {pendingPayment ? t("confirmation.pendingTitle") : t("confirmation.title")}
         </h2>
-        <p className="mt-4 text-lg">
-          {t("confirmation.summary", {
-            date: formatLongDate(confirmation.startsAt, props.locale, props.timezone),
-            time: formatTimeOf(confirmation.startsAt, props.locale, props.timezone),
-            name: confirmation.staffName,
-          })}
-        </p>
-        <ul className="mt-2 text-site-muted">
-          {chosen.map((service) => (
-            <li key={service.id}>{service.name}</li>
-          ))}
-        </ul>
+        {!pendingPayment && (
+          <div className="mt-6 flex flex-col items-center text-center">
+            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[#2f9e5b] text-white">
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                className="h-8 w-8"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.6"
+              >
+                <path d="M5 12.5l4.5 4.5L19 7.5" />
+              </svg>
+            </span>
+            <p className="mt-3 text-site-muted">{t("confirmation.emailSent")}</p>
+          </div>
+        )}
+        <div className="mt-6 rounded-site border border-site-border bg-site-card p-4">
+          <p className="font-semibold">{chosen.map((service) => service.name).join(" + ")}</p>
+          <p className="text-site-muted">
+            {t("confirmation.summary", {
+              date: formatLongDate(confirmation.startsAt, props.locale, props.timezone),
+              time: formatTimeOf(confirmation.startsAt, props.locale, props.timezone),
+              name: confirmation.staffName,
+            })}
+          </p>
+        </div>
         <p className="mt-2 font-semibold">
           {t("details.total")} : {money(confirmation.totalCents, confirmation.currency, props.locale)}
         </p>
+        {confirmation.paidWithGiftCard && <p className="text-site-muted">{t("giftCard.paidWith")}</p>}
         {confirmation.discountCents > 0 && (
           <p className="text-site-muted">
             {t("details.discount")} : −{" "}
@@ -231,46 +281,74 @@ export function BookingFlow(props: Props) {
                 {t("payment.checking")}
               </p>
             ) : confirmation.payment ? (
-              <DepositPayment
-                checkout={confirmation.payment}
-                amountCents={confirmation.depositCents}
-                currency={confirmation.currency}
-                locale={props.locale}
-                holdExpiresAt={confirmation.holdExpiresAt}
-                returnPath={manageUrl}
-                onPaid={paid}
-              />
+              <>
+                <DepositPayment
+                  checkout={confirmation.payment}
+                  amountCents={confirmation.depositCents}
+                  currency={confirmation.currency}
+                  locale={props.locale}
+                  holdExpiresAt={confirmation.holdExpiresAt}
+                  returnPath={manageUrl}
+                  onPaid={paid}
+                />
+                {props.payeeName && (
+                  <p className="mt-3 text-center text-sm text-site-muted">
+                    {t("payment.secureTo", { name: props.payeeName })}
+                  </p>
+                )}
+              </>
             ) : (
               <p>{t("payment.unavailable")}</p>
             )}
           </div>
         )}
+        {props.address && <p className="mt-3 text-sm text-site-muted">{props.address}</p>}
         <p className="mt-6">{t("confirmation.keepLink", { hours: props.cancellationHours })}</p>
-        <Link href={manageUrl} className={`mt-3 ${primaryClass}`}>
-          {t("confirmation.manageLink")}
-        </Link>
-        <p className="mt-4 text-sm text-site-muted">{t("confirmation.emailSoon")}</p>
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+          {!pendingPayment && (
+            <a
+              href={calendarFile({
+                title: [chosen.map((service) => service.name).join(" + "), props.siteName]
+                  .filter(Boolean)
+                  .join(" · "),
+                start: confirmation.startsAt,
+                end: confirmation.endsAt,
+                location: props.address ?? "",
+              })}
+              download="rendez-vous.ics"
+              className={primaryClass}
+            >
+              {t("confirmation.addToCalendar")}
+            </a>
+          )}
+          <Link href={manageUrl} className="text-center font-semibold text-site-accent underline">
+            {t("confirmation.manageLink")}
+          </Link>
+        </div>
       </section>
     );
   }
 
-  const index = steps.indexOf(step);
+  const offset = props.stepOffset ?? 0;
+  const index = steps.indexOf(step) + offset;
   return (
     <div className="space-y-6">
+      <p className="text-sm text-site-muted">
+        {t("stepOf", { current: index + 1, total: steps.length + offset, label: stepLabels[step] })}
+      </p>
       <ol className="flex gap-2" aria-label={t("title")}>
-        {steps.map((item, i) => (
+        {[...Array.from({ length: offset }, (_, i) => `avant-${i}`), ...steps].map((item, i) => (
           <li
             key={item}
             aria-current={item === step ? "step" : undefined}
             className={`h-1.5 flex-1 rounded-full ${i <= index ? "bg-site-button" : "bg-site-border"}`}
           >
-            <span className="sr-only">{stepLabels[item]}</span>
+            <span className="sr-only">
+              {item in stepLabels ? stepLabels[item as Step] : t("business.stepLabel")}
+            </span>
           </li>
         ))}
       </ol>
-      <p className="text-sm text-site-muted">
-        {t("stepOf", { current: index + 1, total: steps.length, label: stepLabels[step] })}
-      </p>
 
       {/* ─── 1. Prestations ─── */}
       {step === "services" && (
@@ -279,7 +357,7 @@ export function BookingFlow(props: Props) {
             id="titre-etape"
             ref={headingRef}
             tabIndex={-1}
-            className="scroll-mt-28 font-site-display text-3xl font-semibold text-site-accent"
+            className="scroll-mt-28 font-site-display text-3xl font-semibold text-site-heading"
           >
             {props.maxServices > 1
               ? t("services.chooseMany", { max: props.maxServices })
@@ -316,7 +394,16 @@ export function BookingFlow(props: Props) {
                       </span>
                       <span className="text-right text-site-text">
                         <span className="block font-semibold">
-                          {money(service.priceCents, props.currency, props.locale)}
+                          {service.regularPriceCents ? (
+                            <>
+                              <s className="mr-2 text-sm font-normal text-site-muted">
+                                {money(service.regularPriceCents, props.currency, props.locale)}
+                              </s>
+                              {money(service.priceCents, props.currency, props.locale)}
+                            </>
+                          ) : (
+                            money(service.priceCents, props.currency, props.locale)
+                          )}
                         </span>
                         <span className="block text-sm text-site-muted">
                           {durationLabel(service.durationMinutes)}
@@ -347,6 +434,11 @@ export function BookingFlow(props: Props) {
               {t("continue")}
             </button>
           </div>
+          {props.previousHref && (
+            <Link href={props.previousHref} className="inline-block font-semibold text-site-accent underline">
+              ← {t("back")}
+            </Link>
+          )}
         </section>
       )}
 
@@ -357,7 +449,7 @@ export function BookingFlow(props: Props) {
             id="titre-etape"
             ref={headingRef}
             tabIndex={-1}
-            className="scroll-mt-28 font-site-display text-3xl font-semibold text-site-accent"
+            className="scroll-mt-28 font-site-display text-3xl font-semibold text-site-heading"
           >
             {t("steps.slot")}
           </h2>
@@ -401,11 +493,11 @@ export function BookingFlow(props: Props) {
             id="titre-etape"
             ref={headingRef}
             tabIndex={-1}
-            className="scroll-mt-28 font-site-display text-3xl font-semibold text-site-accent"
+            className="scroll-mt-28 font-site-display text-3xl font-semibold text-site-heading"
           >
             {t("details.title")}
           </h2>
-          <div className="rounded-site bg-site-surface p-4">
+          <div className="rounded-site bg-site-panel p-4">
             <h3 className="font-semibold">{t("details.summary")}</h3>
             <p className="mt-1">
               {t("slot.chosen", {
@@ -495,6 +587,71 @@ export function BookingFlow(props: Props) {
               )}
             </div>
           )}
+          {props.giftCardsEnabled && (
+            <div>
+              <label htmlFor="b-gift" className="mb-2 block font-semibold text-site-text">
+                {t("giftCard.label")}
+              </label>
+              {gift ? (
+                <p className="flex flex-wrap items-center gap-3" role="status">
+                  <span>
+                    {gift.depositCents > 0
+                      ? t("giftCard.applied", {
+                          last4: gift.last4,
+                          amount: money(gift.depositCents, props.currency, props.locale),
+                          balance: money(gift.balanceCents, props.currency, props.locale),
+                        })
+                      : t("giftCard.appliedNoDeposit", {
+                          last4: gift.last4,
+                          balance: money(gift.balanceCents, props.currency, props.locale),
+                        })}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setGift(null);
+                      setGiftCode("");
+                    }}
+                    className="font-semibold text-site-accent underline"
+                  >
+                    {t("giftCard.remove")}
+                  </button>
+                </p>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    id="b-gift"
+                    value={giftCode}
+                    onChange={(event) => setGiftCode(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        void applyGiftCard();
+                      }
+                    }}
+                    maxLength={40}
+                    autoComplete="off"
+                    autoCapitalize="characters"
+                    placeholder="XXXX-XXXX-XXXX"
+                    aria-describedby={giftError ? "b-gift-error" : undefined}
+                    className={`${inputClass} min-w-0 flex-1 uppercase`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void applyGiftCard()}
+                    className="min-h-12 shrink-0 rounded-site border border-site-button px-4 font-semibold text-site-text"
+                  >
+                    {t("giftCard.apply")}
+                  </button>
+                </div>
+              )}
+              {giftError && (
+                <p id="b-gift-error" role="alert" className="mt-1 font-semibold text-site-text">
+                  {tErrors(giftError as "invalid")}
+                </p>
+              )}
+            </div>
+          )}
           {errorBox}
           <form action={submit} className="space-y-4">
             {/* Champ piège pour les robots : invisible pour les personnes. */}
@@ -549,7 +706,7 @@ export function BookingFlow(props: Props) {
             <button type="submit" disabled={pending} className={primaryClass}>
               {pending
                 ? t("details.sending")
-                : depositCents > 0
+                : depositCents > 0 && !gift
                   ? t("details.confirmPay")
                   : t("details.confirm")}
             </button>
@@ -558,6 +715,31 @@ export function BookingFlow(props: Props) {
       )}
     </div>
   );
+}
+
+/** Fichier d'agenda (.ics) du rendez-vous, à ouvrir avec l'agenda du téléphone. */
+function calendarFile(event: { title: string; start: string; end: string; location: string }) {
+  const stamp = (iso: string) =>
+    new Date(iso)
+      .toISOString()
+      .replace(/[-:]/g, "")
+      .replace(/\.\d{3}/, "");
+  const escape = (value: string) => value.replace(/[\\;,]/g, (c) => `\\${c}`).replace(/\n/g, "\\n");
+  const lines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//rendez-vous//FR",
+    "BEGIN:VEVENT",
+    `UID:${stamp(event.start)}-${Math.random().toString(36).slice(2)}`,
+    `DTSTAMP:${stamp(new Date().toISOString())}`,
+    `DTSTART:${stamp(event.start)}`,
+    `DTEND:${stamp(event.end)}`,
+    `SUMMARY:${escape(event.title)}`,
+    ...(event.location ? [`LOCATION:${escape(event.location)}`] : []),
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ];
+  return `data:text/calendar;charset=utf-8,${encodeURIComponent(lines.join("\r\n"))}`;
 }
 
 function Field({

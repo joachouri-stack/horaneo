@@ -1,14 +1,6 @@
-import { and, count, eq, ne } from "drizzle-orm";
+import { and, count, eq, ne, sql } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
-import {
-  assets,
-  plans,
-  services,
-  staffMembers,
-  tenants,
-  type PlanFeatures,
-  type PlanLimits,
-} from "@/db/schema";
+import { assets, plans, tenants, type PlanFeatures, type PlanLimits } from "@/db/schema";
 import { AppError } from "./errors";
 
 /** Limites du pack ; une valeur absente ou null signifie « illimité ». */
@@ -24,17 +16,22 @@ export async function getTenantPlan(tx: Transaction, tenantId: string) {
   return row as { limits: PlanLimits; features: PlanFeatures; code: string };
 }
 
+/**
+ * Utilisation du pack, comptée au niveau du SITE (toutes entreprises confondues),
+ * même quand la transaction ne voit que les données d'une entreprise.
+ */
 export async function countUsage(tx: Transaction, tenantId: string, key: QuotaKey): Promise<number> {
-  const [row] =
-    key === "services"
-      ? await tx.select({ value: count() }).from(services).where(eq(services.tenantId, tenantId))
-      : key === "members"
-        ? await tx.select({ value: count() }).from(staffMembers).where(eq(staffMembers.tenantId, tenantId))
-        : await tx
-            .select({ value: count() })
-            .from(assets)
-            // Le logo ne compte pas dans le nombre de photos du pack.
-            .where(and(eq(assets.tenantId, tenantId), eq(assets.status, "active"), ne(assets.kind, "logo")));
+  if (key === "services" || key === "members") {
+    const rows = await tx.execute<{ value: number }>(
+      sql`SELECT app_site_usage(${tenantId}::uuid, ${key}) AS value`,
+    );
+    return Number(rows[0]?.value ?? 0);
+  }
+  const [row] = await tx
+    .select({ value: count() })
+    .from(assets)
+    // Le logo ne compte pas dans le nombre de photos du pack.
+    .where(and(eq(assets.tenantId, tenantId), eq(assets.status, "active"), ne(assets.kind, "logo")));
   return row.value;
 }
 

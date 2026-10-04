@@ -6,7 +6,7 @@ import sharp from "sharp";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { withPlatform, withTenant } from "@/db/access";
 import type { Transaction } from "@/db/client";
-import { memberships, sitePages, staffSchedules, tenantDomains, tenantSettings, users } from "@/db/schema";
+import { memberships, sitePages, staffSchedules, tenantDomains, businessSettings, users } from "@/db/schema";
 import { createLocalStorage } from "@/lib/storage/local";
 import type { FileStorage } from "@/lib/storage/types";
 import {
@@ -109,7 +109,7 @@ describe.skipIf(!hasTestDatabase)("espace admin : modules", () => {
         status: "active",
       });
       expect(
-        await owner.select().from(tenantSettings).where(eq(tenantSettings.tenantId, tenant.id)),
+        await owner.select().from(businessSettings).where(eq(businessSettings.tenantId, tenant.id)),
       ).toHaveLength(1);
       expect(await owner.select().from(sitePages).where(eq(sitePages.tenantId, tenant.id))).toHaveLength(7);
       const [membership] = await owner.select().from(memberships).where(eq(memberships.tenantId, tenant.id));

@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import { businessForeignKey } from "./tenants";
 import {
   boolean,
   check,
@@ -38,6 +39,10 @@ export const customers = pgTable(
   {
     id: id(),
     tenantId: tenantRef(),
+    /** Rempli automatiquement avec l'entreprise en cours (app_current_business()). */
+    businessId: uuid()
+      .notNull()
+      .default(sql`app_current_business()`),
     firstName: text().notNull(),
     lastName: text(),
     email: text(),
@@ -51,9 +56,11 @@ export const customers = pgTable(
     ...timestamps(),
   },
   (t) => [
+    businessForeignKey("customers_business_fk", t, "cascade"),
+    unique("customers_business_id_key").on(t.businessId, t.id),
     unique("customers_tenant_id_key").on(t.tenantId, t.id),
-    uniqueIndex("customers_tenant_email_key")
-      .on(t.tenantId, sql`lower(${t.email})`)
+    uniqueIndex("customers_business_email_key")
+      .on(t.businessId, sql`lower(${t.email})`)
       .where(sql`${t.email} is not null`),
     index("customers_tenant_phone_idx").on(t.tenantId, t.phone),
     check("customers_phone_e164", sql`${t.phone} is null or ${t.phone} ~ '^\\+[1-9][0-9]{6,14}$'`),
@@ -68,6 +75,10 @@ export const promoCodes = pgTable(
   {
     id: id(),
     tenantId: tenantRef(),
+    /** Rempli automatiquement avec l'entreprise en cours (app_current_business()). */
+    businessId: uuid()
+      .notNull()
+      .default(sql`app_current_business()`),
     code: text().notNull(),
     description: localized(),
     discountType: discountTypeEnum().notNull(),
@@ -81,8 +92,9 @@ export const promoCodes = pgTable(
     ...timestamps(),
   },
   (t) => [
+    businessForeignKey("promo_codes_business_fk", t, "cascade"),
     unique("promo_codes_tenant_id_key").on(t.tenantId, t.id),
-    uniqueIndex("promo_codes_tenant_code_key").on(t.tenantId, sql`upper(${t.code})`),
+    uniqueIndex("promo_codes_business_code_key").on(t.businessId, sql`upper(${t.code})`),
     check("promo_codes_value", sql`${t.discountValue} > 0`),
     check("promo_codes_percent", sql`${t.discountType} <> 'percent' or ${t.discountValue} <= 100`),
     check("promo_codes_uses", sql`${t.maxUses} is null or ${t.usedCount} <= ${t.maxUses}`),
@@ -105,6 +117,10 @@ export const appointments = pgTable(
   {
     id: id(),
     tenantId: tenantRef(),
+    /** Rempli automatiquement avec l'entreprise en cours (app_current_business()). */
+    businessId: uuid()
+      .notNull()
+      .default(sql`app_current_business()`),
     customerId: uuid().notNull(),
     staffId: uuid().notNull(),
     /** Début et fin visibles par la cliente (somme des durées des prestations). */
@@ -133,6 +149,19 @@ export const appointments = pgTable(
     ...timestamps(),
   },
   (t) => [
+    businessForeignKey("appointments_business_fk", t, "restrict"),
+    // Le membre et la cliente appartiennent à la même entreprise que le rendez-vous.
+    foreignKey({
+      name: "appointments_business_staff_fk",
+      columns: [t.businessId, t.staffId],
+      foreignColumns: [staffMembers.businessId, staffMembers.id],
+    }).onDelete("restrict"),
+    foreignKey({
+      name: "appointments_business_customer_fk",
+      columns: [t.businessId, t.customerId],
+      foreignColumns: [customers.businessId, customers.id],
+    }).onDelete("restrict"),
+    unique("appointments_business_id_key").on(t.businessId, t.id),
     unique("appointments_tenant_id_key").on(t.tenantId, t.id),
     uniqueIndex("appointments_manage_token_key").on(t.manageTokenHash),
     index("appointments_tenant_starts_idx").on(t.tenantId, t.startsAt),
@@ -176,6 +205,10 @@ export const appointmentItems = pgTable(
   {
     id: id(),
     tenantId: tenantRef(),
+    /** Rempli automatiquement avec l'entreprise en cours (app_current_business()). */
+    businessId: uuid()
+      .notNull()
+      .default(sql`app_current_business()`),
     appointmentId: uuid().notNull(),
     serviceId: uuid(),
     position: smallint().notNull(),
@@ -186,6 +219,17 @@ export const appointmentItems = pgTable(
     ...timestamps(),
   },
   (t) => [
+    businessForeignKey("appointment_items_business_fk", t, "restrict"),
+    foreignKey({
+      name: "appointment_items_business_appointment_fk",
+      columns: [t.businessId, t.appointmentId],
+      foreignColumns: [appointments.businessId, appointments.id],
+    }).onDelete("cascade"),
+    foreignKey({
+      name: "appointment_items_business_service_fk",
+      columns: [t.businessId, t.serviceId],
+      foreignColumns: [services.businessId, services.id],
+    }).onDelete("restrict"),
     uniqueIndex("appointment_items_position_key").on(t.appointmentId, t.position),
     foreignKey({
       name: "appointment_items_appointment_fk",

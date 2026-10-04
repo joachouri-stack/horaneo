@@ -1,10 +1,11 @@
 import { getTranslations } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
-import { Hidden, Section, TextField } from "@/components/admin/fields";
+import { CheckboxField, Hidden, Section, SelectField, TextField } from "@/components/admin/fields";
 import { ServiceFields } from "@/components/admin/ServiceFields";
 import { pickLocalized, type LocalizedText } from "@/i18n/locales";
 import type { ActionResult } from "@/lib/actions/result";
 import { formatMoney } from "@/lib/format";
+import { CATEGORY_ICONS } from "@/modules/catalog/icons";
 import type { listCategories, listServices } from "@/modules/catalog/services";
 
 type Action = (previous: ActionResult<unknown> | null, data: FormData) => Promise<ActionResult<unknown>>;
@@ -15,6 +16,7 @@ type Action = (previous: ActionResult<unknown> | null, data: FormData) => Promis
  */
 export async function ServicesEditor({
   tenantId,
+  businessId,
   locale,
   limit,
   categories,
@@ -22,6 +24,8 @@ export async function ServicesEditor({
   actions,
 }: {
   tenantId: string;
+  /** Entreprise modifiée (espace admin, site à plusieurs entreprises). */
+  businessId?: string;
   locale: string;
   limit: number | null | undefined;
   categories: Awaited<ReturnType<typeof listCategories>>;
@@ -33,6 +37,10 @@ export async function ServicesEditor({
     getTranslations("common"),
   ]);
   const text = (value: LocalizedText | null) => pickLocalized(value, locale as "fr");
+  const iconOptions = [
+    { value: "", label: t("noIcon") },
+    ...CATEGORY_ICONS.map((icon) => ({ value: icon, label: t(`icons.${icon}`) })),
+  ];
   const categoryOptions = categories.map((category) => ({ value: category.id, label: text(category.name) }));
 
   return (
@@ -45,18 +53,30 @@ export async function ServicesEditor({
                 action={actions.saveCategory}
                 submitLabel={tCommon("save")}
                 variant="link"
-                className="flex flex-1 flex-wrap items-end gap-3"
+                className="grid flex-1 items-end gap-3 sm:grid-cols-2"
               >
-                <Hidden values={{ tenantId, id: category.id }} />
-                <div className="min-w-48 flex-1">
-                  <TextField
-                    id={`cat-${category.id}`}
-                    name="name"
-                    label={t("categoryName")}
-                    defaultValue={text(category.name)}
-                    required
-                  />
-                </div>
+                <Hidden values={{ tenantId, businessId, id: category.id }} />
+                <TextField
+                  id={`cat-${category.id}`}
+                  name="name"
+                  label={t("categoryName")}
+                  defaultValue={text(category.name)}
+                  required
+                />
+                <TextField
+                  id={`cat-desc-${category.id}`}
+                  name="description"
+                  label={t("categoryDescription")}
+                  defaultValue={text(category.description)}
+                />
+                <SelectField
+                  id={`cat-icon-${category.id}`}
+                  name="icon"
+                  label={t("icon")}
+                  defaultValue={category.icon ?? ""}
+                  options={iconOptions}
+                />
+                <CheckboxField name="isFeatured" label={t("featured")} defaultChecked={category.isFeatured} />
               </ActionForm>
               <ActionForm
                 action={actions.deleteCategory}
@@ -65,7 +85,7 @@ export async function ServicesEditor({
                 className=""
                 confirm={tCommon("confirmDelete")}
               >
-                <Hidden values={{ tenantId, id: category.id }} />
+                <Hidden values={{ tenantId, businessId, id: category.id }} />
               </ActionForm>
             </li>
           ))}
@@ -77,7 +97,7 @@ export async function ServicesEditor({
           resetOnSuccess
           className="mt-4 space-y-3"
         >
-          <Hidden values={{ tenantId }} />
+          <Hidden values={{ tenantId, businessId }} />
           <TextField id="new-category-name" name="name" label={t("newCategory")} required />
         </ActionForm>
       </Section>
@@ -107,7 +127,7 @@ export async function ServicesEditor({
                 </summary>
                 <div className="mt-4 space-y-4">
                   <ActionForm action={actions.saveService} submitLabel={tCommon("save")}>
-                    <Hidden values={{ tenantId, id: service.id }} />
+                    <Hidden values={{ tenantId, businessId, id: service.id }} />
                     <ServiceFields
                       idPrefix={service.id}
                       categories={categoryOptions}
@@ -125,7 +145,7 @@ export async function ServicesEditor({
                     className=""
                     confirm={tCommon("confirmDelete")}
                   >
-                    <Hidden values={{ tenantId, id: service.id }} />
+                    <Hidden values={{ tenantId, businessId, id: service.id }} />
                   </ActionForm>
                 </div>
               </details>
@@ -135,7 +155,7 @@ export async function ServicesEditor({
         <div className="mt-6 border-t border-navy/10 pt-6">
           <h3 className="mb-4 text-lg font-bold">{t("newService")}</h3>
           <ActionForm action={actions.saveService} submitLabel={tCommon("add")} resetOnSuccess>
-            <Hidden values={{ tenantId }} />
+            <Hidden values={{ tenantId, businessId }} />
             <ServiceFields idPrefix="new" categories={categoryOptions} />
           </ActionForm>
         </div>

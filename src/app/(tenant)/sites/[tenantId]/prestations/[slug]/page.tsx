@@ -47,7 +47,7 @@ export default async function CategoryPage({ params }: PageProps<"/sites/[tenant
       <ServiceList categories={[]} uncategorized={category.services} locale={site.locale} />
       {others.length > 0 && (
         <nav aria-labelledby="autres" className="mt-12">
-          <h2 id="autres" className="mb-4 font-site-display text-2xl font-semibold text-site-accent">
+          <h2 id="autres" className="mb-4 font-site-display text-2xl font-semibold text-site-heading">
             {t("otherCategories")}
           </h2>
           <ul className="flex flex-wrap gap-3">

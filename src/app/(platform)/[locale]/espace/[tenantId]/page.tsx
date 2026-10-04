@@ -1,7 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { AppointmentCard } from "@/components/manager/AppointmentCard";
 import { ui } from "@/components/ui/styles";
-import { withTenant } from "@/db/access";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
 import { todaySummary } from "@/modules/agenda/queries";
@@ -10,9 +9,7 @@ import { todaySummary } from "@/modules/agenda/queries";
 export default async function TodayPage({ params }: PageProps<"/[locale]/espace/[tenantId]">) {
   const page = await managerPage(params);
   const t = await getTranslations("manager.today");
-  const summary = await withTenant(page.tenantId, (tx) =>
-    todaySummary(tx, page.tenantId, page.tenant.timezone, page.locale),
-  );
+  const summary = await page.db((tx) => todaySummary(tx, page.tenantId, page.tenant.timezone, page.locale));
 
   return (
     <div className="space-y-6">

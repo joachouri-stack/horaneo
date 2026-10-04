@@ -1,8 +1,9 @@
 import { eq, sql } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
+import { applyGiftCardIntent } from "@/modules/giftcards/giftcards";
 import { stripeEvents } from "@/db/schema";
 import { applyAccount, disconnectAccount } from "./connect";
-import { applyPaymentIntent, tenantOfAccount } from "./deposits";
+import { applyPaymentIntent, businessOfAccount } from "./deposits";
 import type { GatewayEvent, GatewayPaymentIntent, GatewayRefund, PaymentGateway } from "./gateway";
 import { applyRefund } from "./refunds";
 
@@ -47,10 +48,21 @@ async function dispatch(tx: Transaction, event: GatewayEvent, gateway: PaymentGa
     return "account_disconnected";
   }
   if (!event.account) return "no_account";
-  const tenantId = await tenantOfAccount(tx, event.account);
-  if (!tenantId) return "unknown_account";
+  const owner = await businessOfAccount(tx, event.account);
+  if (!owner) return "unknown_account";
+  const tenantId = owner.tenantId;
 
   if (event.type.startsWith("payment_intent.")) {
+    // Achat d'une carte cadeau (et non un acompte).
+    const metadata = (object.metadata ?? {}) as Record<string, string>;
+    if (metadata.gift_card_id) {
+      return (
+        await applyGiftCardIntent(tx, tenantId, {
+          id: String(object.id),
+          status: String(object.status) as GatewayPaymentIntent["status"],
+        })
+      ).outcome;
+    }
     const result = await applyPaymentIntent(
       tx,
       tenantId,
@@ -66,19 +78,22 @@ async function dispatch(tx: Transaction, event: GatewayEvent, gateway: PaymentGa
   return null;
 }
 
-export async function handleEvent(
+/**
+ * Traite un événement une seule fois : il est enregistré, verrouillé (une seconde
+ * réception simultanée attend), puis marqué comme traité.
+ */
+export async function processEventOnce(
   tx: Transaction,
-  event: GatewayEvent,
-  gateway: PaymentGateway | null,
+  event: Pick<GatewayEvent, "id" | "type" | "account" | "raw">,
+  handler: () => Promise<string | null>,
 ): Promise<EventOutcome> {
   await tx
     .insert(stripeEvents)
     .values({ id: event.id, type: event.type, account: event.account, payload: event.raw as object })
     .onConflictDoNothing();
-  // Verrou sur l'événement : une seconde réception simultanée attend la fin de la première.
   const [row] = await tx.select().from(stripeEvents).where(eq(stripeEvents.id, event.id)).for("update");
   if (row?.processedAt) return { outcome: "duplicate" };
-  const detail = await dispatch(tx, event, gateway);
+  const detail = await handler();
   await tx
     .update(stripeEvents)
     .set({ processedAt: sql`now()`, error: null })
@@ -86,8 +101,20 @@ export async function handleEvent(
   return detail === null ? { outcome: "ignored" } : { outcome: "processed", detail };
 }
 
+export async function handleEvent(
+  tx: Transaction,
+  event: GatewayEvent,
+  gateway: PaymentGateway | null,
+): Promise<EventOutcome> {
+  return processEventOnce(tx, event, () => dispatch(tx, event, gateway));
+}
+
 /** Garde la trace d'un échec (Stripe renverra l'événement plus tard). */
-export async function recordEventError(tx: Transaction, event: GatewayEvent, error: unknown) {
+export async function recordEventError(
+  tx: Transaction,
+  event: Pick<GatewayEvent, "id" | "type" | "account" | "raw">,
+  error: unknown,
+) {
   const message = (error instanceof Error ? error.message : String(error)).slice(0, 1000);
   await tx
     .insert(stripeEvents)

@@ -4,6 +4,7 @@ import type { Transaction } from "@/db/client";
 import { serviceCategories, services, staffServices, tenants } from "@/db/schema";
 import { setLocalized } from "@/modules/content/localized";
 import { slugify } from "@/modules/tenants/slug";
+import { CATEGORY_ICONS } from "./icons";
 import { AppError } from "@/modules/errors";
 import { assertQuota } from "@/modules/quotas";
 
@@ -23,6 +24,9 @@ async function tenantInfo(tx: Transaction, tenantId: string) {
 export const categoryInput = z.object({
   name: z.string().trim().min(1).max(80),
   description: z.string().trim().max(1000).optional(),
+  /** Absent : inchangé. */
+  icon: z.enum(CATEGORY_ICONS).nullable().optional(),
+  isFeatured: z.boolean().optional(),
 });
 
 export async function listCategories(tx: Transaction, tenantId: string) {
@@ -53,6 +57,8 @@ export async function saveCategory(
         name: setLocalized(existing.name, locale, input.name),
         slug: setLocalized(existing.slug, locale, slugify(input.name)),
         description: setLocalized(existing.description, locale, input.description),
+        ...(input.icon !== undefined ? { icon: input.icon } : {}),
+        ...(input.isFeatured !== undefined ? { isFeatured: input.isFeatured } : {}),
       })
       .where(eq(serviceCategories.id, existing.id))
       .returning();
@@ -69,6 +75,8 @@ export async function saveCategory(
       name: setLocalized({}, locale, input.name),
       slug: setLocalized({}, locale, slugify(input.name)),
       description: setLocalized({}, locale, input.description),
+      icon: input.icon ?? null,
+      isFeatured: input.isFeatured ?? false,
       sortOrder: position,
     })
     .returning();

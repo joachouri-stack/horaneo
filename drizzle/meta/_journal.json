@@ -64,6 +64,48 @@
       "when": 1791131210358,
       "tag": "0008_site_pages_published",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791136908612,
+      "tag": "0009_message_queue",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791138611255,
+      "tag": "0010_subscriptions",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791139886173,
+      "tag": "0011_orders",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1791142036852,
+      "tag": "0012_businesses",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1791144597502,
+      "tag": "0013_site_atelier",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1791147025575,
+      "tag": "0014_offers",
+      "breakpoints": true
     }
   ]
 }

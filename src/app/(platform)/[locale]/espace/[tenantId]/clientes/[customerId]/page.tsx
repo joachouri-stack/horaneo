@@ -4,7 +4,6 @@ import { ActionForm } from "@/components/admin/ActionForm";
 import { Hidden } from "@/components/admin/fields";
 import { CustomerFields } from "@/components/manager/CustomerFields";
 import { ui } from "@/components/ui/styles";
-import { withTenant } from "@/db/access";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
 import { getCustomer } from "@/modules/customers/customers";
@@ -23,9 +22,7 @@ export default async function CustomerPage({
     getTranslations("manager"),
     getTranslations("common"),
   ]);
-  const card = await withTenant(page.tenantId, (tx) =>
-    getCustomer(tx, page.tenantId, customerId, page.locale),
-  );
+  const card = await page.db((tx) => getCustomer(tx, page.tenantId, customerId, page.locale));
   if (!card) notFound();
   const { customer, history, stats } = card;
   const name = [customer.firstName, customer.lastName].filter(Boolean).join(" ");

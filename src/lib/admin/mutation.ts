@@ -5,6 +5,7 @@ import { env } from "@/config/env";
 import { withPlatform } from "@/db/access";
 import type { Transaction } from "@/db/client";
 import { recordAudit } from "@/lib/audit";
+import { sendQueuedSoon } from "@/lib/jobs/tick";
 import { decideAdminAccess } from "@/lib/auth/admin-access";
 import { getCurrentSession } from "@/lib/auth/session";
 import { getAdminSecurityState } from "@/lib/auth/two-factor-service";
@@ -47,6 +48,8 @@ type AuditInfo = {
   targetType?: string;
   targetId?: string;
   details?: Record<string, unknown>;
+  /** Entreprise concernée (site à plusieurs entreprises) : seules ses lignes sont visibles. */
+  businessId?: string;
 };
 
 export async function adminMutation<T>(
@@ -54,14 +57,26 @@ export async function adminMutation<T>(
   fn: (tx: Transaction, context: AdminContext) => Promise<T>,
 ): Promise<ActionResult<T>> {
   const context = await requireAdminContext();
+  const businessId = typeof audit === "function" ? undefined : audit.businessId;
   try {
-    const data = await withPlatform(async (tx) => {
-      const result = await fn(tx, context);
-      const info = typeof audit === "function" ? audit(result) : audit;
-      await recordAudit(tx, { actorUserId: context.userId, ip: context.ip, ...info });
-      return result;
-    });
+    const data = await withPlatform(
+      async (tx) => {
+        const result = await fn(tx, context);
+        const { businessId: business, ...info } = typeof audit === "function" ? audit(result) : audit;
+        await recordAudit(tx, {
+          actorUserId: context.userId,
+          ip: context.ip,
+          ...info,
+          details: business ? { ...info.details, businessId: business } : info.details,
+        });
+        return result;
+      },
+      undefined,
+      businessId,
+    );
     refresh();
+    // Messages éventuels (site en ligne, commande refusée…) envoyés tout de suite.
+    sendQueuedSoon();
     return { ok: true, data };
   } catch (error) {
     return toActionError(error);
@@ -69,9 +84,9 @@ export async function adminMutation<T>(
 }
 
 /** Lecture dans l'espace admin (droits revérifiés, rôle plateforme). */
-export async function adminQuery<T>(fn: (tx: Transaction) => Promise<T>): Promise<T> {
+export async function adminQuery<T>(fn: (tx: Transaction) => Promise<T>, businessId?: string): Promise<T> {
   await requireAdminContext();
-  return withPlatform(fn);
+  return withPlatform(fn, undefined, businessId);
 }
 
 /** Petits outils de lecture des formulaires. */

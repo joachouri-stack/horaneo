@@ -1,7 +1,8 @@
 import { and, desc, eq } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
-import { appointments, payments, tenants, type PlanFeatures } from "@/db/schema";
+import { appointments, businesses, payments, type PlanFeatures } from "@/db/schema";
 import { AppError } from "@/modules/errors";
+import { queueBookingConfirmed, queueMessage } from "@/modules/messages/queue";
 import { getPlatformSetting } from "@/modules/settings";
 import type { GatewayPaymentIntent, PaymentGateway } from "./gateway";
 import { refundDeposit } from "./refunds";
@@ -130,6 +131,7 @@ export async function applyPaymentIntent(
       .update(appointments)
       .set({ status: "confirmed", holdExpiresAt: null })
       .where(eq(appointments.id, appointment.id));
+    await queueBookingConfirmed(tx, tenantId, appointment);
     return { outcome: "confirmed" as const, appointmentId: appointment.id };
   }
 
@@ -143,20 +145,41 @@ export async function applyPaymentIntent(
           .set({ status: "confirmed", holdExpiresAt: null })
           .where(eq(appointments.id, appointment.id));
       });
+      await queueBookingConfirmed(tx, tenantId, appointment);
       return { outcome: "confirmed" as const, appointmentId: appointment.id };
     } catch (error) {
       if (!isExclusionViolation(error)) throw error;
-      await refundDeposit(tx, tenantId, appointment.id, gateway, { reason: "slot_taken", now });
+      await refundAfterLatePayment(tx, tenantId, appointment, gateway, now);
       return { outcome: "refunded" as const, appointmentId: appointment.id };
     }
   }
 
   // Paiement arrivé alors que le rendez-vous a déjà été annulé : il est remboursé.
   if (appointment.status === "cancelled") {
-    await refundDeposit(tx, tenantId, appointment.id, gateway, { reason: "slot_taken", now });
+    await refundAfterLatePayment(tx, tenantId, appointment, gateway, now);
     return { outcome: "refunded" as const, appointmentId: appointment.id };
   }
   return { outcome: "succeeded" as const, appointmentId: appointment.id };
+}
+
+/** Paiement arrivé trop tard : remboursé, et la cliente est prévenue. */
+async function refundAfterLatePayment(
+  tx: Transaction,
+  tenantId: string,
+  appointment: { id: string; locale: string },
+  gateway: PaymentGateway | null,
+  now: Date,
+) {
+  const refund = await refundDeposit(tx, tenantId, appointment.id, gateway, { reason: "slot_taken", now });
+  if (refund) {
+    await queueMessage(tx, {
+      tenantId,
+      template: "customer.payment_refunded",
+      appointmentId: appointment.id,
+      locale: appointment.locale,
+      data: { refundedCents: refund.amountCents },
+    });
+  }
 }
 
 /**
@@ -208,11 +231,11 @@ export async function moveDeposit(tx: Transaction, tenantId: string, fromId: str
     .where(and(eq(payments.tenantId, tenantId), eq(payments.appointmentId, fromId)));
 }
 
-/** Établissement concerné par un compte Stripe (événements reçus). */
-export async function tenantOfAccount(tx: Transaction, accountId: string) {
-  const [tenant] = await tx
-    .select({ id: tenants.id })
-    .from(tenants)
-    .where(eq(tenants.stripeAccountId, accountId));
-  return tenant?.id ?? null;
+/** Site et entreprise concernés par un compte Stripe (événements reçus). */
+export async function businessOfAccount(tx: Transaction, accountId: string) {
+  const [row] = await tx
+    .select({ tenantId: businesses.tenantId, businessId: businesses.id })
+    .from(businesses)
+    .where(eq(businesses.stripeAccountId, accountId));
+  return row ?? null;
 }

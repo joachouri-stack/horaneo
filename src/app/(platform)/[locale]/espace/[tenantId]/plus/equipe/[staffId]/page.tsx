@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Section } from "@/components/admin/fields";
 import { OpeningHoursEditor } from "@/components/admin/OpeningHoursEditor";
-import { withTenant } from "@/db/access";
 import { staffMembers } from "@/db/schema";
 import { managerPage } from "@/lib/manager/page";
 import { listStaffSchedules } from "@/modules/team/schedules";
@@ -17,7 +16,7 @@ export default async function StaffSchedulePage({
   const { staffId } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(staffId)) notFound();
   const t = await getTranslations("manager.team");
-  const { member, schedules } = await withTenant(page.tenantId, async (tx) => ({
+  const { member, schedules } = await page.db(async (tx) => ({
     member: (
       await tx
         .select()

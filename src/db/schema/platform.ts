@@ -36,6 +36,10 @@ export type PlanFeatures = {
   brandingFooter?: boolean;
   emailSupport?: boolean;
   whatsappSupport?: boolean;
+  /** Promotions datées (bandeau, prix barré). */
+  promotions?: boolean;
+  googleReviews?: boolean;
+  giftCards?: boolean;
   [feature: string]: boolean | undefined;
 };
 
@@ -50,6 +54,8 @@ export const plans = pgTable(
     currency: currency().notNull().default("EUR"),
     interval: billingIntervalEnum().notNull().default("month"),
     stripePriceId: text(),
+    /** Produit Stripe du pack (un nouveau prix y est ajouté à chaque changement de tarif). */
+    stripeProductId: text(),
     limits: jsonb().$type<PlanLimits>().notNull().default({}),
     features: jsonb().$type<PlanFeatures>().notNull().default({}),
     isPublic: boolean().notNull().default(true),

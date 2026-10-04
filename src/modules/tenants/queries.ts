@@ -1,6 +1,7 @@
 import { and, asc, count, desc, eq, gte, ilike, inArray, or, sql, type SQL } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
 import {
+  businesses,
   memberships,
   plans,
   tenantDomains,
@@ -77,32 +78,45 @@ export async function getTenantOverview(tx: Transaction, tenantId: string) {
     .innerJoin(plans, eq(plans.id, tenants.planId))
     .where(eq(tenants.id, tenantId));
   if (!row) return null;
-  const [domains, managers, usage, servicesCount, membersCount, photosCount] = await Promise.all([
-    tx
-      .select()
-      .from(tenantDomains)
-      .where(eq(tenantDomains.tenantId, tenantId))
-      .orderBy(desc(tenantDomains.isPrimary), asc(tenantDomains.createdAt)),
-    tx
-      .select({ id: users.id, email: users.email, name: users.name, lastLoginAt: users.lastLoginAt })
-      .from(memberships)
-      .innerJoin(users, eq(users.id, memberships.userId))
-      .where(eq(memberships.tenantId, tenantId)),
-    tx
-      .select()
-      .from(usageCounters)
-      .where(
-        and(
-          eq(usageCounters.tenantId, tenantId),
-          eq(usageCounters.period, currentPeriod(row.tenant.timezone)),
+  const [businessRows, domains, managers, usage, servicesCount, membersCount, photosCount] =
+    await Promise.all([
+      tx
+        .select()
+        .from(businesses)
+        .where(eq(businesses.tenantId, tenantId))
+        .orderBy(desc(businesses.isPrimary), asc(businesses.sortOrder), asc(businesses.createdAt)),
+      tx
+        .select()
+        .from(tenantDomains)
+        .where(eq(tenantDomains.tenantId, tenantId))
+        .orderBy(desc(tenantDomains.isPrimary), asc(tenantDomains.createdAt)),
+      tx
+        .select({
+          id: users.id,
+          email: users.email,
+          name: users.name,
+          lastLoginAt: users.lastLoginAt,
+          businessId: memberships.businessId,
+        })
+        .from(memberships)
+        .innerJoin(users, eq(users.id, memberships.userId))
+        .where(eq(memberships.tenantId, tenantId)),
+      tx
+        .select()
+        .from(usageCounters)
+        .where(
+          and(
+            eq(usageCounters.tenantId, tenantId),
+            eq(usageCounters.period, currentPeriod(row.tenant.timezone)),
+          ),
         ),
-      ),
-    countUsage(tx, tenantId, "services"),
-    countUsage(tx, tenantId, "members"),
-    countUsage(tx, tenantId, "photos"),
-  ]);
+      countUsage(tx, tenantId, "services"),
+      countUsage(tx, tenantId, "members"),
+      countUsage(tx, tenantId, "photos"),
+    ]);
   return {
     ...row,
+    businesses: businessRows,
     domains,
     managers,
     usage: usage[0] ?? null,

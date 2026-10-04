@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import { businessForeignKey } from "./tenants";
 import {
   boolean,
   check,
@@ -96,14 +97,25 @@ export const serviceCategories = pgTable(
   {
     id: id(),
     tenantId: tenantRef(),
+    /** Rempli automatiquement avec l'entreprise en cours (app_current_business()). */
+    businessId: uuid()
+      .notNull()
+      .default(sql`app_current_business()`),
     name: localized().notNull(),
     /** Adresse de la page de la catégorie, par langue : { "fr": "soins-visage" }. */
     slug: localized().notNull(),
     description: localized(),
+    /** Pictogramme affiché sur sa carte (clé d'une liste fixe, voir src/modules/catalog/icons.ts). */
+    icon: text(),
+    /** Catégorie mise en avant (« Spécialité ») : grande carte sur l'accueil. */
+    isFeatured: boolean().notNull().default(false),
     sortOrder: integer().notNull().default(0),
     ...timestamps(),
   },
-  (t) => [unique("service_categories_tenant_id_key").on(t.tenantId, t.id)],
+  (t) => [
+    businessForeignKey("service_categories_business_fk", t, "cascade"),
+    unique("service_categories_tenant_id_key").on(t.tenantId, t.id),
+  ],
 );
 
 /** Prestations. */
@@ -112,6 +124,10 @@ export const services = pgTable(
   {
     id: id(),
     tenantId: tenantRef(),
+    /** Rempli automatiquement avec l'entreprise en cours (app_current_business()). */
+    businessId: uuid()
+      .notNull()
+      .default(sql`app_current_business()`),
     categoryId: uuid(),
     name: localized().notNull(),
     description: localized(),
@@ -128,6 +144,8 @@ export const services = pgTable(
     ...timestamps(),
   },
   (t) => [
+    businessForeignKey("services_business_fk", t, "cascade"),
+    unique("services_business_id_key").on(t.businessId, t.id),
     unique("services_tenant_id_key").on(t.tenantId, t.id),
     index("services_tenant_category_idx").on(t.tenantId, t.categoryId),
     foreignKey({
@@ -147,6 +165,10 @@ export const staffMembers = pgTable(
   {
     id: id(),
     tenantId: tenantRef(),
+    /** Rempli automatiquement avec l'entreprise en cours (app_current_business()). */
+    businessId: uuid()
+      .notNull()
+      .default(sql`app_current_business()`),
     name: text().notNull(),
     bio: localized(),
     photoAssetId: uuid(),
@@ -158,6 +180,8 @@ export const staffMembers = pgTable(
     ...timestamps(),
   },
   (t) => [
+    businessForeignKey("staff_members_business_fk", t, "cascade"),
+    unique("staff_members_business_id_key").on(t.businessId, t.id),
     unique("staff_members_tenant_id_key").on(t.tenantId, t.id),
     foreignKey({
       name: "staff_members_photo_fk",
@@ -172,10 +196,26 @@ export const staffServices = pgTable(
   "staff_services",
   {
     tenantId: tenantRef(),
+    /** Rempli automatiquement avec l'entreprise en cours (app_current_business()). */
+    businessId: uuid()
+      .notNull()
+      .default(sql`app_current_business()`),
     staffId: uuid().notNull(),
     serviceId: uuid().notNull(),
   },
   (t) => [
+    businessForeignKey("staff_services_business_fk", t, "cascade"),
+    // Un membre ne réalise que des prestations de sa propre entreprise.
+    foreignKey({
+      name: "staff_services_business_staff_fk",
+      columns: [t.businessId, t.staffId],
+      foreignColumns: [staffMembers.businessId, staffMembers.id],
+    }).onDelete("cascade"),
+    foreignKey({
+      name: "staff_services_business_service_fk",
+      columns: [t.businessId, t.serviceId],
+      foreignColumns: [services.businessId, services.id],
+    }).onDelete("cascade"),
     primaryKey({ columns: [t.tenantId, t.staffId, t.serviceId] }),
     index("staff_services_service_idx").on(t.tenantId, t.serviceId),
     foreignKey({

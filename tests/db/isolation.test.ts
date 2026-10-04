@@ -25,7 +25,8 @@ const EXPECTED_TENANT_GRANTS: Record<string, string[]> = {
   subscriptions: ["SELECT"],
   redirects: ["SELECT"],
   site_pages: ["SELECT"],
-  tenant_settings: ["INSERT", "SELECT", "UPDATE"],
+  businesses: ["SELECT"],
+  business_settings: ["INSERT", "SELECT", "UPDATE"],
   usage_counters: ["INSERT", "SELECT", "UPDATE"],
   payments: ["INSERT", "SELECT", "UPDATE"],
   refunds: ["INSERT", "SELECT", "UPDATE"],
@@ -44,6 +45,12 @@ const EXPECTED_TENANT_GRANTS: Record<string, string[]> = {
   promo_codes: ["DELETE", "INSERT", "SELECT", "UPDATE"],
   appointments: ["DELETE", "INSERT", "SELECT", "UPDATE"],
   appointment_items: ["DELETE", "INSERT", "SELECT", "UPDATE"],
+  service_price_history: ["SELECT"],
+  promotions: ["DELETE", "INSERT", "SELECT", "UPDATE"],
+  promotion_services: ["DELETE", "INSERT", "SELECT", "UPDATE"],
+  google_reviews: ["SELECT"],
+  gift_cards: ["INSERT", "SELECT", "UPDATE"],
+  gift_card_transactions: ["INSERT", "SELECT"],
 };
 
 describe.skipIf(!hasTestDatabase)("isolation des données entre tenants", () => {

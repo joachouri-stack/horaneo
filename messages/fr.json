@@ -34,7 +34,122 @@
   "home": {
     "title": "Votre site, votre agenda et vos acomptes, enfin réunis.",
     "subtitle": "Vos clientes réservent et paient leur acompte en ligne, sur votre propre site. Vous gérez tout depuis votre téléphone.",
-    "cta": "Créer mon site"
+    "cta": "Créer mon site",
+    "seePlans": "Voir les packs",
+    "reassurance": "Nous créons votre site pour vous. Sans compétence technique.",
+    "mockup": {
+      "label": "Exemple de réservation sur le site d'un établissement",
+      "business": "Institut Lumière",
+      "service": "Soin du visage",
+      "duration": "1 h",
+      "day": "Jour",
+      "time": "Heure",
+      "days": ["lun. 12", "mar. 13", "mer. 14"],
+      "times": ["9:30", "11:00", "14:15", "16:45"],
+      "deposit": "Acompte à régler",
+      "pay": "Payer l'acompte"
+    },
+    "compare": {
+      "title": "Ce qui change pour vous",
+      "without": "Sans {product}",
+      "with": "Avec {product}",
+      "rows": [
+        {
+          "figure": "24 h/24",
+          "without": "Les rendez-vous se prennent au téléphone, pendant vos heures d'ouverture.",
+          "with": "Vos clientes réservent à toute heure, même pendant que vous travaillez."
+        },
+        {
+          "figure": "2 rappels",
+          "without": "Des rendez-vous oubliés, sans prévenir.",
+          "with": "Un e-mail 24 h avant et un SMS la veille, envoyés automatiquement."
+        },
+        {
+          "figure": "Acompte",
+          "without": "Une absence, c'est un créneau perdu et non payé.",
+          "with": "Un acompte en ligne à la réservation, gardé en cas d'absence."
+        },
+        {
+          "figure": "{percent} %",
+          "without": "Des plateformes qui prennent une commission sur chaque rendez-vous.",
+          "with": "Aucune commission : l'acompte va directement sur votre compte."
+        }
+      ]
+    },
+    "features": {
+      "title": "Tout ce qu'il vous faut, au même endroit",
+      "items": [
+        {
+          "title": "Un site professionnel à vos couleurs",
+          "text": "Créé pour vous à partir de votre logo, rapide sur téléphone et bien référencé dans votre ville."
+        },
+        {
+          "title": "La réservation en ligne",
+          "text": "Prestations, membres de l'équipe, horaires et congés : seuls les créneaux vraiment libres sont proposés."
+        },
+        {
+          "title": "L'acompte et le paiement",
+          "text": "Vos clientes paient par carte, Apple Pay ou Google Pay. Remboursement automatique si elles annulent à temps."
+        },
+        {
+          "title": "Les rappels automatiques",
+          "text": "Confirmation, rappel par e-mail et par SMS, annulation ou report : tout part au nom de votre établissement."
+        },
+        {
+          "title": "Votre agenda dans la poche",
+          "text": "Rendez-vous du jour, agenda, fiches clientes, ajout d'un rendez-vous pris au téléphone : en deux gestes."
+        },
+        {
+          "title": "Votre nom de domaine",
+          "text": "Gardez votre adresse habituelle, ou commencez avec une adresse offerte."
+        }
+      ]
+    },
+    "plans": {
+      "title": "Choisissez votre pack",
+      "perMonth": "/ mois {display}",
+      "free": "Gratuit",
+      "order": "Commander",
+      "commitment": "{months, plural, =0 {Sans engagement.} one {Engagement de # mois.} other {Engagement de # mois.}}",
+      "setupFree": "Création du site offerte.",
+      "setupFee": "Frais de création : {amount}.",
+      "popular": "Le plus choisi"
+    },
+    "faq": {
+      "title": "Questions fréquentes",
+      "items": [
+        {
+          "q": "Comment je reçois mes acomptes ?",
+          "a": "Vous ouvrez votre propre compte Stripe depuis votre espace, en quelques minutes. Les acomptes y sont versés directement, puis virés sur votre compte bancaire. {product} ne touche jamais votre argent et prend {percent} % de commission."
+        },
+        {
+          "q": "Que se passe-t-il si une cliente annule ?",
+          "a": "Jusqu'au délai que vous choisissez (24 h avant par défaut), elle annule ou déplace gratuitement avec le lien reçu par e-mail, et son acompte lui est remboursé automatiquement. Après ce délai, ou si elle ne vient pas, l'acompte vous reste acquis."
+        },
+        {
+          "q": "Combien de temps pour avoir mon site ?",
+          "a": "Nous le construisons pour vous : il est en ligne sous {days} jours ouvrés environ après votre commande. Vous recevez un e-mail dès qu'il est prêt."
+        },
+        {
+          "q": "Dois-je savoir faire un site ?",
+          "a": "Non. Vous nous donnez votre logo, vos prestations et vos horaires ; nous nous occupons du reste. Ensuite, vous modifiez prix, horaires et photos vous-même, depuis votre téléphone."
+        },
+        {
+          "q": "Puis-je garder mon nom de domaine ?",
+          "a": "Oui, avec les packs payants. Vos anciennes adresses sont redirigées vers le nouveau site."
+        },
+        {
+          "q": "Suis-je engagée ?",
+          "a": "{commitment} Vous pouvez changer de pack à tout moment depuis votre espace."
+        }
+      ]
+    },
+    "footer": {
+      "legal": "Mentions légales",
+      "privacy": "Confidentialité",
+      "terms": "Conditions générales",
+      "rights": "© {year} {product}"
+    }
   },
   "site": {
     "suspended": "Ce site est temporairement indisponible. Merci de contacter l'établissement par téléphone.",
@@ -105,7 +220,8 @@
     "footer": {
       "legal": "Mentions légales",
       "privacy": "Confidentialité",
-      "madeBy": "Site créé par {product}"
+      "madeBy": "Site créé par {product}",
+      "cancellation": "Conditions d'annulation"
     },
     "legal": {
       "title": "Mentions légales",
@@ -120,7 +236,8 @@
       "hostText": "Site réalisé et hébergé par le service {product} ({domain}).",
       "infrastructure": "Infrastructure",
       "intellectual": "Propriété intellectuelle",
-      "intellectualText": "Les textes, photos et logos de ce site appartiennent à {name} ou sont utilisés avec autorisation. Toute reproduction sans accord préalable est interdite."
+      "intellectualText": "Les textes, photos et logos de ce site appartiennent à {name} ou sont utilisés avec autorisation. Toute reproduction sans accord préalable est interdite.",
+      "publishers": "Éditrices du site"
     },
     "privacy": {
       "title": "Politique de confidentialité",
@@ -141,7 +258,119 @@
     },
     "homeLabel": "Accueil",
     "notFound": "Cette page n'existe pas ou a été déplacée.",
-    "backHome": "Retour à l'accueil"
+    "backHome": "Retour à l'accueil",
+    "atelier": {
+      "nav": {
+        "about": "L'institut",
+        "testimonials": "Témoignages",
+        "practical": "Infos pratiques"
+      },
+      "bookMoment": "Réserver un moment",
+      "seeAllServices": "Voir tous les soins",
+      "onlineBooking": "24 h/24",
+      "onlineBookingLabel": "réservation en ligne",
+      "byAppointment": "Sur rendez-vous",
+      "daysSpan": "Du {from} au {to}",
+      "servicesTitle": "Que souhaitez-vous",
+      "servicesTitleAccent": "réserver ?",
+      "servicesIntro": "Choisissez un soin pour voir les tarifs et les créneaux.",
+      "filterAll": "Tous les soins",
+      "filterWith": "Avec {name}",
+      "from": "dès {price}",
+      "seeCategory": "Voir : {category}",
+      "speciality": "Spécialité",
+      "teamTitle": "{count, plural, =1 {Une professionnelle,} =2 {Deux professionnelles,} =3 {Trois professionnelles,} other {# professionnelles,}}",
+      "teamTitleAccent": "à votre écoute.",
+      "allTheirServices": "Tous ses soins",
+      "aboutTitle": "L'institut",
+      "takeAppointment": "Prendre rendez-vous",
+      "testimonialsTitle": "Elles nous font confiance",
+      "hoursTitle": "Horaires",
+      "findUs": "Nous trouver",
+      "ctaTitle": "Un moment rien que pour vous",
+      "ctaText": "Réservez en ligne, à toute heure.",
+      "closed": "Fermé",
+      "range": "{from} à {to}",
+      "groupDays": "{from} au {to}",
+      "footerAbout": "{city, select, none {Sur rendez-vous.} other {À {city}, sur rendez-vous.}}",
+      "footerServices": "Les soins",
+      "businessLink": "{title}, avec {name}",
+      "phoneOf": "{name} :",
+      "rights": "© {year} {name} · Tous droits réservés",
+      "pageIntro": "Choisissez votre soin, puis votre créneau. La réservation se fait en quelques gestes.",
+      "withName": "Avec {name}",
+      "bookWith": "Réserver avec {name}",
+      "servicesCount": "{count, plural, one {# prestation} other {# prestations}}",
+      "bookService": "Réserver : {service}",
+      "onRequest": "Sur demande",
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "otherPhotos": "Photo de l'institut",
+      "opensAt": "dès {time}"
+    },
+    "cancellation": {
+      "title": "Conditions d'annulation",
+      "intro": "Vous pouvez annuler ou déplacer votre rendez-vous vous-même, avec le lien reçu dans l'e-mail de confirmation.",
+      "free": "Annulation et report gratuits jusqu'à {hours} h avant le rendez-vous.",
+      "late": "Passé ce délai, contactez directement {name}.",
+      "deposit": "Un acompte de {amount} est demandé à la réservation en ligne, versé directement à {name}.",
+      "depositRefund": "Il est remboursé automatiquement si vous annulez dans le délai. Il reste acquis en cas d'annulation tardive ou d'absence.",
+      "noDeposit": "Aucun acompte n'est demandé : le soin se règle sur place.",
+      "percent": "{value} % du prix",
+      "giftCards": "Cartes cadeaux",
+      "giftCardRules": "Valables {months} mois à partir de leur envoi. Utilisables en ligne (elles remplacent l'acompte) ou sur place, en plusieurs fois : le solde est conservé. Non remboursables et non échangeables contre de l'argent. Une carte s'utilise uniquement chez la professionnelle qui l'a encaissée."
+    },
+    "offers": {
+      "banner": "Offre du moment : {title}, jusqu'au {date}",
+      "cta": "En profiter",
+      "was": "au lieu de {price}",
+      "until": "jusqu'au {date}"
+    },
+    "reviews": {
+      "google": "Avis Google",
+      "summary": "{rating} sur 5 · {count, plural, one {# avis Google} other {# avis Google}}",
+      "readAll": "Lire tous les avis",
+      "seeOnGoogle": "Voir nos avis sur Google",
+      "rating": "{rating} sur 5",
+      "short": "{count, plural, one {# avis Google} other {# avis Google}}"
+    },
+    "giftCard": {
+      "navLabel": "Cartes cadeaux",
+      "sectionTitle": "Offrez un moment",
+      "sectionAccent": "de bien-être.",
+      "sectionText": "Une carte cadeau du montant de votre choix, envoyée par e-mail tout de suite ou à la date de votre choix.",
+      "sectionCta": "Offrir une carte cadeau",
+      "cardLabel": "Carte cadeau",
+      "title": "Offrir une carte cadeau",
+      "intro": "Choisissez le montant, ajoutez un petit mot : la carte est envoyée par e-mail, tout de suite ou à la date de votre choix.",
+      "who": "Chez qui ?",
+      "belongsTo": "La carte est encaissée par {name} et s'utilise uniquement pour ses soins.",
+      "amount": "Montant",
+      "otherAmount": "Autre montant (de {min} à {max})",
+      "recipient": "Pour qui ?",
+      "recipientName": "Prénom de la personne",
+      "recipientEmail": "Son e-mail (vide : la carte vous est envoyée, à imprimer ou transférer)",
+      "message": "Votre message (facultatif)",
+      "sendOn": "Date d'envoi",
+      "sendOnHint": "Vide : envoyée tout de suite après le paiement.",
+      "from": "De la part de",
+      "purchaserName": "Votre nom",
+      "purchaserEmail": "Votre e-mail (pour le reçu)",
+      "rules": "Valable {months} mois. Utilisable en ligne ou sur place, en plusieurs fois (le solde est conservé). Non remboursable, non échangeable contre de l'argent.",
+      "rulesLink": "Conditions de vente",
+      "pay": "Payer {amount}",
+      "continue": "Continuer vers le paiement",
+      "sending": "Préparation…",
+      "paymentTitle": "Paiement",
+      "secureTo": "Paiement sécurisé, versé directement à {name}.",
+      "thanksTitle": "Merci !",
+      "thanksNow": "La carte cadeau vient d'être envoyée à {email}. Un reçu vous est envoyé par e-mail.",
+      "thanksLater": "La carte cadeau sera envoyée à {email} le {date}. Un reçu vous est envoyé par e-mail.",
+      "checking": "Vérification du paiement…",
+      "unavailable": "Les cartes cadeaux ne sont pas proposées en ligne pour le moment. Contactez directement l'établissement.",
+      "metaTitle": "Carte cadeau",
+      "thanksPending": "Dès que votre banque confirme le paiement, la carte est envoyée et vous recevez un reçu par e-mail."
+    }
   },
   "emails": {
     "magicLink": {
@@ -178,7 +407,9 @@
       "social": "La connexion n'a pas abouti. Merci de réessayer.",
       "generic": "Une erreur est survenue. Merci de réessayer."
     },
-    "legal": "En continuant, vous acceptez les conditions d'utilisation et la politique de confidentialité."
+    "legal": "En continuant, vous acceptez les conditions d'utilisation et la politique de confidentialité.",
+    "signupTitle": "Créez votre compte",
+    "signupSubtitle": "Sans mot de passe : continuez avec Google ou Apple, ou recevez un lien par e-mail. Si vous avez déjà un compte, vous serez simplement connectée."
   },
   "account": {
     "metaTitle": "Mon espace",
@@ -187,7 +418,7 @@
     "signedInAs": "Compte : {email}",
     "noTenantTitle": "Votre compte est prêt",
     "noTenantBody": "Prochaine étape : choisir votre pack. Votre site sera ensuite créé et mis en ligne pour vous.",
-    "noTenantCta": "Découvrir les packs",
+    "noTenantCta": "Choisir mon pack",
     "tenantsTitle": "Mes établissements",
     "comingSoon": "Votre espace de gestion (agenda, clientes, site) arrive très bientôt.",
     "adminLink": "Espace admin"
@@ -224,7 +455,12 @@
       "home": "Accueil",
       "clients": "Clients",
       "newClient": "Nouveau client",
-      "requests": "Demandes"
+      "requests": "Demandes",
+      "plans": "Packs",
+      "settings": "Réglages",
+      "billing": "Paiements",
+      "orders": "Commandes",
+      "documents": "Documents légaux"
     },
     "dashboard": {
       "activeClients": "Clients en ligne",
@@ -237,7 +473,9 @@
       "alerts": "Alertes à traiter",
       "noAlerts": "Rien à signaler.",
       "basicAtLimit": "{name} a atteint ses {count} réservations du mois (pack Basic).",
-      "openRequests": "{count, plural, one {# demande de mise à jour à traiter} other {# demandes de mise à jour à traiter}}"
+      "openRequests": "{count, plural, one {# demande de mise à jour à traiter} other {# demandes de mise à jour à traiter}}",
+      "pastDue": "{count, plural, one {# prélèvement en échec} other {# prélèvements en échec}}",
+      "pendingOrders": "{count, plural, one {# commande à traiter} other {# commandes à traiter}}"
     },
     "clients": {
       "title": "Clients",
@@ -280,6 +518,7 @@
       "tabs": {
         "overview": "Fiche",
         "coordonnees": "Coordonnées",
+        "entreprises": "Entreprises",
         "modele": "Modèle",
         "logo": "Logo et couleurs",
         "prestations": "Prestations",
@@ -332,7 +571,10 @@
           "not_started": "Compte non ouvert",
           "incomplete": "Compte ouvert, en attente de validation",
           "active": "Compte actif"
-        }
+        },
+        "subscription": "Abonnement",
+        "subscriptionNone": "Aucun abonnement Stripe (pack attribué à la main).",
+        "businesses": "Entreprises"
       },
       "identity": {
         "title": "Coordonnées",
@@ -347,7 +589,10 @@
         "timezone": "Fuseau horaire",
         "latitude": "Latitude",
         "longitude": "Longitude",
-        "coordinatesHint": "Facultatif : pour afficher le plan sur le site. Clic droit sur le lieu dans Google Maps pour copier les coordonnées."
+        "coordinatesHint": "Facultatif : pour afficher le plan sur le site. Clic droit sur le lieu dans Google Maps pour copier les coordonnées.",
+        "social": "Réseaux sociaux",
+        "instagram": "Page Instagram (adresse complète)",
+        "facebook": "Page Facebook (adresse complète)"
       },
       "appearance": {
         "title": "Métier et modèle",
@@ -391,7 +636,27 @@
         "quota": "{used} prestation(s) sur {limit}",
         "minutes": "{count} min",
         "disabled": "désactivée",
-        "deactivatedInstead": "Prestation déjà réservée : elle a été désactivée au lieu d'être supprimée."
+        "deactivatedInstead": "Prestation déjà réservée : elle a été désactivée au lieu d'être supprimée.",
+        "icon": "Pictogramme (modèle Atelier)",
+        "noIcon": "Aucun",
+        "featured": "Mettre en avant (« Spécialité »)",
+        "categoryDescription": "Courte description de la catégorie",
+        "icons": {
+          "eye": "Regard",
+          "sparkles": "Éclat",
+          "leaf": "Feuille",
+          "hand": "Main",
+          "face": "Visage",
+          "drop": "Goutte",
+          "waves": "Vagues",
+          "sun": "Soleil",
+          "pen": "Crayon",
+          "graduation": "Formation",
+          "flower": "Fleur",
+          "heart": "Cœur",
+          "scissors": "Ciseaux",
+          "star": "Étoile"
+        }
       },
       "team": {
         "title": "Équipe",
@@ -432,12 +697,21 @@
           "legal": "Mentions légales"
         },
         "fields": {
-          "tagline": "Phrase d'accroche",
+          "tagline": "Phrase d'accroche (titre de l'accueil)",
           "intro": "Présentation",
           "title": "Titre",
           "body": "Texte",
           "access": "Accès, parking, transports",
-          "extra": "Informations complémentaires"
+          "extra": "Informations complémentaires",
+          "taglineAccent": "Fin du titre, en italique (modèle Atelier)",
+          "badge": "Petite étiquette au-dessus du titre (ex. « Institut de beauté à Avignon »)",
+          "highlight1Value": "Chiffre clé 1 (ex. « + 3 ans »)",
+          "highlight1Label": "Légende du chiffre clé 1 (ex. « à votre service »)",
+          "highlight2Value": "Chiffre clé 2",
+          "highlight2Label": "Légende du chiffre clé 2",
+          "highlight3Value": "Chiffre clé 3",
+          "highlight3Label": "Légende du chiffre clé 3",
+          "credit": "Crédit en bas du site (ex. « Design by … »)"
         }
       },
       "photos": {
@@ -472,7 +746,48 @@
         "empty": "Aucun témoignage pour le moment."
       },
       "preview": "Aperçu du site (1 h)",
-      "viewAsClient": "Voir comme le client"
+      "viewAsClient": "Voir comme le client",
+      "businessPicker": {
+        "label": "Entreprise",
+        "hint": "Ce site regroupe plusieurs entreprises : choisissez celle dont vous modifiez les informations."
+      },
+      "businesses": {
+        "title": "Entreprises du site",
+        "intro": "Chaque entreprise a son SIRET, son compte Stripe, son équipe, ses prestations, son agenda et ses clientes. Le site, le domaine, le modèle et l'abonnement sont communs.",
+        "primary": "Entreprise principale (règle l'abonnement)",
+        "name": "Nom affiché (ex. prénom de la professionnelle)",
+        "legalName": "Raison sociale ou nom de l'entrepreneur",
+        "siret": "SIRET",
+        "vatNumber": "N° de TVA",
+        "email": "E-mail",
+        "phone": "Téléphone",
+        "address1": "Adresse",
+        "postalCode": "Code postal",
+        "city": "Ville",
+        "managers": "Gérante : {names}",
+        "noManager": "Aucune gérante rattachée",
+        "stripe": "Paiement en ligne : {state}",
+        "viewAs": "Voir son espace",
+        "add": "Ajouter une entreprise à ce site",
+        "addHint": "Par exemple une deuxième professionnelle installée dans le même institut, avec son propre SIRET. Elle recevra un accès à son seul espace.",
+        "managerEmail": "E-mail de sa gérante",
+        "managerName": "Nom de sa gérante",
+        "addSubmit": "Ajouter l'entreprise",
+        "added": "Entreprise ajoutée. Ajoutez maintenant son équipe et ses prestations (onglets Équipe et Prestations, en choisissant l'entreprise).",
+        "profile": "Sa page sur le site",
+        "profileHint": "Modèle Atelier : chaque professionnelle a sa page, avec ses soins et le bouton « Réserver avec … ».",
+        "slug": "Adresse de sa page (/avec/…)",
+        "slugHint": "Lettres, chiffres et tirets. Vide : proposée à partir du nom.",
+        "pageTitle": "Titre de sa page et du menu (ex. « Esthétique »)",
+        "role": "Métier (ex. « Esthéticienne, spécialiste du regard »)",
+        "bio": "Présentation",
+        "availability": "Disponibilités (ex. « Du lundi au samedi »)",
+        "photo": "Photo",
+        "noPhoto": "Aucune photo",
+        "saveProfile": "Enregistrer sa page",
+        "googlePlaceId": "Fiche Google (identifiant « place »)",
+        "googlePlaceIdHint": "Pour afficher ses avis Google. L'identifiant commence souvent par « ChIJ » : cherchez l'établissement sur la page « Place ID Finder » de Google, puis copiez-le ici. Les avis apparaissent dans les 24 h."
+      }
     },
     "requests": {
       "title": "Demandes de mise à jour",
@@ -488,6 +803,114 @@
         "done": "Faite",
         "rejected": "Refusée"
       }
+    },
+    "plans": {
+      "title": "Packs",
+      "intro": "Prix, limites et fonctions de chaque pack. Un champ de limite vide signifie « illimité » (sauf les SMS : jamais illimités).",
+      "name": "Nom (français)",
+      "price": "Prix mensuel (€)",
+      "priceHint": "Un nouveau prix s'applique aux prochaines souscriptions ; les abonnements en cours gardent leur prix.",
+      "onlineBookingsPerMonth": "Réservations en ligne par mois",
+      "members": "Membres",
+      "photos": "Photos",
+      "services": "Prestations",
+      "smsPerMonth": "SMS de rappel par mois",
+      "unlimitedHint": "Vide = illimité",
+      "features": "Fonctions incluses",
+      "isPublic": "Proposé à la souscription",
+      "stripe": "Prix Stripe : {id}",
+      "noStripe": "Prix Stripe : créé à la première souscription",
+      "featureLabels": {
+        "fullSite": "Site complet personnalisé",
+        "customDomain": "Votre propre nom de domaine",
+        "onlinePayment": "Paiement en ligne et acompte",
+        "promoCodes": "Codes promo",
+        "testimonials": "Témoignages",
+        "stats": "Statistiques détaillées",
+        "monthlySummary": "Bilan mensuel",
+        "emailSupport": "Assistance par e-mail",
+        "whatsappSupport": "Assistance prioritaire par WhatsApp",
+        "brandingFooter": "Signature du SaaS en bas du site"
+      }
+    },
+    "settings": {
+      "title": "Réglages",
+      "pricing": "Prix et engagement",
+      "prices_display": "Affichage des prix",
+      "vat_rate_percent": "Taux de TVA (%)",
+      "vatHint": "À valider avec votre comptable. Appliqué aux factures des abonnements.",
+      "commitment_months": "Engagement (mois, 0 = sans engagement)",
+      "setup_fee": "Frais de création (€, 0 = offerts)",
+      "go_live_delay_days": "Délai de mise en ligne annoncé (jours ouvrés)",
+      "payments": "Paiements et données",
+      "deposit_commission_percent": "Commission sur les acomptes (%)",
+      "retention_days_after_cancel": "Site en ligne après la fin de l'abonnement (jours)",
+      "replaced_asset_retention_days": "Conservation des photos remplacées (jours)",
+      "messages": "Messages automatiques",
+      "sms_reminder_time": "Heure du rappel SMS (la veille)",
+      "email_reminder_hours_before": "Rappel par e-mail (heures avant)",
+      "daily_summary_time": "Heure du résumé du lendemain",
+      "monthly_summary_time": "Heure du bilan mensuel (le 1er)",
+      "legal": "Mentions légales",
+      "legal_infrastructure": "Hébergeur (affiché dans les mentions légales des sites)"
+    },
+    "billing": {
+      "title": "Paiements des abonnements",
+      "revenue": "Revenu mensuel réel",
+      "paying": "Abonnements payants",
+      "pastDue": "Prélèvements en échec",
+      "empty": "Aucun abonnement pour le moment.",
+      "client": "Client",
+      "plan": "Pack",
+      "status": "État",
+      "next": "Prochaine échéance",
+      "failedOn": "Échec le {date}",
+      "scheduled": "Passera au pack {name}",
+      "cancelAt": "Fin le {date}",
+      "commitment": "Engagé jusqu'au {date}",
+      "statuses": {
+        "active": "Actif",
+        "trialing": "Essai",
+        "past_due": "Impayé (nouvelles tentatives)",
+        "canceled": "Terminé",
+        "unpaid": "Impayé",
+        "incomplete": "Paiement en cours",
+        "incomplete_expired": "Paiement abandonné",
+        "none": "Pas encore souscrit",
+        "paused": "En pause"
+      },
+      "openClient": "Fiche"
+    },
+    "orders": {
+      "title": "Commandes à traiter",
+      "intro": "Chaque commande attend que vous créiez le site. Une fois le site prêt, activez-le depuis sa fiche : le professionnel reçoit alors un e-mail « votre site est en ligne ».",
+      "empty": "Aucune commande en attente.",
+      "status": {
+        "awaiting_review": "Basic à valider",
+        "paid": "Payée : site à créer",
+        "in_creation": "Site en cours de création"
+      },
+      "received": "Reçue le {date}",
+      "activity": "Activité",
+      "phone": "Téléphone",
+      "email": "E-mail",
+      "website": "Site actuel",
+      "create": "Créer le site",
+      "openTenant": "Ouvrir la fiche du site",
+      "reject": "Refuser la demande",
+      "reason": "Motif (envoyé au professionnel)",
+      "rejectConfirm": "Refuser cette commande ? Le professionnel sera prévenu par e-mail.",
+      "refundHint": "Commande payée : l'abonnement sera arrêté. Remboursez le paiement depuis votre tableau de bord Stripe."
+    },
+    "documents": {
+      "title": "Documents légaux",
+      "intro": "Textes affichés en bas du site commercial. Chaque enregistrement crée une nouvelle version (les anciennes sont conservées). À faire valider juridiquement.",
+      "titleLabel": "Titre",
+      "content": "Texte",
+      "contentHint": "Séparez les paragraphes par une ligne vide.",
+      "publish": "Publier cette version",
+      "current": "Version {version} publiée le {date}",
+      "none": "Pas encore publié : la page affiche un message d'attente."
     }
   },
   "errors": {
@@ -521,7 +944,21 @@
     "promo_code_taken": "Ce code existe déjà.",
     "payments_unavailable": "Le paiement en ligne n'est pas disponible pour le moment.",
     "payment_not_refundable": "Il n'y a pas d'acompte à rembourser.",
-    "payment_provider_error": "Le service de paiement ne répond pas. Merci de réessayer dans un instant."
+    "payment_provider_error": "Le service de paiement ne répond pas. Merci de réessayer dans un instant.",
+    "subscription_active": "Ce client a un abonnement Stripe en cours : changez son pack depuis son espace (« Voir comme le client »).",
+    "already_customer": "Vous avez déjà un site : changez de pack depuis votre espace (Plus → Abonnement).",
+    "order_in_progress": "Votre commande est déjà en cours de traitement. Nous revenons vers vous très vite.",
+    "order_not_pending": "Cette commande a déjà été traitée.",
+    "services_mixed": "Ces prestations sont réalisées par deux professionnelles différentes : réservez-les séparément.",
+    "manager_already_linked": "Cette personne gère déjà une entreprise de ce site.",
+    "primary_business_only": "L'abonnement du site est géré par l'entreprise principale.",
+    "promo_not_combinable": "Ce soin est déjà en promotion : le code promo ne s'y ajoute pas.",
+    "gift_card_not_found": "Ce code de carte cadeau est inconnu. Vérifiez-le, ou contactez l'établissement.",
+    "gift_card_expired": "Cette carte cadeau a expiré.",
+    "gift_card_used": "Cette carte cadeau a déjà été entièrement utilisée.",
+    "gift_card_insufficient": "Le solde de la carte cadeau est insuffisant.",
+    "gift_cards_unavailable": "Les cartes cadeaux ne sont pas proposées pour le moment.",
+    "gift_card_amount": "Choisissez un montant entre le minimum et le maximum indiqués."
   },
   "status": {
     "draft": "En création",
@@ -533,10 +970,12 @@
   "themes": {
     "light": "Claire",
     "dark": "Sombre",
-    "nature": "Nature"
+    "nature": "Nature",
+    "blush": "Rose poudré"
   },
   "templates": {
-    "wellness": "Bien-être et coiffure"
+    "wellness": "Bien-être et coiffure",
+    "atelier": "Atelier (institut, une page par professionnelle)"
   },
   "weekdays": {
     "1": "Lundi",
@@ -551,13 +990,13 @@
     "title": "Réserver",
     "steps": {
       "services": "Prestation",
-      "slot": "Créneau",
+      "slot": "Quand ?",
       "details": "Coordonnées",
       "payment": "Acompte"
     },
     "stepOf": "Étape {current} sur {total} : {label}",
     "services": {
-      "choose": "Choisissez votre prestation",
+      "choose": "Quel soin ?",
       "chooseMany": "Choisissez jusqu'à {max} prestations",
       "maxReached": "Vous avez atteint le nombre maximum de prestations pour un rendez-vous.",
       "selected": "{count, plural, one {# prestation} other {# prestations}} · {duration} · {price}",
@@ -611,16 +1050,19 @@
       "expired": "Le délai de paiement est dépassé et le créneau a été libéré. Vous pouvez reprendre la réservation.",
       "restart": "Reprendre la réservation",
       "checking": "Vérification du paiement…",
-      "unavailable": "Le paiement en ligne n'est pas disponible pour le moment. Merci de contacter l'établissement."
+      "unavailable": "Le paiement en ligne n'est pas disponible pour le moment. Merci de contacter l'établissement.",
+      "secureTo": "Paiement sécurisé, versé directement à {name}."
     },
     "confirmation": {
-      "title": "Rendez-vous confirmé",
+      "title": "C'est confirmé",
       "pendingTitle": "Créneau réservé",
       "summary": "{date} à {time}, avec {name}",
       "keepLink": "Gardez ce lien : il permet d'annuler ou de déplacer votre rendez-vous gratuitement jusqu'à {hours} h avant.",
       "manageLink": "Gérer mon rendez-vous",
       "emailSoon": "Vous recevrez aussi une confirmation par e-mail.",
-      "paidTitle": "Acompte payé, rendez-vous confirmé"
+      "paidTitle": "C'est confirmé",
+      "addToCalendar": "Ajouter à mon agenda",
+      "emailSent": "Un e-mail de confirmation vient de vous être envoyé."
     },
     "back": "Retour",
     "continue": "Continuer",
@@ -663,7 +1105,22 @@
       "refunded": "L'acompte de {amount} vous est remboursé. Il apparaît sur votre compte sous 5 à 10 jours.",
       "payNow": "Régler l'acompte pour confirmer le rendez-vous",
       "discount": "Réduction"
-    }
+    },
+    "business": {
+      "title": "Avec qui souhaitez-vous réserver ?",
+      "intro": "Choisissez la professionnelle qui réalisera votre soin.",
+      "choose": "Réserver avec {name}",
+      "stepLabel": "Avec qui"
+    },
+    "giftCard": {
+      "label": "Carte cadeau",
+      "apply": "Utiliser",
+      "applied": "Carte •••• {last4} : l'acompte de {amount} sera pris sur la carte (solde {balance}).",
+      "appliedNoDeposit": "Carte •••• {last4} enregistrée : le soin se déduira sur place (solde {balance}).",
+      "remove": "Retirer",
+      "paidWith": "Acompte réglé avec votre carte cadeau."
+    },
+    "promoLabel": "{title} : au lieu de {price}"
   },
   "manager": {
     "metaTitle": "Mon espace",
@@ -735,7 +1192,25 @@
       "depositRefundPending": "Remboursement en cours : {amount}",
       "refund": "Rembourser l'acompte ({amount})",
       "refundHint": "Le remboursement part immédiatement sur la carte de la cliente (5 à 10 jours pour apparaître). Sans remboursement, l'acompte reste acquis.",
-      "discount": "Réduction : {amount}"
+      "discount": "Réduction : {amount}",
+      "messages": "Messages à la cliente",
+      "messageStatus": {
+        "queued": "en attente",
+        "sent": "envoyé",
+        "delivered": "reçu",
+        "failed": "échec",
+        "blocked_quota": "non envoyé (quota de SMS atteint)",
+        "skipped": "non envoyé"
+      },
+      "messageTemplate": {
+        "customer_confirmation": "Confirmation (e-mail)",
+        "customer_reminder_email": "Rappel (e-mail)",
+        "customer_reminder_sms": "Rappel (SMS)",
+        "customer_cancelled": "Annulation (e-mail)",
+        "customer_rescheduled": "Report (e-mail)",
+        "customer_moved": "Changement d'horaire (e-mail)",
+        "customer_payment_refunded": "Remboursement (e-mail)"
+      }
     },
     "manual": {
       "title": "Nouveau rendez-vous",
@@ -842,7 +1317,9 @@
       "requests": "Demandes de modification",
       "help": "Aide",
       "payments": "Paiements en ligne",
-      "promo": "Codes promo"
+      "promo": "Codes promo",
+      "promotions": "Promotions",
+      "giftCards": "Cartes cadeaux"
     },
     "stats": {
       "title": "Statistiques",
@@ -876,7 +1353,62 @@
       "sms": "SMS de rappel",
       "unlimited": "illimité",
       "of": "{used} sur {limit}",
-      "change": "Pour changer de pack, contactez-nous : le changement en ligne arrive bientôt."
+      "status": {
+        "nextPayment": "Prochain prélèvement le {date} : {amount}",
+        "commitment": "Engagement jusqu'au {date}",
+        "scheduled": "Passage au pack {name} le {date}.",
+        "cancelAt": "Votre pack payant se termine le {date}. Votre site passera ensuite au pack gratuit.",
+        "keep": "Garder mon pack actuel",
+        "free": "Pack gratuit, sans prélèvement."
+      },
+      "pastDue": "Votre dernier prélèvement n'a pas abouti. Mettez à jour votre carte pour garder votre pack.",
+      "pastDueBanner": "Prélèvement refusé : mettez à jour votre carte.",
+      "portal": "Ma carte et mes factures",
+      "choose": "Changer de pack",
+      "current": "Votre pack actuel",
+      "perMonth": "{amount} / mois {display}",
+      "free": "Gratuit",
+      "upgrade": "Passer à ce pack",
+      "upgradeHint": "Immédiat : la différence est prélevée au prorata des jours restants.",
+      "upgradeConfirm": "Passer à ce pack maintenant ? La différence sera prélevée tout de suite, au prorata.",
+      "downgrade": "Choisir ce pack",
+      "downgradeHint": "À partir du {date}, à la fin de la période déjà payée.",
+      "toFree": "Passer au pack gratuit",
+      "toFreeHint": "Votre pack payant continue jusqu'au {date}, puis votre site devient une fiche gratuite d'une page. Rien n'est supprimé.",
+      "toFreeConfirm": "Passer au pack gratuit le {date} ?",
+      "subscribe": "Choisir ce pack",
+      "subscribeHint": "Paiement par carte sur la page sécurisée de Stripe.",
+      "setupFee": "Frais de création : {amount} (une seule fois).",
+      "commitmentInfo": "Engagement de {months} mois.",
+      "unavailable": "Le changement de pack en ligne n'est pas encore disponible. Contactez-nous.",
+      "returnOk": "Merci ! Votre paiement est enregistré : votre nouveau pack s'active dans quelques instants.",
+      "returnCancel": "Paiement annulé : votre pack n'a pas changé.",
+      "result": {
+        "upgraded": "C'est fait : votre nouveau pack est actif.",
+        "downgrade_scheduled": "C'est noté : le changement se fera à la fin de la période en cours.",
+        "cancel_scheduled": "C'est noté : votre pack payant se terminera à la date indiquée.",
+        "kept": "Votre pack actuel est conservé."
+      },
+      "limits": {
+        "members": "{count, plural, =-1 {Membres illimités} one {# membre} other {# membres}}",
+        "photos": "{count, plural, =-1 {Photos illimitées} one {# photo} other {# photos}}",
+        "services": "{count, plural, =-1 {Prestations illimitées} one {# prestation} other {# prestations}}",
+        "onlineBookingsPerMonth": "{count, plural, =-1 {Réservations illimitées} one {# réservation en ligne par mois} other {# réservations en ligne par mois}}",
+        "smsPerMonth": "{count, plural, =0 {Rappels par e-mail uniquement} one {# SMS de rappel par mois} other {# SMS de rappel par mois}}"
+      },
+      "features": {
+        "fullSite": "Site complet personnalisé",
+        "customDomain": "Votre propre nom de domaine",
+        "onlinePayment": "Paiement en ligne et acompte",
+        "promoCodes": "Codes promo",
+        "testimonials": "Témoignages",
+        "stats": "Statistiques détaillées",
+        "monthlySummary": "Bilan mensuel",
+        "emailSupport": "Assistance par e-mail",
+        "whatsappSupport": "Assistance prioritaire par WhatsApp"
+      },
+      "overLimit": "Au-delà de votre pack : rien n'est supprimé, mais vous ne pouvez plus en ajouter.",
+      "primaryOnly": "L'abonnement est commun à tout le site : il est géré par l'entreprise principale. Vous voyez ici le pack en cours et l'utilisation du site."
     },
     "settings": {
       "title": "Réglages",
@@ -895,8 +1427,8 @@
       "depositValue": "Valeur (% ou €)",
       "depositUnavailable": "L'acompte en ligne n'est pas inclus dans votre pack.",
       "summaries": "Résumés par e-mail",
-      "daily": "Résumé du lendemain, chaque soir",
-      "monthly": "Résumé mensuel, le 1er du mois",
+      "daily": "Résumé du lendemain, chaque soir vers 19 h",
+      "monthly": "Bilan du mois, le 1er vers 8 h",
       "depositNeedsStripe": "L'acompte ne sera demandé qu'une fois votre compte Stripe actif.",
       "depositStripeLink": "Ouvrir mon compte Stripe",
       "depositRefundRule": "Remboursé automatiquement si la cliente annule dans le délai ; conservé sinon ou en cas d'absence."
@@ -976,6 +1508,300 @@
       "until": "Jusqu'au {until}",
       "delete": "Supprimer",
       "deleteConfirm": "Supprimer ce code ? S'il a déjà servi, il sera seulement désactivé."
+    },
+    "switchBusiness": "Changer d'entreprise",
+    "promotions": {
+      "title": "Promotions",
+      "intro": "Pendant la période choisie, le site affiche un bandeau « offre du moment » et le prix barré à côté du prix réduit. La promotion s'arrête seule à la date de fin.",
+      "referenceRule": "Le prix barré est le prix le plus bas pratiqué dans les 30 jours avant le début de la promotion (règle française). Un code promo ne s'ajoute pas à une promotion.",
+      "unavailable": "Les promotions datées sont incluses à partir du pack Essentiel.",
+      "empty": "Aucune promotion pour le moment.",
+      "new": "Nouvelle promotion",
+      "titleLabel": "Intitulé (affiché dans le bandeau)",
+      "titleHint": "Exemple : Offre d'automne",
+      "services": "Prestations concernées",
+      "discountType": "Réduction",
+      "percent": "Pourcentage",
+      "fixed": "Montant retiré (€)",
+      "discountValue": "Valeur",
+      "startsOn": "Du",
+      "endsOn": "Au (inclus)",
+      "delete": "Supprimer cette promotion",
+      "deleteConfirm": "Supprimer cette promotion ?",
+      "state": {
+        "current": "En cours",
+        "upcoming": "À venir",
+        "ended": "Terminée"
+      },
+      "summary": "{value} · {from} → {until} · {count, plural, one {# prestation} other {# prestations}}"
+    },
+    "giftCards": {
+      "title": "Cartes cadeaux",
+      "intro": "Vos clientes achètent une carte sur votre site ; le paiement arrive directement sur votre compte Stripe. La carte s'utilise en ligne (elle remplace l'acompte) ou ici, sur place.",
+      "unavailable": "Les cartes cadeaux sont incluses dans le pack Sérénité.",
+      "needsStripe": "Pour vendre des cartes, ouvrez d'abord votre compte de paiement (Plus → Paiements).",
+      "redeemTitle": "Encaisser une carte sur place",
+      "code": "Code de la carte",
+      "amount": "Montant à déduire (€)",
+      "note": "Note (facultatif, ex. soin réalisé)",
+      "redeem": "Déduire",
+      "redeemed": "Montant déduit de la carte •••• {last4}. Solde restant : {balance}.",
+      "listTitle": "Cartes vendues",
+      "empty": "Aucune carte vendue pour le moment.",
+      "filter": {
+        "all": "Toutes",
+        "active": "Actives",
+        "used": "Utilisées",
+        "expired": "Expirées"
+      },
+      "state": {
+        "active": "Active",
+        "used": "Utilisée",
+        "expired": "Expirée",
+        "cancelled": "Annulée",
+        "pending_payment": "En attente"
+      },
+      "line": "{amount} · solde {balance} · valable jusqu'au {date}",
+      "from": "Achetée par {name}",
+      "for": "pour {name}",
+      "settingsTitle": "Réglages",
+      "enabled": "Proposer les cartes cadeaux sur mon site",
+      "validityMonths": "Durée de validité (en mois)",
+      "amounts": "Montants proposés (€, séparés par des virgules)",
+      "min": "Montant libre minimum (€)",
+      "max": "Montant libre maximum (€)",
+      "rules": "Règles affichées à l'achat et dans vos conditions de vente : utilisable en plusieurs fois (le solde est conservé), non remboursable, non échangeable contre de l'argent."
     }
+  },
+  "notifications": {
+    "common": {
+      "hello": "Bonjour {name},",
+      "date": "Date",
+      "with": "Avec",
+      "services": "Prestations",
+      "total": "Total",
+      "depositPaid": "Acompte payé",
+      "discount": "Réduction",
+      "manage": "Gérer mon rendez-vous",
+      "manageHint": "Vous pouvez annuler ou déplacer gratuitement ce rendez-vous jusqu'au {deadline}.",
+      "tooLateHint": "Pour toute modification, contactez directement l'établissement.",
+      "rebook": "Prendre un nouveau rendez-vous",
+      "refund": "L'acompte de {amount} vous est remboursé. Il apparaîtra sur votre compte sous 5 à 10 jours.",
+      "noRefund": "L'acompte versé reste acquis à l'établissement.",
+      "when": "{date} à {time}",
+      "contact": "Une question ? Répondez simplement à cet e-mail ou appelez le {phone}.",
+      "contactEmail": "Une question ? Répondez simplement à cet e-mail.",
+      "managerFooter": "Message automatique envoyé par {product}.",
+      "openSpace": "Ouvrir mon espace",
+      "summaryFooter": "Vous pouvez couper les résumés dans Plus → Réglages."
+    },
+    "customer": {
+      "confirmation": {
+        "subject": "Votre rendez-vous du {date} est confirmé",
+        "title": "Rendez-vous confirmé",
+        "intro": "Votre rendez-vous chez {business} est bien enregistré."
+      },
+      "reminder_email": {
+        "subject": "Rappel : votre rendez-vous du {date} à {time}",
+        "title": "À très bientôt !",
+        "intro": "Petit rappel de votre rendez-vous chez {business}."
+      },
+      "reminder_sms": {
+        "text": "Rappel : rendez-vous demain à {time} chez {business}.",
+        "phone": " Empêchement : {phone}"
+      },
+      "cancelled": {
+        "subject": "Votre rendez-vous du {date} est annulé",
+        "title": "Rendez-vous annulé",
+        "byCustomer": "Votre rendez-vous chez {business} du {when} est bien annulé.",
+        "byEstablishment": "{business} a dû annuler votre rendez-vous du {when}. Toutes nos excuses pour ce contretemps."
+      },
+      "rescheduled": {
+        "subject": "Votre rendez-vous est déplacé au {date}",
+        "title": "Rendez-vous déplacé",
+        "intro": "Votre rendez-vous chez {business} est déplacé. Ancien créneau : {previous}."
+      },
+      "moved": {
+        "subject": "Nouvel horaire pour votre rendez-vous du {date}",
+        "title": "Votre rendez-vous a changé d'horaire",
+        "intro": "{business} a déplacé votre rendez-vous (ancien créneau : {previous}). Voici le nouveau créneau :"
+      },
+      "payment_refunded": {
+        "subject": "Votre acompte vous est remboursé",
+        "title": "Créneau plus disponible",
+        "intro": "Votre paiement chez {business} est arrivé après la fin du délai de réservation, et le créneau a été pris entre-temps. Toutes nos excuses."
+      }
+    },
+    "manager": {
+      "new_booking": {
+        "subject": "Nouvelle réservation : {customer}, {when}",
+        "title": "Nouvelle réservation",
+        "intro": "{customer} a réservé en ligne."
+      },
+      "cancelled": {
+        "subject": "Annulation : {customer}, {when}",
+        "title": "Rendez-vous annulé par la cliente",
+        "intro": "{customer} a annulé son rendez-vous du {when}.",
+        "refund": "L'acompte de {amount} lui a été remboursé automatiquement."
+      },
+      "rescheduled": {
+        "subject": "Rendez-vous déplacé : {customer}, {when}",
+        "title": "Rendez-vous déplacé par la cliente",
+        "intro": "{customer} a déplacé son rendez-vous (ancien créneau : {previous})."
+      },
+      "daily_summary": {
+        "subject": "Demain : {count, plural, one {# rendez-vous} other {# rendez-vous}}",
+        "title": "Vos rendez-vous de demain",
+        "intro": "{date} :",
+        "line": "{time} · {customer} · {services} · avec {staff}",
+        "open": "Voir l'agenda"
+      },
+      "monthly_summary": {
+        "subject": "Votre bilan de {month}",
+        "title": "Bilan de {month}",
+        "appointments": "Rendez-vous",
+        "online": "dont réservés en ligne",
+        "revenue": "Chiffre d'affaires",
+        "newCustomers": "Nouvelles clientes",
+        "cancelled": "Annulations",
+        "noShows": "Absences",
+        "top": "Prestations les plus demandées",
+        "open": "Voir les statistiques"
+      },
+      "basic_quota": {
+        "subjectAlmost": "Plus qu'une réservation en ligne ce mois-ci",
+        "subjectReached": "Limite de réservations en ligne atteinte",
+        "almost": "Vous avez reçu {used} réservations en ligne sur les {limit} comprises dans votre pack ce mois-ci.",
+        "reached": "Vous avez atteint les {limit} réservations en ligne de votre pack ce mois-ci. Jusqu'à la fin du mois, votre site affiche votre numéro de téléphone à la place des créneaux.",
+        "upgrade": "Pour recevoir des réservations sans limite, vous pouvez changer de pack.",
+        "open": "Voir mon abonnement"
+      },
+      "payment_failed": {
+        "subject": "Votre prélèvement n'a pas abouti",
+        "title": "Prélèvement refusé",
+        "intro": "Le prélèvement de votre abonnement n'a pas pu être effectué. Une nouvelle tentative sera faite automatiquement dans les prochains jours.",
+        "action": "Mettez à jour votre carte pour éviter le retour au pack gratuit.",
+        "open": "Mettre à jour ma carte"
+      },
+      "subscription_ended": {
+        "subject": "Votre site est passé au pack gratuit",
+        "title": "Retour au pack gratuit",
+        "requested": "Comme demandé, votre abonnement payant est terminé. Votre site est désormais une fiche gratuite d'une page.",
+        "unpaid": "Les prélèvements de votre abonnement n'ont pas abouti malgré plusieurs tentatives. Votre site est passé au pack gratuit : rien n'est supprimé.",
+        "back": "Vous pouvez reprendre un pack payant à tout moment depuis votre espace.",
+        "open": "Voir les packs"
+      },
+      "gift_card_sold": {
+        "subject": "Carte cadeau vendue : {amount}",
+        "title": "Nouvelle carte cadeau",
+        "intro": "{name} vient d'acheter une carte cadeau de {amount} sur votre site. Le paiement est sur votre compte Stripe.",
+        "open": "Voir les cartes cadeaux"
+      }
+    },
+    "account": {
+      "order_received": {
+        "subject": "Votre commande {product} est bien reçue",
+        "title": "Merci, c'est parti !",
+        "paid": "Votre paiement pour le pack {plan} est bien enregistré.",
+        "review": "Votre demande de fiche gratuite ({plan}) est bien reçue : nous la validons à la main.",
+        "next": "Nous créons votre site et vous prévenons dès qu'il est en ligne, sous {days, plural, one {# jour ouvré} other {# jours ouvrés}} environ.",
+        "open": "Mon espace"
+      },
+      "order_rejected": {
+        "subject": "Votre demande {product}",
+        "title": "Votre demande n'a pas pu être acceptée",
+        "intro": "Nous ne pouvons pas donner suite à votre demande pour « {business} ».",
+        "reason": "Motif : {reason}",
+        "refund": "Le paiement effectué vous sera remboursé intégralement.",
+        "contact": "Une question ? Répondez simplement à cet e-mail."
+      },
+      "site_live": {
+        "subject": "Votre site est en ligne !",
+        "title": "Votre site est en ligne",
+        "intro": "Bonne nouvelle : le site de « {business} » est en ligne et prêt à recevoir des réservations.",
+        "site": "Voir mon site",
+        "space": "Depuis votre espace, gérez votre agenda, vos clientes et votre site, sur téléphone comme sur ordinateur."
+      }
+    },
+    "admin": {
+      "new_order": {
+        "subject": "Nouvelle commande : {business} ({plan})",
+        "title": "Nouvelle commande",
+        "paid": "Pack payant, paiement reçu : site à créer.",
+        "review": "Demande de fiche gratuite : à valider.",
+        "business": "Établissement",
+        "activity": "Activité",
+        "phone": "Téléphone",
+        "website": "Site actuel",
+        "email": "E-mail",
+        "open": "Voir les commandes"
+      }
+    },
+    "giftCard": {
+      "subject": "{from} vous offre une carte cadeau {business}",
+      "title": "Une carte cadeau pour vous",
+      "intro": "{from} vous offre une carte cadeau de {amount}, à utiliser chez {where}.",
+      "atBusiness": "{business} (avec {name})",
+      "code": "Votre code",
+      "amount": "Montant",
+      "validity": "Valable",
+      "validUntil": "jusqu'au {date}",
+      "codeEnd": "Code se terminant par",
+      "book": "Réserver un soin",
+      "howTo": "Pour l'utiliser, saisissez ce code au moment de réserver en ligne, ou donnez-le sur place. Utilisable en plusieurs fois : le solde est conservé.",
+      "rules": "Carte non remboursable et non échangeable contre de l'argent.",
+      "receiptSubject": "Votre carte cadeau {business}",
+      "receiptTitle": "Merci pour votre achat",
+      "receiptIntro": "Votre carte cadeau de {amount}, à utiliser chez {where}, est bien payée.",
+      "receiptSent": "Elle vient d'être envoyée à {email}.",
+      "receiptScheduled": "Elle sera envoyée à {email} le {date}."
+    }
+  },
+  "legal": {
+    "updated": "Mise à jour le {date}",
+    "draft": "Document en cours de rédaction.",
+    "titles": {
+      "legal_notice": "Mentions légales",
+      "privacy": "Politique de confidentialité",
+      "terms": "Conditions générales de vente et d'utilisation"
+    },
+    "placeholder": "Ce document sera publié prochainement. Pour toute question : {email}."
+  },
+  "order": {
+    "metaTitle": "Commander",
+    "title": "Votre commande",
+    "intro": "Quelques informations pour préparer votre site. Cela prend une minute.",
+    "plan": "Pack choisi",
+    "businessName": "Nom de votre établissement",
+    "activity": "Votre activité",
+    "activityHint": "Par exemple : institut de beauté, coiffure, massage…",
+    "phone": "Téléphone",
+    "currentWebsite": "Site actuel (facultatif)",
+    "paidHint": "Paiement par carte sur la page sécurisée de Stripe. Votre site est ensuite créé par notre équipe.",
+    "freeHint": "Les demandes de fiche gratuite sont validées à la main par notre équipe.",
+    "thanks": {
+      "metaTitle": "Merci",
+      "paidTitle": "Merci, votre paiement est enregistré !",
+      "reviewTitle": "Merci, votre demande est envoyée !",
+      "pendingTitle": "Paiement en cours de validation…",
+      "pendingText": "Cela prend généralement quelques secondes. Rechargez la page dans un instant.",
+      "reload": "Recharger",
+      "next": "Notre équipe crée votre site : il sera en ligne sous {days, plural, one {# jour ouvré} other {# jours ouvrés}} environ. Vous recevrez un e-mail dès qu'il est prêt.",
+      "reviewNext": "Nous validons votre demande et créons votre fiche : comptez {days, plural, one {# jour ouvré} other {# jours ouvrés}} environ.",
+      "space": "Aller à mon espace"
+    },
+    "status": {
+      "title": "Ma commande",
+      "awaiting_payment": "En attente de paiement",
+      "awaiting_review": "Demande reçue, en cours de validation",
+      "paid": "Paiement reçu : votre site est en préparation",
+      "in_creation": "Votre site est en cours de création",
+      "done": "Votre site est en ligne",
+      "rejected": "Demande refusée",
+      "abandoned": "Commande abandonnée",
+      "resume": "Reprendre ma commande",
+      "eta": "Mise en ligne prévue sous {days, plural, one {# jour ouvré} other {# jours ouvrés}} environ."
+    },
+    "submit": "Continuer"
   }
 }

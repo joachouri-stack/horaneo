@@ -73,10 +73,18 @@ const envSchema = z.object({
   STRIPE_PUBLISHABLE_KEY: z.string().startsWith("pk_").optional(),
   /** Secret du point de réception « Connect » (événements des comptes des professionnels). */
   STRIPE_CONNECT_WEBHOOK_SECRET: z.string().startsWith("whsec_").optional(),
+  /** Secret du point de réception des abonnements (événements du compte de la plateforme). */
+  STRIPE_BILLING_WEBHOOK_SECRET: z.string().startsWith("whsec_").optional(),
 
-  // E-mails (Brevo)
+  // Tâche planifiée : secret attendu par /api/cron/tick (32 caractères minimum).
+  CRON_SECRET: z.string().min(32).optional(),
+
+  // E-mails et SMS (Brevo)
   BREVO_API_KEY: z.string().min(1).optional(),
   EMAIL_FROM_ADDRESS: z.email().optional(),
+
+  // Avis Google (Google Places API) : une clé pour tous les sites.
+  GOOGLE_PLACES_API_KEY: z.string().min(1).optional(),
 });
 
 export type Env = z.infer<typeof envSchema> & { ENABLED_LOCALES: Locale[] };

@@ -1,6 +1,5 @@
 import { getTranslations } from "next-intl/server";
 import { ui } from "@/components/ui/styles";
-import { withTenant } from "@/db/access";
 import { tenantDomains } from "@/db/schema";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
@@ -11,7 +10,7 @@ import { and, eq } from "drizzle-orm";
 export default async function MySitePage({ params }: PageProps<"/[locale]/espace/[tenantId]/site">) {
   const page = await managerPage(params);
   const t = await getTranslations("manager.site");
-  const [primary] = await withTenant(page.tenantId, (tx) =>
+  const [primary] = await page.db((tx) =>
     tx
       .select({ hostname: tenantDomains.hostname })
       .from(tenantDomains)

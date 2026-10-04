@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Fraunces, Inter } from "next/font/google";
+import { Cormorant_Garamond, Fraunces, Inter, Jost } from "next/font/google";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
+import { AtelierFooter } from "@/components/site/atelier/AtelierFooter";
+import { AtelierHeader } from "@/components/site/atelier/AtelierHeader";
 import { MobileBookBar } from "@/components/site/MobileBookBar";
+import { OfferBanner } from "@/components/site/OfferBanner";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { routing } from "@/i18n/routing";
@@ -25,6 +28,7 @@ const cormorant = Cormorant_Garamond({
   display: "swap",
 });
 const fraunces = Fraunces({ subsets: ["latin", "latin-ext"], variable: "--font-fraunces", display: "swap" });
+const jost = Jost({ subsets: ["latin", "latin-ext", "cyrillic"], variable: "--font-jost", display: "swap" });
 
 /**
  * Mise en page du site d'un client (modèle bien-être). On n'arrive ici que par
@@ -65,10 +69,17 @@ export default async function TenantLayout({ children, params }: LayoutProps<"/s
     (["site", "booking", "errors", "weekdays"] as const).map((key) => [key, allMessages[key]]),
   );
   const theme = buildTheme(site.tenant.theme, site.tenant.colors);
+  const atelier = site.tenant.templateKey === "atelier" && site.features.fullSite;
   const style = {
     ...themeCssVariables(theme),
     "--site-font-display": theme.displayFont === "organic" ? "var(--font-fraunces)" : "var(--font-cormorant)",
+    "--site-font-body": atelier ? "var(--font-jost)" : "var(--font-inter)",
+    // Atelier : titres bruns et blocs blancs ; sinon titres à la couleur principale et blocs teintés.
+    "--site-heading": atelier ? "var(--site-text)" : "var(--site-accent)",
+    "--site-panel": atelier ? "var(--site-card)" : "var(--site-surface)",
   } as React.CSSProperties;
+  const Header = atelier ? AtelierHeader : SiteHeader;
+  const Footer = atelier ? AtelierFooter : SiteFooter;
   const jsonLd = localBusinessJsonLd(
     site,
     siteBaseUrl(site),
@@ -76,7 +87,10 @@ export default async function TenantLayout({ children, params }: LayoutProps<"/s
   );
 
   return (
-    <html lang={locale} className={`${inter.variable} ${cormorant.variable} ${fraunces.variable}`}>
+    <html
+      lang={locale}
+      className={`${inter.variable} ${cormorant.variable} ${fraunces.variable} ${jost.variable}`}
+    >
       <body style={style} className="min-h-dvh bg-site-bg font-site-body text-site-text antialiased">
         <NextIntlClientProvider timeZone={site.tenant.timezone} messages={clientMessages}>
           {preview && (
@@ -84,7 +98,8 @@ export default async function TenantLayout({ children, params }: LayoutProps<"/s
               {t("previewBanner")}
             </p>
           )}
-          <SiteHeader site={site} showBook={site.tenant.status !== "suspended"} />
+          {site.tenant.status !== "suspended" && <OfferBanner site={site} />}
+          <Header site={site} showBook={site.tenant.status !== "suspended"} />
           {site.tenant.status === "suspended" ? (
             <main id="contenu" className="mx-auto max-w-2xl px-4 py-24 text-center">
               <h1 className="font-site-display text-4xl font-semibold text-site-accent">
@@ -95,7 +110,7 @@ export default async function TenantLayout({ children, params }: LayoutProps<"/s
           ) : (
             children
           )}
-          <SiteFooter site={site} />
+          <Footer site={site} />
           {site.tenant.status !== "suspended" && <MobileBookBar phone={site.tenant.phone} />}
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />
         </NextIntlClientProvider>

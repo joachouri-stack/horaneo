@@ -21,6 +21,20 @@ export const DEFAULT_PLATFORM_SETTINGS = {
   retention_days_after_cancel: 30,
   /** Jours de conservation d'une photo remplacée. */
   replaced_asset_retention_days: 7,
+  /** Heure locale du rappel par SMS, la veille du rendez-vous (décision n° 6). */
+  sms_reminder_time: "18:00",
+  /** Rappel par e-mail : nombre d'heures avant le rendez-vous. */
+  email_reminder_hours_before: 24,
+  /** Heure locale du résumé du lendemain envoyé à la gérante. */
+  daily_summary_time: "19:00",
+  /** Heure locale du résumé mensuel, le 1er du mois. */
+  monthly_summary_time: "08:00",
+  /** Nombre d'essais d'envoi d'un message avant abandon. */
+  message_max_attempts: 5,
+  /** Taux de TVA appliqué aux abonnements, en pourcentage (à valider avec le comptable). */
+  vat_rate_percent: 20,
+  /** Taux de TVA créé dans Stripe pour les factures (rempli automatiquement). */
+  stripe_tax_rate: null as null | { id: string; percent: number; inclusive: boolean },
   /** Hébergeur de l'infrastructure, affiché dans les mentions légales des sites (à vérifier). */
   legal_infrastructure: "Hostinger International Ltd, 61 Lordou Vironos Street, 6023 Larnaca, Chypre",
 } as const;
@@ -55,6 +69,9 @@ export const DEFAULT_PLANS: PlanSeed[] = [
       brandingFooter: true,
       emailSupport: false,
       whatsappSupport: false,
+      promotions: false,
+      googleReviews: false,
+      giftCards: false,
     },
   },
   {
@@ -74,6 +91,9 @@ export const DEFAULT_PLANS: PlanSeed[] = [
       brandingFooter: false,
       emailSupport: true,
       whatsappSupport: false,
+      promotions: true,
+      googleReviews: false,
+      giftCards: false,
     },
   },
   {
@@ -93,6 +113,9 @@ export const DEFAULT_PLANS: PlanSeed[] = [
       brandingFooter: false,
       emailSupport: true,
       whatsappSupport: true,
+      promotions: true,
+      googleReviews: true,
+      giftCards: true,
     },
   },
 ];

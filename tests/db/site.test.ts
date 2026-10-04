@@ -88,7 +88,7 @@ describe.skipIf(!hasTestDatabase)("site d'un client : données affichées", () =
     expect(site.uncategorized.map((s) => s.name)).toEqual(["Sans catégorie"]);
     expect(site.services.map((s) => s.name)).not.toContain("Ancien soin");
     expect(site.pages.home?.texts.tagline).toBe("Bienvenue");
-    expect(site.openingHours).toEqual([{ weekday: 2, opensAt: "10:00", closesAt: "19:00" }]);
+    expect(site.openingHours).toMatchObject([{ weekday: 2, opensAt: "10:00", closesAt: "19:00" }]);
 
     // Pas encore de galerie, d'équipe ni d'avis : ces pages sont masquées.
     expect(visibleSections(site)).toEqual({
@@ -105,6 +105,7 @@ describe.skipIf(!hasTestDatabase)("site d'un client : données affichées", () =
       "/infos-pratiques",
       "/mentions-legales",
       "/confidentialite",
+      "/conditions-annulation",
     ]);
   });
 
@@ -139,13 +140,21 @@ describe.skipIf(!hasTestDatabase)("site d'un client : données affichées", () =
 
     await platform((tx) => changePlan(tx, tenant.id, "basic"));
     const site = (await load(tenant.id))!;
-    expect(site.features).toEqual({ fullSite: false, testimonials: false, brandingFooter: true });
+    expect(site.features).toEqual({
+      fullSite: false,
+      testimonials: false,
+      brandingFooter: true,
+      promotions: false,
+      googleReviews: false,
+      giftCards: false,
+    });
     expect(site.testimonials).toEqual([]);
     expect(Object.values(visibleSections(site)).every((visible) => !visible)).toBe(true);
     expect(sitemapPaths(site, visibleSections(site), SITE_PATHS, categoryPath)).toEqual([
       "/",
       "/mentions-legales",
       "/confidentialite",
+      "/conditions-annulation",
     ]);
   });
 

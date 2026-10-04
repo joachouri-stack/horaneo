@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { AtelierHome } from "@/components/site/atelier/AtelierHome";
 import { BookButton } from "@/components/site/BookButton";
 import { GalleryGrid, Prose, TestimonialList } from "@/components/site/blocks";
 import { AddressBlock, OpeningHoursTable } from "@/components/site/PracticalInfo";
@@ -20,6 +21,7 @@ export default async function TenantHomePage({ params }: PageProps<"/sites/[tena
   const home = site.pages.home;
   const cover = home?.photo ?? null;
   const sections = visibleSections(site);
+  if (site.tenant.templateKey === "atelier" && site.features.fullSite) return <AtelierHome site={site} />;
 
   const hero = (
     <section className="relative overflow-hidden">
@@ -35,7 +37,7 @@ export default async function TenantHomePage({ params }: PageProps<"/sites/[tena
       <div className={cover ? "relative bg-black/45" : "bg-site-surface"}>
         <div className="mx-auto max-w-6xl px-4 py-20 sm:py-28">
           <h1
-            className={`font-site-display text-5xl font-semibold sm:text-6xl ${cover ? "text-white" : "text-site-accent"}`}
+            className={`font-site-display text-5xl font-semibold sm:text-6xl ${cover ? "text-white" : "text-site-heading"}`}
           >
             {site.tenant.name}
           </h1>
@@ -68,7 +70,7 @@ export default async function TenantHomePage({ params }: PageProps<"/sites/[tena
         <div className="mx-auto max-w-6xl space-y-12 px-4 py-12">
           {home?.texts.intro && <Prose text={home.texts.intro} />}
           <section aria-labelledby="prestations">
-            <h2 id="prestations" className="mb-6 font-site-display text-3xl font-semibold text-site-accent">
+            <h2 id="prestations" className="mb-6 font-site-display text-3xl font-semibold text-site-heading">
               {t("services.title")}
             </h2>
             <ServiceList
@@ -80,13 +82,13 @@ export default async function TenantHomePage({ params }: PageProps<"/sites/[tena
             />
           </section>
           <section aria-labelledby="infos" className="grid gap-8 md:grid-cols-2">
-            <div className="rounded-site bg-site-surface p-6">
-              <h2 id="infos" className="mb-4 font-site-display text-2xl font-semibold text-site-accent">
+            <div className="rounded-site bg-site-panel p-6">
+              <h2 id="infos" className="mb-4 font-site-display text-2xl font-semibold text-site-heading">
                 {t("practical.hours")}
               </h2>
               <OpeningHoursTable site={site} />
             </div>
-            <div className="rounded-site bg-site-surface p-6">
+            <div className="rounded-site bg-site-panel p-6">
               <AddressBlock site={site} />
             </div>
           </section>
@@ -105,7 +107,7 @@ export default async function TenantHomePage({ params }: PageProps<"/sites/[tena
 
         {featured.length > 0 && (
           <section aria-labelledby="a-la-une">
-            <h2 id="a-la-une" className="mb-6 font-site-display text-3xl font-semibold text-site-accent">
+            <h2 id="a-la-une" className="mb-6 font-site-display text-3xl font-semibold text-site-heading">
               {t("home.featured")}
             </h2>
             <ServiceList categories={[]} uncategorized={featured} locale={site.locale} headingLevel={3} />
@@ -124,7 +126,7 @@ export default async function TenantHomePage({ params }: PageProps<"/sites/[tena
 
         {sections.testimonials && (
           <section aria-labelledby="avis">
-            <h2 id="avis" className="mb-6 font-site-display text-3xl font-semibold text-site-accent">
+            <h2 id="avis" className="mb-6 font-site-display text-3xl font-semibold text-site-heading">
               {t("home.testimonialsTitle")}
             </h2>
             <TestimonialList site={site} limit={3} />
@@ -132,13 +134,13 @@ export default async function TenantHomePage({ params }: PageProps<"/sites/[tena
         )}
 
         <section aria-labelledby="infos" className="grid gap-8 md:grid-cols-2">
-          <div className="rounded-site bg-site-surface p-6">
-            <h2 id="infos" className="mb-4 font-site-display text-2xl font-semibold text-site-accent">
+          <div className="rounded-site bg-site-panel p-6">
+            <h2 id="infos" className="mb-4 font-site-display text-2xl font-semibold text-site-heading">
               {t("practical.hours")}
             </h2>
             <OpeningHoursTable site={site} />
           </div>
-          <div className="rounded-site bg-site-surface p-6">
+          <div className="rounded-site bg-site-panel p-6">
             <AddressBlock site={site} />
           </div>
         </section>

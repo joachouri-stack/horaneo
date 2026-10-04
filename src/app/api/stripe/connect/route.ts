@@ -1,4 +1,5 @@
 import { withPlatform } from "@/db/access";
+import { sendQueuedSoon } from "@/lib/jobs/tick";
 import { paymentGateway } from "@/lib/payments/stripe";
 import type { GatewayEvent } from "@/modules/payments/gateway";
 import { handleEvent, recordEventError } from "@/modules/payments/webhooks";
@@ -23,6 +24,7 @@ export async function POST(request: Request) {
 
   try {
     const result = await withPlatform((tx) => handleEvent(tx, event, gateway));
+    sendQueuedSoon();
     return Response.json({ received: true, ...result });
   } catch (error) {
     console.error("[stripe] événement", event.id, event.type, error);

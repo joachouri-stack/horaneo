@@ -1,4 +1,5 @@
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
+import { inCurrentBusiness } from "@/db/access";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
 import { openingHours } from "@/db/schema";
@@ -37,11 +38,11 @@ export async function listOpeningHours(tx: Transaction, tenantId: string) {
   return tx
     .select()
     .from(openingHours)
-    .where(eq(openingHours.tenantId, tenantId))
+    .where(and(eq(openingHours.tenantId, tenantId), inCurrentBusiness(openingHours.businessId)))
     .orderBy(asc(openingHours.weekday), asc(openingHours.opensAt));
 }
 
-/** Remplace tous les horaires de la semaine. */
+/** Remplace tous les horaires de la semaine (de l'entreprise déclarée). */
 export async function replaceOpeningHours(
   tx: Transaction,
   tenantId: string,
@@ -49,7 +50,9 @@ export async function replaceOpeningHours(
 ) {
   const ranges = openingHoursInput.parse(raw);
   validateRanges(ranges);
-  await tx.delete(openingHours).where(eq(openingHours.tenantId, tenantId));
+  await tx
+    .delete(openingHours)
+    .where(and(eq(openingHours.tenantId, tenantId), inCurrentBusiness(openingHours.businessId)));
   if (ranges.length > 0) {
     await tx.insert(openingHours).values(ranges.map((range) => ({ tenantId, ...range })));
   }

@@ -1,8 +1,10 @@
 "use server";
 
 import { z } from "zod";
-import { withTenant } from "@/db/access";
+import type { Transaction } from "@/db/client";
+import { sendQueuedSoon } from "@/lib/jobs/tick";
 import { paymentGateway } from "@/lib/payments/stripe";
+import { withServicesBusiness, withTokenBusiness } from "@/lib/site/business";
 import { currentSiteTenant, publicLimits } from "@/lib/site/current";
 import {
   getSlotsForRange,
@@ -17,6 +19,7 @@ import { computeDeposit } from "@/modules/booking/pricing";
 import { AppError, type AppErrorCode } from "@/modules/errors";
 import { onlinePaymentReady, syncDeposit } from "@/modules/payments/deposits";
 import { previewPromo } from "@/modules/promo/codes";
+import { checkGiftCard } from "@/modules/giftcards/giftcards";
 
 /**
  * Actions du parcours de réservation (site public, sans compte).
@@ -55,7 +58,11 @@ export async function getAvailabilityAction(
     const input = availabilityInput.parse(raw);
     const site = await currentSiteTenant();
     if (!publicLimits.availability.attempt(site.ip)) throw new AppError("rate_limited");
-    return withTenant(site.tenantId, async (tx) => {
+    const scoped = <T>(fn: (tx: Transaction) => Promise<T>) =>
+      input.manageToken
+        ? withTokenBusiness(site.tenantId, input.manageToken, fn)
+        : withServicesBusiness(site.tenantId, input.serviceIds, fn);
+    return scoped(async (tx) => {
       const now = new Date();
       let context = await loadBookingContext(tx, site.tenantId);
       let excludeAppointmentId: string | undefined;
@@ -108,6 +115,7 @@ const bookInput = z.object({
     marketingConsent: z.boolean(),
   }),
   promoCode: z.string().max(30).optional(),
+  giftCardCode: z.string().max(40).optional(),
   /** Champ piège invisible : rempli seulement par les robots. */
   website: z.string().max(0).optional(),
 });
@@ -120,6 +128,7 @@ export type BookingConfirmation = {
   totalCents: number;
   discountCents: number;
   depositCents: number;
+  paidWithGiftCard: boolean;
   currency: string;
   manageToken: string;
   holdExpiresAt: string | null;
@@ -132,7 +141,7 @@ export async function bookAction(raw: z.input<typeof bookInput>): Promise<Public
     const input = bookInput.parse(raw);
     const site = await currentSiteTenant();
     if (!publicLimits.booking.attempt(site.ip)) throw new AppError("rate_limited");
-    return withTenant(site.tenantId, async (tx) => {
+    return withServicesBusiness(site.tenantId, input.serviceIds, async (tx) => {
       const result = await createBooking(
         tx,
         site.tenantId,
@@ -142,10 +151,12 @@ export async function bookAction(raw: z.input<typeof bookInput>): Promise<Public
           start: input.start,
           customer: input.customer,
           promoCode: input.promoCode || undefined,
+          giftCardCode: input.giftCardCode || undefined,
         },
         { allowDraft: site.preview, gateway: paymentGateway() },
       );
       const context = await loadBookingContext(tx, site.tenantId);
+      sendQueuedSoon();
       return {
         status: result.status as BookingConfirmation["status"],
         startsAt: result.startsAt.toISOString(),
@@ -154,6 +165,7 @@ export async function bookAction(raw: z.input<typeof bookInput>): Promise<Public
         totalCents: result.totalCents,
         discountCents: result.discountCents,
         depositCents: result.depositCents,
+        paidWithGiftCard: result.paidWithGiftCard,
         currency: result.currency,
         manageToken: result.manageToken,
         holdExpiresAt: result.holdExpiresAt?.toISOString() ?? null,
@@ -176,12 +188,14 @@ export async function checkPromoAction(raw: z.input<typeof promoInput>): Promise
     const input = promoInput.parse(raw);
     const site = await currentSiteTenant();
     if (!publicLimits.promo.attempt(site.ip)) throw new AppError("rate_limited");
-    return withTenant(site.tenantId, async (tx) => {
+    return withServicesBusiness(site.tenantId, input.serviceIds, async (tx) => {
       const context = await loadBookingContext(tx, site.tenantId);
-      const { totals } = resolveServices(context, input.serviceIds);
+      const { services, totals } = resolveServices(context, input.serviceIds);
+      if (services.some((service) => service.promotion))
+        throw new AppError("promo_not_combinable", "promoCode");
       const promo = await previewPromo(tx, site.tenantId, input.code, totals.totalCents);
       const totalCents = totals.totalCents - promo.discountCents;
-      const ready = onlinePaymentReady(context.tenant, context.features, paymentGateway());
+      const ready = onlinePaymentReady(context.business, context.features, paymentGateway());
       return {
         code: promo.code,
         totalCents,
@@ -199,11 +213,12 @@ export async function confirmPaymentAction(
   return run(async () => {
     const site = await currentSiteTenant();
     if (!publicLimits.manage.attempt(site.ip)) throw new AppError("rate_limited");
-    return withTenant(site.tenantId, async (tx) => {
-      const managed = await findByManageToken(tx, site.tenantId, z.string().max(80).parse(token));
+    return withTokenBusiness(site.tenantId, z.string().max(80).parse(token), async (tx) => {
+      const managed = await findByManageToken(tx, site.tenantId, token);
       if (!managed) throw new AppError("not_found");
       await syncDeposit(tx, site.tenantId, managed.appointment.id, paymentGateway());
       const after = await findByManageToken(tx, site.tenantId, token);
+      sendQueuedSoon();
       const status = after?.appointment.status;
       return { status: status === "confirmed" || status === "pending_payment" ? status : "other" };
     });
@@ -216,17 +231,13 @@ export async function cancelAction(
   return run(async () => {
     const site = await currentSiteTenant();
     if (!publicLimits.manage.attempt(site.ip)) throw new AppError("rate_limited");
-    const result = await withTenant(site.tenantId, async (tx) => {
-      const cancelled = await cancelByCustomer(
-        tx,
-        site.tenantId,
-        z.string().max(80).parse(token),
-        new Date(),
-        paymentGateway(),
-      );
+    const parsed = z.string().max(80).parse(token);
+    const result = await withTokenBusiness(site.tenantId, parsed, async (tx) => {
+      const cancelled = await cancelByCustomer(tx, site.tenantId, parsed, new Date(), paymentGateway());
       const context = await loadBookingContext(tx, site.tenantId);
       return { ...cancelled, currency: context.tenant.currency };
     });
+    sendQueuedSoon();
     return { cancelled: true as const, refundedCents: result.refundedCents, currency: result.currency };
   });
 }
@@ -244,12 +255,54 @@ export async function rescheduleAction(
     const input = rescheduleInput.parse(raw);
     const site = await currentSiteTenant();
     if (!publicLimits.manage.attempt(site.ip)) throw new AppError("rate_limited");
-    const result = await withTenant(site.tenantId, (tx) =>
+    const result = await withTokenBusiness(site.tenantId, input.token, (tx) =>
       rescheduleByCustomer(tx, site.tenantId, input.token, {
         start: new Date(input.start),
         staffId: input.staffId,
       }),
     );
+    sendQueuedSoon();
     return { manageToken: result.manageToken, startsAt: result.startsAt.toISOString() };
+  });
+}
+
+const giftInput = z.object({
+  code: z.string().trim().min(4).max(40),
+  serviceIds: z.array(z.uuid()).min(1).max(10),
+  promoCode: z.string().max(30).optional(),
+});
+
+export type GiftPreview = { last4: string; balanceCents: number; depositCents: number; currency: string };
+
+/** Vérifie une carte cadeau avant la réservation (rien n'est débité avant la confirmation). */
+export async function checkGiftCardAction(
+  raw: z.input<typeof giftInput>,
+): Promise<PublicResult<GiftPreview>> {
+  return run(async () => {
+    const input = giftInput.parse(raw);
+    const site = await currentSiteTenant();
+    // Mêmes limites que les codes promo : empêche de deviner des codes.
+    if (!publicLimits.promo.attempt(site.ip)) throw new AppError("rate_limited");
+    return withServicesBusiness(site.tenantId, input.serviceIds, async (tx) => {
+      const context = await loadBookingContext(tx, site.tenantId);
+      if (!context.features.giftCards) throw new AppError("gift_card_not_found", "giftCardCode");
+      const { totals } = resolveServices(context, input.serviceIds);
+      const ready = onlinePaymentReady(context.business, context.features, paymentGateway());
+      const promo = input.promoCode
+        ? await previewPromo(tx, site.tenantId, input.promoCode, totals.totalCents)
+        : null;
+      const depositCents = computeDeposit(
+        totals.totalCents - (promo?.discountCents ?? 0),
+        context.settings,
+        ready,
+      );
+      const card = await checkGiftCard(tx, site.tenantId, input.code, depositCents);
+      return {
+        last4: card.codeLast4,
+        balanceCents: card.balanceCents,
+        depositCents,
+        currency: card.currency,
+      };
+    });
   });
 }

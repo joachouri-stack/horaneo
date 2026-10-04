@@ -2,7 +2,6 @@ import { eq } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
 import { ManualAppointmentForm } from "@/components/manager/ManualAppointmentForm";
 import { ui } from "@/components/ui/styles";
-import { withTenant } from "@/db/access";
 import { customers } from "@/db/schema";
 import { pickLocalized } from "@/i18n/locales";
 import { managerPage } from "@/lib/manager/page";
@@ -19,7 +18,7 @@ export default async function NewAppointmentPage({
   const t = await getTranslations("manager.manual");
   const value = (key: string) => (typeof query[key] === "string" ? (query[key] as string) : undefined);
   const customerId = value("cliente");
-  const { context, customer } = await withTenant(page.tenantId, async (tx) => ({
+  const { context, customer } = await page.db(async (tx) => ({
     context: await loadBookingContext(tx, page.tenantId),
     customer:
       customerId && /^[0-9a-f-]{36}$/i.test(customerId)

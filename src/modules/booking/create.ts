@@ -1,11 +1,14 @@
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, createHmac, hkdfSync } from "node:crypto";
 import { and, eq, lte, sql } from "drizzle-orm";
 import { z } from "zod";
+import { authSecret } from "@/config/env";
 import type { Transaction } from "@/db/client";
 import { appointmentItems, appointments, customers, usageCounters } from "@/db/schema";
+import { checkGiftCard, redeemForBooking } from "@/modules/giftcards/giftcards";
 import { AppError } from "@/modules/errors";
 import { createDepositIntent, onlinePaymentReady } from "@/modules/payments/deposits";
 import type { PaymentGateway } from "@/modules/payments/gateway";
+import { queueBookingConfirmed, queueMessage } from "@/modules/messages/queue";
 import { normalizePhone } from "@/modules/phone";
 import { redeemPromo } from "@/modules/promo/codes";
 import { currentPeriod } from "@/modules/tenants/queries";
@@ -44,6 +47,8 @@ export const bookingInput = z.object({
   locale: z.string().min(2).max(5).default("fr"),
   /** Code promo saisi par la cliente (réservation en ligne uniquement). */
   promoCode: z.string().trim().max(30).optional(),
+  /** Carte cadeau : remplace l'acompte (débité de la carte). */
+  giftCardCode: z.string().trim().max(40).optional(),
 });
 
 export type BookingInput = z.input<typeof bookingInput>;
@@ -61,9 +66,24 @@ export function hashManageToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
 
-export function newManageToken(): { token: string; hash: string } {
-  const token = randomBytes(24).toString("base64url");
-  return { token, hash: hashManageToken(token) };
+/**
+ * Lien personnel « annuler / déplacer » d'un rendez-vous : calculé à partir de
+ * son identifiant et de la clé secrète du serveur. Il peut ainsi être remis dans
+ * chaque e-mail ou SMS sans jamais être stocké en clair (seule son empreinte l'est).
+ */
+export function manageTokenFor(appointmentId: string): string {
+  const key = Buffer.from(hkdfSync("sha256", authSecret(), "appointment-manage-link", "v1", 32));
+  return createHmac("sha256", key).update(appointmentId).digest("base64url").slice(0, 32);
+}
+
+/** Enregistre l'empreinte du lien d'un rendez-vous qui vient d'être créé, et renvoie le lien. */
+export async function assignManageToken(tx: Transaction, appointmentId: string): Promise<string> {
+  const token = manageTokenFor(appointmentId);
+  await tx
+    .update(appointments)
+    .set({ manageTokenHash: hashManageToken(token) })
+    .where(eq(appointments.id, appointmentId));
+  return token;
 }
 
 /** Libère les réservations temporaires (paiement non abouti) dont le délai est passé. */
@@ -83,14 +103,16 @@ export async function expireStaleHolds(tx: Transaction, tenantId: string, now: D
 /**
  * Consomme une réservation du quota mensuel (pack Basic), de façon atomique :
  * deux réservations simultanées ne peuvent pas dépasser la limite.
+ * Renvoie le nombre de réservations du mois après celle-ci (null si pas de limite),
+ * ou false si la limite est atteinte.
  */
 export async function consumeOnlineQuota(
   tx: Transaction,
   context: BookingContext,
   now: Date,
-): Promise<boolean> {
+): Promise<{ used: number; limit: number; period: string } | null | false> {
   const limit = context.limits.onlineBookingsPerMonth;
-  if (limit === null || limit === undefined) return true;
+  if (limit === null || limit === undefined) return null;
   if (limit <= 0) return false;
   const period = currentPeriod(context.tenant.timezone, now);
   const rows = await tx
@@ -102,7 +124,7 @@ export async function consumeOnlineQuota(
       setWhere: sql`${usageCounters.onlineBookings} < ${limit}`,
     })
     .returning({ value: usageCounters.onlineBookings });
-  return rows.length > 0;
+  return rows.length > 0 ? { used: rows[0].value, limit, period } : false;
 }
 
 /** Retrouve ou crée la fiche cliente (même e-mail chez un même établissement = même fiche). */
@@ -170,7 +192,7 @@ export async function createBooking(
     onlineOnly: source === "online",
   });
   const paymentReady =
-    source === "online" && onlinePaymentReady(context.tenant, context.features, options.gateway);
+    source === "online" && onlinePaymentReady(context.business, context.features, options.gateway);
 
   await expireStaleHolds(tx, tenantId, now);
 
@@ -194,9 +216,13 @@ export async function createBooking(
     chooseLeastLoaded(slot.staffIds, context.staff, await bookedMinutesOn(tx, context, date, now));
   if (!staffId || !slot.staffIds.includes(staffId)) throw new AppError("slot_unavailable", "start");
 
-  if (source === "online" && !(await consumeOnlineQuota(tx, context, now)))
-    throw new AppError("booking_quota_reached");
+  const quota = source === "online" ? await consumeOnlineQuota(tx, context, now) : null;
+  if (quota === false) throw new AppError("booking_quota_reached");
 
+  // Pas de cumul : un code promo ne s'ajoute pas à une promotion en cours.
+  if (source === "online" && input.promoCode && services.some((service) => service.promotion)) {
+    throw new AppError("promo_not_combinable", "promoCode");
+  }
   // Code promo : réduction sur le total, puis acompte calculé sur le total réduit (décision n° 8).
   const promo =
     source === "online" && input.promoCode
@@ -205,11 +231,14 @@ export async function createBooking(
   const discountCents = promo?.discountCents ?? 0;
   const totalCents = totals.totalCents - discountCents;
   const depositCents = computeDeposit(totalCents, context.settings, paymentReady);
+  // Carte cadeau (pack qui l'inclut) : vérifiée avant tout, débitée une fois le rendez-vous créé.
+  const giftCardCode =
+    source === "online" && input.giftCardCode && context.features.giftCards ? input.giftCardCode : null;
+  if (giftCardCode) await checkGiftCard(tx, tenantId, giftCardCode, depositCents, now);
 
   const customerId = await upsertCustomer(tx, context, input.customer, input.locale, now);
-  const manage = newManageToken();
   const endsAt = addMinutes(input.start, totals.durationMinutes);
-  const pending = depositCents > 0;
+  const pending = depositCents > 0 && !giftCardCode;
 
   let appointment;
   try {
@@ -230,7 +259,6 @@ export async function createBooking(
         depositCents,
         currency: totals.currency,
         promoCodeId: promo?.promoCodeId ?? null,
-        manageTokenHash: manage.hash,
         locale: input.locale,
         customerNote: input.customer.note || null,
       })
@@ -241,6 +269,8 @@ export async function createBooking(
     throw error;
   }
 
+  const manageToken = await assignManageToken(tx, appointment.id);
+  if (giftCardCode) await redeemForBooking(tx, tenantId, giftCardCode, appointment.id, depositCents, now);
   await tx.insert(appointmentItems).values(
     services.map((service, index) => ({
       tenantId,
@@ -255,7 +285,7 @@ export async function createBooking(
   );
 
   let payment: { clientSecret: string; accountId: string; publishableKey: string } | null = null;
-  if (pending && options.gateway && context.tenant.stripeAccountId) {
+  if (pending && options.gateway && context.business.stripeAccountId) {
     const intent = await createDepositIntent(
       tx,
       tenantId,
@@ -263,7 +293,7 @@ export async function createBooking(
         appointmentId: appointment.id,
         amountCents: depositCents,
         currency: totals.currency,
-        accountId: context.tenant.stripeAccountId,
+        accountId: context.business.stripeAccountId,
         receiptEmail: input.customer.email,
       },
       options.gateway,
@@ -271,22 +301,38 @@ export async function createBooking(
     if (!intent.clientSecret) throw new AppError("payment_provider_error");
     payment = {
       clientSecret: intent.clientSecret,
-      accountId: context.tenant.stripeAccountId,
+      accountId: context.business.stripeAccountId,
       publishableKey: options.gateway.publishableKey,
     };
+  }
+
+  if (appointment.status === "confirmed") {
+    await queueBookingConfirmed(tx, tenantId, appointment);
+  }
+  // Pack limité : la gérante est prévenue à l'avant-dernière et à la dernière réservation du mois.
+  if (quota && quota.used >= quota.limit - 1) {
+    await queueMessage(tx, {
+      tenantId,
+      template: "manager.basic_quota",
+      appointmentId: appointment.id,
+      data: { used: quota.used, limit: quota.limit },
+      dedupeKey: `manager.basic_quota:${tenantId}:${quota.period}:${quota.used}`,
+    });
   }
 
   return {
     payment,
     discountCents,
     appointmentId: appointment.id,
-    manageToken: manage.token,
+    manageToken,
     status: appointment.status,
     staffId,
     startsAt: appointment.startsAt,
     endsAt: appointment.endsAt,
     totalCents: appointment.totalCents,
     depositCents: appointment.depositCents,
+    /** Acompte réglé avec une carte cadeau. */
+    paidWithGiftCard: Boolean(giftCardCode) && appointment.depositCents > 0,
     currency: appointment.currency,
     holdExpiresAt: appointment.holdExpiresAt,
   };

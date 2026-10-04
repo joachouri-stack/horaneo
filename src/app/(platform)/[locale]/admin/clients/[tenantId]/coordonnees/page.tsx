@@ -3,7 +3,7 @@ import { ActionForm } from "@/components/admin/ActionForm";
 import { Hidden, Section, TextField } from "@/components/admin/fields";
 import { WizardNav } from "@/components/admin/WizardNav";
 import { loadTenantOverview } from "@/lib/admin/tenant";
-import { updateIdentityAction } from "../../actions";
+import { updateIdentityAction, updateSocialAction } from "../../actions";
 
 export default async function IdentityPage({
   params,
@@ -50,9 +50,27 @@ export default async function IdentityPage({
             label={t("longitude")}
             defaultValue={tenant.longitude}
           />
-          <TextField name="legalName" label={t("legalName")} defaultValue={tenant.legalName} />
-          <TextField name="siret" label={t("siret")} defaultValue={tenant.siret} />
-          <TextField name="vatNumber" label={t("vatNumber")} defaultValue={tenant.vatNumber} />
+        </ActionForm>
+      </Section>
+      <Section title={t("social")}>
+        <ActionForm
+          action={updateSocialAction}
+          submitLabel={tCommon("save")}
+          className="grid gap-4 sm:grid-cols-2"
+        >
+          <Hidden values={{ tenantId }} />
+          <TextField
+            name="instagram"
+            type="url"
+            label={t("instagram")}
+            defaultValue={tenant.brand.social?.instagram}
+          />
+          <TextField
+            name="facebook"
+            type="url"
+            label={t("facebook")}
+            defaultValue={tenant.brand.social?.facebook}
+          />
         </ActionForm>
       </Section>
     </>

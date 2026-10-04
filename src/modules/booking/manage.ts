@@ -1,13 +1,15 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
 import { appointmentItems, appointments, staffMembers } from "@/db/schema";
 import { pickLocalized, type Locale } from "@/i18n/locales";
 import { AppError } from "@/modules/errors";
+import { creditBackForAppointment, moveGiftCardRedemption } from "@/modules/giftcards/giftcards";
+import { queueMessage } from "@/modules/messages/queue";
 import { moveDeposit } from "@/modules/payments/deposits";
 import type { PaymentGateway } from "@/modules/payments/gateway";
 import { refundDeposit } from "@/modules/payments/refunds";
 import { getSlotsForRange, loadBookingContext } from "./availability";
-import { hashManageToken, newManageToken } from "./create";
+import { assignManageToken, hashManageToken } from "./create";
 import { addMinutes, utcToLocal } from "./time";
 
 /**
@@ -28,6 +30,18 @@ async function insertOrSlotTaken<T>(run: () => Promise<T>): Promise<T> {
   }
 }
 
+/**
+ * Entreprise d'un rendez-vous retrouvé par son lien de gestion. Utilisable sans
+ * entreprise déclarée (fonction dédiée de la base) : elle sert à déclarer la bonne.
+ */
+export async function businessOfManageToken(tx: Transaction, tenantId: string, token: string) {
+  if (!TOKEN.test(token)) return null;
+  const rows = await tx.execute<{ id: string | null }>(
+    sql`SELECT app_manage_token_business(${tenantId}::uuid, ${hashManageToken(token)}) AS id`,
+  );
+  return rows[0]?.id ?? null;
+}
+
 export async function findByManageToken(tx: Transaction, tenantId: string, token: string, locale?: Locale) {
   if (!TOKEN.test(token)) return null;
   const [row] = await tx
@@ -38,7 +52,7 @@ export async function findByManageToken(tx: Transaction, tenantId: string, token
       and(eq(appointments.tenantId, tenantId), eq(appointments.manageTokenHash, hashManageToken(token))),
     );
   if (!row) return null;
-  const context = await loadBookingContext(tx, tenantId);
+  const context = await loadBookingContext(tx, tenantId, row.appointment.businessId);
   const items = await tx
     .select()
     .from(appointmentItems)
@@ -93,13 +107,24 @@ export async function cancelByCustomer(
     .update(appointments)
     .set({ status: "cancelled", cancelledAt: now, cancelledBy: "customer" })
     .where(eq(appointments.id, managed.appointment.id));
+  // Acompte réglé avec une carte cadeau : le montant est remis sur la carte.
+  await creditBackForAppointment(tx, tenantId, managed.appointment.id);
   const refund = await refundDeposit(tx, tenantId, managed.appointment.id, gateway, {
     reason: "customer_cancelled",
     now,
   });
+  const appointment = managed.appointment;
+  await queueMessage(tx, {
+    tenantId,
+    template: "customer.cancelled",
+    appointmentId: appointment.id,
+    locale: appointment.locale,
+    data: { by: "customer", refundedCents: refund?.amountCents ?? 0 },
+  });
+  await queueMessage(tx, { tenantId, template: "manager.cancelled", appointmentId: appointment.id });
   return {
-    appointmentId: managed.appointment.id,
-    depositCents: managed.appointment.depositCents,
+    appointmentId: appointment.id,
+    depositCents: appointment.depositCents,
     refundedCents: refund?.amountCents ?? 0,
   };
 }
@@ -151,7 +176,6 @@ export async function rescheduleByCustomer(
 
   const duration = (old.endsAt.getTime() - old.startsAt.getTime()) / 60000;
   const buffer = (old.blockedUntil.getTime() - old.endsAt.getTime()) / 60000;
-  const manage = newManageToken();
   const [created] = await insertOrSlotTaken(() =>
     tx
       .insert(appointments)
@@ -169,14 +193,15 @@ export async function rescheduleByCustomer(
         depositCents: old.depositCents,
         currency: old.currency,
         promoCodeId: old.promoCodeId,
-        manageTokenHash: manage.hash,
         rescheduledFromId: old.id,
         locale: old.locale,
         customerNote: old.customerNote,
       })
       .returning(),
   );
+  const manageToken = await assignManageToken(tx, created.id);
   await moveDeposit(tx, tenantId, old.id, created.id);
+  await moveGiftCardRedemption(tx, tenantId, old.id, created.id);
   const items = await tx.select().from(appointmentItems).where(eq(appointmentItems.appointmentId, old.id));
   await tx.insert(appointmentItems).values(
     items.map((item) => ({
@@ -190,5 +215,18 @@ export async function rescheduleByCustomer(
       priceCents: item.priceCents,
     })),
   );
-  return { appointmentId: created.id, manageToken: manage.token, startsAt: created.startsAt, staffId };
+  await queueMessage(tx, {
+    tenantId,
+    template: "customer.rescheduled",
+    appointmentId: created.id,
+    locale: created.locale,
+    data: { previousStartsAt: old.startsAt.toISOString() },
+  });
+  await queueMessage(tx, {
+    tenantId,
+    template: "manager.rescheduled",
+    appointmentId: created.id,
+    data: { previousStartsAt: old.startsAt.toISOString() },
+  });
+  return { appointmentId: created.id, manageToken, startsAt: created.startsAt, staffId };
 }

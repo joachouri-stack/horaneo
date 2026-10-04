@@ -15,7 +15,12 @@ export function normalizePhone(
 }
 
 /** Affichage lisible d'un numéro international (« +33 6 12 34 56 78 »). */
-export function formatPhone(e164: string | null | undefined): string {
+export function formatPhone(e164: string | null | undefined, country?: string): string {
   if (!e164) return "";
-  return parsePhoneNumberFromString(e164)?.formatInternational() ?? e164;
+  const parsed = parsePhoneNumberFromString(e164);
+  if (!parsed) return e164;
+  // Numéro du même pays que le site : format national (« 06 52 17 06 08 »).
+  return country && parsed.country === country.toUpperCase()
+    ? parsed.formatNational()
+    : parsed.formatInternational();
 }

@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { eq } from "drizzle-orm";
 import * as s from "@/db/schema";
 import type { TestDb } from "./db";
@@ -23,8 +24,13 @@ export async function createTenantWithData(db: TestDb, label: string) {
     .values({ slug: tag.toLowerCase(), name: `Institut ${label}`, planId: plan.id, status: "active" })
     .returning();
   const tenantId = tenant.id;
+  const [business] = await db
+    .insert(s.businesses)
+    .values({ tenantId, name: `Institut ${label}`, siret: "12345678900012", isPrimary: true })
+    .returning();
+  const businessId = business.id;
 
-  await db.insert(s.memberships).values({ userId: user.id, tenantId });
+  await db.insert(s.memberships).values({ businessId, userId: user.id, tenantId });
   const [domain] = await db
     .insert(s.tenantDomains)
     .values({
@@ -35,7 +41,7 @@ export async function createTenantWithData(db: TestDb, label: string) {
       status: "active",
     })
     .returning();
-  await db.insert(s.tenantSettings).values({ tenantId });
+  await db.insert(s.businessSettings).values({ businessId, tenantId });
   await db.insert(s.redirects).values({ tenantId, fromPath: "/ancien", toPath: "/" });
 
   const [asset] = await db
@@ -51,11 +57,12 @@ export async function createTenantWithData(db: TestDb, label: string) {
   await db.insert(s.sitePages).values({ tenantId, pageKey: "home" });
   const [category] = await db
     .insert(s.serviceCategories)
-    .values({ tenantId, name: { fr: "Visage" }, slug: { fr: "visage" } })
+    .values({ businessId, tenantId, name: { fr: "Visage" }, slug: { fr: "visage" } })
     .returning();
   const [service] = await db
     .insert(s.services)
     .values({
+      businessId,
       tenantId,
       categoryId: category.id,
       name: { fr: "Soin" },
@@ -65,16 +72,19 @@ export async function createTenantWithData(db: TestDb, label: string) {
     .returning();
   const [staff] = await db
     .insert(s.staffMembers)
-    .values({ tenantId, name: "Léa", photoAssetId: asset.id })
+    .values({ businessId, tenantId, name: "Léa", photoAssetId: asset.id })
     .returning();
-  await db.insert(s.staffServices).values({ tenantId, staffId: staff.id, serviceId: service.id });
+  await db.insert(s.staffServices).values({ businessId, tenantId, staffId: staff.id, serviceId: service.id });
   await db.insert(s.testimonials).values({ tenantId, authorName: "Camille", text: { fr: "Super" } });
 
-  await db.insert(s.openingHours).values({ tenantId, weekday: 1, opensAt: "09:00", closesAt: "18:00" });
+  await db
+    .insert(s.openingHours)
+    .values({ businessId, tenantId, weekday: 1, opensAt: "09:00", closesAt: "18:00" });
   await db
     .insert(s.staffSchedules)
-    .values({ tenantId, staffId: staff.id, weekday: 1, startsAt: "09:00", endsAt: "18:00" });
+    .values({ businessId, tenantId, staffId: staff.id, weekday: 1, startsAt: "09:00", endsAt: "18:00" });
   await db.insert(s.timeOff).values({
+    businessId,
     tenantId,
     staffId: staff.id,
     kind: "leave",
@@ -84,15 +94,22 @@ export async function createTenantWithData(db: TestDb, label: string) {
 
   const [customer] = await db
     .insert(s.customers)
-    .values({ tenantId, firstName: "Camille", email: `client-${tag}@example.com`, phone: "+33612345678" })
+    .values({
+      businessId,
+      tenantId,
+      firstName: "Camille",
+      email: `client-${tag}@example.com`,
+      phone: "+33612345678",
+    })
     .returning();
   const [promo] = await db
     .insert(s.promoCodes)
-    .values({ tenantId, code: "BIENVENUE", discountType: "percent", discountValue: 10 })
+    .values({ businessId, tenantId, code: "BIENVENUE", discountType: "percent", discountValue: 10 })
     .returning();
   const [appointment] = await db
     .insert(s.appointments)
     .values({
+      businessId,
       tenantId,
       customerId: customer.id,
       staffId: staff.id,
@@ -107,6 +124,7 @@ export async function createTenantWithData(db: TestDb, label: string) {
     })
     .returning();
   await db.insert(s.appointmentItems).values({
+    businessId,
     tenantId,
     appointmentId: appointment.id,
     serviceId: service.id,
@@ -120,6 +138,7 @@ export async function createTenantWithData(db: TestDb, label: string) {
   const [payment] = await db
     .insert(s.payments)
     .values({
+      businessId,
       tenantId,
       appointmentId: appointment.id,
       stripePaymentIntentId: `pi_${tag}`,
@@ -129,7 +148,45 @@ export async function createTenantWithData(db: TestDb, label: string) {
       status: "succeeded",
     })
     .returning();
-  await db.insert(s.refunds).values({ tenantId, paymentId: payment.id, amountCents: 1800 });
+  await db.insert(s.refunds).values({ businessId, tenantId, paymentId: payment.id, amountCents: 1800 });
+  // Étape 9 bis (l'historique des prix est rempli par la base à la création de la prestation).
+  const [promotion] = await db
+    .insert(s.promotions)
+    .values({
+      businessId,
+      tenantId,
+      title: { fr: "Offre d'automne" },
+      discountType: "percent",
+      discountValue: 20,
+      startsOn: "2026-11-01",
+      endsOn: "2026-11-30",
+    })
+    .returning();
+  await db
+    .insert(s.promotionServices)
+    .values({ businessId, tenantId, promotionId: promotion.id, serviceId: service.id });
+  await db
+    .insert(s.googleReviews)
+    .values({ businessId, tenantId, placeId: `place-${tag}`, rating: 4.9, total: 12 });
+  const [giftCard] = await db
+    .insert(s.giftCards)
+    .values({
+      businessId,
+      tenantId,
+      codeHash: createHash("sha256").update(tag).digest("hex"),
+      codeLast4: "ABCD",
+      status: "active",
+      initialCents: 5000,
+      balanceCents: 5000,
+      purchaserName: "Camille",
+      purchaserEmail: `client-${tag}@example.com`,
+      sendAt: new Date("2026-11-01T09:00:00Z"),
+      expiresAt: new Date("2027-11-01T09:00:00Z"),
+    })
+    .returning();
+  await db
+    .insert(s.giftCardTransactions)
+    .values({ businessId, tenantId, giftCardId: giftCard.id, kind: "purchase", amountCents: 5000 });
   await db.insert(s.subscriptions).values({ tenantId, planId: plan.id, status: "active" });
   await db.insert(s.orders).values({
     userId: user.id,
@@ -142,6 +199,7 @@ export async function createTenantWithData(db: TestDb, label: string) {
   });
 
   await db.insert(s.messageLog).values({
+    businessId,
     tenantId,
     appointmentId: appointment.id,
     channel: "email",
@@ -154,5 +212,5 @@ export async function createTenantWithData(db: TestDb, label: string) {
     .values({ tenantId, createdByUserId: user.id, subject: "Logo", message: "Nouveau logo" });
   await db.insert(s.auditLog).values({ action: "tenant.created", tenantId, actorUserId: user.id });
 
-  return { tenant, user, domain, service, staff, customer, appointment };
+  return { tenant, business, user, domain, service, staff, customer, appointment };
 }

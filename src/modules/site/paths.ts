@@ -11,6 +11,8 @@ export const SITE_PATHS = {
   practical: "/infos-pratiques",
   legal: "/mentions-legales",
   privacy: "/confidentialite",
+  cancellation: "/conditions-annulation",
+  giftCard: "/carte-cadeau",
   booking: "/reserver",
   /** Gestion d'un rendez-vous par le lien reçu : /rendez-vous/<jeton>. */
   appointment: "/rendez-vous",
@@ -19,3 +21,6 @@ export const SITE_PATHS = {
 export type SitePathKey = keyof typeof SITE_PATHS;
 
 export const categoryPath = (slug: string) => `${SITE_PATHS.services}/${slug}`;
+
+/** Page d'une professionnelle (entreprise) : /avec/laila. */
+export const businessPath = (slug: string) => `/avec/${slug}`;

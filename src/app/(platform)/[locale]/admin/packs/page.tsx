@@ -1,0 +1,99 @@
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import { ActionForm } from "@/components/admin/ActionForm";
+import { CheckboxField, Hidden, TextField } from "@/components/admin/fields";
+import { ui } from "@/components/ui/styles";
+import { pickLocalized } from "@/i18n/locales";
+import { resolveLocale } from "@/i18n/translator";
+import { adminQuery } from "@/lib/admin/mutation";
+import { requireAdmin } from "@/lib/auth/session";
+import { centsToInput } from "@/lib/format";
+import { FEATURE_KEYS } from "@/modules/billing/admin";
+import { listPlans } from "@/modules/tenants/queries";
+import { savePlanAction } from "./actions";
+
+const LIMITS = ["onlineBookingsPerMonth", "members", "photos", "services"] as const;
+
+/** Packs : prix, limites et fonctions (réglages, jamais écrits dans le code). */
+export default async function PlansPage({ params }: PageProps<"/[locale]/admin/packs">) {
+  const locale = resolveLocale((await params).locale);
+  setRequestLocale(locale);
+  await requireAdmin(locale);
+  const [t, tCommon, plans] = await Promise.all([
+    getTranslations("admin.plans"),
+    getTranslations("common"),
+    adminQuery((tx) => listPlans(tx)),
+  ]);
+  return (
+    <main id="contenu" className="mx-auto max-w-4xl space-y-6 px-4 py-8">
+      <h1 className="text-3xl font-extrabold">{t("title")}</h1>
+      <p className="text-ink/80">{t("intro")}</p>
+      {plans.map((plan) => (
+        <section key={plan.id} className={ui.card} aria-labelledby={`plan-${plan.id}`}>
+          <h2 id={`plan-${plan.id}`} className="mb-4 text-xl font-bold text-navy">
+            {pickLocalized(plan.name, locale)}{" "}
+            <span className="text-sm font-normal text-ink/60">({plan.code})</span>
+          </h2>
+          <ActionForm action={savePlanAction} submitLabel={tCommon("save")} className="space-y-4">
+            <Hidden values={{ planId: plan.id }} />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <TextField
+                id={`name-${plan.id}`}
+                name="name"
+                label={t("name")}
+                defaultValue={plan.name.fr}
+                required
+              />
+              <TextField
+                id={`price-${plan.id}`}
+                name="price"
+                inputMode="decimal"
+                label={t("price")}
+                hint={t("priceHint")}
+                defaultValue={centsToInput(plan.priceCents)}
+                required
+              />
+              {LIMITS.map((key) => (
+                <TextField
+                  key={key}
+                  id={`${key}-${plan.id}`}
+                  name={key}
+                  type="number"
+                  inputMode="numeric"
+                  label={t(key)}
+                  hint={t("unlimitedHint")}
+                  defaultValue={plan.limits[key] ?? ""}
+                />
+              ))}
+              <TextField
+                id={`sms-${plan.id}`}
+                name="smsPerMonth"
+                type="number"
+                inputMode="numeric"
+                label={t("smsPerMonth")}
+                defaultValue={plan.limits.smsPerMonth ?? 0}
+                required
+              />
+            </div>
+            <fieldset>
+              <legend className={ui.label}>{t("features")}</legend>
+              <div className="grid sm:grid-cols-2">
+                {FEATURE_KEYS.map((key) => (
+                  <CheckboxField
+                    key={key}
+                    name={`feature_${key}`}
+                    label={t(`featureLabels.${key}`)}
+                    defaultChecked={Boolean(plan.features[key])}
+                  />
+                ))}
+              </div>
+            </fieldset>
+            <CheckboxField name="isPublic" label={t("isPublic")} defaultChecked={plan.isPublic} />
+            <p className="text-sm text-ink/60">
+              {plan.stripePriceId ? t("stripe", { id: plan.stripePriceId }) : t("noStripe")}
+            </p>
+          </ActionForm>
+        </section>
+      ))}
+    </main>
+  );
+}

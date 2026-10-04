@@ -4,9 +4,9 @@ import { formatLongDate, formatTimeOf } from "@/components/booking/format";
 import { ManageAppointment } from "@/components/booking/ManageAppointment";
 import { PendingPayment } from "@/components/booking/PendingPayment";
 import { PageTitle } from "@/components/site/blocks";
-import { withTenant } from "@/db/access";
 import { formatMoney } from "@/lib/format";
 import { paymentGateway } from "@/lib/payments/stripe";
+import { withTokenBusiness } from "@/lib/site/business";
 import { getSite } from "@/lib/site/load";
 import { canModify, findByManageToken } from "@/modules/booking/manage";
 import { AppError } from "@/modules/errors";
@@ -26,7 +26,7 @@ export default async function ManageAppointmentPage({
   const site = await getSite(tenantId);
   const t = await getTranslations("booking.manage");
   const gateway = paymentGateway();
-  const { managed, deposit, checkout } = await withTenant(tenantId, async (tx) => {
+  const { managed, deposit, checkout } = await withTokenBusiness(tenantId, token, async (tx) => {
     let managed = await findByManageToken(tx, tenantId, token, site.locale);
     if (!managed) return { managed: null, deposit: null, checkout: null };
     const id = managed.appointment.id;
@@ -44,7 +44,7 @@ export default async function ManageAppointmentPage({
     }
     return { managed, deposit: await depositSummary(tx, tenantId, id), checkout };
   });
-  const phone = site.tenant.phone;
+  const phone = managed?.context.business.phone ?? site.tenant.phone;
 
   if (!managed) {
     return (
@@ -66,11 +66,11 @@ export default async function ManageAppointmentPage({
   return (
     <main id="contenu" className="mx-auto max-w-2xl space-y-8 px-4 py-12">
       <PageTitle title={t("title")} />
-      <section className="rounded-site bg-site-surface p-6">
+      <section className="rounded-site bg-site-panel p-6">
         <p className="text-sm font-semibold uppercase tracking-wide text-site-muted">
           {t(`status.${appointment.status}`)}
         </p>
-        <p className="mt-2 font-site-display text-2xl font-semibold text-site-accent">
+        <p className="mt-2 font-site-display text-2xl font-semibold text-site-heading">
           {t("when", {
             date: formatLongDate(iso, site.locale, timezone),
             time: formatTimeOf(iso, site.locale, timezone),

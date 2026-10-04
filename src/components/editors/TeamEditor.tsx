@@ -20,6 +20,7 @@ type Member = {
 /** Membres de l'équipe et prestations réalisées (admin et gérante). */
 export async function TeamEditor({
   tenantId,
+  businessId,
   contentLocale,
   limit,
   staff,
@@ -28,6 +29,8 @@ export async function TeamEditor({
   memberHref,
 }: {
   tenantId: string;
+  /** Entreprise modifiée (espace admin, site à plusieurs entreprises). */
+  businessId?: string;
   contentLocale: string;
   limit: number | null | undefined;
   staff: Awaited<ReturnType<typeof listStaff>>;
@@ -106,7 +109,7 @@ export async function TeamEditor({
               )}
               <div className="mt-4 space-y-4">
                 <ActionForm action={actions.save} submitLabel={tCommon("save")}>
-                  <Hidden values={{ tenantId, id: member.id }} />
+                  <Hidden values={{ tenantId, businessId, id: member.id }} />
                   {fields({ ...member, bio: text(member.bio) }, member.id)}
                 </ActionForm>
                 <ActionForm
@@ -116,7 +119,7 @@ export async function TeamEditor({
                   className=""
                   confirm={tCommon("confirmDelete")}
                 >
-                  <Hidden values={{ tenantId, id: member.id }} />
+                  <Hidden values={{ tenantId, businessId, id: member.id }} />
                 </ActionForm>
               </div>
             </details>
@@ -127,7 +130,7 @@ export async function TeamEditor({
         <h3 className="mb-2 text-lg font-bold">{t("newMember")}</h3>
         <p className="mb-4 text-sm text-ink/70">{t("hoursHint")}</p>
         <ActionForm action={actions.save} submitLabel={tCommon("add")} resetOnSuccess>
-          <Hidden values={{ tenantId }} />
+          <Hidden values={{ tenantId, businessId }} />
           {fields({ name: "", bio: "", color: null, isActive: true, serviceIds: [] }, "new")}
         </ActionForm>
       </div>

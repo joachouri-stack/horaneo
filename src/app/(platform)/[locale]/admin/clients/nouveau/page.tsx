@@ -6,14 +6,26 @@ import { pickLocalized } from "@/i18n/locales";
 import { resolveLocale } from "@/i18n/translator";
 import { adminQuery } from "@/lib/admin/mutation";
 import { requireAdmin } from "@/lib/auth/session";
+import { getOrder } from "@/modules/orders/orders";
 import { listPlans } from "@/modules/tenants/queries";
 
 /** Nouveau client : étape 1 du formulaire par étapes. */
-export default async function NewClientPage({ params }: PageProps<"/[locale]/admin/clients/nouveau">) {
+export default async function NewClientPage({
+  params,
+  searchParams,
+}: PageProps<"/[locale]/admin/clients/nouveau">) {
   const locale = resolveLocale((await params).locale);
   setRequestLocale(locale);
   await requireAdmin(locale);
-  const [t, plans] = await Promise.all([getTranslations("admin.create"), adminQuery((tx) => listPlans(tx))]);
+  const orderId = (await searchParams).commande;
+  const [t, plans, order] = await Promise.all([
+    getTranslations("admin.create"),
+    adminQuery((tx) => listPlans(tx)),
+    // Création à partir d'une commande : formulaire pré-rempli.
+    typeof orderId === "string" && /^[0-9a-f-]{36}$/i.test(orderId)
+      ? adminQuery((tx) => getOrder(tx, orderId))
+      : Promise.resolve(null),
+  ]);
 
   return (
     <main id="contenu" className="mx-auto max-w-2xl space-y-6 px-4 py-8">
@@ -25,6 +37,18 @@ export default async function NewClientPage({ params }: PageProps<"/[locale]/adm
         <CreateTenantForm
           plans={plans.map((plan) => ({ value: plan.code, label: pickLocalized(plan.name, locale) }))}
           mainDomain={env().MAIN_DOMAIN}
+          prefill={
+            order
+              ? {
+                  orderId: order.order.id,
+                  name: order.order.businessName,
+                  planCode: order.planCode,
+                  managerEmail: order.email,
+                  managerName: order.userName,
+                  phone: order.order.phone,
+                }
+              : null
+          }
         />
       </div>
     </main>

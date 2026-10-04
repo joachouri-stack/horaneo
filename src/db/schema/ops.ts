@@ -1,5 +1,6 @@
 import {
   bigint,
+  integer,
   foreignKey,
   index,
   inet,
@@ -10,6 +11,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import { businessForeignKey } from "./tenants";
 import { sql } from "drizzle-orm";
 import { id, timestamps, utc } from "./_helpers";
 import { appointments } from "./bookings";
@@ -28,36 +30,51 @@ export const messageStatusEnum = pgEnum("message_status", [
   "delivered",
   "failed",
   "blocked_quota",
+  "skipped",
 ]);
 
-/** Trace de chaque e-mail, SMS ou notification envoyé. */
+/**
+ * File d'envoi et trace de chaque e-mail, SMS ou notification.
+ * Un message est d'abord ajouté « queued » (dans la même transaction que
+ * l'action qui le déclenche), puis envoyé ; en cas d'échec il est réessayé.
+ * Le contenu est préparé au moment de l'envoi, à partir des données à jour.
+ */
 export const messageLog = pgTable(
   "message_log",
   {
     id: id(),
     tenantId: uuid().references(() => tenants.id, { onDelete: "cascade" }),
+    businessId: uuid().default(sql`app_current_business()`),
     appointmentId: uuid(),
     channel: messageChannelEnum().notNull(),
     templateKey: text().notNull(),
-    recipient: text().notNull(),
+    /** Adresse ou numéro : renseigné au moment de l'envoi. */
+    recipient: text(),
     locale: text().notNull(),
     status: messageStatusEnum().notNull().default("queued"),
+    /** Informations propres au message (montant remboursé, période d'un résumé…). */
+    data: jsonb().$type<Record<string, unknown>>().notNull().default({}),
+    /** Clé qui empêche d'ajouter deux fois le même message (ex. « daily:<tenant>:<date> »). */
+    dedupeKey: text(),
+    attempts: integer().notNull().default(0),
+    nextAttemptAt: utc(),
     providerMessageId: text(),
     error: text(),
     sentAt: utc(),
     ...timestamps(),
   },
   (t) => [
+    businessForeignKey("message_log_business_fk", t, "cascade"),
     index("message_log_tenant_created_idx").on(t.tenantId, t.createdAt),
+    index("message_log_queue_idx")
+      .on(t.nextAttemptAt)
+      .where(sql`${t.status} = 'queued'`),
     foreignKey({
       name: "message_log_appointment_fk",
       columns: [t.tenantId, t.appointmentId],
       foreignColumns: [appointments.tenantId, appointments.id],
     }).onDelete("cascade"),
-    // Un même message (ex. rappel SMS) n'est envoyé qu'une fois par rendez-vous.
-    uniqueIndex("message_log_once_per_appointment_key")
-      .on(t.appointmentId, t.channel, t.templateKey)
-      .where(sql`${t.appointmentId} is not null and ${t.status} <> 'failed'`),
+    uniqueIndex("message_log_dedupe_key").on(t.dedupeKey),
   ],
 );
 

@@ -1,13 +1,18 @@
-import { sql } from "drizzle-orm";
+import { sql, type AnyColumn } from "drizzle-orm";
 import { appDb, type Database, type Transaction } from "./client";
 
 /**
  * Accès aux données. Toute lecture ou écriture passe par l'une de ces fonctions.
  *
- * - withTenant : les données d'UN tenant. PostgreSQL masque et refuse tout le
- *   reste, même si une requête oublie de filtrer sur tenant_id.
+ * - withTenant : les données d'UN site (tenant). PostgreSQL masque et refuse
+ *   tout le reste, même si une requête oublie de filtrer sur tenant_id.
+ *   L'entreprise déclarée limite encore la vue : ses clientes, ses rendez-vous,
+ *   ses paiements ; une autre entreprise du même site reste invisible.
+ *   - businessId absent : l'entreprise du site s'il n'en a qu'une, sinon aucune ;
+ *   - businessId null : vue « site » (pages publiques), sans données privées.
  * - withPlatform : toutes les données (espace admin, tâches techniques).
- *   Réservé au code de l'espace admin ; chaque action y sera journalisée.
+ *   Avec une entreprise déclarée, seules les lignes de cette entreprise sont
+ *   visibles (et business_id est rempli à l'ajout).
  */
 
 export const TENANT_ROLE = "app_tenant";
@@ -19,11 +24,21 @@ export async function withTenant<T>(
   tenantId: string,
   fn: (tx: Transaction) => Promise<T>,
   database: Database = appDb(),
+  businessId?: string | null,
 ): Promise<T> {
   if (!UUID.test(tenantId)) throw new Error(`Identifiant de tenant invalide : ${tenantId}`);
+  if (businessId && !UUID.test(businessId))
+    throw new Error(`Identifiant d'entreprise invalide : ${businessId}`);
   return database.transaction(async (tx) => {
     await tx.execute(sql.raw(`SET LOCAL ROLE ${TENANT_ROLE}`));
     await tx.execute(sql`SELECT set_config('app.tenant_id', ${tenantId}, true)`);
+    if (businessId === undefined) {
+      await tx.execute(
+        sql`SELECT set_config('app.business_id', coalesce(app_default_business(${tenantId}::uuid)::text, ''), true)`,
+      );
+    } else {
+      await tx.execute(sql`SELECT set_config('app.business_id', ${businessId ?? ""}, true)`);
+    }
     return fn(tx);
   });
 }
@@ -31,11 +46,39 @@ export async function withTenant<T>(
 export async function withPlatform<T>(
   fn: (tx: Transaction) => Promise<T>,
   database: Database = appDb(),
+  businessId?: string | null,
 ): Promise<T> {
+  if (businessId && !UUID.test(businessId))
+    throw new Error(`Identifiant d'entreprise invalide : ${businessId}`);
   return database.transaction(async (tx) => {
     await tx.execute(sql.raw(`SET LOCAL ROLE ${PLATFORM_ROLE}`));
+    if (businessId) await tx.execute(sql`SELECT set_config('app.business_id', ${businessId}, true)`);
     return fn(tx);
   });
+}
+
+/**
+ * Déclare l'entreprise pour la suite de la transaction (rôle plateforme : tâches
+ * qui traitent une entreprise précise, comme la préparation d'un message).
+ */
+export async function declareBusiness(tx: Transaction, businessId: string | null) {
+  if (businessId && !UUID.test(businessId))
+    throw new Error(`Identifiant d'entreprise invalide : ${businessId}`);
+  await tx.execute(sql`SELECT set_config('app.business_id', ${businessId ?? ""}, true)`);
+}
+
+/**
+ * Condition « lignes de l'entreprise déclarée » (toutes si aucune), en plus des
+ * règles de la base : utile aux écritures en masse (remplacer les horaires…).
+ */
+export function inCurrentBusiness(column: AnyColumn) {
+  return sql`(app_current_business() IS NULL OR ${column} = app_current_business())`;
+}
+
+/** Entreprise déclarée pour la transaction (null : vue « site »). */
+export async function currentBusinessId(tx: Transaction): Promise<string | null> {
+  const rows = await tx.execute<{ id: string | null }>(sql`SELECT app_current_business() AS id`);
+  return rows[0]?.id ?? null;
 }
 
 export type ResolvedHostname = {

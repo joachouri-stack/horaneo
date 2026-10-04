@@ -1,7 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { AppointmentCard } from "@/components/manager/AppointmentCard";
 import { ui } from "@/components/ui/styles";
-import { withTenant } from "@/db/access";
 import { openingHours } from "@/db/schema";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
@@ -31,7 +30,7 @@ export default async function AgendaPage({
   const days = view === "week" ? 7 : 1;
   const range = dayRange(start, tz, days);
 
-  const { appointments, timeOffList, staff, hours } = await withTenant(page.tenantId, async (tx) => ({
+  const { appointments, timeOffList, staff, hours } = await page.db(async (tx) => ({
     appointments: await listAgenda(tx, page.tenantId, {
       from: range.start,
       to: range.end,

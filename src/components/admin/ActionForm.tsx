@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useActionState, useEffect, useRef } from "react";
+import { startTransition, useActionState, useEffect, useRef } from "react";
 import { ui } from "@/components/ui/styles";
 import type { ActionResult } from "@/lib/admin/mutation";
 
@@ -62,7 +62,12 @@ export function ActionForm({
       action={formAction}
       className={className ?? "space-y-4"}
       onSubmit={(event) => {
-        if (confirm && !window.confirm(confirm)) event.preventDefault();
+        // Envoi géré ici plutôt que par React : sinon le formulaire est vidé après
+        // chaque envoi, et la personne perd sa saisie en cas d'erreur.
+        event.preventDefault();
+        if (confirm && !window.confirm(confirm)) return;
+        const data = new FormData(event.currentTarget, (event.nativeEvent as SubmitEvent).submitter);
+        startTransition(() => formAction(data));
       }}
     >
       {children}

@@ -5,12 +5,19 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 /** Menu du site sur téléphone (bouton ☰). */
-export function MobileMenu({ links }: { links: { href: string; label: string }[] }) {
+export function MobileMenu({
+  links,
+  hideFrom = "md",
+}: {
+  links: { href: string; label: string }[];
+  /** Taille d'écran à partir de laquelle le menu complet remplace le bouton. */
+  hideFrom?: "md" | "lg";
+}) {
   const t = useTranslations("site");
   const [open, setOpen] = useState(false);
   if (links.length === 0) return null;
   return (
-    <div className="md:hidden">
+    <div className={hideFrom === "lg" ? "lg:hidden" : "md:hidden"}>
       <button
         type="button"
         aria-expanded={open}
