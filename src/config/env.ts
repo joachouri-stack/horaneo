@@ -35,12 +35,34 @@ const envSchema = z.object({
   DATABASE_URL: z.url().optional(),
   /** Rôle restreint utilisé par l'application (voir src/db/setup-roles.ts). */
   APP_DATABASE_URL: z.url().optional(),
+
+  // Adresse publique du site commercial (par défaut : https://MAIN_DOMAIN)
+  PUBLIC_APP_URL: z.url().optional(),
+
+  // Connexion
+  /** Clé secrète de signature des sessions (32 caractères minimum, obligatoire en production). */
+  BETTER_AUTH_SECRET: z.string().min(32).optional(),
+  GOOGLE_CLIENT_ID: z.string().min(1).optional(),
+  GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
+  /** Connexion avec Apple : laissée vide tant que le compte développeur Apple n'existe pas. */
+  APPLE_CLIENT_ID: z.string().min(1).optional(),
+  APPLE_CLIENT_SECRET: z.string().min(1).optional(),
+  /** En-têtes donnant l'adresse IP réelle du visiteur (limitation des tentatives). */
+  CLIENT_IP_HEADERS: z.string().default("x-forwarded-for"),
+
+  // E-mails (Brevo)
+  BREVO_API_KEY: z.string().min(1).optional(),
+  EMAIL_FROM_ADDRESS: z.email().optional(),
 });
 
 export type Env = z.infer<typeof envSchema> & { ENABLED_LOCALES: Locale[] };
 
 export function parseEnv(source: Record<string, string | undefined>): Env {
-  const result = envSchema.safeParse(source);
+  // Une variable laissée vide (« GOOGLE_CLIENT_ID= ») compte comme absente.
+  const cleaned = Object.fromEntries(
+    Object.entries(source).filter(([, value]) => value !== undefined && value.trim() !== ""),
+  );
+  const result = envSchema.safeParse(cleaned);
   if (!result.success) {
     const details = result.error.issues
       .map((issue) => `  - ${issue.path.join(".")}: ${issue.message}`)
@@ -67,4 +89,21 @@ export function appDatabaseUrl(): string {
   const url = env().APP_DATABASE_URL;
   if (!url) throw new Error("APP_DATABASE_URL n'est pas définie (voir .env.example).");
   return url;
+}
+
+/** Adresse publique du site commercial, sans barre finale. */
+export function publicAppUrl(): string {
+  const config = env();
+  if (config.PUBLIC_APP_URL) return config.PUBLIC_APP_URL.replace(/\/$/, "");
+  return config.NODE_ENV === "production" ? `https://${config.MAIN_DOMAIN}` : "http://localhost:3000";
+}
+
+const DEV_AUTH_SECRET = "dev-only-secret-not-for-production-0000000000";
+
+/** Clé secrète des sessions et du chiffrement ; obligatoire en production. */
+export function authSecret(): string {
+  const config = env();
+  if (config.BETTER_AUTH_SECRET) return config.BETTER_AUTH_SECRET;
+  if (config.NODE_ENV === "production") throw new Error("BETTER_AUTH_SECRET est obligatoire en production.");
+  return DEV_AUTH_SECRET;
 }

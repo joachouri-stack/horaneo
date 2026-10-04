@@ -113,6 +113,18 @@ describe.skipIf(!hasTestDatabase)("isolation des données entre tenants", () => 
       expect(actual).toEqual(EXPECTED_TENANT_GRANTS);
     });
 
+    it("ne donne au rôle de connexion (Better Auth) aucun accès aux tables des tenants", async () => {
+      const rows = await owner.execute<{ table_name: string }>(sql`
+        SELECT DISTINCT table_name FROM information_schema.role_table_grants
+        WHERE grantee = 'app_auth' AND table_schema = 'public' ORDER BY table_name`);
+      expect(rows.map((row) => row.table_name)).toEqual([
+        "auth_accounts",
+        "auth_sessions",
+        "auth_verifications",
+        "users",
+      ]);
+    });
+
     it("n'accorde aucun privilège spécial aux rôles de l'application", async () => {
       const rows = await owner.execute<{
         rolname: string;
@@ -121,9 +133,9 @@ describe.skipIf(!hasTestDatabase)("isolation des données entre tenants", () => 
         rolinherit: boolean;
       }>(
         sql`SELECT rolname, rolsuper, rolbypassrls, rolinherit FROM pg_roles
-            WHERE rolname IN ('app_tenant', 'app_platform', 'app_runtime') ORDER BY rolname`,
+            WHERE rolname IN ('app_tenant', 'app_platform', 'app_auth', 'app_runtime') ORDER BY rolname`,
       );
-      expect(rows).toHaveLength(3);
+      expect(rows).toHaveLength(4);
       for (const role of rows) {
         expect(role.rolsuper, role.rolname).toBe(false);
         expect(role.rolbypassrls, role.rolname).toBe(false);
@@ -133,10 +145,9 @@ describe.skipIf(!hasTestDatabase)("isolation des données entre tenants", () => 
   });
 
   describe("connexion de l'application sans choix de rôle", () => {
-    it("ne voit aucune table", async () => {
-      // 42P01 : la table n'existe pas pour ce rôle, qui n'a même pas accès au schéma.
-      expect(await pgErrorCode(app.select().from(customers))).toBe("42P01");
-      expect(await pgErrorCode(app.select().from(tenants))).toBe("42P01");
+    it("ne peut lire aucune donnée métier (seules les tables de connexion lui sont ouvertes)", async () => {
+      expect(await pgErrorCode(app.select().from(customers))).toBe("42501");
+      expect(await pgErrorCode(app.select().from(tenants))).toBe("42501");
     });
   });
 

@@ -7,7 +7,8 @@
     "skipToContent": "Aller au contenu",
     "login": "Connexion",
     "language": "Langue",
-    "homeLink": "{product}, accueil"
+    "homeLink": "{product}, accueil",
+    "logout": "Se déconnecter"
   },
   "languages": {
     "fr": "Français",
@@ -22,5 +23,83 @@
   },
   "site": {
     "suspended": "Ce site est temporairement indisponible. Merci de contacter l'établissement par téléphone."
+  },
+  "emails": {
+    "magicLink": {
+      "subject": "Votre lien de connexion à {product}",
+      "title": "Connexion à {product}",
+      "intro": "Cliquez sur le bouton ci-dessous pour vous connecter. Aucun mot de passe n'est nécessaire.",
+      "expiry": "Ce lien est valable {minutes} minutes et ne fonctionne qu'une seule fois.",
+      "button": "Me connecter",
+      "ignore": "Si vous n'avez pas demandé ce lien, ignorez simplement cet e-mail : personne ne pourra se connecter à votre place."
+    }
+  },
+  "auth": {
+    "metaTitle": "Connexion",
+    "title": "Connexion",
+    "subtitle": "Pas de mot de passe : connectez-vous avec votre compte Google ou Apple, ou recevez un lien par e-mail.",
+    "continueWith": "Continuer avec {provider}",
+    "providers": {
+      "google": "Google",
+      "apple": "Apple"
+    },
+    "or": "ou",
+    "emailLabel": "Adresse e-mail",
+    "emailPlaceholder": "vous@exemple.fr",
+    "sendLink": "Recevoir un lien de connexion",
+    "sending": "Envoi…",
+    "sentTitle": "Vérifiez votre boîte mail",
+    "sentBody": "Un lien de connexion vient d'être envoyé à {email}. Il est valable 15 minutes.",
+    "sentHint": "Rien reçu ? Regardez dans les courriers indésirables, ou réessayez.",
+    "useAnotherEmail": "Utiliser une autre adresse",
+    "errors": {
+      "invalidEmail": "Cette adresse e-mail ne semble pas valide.",
+      "tooManyAttempts": "Trop de tentatives. Merci de patienter quelques minutes avant de réessayer.",
+      "linkExpired": "Ce lien de connexion a expiré ou a déjà été utilisé. Demandez-en un nouveau.",
+      "social": "La connexion n'a pas abouti. Merci de réessayer.",
+      "generic": "Une erreur est survenue. Merci de réessayer."
+    },
+    "legal": "En continuant, vous acceptez les conditions d'utilisation et la politique de confidentialité."
+  },
+  "account": {
+    "metaTitle": "Mon espace",
+    "greeting": "Bonjour {name}",
+    "greetingNoName": "Bonjour",
+    "signedInAs": "Compte : {email}",
+    "noTenantTitle": "Votre compte est prêt",
+    "noTenantBody": "Prochaine étape : choisir votre pack. Votre site sera ensuite créé et mis en ligne pour vous.",
+    "noTenantCta": "Découvrir les packs",
+    "tenantsTitle": "Mes établissements",
+    "comingSoon": "Votre espace de gestion (agenda, clientes, site) arrive très bientôt.",
+    "adminLink": "Espace admin"
+  },
+  "admin": {
+    "metaTitle": "Administration",
+    "title": "Espace admin",
+    "welcome": "Bienvenue. Les rubriques Clients, Demandes, Paiements et Technique arrivent aux prochaines étapes.",
+    "security": {
+      "setupTitle": "Activez la double vérification",
+      "setupIntro": "L'espace admin est protégé par un code à 6 chiffres, en plus de votre connexion.",
+      "step1": "Installez une application d'authentification sur votre téléphone (Google Authenticator, Microsoft Authenticator, 1Password…).",
+      "step2": "Dans l'application, scannez ce QR code.",
+      "manualKey": "Impossible de scanner ? Saisissez cette clé à la main :",
+      "step3": "Saisissez le code à 6 chiffres affiché par l'application.",
+      "qrAlt": "QR code à scanner avec l'application d'authentification",
+      "codeLabel": "Code à 6 chiffres",
+      "confirm": "Activer",
+      "backupTitle": "Double vérification activée",
+      "backupIntro": "Gardez précieusement ces codes de secours (imprimés ou dans un gestionnaire de mots de passe). Chacun permet une connexion si vous perdez votre téléphone. Ils ne seront plus affichés.",
+      "continue": "J'ai noté mes codes, accéder à l'espace admin"
+    },
+    "verify": {
+      "title": "Code de vérification",
+      "intro": "Saisissez le code à 6 chiffres affiché par votre application d'authentification.",
+      "codeLabel": "Code à 6 chiffres ou code de secours",
+      "submit": "Valider"
+    },
+    "errors": {
+      "invalidCode": "Ce code n'est pas valable. Vérifiez l'heure de votre téléphone et réessayez.",
+      "tooManyAttempts": "Trop de tentatives. Merci de patienter quelques minutes."
+    }
   }
 }

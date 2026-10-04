@@ -7,3 +7,4 @@
 - Aucun texte d'interface dans le code : tout passe par `messages/<langue>.json`.
 - Ni nom du produit, ni domaine, ni prix, ni quota écrits en dur : configuration (`src/config/`) ou base.
 - Jamais de règle « si métier = … » : tout passe par la configuration du tenant.
+- Les droits sensibles (statut d'administratrice, double vérification) ne se modifient que via `withPlatform` ou les scripts : un garde-fou en base refuse tout autre accès.

@@ -28,6 +28,10 @@ const hostConfig: HostConfig = {
 
 const lookup = cachedLookup((hostname) => resolveHostname(hostname));
 
+function hasPrefix(pathname: string, prefix: string) {
+  return pathname === prefix || pathname.startsWith(`${prefix}/`);
+}
+
 function notFound() {
   return new NextResponse("Not found", { status: 404, headers: { "content-type": "text/plain" } });
 }
@@ -49,11 +53,14 @@ export async function proxy(request: NextRequest) {
     case "unknown":
       return notFound();
     case "platform":
-      if (url.pathname === SITES_PREFIX || url.pathname.startsWith(`${SITES_PREFIX}/`)) return notFound();
+      if (hasPrefix(url.pathname, SITES_PREFIX)) return notFound();
+      if (hasPrefix(url.pathname, "/api")) return NextResponse.next();
       return intl(request);
     case "tenant": {
+      // La connexion n'existe que sur le domaine principal.
+      if (hasPrefix(url.pathname, "/api/auth")) return notFound();
       // L'espace gérante est centralisé sur le domaine principal (décision n° 2).
-      if (url.pathname === "/espace" || url.pathname.startsWith("/espace/")) {
+      if (hasPrefix(url.pathname, "/espace")) {
         return NextResponse.redirect(`${platformOrigin(request)}${url.pathname}${url.search}`, 307);
       }
       const route = await routeTenantHost(host.hostname, url, lookup);
@@ -61,6 +68,7 @@ export async function proxy(request: NextRequest) {
       if (route.kind === "redirect") {
         return NextResponse.redirect(isProduction ? route.location : devLocation(route.location, url), 301);
       }
+      if (hasPrefix(url.pathname, "/api")) return NextResponse.next();
       const target = url.clone();
       target.pathname = `${SITES_PREFIX}/${route.tenantId}${url.pathname === "/" ? "" : url.pathname}`;
       return NextResponse.rewrite(target);
@@ -80,6 +88,6 @@ function devLocation(location: string, url: URL): string {
 }
 
 export const config = {
-  // Tout sauf les fichiers techniques, les routes d'API et les fichiers avec extension.
-  matcher: ["/((?!api|_next|_vercel|.*\\..*).*)"],
+  // Tout sauf les fichiers techniques de Next.js et les fichiers avec extension.
+  matcher: ["/((?!_next|_vercel|.*\\..*).*)"],
 };

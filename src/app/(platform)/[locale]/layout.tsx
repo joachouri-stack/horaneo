@@ -5,6 +5,7 @@ import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { env } from "@/config/env";
 import { routing } from "@/i18n/routing";
+import { resolveLocale } from "@/i18n/translator";
 import "../../globals.css";
 
 const nunito = Nunito({
@@ -19,7 +20,7 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: LayoutProps<"/[locale]">): Promise<Metadata> {
-  const { locale } = await params;
+  const locale = resolveLocale((await params).locale);
   const t = await getTranslations({ locale, namespace: "metadata" });
   const product = env().PRODUCT_NAME;
   return {

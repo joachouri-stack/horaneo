@@ -4,9 +4,10 @@ import postgres from "postgres";
 /**
  * Crée (ou met à jour) le rôle de connexion utilisé par l'application.
  *
- * Ce rôle n'hérite d'aucun droit : pour lire ou écrire, l'application doit
- * choisir explicitement app_tenant (un seul tenant) ou app_platform (admin)
- * dans chaque transaction. Voir src/db/access.ts.
+ * Ce rôle n'hérite que des droits de connexion (app_auth, utilisé par Better
+ * Auth). Pour toute donnée métier, l'application doit choisir explicitement
+ * app_tenant (un seul tenant) ou app_platform (admin) dans chaque
+ * transaction. Voir src/db/access.ts.
  *
  * Utilise DATABASE_URL (propriétaire de la base) pour créer le rôle décrit
  * par APP_DATABASE_URL (nom d'utilisateur et mot de passe).
@@ -39,6 +40,10 @@ export async function setupRuntimeRole(ownerUrl: string, appUrl: string) {
     const [{ grant }] = await sql<{ grant: string }[]>`
       SELECT format('GRANT app_tenant, app_platform TO %I WITH INHERIT FALSE, SET TRUE', ${username}::text) AS grant`;
     await sql.unsafe(grant);
+    // Seul droit hérité automatiquement : les tables de connexion (Better Auth).
+    const [{ authGrant }] = await sql<{ authGrant: string }[]>`
+      SELECT format('GRANT app_auth TO %I WITH INHERIT TRUE, SET FALSE', ${username}::text) AS "authGrant"`;
+    await sql.unsafe(authGrant);
   } finally {
     await sql.end();
   }

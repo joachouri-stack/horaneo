@@ -3,7 +3,7 @@
 SaaS multi-tenant : chaque professionnel travaillant sur rendez-vous reçoit son propre site web, avec réservation et paiement d'acompte en ligne.
 
 - Brief et décisions : [`docs/01-base-de-donnees.md`](docs/01-base-de-donnees.md)
-- Avancement : étape 2 sur 14 (multi-tenant : reconnaissance du domaine, isolation des données)
+- Avancement : étape 3 sur 14 (connexion : Google, Apple, lien magique ; rôles gérante et administratrice)
 
 ## Technologies
 
@@ -36,6 +36,9 @@ pnpm db:seed
 
 # 5. (facultatif) Un institut de démonstration : http://institut-demo.localhost:3000
 pnpm db:seed-demo
+
+# 6. (facultatif) Se donner le statut d'administratrice
+pnpm admin:grant votre@email.fr
 ```
 
 ## Lancer
@@ -119,6 +122,27 @@ Les tests `tests/db/isolation.test.ts` créent deux tenants avec une ligne dans 
 
 **Règle pour toute nouvelle table portant un `tenant_id`** : dans sa migration, activer et forcer les règles par ligne, ajouter les deux règles `tenant_isolation` et `platform_access`, accorder les droits voulus à `app_tenant` et à `app_platform`, puis mettre à jour `EXPECTED_TENANT_GRANTS` dans le test. Les tests échouent tant que ce n'est pas fait.
 
+## Connexion et rôles
+
+La connexion se fait sans mot de passe, sur `horaneo.com/fr/connexion` :
+
+- **Lien magique** par e-mail, valable 15 minutes et utilisable une seule fois. En développement, sans clé Brevo, le lien s'affiche dans le terminal.
+- **Google** : le bouton apparaît dès que `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET` sont renseignés. Dans la console Google Cloud, l'adresse de retour à déclarer est `https://horaneo.com/api/auth/callback/google`.
+- **Apple** : même principe avec `APPLE_CLIENT_ID` et `APPLE_CLIENT_SECRET`. Tant qu'ils sont vides, le bouton est masqué et rien d'autre n'est bloqué.
+
+Une même adresse e-mail donne toujours le même compte, quel que soit le moyen de connexion utilisé.
+
+| Rôle            | Comment on l'obtient                                                                 | Où           |
+| --------------- | ------------------------------------------------------------------------------------ | ------------ |
+| Gérante         | être rattachée à un établissement (table `memberships`, créée par l'administratrice) | `/fr/espace` |
+| Administratrice | `pnpm admin:grant email` sur le serveur, jamais depuis le site                       | `/fr/admin`  |
+
+**Espace admin** : à la première connexion, l'administratrice active la double vérification en scannant un QR code avec une application d'authentification (Google Authenticator…). Elle reçoit aussi 8 codes de secours. Ensuite, un code à 6 chiffres est demandé à chaque nouvelle session, puis toutes les 12 heures. Une personne qui n'est pas administratrice reçoit une page « introuvable ». Connexions, échecs et activations sont journalisés.
+
+**Limitation des tentatives** : 5 liens magiques par adresse IP toutes les 15 minutes, et 5 codes de double vérification toutes les 5 minutes. Derrière Cloudflare, mettre `CLIENT_IP_HEADERS=cf-connecting-ip`.
+
+**Protection dans la base** : Better Auth utilise un rôle (`app_auth`) limité aux tables de connexion. Un garde-fou dans la base l'empêche de donner le statut d'administratrice ou de valider une double vérification.
+
 ## Autres garde-fous de la base de données
 
 Ces règles sont vérifiées par les tests (`tests/db/`) :
@@ -133,6 +157,7 @@ Ces règles sont vérifiées par les tests (`tests/db/`) :
 Le déploiement complet (image Docker, sauvegardes horaires vers R2, alertes, procédure de restauration) sera finalisé aux étapes 12 et 13. Le principe :
 
 1. Dans Coolify, créer une base **PostgreSQL 16** sans port public.
-2. Créer une application reliée au dépôt GitHub (branche `main`). Renseigner les variables de `.env.example`, avec l'adresse interne de la base dans `DATABASE_URL` (propriétaire) et `APP_DATABASE_URL` (rôle `app_runtime`, avec un long mot de passe aléatoire).
+2. Créer une application reliée au dépôt GitHub (branche `main`). Renseigner les variables de `.env.example`, avec l'adresse interne de la base dans `DATABASE_URL` (propriétaire) et `APP_DATABASE_URL` (rôle `app_runtime`, avec un long mot de passe aléatoire), ainsi que `BETTER_AUTH_SECRET` (`openssl rand -base64 32`) et `BREVO_API_KEY`.
 3. Commande de construction : `pnpm install --frozen-lockfile && pnpm build`. Avant chaque mise en ligne : `pnpm db:migrate && pnpm db:roles`. Démarrage : `pnpm start`.
 4. Pointer `horaneo.com` et `horaneo.fr` vers l'application. `horaneo.fr` redirige automatiquement vers `horaneo.com/fr`.
+5. Se donner le statut d'administratrice depuis le terminal Coolify : `pnpm admin:grant votre@email.fr`.
