@@ -253,3 +253,13 @@ Je préfère vous les signaler plutôt que deviner. Pour chacun, une proposition
 - **Carte uniquement** (Apple Pay et Google Pay compris) : les moyens de paiement lents (prélèvement SEPA…) sont exclus car incompatibles avec la réservation du créneau pendant 10 minutes.
 - **Frais Stripe** : prélevés sur le compte du professionnel ; Stripe ne les rend pas en cas de remboursement.
 - **Code promo et annulation** : une utilisation de code n'est pas rendue quand le rendez-vous est annulé (comme le quota Basic).
+
+## 8. Décisions de l'étape 9 (messages)
+
+- **`message_log` devient une file d'envoi** (migration 0009) : ajout de `data` (informations du message), `dedupe_key` (unique : jamais deux fois le même message), `attempts` et `next_attempt_at` (réessais), statut `skipped` ; le destinataire est renseigné à l'envoi.
+- **Lien de gestion recalculable** : dérivé de l'identifiant du rendez-vous et de la clé secrète (HMAC), seule son empreinte est stockée.
+- **Ajouts manuels** : la cliente reçoit aussi la confirmation et les rappels si son e-mail ou son téléphone est connu ; la gérante n'est pas alertée de ses propres ajouts.
+- **Report par la cliente** : la gérante est prévenue (comme pour une annulation).
+- **Résumé du lendemain** : envoyé vers 19 h seulement s'il y a au moins un rendez-vous.
+- **E-mails aux gérantes** : au nom du SaaS ; ceux aux clientes, au nom de l'établissement.
+- **Tâche planifiée** : tâche Coolify toutes les 5 minutes qui appelle une adresse protégée par un secret (pas de service supplémentaire).

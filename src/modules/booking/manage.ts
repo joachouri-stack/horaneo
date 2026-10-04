@@ -3,11 +3,12 @@ import type { Transaction } from "@/db/client";
 import { appointmentItems, appointments, staffMembers } from "@/db/schema";
 import { pickLocalized, type Locale } from "@/i18n/locales";
 import { AppError } from "@/modules/errors";
+import { queueMessage } from "@/modules/messages/queue";
 import { moveDeposit } from "@/modules/payments/deposits";
 import type { PaymentGateway } from "@/modules/payments/gateway";
 import { refundDeposit } from "@/modules/payments/refunds";
 import { getSlotsForRange, loadBookingContext } from "./availability";
-import { hashManageToken, newManageToken } from "./create";
+import { assignManageToken, hashManageToken } from "./create";
 import { addMinutes, utcToLocal } from "./time";
 
 /**
@@ -97,9 +98,18 @@ export async function cancelByCustomer(
     reason: "customer_cancelled",
     now,
   });
+  const appointment = managed.appointment;
+  await queueMessage(tx, {
+    tenantId,
+    template: "customer.cancelled",
+    appointmentId: appointment.id,
+    locale: appointment.locale,
+    data: { by: "customer", refundedCents: refund?.amountCents ?? 0 },
+  });
+  await queueMessage(tx, { tenantId, template: "manager.cancelled", appointmentId: appointment.id });
   return {
-    appointmentId: managed.appointment.id,
-    depositCents: managed.appointment.depositCents,
+    appointmentId: appointment.id,
+    depositCents: appointment.depositCents,
     refundedCents: refund?.amountCents ?? 0,
   };
 }
@@ -151,7 +161,6 @@ export async function rescheduleByCustomer(
 
   const duration = (old.endsAt.getTime() - old.startsAt.getTime()) / 60000;
   const buffer = (old.blockedUntil.getTime() - old.endsAt.getTime()) / 60000;
-  const manage = newManageToken();
   const [created] = await insertOrSlotTaken(() =>
     tx
       .insert(appointments)
@@ -169,13 +178,13 @@ export async function rescheduleByCustomer(
         depositCents: old.depositCents,
         currency: old.currency,
         promoCodeId: old.promoCodeId,
-        manageTokenHash: manage.hash,
         rescheduledFromId: old.id,
         locale: old.locale,
         customerNote: old.customerNote,
       })
       .returning(),
   );
+  const manageToken = await assignManageToken(tx, created.id);
   await moveDeposit(tx, tenantId, old.id, created.id);
   const items = await tx.select().from(appointmentItems).where(eq(appointmentItems.appointmentId, old.id));
   await tx.insert(appointmentItems).values(
@@ -190,5 +199,18 @@ export async function rescheduleByCustomer(
       priceCents: item.priceCents,
     })),
   );
-  return { appointmentId: created.id, manageToken: manage.token, startsAt: created.startsAt, staffId };
+  await queueMessage(tx, {
+    tenantId,
+    template: "customer.rescheduled",
+    appointmentId: created.id,
+    locale: created.locale,
+    data: { previousStartsAt: old.startsAt.toISOString() },
+  });
+  await queueMessage(tx, {
+    tenantId,
+    template: "manager.rescheduled",
+    appointmentId: created.id,
+    data: { previousStartsAt: old.startsAt.toISOString() },
+  });
+  return { appointmentId: created.id, manageToken, startsAt: created.startsAt, staffId };
 }

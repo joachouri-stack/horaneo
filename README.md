@@ -3,7 +3,7 @@
 SaaS multi-tenant : chaque professionnel travaillant sur rendez-vous reçoit son propre site web, avec réservation et paiement d'acompte en ligne.
 
 - Brief et décisions : [`docs/01-base-de-donnees.md`](docs/01-base-de-donnees.md)
-- Avancement : étape 8 sur 14 (paiement des acomptes et remboursements)
+- Avancement : étape 9 sur 14 (messages automatiques : e-mails, SMS, tâche planifiée)
 
 ## Technologies
 
@@ -170,7 +170,7 @@ Adresse : `horaneo.com/fr/admin` (administratrice avec double vérification).
 
 - Formats acceptés : JPEG, PNG, WebP, HEIC et AVIF, plus SVG pour le logo. Taille maximale : 10 Mo.
 - Chaque photo est vérifiée (son vrai format, pas seulement son nom), redressée, débarrassée de ses données cachées (position GPS…), redimensionnée et convertie en WebP.
-- Une photo retirée est conservée 7 jours (réglage `replaced_asset_retention_days`) et peut être restaurée. La suppression définitive des fichiers sera faite par une tâche planifiée (étape 9).
+- Une photo retirée est conservée 7 jours (réglage `replaced_asset_retention_days`) et peut être restaurée. Ensuite, la tâche planifiée la supprime définitivement.
 - Stockage : un dossier local `storage/` en développement, servi par `/media/…`. En production : Cloudflare R2 (variables `R2_*`, et `R2_PUBLIC_URL` pour un domaine public comme `media.horaneo.com`).
 
 ## Sites des clients
@@ -208,7 +208,7 @@ Parcours sur le site du client (`/reserver`), **sans compte**, en 4 étapes : pr
 - Le créneau est **recalculé sur le serveur** au moment de réserver. La base refuse deux rendez-vous qui se chevauchent pour un même membre, même si deux clientes valident à la même seconde.
 - **Pack Basic** : 5 réservations en ligne par mois, comptées au mois où elles sont prises (une annulation ne libère pas de place ; un report ne compte pas). Le compteur est atomique. Une fois la limite atteinte, la page affiche le téléphone, sans message d'erreur. Les ajouts manuels de la gérante ne comptent pas.
 - **Acompte** (packs avec paiement en ligne) : 30 % ou montant fixe, calculé sur le total (après code promo). Le créneau est retenu 10 minutes, puis libéré si le paiement n'aboutit pas (voir « Paiements des acomptes »).
-- **Gestion par lien** : après la réservation, la cliente reçoit un lien personnel (`/rendez-vous/<jeton>`, jamais indexé). Il permet d'annuler ou de déplacer jusqu'au délai ; un report conserve l'acompte. Seule une empreinte du jeton est stockée. L'envoi de ce lien par e-mail arrive à l'étape 9.
+- **Gestion par lien** : après la réservation, la cliente reçoit un lien personnel (`/rendez-vous/<jeton>`, jamais indexé). Il permet d'annuler ou de déplacer jusqu'au délai ; un report conserve l'acompte. Seule une empreinte du jeton est stockée. Ce lien figure dans la confirmation et les rappels envoyés par e-mail.
 - Fiche cliente retrouvée par l'e-mail (même établissement). Consentement aux offres facultatif et décoché par défaut.
 - Anti-abus : nombre de tentatives limité par adresse IP, champ piège contre les robots. Le tenant est recalculé à partir du domaine, jamais fourni par le visiteur.
 - Les fuseaux horaires et les changements d'heure sont gérés : les heures affichées sont celles de l'établissement.
@@ -252,6 +252,41 @@ L'argent va **directement sur le compte Stripe du professionnel** (comptes Strip
 
 Packs avec l'option « codes promo » : « Plus → Codes promo » (pourcentage ou montant, dates de validité, nombre d'utilisations). Le champ n'apparaît sur le site que s'il existe un code actif. La réduction s'applique au total, l'acompte est calculé ensuite. Le nombre d'utilisations est respecté même si deux clientes valident en même temps. Un code déjà utilisé est désactivé plutôt que supprimé. Les essais de codes sont limités par adresse IP.
 
+## Messages automatiques (e-mails et SMS)
+
+Envoyés par **Brevo**. Les messages aux clientes partent **au nom de l'établissement** (son nom comme expéditeur, sa couleur, ses coordonnées ; une réponse arrive directement chez lui), dans la langue de la cliente. Ceux destinés aux gérantes partent au nom du SaaS.
+
+| Message                                                                | Destinataire | Quand                                                           |
+| ---------------------------------------------------------------------- | ------------ | --------------------------------------------------------------- |
+| Confirmation, avec le lien « gérer mon rendez-vous »                   | cliente      | dès la réservation (après paiement de l'acompte s'il y en a un) |
+| Rappel par e-mail                                                      | cliente      | 24 h avant (sauf rendez-vous pris moins de 24 h avant)          |
+| Rappel par SMS (packs avec SMS)                                        | cliente      | la veille à 18 h, un seul par rendez-vous                       |
+| Annulation (avec remboursement éventuel), report, changement d'horaire | cliente      | aussitôt                                                        |
+| Paiement arrivé trop tard et remboursé                                 | cliente      | aussitôt                                                        |
+| Nouvelle réservation, annulation, report                               | gérante      | aussitôt (réservations en ligne)                                |
+| Résumé du lendemain                                                    | gérante      | chaque soir vers 19 h, s'il y a des rendez-vous (désactivable)  |
+| Bilan du mois                                                          | gérante      | le 1er vers 8 h (packs qui l'incluent, désactivable)            |
+| Avant-dernière et dernière réservation du mois                         | gérante      | pack Basic, à la 4e et à la 5e réservation                      |
+
+- **File d'envoi** : chaque message est enregistré dans la même transaction que l'action qui le déclenche (réservation, annulation…), puis envoyé dans les secondes qui suivent. Son contenu est préparé au moment de l'envoi avec les données à jour : un rappel n'est pas envoyé pour un rendez-vous annulé entre-temps. En cas d'échec, nouvel essai après 2, 8, 18, 32 minutes, puis abandon (5 essais).
+- **Jamais en double** : chaque message a une clé unique (ex. un seul rappel SMS par rendez-vous, un seul résumé par jour).
+- **SMS** : comptés par établissement et par mois ; au-delà du quota du pack, l'envoi est bloqué (visible sur la fiche du rendez-vous). L'expéditeur est le nom de l'établissement (11 caractères sans accent).
+- **Lien « gérer mon rendez-vous »** : calculé à partir de l'identifiant du rendez-vous et de la clé secrète du serveur ; il peut ainsi figurer dans chaque message sans être stocké en clair. Changer `BETTER_AUTH_SECRET` rend les anciens liens inutilisables.
+- La gérante voit sur la fiche d'un rendez-vous les messages envoyés à la cliente et leur état.
+- Heures et délais : réglages `sms_reminder_time`, `email_reminder_hours_before`, `daily_summary_time`, `monthly_summary_time`, `message_max_attempts`.
+- **Sans clé Brevo** en développement, e-mails et SMS s'affichent dans le terminal de `pnpm dev`.
+
+### Tâche planifiée
+
+Toutes les 5 minutes, `/api/cron/tick` (protégé par `CRON_SECRET`) :
+
+- libère les créneaux retenus pour un paiement qui n'a pas abouti ;
+- prépare les rappels et les résumés ;
+- envoie les messages en attente ou à réessayer ;
+- supprime définitivement les photos remplacées depuis plus de 7 jours.
+
+Chaque étape peut être rejouée sans risque. En local : `pnpm jobs:tick` (le serveur doit tourner).
+
 ## Autres garde-fous de la base de données
 
 Ces règles sont vérifiées par les tests (`tests/db/`) :
@@ -270,3 +305,7 @@ Le déploiement complet (image Docker, sauvegardes horaires vers R2, alertes, pr
 3. Commande de construction : `pnpm install --frozen-lockfile && pnpm build`. Avant chaque mise en ligne : `pnpm db:migrate && pnpm db:roles`. Démarrage : `pnpm start`.
 4. Pointer `horaneo.com` et `horaneo.fr` vers l'application. `horaneo.fr` redirige automatiquement vers `horaneo.com/fr`.
 5. Se donner le statut d'administratrice depuis le terminal Coolify : `pnpm admin:grant votre@email.fr`.
+6. **Tâche planifiée** : dans Coolify, onglet « Scheduled Tasks » de l'application, ajouter une tâche toutes les 5 minutes (`*/5 * * * *`) avec la commande :
+   `curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/tick`
+   (`CRON_SECRET` : `openssl rand -base64 32`, à mettre aussi dans les variables de l'application.)
+7. **Brevo** : vérifier le domaine d'envoi (enregistrements DNS SPF et DKIM fournis par Brevo, dans Cloudflare), puis acheter des crédits SMS.

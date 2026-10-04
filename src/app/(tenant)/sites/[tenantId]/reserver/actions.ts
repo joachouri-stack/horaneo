@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { withTenant } from "@/db/access";
+import { sendQueuedSoon } from "@/lib/jobs/tick";
 import { paymentGateway } from "@/lib/payments/stripe";
 import { currentSiteTenant, publicLimits } from "@/lib/site/current";
 import {
@@ -146,6 +147,7 @@ export async function bookAction(raw: z.input<typeof bookInput>): Promise<Public
         { allowDraft: site.preview, gateway: paymentGateway() },
       );
       const context = await loadBookingContext(tx, site.tenantId);
+      sendQueuedSoon();
       return {
         status: result.status as BookingConfirmation["status"],
         startsAt: result.startsAt.toISOString(),
@@ -204,6 +206,7 @@ export async function confirmPaymentAction(
       if (!managed) throw new AppError("not_found");
       await syncDeposit(tx, site.tenantId, managed.appointment.id, paymentGateway());
       const after = await findByManageToken(tx, site.tenantId, token);
+      sendQueuedSoon();
       const status = after?.appointment.status;
       return { status: status === "confirmed" || status === "pending_payment" ? status : "other" };
     });
@@ -227,6 +230,7 @@ export async function cancelAction(
       const context = await loadBookingContext(tx, site.tenantId);
       return { ...cancelled, currency: context.tenant.currency };
     });
+    sendQueuedSoon();
     return { cancelled: true as const, refundedCents: result.refundedCents, currency: result.currency };
   });
 }
@@ -250,6 +254,7 @@ export async function rescheduleAction(
         staffId: input.staffId,
       }),
     );
+    sendQueuedSoon();
     return { manageToken: result.manageToken, startsAt: result.startsAt.toISOString() };
   });
 }

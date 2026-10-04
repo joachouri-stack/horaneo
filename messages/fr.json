@@ -735,7 +735,25 @@
       "depositRefundPending": "Remboursement en cours : {amount}",
       "refund": "Rembourser l'acompte ({amount})",
       "refundHint": "Le remboursement part immédiatement sur la carte de la cliente (5 à 10 jours pour apparaître). Sans remboursement, l'acompte reste acquis.",
-      "discount": "Réduction : {amount}"
+      "discount": "Réduction : {amount}",
+      "messages": "Messages à la cliente",
+      "messageStatus": {
+        "queued": "en attente",
+        "sent": "envoyé",
+        "delivered": "reçu",
+        "failed": "échec",
+        "blocked_quota": "non envoyé (quota de SMS atteint)",
+        "skipped": "non envoyé"
+      },
+      "messageTemplate": {
+        "customer_confirmation": "Confirmation (e-mail)",
+        "customer_reminder_email": "Rappel (e-mail)",
+        "customer_reminder_sms": "Rappel (SMS)",
+        "customer_cancelled": "Annulation (e-mail)",
+        "customer_rescheduled": "Report (e-mail)",
+        "customer_moved": "Changement d'horaire (e-mail)",
+        "customer_payment_refunded": "Remboursement (e-mail)"
+      }
     },
     "manual": {
       "title": "Nouveau rendez-vous",
@@ -895,8 +913,8 @@
       "depositValue": "Valeur (% ou €)",
       "depositUnavailable": "L'acompte en ligne n'est pas inclus dans votre pack.",
       "summaries": "Résumés par e-mail",
-      "daily": "Résumé du lendemain, chaque soir",
-      "monthly": "Résumé mensuel, le 1er du mois",
+      "daily": "Résumé du lendemain, chaque soir vers 19 h",
+      "monthly": "Bilan du mois, le 1er vers 8 h",
       "depositNeedsStripe": "L'acompte ne sera demandé qu'une fois votre compte Stripe actif.",
       "depositStripeLink": "Ouvrir mon compte Stripe",
       "depositRefundRule": "Remboursé automatiquement si la cliente annule dans le délai ; conservé sinon ou en cas d'absence."
@@ -976,6 +994,111 @@
       "until": "Jusqu'au {until}",
       "delete": "Supprimer",
       "deleteConfirm": "Supprimer ce code ? S'il a déjà servi, il sera seulement désactivé."
+    }
+  },
+  "notifications": {
+    "common": {
+      "hello": "Bonjour {name},",
+      "date": "Date",
+      "with": "Avec",
+      "services": "Prestations",
+      "total": "Total",
+      "depositPaid": "Acompte payé",
+      "discount": "Réduction",
+      "manage": "Gérer mon rendez-vous",
+      "manageHint": "Vous pouvez annuler ou déplacer gratuitement ce rendez-vous jusqu'au {deadline}.",
+      "tooLateHint": "Pour toute modification, contactez directement l'établissement.",
+      "rebook": "Prendre un nouveau rendez-vous",
+      "refund": "L'acompte de {amount} vous est remboursé. Il apparaîtra sur votre compte sous 5 à 10 jours.",
+      "noRefund": "L'acompte versé reste acquis à l'établissement.",
+      "when": "{date} à {time}",
+      "contact": "Une question ? Répondez simplement à cet e-mail ou appelez le {phone}.",
+      "contactEmail": "Une question ? Répondez simplement à cet e-mail.",
+      "managerFooter": "Message automatique envoyé par {product}.",
+      "openSpace": "Ouvrir mon espace",
+      "summaryFooter": "Vous pouvez couper les résumés dans Plus → Réglages."
+    },
+    "customer": {
+      "confirmation": {
+        "subject": "Votre rendez-vous du {date} est confirmé",
+        "title": "Rendez-vous confirmé",
+        "intro": "Votre rendez-vous chez {business} est bien enregistré."
+      },
+      "reminder_email": {
+        "subject": "Rappel : votre rendez-vous du {date} à {time}",
+        "title": "À très bientôt !",
+        "intro": "Petit rappel de votre rendez-vous chez {business}."
+      },
+      "reminder_sms": {
+        "text": "Rappel : rendez-vous demain à {time} chez {business}.",
+        "phone": " Empêchement : {phone}"
+      },
+      "cancelled": {
+        "subject": "Votre rendez-vous du {date} est annulé",
+        "title": "Rendez-vous annulé",
+        "byCustomer": "Votre rendez-vous chez {business} du {when} est bien annulé.",
+        "byEstablishment": "{business} a dû annuler votre rendez-vous du {when}. Toutes nos excuses pour ce contretemps."
+      },
+      "rescheduled": {
+        "subject": "Votre rendez-vous est déplacé au {date}",
+        "title": "Rendez-vous déplacé",
+        "intro": "Votre rendez-vous chez {business} est déplacé. Ancien créneau : {previous}."
+      },
+      "moved": {
+        "subject": "Nouvel horaire pour votre rendez-vous du {date}",
+        "title": "Votre rendez-vous a changé d'horaire",
+        "intro": "{business} a déplacé votre rendez-vous (ancien créneau : {previous}). Voici le nouveau créneau :"
+      },
+      "payment_refunded": {
+        "subject": "Votre acompte vous est remboursé",
+        "title": "Créneau plus disponible",
+        "intro": "Votre paiement chez {business} est arrivé après la fin du délai de réservation, et le créneau a été pris entre-temps. Toutes nos excuses."
+      }
+    },
+    "manager": {
+      "new_booking": {
+        "subject": "Nouvelle réservation : {customer}, {when}",
+        "title": "Nouvelle réservation",
+        "intro": "{customer} a réservé en ligne."
+      },
+      "cancelled": {
+        "subject": "Annulation : {customer}, {when}",
+        "title": "Rendez-vous annulé par la cliente",
+        "intro": "{customer} a annulé son rendez-vous du {when}.",
+        "refund": "L'acompte de {amount} lui a été remboursé automatiquement."
+      },
+      "rescheduled": {
+        "subject": "Rendez-vous déplacé : {customer}, {when}",
+        "title": "Rendez-vous déplacé par la cliente",
+        "intro": "{customer} a déplacé son rendez-vous (ancien créneau : {previous})."
+      },
+      "daily_summary": {
+        "subject": "Demain : {count, plural, one {# rendez-vous} other {# rendez-vous}}",
+        "title": "Vos rendez-vous de demain",
+        "intro": "{date} :",
+        "line": "{time} · {customer} · {services} · avec {staff}",
+        "open": "Voir l'agenda"
+      },
+      "monthly_summary": {
+        "subject": "Votre bilan de {month}",
+        "title": "Bilan de {month}",
+        "appointments": "Rendez-vous",
+        "online": "dont réservés en ligne",
+        "revenue": "Chiffre d'affaires",
+        "newCustomers": "Nouvelles clientes",
+        "cancelled": "Annulations",
+        "noShows": "Absences",
+        "top": "Prestations les plus demandées",
+        "open": "Voir les statistiques"
+      },
+      "basic_quota": {
+        "subjectAlmost": "Plus qu'une réservation en ligne ce mois-ci",
+        "subjectReached": "Limite de réservations en ligne atteinte",
+        "almost": "Vous avez reçu {used} réservations en ligne sur les {limit} comprises dans votre pack ce mois-ci.",
+        "reached": "Vous avez atteint les {limit} réservations en ligne de votre pack ce mois-ci. Jusqu'à la fin du mois, votre site affiche votre numéro de téléphone à la place des créneaux.",
+        "upgrade": "Pour recevoir des réservations sans limite, vous pouvez changer de pack.",
+        "open": "Voir mon abonnement"
+      }
     }
   }
 }

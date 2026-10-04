@@ -11,6 +11,7 @@ import { resolveManagerRole, type ManagerRole } from "./role";
 export { resolveManagerRole, type ManagerRole };
 import { toActionError, type ActionResult } from "@/lib/actions/result";
 import { recordAudit } from "@/lib/audit";
+import { sendQueuedSoon } from "@/lib/jobs/tick";
 import { getCurrentSession, requireSession } from "@/lib/auth/session";
 import type { Locale } from "@/i18n/locales";
 import { AppError } from "@/modules/errors";
@@ -86,6 +87,8 @@ export async function managerMutation<T>(
       );
     }
     refresh();
+    // Messages éventuels (annulation, déplacement…) envoyés tout de suite.
+    sendQueuedSoon();
     return { ok: true, data };
   } catch (error) {
     return toActionError(error);

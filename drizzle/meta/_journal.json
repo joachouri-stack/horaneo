@@ -64,6 +64,13 @@
       "when": 1791131210358,
       "tag": "0008_site_pages_published",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791136908612,
+      "tag": "0009_message_queue",
+      "breakpoints": true
     }
   ]
 }

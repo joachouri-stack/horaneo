@@ -10,30 +10,34 @@ import { env } from "@/config/env";
  */
 
 export type Email = {
-  to: string;
+  to: string | string[];
   subject: string;
   html: string;
   text: string;
   fromName?: string;
+  replyTo?: string | null;
 };
 
 export const testOutbox: Email[] = [];
 
-export async function sendEmail(email: Email): Promise<void> {
+export async function sendEmail(email: Email): Promise<{ id: string | null }> {
   const config = env();
   const fromName = email.fromName ?? config.PRODUCT_NAME;
   const fromAddress = config.EMAIL_FROM_ADDRESS ?? `no-reply@${config.MAIN_DOMAIN}`;
+  const recipients = Array.isArray(email.to) ? email.to : [email.to];
 
   if (config.NODE_ENV === "test") {
     testOutbox.push(email);
-    return;
+    return { id: null };
   }
 
   if (!config.BREVO_API_KEY) {
     if (config.NODE_ENV === "production")
       throw new Error("BREVO_API_KEY manquante : impossible d'envoyer l'e-mail.");
-    console.info(`\n📧 E-mail pour ${email.to} — ${email.subject}\n${email.text}\n`);
-    return;
+    console.info(
+      `\n📧 E-mail pour ${recipients.join(", ")} (de « ${fromName} ») — ${email.subject}\n${email.text}\n`,
+    );
+    return { id: null };
   }
 
   const response = await fetch("https://api.brevo.com/v3/smtp/email", {
@@ -45,7 +49,8 @@ export async function sendEmail(email: Email): Promise<void> {
     },
     body: JSON.stringify({
       sender: { name: fromName, email: fromAddress },
-      to: [{ email: email.to }],
+      to: recipients.map((address) => ({ email: address })),
+      replyTo: email.replyTo ? { email: email.replyTo } : undefined,
       subject: email.subject,
       htmlContent: email.html,
       textContent: email.text,
@@ -54,4 +59,6 @@ export async function sendEmail(email: Email): Promise<void> {
   if (!response.ok) {
     throw new Error(`Brevo a refusé l'e-mail (${response.status}) : ${await response.text()}`);
   }
+  const body = (await response.json().catch(() => ({}))) as { messageId?: string };
+  return { id: body.messageId ?? null };
 }

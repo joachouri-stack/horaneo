@@ -9,6 +9,7 @@ import { managerPage } from "@/lib/manager/page";
 import { getAppointmentDetail } from "@/modules/agenda/queries";
 import { loadBookingContext } from "@/modules/booking/availability";
 import { utcToLocal } from "@/modules/booking/time";
+import { customerMessagesOf } from "@/modules/messages/queue";
 import { depositSummary } from "@/modules/payments/refunds";
 import { formatPhone } from "@/modules/phone";
 import {
@@ -26,7 +27,8 @@ export default async function AppointmentPage({
   const { appointmentId } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(appointmentId)) notFound();
   const [t, tCommon] = await Promise.all([getTranslations("manager"), getTranslations("common")]);
-  const { item, staff, deposit } = await withTenant(page.tenantId, async (tx) => ({
+  const { item, staff, deposit, messages } = await withTenant(page.tenantId, async (tx) => ({
+    messages: await customerMessagesOf(tx, page.tenantId, appointmentId),
     item: await getAppointmentDetail(tx, page.tenantId, appointmentId, page.locale),
     staff: (await loadBookingContext(tx, page.tenantId)).staff,
     deposit: await depositSummary(tx, page.tenantId, appointmentId),
@@ -173,6 +175,27 @@ export default async function AppointmentPage({
           />
         </ActionForm>
       </section>
+
+      {messages.length > 0 && (
+        <section className={ui.card}>
+          <h2 className="text-sm font-semibold uppercase text-ink/60">{t("appointment.messages")}</h2>
+          <ul className="mt-2 divide-y divide-navy/10">
+            {messages.map((message) => (
+              <li key={message.id} className="flex flex-wrap justify-between gap-x-3 py-2">
+                <span>
+                  {t(
+                    `appointment.messageTemplate.${message.template.replace(".", "_")}` as "appointment.messages",
+                  )}
+                </span>
+                <span className="text-ink/70">
+                  {t(`appointment.messageStatus.${message.status}`)}
+                  {message.sentAt && ` · ${page.fmt.short(message.sentAt)} ${page.fmt.time(message.sentAt)}`}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {item.status === "confirmed" && (
         <details className={ui.card}>

@@ -12,7 +12,9 @@ import type {
  */
 export function createFakeGateway() {
   let counter = 0;
-  const next = (prefix: string) => `${prefix}_test_${(counter += 1)}`;
+  // Préfixe propre à chaque faux Stripe : plusieurs fichiers de test partagent la même base.
+  const instance = Math.random().toString(36).slice(2, 8);
+  const next = (prefix: string) => `${prefix}_test_${instance}_${(counter += 1)}`;
   const accounts = new Map<string, GatewayAccount>();
   const intents = new Map<
     string,

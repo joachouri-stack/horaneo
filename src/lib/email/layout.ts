@@ -19,7 +19,7 @@ type ActionEmail = {
 
 /**
  * Mise en page simple d'un e-mail du SaaS avec un bouton d'action.
- * Les e-mails envoyés au nom d'un établissement auront leur propre mise en page (étape 9).
+ * Les e-mails envoyés au nom d'un établissement utilisent `src/modules/messages/layout.ts`.
  */
 export function renderActionEmail({ locale, brandName, title, paragraphs, action, footer }: ActionEmail) {
   const html = `<!doctype html>

@@ -2,10 +2,11 @@ import { and, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
 import { appointmentItems, appointments, customers, services, staffServices, tenants } from "@/db/schema";
-import { newManageToken } from "@/modules/booking/create";
+import { assignManageToken } from "@/modules/booking/create";
 import { computeTotals } from "@/modules/booking/pricing";
 import { addMinutes } from "@/modules/booking/time";
 import { AppError } from "@/modules/errors";
+import { queueBookingConfirmed, queueMessage } from "@/modules/messages/queue";
 import type { PaymentGateway } from "@/modules/payments/gateway";
 import { refundDeposit } from "@/modules/payments/refunds";
 import { normalizePhone } from "@/modules/phone";
@@ -68,6 +69,13 @@ export async function cancelByManager(
   const refund = payment.refund
     ? await refundDeposit(tx, tenantId, appointment.id, payment.gateway, { reason: "manager_cancelled" })
     : null;
+  await queueMessage(tx, {
+    tenantId,
+    template: "customer.cancelled",
+    appointmentId: appointment.id,
+    locale: appointment.locale,
+    data: { by: "establishment", refundedCents: refund?.amountCents ?? 0 },
+  });
   return { depositCents: appointment.depositCents, refundedCents: refund?.amountCents ?? 0 };
 }
 
@@ -124,6 +132,18 @@ export async function moveAppointment(
       .where(eq(appointments.id, appointment.id));
   } catch (error) {
     slotTaken(error);
+  }
+  // Seul un changement d'horaire est signalé à la cliente (pas un simple changement de membre).
+  if (appointment.startsAt.getTime() !== target.start.getTime()) {
+    await queueMessage(tx, {
+      tenantId,
+      template: "customer.moved",
+      appointmentId: appointment.id,
+      locale: appointment.locale,
+      data: { previousStartsAt: appointment.startsAt.toISOString() },
+      // Plusieurs déplacements possibles : un message par nouvel horaire.
+      dedupeKey: `customer.moved:${appointment.id}:${target.start.toISOString()}`,
+    });
   }
   return { from: appointment.startsAt, to: target.start };
 }
@@ -215,7 +235,6 @@ export async function createManualAppointment(
   }
 
   const endsAt = addMinutes(input.start, totals.durationMinutes);
-  const manage = newManageToken();
   let created;
   try {
     [created] = await tx
@@ -231,7 +250,6 @@ export async function createManualAppointment(
         source: "manual",
         totalCents: totals.totalCents,
         currency: totals.currency,
-        manageTokenHash: manage.hash,
         locale: tenant.locale,
         internalNote: input.internalNote || null,
       })
@@ -239,6 +257,8 @@ export async function createManualAppointment(
   } catch (error) {
     slotTaken(error);
   }
+  await assignManageToken(tx, created!.id);
+  await queueBookingConfirmed(tx, tenantId, created!);
   await tx.insert(appointmentItems).values(
     ordered.map((service, index) => ({
       tenantId,
