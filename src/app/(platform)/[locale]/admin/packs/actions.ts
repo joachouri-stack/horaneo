@@ -23,6 +23,7 @@ export async function savePlanAction(_previous: Previous, data: FormData) {
         planId,
         {
           name: form.text(data, "name"),
+          description: form.text(data, "description"),
           price: form.text(data, "price"),
           onlineBookingsPerMonth: form.text(data, "onlineBookingsPerMonth"),
           members: form.text(data, "members"),

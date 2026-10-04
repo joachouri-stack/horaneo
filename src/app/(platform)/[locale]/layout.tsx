@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Nunito } from "next/font/google";
+import { Bricolage_Grotesque, Comfortaa, Outfit } from "next/font/google";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -8,12 +8,21 @@ import { routing } from "@/i18n/routing";
 import { resolveLocale } from "@/i18n/translator";
 import "../../globals.css";
 
-const nunito = Nunito({
-  subsets: ["latin", "cyrillic"],
-  variable: "--font-nunito",
-  weight: ["700", "800", "900"],
+const bricolage = Bricolage_Grotesque({
+  subsets: ["latin"],
+  variable: "--font-bricolage",
+  weight: ["600", "700", "800"],
 });
-const inter = Inter({ subsets: ["latin", "cyrillic"], variable: "--font-inter" });
+const outfit = Outfit({
+  subsets: ["latin"],
+  variable: "--font-outfit",
+  weight: ["400", "500", "600", "700"],
+});
+const comfortaa = Comfortaa({
+  subsets: ["latin", "cyrillic"],
+  variable: "--font-comfortaa",
+  weight: ["700"],
+});
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -35,7 +44,10 @@ export default async function PlatformLayout({ children, params }: LayoutProps<"
   setRequestLocale(locale);
 
   return (
-    <html lang={locale} className={`${nunito.variable} ${inter.variable} antialiased`}>
+    <html
+      lang={locale}
+      className={`${bricolage.variable} ${outfit.variable} ${comfortaa.variable} scroll-smooth antialiased`}
+    >
       <body className="saas min-h-dvh">
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
       </body>

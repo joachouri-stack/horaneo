@@ -3,15 +3,21 @@ import { connection } from "next/server";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PlatformFooter } from "@/components/layout/PlatformFooter";
 import { PlatformHeader } from "@/components/layout/PlatformHeader";
-import { PhoneMockup } from "@/components/marketing/PhoneMockup";
-import { ui } from "@/components/ui/styles";
+import Image from "next/image";
+import {
+  ArrowIcon,
+  BrowserIcon,
+  CalendarCheckIcon,
+  CheckIcon,
+  EuroIcon,
+  PlusIcon,
+} from "@/components/marketing/icons";
+import { PlanCards } from "@/components/marketing/PlanCards";
 import { env, publicAppUrl } from "@/config/env";
 import { withPlatform } from "@/db/access";
-import { pickLocalized } from "@/i18n/locales";
-import { Link } from "@/i18n/navigation";
 import { ENABLED_LOCALES } from "@/i18n/enabled";
 import { resolveLocale } from "@/i18n/translator";
-import { listPublicPlans, planHighlights } from "@/modules/billing/plans";
+import { listPublicPlans } from "@/modules/billing/plans";
 import { getPlatformSetting } from "@/modules/settings";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]">): Promise<Metadata> {
@@ -33,181 +39,317 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">): Prom
   };
 }
 
-type CompareRow = { figure: string; without: string; with: string };
-type Item = { title: string; text: string };
 type Faq = { q: string; a: string };
 
+const TITLE = "font-display font-bold tracking-[-0.03em] text-night";
+const BADGE = "inline-block rounded-full bg-blush px-3.5 py-1.5 text-[0.9rem] font-medium text-rust";
+const PRIMARY =
+  "inline-flex items-center gap-2.5 rounded-full bg-brick px-[1.9rem] py-[1.05rem] text-[1.1rem] font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-[0_12px_26px_rgba(212,64,47,.32)]";
+
 /**
- * Site commercial : accroche et visuel de réservation, comparatif, fonctions,
- * packs (lus dans la base), questions fréquentes. Pensé d'abord pour le téléphone.
+ * Site commercial : accroche et exemple de réservation, métiers, trois étapes,
+ * packs (lus dans la base), questions fréquentes, appel final.
+ * Pensé d'abord pour le téléphone.
  */
 export default async function HomePage({ params }: PageProps<"/[locale]">) {
   await connection();
   const locale = resolveLocale((await params).locale);
   setRequestLocale(locale);
-  const [t, tPlans] = await Promise.all([getTranslations("home"), getTranslations("manager.subscription")]);
-  const product = env().PRODUCT_NAME;
+  const t = await getTranslations("home");
+  const config = env();
   const data = await withPlatform(async (tx) => ({
     plans: await listPublicPlans(tx),
     display: await getPlatformSetting(tx, "prices_display"),
     commission: Number(await getPlatformSetting(tx, "deposit_commission_percent")),
     commitment: Number(await getPlatformSetting(tx, "commitment_months")),
     setupFee: Number(await getPlatformSetting(tx, "setup_fee_cents")),
-    days: Number(await getPlatformSetting(tx, "go_live_delay_days")),
   }));
+  const percent = data.commission;
   const money = (cents: number) =>
     new Intl.NumberFormat(locale, { style: "currency", currency: "EUR" }).format(cents / 100);
-  const fill = (text: string) =>
-    text
-      .replaceAll("{product}", product)
-      .replaceAll("{percent}", String(data.commission))
-      .replaceAll("{days}", String(data.days))
-      .replaceAll("{commitment}", t("plans.commitment", { months: data.commitment }));
-  const rows = t.raw("compare.rows") as CompareRow[];
-  const features = t.raw("features.items") as Item[];
   const faq = t.raw("faq.items") as Faq[];
-  // Le pack mis en avant : le payant le moins cher.
-  const highlighted = data.plans.find((plan) => plan.priceCents > 0)?.id;
+  const demo = {
+    days: t.raw("demo.days") as string[],
+    times: t.raw("demo.times") as string[],
+  };
+  const contact = config.SUPPORT_EMAIL ?? `support@${config.MAIN_DOMAIN}`;
+  const steps = [
+    { key: "create", Icon: BrowserIcon, accent: false },
+    { key: "book", Icon: CalendarCheckIcon, accent: true },
+    { key: "cash", Icon: EuroIcon, accent: false },
+  ] as const;
 
   return (
-    <>
+    <div className="text-[1.05rem] leading-[1.55] text-body">
       <PlatformHeader />
       <main id="contenu">
-        <section className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-12 md:grid-cols-[1.2fr_1fr] md:py-20">
-          <div>
-            <h1 className="text-4xl font-extrabold leading-tight sm:text-5xl">{t("title")}</h1>
-            <p className="mt-6 max-w-2xl text-lg text-ink/85">{t("subtitle")}</p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link href="/commander" className={`${ui.primaryButton} sm:w-auto`}>
+        {/* Accroche */}
+        <section className="mx-auto flex max-w-6xl flex-wrap items-center gap-14 overflow-hidden px-4 pb-24 pt-10 sm:px-6">
+          <div className="hn-up flex-[1_1_27rem]">
+            <p className={`${BADGE} mb-6`}>{t("badge")}</p>
+            <h1
+              className={`${TITLE} mb-[1.4rem] text-[2.6rem] leading-none tracking-[-0.035em] sm:text-[3.9rem]`}
+            >
+              {t("title")}
+              <br />
+              <span className="text-brick underline decoration-blush-strong decoration-[0.16em] underline-offset-[0.12em]">
+                {t("titleAccent")}
+              </span>
+            </h1>
+            <p className="mb-9 max-w-[31rem] text-xl">{t("subtitle")}</p>
+            <div className="mb-8 flex flex-wrap items-center gap-6">
+              <a href="#tarifs" className={PRIMARY}>
                 {t("cta")}
-              </Link>
-              <a href="#packs" className={`${ui.secondaryButton} sm:w-auto`}>
+                <ArrowIcon className="size-5" />
+              </a>
+              <a
+                href="#tarifs"
+                className="font-medium text-night underline transition-colors hover:text-brick"
+              >
                 {t("seePlans")}
               </a>
             </div>
-            <p className="mt-4 text-sm text-ink/70">{t("reassurance")}</p>
+            <ul className="flex flex-wrap gap-x-6 gap-y-2.5 text-[0.98rem]">
+              {[t("promises.commission", { percent }), t("promises.domain"), t("promises.install")].map(
+                (text) => (
+                  <li key={text} className="flex items-center gap-2">
+                    <CheckIcon className="size-[18px] text-brick" />
+                    {text}
+                  </li>
+                ),
+              )}
+            </ul>
           </div>
-          <PhoneMockup locale={locale} />
-        </section>
 
-        <section className="bg-white py-16" aria-labelledby="comparatif">
-          <div className="mx-auto max-w-6xl px-4">
-            <h2 id="comparatif" className="text-3xl font-extrabold">
-              {t("compare.title")}
-            </h2>
-            <div className="mt-8 grid gap-4">
-              <div className="hidden grid-cols-[10rem_1fr_1fr] gap-4 px-4 text-sm font-bold uppercase text-ink/60 md:grid">
-                <span />
-                <span>{t("compare.without", { product })}</span>
-                <span>{t("compare.with", { product })}</span>
-              </div>
-              {rows.map((row) => (
-                <div
-                  key={row.figure}
-                  className="grid gap-3 rounded-[var(--radius-card)] bg-ivory p-4 md:grid-cols-[10rem_1fr_1fr] md:items-center md:gap-4"
-                >
-                  <p className="font-display text-3xl font-extrabold text-coral-dark">{fill(row.figure)}</p>
-                  <p className="text-ink/75">
-                    <span className="font-semibold md:hidden">{t("compare.without", { product })} : </span>
-                    {row.without}
-                  </p>
-                  <p className="font-semibold text-navy">
-                    <span className="md:hidden">{t("compare.with", { product })} : </span>
-                    {row.with}
-                  </p>
+          <div className="hn-up-late relative min-w-0 flex-[1_1_22rem] pr-6 pt-6">
+            <div aria-hidden="true" className="absolute right-0 top-0 size-48 rounded-full bg-blush-strong" />
+            <div
+              aria-hidden="true"
+              className="absolute bottom-16 right-[0.2rem] size-[4.5rem] rounded-full border-[0.9rem] border-navy"
+            />
+            <Image
+              src="/marketing/hero.jpg"
+              alt={t("heroImageAlt")}
+              width={1100}
+              height={733}
+              priority
+              sizes="(min-width: 1024px) 45vw, 100vw"
+              className="relative block h-[26rem] w-full rounded-[2.25rem_2.25rem_2.25rem_6rem] object-cover sm:h-[32rem]"
+            />
+            <div aria-hidden="true">
+              <div className="hn-float-alt absolute right-1 top-12 flex items-center gap-3 rounded-2xl bg-white px-4 py-3 shadow-[0_12px_30px_rgba(22,24,29,.18)]">
+                <span className="block size-3 rounded-full bg-success" />
+                <div>
+                  <p className="text-[0.85rem] font-semibold text-night">{t("demo.notification")}</p>
+                  <p className="text-[0.8rem] text-stone">{t("demo.notificationDetail")}</p>
                 </div>
-              ))}
+              </div>
+              <div className="hn-float absolute -bottom-11 left-4 w-[17.5rem] max-w-[calc(100%-2rem)] rounded-[1.4rem] bg-white p-5 shadow-[0_20px_44px_rgba(22,24,29,.2)]">
+                <div className="mb-3 flex items-baseline justify-between">
+                  <div>
+                    <p className="font-semibold text-night">{t("demo.service")}</p>
+                    <p className="text-[0.82rem] text-stone">{t("demo.duration")}</p>
+                  </div>
+                  <p className="font-semibold text-night">{t("demo.price")}</p>
+                </div>
+                {[demo.days, demo.times].map((row, rowIndex) => (
+                  <div
+                    key={rowIndex}
+                    className={`grid grid-cols-4 gap-1.5 text-center text-[0.8rem] ${rowIndex === 0 ? "mb-2" : "mb-3"}`}
+                  >
+                    {row.map((label, index) => (
+                      <span
+                        key={label}
+                        className={`rounded-[0.6rem] py-1.5 ${index === (rowIndex === 0 ? 1 : 2) ? "bg-brick text-white" : "bg-sand"}`}
+                      >
+                        {label}
+                      </span>
+                    ))}
+                  </div>
+                ))}
+                <p className="flex items-center justify-between gap-2.5 rounded-[0.9rem] bg-blush px-3.5 py-2.5 text-[0.88rem] text-rust">
+                  <span>{t("demo.deposit")}</span>
+                  <span className="font-semibold">{t("demo.paid")}</span>
+                </p>
+              </div>
             </div>
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-4 py-16" aria-labelledby="fonctions">
-          <h2 id="fonctions" className="text-3xl font-extrabold">
-            {t("features.title")}
-          </h2>
-          <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((item) => (
-              <li key={item.title} className={ui.card}>
-                <h3 className="text-lg font-bold text-navy">{item.title}</h3>
-                <p className="mt-2 text-ink/80">{item.text}</p>
+        {/* Métiers */}
+        <section className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 pb-14 sm:px-6">
+          <h2 className="mr-2 font-sans text-[1.05rem] font-semibold text-night">{t("madeFor.title")}</h2>
+          <ul className="contents">
+            {(t.raw("madeFor.items") as string[]).map((item) => (
+              <li
+                key={item}
+                className="rounded-full border-[1.5px] border-line bg-white px-[1.1rem] py-2 transition hover:-translate-y-[3px] hover:border-coral"
+              >
+                {item}
               </li>
             ))}
           </ul>
         </section>
 
-        <section id="packs" className="scroll-mt-4 bg-white py-16" aria-labelledby="titre-packs">
-          <div className="mx-auto max-w-6xl px-4">
-            <h2 id="titre-packs" className="text-3xl font-extrabold">
-              {t("plans.title")}
+        {/* Trois étapes */}
+        <section
+          id="etapes"
+          aria-labelledby="titre-etapes"
+          className="relative mx-3 scroll-mt-4 overflow-hidden rounded-[3rem] bg-navy px-4 py-[5.5rem] sm:px-6"
+        >
+          <div
+            aria-hidden="true"
+            className="absolute -right-24 -top-24 size-[22rem] rounded-full border-[3rem] border-[#223460]"
+          />
+          <div aria-hidden="true" className="absolute -bottom-16 -left-16 size-48 rounded-full bg-coral" />
+          <div className="relative mx-auto max-w-6xl">
+            <div className="mb-12 flex flex-wrap items-end justify-between gap-6">
+              <h2
+                id="titre-etapes"
+                className="font-display text-[2.6rem] font-bold leading-none tracking-[-0.03em] text-white sm:text-[3.4rem]"
+              >
+                {t("steps.title")}
+                <br />
+                <span className="text-salmon">{t("steps.titleAccent")}</span>
+              </h2>
+              <p className="max-w-sm text-xl text-[#d7dce6]">{t("steps.intro")}</p>
+            </div>
+            <ol className="grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(16.5rem,1fr))]">
+              {steps.map(({ key, Icon, accent }, index) => (
+                <li
+                  key={key}
+                  className={`flex flex-col gap-4 rounded-[1.75rem] p-8 transition duration-200 hover:-translate-y-2.5 hover:shadow-[0_28px_54px_rgba(0,0,0,.38)] ${accent ? "bg-brick" : "bg-white"}`}
+                >
+                  <div className="flex items-start justify-between">
+                    <span
+                      className={`flex size-[3.4rem] items-center justify-center rounded-[1.1rem] ${accent ? "bg-white text-brick" : "bg-navy text-white"}`}
+                    >
+                      <Icon className="size-[26px]" />
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      className={`font-display text-[4.4rem] font-bold leading-[0.9] ${accent ? "text-white" : "text-coral"}`}
+                    >
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                  </div>
+                  <h3
+                    className={`mt-2 font-sans text-2xl font-semibold ${accent ? "text-white" : "text-night"}`}
+                  >
+                    {t(`steps.${key}.title`)}
+                  </h3>
+                  <p className={`flex-1 ${accent ? "text-white" : "text-body"}`}>{t(`steps.${key}.text`)}</p>
+                  <p
+                    className={`self-start rounded-full px-3.5 py-1.5 text-[0.88rem] font-semibold text-rust ${accent ? "bg-white" : "bg-blush"}`}
+                  >
+                    {t(`steps.${key}.tag`, { percent })}
+                  </p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        {/* Packs */}
+        <section
+          id="tarifs"
+          aria-labelledby="titre-tarifs"
+          className="mx-auto max-w-6xl scroll-mt-4 px-4 py-[5.5rem] sm:px-6"
+        >
+          <div className="mb-14 text-center">
+            <p className={`${BADGE} mb-5`}>{t("plans.badge")}</p>
+            <h2 id="titre-tarifs" className={`${TITLE} mb-3 text-[2.4rem] leading-none sm:text-[3.2rem]`}>
+              {t("plans.title")} <span className="text-brick">{t("plans.titleAccent", { percent })}</span>
             </h2>
-            <p className="mt-2 text-ink/75">
+            <p className="mx-auto max-w-[34rem] text-[1.15rem]">{t("plans.subtitle")}</p>
+            <p className="mx-auto mt-2 max-w-[34rem] text-[0.95rem] text-stone">
+              {t("plans.pricesDisplay", { display: String(data.display) })}{" "}
               {t("plans.commitment", { months: data.commitment })}{" "}
               {data.setupFee > 0
                 ? t("plans.setupFee", { amount: money(data.setupFee) })
                 : t("plans.setupFree")}
             </p>
-            <div className="mt-8 grid gap-4 lg:grid-cols-3">
-              {data.plans.map((plan) => (
-                <article
-                  key={plan.id}
-                  className={`flex flex-col rounded-[var(--radius-card)] border-2 bg-ivory p-6 ${plan.id === highlighted ? "border-coral" : "border-transparent"}`}
+          </div>
+          <PlanCards plans={data.plans} locale={locale} />
+          <ul className="mt-12 flex flex-wrap justify-center gap-x-10 gap-y-3 font-medium text-night">
+            {[t("plans.trust.commission", { percent }), t("plans.trust.secure"), t("plans.trust.data")].map(
+              (text) => (
+                <li key={text} className="flex items-center gap-2">
+                  <CheckIcon className="size-5 text-brick" />
+                  {text}
+                </li>
+              ),
+            )}
+          </ul>
+        </section>
+
+        {/* Questions */}
+        <section id="questions" aria-labelledby="titre-questions" className="scroll-mt-4 px-4 py-20 sm:px-6">
+          <div className="mx-auto flex max-w-6xl flex-wrap gap-12">
+            <div className="flex-[1_1_18rem]">
+              <h2
+                id="titre-questions"
+                className={`${TITLE} mb-4 text-[2.3rem] leading-[1.02] sm:text-[2.8rem]`}
+              >
+                {t("faq.title")}
+              </h2>
+              <p className="mb-6 text-[1.15rem]">{t("faq.intro")}</p>
+              <a
+                href={`mailto:${contact}`}
+                className="font-semibold text-night underline transition-colors hover:text-brick"
+              >
+                {t("faq.contact")}
+              </a>
+            </div>
+            <div className="flex flex-[2_1_26rem] flex-col gap-3.5">
+              {faq.map((item, index) => (
+                <details
+                  key={item.q}
+                  open={index === 0}
+                  className="group rounded-[1.25rem] border-[1.5px] border-line bg-ivory transition-colors open:border-coral open:bg-white"
                 >
-                  {plan.id === highlighted && (
-                    <p className="mb-2 text-sm font-bold uppercase text-coral-dark">{t("plans.popular")}</p>
-                  )}
-                  <h3 className="text-2xl font-extrabold text-navy">{pickLocalized(plan.name, locale)}</h3>
-                  <p className="mt-2">
-                    {plan.priceCents > 0 ? (
-                      <>
-                        <span className="font-display text-4xl font-extrabold">{money(plan.priceCents)}</span>{" "}
-                        <span className="text-ink/70">{t("plans.perMonth", { display: data.display })}</span>
-                      </>
-                    ) : (
-                      <span className="font-display text-4xl font-extrabold">{t("plans.free")}</span>
-                    )}
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-5 text-[1.15rem] font-semibold text-night [&::-webkit-details-marker]:hidden">
+                    {item.q}
+                    <span className="flex size-[2.2rem] flex-none items-center justify-center rounded-full bg-blush text-rust transition group-open:rotate-45 group-open:bg-brick group-open:text-white">
+                      <PlusIcon className="size-4" />
+                    </span>
+                  </summary>
+                  <p className="px-6 pb-[1.4rem]">
+                    {item.a.replace("{commission}", t("faq.commission", { percent }))}
                   </p>
-                  <ul className="mt-4 flex-1 space-y-1 text-ink/85">
-                    {planHighlights(plan).map((item) => (
-                      <li key={item.key}>
-                        ✓{" "}
-                        {item.kind === "limit"
-                          ? tPlans(`limits.${item.key}`, { count: item.count })
-                          : tPlans(`features.${item.key}`)}
-                      </li>
-                    ))}
-                  </ul>
-                  <Link
-                    href={{ pathname: "/commander", query: { pack: plan.code } }}
-                    className={`mt-6 ${plan.id === highlighted ? ui.primaryButton : ui.secondaryButton}`}
-                  >
-                    {t("plans.order")}
-                  </Link>
-                </article>
+                </details>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="mx-auto max-w-3xl px-4 py-16" aria-labelledby="faq">
-          <h2 id="faq" className="text-3xl font-extrabold">
-            {t("faq.title")}
-          </h2>
-          <div className="mt-8 space-y-3">
-            {faq.map((item) => (
-              <details key={item.q} className={`${ui.card} group`}>
-                <summary className="cursor-pointer list-none text-lg font-bold text-navy">
-                  <span className="mr-2 inline-block transition group-open:rotate-90" aria-hidden="true">
-                    ›
-                  </span>
-                  {item.q}
-                </summary>
-                <p className="mt-3 text-ink/85">{fill(item.a)}</p>
-              </details>
-            ))}
+        {/* Appel final */}
+        <section className="px-3 pb-12 pt-4">
+          <div className="relative mx-auto max-w-[74rem] overflow-hidden rounded-[3rem] bg-brick px-8 py-[4.5rem] text-center">
+            <div
+              aria-hidden="true"
+              className="absolute -left-20 -top-20 size-64 rounded-full border-[2.5rem] border-[#dd5646]"
+            />
+            <div aria-hidden="true" className="absolute -bottom-12 -right-12 size-44 rounded-full bg-navy" />
+            <div className="relative">
+              <h2 className="mb-4 font-display text-[2.4rem] font-bold leading-none tracking-[-0.03em] text-white sm:text-[3.2rem]">
+                {t("final.title")}
+                <br />
+                {t("final.titleEnd")}
+              </h2>
+              <p className="mx-auto mb-9 max-w-[34rem] text-xl text-white">{t("final.text")}</p>
+              <a
+                href="#tarifs"
+                className="inline-flex items-center gap-2.5 rounded-full bg-white px-[1.9rem] py-[1.05rem] text-[1.1rem] font-semibold text-rust transition hover:-translate-y-0.5 hover:shadow-[0_12px_26px_rgba(70,15,8,.35)]"
+              >
+                {t("final.cta")}
+                <ArrowIcon className="size-5" />
+              </a>
+            </div>
           </div>
         </section>
       </main>
       <PlatformFooter />
-    </>
+    </div>
   );
 }

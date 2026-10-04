@@ -11,9 +11,22 @@
   --color-ivory: #faf7f2; /* fonds */
   --color-ink: #2b2b2b; /* textes */
   --color-success: #2e9e6b; /* confirmations */
+  /* Site commercial */
+  --color-brick: #d4402f; /* boutons de la page d'accueil */
+  --color-rust: #9e2b1e; /* texte sur fond rosé */
+  --color-blush: #fbe3df;
+  --color-blush-strong: #f6c9c1;
+  --color-salmon: #f0705f; /* accent sur fond bleu nuit */
+  --color-sand: #f4efe6;
+  --color-line: #ece6da;
+  --color-night: #16181d; /* titres de la page d'accueil */
+  --color-body: #3a3833; /* texte de la page d'accueil */
+  --color-stone: #6b665e; /* texte secondaire */
+  --color-navy-light: #26375c;
 
-  --font-display: var(--font-nunito), ui-rounded, system-ui, sans-serif;
-  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-outfit), system-ui, sans-serif;
+  --font-sans: var(--font-outfit), system-ui, sans-serif;
+  --font-logo: var(--font-comfortaa), ui-rounded, system-ui, sans-serif;
 
   --radius-card: 0.75rem;
 }
@@ -108,5 +121,52 @@
       animation-timeline: view();
       animation-range: entry 0% entry 60%;
     }
+  }
+}
+
+/* Page d'accueil du site commercial : entrée en douceur et cartes flottantes. */
+@keyframes hn-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes hn-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-9px) rotate(-3deg);
+  }
+}
+
+@keyframes hn-float-alt {
+  0%,
+  100% {
+    transform: translateY(0) rotate(2deg);
+  }
+  50% {
+    transform: translateY(7px) rotate(2deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hn-up {
+    animation: hn-up 0.7s ease both;
+  }
+  .hn-up-late {
+    animation: hn-up 0.7s ease 0.15s both;
+  }
+  .hn-float {
+    animation: hn-float 5s ease-in-out infinite;
+  }
+  .hn-float-alt {
+    animation: hn-float-alt 6s ease-in-out infinite;
   }
 }

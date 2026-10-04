@@ -33,4 +33,22 @@ describe.skipIf(!hasTestDatabase)("valeurs de départ en base", () => {
       .where(sql`key = 'go_live_delay_days'`);
     expect(delay.value).toBe(7);
   });
+
+  it("complète un pack existant sans écraser ce qui a été modifié", async () => {
+    await db.execute(sql`
+      UPDATE plans SET description = NULL,
+        features = (features - 'monthlyUpdate') || '{"stats": true}'::jsonb
+      WHERE code = 'essentiel'`);
+    await seed(testDatabaseUrl!);
+    const [plan] = await db
+      .select()
+      .from(plans)
+      .where(sql`code = 'essentiel'`);
+    expect(plan.description?.fr).toBeTruthy();
+    expect(plan.features.monthlyUpdate).toBe(true);
+    expect(plan.features.stats).toBe(true);
+    await db.execute(
+      sql`UPDATE plans SET features = features || '{"stats": false}'::jsonb WHERE code = 'essentiel'`,
+    );
+  });
 });
