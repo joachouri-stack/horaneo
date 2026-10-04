@@ -9,7 +9,9 @@ import {
   checkPromoAction,
   confirmPaymentAction,
   getAvailabilityAction,
+  checkGiftCardAction,
   type BookingConfirmation,
+  type GiftPreview,
   type PromoPreview,
 } from "@/app/(tenant)/sites/[tenantId]/reserver/actions";
 import { DepositPayment } from "./DepositPayment";
@@ -24,6 +26,8 @@ export type FlowService = {
   priceCents: number;
   priceFrom: boolean;
   categoryName: string | null;
+  /** Promotion en cours : ancien prix barré. */
+  regularPriceCents?: number | null;
 };
 
 type Props = {
@@ -36,6 +40,8 @@ type Props = {
   preselectedServiceId: string | null;
   deposit: { enabled: boolean; type: "percent" | "fixed"; value: number };
   promoEnabled: boolean;
+  /** Pack avec cartes cadeaux : la carte peut remplacer l'acompte. */
+  giftCardsEnabled?: boolean;
   holdMinutes: number;
   cancellationHours: number;
   privacyPath: string;
@@ -78,6 +84,9 @@ export function BookingFlow(props: Props) {
   const [promoCode, setPromoCode] = useState("");
   const [promoError, setPromoError] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
+  const [giftCode, setGiftCode] = useState("");
+  const [gift, setGift] = useState<GiftPreview | null>(null);
+  const [giftError, setGiftError] = useState<string | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   // À chaque étape, le titre reçoit le focus (lecteurs d'écran, navigation au clavier).
@@ -100,7 +109,7 @@ export function BookingFlow(props: Props) {
     selected.every((id) => member.serviceIds.includes(id)),
   );
   const steps: Step[] =
-    depositCents > 0 ? ["services", "slot", "details", "done"] : ["services", "slot", "details"];
+    depositCents > 0 && !gift ? ["services", "slot", "details", "done"] : ["services", "slot", "details"];
   const stepLabels: Record<Step, string> = {
     services: t("steps.services"),
     slot: t("steps.slot"),
@@ -112,6 +121,7 @@ export function BookingFlow(props: Props) {
     setError(null);
     setSlot(null);
     setPromo(null);
+    setGift(null);
     if (selected.includes(id)) setSelected(selected.filter((item) => item !== id));
     else if (props.maxServices === 1) setSelected([id]);
     else if (selected.length < props.maxServices) setSelected([...selected, id]);
@@ -122,6 +132,22 @@ export function BookingFlow(props: Props) {
       getAvailabilityAction({ serviceIds: selected, staffId, fromDate, days: 14 }),
     [selected],
   );
+
+  async function applyGiftCard() {
+    if (!giftCode.trim()) return;
+    setGiftError(null);
+    const result = await checkGiftCardAction({
+      code: giftCode,
+      serviceIds: selected,
+      promoCode: promo?.code,
+    });
+    if (!result.ok) {
+      setGift(null);
+      setGiftError(result.error);
+      return;
+    }
+    setGift(result.data);
+  }
 
   async function applyPromo() {
     if (!promoCode.trim()) return;
@@ -162,6 +188,7 @@ export function BookingFlow(props: Props) {
       staffId: slot.staffId,
       start: slot.start,
       promoCode: promo?.code,
+      giftCardCode: gift ? giftCode : undefined,
       website: String(form.get("website") ?? ""),
       customer: {
         firstName: String(form.get("firstName") ?? ""),
@@ -239,6 +266,7 @@ export function BookingFlow(props: Props) {
         <p className="mt-2 font-semibold">
           {t("details.total")} : {money(confirmation.totalCents, confirmation.currency, props.locale)}
         </p>
+        {confirmation.paidWithGiftCard && <p className="text-site-muted">{t("giftCard.paidWith")}</p>}
         {confirmation.discountCents > 0 && (
           <p className="text-site-muted">
             {t("details.discount")} : −{" "}
@@ -366,7 +394,16 @@ export function BookingFlow(props: Props) {
                       </span>
                       <span className="text-right text-site-text">
                         <span className="block font-semibold">
-                          {money(service.priceCents, props.currency, props.locale)}
+                          {service.regularPriceCents ? (
+                            <>
+                              <s className="mr-2 text-sm font-normal text-site-muted">
+                                {money(service.regularPriceCents, props.currency, props.locale)}
+                              </s>
+                              {money(service.priceCents, props.currency, props.locale)}
+                            </>
+                          ) : (
+                            money(service.priceCents, props.currency, props.locale)
+                          )}
                         </span>
                         <span className="block text-sm text-site-muted">
                           {durationLabel(service.durationMinutes)}
@@ -550,6 +587,71 @@ export function BookingFlow(props: Props) {
               )}
             </div>
           )}
+          {props.giftCardsEnabled && (
+            <div>
+              <label htmlFor="b-gift" className="mb-2 block font-semibold text-site-text">
+                {t("giftCard.label")}
+              </label>
+              {gift ? (
+                <p className="flex flex-wrap items-center gap-3" role="status">
+                  <span>
+                    {gift.depositCents > 0
+                      ? t("giftCard.applied", {
+                          last4: gift.last4,
+                          amount: money(gift.depositCents, props.currency, props.locale),
+                          balance: money(gift.balanceCents, props.currency, props.locale),
+                        })
+                      : t("giftCard.appliedNoDeposit", {
+                          last4: gift.last4,
+                          balance: money(gift.balanceCents, props.currency, props.locale),
+                        })}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setGift(null);
+                      setGiftCode("");
+                    }}
+                    className="font-semibold text-site-accent underline"
+                  >
+                    {t("giftCard.remove")}
+                  </button>
+                </p>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    id="b-gift"
+                    value={giftCode}
+                    onChange={(event) => setGiftCode(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        void applyGiftCard();
+                      }
+                    }}
+                    maxLength={40}
+                    autoComplete="off"
+                    autoCapitalize="characters"
+                    placeholder="XXXX-XXXX-XXXX"
+                    aria-describedby={giftError ? "b-gift-error" : undefined}
+                    className={`${inputClass} min-w-0 flex-1 uppercase`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void applyGiftCard()}
+                    className="min-h-12 shrink-0 rounded-site border border-site-button px-4 font-semibold text-site-text"
+                  >
+                    {t("giftCard.apply")}
+                  </button>
+                </div>
+              )}
+              {giftError && (
+                <p id="b-gift-error" role="alert" className="mt-1 font-semibold text-site-text">
+                  {tErrors(giftError as "invalid")}
+                </p>
+              )}
+            </div>
+          )}
           {errorBox}
           <form action={submit} className="space-y-4">
             {/* Champ piège pour les robots : invisible pour les personnes. */}
@@ -604,7 +706,7 @@ export function BookingFlow(props: Props) {
             <button type="submit" disabled={pending} className={primaryClass}>
               {pending
                 ? t("details.sending")
-                : depositCents > 0
+                : depositCents > 0 && !gift
                   ? t("details.confirmPay")
                   : t("details.confirm")}
             </button>

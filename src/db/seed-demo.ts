@@ -5,7 +5,9 @@ import { eq } from "drizzle-orm";
 import sharp from "sharp";
 import { createLocalStorage } from "@/lib/storage/local";
 import type { CategoryIcon } from "@/modules/catalog/icons";
-import { saveCategory, saveService } from "@/modules/catalog/services";
+import { listServices, saveCategory, saveService } from "@/modules/catalog/services";
+import { updateGiftCardSettings } from "@/modules/giftcards/giftcards";
+import { savePromotion } from "@/modules/promotions/promotions";
 import { updatePage } from "@/modules/content/pages";
 import { saveTestimonial } from "@/modules/content/testimonials";
 import { savePromoCode } from "@/modules/promo/codes";
@@ -560,6 +562,26 @@ async function seedAtelier(tx: Transaction) {
     }
     await saveStaff(tx, id, { name: staff, serviceIds });
   }
+  // Étape 9 bis : une promotion en cours chez Laïla, cartes cadeaux proposées (avec un compte Stripe actif).
+  await declareBusiness(tx, laila.id);
+  const browlifts = (await listServices(tx, id)).filter((service) => service.name.fr?.startsWith("Browlift"));
+  const today = new Date().toISOString().slice(0, 10);
+  const inThreeWeeks = new Date(Date.now() + 21 * 86_400_000).toISOString().slice(0, 10);
+  await savePromotion(tx, id, {
+    title: "Offre d'automne",
+    serviceIds: browlifts.map((service) => service.id),
+    discountType: "percent",
+    discountValue: "20",
+    startsOn: today,
+    endsOn: inThreeWeeks,
+  });
+  await updateGiftCardSettings(tx, id, {
+    enabled: true,
+    validityMonths: 12,
+    amounts: "30, 50, 100",
+    min: "10",
+    max: "500",
+  });
   await declareBusiness(tx, null);
   await changeStatus(tx, id, "activate");
 }

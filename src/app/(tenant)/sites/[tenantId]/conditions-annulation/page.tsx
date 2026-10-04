@@ -46,7 +46,10 @@ export default async function CancellationPage({
             ? t("percent", { value: settings.depositValue })
             : formatMoney(settings.depositValue, site.tenant.currency, site.locale)
           : null;
-      return { business, hours: settings.cancellationDeadlineHours, deposit };
+      const giftCards = site.giftCardBusinessIds.includes(business.id)
+        ? settings.giftCardValidityMonths
+        : null;
+      return { business, hours: settings.cancellationDeadlineHours, deposit, giftCards };
     }),
   );
   const multi = site.businesses.length > 1;
@@ -91,6 +94,12 @@ export default async function CancellationPage({
                     <li>{t("noDeposit")}</li>
                   )}
                 </ul>
+                {rule.giftCards && (
+                  <div id="cartes-cadeaux" className="mt-4 scroll-mt-28">
+                    <h3 className="font-semibold">{t("giftCards")}</h3>
+                    <p className="mt-1">{t("giftCardRules", { months: rule.giftCards })}</p>
+                  </div>
+                )}
               </section>
             ),
         )}

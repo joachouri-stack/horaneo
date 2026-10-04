@@ -69,6 +69,9 @@ export const DEFAULT_PLANS: PlanSeed[] = [
       brandingFooter: true,
       emailSupport: false,
       whatsappSupport: false,
+      promotions: false,
+      googleReviews: false,
+      giftCards: false,
     },
   },
   {
@@ -88,6 +91,9 @@ export const DEFAULT_PLANS: PlanSeed[] = [
       brandingFooter: false,
       emailSupport: true,
       whatsappSupport: false,
+      promotions: true,
+      googleReviews: false,
+      giftCards: false,
     },
   },
   {
@@ -107,6 +113,9 @@ export const DEFAULT_PLANS: PlanSeed[] = [
       brandingFooter: false,
       emailSupport: true,
       whatsappSupport: true,
+      promotions: true,
+      googleReviews: true,
+      giftCards: true,
     },
   },
 ];

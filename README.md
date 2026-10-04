@@ -157,6 +157,31 @@ Tests : `tests/db/businesses.test.ts`.
 - Page « Conditions d'annulation » (`/conditions-annulation`, tous modèles) : délai et acompte lus dans les réglages de chaque entreprise.
 - Tout se saisit dans l'admin : Entreprises → « Sa page sur le site » ; Prestations → pictogramme et « Spécialité » de chaque catégorie ; Textes → accroche, étiquette, chiffres clés, crédit ; Coordonnées → réseaux sociaux.
 
+## Promotions, cartes cadeaux et avis Google (étape 9 bis)
+
+Fonctions des packs (`src/config/defaults.ts`) : promotions datées dès Essentiel ; avis Google et cartes cadeaux en Sérénité.
+
+**Promotions datées** (gérante : Plus → Promotions)
+
+- Intitulé, prestations, pourcentage ou montant retiré, dates de début et de fin (incluses). Pendant la période : bandeau « offre du moment » en haut du site, prix barré à côté du prix réduit, prix réduit à la réservation (acompte compris). Arrêt automatique à la date de fin.
+- Prix barré honnête : le prix le plus bas pratiqué dans les 30 jours avant la promotion. La base enregistre chaque changement de prix (`service_price_history`, rempli par un déclencheur). Si la réduction n'est pas réelle, la promotion n'est pas affichée.
+- Pas de cumul : un code promo ne s'ajoute pas à une prestation en promotion.
+
+**Cartes cadeaux** (site : `/carte-cadeau` ; gérante : Plus → Cartes cadeaux)
+
+- Achat en ligne : montants proposés ou libre (limites réglables), destinataire, message, envoi tout de suite ou à une date (9 h, heure de l'établissement). Paiement sur le compte Stripe de l'entreprise (aucune commission). Sur un site à plusieurs entreprises, on choisit chez qui : la carte n'est utilisable que chez elle.
+- Code de 12 caractères calculé à partir de l'identifiant et de la clé secrète (jamais stocké en clair : seulement son empreinte et ses 4 derniers caractères).
+- En ligne, la carte remplace l'acompte (débité de la carte) ; annulation dans le délai : le montant revient sur la carte ; report : il suit le rendez-vous. Sur place : la gérante saisit le code et le montant ; le solde est conservé.
+- Réglages par entreprise : proposer ou non, validité (12 mois par défaut), montants. Règles affichées à l'achat et dans les conditions de vente (`/conditions-annulation`).
+
+**Avis Google**
+
+- Une clé Horaneo pour tous les sites : `GOOGLE_PLACES_API_KEY` (Google Cloud → activer « Places API (New) » → créer une clé, la restreindre à cette API). L'administratrice renseigne la fiche Google (identifiant « place ») de chaque entreprise (onglet Entreprises).
+- La tâche planifiée relit chaque fiche une fois par jour au plus (note, nombre d'avis, 5 avis récents, lien) ; le site affiche cette copie, jamais modifiée, avec son origine et le lien vers tous les avis. Si Google ne répond pas : dernière copie gardée (30 jours au plus), sinon lien seul. Sans clé : seulement le lien.
+- Note en tête de l'accueil, section d'avis ; page de chaque professionnelle avec ses propres avis si elle a sa fiche. Les témoignages saisis à la main restent affichés à part.
+
+Tests : `tests/db/offers.test.ts`, `tests/offers-units.test.ts`.
+
 ## Connexion et rôles
 
 La connexion se fait sans mot de passe, sur `horaneo.com/fr/connexion` :

@@ -283,3 +283,14 @@ Je préfère vous les signaler plutôt que deviner. Pour chacun, une proposition
 - **Commande refusée après paiement** : l'abonnement est arrêté automatiquement ; le remboursement se fait à la main dans Stripe.
 - **Chiffres du comparatif** : uniquement des faits sur le produit (24 h/24, 2 rappels, acompte, commission), aucune promesse chiffrée de résultat. Modifiables dans `messages/fr.json`.
 - **Formulaires** : la saisie est conservée en cas d'erreur.
+
+
+### Étape 9 bis (migration 0014)
+
+- **`service_price_history`** : prix successifs d'une prestation (rempli par un déclencheur à chaque création ou changement de prix) ; sert au prix barré des promotions.
+- **`promotions`** + **`promotion_services`** : intitulé, type (`percent` / `fixed`), valeur, `starts_on`, `ends_on` ; prestations concernées (même entreprise).
+- **`gift_cards`** : `code_hash`, `code_last4`, `status` (`pending_payment`, `active`, `cancelled` ; « utilisée » et « expirée » se déduisent du solde et de la date), montants, acheteuse, destinataire, message, `send_at`, `expires_at`, paiement Stripe.
+- **`gift_card_transactions`** : achat, utilisation en ligne ou sur place, recrédit (montant signé, rendez-vous éventuel).
+- **`google_reviews`** : copie des avis d'une fiche Google (note, nombre, 5 avis, lien, date de lecture, dernière erreur).
+- `business_settings` : réglages des cartes ; `businesses.google_place_id` : fiche Google.
+- Vitrine (prix, promotions, avis) lisible par tout le site ; cartes et mouvements visibles uniquement par l'entreprise qui les a encaissées.

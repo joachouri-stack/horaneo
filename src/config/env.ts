@@ -82,6 +82,9 @@ const envSchema = z.object({
   // E-mails et SMS (Brevo)
   BREVO_API_KEY: z.string().min(1).optional(),
   EMAIL_FROM_ADDRESS: z.email().optional(),
+
+  // Avis Google (Google Places API) : une clé pour tous les sites.
+  GOOGLE_PLACES_API_KEY: z.string().min(1).optional(),
 });
 
 export type Env = z.infer<typeof envSchema> & { ENABLED_LOCALES: Locale[] };

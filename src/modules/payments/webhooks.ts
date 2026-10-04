@@ -1,5 +1,6 @@
 import { eq, sql } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
+import { applyGiftCardIntent } from "@/modules/giftcards/giftcards";
 import { stripeEvents } from "@/db/schema";
 import { applyAccount, disconnectAccount } from "./connect";
 import { applyPaymentIntent, businessOfAccount } from "./deposits";
@@ -52,6 +53,16 @@ async function dispatch(tx: Transaction, event: GatewayEvent, gateway: PaymentGa
   const tenantId = owner.tenantId;
 
   if (event.type.startsWith("payment_intent.")) {
+    // Achat d'une carte cadeau (et non un acompte).
+    const metadata = (object.metadata ?? {}) as Record<string, string>;
+    if (metadata.gift_card_id) {
+      return (
+        await applyGiftCardIntent(tx, tenantId, {
+          id: String(object.id),
+          status: String(object.status) as GatewayPaymentIntent["status"],
+        })
+      ).outcome;
+    }
     const result = await applyPaymentIntent(
       tx,
       tenantId,

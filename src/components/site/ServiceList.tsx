@@ -5,12 +5,15 @@ import type { SiteCategory, SiteService } from "@/modules/site/data";
 import { formatDuration } from "@/modules/site/format";
 import { categoryPath } from "@/modules/site/paths";
 import { BookButton } from "./BookButton";
+import { PriceTag } from "./PriceTag";
 
 /** Une prestation : nom, durée, prix et bouton « Réserver ». */
 async function ServiceRow({ service, locale }: { service: SiteService; locale: string }) {
   const t = await getTranslations("site");
   const tServices = await getTranslations("site.services");
-  const price = formatMoney(service.priceCents, service.currency, locale);
+  const tOffers = await getTranslations("site.offers");
+  const price = formatMoney(service.promo?.priceCents ?? service.priceCents, service.currency, locale);
+  const was = service.promo ? formatMoney(service.promo.referenceCents, service.currency, locale) : null;
   return (
     <li className="flex flex-col gap-3 border-b border-site-border py-4 last:border-b-0 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0">
@@ -23,7 +26,11 @@ async function ServiceRow({ service, locale }: { service: SiteService; locale: s
           )}
           {" · "}
           <span className="font-semibold text-site-text">
-            {service.priceFrom ? tServices("priceFrom", { price }) : price}
+            <PriceTag
+              price={service.priceFrom ? tServices("priceFrom", { price }) : price}
+              was={was}
+              wasLabel={was ? tOffers("was", { price: was }) : undefined}
+            />
           </span>
         </p>
       </div>

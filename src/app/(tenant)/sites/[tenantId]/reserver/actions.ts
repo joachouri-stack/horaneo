@@ -19,6 +19,7 @@ import { computeDeposit } from "@/modules/booking/pricing";
 import { AppError, type AppErrorCode } from "@/modules/errors";
 import { onlinePaymentReady, syncDeposit } from "@/modules/payments/deposits";
 import { previewPromo } from "@/modules/promo/codes";
+import { checkGiftCard } from "@/modules/giftcards/giftcards";
 
 /**
  * Actions du parcours de réservation (site public, sans compte).
@@ -114,6 +115,7 @@ const bookInput = z.object({
     marketingConsent: z.boolean(),
   }),
   promoCode: z.string().max(30).optional(),
+  giftCardCode: z.string().max(40).optional(),
   /** Champ piège invisible : rempli seulement par les robots. */
   website: z.string().max(0).optional(),
 });
@@ -126,6 +128,7 @@ export type BookingConfirmation = {
   totalCents: number;
   discountCents: number;
   depositCents: number;
+  paidWithGiftCard: boolean;
   currency: string;
   manageToken: string;
   holdExpiresAt: string | null;
@@ -148,6 +151,7 @@ export async function bookAction(raw: z.input<typeof bookInput>): Promise<Public
           start: input.start,
           customer: input.customer,
           promoCode: input.promoCode || undefined,
+          giftCardCode: input.giftCardCode || undefined,
         },
         { allowDraft: site.preview, gateway: paymentGateway() },
       );
@@ -161,6 +165,7 @@ export async function bookAction(raw: z.input<typeof bookInput>): Promise<Public
         totalCents: result.totalCents,
         discountCents: result.discountCents,
         depositCents: result.depositCents,
+        paidWithGiftCard: result.paidWithGiftCard,
         currency: result.currency,
         manageToken: result.manageToken,
         holdExpiresAt: result.holdExpiresAt?.toISOString() ?? null,
@@ -185,7 +190,9 @@ export async function checkPromoAction(raw: z.input<typeof promoInput>): Promise
     if (!publicLimits.promo.attempt(site.ip)) throw new AppError("rate_limited");
     return withServicesBusiness(site.tenantId, input.serviceIds, async (tx) => {
       const context = await loadBookingContext(tx, site.tenantId);
-      const { totals } = resolveServices(context, input.serviceIds);
+      const { services, totals } = resolveServices(context, input.serviceIds);
+      if (services.some((service) => service.promotion))
+        throw new AppError("promo_not_combinable", "promoCode");
       const promo = await previewPromo(tx, site.tenantId, input.code, totals.totalCents);
       const totalCents = totals.totalCents - promo.discountCents;
       const ready = onlinePaymentReady(context.business, context.features, paymentGateway());
@@ -256,5 +263,46 @@ export async function rescheduleAction(
     );
     sendQueuedSoon();
     return { manageToken: result.manageToken, startsAt: result.startsAt.toISOString() };
+  });
+}
+
+const giftInput = z.object({
+  code: z.string().trim().min(4).max(40),
+  serviceIds: z.array(z.uuid()).min(1).max(10),
+  promoCode: z.string().max(30).optional(),
+});
+
+export type GiftPreview = { last4: string; balanceCents: number; depositCents: number; currency: string };
+
+/** Vérifie une carte cadeau avant la réservation (rien n'est débité avant la confirmation). */
+export async function checkGiftCardAction(
+  raw: z.input<typeof giftInput>,
+): Promise<PublicResult<GiftPreview>> {
+  return run(async () => {
+    const input = giftInput.parse(raw);
+    const site = await currentSiteTenant();
+    // Mêmes limites que les codes promo : empêche de deviner des codes.
+    if (!publicLimits.promo.attempt(site.ip)) throw new AppError("rate_limited");
+    return withServicesBusiness(site.tenantId, input.serviceIds, async (tx) => {
+      const context = await loadBookingContext(tx, site.tenantId);
+      if (!context.features.giftCards) throw new AppError("gift_card_not_found", "giftCardCode");
+      const { totals } = resolveServices(context, input.serviceIds);
+      const ready = onlinePaymentReady(context.business, context.features, paymentGateway());
+      const promo = input.promoCode
+        ? await previewPromo(tx, site.tenantId, input.promoCode, totals.totalCents)
+        : null;
+      const depositCents = computeDeposit(
+        totals.totalCents - (promo?.discountCents ?? 0),
+        context.settings,
+        ready,
+      );
+      const card = await checkGiftCard(tx, site.tenantId, input.code, depositCents);
+      return {
+        last4: card.codeLast4,
+        balanceCents: card.balanceCents,
+        depositCents,
+        currency: card.currency,
+      };
+    });
   });
 }

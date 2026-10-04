@@ -325,7 +325,60 @@
       "deposit": "Un acompte de {amount} est demandé à la réservation en ligne, versé directement à {name}.",
       "depositRefund": "Il est remboursé automatiquement si vous annulez dans le délai. Il reste acquis en cas d'annulation tardive ou d'absence.",
       "noDeposit": "Aucun acompte n'est demandé : le soin se règle sur place.",
-      "percent": "{value} % du prix"
+      "percent": "{value} % du prix",
+      "giftCards": "Cartes cadeaux",
+      "giftCardRules": "Valables {months} mois à partir de leur envoi. Utilisables en ligne (elles remplacent l'acompte) ou sur place, en plusieurs fois : le solde est conservé. Non remboursables et non échangeables contre de l'argent. Une carte s'utilise uniquement chez la professionnelle qui l'a encaissée."
+    },
+    "offers": {
+      "banner": "Offre du moment : {title}, jusqu'au {date}",
+      "cta": "En profiter",
+      "was": "au lieu de {price}",
+      "until": "jusqu'au {date}"
+    },
+    "reviews": {
+      "google": "Avis Google",
+      "summary": "{rating} sur 5 · {count, plural, one {# avis Google} other {# avis Google}}",
+      "readAll": "Lire tous les avis",
+      "seeOnGoogle": "Voir nos avis sur Google",
+      "rating": "{rating} sur 5",
+      "short": "{count, plural, one {# avis Google} other {# avis Google}}"
+    },
+    "giftCard": {
+      "navLabel": "Cartes cadeaux",
+      "sectionTitle": "Offrez un moment",
+      "sectionAccent": "de bien-être.",
+      "sectionText": "Une carte cadeau du montant de votre choix, envoyée par e-mail tout de suite ou à la date de votre choix.",
+      "sectionCta": "Offrir une carte cadeau",
+      "cardLabel": "Carte cadeau",
+      "title": "Offrir une carte cadeau",
+      "intro": "Choisissez le montant, ajoutez un petit mot : la carte est envoyée par e-mail, tout de suite ou à la date de votre choix.",
+      "who": "Chez qui ?",
+      "belongsTo": "La carte est encaissée par {name} et s'utilise uniquement pour ses soins.",
+      "amount": "Montant",
+      "otherAmount": "Autre montant (de {min} à {max})",
+      "recipient": "Pour qui ?",
+      "recipientName": "Prénom de la personne",
+      "recipientEmail": "Son e-mail (vide : la carte vous est envoyée, à imprimer ou transférer)",
+      "message": "Votre message (facultatif)",
+      "sendOn": "Date d'envoi",
+      "sendOnHint": "Vide : envoyée tout de suite après le paiement.",
+      "from": "De la part de",
+      "purchaserName": "Votre nom",
+      "purchaserEmail": "Votre e-mail (pour le reçu)",
+      "rules": "Valable {months} mois. Utilisable en ligne ou sur place, en plusieurs fois (le solde est conservé). Non remboursable, non échangeable contre de l'argent.",
+      "rulesLink": "Conditions de vente",
+      "pay": "Payer {amount}",
+      "continue": "Continuer vers le paiement",
+      "sending": "Préparation…",
+      "paymentTitle": "Paiement",
+      "secureTo": "Paiement sécurisé, versé directement à {name}.",
+      "thanksTitle": "Merci !",
+      "thanksNow": "La carte cadeau vient d'être envoyée à {email}. Un reçu vous est envoyé par e-mail.",
+      "thanksLater": "La carte cadeau sera envoyée à {email} le {date}. Un reçu vous est envoyé par e-mail.",
+      "checking": "Vérification du paiement…",
+      "unavailable": "Les cartes cadeaux ne sont pas proposées en ligne pour le moment. Contactez directement l'établissement.",
+      "metaTitle": "Carte cadeau",
+      "thanksPending": "Dès que votre banque confirme le paiement, la carte est envoyée et vous recevez un reçu par e-mail."
     }
   },
   "emails": {
@@ -740,7 +793,9 @@
         "availability": "Disponibilités (ex. « Du lundi au samedi »)",
         "photo": "Photo",
         "noPhoto": "Aucune photo",
-        "saveProfile": "Enregistrer sa page"
+        "saveProfile": "Enregistrer sa page",
+        "googlePlaceId": "Fiche Google (identifiant « place »)",
+        "googlePlaceIdHint": "Pour afficher ses avis Google. L'identifiant commence souvent par « ChIJ » : cherchez l'établissement sur la page « Place ID Finder » de Google, puis copiez-le ici. Les avis apparaissent dans les 24 h."
       }
     },
     "requests": {
@@ -905,7 +960,14 @@
     "order_not_pending": "Cette commande a déjà été traitée.",
     "services_mixed": "Ces prestations sont réalisées par deux professionnelles différentes : réservez-les séparément.",
     "manager_already_linked": "Cette personne gère déjà une entreprise de ce site.",
-    "primary_business_only": "L'abonnement du site est géré par l'entreprise principale."
+    "primary_business_only": "L'abonnement du site est géré par l'entreprise principale.",
+    "promo_not_combinable": "Ce soin est déjà en promotion : le code promo ne s'y ajoute pas.",
+    "gift_card_not_found": "Ce code de carte cadeau est inconnu. Vérifiez-le, ou contactez l'établissement.",
+    "gift_card_expired": "Cette carte cadeau a expiré.",
+    "gift_card_used": "Cette carte cadeau a déjà été entièrement utilisée.",
+    "gift_card_insufficient": "Le solde de la carte cadeau est insuffisant.",
+    "gift_cards_unavailable": "Les cartes cadeaux ne sont pas proposées pour le moment.",
+    "gift_card_amount": "Choisissez un montant entre le minimum et le maximum indiqués."
   },
   "status": {
     "draft": "En création",
@@ -1058,7 +1120,16 @@
       "intro": "Choisissez la professionnelle qui réalisera votre soin.",
       "choose": "Réserver avec {name}",
       "stepLabel": "Avec qui"
-    }
+    },
+    "giftCard": {
+      "label": "Carte cadeau",
+      "apply": "Utiliser",
+      "applied": "Carte •••• {last4} : l'acompte de {amount} sera pris sur la carte (solde {balance}).",
+      "appliedNoDeposit": "Carte •••• {last4} enregistrée : le soin se déduira sur place (solde {balance}).",
+      "remove": "Retirer",
+      "paidWith": "Acompte réglé avec votre carte cadeau."
+    },
+    "promoLabel": "{title} : au lieu de {price}"
   },
   "manager": {
     "metaTitle": "Mon espace",
@@ -1255,7 +1326,9 @@
       "requests": "Demandes de modification",
       "help": "Aide",
       "payments": "Paiements en ligne",
-      "promo": "Codes promo"
+      "promo": "Codes promo",
+      "promotions": "Promotions",
+      "giftCards": "Cartes cadeaux"
     },
     "stats": {
       "title": "Statistiques",
@@ -1445,7 +1518,69 @@
       "delete": "Supprimer",
       "deleteConfirm": "Supprimer ce code ? S'il a déjà servi, il sera seulement désactivé."
     },
-    "switchBusiness": "Changer d'entreprise"
+    "switchBusiness": "Changer d'entreprise",
+    "promotions": {
+      "title": "Promotions",
+      "intro": "Pendant la période choisie, le site affiche un bandeau « offre du moment » et le prix barré à côté du prix réduit. La promotion s'arrête seule à la date de fin.",
+      "referenceRule": "Le prix barré est le prix le plus bas pratiqué dans les 30 jours avant le début de la promotion (règle française). Un code promo ne s'ajoute pas à une promotion.",
+      "unavailable": "Les promotions datées sont incluses à partir du pack Essentiel.",
+      "empty": "Aucune promotion pour le moment.",
+      "new": "Nouvelle promotion",
+      "titleLabel": "Intitulé (affiché dans le bandeau)",
+      "titleHint": "Exemple : Offre d'automne",
+      "services": "Prestations concernées",
+      "discountType": "Réduction",
+      "percent": "Pourcentage",
+      "fixed": "Montant retiré (€)",
+      "discountValue": "Valeur",
+      "startsOn": "Du",
+      "endsOn": "Au (inclus)",
+      "delete": "Supprimer cette promotion",
+      "deleteConfirm": "Supprimer cette promotion ?",
+      "state": {
+        "current": "En cours",
+        "upcoming": "À venir",
+        "ended": "Terminée"
+      },
+      "summary": "{value} · {from} → {until} · {count, plural, one {# prestation} other {# prestations}}"
+    },
+    "giftCards": {
+      "title": "Cartes cadeaux",
+      "intro": "Vos clientes achètent une carte sur votre site ; le paiement arrive directement sur votre compte Stripe. La carte s'utilise en ligne (elle remplace l'acompte) ou ici, sur place.",
+      "unavailable": "Les cartes cadeaux sont incluses dans le pack Sérénité.",
+      "needsStripe": "Pour vendre des cartes, ouvrez d'abord votre compte de paiement (Plus → Paiements).",
+      "redeemTitle": "Encaisser une carte sur place",
+      "code": "Code de la carte",
+      "amount": "Montant à déduire (€)",
+      "note": "Note (facultatif, ex. soin réalisé)",
+      "redeem": "Déduire",
+      "redeemed": "Montant déduit de la carte •••• {last4}. Solde restant : {balance}.",
+      "listTitle": "Cartes vendues",
+      "empty": "Aucune carte vendue pour le moment.",
+      "filter": {
+        "all": "Toutes",
+        "active": "Actives",
+        "used": "Utilisées",
+        "expired": "Expirées"
+      },
+      "state": {
+        "active": "Active",
+        "used": "Utilisée",
+        "expired": "Expirée",
+        "cancelled": "Annulée",
+        "pending_payment": "En attente"
+      },
+      "line": "{amount} · solde {balance} · valable jusqu'au {date}",
+      "from": "Achetée par {name}",
+      "for": "pour {name}",
+      "settingsTitle": "Réglages",
+      "enabled": "Proposer les cartes cadeaux sur mon site",
+      "validityMonths": "Durée de validité (en mois)",
+      "amounts": "Montants proposés (€, séparés par des virgules)",
+      "min": "Montant libre minimum (€)",
+      "max": "Montant libre maximum (€)",
+      "rules": "Règles affichées à l'achat et dans vos conditions de vente : utilisable en plusieurs fois (le solde est conservé), non remboursable, non échangeable contre de l'argent."
+    }
   },
   "notifications": {
     "common": {
@@ -1564,6 +1699,12 @@
         "unpaid": "Les prélèvements de votre abonnement n'ont pas abouti malgré plusieurs tentatives. Votre site est passé au pack gratuit : rien n'est supprimé.",
         "back": "Vous pouvez reprendre un pack payant à tout moment depuis votre espace.",
         "open": "Voir les packs"
+      },
+      "gift_card_sold": {
+        "subject": "Carte cadeau vendue : {amount}",
+        "title": "Nouvelle carte cadeau",
+        "intro": "{name} vient d'acheter une carte cadeau de {amount} sur votre site. Le paiement est sur votre compte Stripe.",
+        "open": "Voir les cartes cadeaux"
       }
     },
     "account": {
@@ -1604,6 +1745,25 @@
         "email": "E-mail",
         "open": "Voir les commandes"
       }
+    },
+    "giftCard": {
+      "subject": "{from} vous offre une carte cadeau {business}",
+      "title": "Une carte cadeau pour vous",
+      "intro": "{from} vous offre une carte cadeau de {amount}, à utiliser chez {where}.",
+      "atBusiness": "{business} (avec {name})",
+      "code": "Votre code",
+      "amount": "Montant",
+      "validity": "Valable",
+      "validUntil": "jusqu'au {date}",
+      "codeEnd": "Code se terminant par",
+      "book": "Réserver un soin",
+      "howTo": "Pour l'utiliser, saisissez ce code au moment de réserver en ligne, ou donnez-le sur place. Utilisable en plusieurs fois : le solde est conservé.",
+      "rules": "Carte non remboursable et non échangeable contre de l'argent.",
+      "receiptSubject": "Votre carte cadeau {business}",
+      "receiptTitle": "Merci pour votre achat",
+      "receiptIntro": "Votre carte cadeau de {amount}, à utiliser chez {where}, est bien payée.",
+      "receiptSent": "Elle vient d'être envoyée à {email}.",
+      "receiptScheduled": "Elle sera envoyée à {email} le {date}."
     }
   },
   "legal": {

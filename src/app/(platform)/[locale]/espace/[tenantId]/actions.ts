@@ -1,8 +1,10 @@
 "use server";
 
 import { categoryFields } from "@/modules/catalog/icons";
+import { redeemOnSite, updateGiftCardSettings } from "@/modules/giftcards/giftcards";
+import { deletePromotion, savePromotion } from "@/modules/promotions/promotions";
 import { redirect as redirectTo } from "next/navigation";
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { publicAppUrl } from "@/config/env";
 import { z } from "zod";
 import { redirect } from "@/i18n/navigation";
@@ -467,6 +469,69 @@ export async function savePromoCodeAction(_previous: Previous, data: FormData) {
 export async function deletePromoCodeAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   return managerMutation(tenantId, "promo.deleted", (tx) => deletePromoCode(tx, tenantId, idOf(data)!));
+}
+
+// ─── Promotions datées ───────────────────────────────────────────────────────
+
+export async function savePromotionAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "promotion.saved", (tx) =>
+    savePromotion(
+      tx,
+      tenantId,
+      {
+        title: form.text(data, "title"),
+        serviceIds: form.all(data, "serviceIds"),
+        discountType: form.text(data, "discountType") as "percent",
+        discountValue: form.text(data, "discountValue"),
+        startsOn: form.text(data, "startsOn"),
+        endsOn: form.text(data, "endsOn"),
+      },
+      idOf(data),
+    ),
+  );
+}
+
+export async function deletePromotionAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "promotion.deleted", (tx) => deletePromotion(tx, tenantId, idOf(data)!));
+}
+
+// ─── Cartes cadeaux ──────────────────────────────────────────────────────────
+
+/** Sur place : la gérante saisit le code et le montant du soin. */
+export async function redeemGiftCardAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const result = await managerMutation(tenantId, "gift_card.redeemed", (tx, { userId }) =>
+    redeemOnSite(
+      tx,
+      tenantId,
+      { code: form.text(data, "code"), amount: form.text(data, "amount"), note: form.optional(data, "note") },
+      userId,
+    ),
+  );
+  if (result.ok && result.data) {
+    const t = await getTranslations("manager.giftCards");
+    const amount = new Intl.NumberFormat(await getLocale(), {
+      style: "currency",
+      currency: result.data.currency,
+    }).format(result.data.balanceCents / 100);
+    return { ...result, message: t("redeemed", { last4: result.data.codeLast4, balance: amount }) };
+  }
+  return result;
+}
+
+export async function saveGiftCardSettingsAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "gift_card.settings", (tx) =>
+    updateGiftCardSettings(tx, tenantId, {
+      enabled: form.bool(data, "enabled"),
+      validityMonths: form.text(data, "validityMonths") as unknown as number,
+      amounts: form.text(data, "amounts"),
+      min: form.text(data, "min"),
+      max: form.text(data, "max"),
+    }),
+  );
 }
 
 // ─── Abonnement ──────────────────────────────────────────────────────────────

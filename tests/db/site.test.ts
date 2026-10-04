@@ -140,7 +140,14 @@ describe.skipIf(!hasTestDatabase)("site d'un client : données affichées", () =
 
     await platform((tx) => changePlan(tx, tenant.id, "basic"));
     const site = (await load(tenant.id))!;
-    expect(site.features).toEqual({ fullSite: false, testimonials: false, brandingFooter: true });
+    expect(site.features).toEqual({
+      fullSite: false,
+      testimonials: false,
+      brandingFooter: true,
+      promotions: false,
+      googleReviews: false,
+      giftCards: false,
+    });
     expect(site.testimonials).toEqual([]);
     expect(Object.values(visibleSections(site)).every((visible) => !visible)).toBe(true);
     expect(sitemapPaths(site, visibleSections(site), SITE_PATHS, categoryPath)).toEqual([

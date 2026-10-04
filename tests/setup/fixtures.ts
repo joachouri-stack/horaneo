@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { eq } from "drizzle-orm";
 import * as s from "@/db/schema";
 import type { TestDb } from "./db";
@@ -148,6 +149,44 @@ export async function createTenantWithData(db: TestDb, label: string) {
     })
     .returning();
   await db.insert(s.refunds).values({ businessId, tenantId, paymentId: payment.id, amountCents: 1800 });
+  // Étape 9 bis (l'historique des prix est rempli par la base à la création de la prestation).
+  const [promotion] = await db
+    .insert(s.promotions)
+    .values({
+      businessId,
+      tenantId,
+      title: { fr: "Offre d'automne" },
+      discountType: "percent",
+      discountValue: 20,
+      startsOn: "2026-11-01",
+      endsOn: "2026-11-30",
+    })
+    .returning();
+  await db
+    .insert(s.promotionServices)
+    .values({ businessId, tenantId, promotionId: promotion.id, serviceId: service.id });
+  await db
+    .insert(s.googleReviews)
+    .values({ businessId, tenantId, placeId: `place-${tag}`, rating: 4.9, total: 12 });
+  const [giftCard] = await db
+    .insert(s.giftCards)
+    .values({
+      businessId,
+      tenantId,
+      codeHash: createHash("sha256").update(tag).digest("hex"),
+      codeLast4: "ABCD",
+      status: "active",
+      initialCents: 5000,
+      balanceCents: 5000,
+      purchaserName: "Camille",
+      purchaserEmail: `client-${tag}@example.com`,
+      sendAt: new Date("2026-11-01T09:00:00Z"),
+      expiresAt: new Date("2027-11-01T09:00:00Z"),
+    })
+    .returning();
+  await db
+    .insert(s.giftCardTransactions)
+    .values({ businessId, tenantId, giftCardId: giftCard.id, kind: "purchase", amountCents: 5000 });
   await db.insert(s.subscriptions).values({ tenantId, planId: plan.id, status: "active" });
   await db.insert(s.orders).values({
     userId: user.id,

@@ -4,6 +4,7 @@ import { formatMoney } from "@/lib/format";
 import type { SiteData } from "@/modules/site/data";
 import { formatDuration } from "@/modules/site/format";
 import { SITE_PATHS } from "@/modules/site/paths";
+import { PriceTag } from "../PriceTag";
 import { ArrowIcon } from "./icons";
 import { Tag } from "./ui";
 
@@ -24,6 +25,7 @@ export async function ServiceAccordion({
 }) {
   const t = await getTranslations("site.atelier");
   const tServices = await getTranslations("site.services");
+  const tOffers = await getTranslations("site.offers");
   const categories = site.categories.filter((category) => category.businessId === businessId);
   const loose = site.uncategorized.filter((service) => service.businessId === businessId);
   const groups = [
@@ -73,7 +75,14 @@ export async function ServiceAccordion({
           </summary>
           <ul className="divide-y divide-site-border/60 px-5 pb-3 sm:px-6">
             {group.services.map((service) => {
-              const price = formatMoney(service.priceCents, service.currency, site.locale);
+              const price = formatMoney(
+                service.promo?.priceCents ?? service.priceCents,
+                service.currency,
+                site.locale,
+              );
+              const was = service.promo
+                ? formatMoney(service.promo.referenceCents, service.currency, site.locale)
+                : null;
               return (
                 <li key={service.id} className="flex items-center gap-4 py-3">
                   <div className="min-w-0 flex-1">
@@ -84,7 +93,11 @@ export async function ServiceAccordion({
                     </p>
                   </div>
                   <span className="shrink-0 font-bold text-site-accent">
-                    {service.priceFrom ? tServices("priceFrom", { price }) : price}
+                    <PriceTag
+                      price={service.priceFrom ? tServices("priceFrom", { price }) : price}
+                      was={was}
+                      wasLabel={was ? tOffers("was", { price: was }) : undefined}
+                    />
                   </span>
                   {service.isOnlineBookable ? (
                     <Link

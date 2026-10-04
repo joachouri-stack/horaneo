@@ -4,6 +4,7 @@ import { z } from "zod";
 import { authSecret } from "@/config/env";
 import type { Transaction } from "@/db/client";
 import { appointmentItems, appointments, customers, usageCounters } from "@/db/schema";
+import { checkGiftCard, redeemForBooking } from "@/modules/giftcards/giftcards";
 import { AppError } from "@/modules/errors";
 import { createDepositIntent, onlinePaymentReady } from "@/modules/payments/deposits";
 import type { PaymentGateway } from "@/modules/payments/gateway";
@@ -46,6 +47,8 @@ export const bookingInput = z.object({
   locale: z.string().min(2).max(5).default("fr"),
   /** Code promo saisi par la cliente (réservation en ligne uniquement). */
   promoCode: z.string().trim().max(30).optional(),
+  /** Carte cadeau : remplace l'acompte (débité de la carte). */
+  giftCardCode: z.string().trim().max(40).optional(),
 });
 
 export type BookingInput = z.input<typeof bookingInput>;
@@ -216,6 +219,10 @@ export async function createBooking(
   const quota = source === "online" ? await consumeOnlineQuota(tx, context, now) : null;
   if (quota === false) throw new AppError("booking_quota_reached");
 
+  // Pas de cumul : un code promo ne s'ajoute pas à une promotion en cours.
+  if (source === "online" && input.promoCode && services.some((service) => service.promotion)) {
+    throw new AppError("promo_not_combinable", "promoCode");
+  }
   // Code promo : réduction sur le total, puis acompte calculé sur le total réduit (décision n° 8).
   const promo =
     source === "online" && input.promoCode
@@ -224,10 +231,14 @@ export async function createBooking(
   const discountCents = promo?.discountCents ?? 0;
   const totalCents = totals.totalCents - discountCents;
   const depositCents = computeDeposit(totalCents, context.settings, paymentReady);
+  // Carte cadeau (pack qui l'inclut) : vérifiée avant tout, débitée une fois le rendez-vous créé.
+  const giftCardCode =
+    source === "online" && input.giftCardCode && context.features.giftCards ? input.giftCardCode : null;
+  if (giftCardCode) await checkGiftCard(tx, tenantId, giftCardCode, depositCents, now);
 
   const customerId = await upsertCustomer(tx, context, input.customer, input.locale, now);
   const endsAt = addMinutes(input.start, totals.durationMinutes);
-  const pending = depositCents > 0;
+  const pending = depositCents > 0 && !giftCardCode;
 
   let appointment;
   try {
@@ -259,6 +270,7 @@ export async function createBooking(
   }
 
   const manageToken = await assignManageToken(tx, appointment.id);
+  if (giftCardCode) await redeemForBooking(tx, tenantId, giftCardCode, appointment.id, depositCents, now);
   await tx.insert(appointmentItems).values(
     services.map((service, index) => ({
       tenantId,
@@ -319,6 +331,8 @@ export async function createBooking(
     endsAt: appointment.endsAt,
     totalCents: appointment.totalCents,
     depositCents: appointment.depositCents,
+    /** Acompte réglé avec une carte cadeau. */
+    paidWithGiftCard: Boolean(giftCardCode) && appointment.depositCents > 0,
     currency: appointment.currency,
     holdExpiresAt: appointment.holdExpiresAt,
   };

@@ -5,6 +5,7 @@ import { ClockIcon, PhoneIcon } from "@/components/site/atelier/icons";
 import { OpenFromHash } from "@/components/site/atelier/OpenFromHash";
 import { ServiceAccordion } from "@/components/site/atelier/ServiceAccordion";
 import { PillLink, Tag } from "@/components/site/atelier/ui";
+import { GoogleReviewCards, ReviewsSummary } from "@/components/site/GoogleReviews";
 import { SiteImage } from "@/components/site/SiteImage";
 import { getSite } from "@/lib/site/load";
 import { formatPhone } from "@/modules/phone";
@@ -35,6 +36,8 @@ export async function generateMetadata({
 export default async function BusinessPage({ params }: PageProps<"/sites/[tenantId]/avec/[slug]">) {
   const { site, business, index } = await load(params);
   const t = await getTranslations("site.atelier");
+  // Sa propre fiche Google (site à plusieurs entreprises) : ses avis sur sa page.
+  const ownReviews = site.reviews.find((item) => item.businessId === business.id) ?? null;
   const bookHref = `${SITE_PATHS.booking}?avec=${business.id}`;
   const cardFirst = index % 2 === 0;
 
@@ -93,6 +96,17 @@ export default async function BusinessPage({ params }: PageProps<"/sites/[tenant
           <ServiceAccordion site={site} businessId={business.id} />
           {!cardFirst && card}
         </div>
+        {ownReviews && (
+          <section aria-labelledby="avis-pro" className="mt-14">
+            <h2 id="avis-pro" className="text-center font-site-display text-3xl font-medium sm:text-4xl">
+              {t("testimonialsTitle")}
+            </h2>
+            <ReviewsSummary reviews={ownReviews} locale={site.locale} className="mt-3" />
+            <div className="mt-8">
+              <GoogleReviewCards reviews={ownReviews} />
+            </div>
+          </section>
+        )}
       </div>
     </main>
   );

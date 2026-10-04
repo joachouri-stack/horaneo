@@ -19,6 +19,7 @@ import {
 import { AppError } from "@/modules/errors";
 import { currentPeriod } from "@/modules/tenants/queries";
 import { usageCounters } from "@/db/schema";
+import { activePromotionPrices } from "@/modules/promotions/promotions";
 import { computeTotals } from "./pricing";
 import { computeDaySlots, type Interval, type Slot, type StaffInput } from "./slots";
 import { addDays, localToUtc } from "./time";
@@ -64,13 +65,29 @@ export async function loadBookingContext(tx: Transaction, tenantId: string, busi
       .orderBy(asc(staffMembers.sortOrder)),
     tx.select().from(staffServices).where(eq(staffServices.businessId, targetId)),
   ]);
+  const features = row.features as PlanFeatures;
+  // Promotion en cours : le prix réduit est celui de la réservation (et de l'acompte).
+  const promoted = features.promotions
+    ? await activePromotionPrices(tx, tenantId, {
+        timezone: row.tenant.timezone,
+        locale: row.tenant.defaultLocale,
+      })
+    : new Map();
   return {
     tenant: row.tenant,
     business: row.business,
     settings: row.settings,
-    features: row.features as PlanFeatures,
+    features,
     limits: row.limits as PlanLimits,
-    services: serviceRows,
+    services: serviceRows.map((service) => {
+      const promotion = promoted.get(service.id);
+      return {
+        ...service,
+        priceCents: promotion?.priceCents ?? service.priceCents,
+        regularPriceCents: service.priceCents,
+        promotion: promotion ?? null,
+      };
+    }),
     staff: staffRows.map((member) => ({
       id: member.id,
       name: member.name,

@@ -3,6 +3,8 @@ import type { Transaction } from "@/db/client";
 import {
   assets,
   businesses,
+  businessSettings,
+  googleReviews,
   openingHours,
   plans,
   serviceCategories,
@@ -17,6 +19,8 @@ import {
 } from "@/db/schema";
 import { pickLocalized, type Locale, type LocalizedText } from "@/i18n/locales";
 import type { PageContent, SitePageKey } from "@/modules/content/pages";
+import { activePromotionPrices, type ActivePromotion } from "@/modules/promotions/promotions";
+import { isDisplayable, placeReviewsUrl } from "@/modules/reviews/google";
 
 /**
  * Toutes les données publiques d'un site client, lues en une fois avec le
@@ -38,6 +42,8 @@ export type SiteService = {
   currency: string;
   priceFrom: boolean;
   isOnlineBookable: boolean;
+  /** Promotion en cours : prix réduit et prix barré (le plus bas des 30 jours précédents). */
+  promo: { priceCents: number; referenceCents: number; title: string; endsOn: string } | null;
 };
 
 export type SiteCategory = {
@@ -77,6 +83,8 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
     hourRows,
     assetRows,
     domainRows,
+    reviewRows,
+    settingsRows,
   ] = await Promise.all([
     tx
       .select()
@@ -119,7 +127,19 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
       .select()
       .from(tenantDomains)
       .where(and(eq(tenantDomains.tenantId, tenantId), eq(tenantDomains.isPrimary, true))),
+    tx.select().from(googleReviews).where(eq(googleReviews.tenantId, tenantId)),
+    tx
+      .select({
+        businessId: businessSettings.businessId,
+        giftCardsEnabled: businessSettings.giftCardsEnabled,
+      })
+      .from(businessSettings)
+      .where(eq(businessSettings.tenantId, tenantId)),
   ]);
+  const planFeatures = row.features as PlanFeatures;
+  const promoted = planFeatures.promotions
+    ? await activePromotionPrices(tx, tenantId, { timezone: tenant.timezone, locale: lang })
+    : new Map<string, ActivePromotion>();
 
   const image = (assetId: string | null | undefined): SiteImage | null => {
     const asset = assetId ? assetRows.find((item) => item.id === assetId) : undefined;
@@ -170,6 +190,17 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
     currency: service.currency,
     priceFrom: service.priceFrom,
     isOnlineBookable: service.isOnlineBookable,
+    promo: (() => {
+      const promotion = promoted.get(service.id);
+      return promotion
+        ? {
+            priceCents: promotion.priceCents,
+            referenceCents: promotion.referenceCents,
+            title: promotion.title,
+            endsOn: promotion.endsOn,
+          }
+        : null;
+    })(),
   }));
 
   const categories: SiteCategory[] = categoryRows
@@ -182,7 +213,9 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
       icon: category.icon,
       isFeatured: category.isFeatured,
       minPriceCents: Math.min(
-        ...siteServices.filter((service) => service.categoryId === category.id).map((s) => s.priceCents),
+        ...siteServices
+          .filter((service) => service.categoryId === category.id)
+          .map((s) => s.promo?.priceCents ?? s.priceCents),
       ),
       services: siteServices.filter((service) => service.categoryId === category.id),
     }))
@@ -191,7 +224,20 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
     (service) => !categories.some((category) => category.id === service.categoryId),
   );
 
-  const features = row.features as PlanFeatures;
+  const features = planFeatures;
+  // Bandeau « offre du moment » : une ligne par promotion en cours.
+  const offers = [...promoted.values()]
+    .filter(
+      (offer, index, list) => list.findIndex((item) => item.promotionId === offer.promotionId) === index,
+    )
+    .map((offer) => ({
+      id: offer.promotionId,
+      title: offer.title,
+      endsOn: offer.endsOn,
+      businessId: serviceRows.find((service) => promoted.get(service.id)?.promotionId === offer.promotionId)
+        ?.businessId,
+    }));
+  const now = new Date();
   return {
     tenant: {
       id: tenant.id,
@@ -218,7 +264,38 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
       fullSite: Boolean(features.fullSite),
       testimonials: Boolean(features.testimonials),
       brandingFooter: Boolean(features.brandingFooter),
+      promotions: Boolean(features.promotions),
+      googleReviews: Boolean(features.googleReviews),
+      giftCards: Boolean(features.giftCards),
     },
+    offers,
+    /** Avis Google par entreprise (copie de moins de 30 jours ; sinon seulement le lien). */
+    reviews: features.googleReviews
+      ? businessRows
+          .filter((business) => business.googlePlaceId)
+          .map((business) => {
+            const cache = reviewRows.find((item) => item.businessId === business.id);
+            const fresh =
+              cache && cache.placeId === business.googlePlaceId && isDisplayable(cache.fetchedAt, now);
+            return {
+              businessId: business.id,
+              rating: fresh ? cache.rating : null,
+              total: fresh ? cache.total : 0,
+              reviews: fresh ? cache.reviews.filter((review) => review.text) : [],
+              url: (fresh && cache.url) || placeReviewsUrl(business.googlePlaceId!),
+            };
+          })
+      : [],
+    /** Entreprises qui vendent des cartes cadeaux (compte Stripe actif). */
+    giftCardBusinessIds: features.giftCards
+      ? businessRows
+          .filter(
+            (business) =>
+              business.stripeChargesEnabled &&
+              settingsRows.find((item) => item.businessId === business.id)?.giftCardsEnabled,
+          )
+          .map((business) => business.id)
+      : [],
     primaryHostname: domainRows[0]?.hostname ?? null,
     logo: image(tenant.brand.logoAssetId),
     pages,
@@ -307,7 +384,10 @@ export function visibleSections(site: NonNullable<SiteData>) {
     services: site.services.length > 0,
     about: published("about") && (Boolean(site.pages.about?.texts.body) || site.staff.length > 0),
     gallery: published("gallery") && site.gallery.length > 0,
-    testimonials: published("testimonials") && site.testimonials.length > 0,
+    // Page des avis : témoignages saisis, ou avis Google de l'établissement.
+    testimonials:
+      published("testimonials") &&
+      (site.testimonials.length > 0 || site.reviews.some((item) => item.reviews.length > 0)),
     practical: true,
   };
 }
@@ -315,4 +395,15 @@ export function visibleSections(site: NonNullable<SiteData>) {
 /** Site au modèle Atelier (une page par professionnelle) : réservé au site complet. */
 export function isAtelier(site: NonNullable<SiteData>) {
   return site.tenant.templateKey === "atelier" && site.features.fullSite;
+}
+
+/** Avis Google affichés pour tout le site : ceux de l'entreprise principale, sinon de la première fiche. */
+export function siteReviews(site: NonNullable<SiteData>) {
+  const primary = site.businesses.find((business) => business.isPrimary);
+  return (
+    site.reviews.find((item) => item.businessId === primary?.id) ??
+    site.reviews.find((item) => item.rating !== null) ??
+    site.reviews[0] ??
+    null
+  );
 }

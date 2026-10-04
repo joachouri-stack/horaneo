@@ -99,6 +99,13 @@
       "when": 1791144597502,
       "tag": "0013_site_atelier",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1791147025575,
+      "tag": "0014_offers",
+      "breakpoints": true
     }
   ]
 }

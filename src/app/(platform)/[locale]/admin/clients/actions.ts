@@ -178,6 +178,7 @@ const businessFields = (data: FormData) => ({
   addressLine1: form.optional(data, "addressLine1"),
   postalCode: form.optional(data, "postalCode"),
   city: form.optional(data, "city"),
+  ...(data.has("googlePlaceId") ? { googlePlaceId: form.text(data, "googlePlaceId") } : {}),
 });
 
 export async function updateBusinessAction(_previous: Previous, data: FormData) {

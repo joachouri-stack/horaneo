@@ -49,4 +49,11 @@ export type AppErrorCode =
   | "order_not_pending"
   | "services_mixed"
   | "manager_already_linked"
-  | "primary_business_only";
+  | "primary_business_only"
+  | "promo_not_combinable"
+  | "gift_card_not_found"
+  | "gift_card_expired"
+  | "gift_card_used"
+  | "gift_card_insufficient"
+  | "gift_cards_unavailable"
+  | "gift_card_amount";

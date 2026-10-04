@@ -57,6 +57,7 @@ export async function AtelierFooter({ site }: { site: Site }) {
   const t = await getTranslations("site.atelier");
   const tFooter = await getTranslations("site.footer");
   const tSite = await getTranslations("site");
+  const tGift = await getTranslations("site.giftCard");
   const { tenant } = site;
   const sections = visibleSections(site);
   const pages = site.businesses.filter((business) => business.slug && business.title);
@@ -121,6 +122,13 @@ export async function AtelierFooter({ site }: { site: Site }) {
                 <li>
                   <Link href={SITE_PATHS.services} className="underline underline-offset-4">
                     {tSite("nav.services")}
+                  </Link>
+                </li>
+              )}
+              {site.giftCardBusinessIds.length > 0 && (
+                <li>
+                  <Link href={SITE_PATHS.giftCard} className="underline underline-offset-4 hover:opacity-80">
+                    {tGift("navLabel")}
                   </Link>
                 </li>
               )}

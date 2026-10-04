@@ -3,6 +3,7 @@ import type { Transaction } from "@/db/client";
 import { appointmentItems, appointments, staffMembers } from "@/db/schema";
 import { pickLocalized, type Locale } from "@/i18n/locales";
 import { AppError } from "@/modules/errors";
+import { creditBackForAppointment, moveGiftCardRedemption } from "@/modules/giftcards/giftcards";
 import { queueMessage } from "@/modules/messages/queue";
 import { moveDeposit } from "@/modules/payments/deposits";
 import type { PaymentGateway } from "@/modules/payments/gateway";
@@ -106,6 +107,8 @@ export async function cancelByCustomer(
     .update(appointments)
     .set({ status: "cancelled", cancelledAt: now, cancelledBy: "customer" })
     .where(eq(appointments.id, managed.appointment.id));
+  // Acompte réglé avec une carte cadeau : le montant est remis sur la carte.
+  await creditBackForAppointment(tx, tenantId, managed.appointment.id);
   const refund = await refundDeposit(tx, tenantId, managed.appointment.id, gateway, {
     reason: "customer_cancelled",
     now,
@@ -198,6 +201,7 @@ export async function rescheduleByCustomer(
   );
   const manageToken = await assignManageToken(tx, created.id);
   await moveDeposit(tx, tenantId, old.id, created.id);
+  await moveGiftCardRedemption(tx, tenantId, old.id, created.id);
   const items = await tx.select().from(appointmentItems).where(eq(appointmentItems.appointmentId, old.id));
   await tx.insert(appointmentItems).values(
     items.map((item) => ({

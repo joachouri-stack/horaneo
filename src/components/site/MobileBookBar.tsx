@@ -8,7 +8,7 @@ import { SITE_PATHS } from "@/modules/site/paths";
 export async function MobileBookBar({ phone }: { phone: string | null }) {
   const t = await getTranslations("site");
   return (
-    <HideOnPaths prefixes={[SITE_PATHS.booking, SITE_PATHS.appointment]}>
+    <HideOnPaths prefixes={[SITE_PATHS.booking, SITE_PATHS.appointment, SITE_PATHS.giftCard]}>
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-site-border bg-site-bg/95 px-4 py-3 backdrop-blur sm:hidden">
         <div className="flex gap-3">
           {phone && (

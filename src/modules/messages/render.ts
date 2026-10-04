@@ -1,4 +1,4 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import { declareBusiness } from "@/db/access";
 import type { Transaction } from "@/db/client";
 import {
@@ -13,6 +13,7 @@ import {
   tenantDomains,
   businessSettings,
   businesses,
+  giftCards,
   tenants,
   users,
   type PlanFeatures,
@@ -22,6 +23,7 @@ import { pickLocalized, type Locale } from "@/i18n/locales";
 import { getTranslator, resolveLocale } from "@/i18n/translator";
 import { tenantSiteUrl } from "@/lib/tenancy/urls";
 import { manageTokenFor } from "@/modules/booking/create";
+import { giftCardCodeFor } from "@/modules/giftcards/giftcards";
 import { addMinutes } from "@/modules/booking/time";
 import { depositSummary } from "@/modules/payments/refunds";
 import { formatPhone } from "@/modules/phone";
@@ -197,8 +199,101 @@ export async function renderMessage(
   await declareBusiness(tx, row.businessId);
   const tenant = await loadTenant(tx, row.tenantId);
   if (!tenant) return { kind: "skip", reason: "no_tenant" };
+  if (template === "customer.gift_card" || template === "customer.gift_card_receipt")
+    return renderGiftCard(tx, row, template, tenant, options);
   if (template.startsWith("manager.")) return renderManager(tx, row, template, tenant, options);
   return renderCustomer(tx, row, template, tenant, options);
+}
+
+// ─── Cartes cadeaux ───────────────────────────────────────────────────────────
+
+async function loadGiftCard(tx: Transaction, row: MessageRow) {
+  const giftCardId = (row.data as { giftCardId?: string }).giftCardId;
+  if (!giftCardId) return null;
+  const [found] = await tx
+    .select({
+      card: giftCards,
+      businessName: businesses.name,
+      multi: sql<boolean>`(select count(*) > 1 from ${businesses} b where b.tenant_id = ${giftCards.tenantId})`,
+    })
+    .from(giftCards)
+    .innerJoin(businesses, eq(businesses.id, giftCards.businessId))
+    .where(eq(giftCards.id, giftCardId));
+  return found ?? null;
+}
+
+/** La carte (au destinataire, à la date choisie) et le reçu (à l'acheteuse, tout de suite). */
+async function renderGiftCard(
+  tx: Transaction,
+  row: MessageRow,
+  template: MessageTemplate,
+  tenant: TenantInfo,
+  options: RenderOptions,
+): Promise<Rendered> {
+  const found = await loadGiftCard(tx, row);
+  if (!found || found.card.status !== "active") return { kind: "skip", reason: "no_gift_card" };
+  const { card } = found;
+  const locale = resolveLocale(row.locale);
+  const t = await getTranslator(locale);
+  const fmt = formatters(locale, tenant.timezone);
+  const siteUrl = tenant.siteUrl ?? options.appUrl;
+  const amount = fmt.money(card.initialCents, card.currency);
+  const where = found.multi
+    ? t("notifications.giftCard.atBusiness", { business: tenant.name, name: found.businessName })
+    : tenant.name;
+  const validity = t("notifications.giftCard.validUntil", { date: fmt.date(card.expiresAt) });
+  let to: string;
+  let subject: string;
+  let title: string;
+  let paragraphs: string[];
+  let details: { label: string; value: string }[];
+  if (template === "customer.gift_card") {
+    to = card.recipientEmail ?? card.purchaserEmail;
+    const name = card.recipientName || "";
+    subject = t("notifications.giftCard.subject", { from: card.purchaserName, business: tenant.name });
+    title = t("notifications.giftCard.title");
+    paragraphs = [
+      name ? t("notifications.common.hello", { name }) : "",
+      t("notifications.giftCard.intro", { from: card.purchaserName, amount, where }),
+      ...(card.message ? [`« ${card.message} »`] : []),
+    ].filter(Boolean);
+    details = [
+      { label: t("notifications.giftCard.code"), value: giftCardCodeFor(card.id) },
+      { label: t("notifications.giftCard.amount"), value: amount },
+      { label: t("notifications.giftCard.validity"), value: validity },
+    ];
+  } else {
+    to = card.purchaserEmail;
+    subject = t("notifications.giftCard.receiptSubject", { business: tenant.name });
+    title = t("notifications.giftCard.receiptTitle");
+    paragraphs = [
+      t("notifications.common.hello", { name: card.purchaserName }),
+      t("notifications.giftCard.receiptIntro", { amount, where }),
+      card.sendAt > options.now
+        ? t("notifications.giftCard.receiptScheduled", {
+            email: card.recipientEmail ?? card.purchaserEmail,
+            date: fmt.date(card.sendAt),
+          })
+        : t("notifications.giftCard.receiptSent", { email: card.recipientEmail ?? card.purchaserEmail }),
+    ];
+    details = [
+      { label: t("notifications.giftCard.amount"), value: amount },
+      { label: t("notifications.giftCard.codeEnd"), value: `•••• ${card.codeLast4}` },
+      { label: t("notifications.giftCard.validity"), value: validity },
+    ];
+  }
+  const { html, text } = renderEmail({
+    locale,
+    brandName: tenant.name,
+    color: tenant.color,
+    title,
+    paragraphs,
+    details,
+    action: { label: t("notifications.giftCard.book"), url: `${siteUrl}${SITE_PATHS.booking}` },
+    after: [t("notifications.giftCard.howTo"), t("notifications.giftCard.rules")],
+    footer: tenantFooter(tenant),
+  });
+  return { kind: "email", to: [to], subject, html, text, fromName: tenant.name, replyTo: tenant.email };
 }
 
 // ─── Messages aux clientes ────────────────────────────────────────────────────
@@ -487,6 +582,20 @@ async function renderManager(
       t("notifications.manager.basic_quota.upgrade"),
     ];
     action = { label: t("notifications.manager.basic_quota.open"), url: `${space}/plus/abonnement` };
+  } else if (template === "manager.gift_card_sold") {
+    const found = await loadGiftCard(tx, row);
+    if (!found) return { kind: "skip", reason: "no_gift_card" };
+    const amount = fmt.money(found.card.initialCents, found.card.currency);
+    subject = t("notifications.manager.gift_card_sold.subject", { amount });
+    title = t("notifications.manager.gift_card_sold.title");
+    paragraphs = [
+      t("notifications.manager.gift_card_sold.intro", { name: found.card.purchaserName, amount }),
+    ];
+    details = [
+      { label: t("notifications.giftCard.codeEnd"), value: `•••• ${found.card.codeLast4}` },
+      { label: t("notifications.giftCard.validity"), value: fmt.date(found.card.expiresAt) },
+    ];
+    action = { label: t("notifications.manager.gift_card_sold.open"), url: `${space}/plus/cartes-cadeaux` };
   } else if (template === "manager.payment_failed") {
     subject = t("notifications.manager.payment_failed.subject");
     title = t("notifications.manager.payment_failed.title");

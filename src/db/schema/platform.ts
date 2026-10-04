@@ -36,6 +36,10 @@ export type PlanFeatures = {
   brandingFooter?: boolean;
   emailSupport?: boolean;
   whatsappSupport?: boolean;
+  /** Promotions datées (bandeau, prix barré). */
+  promotions?: boolean;
+  googleReviews?: boolean;
+  giftCards?: boolean;
   [feature: string]: boolean | undefined;
 };
 

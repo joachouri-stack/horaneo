@@ -184,6 +184,7 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
           description: pickLocalized(service.description, site.locale),
           durationMinutes: service.durationMinutes,
           priceCents: service.priceCents,
+          regularPriceCents: service.promotion ? service.promotion.referenceCents : null,
           priceFrom: service.priceFrom,
           categoryName: categoryName(service.categoryId),
         }))}
@@ -203,6 +204,7 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
           value: context.settings.depositValue,
         }}
         promoEnabled={promoEnabled}
+        giftCardsEnabled={Boolean(context.features.giftCards)}
         holdMinutes={context.settings.holdMinutes}
         cancellationHours={context.settings.cancellationDeadlineHours}
         privacyPath={SITE_PATHS.privacy}

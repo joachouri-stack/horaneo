@@ -43,6 +43,13 @@ export const businessInput = z.object({
   addressLine1: z.string().trim().max(200).optional(),
   postalCode: z.string().trim().max(20).optional(),
   city: z.string().trim().max(120).optional(),
+  /** Fiche Google (identifiant « place », ex. ChIJ…) : ses avis s'affichent sur le site. */
+  googlePlaceId: z
+    .string()
+    .trim()
+    .regex(/^[A-Za-z0-9_-]{10,200}$/)
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
 });
 
 export type BusinessInput = z.input<typeof businessInput>;
@@ -158,6 +165,7 @@ export async function updateBusiness(
       addressLine1: input.addressLine1 || null,
       postalCode: input.postalCode || null,
       city: input.city || null,
+      ...("googlePlaceId" in raw ? { googlePlaceId: input.googlePlaceId ?? null } : {}),
     })
     .where(and(eq(businesses.tenantId, tenantId), eq(businesses.id, businessId)))
     .returning();

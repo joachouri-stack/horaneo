@@ -5,6 +5,7 @@ import { appointmentItems, appointments, customers, services, staffServices, ten
 import { assignManageToken } from "@/modules/booking/create";
 import { computeTotals } from "@/modules/booking/pricing";
 import { addMinutes } from "@/modules/booking/time";
+import { creditBackForAppointment } from "@/modules/giftcards/giftcards";
 import { AppError } from "@/modules/errors";
 import { queueBookingConfirmed, queueMessage } from "@/modules/messages/queue";
 import type { PaymentGateway } from "@/modules/payments/gateway";
@@ -69,6 +70,8 @@ export async function cancelByManager(
   const refund = payment.refund
     ? await refundDeposit(tx, tenantId, appointment.id, payment.gateway, { reason: "manager_cancelled" })
     : null;
+  // Acompte réglé avec une carte cadeau : le montant est remis sur la carte.
+  if (payment.refund) await creditBackForAppointment(tx, tenantId, appointment.id);
   await queueMessage(tx, {
     tenantId,
     template: "customer.cancelled",

@@ -142,6 +142,8 @@ export const businesses = pgTable(
     /** Adresse de sa page sur le site : /avec/<slug>. */
     slug: text(),
     profile: jsonb().$type<BusinessProfile>().notNull().default({}),
+    /** Fiche Google de l'entreprise (identifiant « place ») : ses avis s'affichent sur le site. */
+    googlePlaceId: text(),
     /** Entreprise principale : celle qui règle l'abonnement du site. */
     isPrimary: boolean().notNull().default(false),
     sortOrder: integer().notNull().default(0),
@@ -223,6 +225,16 @@ export const businessSettings = pgTable(
     holdMinutes: smallint().notNull().default(10),
     dailySummaryEnabled: boolean().notNull().default(true),
     monthlySummaryEnabled: boolean().notNull().default(true),
+    // Cartes cadeaux (pack qui les inclut) : réglages de l'entreprise.
+    giftCardsEnabled: boolean().notNull().default(false),
+    giftCardValidityMonths: smallint().notNull().default(12),
+    /** Montants proposés, en centimes. */
+    giftCardAmounts: integer()
+      .array()
+      .notNull()
+      .default(sql`'{3000,5000,10000}'`),
+    giftCardMinCents: integer().notNull().default(1000),
+    giftCardMaxCents: integer().notNull().default(50000),
     ...timestamps(),
   },
   (t) => [
@@ -235,6 +247,11 @@ export const businessSettings = pgTable(
     check("tenant_settings_deposit_value", sql`${t.depositValue} >= 0`),
     check("tenant_settings_deposit_percent", sql`${t.depositType} <> 'percent' or ${t.depositValue} <= 100`),
     check("tenant_settings_hold", sql`${t.holdMinutes} between 1 and 60`),
+    check("business_settings_gift_validity", sql`${t.giftCardValidityMonths} between 1 and 60`),
+    check(
+      "business_settings_gift_range",
+      sql`${t.giftCardMinCents} > 0 and ${t.giftCardMinCents} <= ${t.giftCardMaxCents}`,
+    ),
   ],
 );
 

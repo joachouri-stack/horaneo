@@ -42,6 +42,15 @@ export default async function BusinessesPage({
       <TextField name="addressLine1" label={t("address1")} defaultValue={business?.addressLine1} />
       <TextField name="postalCode" label={t("postalCode")} defaultValue={business?.postalCode} />
       <TextField name="city" label={t("city")} defaultValue={business?.city} />
+      {business && (
+        <TextField
+          id={`place-${business.id}`}
+          name="googlePlaceId"
+          label={t("googlePlaceId")}
+          hint={t("googlePlaceIdHint")}
+          defaultValue={business.googlePlaceId}
+        />
+      )}
     </>
   );
 

@@ -1,8 +1,11 @@
 import { sql } from "drizzle-orm";
 import { businessForeignKey } from "./tenants";
 import {
+  boolean,
+  char,
   check,
   foreignKey,
+  integer,
   index,
   jsonb,
   pgEnum,
@@ -199,3 +202,103 @@ export const stripeEvents = pgTable("stripe_events", {
   processedAt: utc(),
   error: text(),
 });
+
+// ─── Cartes cadeaux ───────────────────────────────────────────────────────────
+
+export const giftCardStatusEnum = pgEnum("gift_card_status", ["pending_payment", "active", "cancelled"]);
+
+/**
+ * Cartes cadeaux vendues sur le site. Une carte appartient à l'entreprise qui
+ * l'a encaissée (sur son compte Stripe) et ne s'utilise que chez elle.
+ * Le code n'est jamais conservé en clair : seulement son empreinte et ses
+ * 4 derniers caractères (pour la reconnaître dans les listes).
+ * « Utilisée » (solde nul) et « expirée » se déduisent du solde et de la date.
+ */
+export const giftCards = pgTable(
+  "gift_cards",
+  {
+    id: id(),
+    tenantId: uuid()
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    businessId: uuid()
+      .notNull()
+      .default(sql`app_current_business()`),
+    codeHash: char({ length: 64 }).notNull(),
+    codeLast4: char({ length: 4 }).notNull(),
+    status: giftCardStatusEnum().notNull().default("pending_payment"),
+    initialCents: cents().notNull(),
+    balanceCents: cents().notNull(),
+    currency: currency().notNull().default("EUR"),
+    purchaserName: text().notNull(),
+    purchaserEmail: text().notNull(),
+    recipientName: text(),
+    recipientEmail: text(),
+    message: text(),
+    /** Envoi de la carte : tout de suite, ou à la date choisie par l'acheteuse. */
+    sendAt: utc().notNull(),
+    expiresAt: utc().notNull(),
+    stripePaymentIntentId: text(),
+    stripeAccountId: text(),
+    paidAt: utc(),
+    locale: text().notNull().default("fr"),
+    /** Carte créée par la gérante (vendue sur place), sans paiement en ligne. */
+    soldOnSite: boolean().notNull().default(false),
+    ...timestamps(),
+  },
+  (t) => [
+    businessForeignKey("gift_cards_business_fk", t, "restrict"),
+    unique("gift_cards_business_id_key").on(t.businessId, t.id),
+    uniqueIndex("gift_cards_code_hash_key").on(t.codeHash),
+    uniqueIndex("gift_cards_payment_intent_key").on(t.stripePaymentIntentId),
+    index("gift_cards_tenant_created_idx").on(t.tenantId, t.createdAt),
+    check(
+      "gift_cards_amounts",
+      sql`${t.initialCents} > 0 and ${t.balanceCents} >= 0 and ${t.balanceCents} <= ${t.initialCents}`,
+    ),
+  ],
+);
+
+export const giftCardTransactionKindEnum = pgEnum("gift_card_transaction_kind", [
+  "purchase",
+  "redeem_online",
+  "redeem_on_site",
+  "credit_back",
+]);
+
+/** Mouvements d'une carte : achat, utilisation en ligne ou sur place, recrédit après annulation. */
+export const giftCardTransactions = pgTable(
+  "gift_card_transactions",
+  {
+    id: id(),
+    tenantId: uuid()
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    businessId: uuid()
+      .notNull()
+      .default(sql`app_current_business()`),
+    giftCardId: uuid().notNull(),
+    kind: giftCardTransactionKindEnum().notNull(),
+    /** Positif : crédit ; négatif : utilisation. */
+    amountCents: integer().notNull(),
+    appointmentId: uuid(),
+    createdByUserId: uuid().references(() => users.id, { onDelete: "set null" }),
+    note: text(),
+    createdAt: utc().notNull().defaultNow(),
+  },
+  (t) => [
+    businessForeignKey("gift_card_transactions_business_fk", t, "restrict"),
+    foreignKey({
+      name: "gift_card_transactions_card_fk",
+      columns: [t.businessId, t.giftCardId],
+      foreignColumns: [giftCards.businessId, giftCards.id],
+    }).onDelete("restrict"),
+    foreignKey({
+      name: "gift_card_transactions_appointment_fk",
+      columns: [t.businessId, t.appointmentId],
+      foreignColumns: [appointments.businessId, appointments.id],
+    }).onDelete("restrict"),
+    index("gift_card_transactions_card_idx").on(t.giftCardId, t.createdAt),
+    index("gift_card_transactions_appointment_idx").on(t.appointmentId),
+  ],
+);

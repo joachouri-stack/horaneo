@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { formatMoney } from "@/lib/format";
 import type { SiteData } from "@/modules/site/data";
 import { businessPath, SITE_PATHS } from "@/modules/site/paths";
+import { PriceTag } from "../PriceTag";
 import { SiteImage } from "../SiteImage";
 import { PillLink, Tag } from "./ui";
 
@@ -50,7 +51,11 @@ export async function ProfessionalCards({
                   {services.map((service) => (
                     <li key={service.id} className="flex justify-between gap-4 py-2.5">
                       <span>{service.name}</span>
-                      <span className="font-bold text-site-accent">{money(service.priceCents)}</span>
+                      <PriceTag
+                        className="font-bold text-site-accent"
+                        price={money(service.promo?.priceCents ?? service.priceCents)}
+                        was={service.promo ? money(service.promo.referenceCents) : null}
+                      />
                     </li>
                   ))}
                 </ul>

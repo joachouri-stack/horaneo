@@ -3,6 +3,8 @@ import { after } from "next/server";
 import { env, publicAppUrl } from "@/config/env";
 import { withPlatform } from "@/db/access";
 import { brevoSenders } from "@/lib/messages/brevo";
+import { googlePlacesProvider } from "@/lib/reviews/google-places";
+import { refreshGoogleReviews } from "@/modules/reviews/google";
 import { storage } from "@/lib/storage";
 import { purgeReplacedAssets } from "@/modules/media/purge";
 import { dispatchMessages } from "@/modules/messages/dispatch";
@@ -37,6 +39,8 @@ export async function runTick(now = new Date()) {
     const smsReminders = await platform((tx) => queueSmsReminders(tx, now));
     const summaries = await platform((tx) => queueSummaries(tx, now));
     const purged = await purgeReplacedAssets(platform, storage(), now);
+    // Avis Google : chaque fiche relue une fois par jour au plus.
+    const reviews = await platform((tx) => refreshGoogleReviews(tx, googlePlacesProvider(), now));
     const sent = { sent: 0, skipped: 0, blocked: 0, retried: 0, failed: 0 };
     // Jusqu'à 5 lots de 50 messages par passage.
     for (let round = 0; round < 5; round += 1) {
@@ -51,6 +55,7 @@ export async function runTick(now = new Date()) {
       smsReminders,
       summaries,
       purged,
+      reviews,
       messages: sent,
     };
   } finally {

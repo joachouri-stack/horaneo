@@ -3,9 +3,10 @@ import { getTranslations } from "next-intl/server";
 import { formatMoney } from "@/lib/format";
 import { formatPhone } from "@/modules/phone";
 import type { SiteData } from "@/modules/site/data";
-import { visibleSections } from "@/modules/site/data";
+import { siteReviews, visibleSections } from "@/modules/site/data";
 import { openDaysSpan } from "@/modules/site/format";
 import { businessPath, SITE_PATHS } from "@/modules/site/paths";
+import { GoogleReviewCards, ReviewsSummary, Stars } from "../GoogleReviews";
 import { SiteImage } from "../SiteImage";
 import { CategoryGrid } from "./CategoryGrid";
 import { presentedBusinesses, ProfessionalCards } from "./ProfessionalCards";
@@ -35,6 +36,18 @@ export async function AtelierHome({ site }: { site: Site }) {
     .map((n) => ({ value: texts[`highlight${n}Value`], label: texts[`highlight${n}Label`] }))
     .filter((item) => item.value);
   highlights.push({ value: t("onlineBooking"), label: t("onlineBookingLabel") });
+  // Note Google en tête des chiffres clés (fiche de l'établissement).
+  const reviews = siteReviews(site);
+  const tReviews = await getTranslations("site.reviews");
+  const ratingText =
+    reviews?.rating != null
+      ? new Intl.NumberFormat(site.locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(
+          reviews.rating,
+        )
+      : null;
+  const giftCards = site.giftCardBusinessIds.length > 0;
+  const tGift = await getTranslations("site.giftCard");
+  const giftAmounts = [3000, 5000, 10000];
 
   return (
     <main id="contenu" className="overflow-x-clip">
@@ -70,6 +83,19 @@ export async function AtelierHome({ site }: { site: Site }) {
             </PillLink>
           </div>
           <dl className="mt-10 grid max-w-xl grid-cols-2 gap-x-8 gap-y-5 border-t border-site-border pt-6 sm:flex sm:flex-wrap">
+            {reviews && ratingText && (
+              <div>
+                <dt className="flex items-baseline gap-2 font-site-display text-3xl font-medium leading-none">
+                  {ratingText}
+                  <Stars rating={reviews.rating!} className="text-sm" />
+                </dt>
+                <dd className="mt-1 text-xs text-site-muted">
+                  <a href={reviews.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                    {tReviews("short", { count: reviews.total })}
+                  </a>
+                </dd>
+              </div>
+            )}
             {highlights.map((item) => (
               <div key={item.value}>
                 <dt className="font-site-display text-3xl font-medium leading-none">{item.value}</dt>
@@ -224,39 +250,83 @@ export async function AtelierHome({ site }: { site: Site }) {
         </section>
       )}
 
+      {/* ─── Carte cadeau ─── */}
+      {giftCards && (
+        <section aria-labelledby="titre-cadeau" className="reveal mx-auto max-w-7xl px-4 py-16 sm:px-8">
+          <div className="grid items-center gap-10 overflow-hidden rounded-[2rem] bg-site-surface p-8 sm:p-12 lg:grid-cols-[1.3fr_1fr]">
+            <div>
+              <SectionTitle
+                id="titre-cadeau"
+                start={tGift("sectionTitle")}
+                accent={tGift("sectionAccent")}
+                breakLine
+              />
+              <p className="mt-4 max-w-lg text-site-muted">{tGift("sectionText")}</p>
+              <PillLink href={SITE_PATHS.giftCard} className="mt-7">
+                {tGift("sectionCta")}
+              </PillLink>
+            </div>
+            <div
+              aria-hidden="true"
+              className="mx-auto w-full max-w-sm rotate-[-4deg] rounded-[1.5rem] bg-site-text p-7 text-site-bg shadow-2xl"
+            >
+              <p className="font-site-display text-2xl">{site.tenant.name}</p>
+              <p className="mt-8 text-xs uppercase tracking-widest opacity-70">{tGift("cardLabel")}</p>
+              <p className="font-site-display text-5xl">{money(giftAmounts[1])}</p>
+              <div className="mt-5 flex gap-2 text-xs">
+                {giftAmounts.map((amount, index) => (
+                  <span
+                    key={amount}
+                    className={`rounded-full border border-current/40 px-3 py-1 ${index === 1 ? "bg-site-bg text-site-text" : ""}`}
+                  >
+                    {money(amount)}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ─── Avis ─── */}
-      {sections.testimonials && (
+      {(sections.testimonials || (reviews && reviews.rating !== null)) && (
         <section aria-labelledby="titre-avis" className="reveal bg-site-surface py-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-8">
             <h2 id="titre-avis" className="text-center font-site-display text-4xl font-medium sm:text-5xl">
               {t("testimonialsTitle")}
             </h2>
-            <ul className="mt-10 flex snap-x gap-5 overflow-x-auto pb-4">
-              {site.testimonials.map((item) => (
-                <li key={item.id} className="w-[85%] shrink-0 snap-start sm:w-[23rem]">
-                  <figure className="flex h-full flex-col rounded-[1.5rem] bg-site-card p-6">
-                    <span
-                      aria-hidden="true"
-                      className="font-site-display text-4xl leading-none text-site-accent"
-                    >
-                      “
-                    </span>
-                    <blockquote className="mt-2 flex-1 whitespace-pre-line">{item.text}</blockquote>
-                    <figcaption className="mt-4 text-sm font-semibold">
-                      {item.rating && (
+            {reviews && <ReviewsSummary reviews={reviews} locale={site.locale} className="mt-4" />}
+            <div className="mt-10 space-y-8">
+              {reviews && <GoogleReviewCards reviews={reviews} />}
+              {site.testimonials.length > 0 && (
+                <ul className="flex snap-x gap-5 overflow-x-auto pb-4">
+                  {site.testimonials.map((item) => (
+                    <li key={item.id} className="w-[85%] shrink-0 snap-start sm:w-[23rem]">
+                      <figure className="flex h-full flex-col rounded-[1.5rem] bg-site-card p-6">
                         <span
-                          className="mr-2 text-[#d9a441]"
-                          aria-label={tSite("testimonials.rating", { rating: item.rating })}
+                          aria-hidden="true"
+                          className="font-site-display text-4xl leading-none text-site-accent"
                         >
-                          <span aria-hidden="true">{"★".repeat(item.rating)}</span>
+                          “
                         </span>
-                      )}
-                      {item.authorName}
-                    </figcaption>
-                  </figure>
-                </li>
-              ))}
-            </ul>
+                        <blockquote className="mt-2 flex-1 whitespace-pre-line">{item.text}</blockquote>
+                        <figcaption className="mt-4 text-sm font-semibold">
+                          {item.rating && (
+                            <span
+                              className="mr-2 text-[#d9a441]"
+                              aria-label={tSite("testimonials.rating", { rating: item.rating })}
+                            >
+                              <span aria-hidden="true">{"★".repeat(item.rating)}</span>
+                            </span>
+                          )}
+                          {item.authorName}
+                        </figcaption>
+                      </figure>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         </section>
       )}

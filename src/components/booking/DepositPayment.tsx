@@ -22,6 +22,8 @@ type Props = {
   /** Page de retour après une validation bancaire hors de la page (chemin sur le site). */
   returnPath: string;
   onPaid: () => Promise<void> | void;
+  /** Textes propres à un autre achat (carte cadeau) : titre, bouton, mention sous le formulaire. */
+  labels?: { title?: string; pay?: string; secure?: string };
 };
 
 const buttonClass =
@@ -87,7 +89,7 @@ export function DepositPayment(props: Props) {
   return (
     <div ref={ref} className="space-y-4">
       <p className="text-lg font-semibold">
-        {t("title")} : {money(props.amountCents, props.currency, props.locale)}
+        {props.labels?.title ?? t("title")} : {money(props.amountCents, props.currency, props.locale)}
       </p>
       {remaining !== null && (
         <p className="text-site-muted" aria-live="off">
@@ -105,15 +107,19 @@ export function DepositPayment(props: Props) {
             locale: props.locale as StripeElementLocale,
           }}
         >
-          <PaymentForm returnPath={props.returnPath} onPaid={props.onPaid} />
+          <PaymentForm returnPath={props.returnPath} onPaid={props.onPaid} payLabel={props.labels?.pay} />
         </Elements>
       )}
-      <p className="text-sm text-site-muted">{t("secure")}</p>
+      <p className="text-sm text-site-muted">{props.labels?.secure ?? t("secure")}</p>
     </div>
   );
 }
 
-function PaymentForm({ returnPath, onPaid }: Pick<Props, "returnPath" | "onPaid">) {
+function PaymentForm({
+  returnPath,
+  onPaid,
+  payLabel,
+}: Pick<Props, "returnPath" | "onPaid"> & { payLabel?: string }) {
   const t = useTranslations("booking.payment");
   const stripe = useStripe();
   const elements = useElements();
@@ -152,7 +158,7 @@ function PaymentForm({ returnPath, onPaid }: Pick<Props, "returnPath" | "onPaid"
         </p>
       )}
       <button type="submit" disabled={!stripe || pending} className={buttonClass}>
-        {pending ? t("paying") : t("pay")}
+        {pending ? t("paying") : (payLabel ?? t("pay"))}
       </button>
     </form>
   );

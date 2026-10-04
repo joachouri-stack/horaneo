@@ -6,6 +6,7 @@ import { getMessages, getTranslations, setRequestLocale } from "next-intl/server
 import { AtelierFooter } from "@/components/site/atelier/AtelierFooter";
 import { AtelierHeader } from "@/components/site/atelier/AtelierHeader";
 import { MobileBookBar } from "@/components/site/MobileBookBar";
+import { OfferBanner } from "@/components/site/OfferBanner";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { routing } from "@/i18n/routing";
@@ -97,6 +98,7 @@ export default async function TenantLayout({ children, params }: LayoutProps<"/s
               {t("previewBanner")}
             </p>
           )}
+          {site.tenant.status !== "suspended" && <OfferBanner site={site} />}
           <Header site={site} showBook={site.tenant.status !== "suspended"} />
           {site.tenant.status === "suspended" ? (
             <main id="contenu" className="mx-auto max-w-2xl px-4 py-24 text-center">

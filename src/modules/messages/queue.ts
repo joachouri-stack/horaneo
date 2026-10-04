@@ -17,6 +17,8 @@ export const MESSAGE_TEMPLATES = [
   "customer.rescheduled",
   "customer.moved",
   "customer.payment_refunded",
+  "customer.gift_card",
+  "customer.gift_card_receipt",
   // À la gérante
   "manager.new_booking",
   "manager.cancelled",
@@ -26,6 +28,7 @@ export const MESSAGE_TEMPLATES = [
   "manager.basic_quota",
   "manager.payment_failed",
   "manager.subscription_ended",
+  "manager.gift_card_sold",
   // Au professionnel avant que son site existe, et à l'administratrice
   "account.order_received",
   "account.order_rejected",
@@ -51,6 +54,8 @@ export async function queueMessage(
     data?: Record<string, unknown>;
     /** Par défaut : un seul message de ce type par rendez-vous. */
     dedupeKey?: string | null;
+    /** Envoi programmé (ex. carte cadeau à offrir à une date choisie). */
+    sendAt?: Date;
   },
 ) {
   const dedupeKey =
@@ -76,6 +81,7 @@ export async function queueMessage(
       locale: input.locale ?? "fr",
       data: input.data ?? {},
       dedupeKey,
+      nextAttemptAt: input.sendAt ?? null,
     })
     .onConflictDoNothing({ target: messageLog.dedupeKey });
 }
