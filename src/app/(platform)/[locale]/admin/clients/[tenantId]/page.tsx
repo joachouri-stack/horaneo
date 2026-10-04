@@ -44,6 +44,12 @@ export default async function TenantOverviewPage({
     <>
       <WizardNav tenantId={tenantId} current="domaine" active={assistant} />
 
+      {counts.members === 0 && (
+        <p role="status" className={ui.error}>
+          {t("noMembers")}
+        </p>
+      )}
+
       <div className="grid gap-6 lg:grid-cols-2">
         <Section
           title={t("status")}

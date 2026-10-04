@@ -78,12 +78,13 @@ async function seedBasic(tx: Transaction) {
       intro: "Un institut chaleureux, des soins sur mesure et des produits naturels.",
     },
   });
+  const serviceIds: string[] = [];
   for (const [name, duration, price] of [
     ["Soin du visage éclat", 45, "39"],
     ["Épilation sourcils", 15, "12"],
     ["Beauté des mains", 30, "25"],
   ] as const) {
-    await saveService(tx, tenant.id, { name, durationMinutes: duration, price });
+    serviceIds.push((await saveService(tx, tenant.id, { name, durationMinutes: duration, price })).id);
   }
   await replaceOpeningHours(tx, tenant.id, [
     ...weekHours(
@@ -95,6 +96,7 @@ async function seedBasic(tx: Transaction) {
     ),
     ...weekHours([6], [["09:00", "17:00"]]),
   ]);
+  await saveStaff(tx, tenant.id, { name: "Marie", serviceIds });
   await changeStatus(tx, tenant.id, "activate");
 }
 

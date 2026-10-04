@@ -29,4 +29,12 @@ export type AppErrorCode =
   | "image_too_small"
   | "image_empty"
   | "category_not_empty"
-  | "domain_not_active";
+  | "domain_not_active"
+  | "booking_closed"
+  | "booking_quota_reached"
+  | "slot_unavailable"
+  | "too_many_services"
+  | "service_unavailable"
+  | "cancellation_deadline_passed"
+  | "booking_not_modifiable"
+  | "rate_limited";

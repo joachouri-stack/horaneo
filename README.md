@@ -3,7 +3,7 @@
 SaaS multi-tenant : chaque professionnel travaillant sur rendez-vous reçoit son propre site web, avec réservation et paiement d'acompte en ligne.
 
 - Brief et décisions : [`docs/01-base-de-donnees.md`](docs/01-base-de-donnees.md)
-- Avancement : étape 5 sur 14 (site client : modèle bien-être en trois ambiances, fiche Basic)
+- Avancement : étape 6 sur 14 (moteur de réservation et parcours en 4 étapes)
 
 ## Technologies
 
@@ -188,7 +188,30 @@ Un seul modèle (bien-être et coiffure), en trois ambiances : **claire**, **som
 - **Référencement local** : titre et description par page, adresse canonique sur le domaine principal, fiche « établissement local » pour Google (adresse, téléphone, horaires, coordonnées GPS), `sitemap.xml` et `robots.txt` propres à chaque site. Rien n'est indexé tant qu'un site n'est pas en ligne.
 - **Rapidité** : pages préparées côté serveur (environ 30 ms en local), photos servies à la taille de l'écran en AVIF/WebP.
 - **Aperçu** : un site « en création » n'est visible que par l'administratrice, avec le lien « Aperçu du site » de sa fiche (valable 1 heure, signé, jamais indexé).
-- La page `/reserver` est provisoire : le parcours de réservation arrive à l'étape 6.
+
+## Réservation en ligne
+
+Parcours sur le site du client (`/reserver`), **sans compte**, en 4 étapes : prestation(s) → créneau (membre ou « sans préférence », jour, heure) → coordonnées → acompte si activé.
+
+| Règle (réglable par établissement)         | Défaut                                                  |
+| ------------------------------------------ | ------------------------------------------------------- |
+| Délai minimum avant le créneau             | 2 heures                                                |
+| Réservation au plus tard                   | 60 jours à l'avance                                     |
+| Intervalle entre deux créneaux             | 15 minutes                                              |
+| Prestations par rendez-vous                | 3 maximum (durées additionnées)                         |
+| Temps de battement                         | par prestation, 0 par défaut, invisible pour la cliente |
+| Annulation et report en ligne              | gratuits jusqu'à 24 heures avant                        |
+| Réservation temporaire pendant le paiement | 10 minutes                                              |
+
+- Un créneau tient entièrement dans les horaires d'ouverture **et** ceux du membre, hors congés, fermetures et autres rendez-vous (battements compris). Avec plusieurs prestations, les battements s'additionnent en fin de rendez-vous.
+- « Sans préférence » : membre le moins chargé ce jour-là (minutes réservées), puis l'ordre de l'équipe. Un seul membre réalise toutes les prestations d'un rendez-vous.
+- Le créneau est **recalculé sur le serveur** au moment de réserver. La base refuse deux rendez-vous qui se chevauchent pour un même membre, même si deux clientes valident à la même seconde.
+- **Pack Basic** : 5 réservations en ligne par mois, comptées au mois où elles sont prises (une annulation ne libère pas de place ; un report ne compte pas). Le compteur est atomique. Une fois la limite atteinte, la page affiche le téléphone, sans message d'erreur. Les ajouts manuels de la gérante ne comptent pas.
+- **Acompte** (packs avec paiement en ligne) : 30 % ou montant fixe, calculé sur le total. Le créneau est retenu 10 minutes, puis libéré si le paiement n'aboutit pas. Le paiement Stripe arrive à l'étape 8.
+- **Gestion par lien** : après la réservation, la cliente reçoit un lien personnel (`/rendez-vous/<jeton>`, jamais indexé). Il permet d'annuler ou de déplacer jusqu'au délai ; un report conserve l'acompte. Seule une empreinte du jeton est stockée. L'envoi de ce lien par e-mail arrive à l'étape 9.
+- Fiche cliente retrouvée par l'e-mail (même établissement). Consentement aux offres facultatif et décoché par défaut.
+- Anti-abus : nombre de tentatives limité par adresse IP, champ piège contre les robots. Le tenant est recalculé à partir du domaine, jamais fourni par le visiteur.
+- Les fuseaux horaires et les changements d'heure sont gérés : les heures affichées sont celles de l'établissement.
 
 ## Autres garde-fous de la base de données
 

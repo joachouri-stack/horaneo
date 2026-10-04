@@ -12,6 +12,8 @@ export const SITE_PATHS = {
   legal: "/mentions-legales",
   privacy: "/confidentialite",
   booking: "/reserver",
+  /** Gestion d'un rendez-vous par le lien reçu : /rendez-vous/<jeton>. */
+  appointment: "/rendez-vous",
 } as const;
 
 export type SitePathKey = keyof typeof SITE_PATHS;

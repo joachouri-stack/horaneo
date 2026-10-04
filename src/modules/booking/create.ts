@@ -1,0 +1,254 @@
+import { createHash, randomBytes } from "node:crypto";
+import { and, eq, lte, sql } from "drizzle-orm";
+import { z } from "zod";
+import type { Transaction } from "@/db/client";
+import { appointmentItems, appointments, customers, usageCounters } from "@/db/schema";
+import { AppError } from "@/modules/errors";
+import { normalizePhone } from "@/modules/phone";
+import { currentPeriod } from "@/modules/tenants/queries";
+import {
+  bookedMinutesOn,
+  getSlotsForRange,
+  loadBookingContext,
+  resolveServices,
+  type BookingContext,
+} from "./availability";
+import { computeDeposit } from "./pricing";
+import { chooseLeastLoaded } from "./slots";
+import { addMinutes, utcToLocal } from "./time";
+
+/**
+ * Création d'un rendez-vous (réservation en ligne par une cliente, ou ajout
+ * manuel par la gérante). Tout se passe dans une seule transaction : si une
+ * étape échoue, rien n'est enregistré (ni rendez-vous, ni compteur du mois).
+ */
+
+export const customerInput = z.object({
+  firstName: z.string().trim().min(1).max(80),
+  lastName: z.string().trim().max(80).optional(),
+  email: z.email().trim().toLowerCase(),
+  phone: z.string().trim().min(6).max(40),
+  note: z.string().trim().max(500).optional(),
+  marketingConsent: z.boolean().default(false),
+});
+
+export const bookingInput = z.object({
+  serviceIds: z.array(z.uuid()).min(1).max(10),
+  /** null : « sans préférence ». */
+  staffId: z.uuid().nullable(),
+  start: z.coerce.date(),
+  customer: customerInput,
+  locale: z.string().min(2).max(5).default("fr"),
+});
+
+export type BookingInput = z.input<typeof bookingInput>;
+
+export type BookingOptions = {
+  now?: Date;
+  source?: "online" | "manual";
+  /** Aperçu admin d'un site en création : la réservation est permise. */
+  allowDraft?: boolean;
+};
+
+export function hashManageToken(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+export function newManageToken(): { token: string; hash: string } {
+  const token = randomBytes(24).toString("base64url");
+  return { token, hash: hashManageToken(token) };
+}
+
+/** Libère les réservations temporaires (paiement non abouti) dont le délai est passé. */
+export async function expireStaleHolds(tx: Transaction, tenantId: string, now: Date) {
+  await tx
+    .update(appointments)
+    .set({ status: "expired" })
+    .where(
+      and(
+        eq(appointments.tenantId, tenantId),
+        eq(appointments.status, "pending_payment"),
+        lte(appointments.holdExpiresAt, now),
+      ),
+    );
+}
+
+/**
+ * Consomme une réservation du quota mensuel (pack Basic), de façon atomique :
+ * deux réservations simultanées ne peuvent pas dépasser la limite.
+ */
+export async function consumeOnlineQuota(
+  tx: Transaction,
+  context: BookingContext,
+  now: Date,
+): Promise<boolean> {
+  const limit = context.limits.onlineBookingsPerMonth;
+  if (limit === null || limit === undefined) return true;
+  if (limit <= 0) return false;
+  const period = currentPeriod(context.tenant.timezone, now);
+  const rows = await tx
+    .insert(usageCounters)
+    .values({ tenantId: context.tenant.id, period, onlineBookings: 1 })
+    .onConflictDoUpdate({
+      target: [usageCounters.tenantId, usageCounters.period],
+      set: { onlineBookings: sql`${usageCounters.onlineBookings} + 1`, updatedAt: now },
+      setWhere: sql`${usageCounters.onlineBookings} < ${limit}`,
+    })
+    .returning({ value: usageCounters.onlineBookings });
+  return rows.length > 0;
+}
+
+/** Retrouve ou crée la fiche cliente (même e-mail chez un même établissement = même fiche). */
+async function upsertCustomer(
+  tx: Transaction,
+  context: BookingContext,
+  input: z.infer<typeof customerInput>,
+  locale: string,
+  now: Date,
+) {
+  const phone = normalizePhone(input.phone, context.tenant.country, "phone");
+  const [existing] = await tx
+    .select()
+    .from(customers)
+    .where(and(eq(customers.tenantId, context.tenant.id), sql`lower(${customers.email}) = ${input.email}`));
+  const consent = input.marketingConsent ? { emailConsent: true, smsConsent: true, consentAt: now } : {};
+  if (existing) {
+    await tx
+      .update(customers)
+      .set({
+        firstName: input.firstName,
+        lastName: input.lastName || existing.lastName,
+        phone,
+        locale,
+        ...consent,
+      })
+      .where(eq(customers.id, existing.id));
+    return existing.id;
+  }
+  const [created] = await tx
+    .insert(customers)
+    .values({
+      tenantId: context.tenant.id,
+      firstName: input.firstName,
+      lastName: input.lastName || null,
+      email: input.email,
+      phone,
+      locale,
+      ...consent,
+    })
+    .returning({ id: customers.id });
+  return created.id;
+}
+
+function isExclusionViolation(error: unknown) {
+  const err = error as { code?: string; cause?: { code?: string } };
+  return (err.code ?? err.cause?.code) === "23P01";
+}
+
+export async function createBooking(
+  tx: Transaction,
+  tenantId: string,
+  raw: BookingInput,
+  options: BookingOptions = {},
+) {
+  const now = options.now ?? new Date();
+  const source = options.source ?? "online";
+  const input = bookingInput.parse(raw);
+  const context = await loadBookingContext(tx, tenantId);
+  const status = context.tenant.status;
+  if (!(status === "active" || (options.allowDraft && status === "draft")))
+    throw new AppError("booking_closed");
+
+  const { services, totals } = resolveServices(context, input.serviceIds, {
+    onlineOnly: source === "online",
+  });
+  const depositCents = computeDeposit(
+    totals.totalCents,
+    context.settings,
+    Boolean(context.features.onlinePayment),
+  );
+
+  await expireStaleHolds(tx, tenantId, now);
+
+  // Le créneau est recalculé ici : on ne fait jamais confiance à l'écran.
+  const date = utcToLocal(input.start, context.tenant.timezone).date;
+  const slots =
+    (
+      await getSlotsForRange(tx, context, {
+        serviceIds: input.serviceIds,
+        staffId: input.staffId,
+        fromDate: date,
+        days: 1,
+        now,
+        onlineOnly: source === "online",
+      })
+    ).get(date) ?? [];
+  const slot = slots.find((item) => item.start.getTime() === input.start.getTime());
+  if (!slot) throw new AppError("slot_unavailable", "start");
+  const staffId =
+    input.staffId ??
+    chooseLeastLoaded(slot.staffIds, context.staff, await bookedMinutesOn(tx, context, date, now));
+  if (!staffId || !slot.staffIds.includes(staffId)) throw new AppError("slot_unavailable", "start");
+
+  if (source === "online" && !(await consumeOnlineQuota(tx, context, now)))
+    throw new AppError("booking_quota_reached");
+
+  const customerId = await upsertCustomer(tx, context, input.customer, input.locale, now);
+  const manage = newManageToken();
+  const endsAt = addMinutes(input.start, totals.durationMinutes);
+  const pending = depositCents > 0;
+
+  let appointment;
+  try {
+    [appointment] = await tx
+      .insert(appointments)
+      .values({
+        tenantId,
+        customerId,
+        staffId,
+        startsAt: input.start,
+        endsAt,
+        blockedUntil: addMinutes(endsAt, totals.bufferMinutes),
+        status: pending ? "pending_payment" : "confirmed",
+        source,
+        holdExpiresAt: pending ? addMinutes(now, context.settings.holdMinutes) : null,
+        totalCents: totals.totalCents,
+        depositCents,
+        currency: totals.currency,
+        manageTokenHash: manage.hash,
+        locale: input.locale,
+        customerNote: input.customer.note || null,
+      })
+      .returning();
+  } catch (error) {
+    // Deux réservations au même moment : la base n'en accepte qu'une.
+    if (isExclusionViolation(error)) throw new AppError("slot_unavailable", "start");
+    throw error;
+  }
+
+  await tx.insert(appointmentItems).values(
+    services.map((service, index) => ({
+      tenantId,
+      appointmentId: appointment.id,
+      serviceId: service.id,
+      position: index + 1,
+      serviceName: service.name,
+      durationMinutes: service.durationMinutes,
+      bufferMinutes: service.bufferMinutes,
+      priceCents: service.priceCents,
+    })),
+  );
+
+  return {
+    appointmentId: appointment.id,
+    manageToken: manage.token,
+    status: appointment.status,
+    staffId,
+    startsAt: appointment.startsAt,
+    endsAt: appointment.endsAt,
+    totalCents: appointment.totalCents,
+    depositCents: appointment.depositCents,
+    currency: appointment.currency,
+    holdExpiresAt: appointment.holdExpiresAt,
+  };
+}

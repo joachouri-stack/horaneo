@@ -7,7 +7,7 @@ export async function GET(_request: Request, { params }: RouteContext<"/sites/[t
   const site = await getSite((await params).tenantId);
   const open = site.tenant.status === "active" && !(await isPreview());
   const body = open
-    ? `User-agent: *\nAllow: /\nDisallow: ${SITE_PATHS.booking}\n\nSitemap: ${siteBaseUrl(site)}/sitemap.xml\n`
+    ? `User-agent: *\nAllow: /\nDisallow: ${SITE_PATHS.booking}\nDisallow: ${SITE_PATHS.appointment}/\n\nSitemap: ${siteBaseUrl(site)}/sitemap.xml\n`
     : "User-agent: *\nDisallow: /\n";
   return new Response(body, { headers: { "content-type": "text/plain; charset=utf-8" } });
 }

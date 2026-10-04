@@ -69,7 +69,7 @@ export async function SiteHeader({
           </ul>
         </nav>
         <div className="flex items-center gap-2">
-          {showBook && <BookButton label={t("book")} size="sm" className="hidden sm:inline-flex" />}
+          {showBook && <BookButton label={t("book")} size="sm" />}
           <MobileMenu links={links} />
         </div>
       </div>

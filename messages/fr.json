@@ -322,7 +322,8 @@
         "removeDomain": "Retirer",
         "noCustomDomain": "Le pack de ce client n'inclut pas de domaine propre.",
         "created": "Client depuis le {date}",
-        "countryTimezone": "{country} · {timezone} · {currency}"
+        "countryTimezone": "{country} · {timezone} · {currency}",
+        "noMembers": "Aucun membre dans l'équipe : la réservation en ligne est impossible. Ajoutez au moins un membre (onglet Équipe) et cochez ses prestations."
       },
       "identity": {
         "title": "Coordonnées",
@@ -481,7 +482,15 @@
     "image_too_small": "Cette image est trop petite.",
     "image_empty": "Aucun fichier choisi.",
     "category_not_empty": "Cette catégorie contient encore des prestations.",
-    "domain_not_active": "Ce domaine doit d'abord être branché (actif)."
+    "domain_not_active": "Ce domaine doit d'abord être branché (actif).",
+    "booking_closed": "La réservation en ligne n'est pas ouverte pour le moment.",
+    "booking_quota_reached": "La réservation en ligne n'est plus disponible ce mois-ci. Merci d'appeler l'établissement.",
+    "slot_unavailable": "Ce créneau vient d'être pris. Merci d'en choisir un autre.",
+    "too_many_services": "Vous avez choisi trop de prestations pour un seul rendez-vous.",
+    "service_unavailable": "Cette prestation n'est plus disponible en ligne.",
+    "cancellation_deadline_passed": "Le délai pour annuler ou déplacer en ligne est dépassé. Merci d'appeler l'établissement.",
+    "booking_not_modifiable": "Ce rendez-vous ne peut plus être modifié.",
+    "rate_limited": "Trop de tentatives. Merci de patienter quelques minutes."
   },
   "status": {
     "draft": "En création",
@@ -506,5 +515,102 @@
     "5": "Vendredi",
     "6": "Samedi",
     "7": "Dimanche"
+  },
+  "booking": {
+    "title": "Réserver",
+    "steps": {
+      "services": "Prestation",
+      "slot": "Créneau",
+      "details": "Coordonnées",
+      "payment": "Acompte"
+    },
+    "stepOf": "Étape {current} sur {total} : {label}",
+    "services": {
+      "choose": "Choisissez votre prestation",
+      "chooseMany": "Choisissez jusqu'à {max} prestations",
+      "maxReached": "Vous avez atteint le nombre maximum de prestations pour un rendez-vous.",
+      "selected": "{count, plural, one {# prestation} other {# prestations}} · {duration} · {price}",
+      "other": "Autres prestations"
+    },
+    "slot": {
+      "staff": "Avec qui ?",
+      "noPreference": "Sans préférence",
+      "day": "Choisissez un jour",
+      "time": "Choisissez une heure",
+      "noSlotsDay": "Plus de créneau libre ce jour-là.",
+      "noSlots": "Aucun créneau libre sur cette période.",
+      "loading": "Recherche des créneaux…",
+      "moreDays": "Jours suivants",
+      "previousDays": "Jours précédents",
+      "chosen": "{date} à {time}"
+    },
+    "details": {
+      "title": "Vos coordonnées",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "email": "E-mail",
+      "emailHint": "Pour recevoir la confirmation et le lien d'annulation.",
+      "phone": "Téléphone",
+      "phoneHint": "Pour le rappel la veille du rendez-vous.",
+      "note": "Un message pour l'établissement ?",
+      "marketingConsent": "J'accepte de recevoir des offres de l'établissement par e-mail ou SMS.",
+      "privacy": "Vos données servent uniquement à gérer ce rendez-vous.",
+      "privacyLink": "En savoir plus",
+      "summary": "Récapitulatif",
+      "with": "avec {name}",
+      "total": "Total",
+      "deposit": "Acompte à régler maintenant",
+      "confirm": "Confirmer le rendez-vous",
+      "confirmPay": "Continuer vers le paiement",
+      "sending": "Enregistrement…"
+    },
+    "payment": {
+      "title": "Paiement de l'acompte",
+      "held": "Votre créneau est réservé pendant {minutes} minutes.",
+      "soon": "Le paiement en ligne de l'acompte arrive très bientôt. L'établissement vous recontactera pour le régler."
+    },
+    "confirmation": {
+      "title": "Rendez-vous confirmé",
+      "pendingTitle": "Créneau réservé",
+      "summary": "{date} à {time}, avec {name}",
+      "keepLink": "Gardez ce lien : il permet d'annuler ou de déplacer votre rendez-vous gratuitement jusqu'à {hours} h avant.",
+      "manageLink": "Gérer mon rendez-vous",
+      "emailSoon": "Vous recevrez aussi une confirmation par e-mail."
+    },
+    "back": "Retour",
+    "continue": "Continuer",
+    "change": "Modifier",
+    "unavailable": {
+      "title": "Réservation par téléphone",
+      "text": "Pour prendre rendez-vous, appelez-nous :",
+      "noPhone": "Contactez directement l'établissement pour prendre rendez-vous."
+    },
+    "manage": {
+      "title": "Votre rendez-vous",
+      "status": {
+        "confirmed": "Confirmé",
+        "pending_payment": "En attente de paiement",
+        "cancelled": "Annulé",
+        "attended": "Honoré",
+        "no_show": "Non honoré",
+        "expired": "Expiré"
+      },
+      "when": "{date} à {time}",
+      "with": "Avec {name}",
+      "services": "Prestations",
+      "total": "Total",
+      "deposit": "Acompte",
+      "cancel": "Annuler le rendez-vous",
+      "cancelConfirm": "Voulez-vous vraiment annuler ce rendez-vous ?",
+      "cancelled": "Votre rendez-vous est annulé.",
+      "reschedule": "Déplacer le rendez-vous",
+      "rescheduleTitle": "Choisissez un nouveau créneau",
+      "rescheduleConfirm": "Confirmer le nouveau créneau",
+      "rescheduled": "Votre rendez-vous est déplacé. Voici votre nouveau lien de gestion :",
+      "deadline": "Annulation et report gratuits jusqu'au {date} à {time}.",
+      "tooLate": "Le délai pour annuler ou déplacer en ligne est dépassé. Merci d'appeler l'établissement :",
+      "notFound": "Ce lien n'est pas valable ou le rendez-vous a été modifié.",
+      "rebook": "Prendre un nouveau rendez-vous"
+    }
   }
 }

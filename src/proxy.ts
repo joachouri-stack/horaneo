@@ -1,10 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
 import { authSecret, env } from "@/config/env";
-import { resolveHostname } from "@/db/access";
 import { routing } from "@/i18n/routing";
-import { classifyHost, type HostConfig } from "@/lib/tenancy/hosts";
-import { parseLocaleRedirectDomains } from "@/lib/tenancy/locale-redirect";
+import { classifyHost } from "@/lib/tenancy/hosts";
+import { buildHostConfig, lookup } from "@/lib/tenancy/runtime";
 import { PREVIEW_HEADER, SITES_PREFIX } from "@/lib/tenancy/paths";
 import {
   PREVIEW_COOKIE,
@@ -12,7 +11,7 @@ import {
   PREVIEW_TTL_SECONDS,
   verifyPreviewToken,
 } from "@/lib/tenancy/preview";
-import { cachedLookup, routeTenantHost } from "@/lib/tenancy/resolve";
+import { routeTenantHost } from "@/lib/tenancy/resolve";
 
 /**
  * Traite chaque requête selon son nom de domaine :
@@ -26,13 +25,7 @@ const intl = createIntlMiddleware(routing);
 const settings = env();
 const isProduction = settings.NODE_ENV === "production";
 
-const hostConfig: HostConfig = {
-  mainDomain: settings.MAIN_DOMAIN,
-  localeRedirectDomains: parseLocaleRedirectDomains(settings.LOCALE_REDIRECT_DOMAINS),
-  devAliases: isProduction ? [] : ["localhost"],
-};
-
-const lookup = cachedLookup((hostname) => resolveHostname(hostname));
+const hostConfig = buildHostConfig();
 
 const INTERNAL_PATHS: Record<string, string> = {
   "/sitemap.xml": "/seo/sitemap",

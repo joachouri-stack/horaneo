@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Cormorant_Garamond, Fraunces, Inter } from "next/font/google";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
-import { getTranslations, setRequestLocale } from "next-intl/server";
+import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { MobileBookBar } from "@/components/site/MobileBookBar";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteHeader } from "@/components/site/SiteHeader";
@@ -59,6 +59,11 @@ export default async function TenantLayout({ children, params }: LayoutProps<"/s
   const locale = hasLocale(routing.locales, site.locale) ? site.locale : routing.defaultLocale;
   setRequestLocale(locale);
   const t = await getTranslations("site");
+  // Seuls les textes utiles au navigateur sur un site client (pas ceux de l'admin).
+  const allMessages = await getMessages();
+  const clientMessages = Object.fromEntries(
+    (["site", "booking", "errors", "weekdays"] as const).map((key) => [key, allMessages[key]]),
+  );
   const theme = buildTheme(site.tenant.theme, site.tenant.colors);
   const style = {
     ...themeCssVariables(theme),
@@ -73,7 +78,7 @@ export default async function TenantLayout({ children, params }: LayoutProps<"/s
   return (
     <html lang={locale} className={`${inter.variable} ${cormorant.variable} ${fraunces.variable}`}>
       <body style={style} className="min-h-dvh bg-site-bg font-site-body text-site-text antialiased">
-        <NextIntlClientProvider timeZone={site.tenant.timezone}>
+        <NextIntlClientProvider timeZone={site.tenant.timezone} messages={clientMessages}>
           {preview && (
             <p role="status" className="bg-[#1b2a4a] px-4 py-2 text-center text-sm font-semibold text-white">
               {t("previewBanner")}
