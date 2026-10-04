@@ -44,17 +44,8 @@
       "duration": "1 h",
       "day": "Jour",
       "time": "Heure",
-      "days": [
-        "lun. 12",
-        "mar. 13",
-        "mer. 14"
-      ],
-      "times": [
-        "9:30",
-        "11:00",
-        "14:15",
-        "16:45"
-      ],
+      "days": ["lun. 12", "mar. 13", "mer. 14"],
+      "times": ["9:30", "11:00", "14:15", "16:45"],
       "deposit": "Acompte à régler",
       "pay": "Payer l'acompte"
     },
