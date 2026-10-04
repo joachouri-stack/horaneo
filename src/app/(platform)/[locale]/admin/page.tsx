@@ -8,6 +8,7 @@ import { adminQuery } from "@/lib/admin/mutation";
 import { requireAdmin } from "@/lib/auth/session";
 import { formatMoney } from "@/lib/format";
 import { liveRevenue } from "@/modules/billing/admin";
+import { listPendingOrders } from "@/modules/orders/orders";
 import { getDashboardStats } from "@/modules/tenants/queries";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/admin">): Promise<Metadata> {
@@ -34,6 +35,9 @@ export default async function AdminHomePage({ params }: PageProps<"/[locale]/adm
     adminQuery((tx) => getDashboardStats(tx)),
     adminQuery((tx) => liveRevenue(tx)),
   ]);
+  const pendingOrders = (await adminQuery((tx) => listPendingOrders(tx))).filter(
+    (row) => row.order.status !== "in_creation",
+  ).length;
 
   return (
     <main id="contenu" className="mx-auto max-w-6xl space-y-6 px-4 py-8">
@@ -69,6 +73,13 @@ export default async function AdminHomePage({ params }: PageProps<"/[locale]/adm
         <section className={ui.card}>
           <h2 className="text-xl font-bold">{t("dashboard.alerts")}</h2>
           <ul className="mt-4 space-y-3">
+            {pendingOrders > 0 && (
+              <li>
+                <Link href="/admin/commandes" className="font-semibold text-coral-dark underline">
+                  {t("dashboard.pendingOrders", { count: pendingOrders })}
+                </Link>
+              </li>
+            )}
             {revenue.pastDue > 0 && (
               <li>
                 <Link href="/admin/paiements" className="font-semibold text-coral-dark underline">

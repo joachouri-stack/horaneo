@@ -5,6 +5,10 @@ import { ui } from "@/components/ui/styles";
 import { Link, redirect } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/translator";
 import { getManagedTenants, requireSession } from "@/lib/auth/session";
+import { withPlatform } from "@/db/access";
+import { pickLocalized } from "@/i18n/locales";
+import { ordersOfUser } from "@/modules/orders/orders";
+import { getPlatformSetting } from "@/modules/settings";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/espace">): Promise<Metadata> {
   const t = await getTranslations({ locale: resolveLocale((await params).locale), namespace: "account" });
@@ -12,8 +16,8 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/espace">
 }
 
 /**
- * Espace de la gérante (provisoire). L'écran « Aujourd'hui », l'agenda et les
- * autres onglets arrivent à l'étape 7.
+ * Entrée de l'espace : ouvre l'établissement géré, propose le choix s'il y en a
+ * plusieurs, ou montre où en est la commande tant que le site n'existe pas.
  */
 export default async function AccountPage({ params }: PageProps<"/[locale]/espace">) {
   const locale = resolveLocale((await params).locale);
@@ -23,6 +27,14 @@ export default async function AccountPage({ params }: PageProps<"/[locale]/espac
   const { user } = session;
   // Un seul établissement : on l'ouvre directement.
   if (managed.length === 1) redirect({ href: `/espace/${managed[0].id}`, locale });
+  const [tOrder, { orders, days }] = await Promise.all([
+    getTranslations("order.status"),
+    withPlatform(async (tx) => ({
+      orders: managed.length === 0 ? await ordersOfUser(tx, session.user.id) : [],
+      days: Number(await getPlatformSetting(tx, "go_live_delay_days")),
+    })),
+  ]);
+  const order = orders[0];
 
   return (
     <>
@@ -35,11 +47,30 @@ export default async function AccountPage({ params }: PageProps<"/[locale]/espac
           <p className="mt-1 text-ink/70">{t("signedInAs", { email: user.email })}</p>
         </div>
 
-        {managed.length === 0 ? (
+        {managed.length === 0 && order && order.order.status !== "abandoned" ? (
+          <section className={ui.card}>
+            <h2 className="text-xl font-bold">{tOrder("title")}</h2>
+            <p className="mt-2 font-semibold text-navy">
+              {order.order.businessName} · {pickLocalized(order.planName, locale)}
+            </p>
+            <p className="mt-1">{tOrder(order.order.status)}</p>
+            {["paid", "awaiting_review", "in_creation"].includes(order.order.status) && (
+              <p className="mt-1 text-ink/70">{tOrder("eta", { days })}</p>
+            )}
+            {order.order.status === "awaiting_payment" && (
+              <Link
+                href={{ pathname: "/commander", query: { pack: order.planCode } }}
+                className={`mt-6 ${ui.primaryButton} sm:w-auto`}
+              >
+                {tOrder("resume")}
+              </Link>
+            )}
+          </section>
+        ) : managed.length === 0 ? (
           <section className={ui.card}>
             <h2 className="text-xl font-bold">{t("noTenantTitle")}</h2>
             <p className="mt-2">{t("noTenantBody")}</p>
-            <Link href="/" className={`mt-6 ${ui.primaryButton} sm:w-auto`}>
+            <Link href="/#packs" className={`mt-6 ${ui.primaryButton} sm:w-auto`}>
               {t("noTenantCta")}
             </Link>
           </section>

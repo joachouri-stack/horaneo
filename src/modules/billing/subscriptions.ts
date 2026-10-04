@@ -89,7 +89,7 @@ export async function ensurePlanPrice(tx: Transaction, planId: string, gateway: 
 }
 
 /** Taux de TVA Stripe correspondant aux réglages (créé une fois, recréé si le taux change). */
-async function ensureTaxRate(tx: Transaction, gateway: BillingGateway) {
+export async function ensureTaxRate(tx: Transaction, gateway: BillingGateway) {
   const percent = Number(await getPlatformSetting(tx, "vat_rate_percent"));
   if (!percent) return null;
   const inclusive = (await getPlatformSetting(tx, "prices_display")) === "TTC";

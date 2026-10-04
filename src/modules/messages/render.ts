@@ -6,6 +6,7 @@ import {
   customers,
   memberships,
   messageLog,
+  orders,
   plans,
   staffMembers,
   tenantDomains,
@@ -22,6 +23,7 @@ import { manageTokenFor } from "@/modules/booking/create";
 import { addMinutes } from "@/modules/booking/time";
 import { depositSummary } from "@/modules/payments/refunds";
 import { formatPhone } from "@/modules/phone";
+import { getPlatformSetting } from "@/modules/settings";
 import { monthStats } from "@/modules/stats/month";
 import { SITE_PATHS } from "@/modules/site/paths";
 import { renderEmail } from "./layout";
@@ -172,6 +174,8 @@ export async function renderMessage(
   options: RenderOptions,
 ): Promise<Rendered> {
   const template = row.templateKey as MessageTemplate;
+  if (template.startsWith("account.") || template.startsWith("admin."))
+    return renderAccount(tx, row, template, options);
   if (!row.tenantId) return { kind: "skip", reason: "no_tenant" };
   const tenant = await loadTenant(tx, row.tenantId);
   if (!tenant) return { kind: "skip", reason: "no_tenant" };
@@ -499,4 +503,122 @@ async function renderManager(
     footer: [tenant.name, ...footer],
   });
   return { kind: "email", to, subject, html, text, fromName: options.productName, replyTo: null };
+}
+
+// ─── Commandes : au professionnel (avant son site) et à l'administratrice ────
+
+async function renderAccount(
+  tx: Transaction,
+  row: MessageRow,
+  template: MessageTemplate,
+  options: RenderOptions,
+): Promise<Rendered> {
+  const orderId = (row.data as { orderId?: string }).orderId;
+  if (!orderId) return { kind: "skip", reason: "no_order" };
+  const [found] = await tx
+    .select({ order: orders, plan: plans, email: users.email })
+    .from(orders)
+    .innerJoin(plans, eq(plans.id, orders.planId))
+    .innerJoin(users, eq(users.id, orders.userId))
+    .where(eq(orders.id, orderId));
+  if (!found) return { kind: "skip", reason: "no_order" };
+  const { order, plan } = found;
+  const product = options.productName;
+
+  if (template === "admin.new_order") {
+    const admins = await tx.select({ email: users.email }).from(users).where(eq(users.isPlatformAdmin, true));
+    if (admins.length === 0) return { kind: "skip", reason: "no_admin" };
+    const locale = resolveLocale("fr");
+    const t = await getTranslator(locale);
+    const planName = pickLocalized(plan.name, locale);
+    const { html, text } = renderEmail({
+      locale,
+      brandName: product,
+      title: t("notifications.admin.new_order.title"),
+      paragraphs: [
+        order.paidAt ? t("notifications.admin.new_order.paid") : t("notifications.admin.new_order.review"),
+      ],
+      details: [
+        { label: t("notifications.admin.new_order.business"), value: order.businessName },
+        { label: t("notifications.admin.new_order.activity"), value: order.activity },
+        { label: t("notifications.admin.new_order.phone"), value: formatPhone(order.phone) || order.phone },
+        { label: t("notifications.admin.new_order.email"), value: found.email },
+        ...(order.currentWebsite
+          ? [{ label: t("notifications.admin.new_order.website"), value: order.currentWebsite }]
+          : []),
+      ],
+      action: {
+        label: t("notifications.admin.new_order.open"),
+        url: `${options.appUrl}/${locale}/admin/commandes`,
+      },
+      footer: [product],
+    });
+    return {
+      kind: "email",
+      to: admins.map((admin) => admin.email),
+      subject: t("notifications.admin.new_order.subject", { business: order.businessName, plan: planName }),
+      html,
+      text,
+      fromName: product,
+      replyTo: found.email,
+    };
+  }
+
+  const locale = resolveLocale(row.locale);
+  const t = await getTranslator(locale);
+  const planName = pickLocalized(plan.name, locale);
+  const space = `${options.appUrl}/${locale}/espace`;
+  let subject: string;
+  let title: string;
+  let paragraphs: string[];
+  let action: { label: string; url: string } | null = null;
+  if (template === "account.order_received") {
+    const days = Number(await getPlatformSetting(tx, "go_live_delay_days"));
+    subject = t("notifications.account.order_received.subject", { product });
+    title = t("notifications.account.order_received.title");
+    paragraphs = [
+      order.paidAt
+        ? t("notifications.account.order_received.paid", { plan: planName })
+        : t("notifications.account.order_received.review", { plan: planName }),
+      t("notifications.account.order_received.next", { days }),
+    ];
+    action = { label: t("notifications.account.order_received.open"), url: space };
+  } else if (template === "account.order_rejected") {
+    subject = t("notifications.account.order_rejected.subject", { product });
+    title = t("notifications.account.order_rejected.title");
+    paragraphs = [
+      t("notifications.account.order_rejected.intro", { business: order.businessName }),
+      ...(order.rejectionReason
+        ? [t("notifications.account.order_rejected.reason", { reason: order.rejectionReason })]
+        : []),
+      ...(order.paidAt ? [t("notifications.account.order_rejected.refund")] : []),
+      t("notifications.account.order_rejected.contact"),
+    ];
+  } else if (template === "account.site_live") {
+    const tenant = row.tenantId ? await loadTenant(tx, row.tenantId) : null;
+    subject = t("notifications.account.site_live.subject");
+    title = t("notifications.account.site_live.title");
+    paragraphs = [
+      t("notifications.account.site_live.intro", { business: tenant?.name ?? order.businessName }),
+      t("notifications.account.site_live.space"),
+    ];
+    action = tenant?.siteUrl
+      ? { label: t("notifications.account.site_live.site"), url: tenant.siteUrl }
+      : null;
+  } else {
+    return { kind: "skip", reason: "unknown_template" };
+  }
+  const { html, text } = renderEmail({
+    locale,
+    brandName: product,
+    title,
+    paragraphs,
+    action,
+    after:
+      template === "account.site_live"
+        ? [`${t("notifications.account.order_received.open")} : ${space}`]
+        : [],
+    footer: [product],
+  });
+  return { kind: "email", to: [found.email], subject, html, text, fromName: product, replyTo: null };
 }

@@ -59,6 +59,13 @@ export async function proxy(request: NextRequest) {
     case "platform":
       if (hasPrefix(url.pathname, SITES_PREFIX)) return notFound();
       if (hasPrefix(url.pathname, "/api") || hasPrefix(url.pathname, "/media")) return NextResponse.next();
+      // Référencement du site commercial.
+      if (url.pathname === "/sitemap.xml" || url.pathname === "/robots.txt") {
+        return NextResponse.rewrite(
+          new URL(`/platform-seo/${url.pathname.slice(1).split(".")[0]}`, request.url),
+        );
+      }
+      if (hasPrefix(url.pathname, "/platform-seo")) return notFound();
       return intl(request);
     case "tenant": {
       // La connexion n'existe que sur le domaine principal.

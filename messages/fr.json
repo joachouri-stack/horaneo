@@ -34,7 +34,122 @@
   "home": {
     "title": "Votre site, votre agenda et vos acomptes, enfin réunis.",
     "subtitle": "Vos clientes réservent et paient leur acompte en ligne, sur votre propre site. Vous gérez tout depuis votre téléphone.",
-    "cta": "Créer mon site"
+    "cta": "Créer mon site",
+    "seePlans": "Voir les packs",
+    "reassurance": "Nous créons votre site pour vous. Sans compétence technique.",
+    "mockup": {
+      "label": "Exemple de réservation sur le site d'un établissement",
+      "business": "Institut Lumière",
+      "service": "Soin du visage",
+      "duration": "1 h",
+      "day": "Jour",
+      "time": "Heure",
+      "days": ["lun. 12", "mar. 13", "mer. 14"],
+      "times": ["9:30", "11:00", "14:15", "16:45"],
+      "deposit": "Acompte à régler",
+      "pay": "Payer l'acompte"
+    },
+    "compare": {
+      "title": "Ce qui change pour vous",
+      "without": "Sans {product}",
+      "with": "Avec {product}",
+      "rows": [
+        {
+          "figure": "24 h/24",
+          "without": "Les rendez-vous se prennent au téléphone, pendant vos heures d'ouverture.",
+          "with": "Vos clientes réservent à toute heure, même pendant que vous travaillez."
+        },
+        {
+          "figure": "2 rappels",
+          "without": "Des rendez-vous oubliés, sans prévenir.",
+          "with": "Un e-mail 24 h avant et un SMS la veille, envoyés automatiquement."
+        },
+        {
+          "figure": "Acompte",
+          "without": "Une absence, c'est un créneau perdu et non payé.",
+          "with": "Un acompte en ligne à la réservation, gardé en cas d'absence."
+        },
+        {
+          "figure": "{percent} %",
+          "without": "Des plateformes qui prennent une commission sur chaque rendez-vous.",
+          "with": "Aucune commission : l'acompte va directement sur votre compte."
+        }
+      ]
+    },
+    "features": {
+      "title": "Tout ce qu'il vous faut, au même endroit",
+      "items": [
+        {
+          "title": "Un site professionnel à vos couleurs",
+          "text": "Créé pour vous à partir de votre logo, rapide sur téléphone et bien référencé dans votre ville."
+        },
+        {
+          "title": "La réservation en ligne",
+          "text": "Prestations, membres de l'équipe, horaires et congés : seuls les créneaux vraiment libres sont proposés."
+        },
+        {
+          "title": "L'acompte et le paiement",
+          "text": "Vos clientes paient par carte, Apple Pay ou Google Pay. Remboursement automatique si elles annulent à temps."
+        },
+        {
+          "title": "Les rappels automatiques",
+          "text": "Confirmation, rappel par e-mail et par SMS, annulation ou report : tout part au nom de votre établissement."
+        },
+        {
+          "title": "Votre agenda dans la poche",
+          "text": "Rendez-vous du jour, agenda, fiches clientes, ajout d'un rendez-vous pris au téléphone : en deux gestes."
+        },
+        {
+          "title": "Votre nom de domaine",
+          "text": "Gardez votre adresse habituelle, ou commencez avec une adresse offerte."
+        }
+      ]
+    },
+    "plans": {
+      "title": "Choisissez votre pack",
+      "perMonth": "/ mois {display}",
+      "free": "Gratuit",
+      "order": "Commander",
+      "commitment": "{months, plural, =0 {Sans engagement.} one {Engagement de # mois.} other {Engagement de # mois.}}",
+      "setupFree": "Création du site offerte.",
+      "setupFee": "Frais de création : {amount}.",
+      "popular": "Le plus choisi"
+    },
+    "faq": {
+      "title": "Questions fréquentes",
+      "items": [
+        {
+          "q": "Comment je reçois mes acomptes ?",
+          "a": "Vous ouvrez votre propre compte Stripe depuis votre espace, en quelques minutes. Les acomptes y sont versés directement, puis virés sur votre compte bancaire. {product} ne touche jamais votre argent et prend {percent} % de commission."
+        },
+        {
+          "q": "Que se passe-t-il si une cliente annule ?",
+          "a": "Jusqu'au délai que vous choisissez (24 h avant par défaut), elle annule ou déplace gratuitement avec le lien reçu par e-mail, et son acompte lui est remboursé automatiquement. Après ce délai, ou si elle ne vient pas, l'acompte vous reste acquis."
+        },
+        {
+          "q": "Combien de temps pour avoir mon site ?",
+          "a": "Nous le construisons pour vous : il est en ligne sous {days} jours ouvrés environ après votre commande. Vous recevez un e-mail dès qu'il est prêt."
+        },
+        {
+          "q": "Dois-je savoir faire un site ?",
+          "a": "Non. Vous nous donnez votre logo, vos prestations et vos horaires ; nous nous occupons du reste. Ensuite, vous modifiez prix, horaires et photos vous-même, depuis votre téléphone."
+        },
+        {
+          "q": "Puis-je garder mon nom de domaine ?",
+          "a": "Oui, avec les packs payants. Vos anciennes adresses sont redirigées vers le nouveau site."
+        },
+        {
+          "q": "Suis-je engagée ?",
+          "a": "{commitment} Vous pouvez changer de pack à tout moment depuis votre espace."
+        }
+      ]
+    },
+    "footer": {
+      "legal": "Mentions légales",
+      "privacy": "Confidentialité",
+      "terms": "Conditions générales",
+      "rights": "© {year} {product}"
+    }
   },
   "site": {
     "suspended": "Ce site est temporairement indisponible. Merci de contacter l'établissement par téléphone.",
@@ -178,7 +293,9 @@
       "social": "La connexion n'a pas abouti. Merci de réessayer.",
       "generic": "Une erreur est survenue. Merci de réessayer."
     },
-    "legal": "En continuant, vous acceptez les conditions d'utilisation et la politique de confidentialité."
+    "legal": "En continuant, vous acceptez les conditions d'utilisation et la politique de confidentialité.",
+    "signupTitle": "Créez votre compte",
+    "signupSubtitle": "Sans mot de passe : continuez avec Google ou Apple, ou recevez un lien par e-mail. Si vous avez déjà un compte, vous serez simplement connectée."
   },
   "account": {
     "metaTitle": "Mon espace",
@@ -187,7 +304,7 @@
     "signedInAs": "Compte : {email}",
     "noTenantTitle": "Votre compte est prêt",
     "noTenantBody": "Prochaine étape : choisir votre pack. Votre site sera ensuite créé et mis en ligne pour vous.",
-    "noTenantCta": "Découvrir les packs",
+    "noTenantCta": "Choisir mon pack",
     "tenantsTitle": "Mes établissements",
     "comingSoon": "Votre espace de gestion (agenda, clientes, site) arrive très bientôt.",
     "adminLink": "Espace admin"
@@ -227,7 +344,9 @@
       "requests": "Demandes",
       "plans": "Packs",
       "settings": "Réglages",
-      "billing": "Paiements"
+      "billing": "Paiements",
+      "orders": "Commandes",
+      "documents": "Documents légaux"
     },
     "dashboard": {
       "activeClients": "Clients en ligne",
@@ -241,7 +360,8 @@
       "noAlerts": "Rien à signaler.",
       "basicAtLimit": "{name} a atteint ses {count} réservations du mois (pack Basic).",
       "openRequests": "{count, plural, one {# demande de mise à jour à traiter} other {# demandes de mise à jour à traiter}}",
-      "pastDue": "{count, plural, one {# prélèvement en échec} other {# prélèvements en échec}}"
+      "pastDue": "{count, plural, one {# prélèvement en échec} other {# prélèvements en échec}}",
+      "pendingOrders": "{count, plural, one {# commande à traiter} other {# commandes à traiter}}"
     },
     "clients": {
       "title": "Clients",
@@ -571,6 +691,37 @@
         "paused": "En pause"
       },
       "openClient": "Fiche"
+    },
+    "orders": {
+      "title": "Commandes à traiter",
+      "intro": "Chaque commande attend que vous créiez le site. Une fois le site prêt, activez-le depuis sa fiche : le professionnel reçoit alors un e-mail « votre site est en ligne ».",
+      "empty": "Aucune commande en attente.",
+      "status": {
+        "awaiting_review": "Basic à valider",
+        "paid": "Payée : site à créer",
+        "in_creation": "Site en cours de création"
+      },
+      "received": "Reçue le {date}",
+      "activity": "Activité",
+      "phone": "Téléphone",
+      "email": "E-mail",
+      "website": "Site actuel",
+      "create": "Créer le site",
+      "openTenant": "Ouvrir la fiche du site",
+      "reject": "Refuser la demande",
+      "reason": "Motif (envoyé au professionnel)",
+      "rejectConfirm": "Refuser cette commande ? Le professionnel sera prévenu par e-mail.",
+      "refundHint": "Commande payée : l'abonnement sera arrêté. Remboursez le paiement depuis votre tableau de bord Stripe."
+    },
+    "documents": {
+      "title": "Documents légaux",
+      "intro": "Textes affichés en bas du site commercial. Chaque enregistrement crée une nouvelle version (les anciennes sont conservées). À faire valider juridiquement.",
+      "titleLabel": "Titre",
+      "content": "Texte",
+      "contentHint": "Séparez les paragraphes par une ligne vide.",
+      "publish": "Publier cette version",
+      "current": "Version {version} publiée le {date}",
+      "none": "Pas encore publié : la page affiche un message d'attente."
     }
   },
   "errors": {
@@ -605,7 +756,10 @@
     "payments_unavailable": "Le paiement en ligne n'est pas disponible pour le moment.",
     "payment_not_refundable": "Il n'y a pas d'acompte à rembourser.",
     "payment_provider_error": "Le service de paiement ne répond pas. Merci de réessayer dans un instant.",
-    "subscription_active": "Ce client a un abonnement Stripe en cours : changez son pack depuis son espace (« Voir comme le client »)."
+    "subscription_active": "Ce client a un abonnement Stripe en cours : changez son pack depuis son espace (« Voir comme le client »).",
+    "already_customer": "Vous avez déjà un site : changez de pack depuis votre espace (Plus → Abonnement).",
+    "order_in_progress": "Votre commande est déjà en cours de traitement. Nous revenons vers vous très vite.",
+    "order_not_pending": "Cette commande a déjà été traitée."
   },
   "status": {
     "draft": "En création",
@@ -1252,6 +1406,92 @@
         "back": "Vous pouvez reprendre un pack payant à tout moment depuis votre espace.",
         "open": "Voir les packs"
       }
+    },
+    "account": {
+      "order_received": {
+        "subject": "Votre commande {product} est bien reçue",
+        "title": "Merci, c'est parti !",
+        "paid": "Votre paiement pour le pack {plan} est bien enregistré.",
+        "review": "Votre demande de fiche gratuite ({plan}) est bien reçue : nous la validons à la main.",
+        "next": "Nous créons votre site et vous prévenons dès qu'il est en ligne, sous {days, plural, one {# jour ouvré} other {# jours ouvrés}} environ.",
+        "open": "Mon espace"
+      },
+      "order_rejected": {
+        "subject": "Votre demande {product}",
+        "title": "Votre demande n'a pas pu être acceptée",
+        "intro": "Nous ne pouvons pas donner suite à votre demande pour « {business} ».",
+        "reason": "Motif : {reason}",
+        "refund": "Le paiement effectué vous sera remboursé intégralement.",
+        "contact": "Une question ? Répondez simplement à cet e-mail."
+      },
+      "site_live": {
+        "subject": "Votre site est en ligne !",
+        "title": "Votre site est en ligne",
+        "intro": "Bonne nouvelle : le site de « {business} » est en ligne et prêt à recevoir des réservations.",
+        "site": "Voir mon site",
+        "space": "Depuis votre espace, gérez votre agenda, vos clientes et votre site, sur téléphone comme sur ordinateur."
+      }
+    },
+    "admin": {
+      "new_order": {
+        "subject": "Nouvelle commande : {business} ({plan})",
+        "title": "Nouvelle commande",
+        "paid": "Pack payant, paiement reçu : site à créer.",
+        "review": "Demande de fiche gratuite : à valider.",
+        "business": "Établissement",
+        "activity": "Activité",
+        "phone": "Téléphone",
+        "website": "Site actuel",
+        "email": "E-mail",
+        "open": "Voir les commandes"
+      }
     }
+  },
+  "legal": {
+    "updated": "Mise à jour le {date}",
+    "draft": "Document en cours de rédaction.",
+    "titles": {
+      "legal_notice": "Mentions légales",
+      "privacy": "Politique de confidentialité",
+      "terms": "Conditions générales de vente et d'utilisation"
+    },
+    "placeholder": "Ce document sera publié prochainement. Pour toute question : {email}."
+  },
+  "order": {
+    "metaTitle": "Commander",
+    "title": "Votre commande",
+    "intro": "Quelques informations pour préparer votre site. Cela prend une minute.",
+    "plan": "Pack choisi",
+    "businessName": "Nom de votre établissement",
+    "activity": "Votre activité",
+    "activityHint": "Par exemple : institut de beauté, coiffure, massage…",
+    "phone": "Téléphone",
+    "currentWebsite": "Site actuel (facultatif)",
+    "paidHint": "Paiement par carte sur la page sécurisée de Stripe. Votre site est ensuite créé par notre équipe.",
+    "freeHint": "Les demandes de fiche gratuite sont validées à la main par notre équipe.",
+    "thanks": {
+      "metaTitle": "Merci",
+      "paidTitle": "Merci, votre paiement est enregistré !",
+      "reviewTitle": "Merci, votre demande est envoyée !",
+      "pendingTitle": "Paiement en cours de validation…",
+      "pendingText": "Cela prend généralement quelques secondes. Rechargez la page dans un instant.",
+      "reload": "Recharger",
+      "next": "Notre équipe crée votre site : il sera en ligne sous {days, plural, one {# jour ouvré} other {# jours ouvrés}} environ. Vous recevrez un e-mail dès qu'il est prêt.",
+      "reviewNext": "Nous validons votre demande et créons votre fiche : comptez {days, plural, one {# jour ouvré} other {# jours ouvrés}} environ.",
+      "space": "Aller à mon espace"
+    },
+    "status": {
+      "title": "Ma commande",
+      "awaiting_payment": "En attente de paiement",
+      "awaiting_review": "Demande reçue, en cours de validation",
+      "paid": "Paiement reçu : votre site est en préparation",
+      "in_creation": "Votre site est en cours de création",
+      "done": "Votre site est en ligne",
+      "rejected": "Demande refusée",
+      "abandoned": "Commande abandonnée",
+      "resume": "Reprendre ma commande",
+      "eta": "Mise en ligne prévue sous {days, plural, one {# jour ouvré} other {# jours ouvrés}} environ."
+    },
+    "submit": "Continuer"
   }
 }

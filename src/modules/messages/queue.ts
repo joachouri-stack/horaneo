@@ -26,6 +26,11 @@ export const MESSAGE_TEMPLATES = [
   "manager.basic_quota",
   "manager.payment_failed",
   "manager.subscription_ended",
+  // Au professionnel avant que son site existe, et à l'administratrice
+  "account.order_received",
+  "account.order_rejected",
+  "account.site_live",
+  "admin.new_order",
 ] as const;
 
 export type MessageTemplate = (typeof MESSAGE_TEMPLATES)[number];
@@ -37,7 +42,7 @@ export function channelOf(template: MessageTemplate) {
 export async function queueMessage(
   tx: Transaction,
   input: {
-    tenantId: string;
+    tenantId: string | null;
     template: MessageTemplate;
     appointmentId?: string | null;
     locale?: string;

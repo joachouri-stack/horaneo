@@ -21,10 +21,14 @@ export function createFakeBilling() {
       setupFee: unknown;
       taxRateId: string | null;
       metadata: Record<string, string>;
+      subscriptionId?: string;
     }
   >();
   const taxRates: { id: string; percent: number; inclusive: boolean }[] = [];
   const calls: string[] = [];
+
+  const planOfPrice = (priceId: string) =>
+    prices.get(priceId)?.metadata.plan_id ?? /^price_([0-9a-f-]{36})_/.exec(priceId)?.[1] ?? null;
 
   const snapshot = (id: string): BillingSubscription => {
     const sub = subscriptions.get(id);
@@ -41,7 +45,9 @@ export function createFakeBilling() {
     },
     async createPrice(input) {
       calls.push("createPrice");
-      const id = next("price");
+      // Le pack est inscrit dans l'identifiant : un autre fichier de test (autre faux Stripe)
+      // peut réutiliser un prix enregistré dans la base partagée.
+      const id = next(`price_${input.metadata.plan_id ?? "x"}`);
       prices.set(id, {
         productId: input.productId,
         amountCents: input.amountCents,
@@ -66,11 +72,25 @@ export function createFakeBilling() {
     async retrieveSubscription(id) {
       return snapshot(id);
     },
+    async retrieveCheckout(id) {
+      const checkout = checkouts.get(id);
+      if (!checkout) throw new Error("Paiement inconnu");
+      return {
+        status: checkout.subscriptionId ? "complete" : "open",
+        subscriptionId: checkout.subscriptionId ?? null,
+        customerId: checkout.customerId,
+      };
+    },
+    async cancelNow(id) {
+      calls.push("cancelNow");
+      subscriptions.get(id)!.status = "canceled";
+      return snapshot(id);
+    },
     async changePriceNow({ subscriptionId, priceId }) {
       calls.push("changePriceNow");
       const sub = subscriptions.get(subscriptionId)!;
       sub.priceId = priceId;
-      sub.planId = prices.get(priceId)?.metadata.plan_id ?? null;
+      sub.planId = planOfPrice(priceId);
       return snapshot(subscriptionId);
     },
     async schedulePriceChange({ subscriptionId, priceId }) {
@@ -112,6 +132,7 @@ export function createFakeBilling() {
     completeCheckout(checkoutId: string, start: Date) {
       const checkout = checkouts.get(checkoutId)!;
       const id = next("sub");
+      checkout.subscriptionId = id;
       const end = new Date(start);
       end.setUTCMonth(end.getUTCMonth() + 1);
       subscriptions.set(id, {
@@ -119,7 +140,7 @@ export function createFakeBilling() {
         customerId: checkout.customerId,
         status: "active",
         priceId: checkout.priceId,
-        planId: prices.get(checkout.priceId)?.metadata.plan_id ?? null,
+        planId: planOfPrice(checkout.priceId),
         currentPeriodStart: start,
         currentPeriodEnd: end,
         cancelAt: null,
@@ -138,7 +159,7 @@ export function createFakeBilling() {
       }
       if (sub.pendingPriceId) {
         sub.priceId = sub.pendingPriceId;
-        sub.planId = prices.get(sub.pendingPriceId)?.metadata.plan_id ?? null;
+        sub.planId = planOfPrice(sub.pendingPriceId);
         sub.pendingPriceId = null;
         sub.scheduleId = null;
       }

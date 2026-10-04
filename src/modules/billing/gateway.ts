@@ -41,7 +41,15 @@ export interface BillingGateway {
     cancelUrl: string;
     metadata: Record<string, string>;
   }): Promise<{ id: string; url: string }>;
+  /** État d'une page de paiement (retour du professionnel après le paiement). */
+  retrieveCheckout(checkoutId: string): Promise<{
+    status: "open" | "complete" | "expired";
+    subscriptionId: string | null;
+    customerId: string | null;
+  }>;
   retrieveSubscription(subscriptionId: string): Promise<BillingSubscription>;
+  /** Fin immédiate (commande refusée). */
+  cancelNow(subscriptionId: string): Promise<BillingSubscription>;
   /** Pack supérieur : changement immédiat, différence facturée au prorata tout de suite. */
   changePriceNow(input: { subscriptionId: string; priceId: string }): Promise<BillingSubscription>;
   /** Pack inférieur : appliqué à la fin de la période en cours. */

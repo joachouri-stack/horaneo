@@ -1,6 +1,8 @@
 "use server";
 
+import { billingGateway } from "@/lib/payments/stripe-billing";
 import { changePlanManually } from "@/modules/billing/subscriptions";
+import { completeOrdersOfTenant, linkOrderToTenant } from "@/modules/orders/orders";
 import { getLocale, getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { redirect } from "@/i18n/navigation";
@@ -49,8 +51,8 @@ export async function createTenantAction(
       tenantId: created.tenant.id,
       details: { slug: created.tenant.slug, planCode: form.text(data, "planCode") },
     }),
-    (tx) =>
-      createTenant(tx, {
+    async (tx) => {
+      const created = await createTenant(tx, {
         name: form.text(data, "name"),
         slug: form.text(data, "slug"),
         planCode: form.text(data, "planCode"),
@@ -58,7 +60,12 @@ export async function createTenantAction(
         managerName: form.optional(data, "managerName"),
         phone: form.optional(data, "phone"),
         email: form.optional(data, "email"),
-      }),
+      });
+      // Site créé à partir d'une commande : l'abonnement déjà payé lui est rattaché.
+      const orderId = form.optional(data, "orderId");
+      if (orderId) await linkOrderToTenant(tx, z.uuid().parse(orderId), created.tenant.id, billingGateway());
+      return created;
+    },
   );
   if (!result.ok) return result;
   redirect({
@@ -79,7 +86,12 @@ export async function changeStatusAction(_previous: Previous, data: FormData) {
       tenantId,
       details: change,
     }),
-    (tx) => changeStatus(tx, tenantId, action),
+    async (tx) => {
+      const change = await changeStatus(tx, tenantId, action);
+      // Mise en ligne : la commande éventuelle est terminée et le professionnel prévenu.
+      if (action === "activate") await completeOrdersOfTenant(tx, tenantId);
+      return change;
+    },
   );
 }
 

@@ -43,4 +43,7 @@ export type AppErrorCode =
   | "payments_unavailable"
   | "payment_not_refundable"
   | "payment_provider_error"
-  | "subscription_active";
+  | "subscription_active"
+  | "already_customer"
+  | "order_in_progress"
+  | "order_not_pending";

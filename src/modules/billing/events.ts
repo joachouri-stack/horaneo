@@ -1,5 +1,6 @@
 import type { Transaction } from "@/db/client";
 import { processEventOnce, type EventOutcome } from "@/modules/payments/webhooks";
+import { markOrderPaid } from "@/modules/orders/orders";
 import type { BillingGateway, BillingSubscription } from "./gateway";
 import { applyInvoicePaid, applyPaymentFailed, applySubscription } from "./subscriptions";
 
@@ -35,7 +36,18 @@ export async function handleBillingEvent(
         // L'abonnement créé par le paiement est relu chez Stripe (état complet et à jour).
         if (!event.subscriptionId || !gateway) return "no_subscription";
         const subscription = await gateway.retrieveSubscription(event.subscriptionId);
-        return (await applySubscription(tx, subscription)).outcome;
+        const applied = await applySubscription(tx, subscription);
+        // Paiement d'une commande du site commercial : le site n'existe pas encore.
+        if (applied.outcome === "unknown_tenant" && subscription.metadata.order_id) {
+          return (
+            await markOrderPaid(tx, {
+              orderId: subscription.metadata.order_id,
+              subscriptionId: subscription.id,
+              customerId: subscription.customerId,
+            })
+          ).outcome;
+        }
+        return applied.outcome;
       }
       case "invoice_paid":
         return event.subscriptionId

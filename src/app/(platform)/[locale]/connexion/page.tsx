@@ -29,6 +29,7 @@ export default async function LoginPage({ params, searchParams }: PageProps<"/[l
   if (await getCurrentSession()) redirect({ href: suite, locale });
 
   const t = await getTranslations("auth");
+  const signup = suite.startsWith("/commander");
   const errorParam = typeof query.erreur === "string" ? query.erreur : null;
   const errorKey =
     errorParam && errorParam in ERROR_KEYS ? ERROR_KEYS[errorParam as keyof typeof ERROR_KEYS] : null;
@@ -40,8 +41,9 @@ export default async function LoginPage({ params, searchParams }: PageProps<"/[l
       </PlatformHeader>
       <main id="contenu" className="mx-auto max-w-md px-4 py-10 sm:py-16">
         <div className={ui.card}>
-          <h1 className="text-3xl font-extrabold">{t("title")}</h1>
-          <p className="mt-3 text-ink/80">{t("subtitle")}</p>
+          {/* Depuis « Commander » : la même page sert à créer son compte. */}
+          <h1 className="text-3xl font-extrabold">{signup ? t("signupTitle") : t("title")}</h1>
+          <p className="mt-3 text-ink/80">{signup ? t("signupSubtitle") : t("subtitle")}</p>
           {errorKey && (
             <p role="alert" className={`mt-6 ${ui.error}`}>
               {t(`errors.${errorKey}`)}

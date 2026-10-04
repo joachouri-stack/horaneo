@@ -272,3 +272,11 @@ Je préfère vous les signaler plutôt que deviner. Pour chacun, une proposition
 - **`subscriptions`** (migration 0010) : une ligne par établissement ; ajout de `scheduled_plan_id` (pack inférieur programmé), `cancel_requested_at`, `payment_failed_at`, `last_payment_error`. **`plans.stripe_product_id`** : produit Stripe du pack.
 - **Prix Stripe** : un nouveau tarif ne change pas les abonnements en cours (ils gardent leur prix).
 - **Rappel SMS** : corrigé pour respecter la décision n° 6 (pas de rappel si le rendez-vous est pris moins de 24 h avant).
+
+## 10. Décisions de l'étape 11 (site commercial)
+
+- **Paiement à la commande** (comme le prévoit le brief) : l'abonnement et l'engagement démarrent au paiement, avant la mise en ligne du site (délai annoncé : réglage `go_live_delay_days`).
+- **`orders`** (migration 0011) : ajout de `stripe_customer_id`, `stripe_subscription_id`, `paid_at`, `rejection_reason`. L'abonnement payé est rattaché à l'établissement quand l'administratrice crée le site.
+- **Commande refusée après paiement** : l'abonnement est arrêté automatiquement ; le remboursement se fait à la main dans Stripe.
+- **Chiffres du comparatif** : uniquement des faits sur le produit (24 h/24, 2 rappels, acompte, commission), aucune promesse chiffrée de résultat. Modifiables dans `messages/fr.json`.
+- **Formulaires** : la saisie est conservée en cas d'erreur.

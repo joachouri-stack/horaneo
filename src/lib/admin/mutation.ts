@@ -5,6 +5,7 @@ import { env } from "@/config/env";
 import { withPlatform } from "@/db/access";
 import type { Transaction } from "@/db/client";
 import { recordAudit } from "@/lib/audit";
+import { sendQueuedSoon } from "@/lib/jobs/tick";
 import { decideAdminAccess } from "@/lib/auth/admin-access";
 import { getCurrentSession } from "@/lib/auth/session";
 import { getAdminSecurityState } from "@/lib/auth/two-factor-service";
@@ -62,6 +63,8 @@ export async function adminMutation<T>(
       return result;
     });
     refresh();
+    // Messages éventuels (site en ligne, commande refusée…) envoyés tout de suite.
+    sendQueuedSoon();
     return { ok: true, data };
   } catch (error) {
     return toActionError(error);

@@ -144,7 +144,7 @@ describe.skipIf(!hasTestDatabase)("abonnements", () => {
     const first = await platform((tx) => ensurePlanPrice(tx, id, billing.gateway));
     const again = await platform((tx) => ensurePlanPrice(tx, id, billing.gateway));
     expect(again).toBe(first);
-    expect(billing.prices.get(first)?.metadata.plan_id).toBe(id);
+    expect(first).toContain(id);
     expect(
       await errorCode(platform(async (tx) => ensurePlanPrice(tx, await planId("basic"), billing.gateway))),
     ).toBe("invalid");

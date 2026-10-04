@@ -98,6 +98,21 @@ export function createStripeBilling(secretKey: string): BillingGateway {
       return { id: session.id, url: session.url };
     },
 
+    async retrieveCheckout(checkoutId) {
+      const session = await stripe.checkout.sessions.retrieve(checkoutId);
+      const sub = session.subscription;
+      const customer = session.customer;
+      return {
+        status: (session.status ?? "open") as "open" | "complete" | "expired",
+        subscriptionId: typeof sub === "string" ? sub : (sub?.id ?? null),
+        customerId: typeof customer === "string" ? customer : (customer?.id ?? null),
+      };
+    },
+
+    async cancelNow(subscriptionId) {
+      return toBillingSubscription(await stripe.subscriptions.cancel(subscriptionId));
+    },
+
     async retrieveSubscription(subscriptionId) {
       return toBillingSubscription(await stripe.subscriptions.retrieve(subscriptionId));
     },

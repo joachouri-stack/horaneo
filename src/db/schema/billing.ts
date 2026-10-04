@@ -157,12 +157,20 @@ export const orders = pgTable(
     locale: text().notNull().default("fr"),
     status: orderStatusEnum().notNull(),
     stripeCheckoutSessionId: text(),
+    /** Abonnement créé par le paiement de la commande (avant que le site existe). */
+    stripeCustomerId: text(),
+    stripeSubscriptionId: text(),
+    paidAt: utc(),
+    /** Motif communiqué au professionnel si la demande est refusée. */
+    rejectionReason: text(),
     /** Renseigné quand l'administratrice a créé le site. */
     tenantId: uuid().references(() => tenants.id, { onDelete: "set null" }),
     ...timestamps(),
   },
   (t) => [
     index("orders_status_idx").on(t.status),
+    index("orders_user_idx").on(t.userId),
+    uniqueIndex("orders_subscription_key").on(t.stripeSubscriptionId),
     uniqueIndex("orders_checkout_session_key").on(t.stripeCheckoutSessionId),
   ],
 );

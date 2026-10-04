@@ -3,7 +3,7 @@
 SaaS multi-tenant : chaque professionnel travaillant sur rendez-vous reçoit son propre site web, avec réservation et paiement d'acompte en ligne.
 
 - Brief et décisions : [`docs/01-base-de-donnees.md`](docs/01-base-de-donnees.md)
-- Avancement : étape 10 sur 14 (packs, limites et abonnements Stripe Billing)
+- Avancement : étape 11 sur 14 (site commercial, inscription et commande)
 
 ## Technologies
 
@@ -307,6 +307,34 @@ Les packs (prix, limites, fonctions) et les réglages commerciaux se modifient d
 - **Admin → Paiements** : revenu mensuel réel, abonnements, échéances, prélèvements en échec. L'accueil admin signale les impayés et les clients Basic à 5 réservations.
 - L'administratrice ne peut pas changer à la main le pack d'un client qui a un abonnement Stripe en cours (pour ne jamais désynchroniser les deux) : elle passe par « Voir comme le client ».
 - Événements Stripe des abonnements : point de réception `/api/stripe/billing` (voir `.env.example` pour les événements et les réglages Stripe à faire).
+
+## Site commercial et commandes
+
+**Page d'accueil** (`/fr`), pensée d'abord pour le téléphone :
+
+- l'accroche, avec un visuel de réservation en cours construit en HTML et CSS (net et traduisible) ;
+- le comparatif « sans / avec » ;
+- les fonctions principales ;
+- les packs, lus dans la base, avec un bouton « Commander » ;
+- les questions fréquentes, dont celles sur l'argent ;
+- le pied de page avec les documents légaux.
+
+Tous les textes sont dans `messages/fr.json` (rubrique `home`). Les chiffres affichés (commission, engagement, frais de création, délai de mise en ligne) viennent des réglages.
+
+**Parcours de commande** :
+
+1. Le professionnel choisit un pack et clique sur « Commander ».
+2. Il crée son compte ou se connecte (Google, Apple ou lien par e-mail), puis revient automatiquement sur sa commande.
+3. Il remplit un court formulaire : nom, activité, téléphone, site actuel.
+4. **Pack payant** : il paie sur la page sécurisée de Stripe ; l'abonnement démarre au paiement. **Basic** : la demande est enregistrée pour validation manuelle.
+5. L'administratrice reçoit un e-mail ; la commande apparaît dans **Admin → Commandes** et sur l'accueil admin. Le professionnel reçoit une confirmation, avec le délai de mise en ligne, et suit l'état de sa commande dans son espace.
+6. « Créer le site » ouvre le formulaire de nouveau client, pré-rempli : l'abonnement déjà payé y est rattaché.
+7. Quand le site est prêt, « Mettre en ligne » termine la commande et envoie au professionnel l'e-mail « votre site est en ligne ».
+8. Refus possible avec un motif, envoyé au professionnel. Pour une commande payée, l'abonnement est arrêté ; **le remboursement se fait depuis le tableau de bord Stripe**.
+
+**Documents légaux** : **Admin → Documents légaux**. Chaque enregistrement crée une nouvelle version, et les anciennes sont conservées. Tant qu'un document n'est pas publié, sa page affiche un message d'attente. Textes à faire valider juridiquement.
+
+**Référencement** : titre, description, adresses par langue, `sitemap.xml` et `robots.txt` du site commercial (les espaces privés ne sont pas indexés).
 
 ## Autres garde-fous de la base de données
 
