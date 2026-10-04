@@ -1,5 +1,4 @@
 import { publicAppUrl } from "@/config/env";
-
 import { ENABLED_LOCALES } from "@/i18n/enabled";
 
 // Recalculé à chaque appel : l'adresse publique et les langues viennent de la configuration du serveur.
