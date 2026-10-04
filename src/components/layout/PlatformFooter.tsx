@@ -1,34 +1,38 @@
 import { getTranslations } from "next-intl/server";
+import { Logo } from "@/components/brand/Logo";
 import { env } from "@/config/env";
 import { Link } from "@/i18n/navigation";
 
-/** Pied de page du site commercial : documents légaux. */
+/** Pied de page du site commercial : logo, documents légaux, droits. */
 export async function PlatformFooter() {
-  const t = await getTranslations("home.footer");
+  const [t, tCommon] = await Promise.all([getTranslations("home.footer"), getTranslations("common")]);
   const product = env().PRODUCT_NAME;
+  const links = [
+    { href: "/mentions-legales", label: t("legal") },
+    { href: "/confidentialite", label: t("privacy") },
+    { href: "/conditions", label: t("terms") },
+  ] as const;
   return (
-    <footer className="border-t border-navy/10 bg-white">
-      <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 text-sm sm:flex-row sm:items-center sm:justify-between">
+    <footer className="mx-auto max-w-6xl px-4 pb-10 pt-8 sm:px-6">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-6">
+        <Link href="/" aria-label={tCommon("homeLink", { product })}>
+          <Logo productName={product} className="text-[1.8rem]" />
+        </Link>
         <nav aria-label={t("legal")}>
-          <ul className="flex flex-wrap gap-x-6 gap-y-2">
-            <li>
-              <Link href="/mentions-legales" className="text-navy underline">
-                {t("legal")}
-              </Link>
-            </li>
-            <li>
-              <Link href="/confidentialite" className="text-navy underline">
-                {t("privacy")}
-              </Link>
-            </li>
-            <li>
-              <Link href="/conditions" className="text-navy underline">
-                {t("terms")}
-              </Link>
-            </li>
+          <ul className="flex flex-wrap gap-x-6 gap-y-2 text-[0.95rem]">
+            {links.map((link) => (
+              <li key={link.href}>
+                <Link href={link.href} className="text-night underline transition-colors hover:text-brick">
+                  {link.label}
+                </Link>
+              </li>
+            ))}
           </ul>
         </nav>
-        <p className="text-ink/70">{t("rights", { year: new Date().getFullYear(), product })}</p>
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-5 text-[0.95rem] text-[#5f5b54]">
+        <p>{t("rights", { year: new Date().getFullYear(), product: product.toLocaleUpperCase() })}</p>
+        <p>{t("credit")}</p>
       </div>
     </footer>
   );

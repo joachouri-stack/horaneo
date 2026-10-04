@@ -40,6 +40,9 @@ export type PlanFeatures = {
   promotions?: boolean;
   googleReviews?: boolean;
   giftCards?: boolean;
+  /** Promesses de service affichées sur le site commercial (mises à jour du site faites pour la cliente). */
+  monthlyUpdate?: boolean;
+  onDemandUpdates?: boolean;
   [feature: string]: boolean | undefined;
 };
 

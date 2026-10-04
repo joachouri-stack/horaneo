@@ -27,10 +27,17 @@ export const FEATURE_KEYS = [
   "brandingFooter",
   "emailSupport",
   "whatsappSupport",
+  "promotions",
+  "googleReviews",
+  "giftCards",
+  "monthlyUpdate",
+  "onDemandUpdates",
 ] as const;
 
 export const planInput = z.object({
   name: z.string().trim().min(1).max(40),
+  /** Accroche affichée sous le nom du pack sur le site commercial. */
+  description: z.string().trim().max(80).default(""),
   /** Prix mensuel en euros (« 39,99 »). */
   price: z
     .string()
@@ -75,6 +82,7 @@ export async function savePlan(
     .update(plans)
     .set({
       name: { ...plan.name, fr: input.name },
+      description: { ...plan.description, fr: input.description },
       priceCents,
       limits,
       features,

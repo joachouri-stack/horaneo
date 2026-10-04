@@ -32,123 +32,164 @@
     "ru": "Русский"
   },
   "home": {
-    "title": "Votre site, votre agenda et vos acomptes, enfin réunis.",
-    "subtitle": "Vos clientes réservent et paient leur acompte en ligne, sur votre propre site. Vous gérez tout depuis votre téléphone.",
-    "cta": "Créer mon site",
-    "seePlans": "Voir les packs",
-    "reassurance": "Nous créons votre site pour vous. Sans compétence technique.",
-    "mockup": {
-      "label": "Exemple de réservation sur le site d'un établissement",
-      "business": "Institut Lumière",
+    "nav": {
+      "how": "Comment ça marche",
+      "pricing": "Tarifs",
+      "questions": "Questions"
+    },
+    "badge": "Pour les professionnels sur rendez-vous",
+    "title": "Nous créons votre site.",
+    "titleAccent": "Vos clientes réservent.",
+    "subtitle": "Un site à votre nom, la réservation en ligne et l'acompte contre les absences. Nous faisons tout, de la création aux mises à jour.",
+    "cta": "Je veux mon site",
+    "seePlans": "Voir les tarifs",
+    "promises": {
+      "commission": "{percent, plural, =0 {Sans commission} other {Commission de # %}}",
+      "domain": "Votre nom de domaine",
+      "install": "Rien à installer"
+    },
+    "heroImageAlt": "Une esthéticienne applique un soin du visage à une cliente",
+    "demo": {
+      "label": "Exemple de réservation sur le site d'une cliente",
+      "notification": "Nouvelle réservation",
+      "notificationDetail": "Mardi à 14 h, soin du visage",
       "service": "Soin du visage",
-      "duration": "1 h",
-      "day": "Jour",
-      "time": "Heure",
-      "days": ["lun. 12", "mar. 13", "mer. 14"],
-      "times": ["9:30", "11:00", "14:15", "16:45"],
-      "deposit": "Acompte à régler",
-      "pay": "Payer l'acompte"
+      "duration": "60 min",
+      "price": "55 €",
+      "days": ["Lun 12", "Mar 13", "Mer 14", "Jeu 15"],
+      "times": ["09:00", "10:30", "14:00", "15:30"],
+      "deposit": "Acompte de 30 %",
+      "paid": "16,50 € payés"
     },
-    "compare": {
-      "title": "Ce qui change pour vous",
-      "without": "Sans {product}",
-      "with": "Avec {product}",
-      "rows": [
-        {
-          "figure": "24 h/24",
-          "without": "Les rendez-vous se prennent au téléphone, pendant vos heures d'ouverture.",
-          "with": "Vos clientes réservent à toute heure, même pendant que vous travaillez."
-        },
-        {
-          "figure": "2 rappels",
-          "without": "Des rendez-vous oubliés, sans prévenir.",
-          "with": "Un e-mail 24 h avant et un SMS la veille, envoyés automatiquement."
-        },
-        {
-          "figure": "Acompte",
-          "without": "Une absence, c'est un créneau perdu et non payé.",
-          "with": "Un acompte en ligne à la réservation, gardé en cas d'absence."
-        },
-        {
-          "figure": "{percent} %",
-          "without": "Des plateformes qui prennent une commission sur chaque rendez-vous.",
-          "with": "Aucune commission : l'acompte va directement sur votre compte."
-        }
-      ]
-    },
-    "features": {
-      "title": "Tout ce qu'il vous faut, au même endroit",
+    "madeFor": {
+      "title": "Pensé pour",
       "items": [
-        {
-          "title": "Un site professionnel à vos couleurs",
-          "text": "Créé pour vous à partir de votre logo, rapide sur téléphone et bien référencé dans votre ville."
-        },
-        {
-          "title": "La réservation en ligne",
-          "text": "Prestations, membres de l'équipe, horaires et congés : seuls les créneaux vraiment libres sont proposés."
-        },
-        {
-          "title": "L'acompte et le paiement",
-          "text": "Vos clientes paient par carte, Apple Pay ou Google Pay. Remboursement automatique si elles annulent à temps."
-        },
-        {
-          "title": "Les rappels automatiques",
-          "text": "Confirmation, rappel par e-mail et par SMS, annulation ou report : tout part au nom de votre établissement."
-        },
-        {
-          "title": "Votre agenda dans la poche",
-          "text": "Rendez-vous du jour, agenda, fiches clientes, ajout d'un rendez-vous pris au téléphone : en deux gestes."
-        },
-        {
-          "title": "Votre nom de domaine",
-          "text": "Gardez votre adresse habituelle, ou commencez avec une adresse offerte."
-        }
+        "Instituts de beauté",
+        "Salons de coiffure",
+        "Barbiers",
+        "Bien-être",
+        "Tatoueurs",
+        "Coachs",
+        "Garages",
+        "Artisans"
       ]
+    },
+    "steps": {
+      "title": "Vous n'avez",
+      "titleAccent": "rien à faire.",
+      "intro": "Trois étapes, et c'est nous qui nous chargeons de la première.",
+      "create": {
+        "title": "Nous créons votre site",
+        "text": "Logo, photos, prestations, horaires : nous récupérons tout et nous le mettons en ligne à votre adresse.",
+        "tag": "C'est nous qui le faisons"
+      },
+      "book": {
+        "title": "Vos clientes réservent",
+        "text": "Jour et nuit, en quelques gestes, sans créer de compte. Vous êtes prévenue à chaque réservation.",
+        "tag": "Sans rien installer"
+      },
+      "cash": {
+        "title": "Vous encaissez",
+        "text": "Acompte, paiement complet ou règlement sur place : vous choisissez. L'argent arrive directement sur votre compte.",
+        "tag": "{percent, plural, =0 {Sans commission} other {Commission de # %}}"
+      }
     },
     "plans": {
-      "title": "Choisissez votre pack",
-      "perMonth": "/ mois {display}",
+      "badge": "Tarifs",
+      "title": "Un prix clair,",
+      "titleAccent": "{percent, plural, =0 {sans commission.} other {commission de # %.}}",
+      "subtitle": "Commencez gratuitement, puis changez de pack quand vous voulez.",
+      "perMonth": "par mois {display}",
+      "perMonthShort": "par mois",
       "free": "Gratuit",
-      "order": "Commander",
+      "freeForever": "sans limite de durée",
+      "recommended": "Recommandé",
+      "start": "Commencer gratuitement",
+      "choose": "Choisir {plan}",
       "commitment": "{months, plural, =0 {Sans engagement.} one {Engagement de # mois.} other {Engagement de # mois.}}",
       "setupFree": "Création du site offerte.",
       "setupFee": "Frais de création : {amount}.",
-      "popular": "Le plus choisi"
+      "tiles": {
+        "unlimited": "Illimité",
+        "bookings": "{unlimited, select, yes {réservations} other {réservations par mois}}",
+        "members": "{count, plural, one {membre} other {membres}}",
+        "sms": "SMS par mois",
+        "emailValue": "E-mail",
+        "emailLabel": "rappels"
+      },
+      "included": "Inclus :",
+      "missing": "Non inclus :",
+      "items": {
+        "basePage": "Une fiche en ligne à votre nom",
+        "agenda": "Agenda sur votre téléphone",
+        "photosServices": "{photos, plural, one {# photo} other {# photos}} et {services, plural, one {# prestation} other {# prestations}}",
+        "everythingIn": "Tout le pack {plan}",
+        "fullSite": "Site complet, créé par nos soins",
+        "customDomain": "Votre propre nom de domaine",
+        "onlinePayment": "Paiement et acompte en ligne",
+        "promoCodes": "Codes promo",
+        "monthlyUpdate": "Une mise à jour par mois, faite pour vous",
+        "onDemandUpdates": "Mises à jour à la demande",
+        "unlimitedPhotos": "Photos illimitées",
+        "stats": "Statistiques détaillées",
+        "statsSummary": "Statistiques détaillées et résumé mensuel",
+        "monthlySummary": "Résumé mensuel",
+        "googleReviews": "Témoignages et avis mis en avant",
+        "whatsappSupport": "Assistance prioritaire par WhatsApp",
+        "giftCards": "Cartes cadeaux",
+        "smsReminders": "SMS de rappel"
+      },
+      "trust": {
+        "commission": "{percent, plural, =0 {Aucune commission} other {Commission de # % seulement}}",
+        "secure": "Paiements sécurisés",
+        "data": "Vos données vous appartiennent"
+      },
+      "pricesDisplay": "Prix {display}."
     },
     "faq": {
-      "title": "Questions fréquentes",
+      "title": "Les questions qu'on nous pose",
+      "intro": "Une autre question ? Nous répondons sous 24 heures.",
+      "contact": "Nous écrire",
+      "commission": "{percent, plural, =0 {nous ne prenons aucune commission} other {nous prenons seulement # % de commission sur les acomptes}}",
       "items": [
         {
-          "q": "Comment je reçois mes acomptes ?",
-          "a": "Vous ouvrez votre propre compte Stripe depuis votre espace, en quelques minutes. Les acomptes y sont versés directement, puis virés sur votre compte bancaire. {product} ne touche jamais votre argent et prend {percent} % de commission."
+          "q": "Comment je reçois mes paiements ?",
+          "a": "Directement sur votre compte bancaire. L'argent ne passe jamais par nous, et {commission}."
         },
         {
-          "q": "Que se passe-t-il si une cliente annule ?",
-          "a": "Jusqu'au délai que vous choisissez (24 h avant par défaut), elle annule ou déplace gratuitement avec le lien reçu par e-mail, et son acompte lui est remboursé automatiquement. Après ce délai, ou si elle ne vient pas, l'acompte vous reste acquis."
+          "q": "Et si une cliente annule ?",
+          "a": "Vous fixez vos conditions. Dans les délais, elle est remboursée. Sinon, l'acompte vous reste acquis."
         },
         {
-          "q": "Combien de temps pour avoir mon site ?",
-          "a": "Nous le construisons pour vous : il est en ligne sous {days} jours ouvrés environ après votre commande. Vous recevez un e-mail dès qu'il est prêt."
+          "q": "Je n'y connais rien en informatique, est-ce un problème ?",
+          "a": "Non. Nous créons le site, nous le mettons en ligne et nous vous montrons comment suivre vos rendez-vous sur votre téléphone."
         },
         {
-          "q": "Dois-je savoir faire un site ?",
-          "a": "Non. Vous nous donnez votre logo, vos prestations et vos horaires ; nous nous occupons du reste. Ensuite, vous modifiez prix, horaires et photos vous-même, depuis votre téléphone."
+          "q": "J'ai déjà un site, que devient-il ?",
+          "a": "Nous le remplaçons par le nouveau, à la même adresse. Vous gardez votre nom de domaine."
         },
         {
-          "q": "Puis-je garder mon nom de domaine ?",
-          "a": "Oui, avec les packs payants. Vos anciennes adresses sont redirigées vers le nouveau site."
+          "q": "En combien de temps mon site est-il en ligne ?",
+          "a": "Comptez quelques jours après réception de votre logo, de vos photos et de vos tarifs. Vous validez le site avant sa mise en ligne."
         },
         {
-          "q": "Suis-je engagée ?",
-          "a": "{commitment} Vous pouvez changer de pack à tout moment depuis votre espace."
+          "q": "Si j'arrête, qu'est-ce que je garde ?",
+          "a": "Votre nom de domaine, vos photos, vos textes et votre fichier clients."
         }
       ]
+    },
+    "final": {
+      "title": "Votre site en ligne",
+      "titleEnd": "en quelques jours.",
+      "text": "Dites-nous qui vous êtes, nous faisons le reste.",
+      "cta": "Je veux mon site"
     },
     "footer": {
       "legal": "Mentions légales",
       "privacy": "Confidentialité",
-      "terms": "Conditions générales",
-      "rights": "© {year} {product}"
+      "terms": "Conditions",
+      "rights": "© {year} {product} · Tous droits réservés",
+      "credit": "Design by Johane A."
     }
   },
   "site": {
@@ -830,8 +871,15 @@
         "monthlySummary": "Bilan mensuel",
         "emailSupport": "Assistance par e-mail",
         "whatsappSupport": "Assistance prioritaire par WhatsApp",
-        "brandingFooter": "Signature du SaaS en bas du site"
-      }
+        "brandingFooter": "Signature du SaaS en bas du site",
+        "promotions": "Promotions datées (prix barrés)",
+        "googleReviews": "Avis Google",
+        "giftCards": "Cartes cadeaux",
+        "monthlyUpdate": "Une mise à jour du site par mois",
+        "onDemandUpdates": "Mises à jour du site à la demande"
+      },
+      "description": "Accroche",
+      "descriptionHint": "Affichée sous le nom du pack sur le site commercial."
     },
     "settings": {
       "title": "Réglages",

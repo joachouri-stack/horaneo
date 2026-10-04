@@ -44,6 +44,13 @@ export default async function PlansPage({ params }: PageProps<"/[locale]/admin/p
                 required
               />
               <TextField
+                id={`description-${plan.id}`}
+                name="description"
+                label={t("description")}
+                hint={t("descriptionHint")}
+                defaultValue={plan.description?.fr ?? ""}
+              />
+              <TextField
                 id={`price-${plan.id}`}
                 name="price"
                 inputMode="decimal"

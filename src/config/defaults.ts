@@ -44,6 +44,8 @@ export type PlatformSettingKey = keyof typeof DEFAULT_PLATFORM_SETTINGS;
 type PlanSeed = {
   code: string;
   name: LocalizedText;
+  /** Accroche affichée sous le nom du pack. */
+  description: LocalizedText;
   priceCents: number;
   sortOrder: number;
   limits: PlanLimits;
@@ -55,6 +57,7 @@ export const DEFAULT_PLANS: PlanSeed[] = [
   {
     code: "basic",
     name: { fr: "Basic", en: "Basic", es: "Basic", ru: "Basic" },
+    description: { fr: "Pour essayer sans rien payer" },
     priceCents: 0,
     sortOrder: 1,
     limits: { onlineBookingsPerMonth: 5, members: 1, photos: 5, services: 10, smsPerMonth: 0 },
@@ -72,11 +75,14 @@ export const DEFAULT_PLANS: PlanSeed[] = [
       promotions: false,
       googleReviews: false,
       giftCards: false,
+      monthlyUpdate: false,
+      onDemandUpdates: false,
     },
   },
   {
     code: "essentiel",
     name: { fr: "Essentiel", en: "Essential", es: "Esencial", ru: "Основной" },
+    description: { fr: "Un vrai site à vos couleurs" },
     priceCents: 3999,
     sortOrder: 2,
     limits: { onlineBookingsPerMonth: null, members: 3, photos: 20, services: null, smsPerMonth: 30 },
@@ -94,11 +100,14 @@ export const DEFAULT_PLANS: PlanSeed[] = [
       promotions: true,
       googleReviews: false,
       giftCards: false,
+      monthlyUpdate: true,
+      onDemandUpdates: false,
     },
   },
   {
     code: "serenite",
     name: { fr: "Sérénité", en: "Serenity", es: "Serenidad", ru: "Безмятежность" },
+    description: { fr: "Ne vous occupez plus de rien" },
     priceCents: 6900,
     sortOrder: 3,
     limits: { onlineBookingsPerMonth: null, members: null, photos: null, services: null, smsPerMonth: 150 },
@@ -116,6 +125,8 @@ export const DEFAULT_PLANS: PlanSeed[] = [
       promotions: true,
       googleReviews: true,
       giftCards: true,
+      monthlyUpdate: false,
+      onDemandUpdates: true,
     },
   },
 ];
