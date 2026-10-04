@@ -6,6 +6,14 @@ export const hasTestDatabase = Boolean(testDatabaseUrl);
 
 export type TestDb = ReturnType<typeof createDb>;
 
+/** Connexion avec le rôle restreint de l'application (soumis aux règles d'accès par ligne). */
+export function openAppDb(): TestDb {
+  const url = process.env.TEST_APP_DATABASE_URL;
+  if (!url) throw new Error("TEST_APP_DATABASE_URL absente");
+  return createDb(url);
+}
+
+/** Connexion propriétaire (sans restriction), pour préparer les données des tests. */
 export async function openTestDb(): Promise<TestDb> {
   if (!testDatabaseUrl) throw new Error("TEST_DATABASE_URL absente");
   await seed(testDatabaseUrl);

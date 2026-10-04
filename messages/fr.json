@@ -19,5 +19,8 @@
     "title": "Votre site, votre agenda et vos acomptes, enfin réunis.",
     "subtitle": "Vos clientes réservent et paient leur acompte en ligne, sur votre propre site. Vous gérez tout depuis votre téléphone.",
     "cta": "Créer mon site"
+  },
+  "site": {
+    "suspended": "Ce site est temporairement indisponible. Merci de contacter l'établissement par téléphone."
   }
 }

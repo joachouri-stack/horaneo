@@ -30,8 +30,11 @@ const envSchema = z.object({
   // Langues activées (doivent avoir leur fichier messages/<langue>.json)
   ENABLED_LOCALES: localeList,
 
-  // Base de données (facultative pour construire le site, obligatoire pour s'y connecter)
+  // Base de données (facultatives pour construire le site, obligatoires pour s'y connecter)
+  /** Propriétaire de la base : migrations et scripts uniquement. */
   DATABASE_URL: z.url().optional(),
+  /** Rôle restreint utilisé par l'application (voir src/db/setup-roles.ts). */
+  APP_DATABASE_URL: z.url().optional(),
 });
 
 export type Env = z.infer<typeof envSchema> & { ENABLED_LOCALES: Locale[] };
@@ -59,9 +62,9 @@ export function env(): Env {
   return cached;
 }
 
-/** Adresse de la base de données ; erreur claire si elle manque. */
-export function databaseUrl(): string {
-  const url = env().DATABASE_URL;
-  if (!url) throw new Error("DATABASE_URL n'est pas définie (voir .env.example).");
+/** Adresse de connexion de l'application (rôle restreint) ; erreur claire si elle manque. */
+export function appDatabaseUrl(): string {
+  const url = env().APP_DATABASE_URL;
+  if (!url) throw new Error("APP_DATABASE_URL n'est pas définie (voir .env.example).");
   return url;
 }

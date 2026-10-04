@@ -14,7 +14,6 @@ for (const locale of enabledLocales) {
 }
 
 const nextConfig: NextConfig = {
-  output: "standalone",
   poweredByHeader: false,
   env: {
     NEXT_PUBLIC_ENABLED_LOCALES: enabledLocales.join(","),

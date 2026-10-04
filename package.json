@@ -15,7 +15,9 @@
     "db:migrate": "tsx src/db/migrate.ts",
     "db:seed": "tsx src/db/seed.ts",
     "db:studio": "drizzle-kit studio",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "db:roles": "tsx src/db/setup-roles.ts",
+    "db:seed-demo": "tsx src/db/seed-demo.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.3",
@@ -24,6 +26,7 @@
     "postgres": "^3.4.9",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "server-only": "^0.0.1",
     "zod": "^4.6.5"
   },
   "devDependencies": {

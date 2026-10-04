@@ -3,7 +3,7 @@
 SaaS multi-tenant : chaque professionnel travaillant sur rendez-vous reçoit son propre site web, avec réservation et paiement d'acompte en ligne.
 
 - Brief et décisions : [`docs/01-base-de-donnees.md`](docs/01-base-de-donnees.md)
-- Avancement : étape 1 sur 14 (projet, base, configuration, traductions)
+- Avancement : étape 2 sur 14 (multi-tenant : reconnaissance du domaine, isolation des données)
 
 ## Technologies
 
@@ -29,9 +29,13 @@ cp .env.example .env
 # 3. Base de données (avec Docker ; sinon créer les bases "horaneo" et "horaneo_test")
 docker compose up -d
 
-# 4. Créer les tables puis insérer les valeurs de départ (packs, réglages)
+# 4. Créer les tables, le rôle de connexion de l'application, puis les valeurs de départ
 pnpm db:migrate
+pnpm db:roles
 pnpm db:seed
+
+# 5. (facultatif) Un institut de démonstration : http://institut-demo.localhost:3000
+pnpm db:seed-demo
 ```
 
 ## Lancer
@@ -63,8 +67,10 @@ src/
   config/            configuration (env.ts) et valeurs de départ (defaults.ts)
   db/schema/         structure de la base, rangée par famille de tables
   i18n/              langues, routage par langue, chargement des traductions
-  lib/               outils sans dépendance (redirection horaneo.fr…)
-  proxy.ts           traitement de chaque requête (langue, domaines)
+  app/(tenant)/sites/[tenantId]/  sites des clients (adresse interne, jamais visible)
+  db/access.ts       withTenant / withPlatform : SEULE porte d'accès aux données
+  lib/tenancy/       reconnaissance des domaines et aiguillage des requêtes
+  proxy.ts           traitement de chaque requête (domaine, langue, redirections)
 tests/               tests automatiques
 ```
 
@@ -84,22 +90,49 @@ Le français est livré. Pour activer par exemple l'anglais, **sans toucher au c
 
 La construction du site échoue avec un message clair si une langue activée n'a pas son fichier de traduction.
 
-## Garde-fous de la base de données
+## Multi-tenant : comment une requête trouve son site
 
-Ces règles sont inscrites dans PostgreSQL lui-même et vérifiées par les tests (`tests/db/`) :
+| Adresse visitée                                                                | Résultat                                  |
+| ------------------------------------------------------------------------------ | ----------------------------------------- |
+| `horaneo.com/fr`                                                               | site commercial                           |
+| `www.horaneo.com`, `horaneo.fr/…`                                              | redirection vers `horaneo.com` (ou `/fr`) |
+| `nom.horaneo.com` ou domaine propre du client                                  | site du client                            |
+| sous-domaine réservé (`admin`, `api`, `www`…) ou domaine inconnu               | 404                                       |
+| domaine secondaire d'un client (ex. sous-domaine quand il a un domaine propre) | redirection vers son adresse principale   |
+| `/espace` sur le domaine d'un client                                           | redirection vers `horaneo.com/espace`     |
+
+Les domaines sont enregistrés dans la table `tenant_domains`. Le proxy (`src/proxy.ts`) reconnaît le domaine, puis réécrit la requête vers l'adresse interne `/sites/<identifiant>`. Un domaine reconnu reste en mémoire 60 secondes. En développement, `nom.localhost:3000` remplace `nom.horaneo.com`.
+
+Un site en création (`draft`) ou supprimé répond 404. Un site suspendu affiche un message d'indisponibilité. Un site résilié reste en ligne pendant la période de conservation.
+
+## Isolation des données
+
+C'est PostgreSQL lui-même qui empêche un client de voir les données d'un autre, grâce aux règles d'accès par ligne (RLS, migration `drizzle/0003_row_level_security.sql`).
+
+- L'application se connecte avec un rôle restreint (`APP_DATABASE_URL`) qui **n'a aucun droit par lui-même**. Le propriétaire de la base (`DATABASE_URL`) ne sert qu'aux migrations et aux scripts.
+- Pour accéder aux données, le code passe obligatoirement par `src/db/access.ts` :
+  - `withTenant(tenantId, …)` : la base ne montre et n'accepte que les lignes de ce tenant ;
+  - `withPlatform(…)` : accès à tous les tenants, réservé à l'espace admin.
+- Un oubli dans le code provoque une erreur, jamais une fuite.
+
+Les tests `tests/db/isolation.test.ts` créent deux tenants avec une ligne dans chaque table. Ils vérifient, **table par table**, que l'un ne peut ni lire, ni modifier, ni supprimer, ni créer les données de l'autre. Ils contrôlent aussi la liste exacte des droits accordés.
+
+**Règle pour toute nouvelle table portant un `tenant_id`** : dans sa migration, activer et forcer les règles par ligne, ajouter les deux règles `tenant_isolation` et `platform_access`, accorder les droits voulus à `app_tenant` et à `app_platform`, puis mettre à jour `EXPECTED_TENANT_GRANTS` dans le test. Les tests échouent tant que ce n'est pas fait.
+
+## Autres garde-fous de la base de données
+
+Ces règles sont vérifiées par les tests (`tests/db/`) :
 
 - **Pas de double réservation** : deux rendez-vous actifs d'un même membre ne peuvent pas se chevaucher (temps de battement compris).
-- **Pas de mélange entre clients** : une donnée d'un tenant ne peut pas pointer vers une donnée d'un autre tenant.
-- **Journal de l'administratrice** en ajout seul : impossible de modifier ou supprimer une ligne.
+- **Pas de lien entre clients** : une donnée d'un tenant ne peut pas pointer vers une donnée d'un autre tenant.
+- **Journal de l'administratrice** en ajout seul : impossible de modifier ou supprimer une ligne, même pour l'espace admin.
 - Téléphones au format international, montants positifs, acompte ≤ total, adresses de site valides.
-
-L'isolation complète par règles d'accès par ligne (RLS) arrive à l'étape 2.
 
 ## Déployer (VPS Hostinger + Coolify)
 
 Le déploiement complet (image Docker, sauvegardes horaires vers R2, alertes, procédure de restauration) sera finalisé aux étapes 12 et 13. Le principe :
 
 1. Dans Coolify, créer une base **PostgreSQL 16** sans port public.
-2. Créer une application reliée au dépôt GitHub (branche `main`). Renseigner les variables de `.env.example`, avec l'adresse interne de la base dans `DATABASE_URL`.
-3. Commande de construction : `pnpm install --frozen-lockfile && pnpm build`. Avant chaque mise en ligne : `pnpm db:migrate`. Démarrage : `pnpm start`.
+2. Créer une application reliée au dépôt GitHub (branche `main`). Renseigner les variables de `.env.example`, avec l'adresse interne de la base dans `DATABASE_URL` (propriétaire) et `APP_DATABASE_URL` (rôle `app_runtime`, avec un long mot de passe aléatoire).
+3. Commande de construction : `pnpm install --frozen-lockfile && pnpm build`. Avant chaque mise en ligne : `pnpm db:migrate && pnpm db:roles`. Démarrage : `pnpm start`.
 4. Pointer `horaneo.com` et `horaneo.fr` vers l'application. `horaneo.fr` redirige automatiquement vers `horaneo.com/fr`.

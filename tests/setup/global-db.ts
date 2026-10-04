@@ -1,6 +1,7 @@
 import "dotenv/config";
 import postgres from "postgres";
 import { runMigrations } from "../../src/db/migrate";
+import { setupRuntimeRole } from "../../src/db/setup-roles";
 
 /**
  * Prépare la base de test : elle est entièrement vidée, puis toutes les
@@ -26,4 +27,8 @@ export default async function setup() {
     await sql.end();
   }
   await runMigrations(url);
+
+  const appUrl = process.env.TEST_APP_DATABASE_URL;
+  if (!appUrl) throw new Error("TEST_APP_DATABASE_URL doit être définie avec TEST_DATABASE_URL.");
+  await setupRuntimeRole(url, appUrl);
 }

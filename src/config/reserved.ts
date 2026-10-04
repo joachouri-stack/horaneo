@@ -1,0 +1,37 @@
+/**
+ * Sous-domaines du domaine principal qui ne peuvent pas devenir l'adresse d'un
+ * site client (nom.horaneo.com). Ils sont gardés pour le SaaS lui-même.
+ */
+export const RESERVED_SUBDOMAINS = new Set([
+  "www",
+  "app",
+  "admin",
+  "api",
+  "espace",
+  "auth",
+  "login",
+  "mail",
+  "smtp",
+  "imap",
+  "email",
+  "static",
+  "assets",
+  "cdn",
+  "media",
+  "files",
+  "status",
+  "docs",
+  "blog",
+  "help",
+  "aide",
+  "support",
+  "billing",
+  "pay",
+  "paiement",
+  "dashboard",
+  "staging",
+  "preview",
+  "dev",
+  "test",
+  "demo",
+]);
