@@ -3,7 +3,6 @@ import { ActionForm } from "@/components/admin/ActionForm";
 import { Hidden } from "@/components/admin/fields";
 import { TimeOffForm } from "@/components/manager/TimeOffForm";
 import { ui } from "@/components/ui/styles";
-import { withTenant } from "@/db/access";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
 import { loadBookingContext } from "@/modules/booking/availability";
@@ -23,7 +22,7 @@ export default async function UnavailabilityPage({
   const kind = KINDS.find((value) => value === query.type) ?? "block";
   const t = await getTranslations("manager.unavailability");
   const tAgenda = await getTranslations("manager.agenda");
-  const { staff, upcoming } = await withTenant(page.tenantId, async (tx) => ({
+  const { staff, upcoming } = await page.db(async (tx) => ({
     staff: (await loadBookingContext(tx, page.tenantId)).staff,
     upcoming: await listUpcomingTimeOff(tx, page.tenantId),
   }));

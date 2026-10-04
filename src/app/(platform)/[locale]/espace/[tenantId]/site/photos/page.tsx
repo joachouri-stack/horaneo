@@ -1,6 +1,5 @@
 import { PhotosEditor } from "@/components/editors/PhotosEditor";
 import { PhotoCropUpload } from "@/components/manager/PhotoCropUpload";
-import { withTenant } from "@/db/access";
 import { managerPage } from "@/lib/manager/page";
 import { listActiveAssets, listRetiredAssets } from "@/modules/media/assets";
 import { photoAction, uploadPhotoAction } from "../../actions";
@@ -10,7 +9,7 @@ export default async function ManagerPhotosPage({
   params,
 }: PageProps<"/[locale]/espace/[tenantId]/site/photos">) {
   const page = await managerPage(params);
-  const { active, retired } = await withTenant(page.tenantId, async (tx) => ({
+  const { active, retired } = await page.db(async (tx) => ({
     active: await listActiveAssets(tx, page.tenantId),
     retired: await listRetiredAssets(tx, page.tenantId),
   }));

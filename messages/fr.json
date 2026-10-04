@@ -235,7 +235,8 @@
       "hostText": "Site réalisé et hébergé par le service {product} ({domain}).",
       "infrastructure": "Infrastructure",
       "intellectual": "Propriété intellectuelle",
-      "intellectualText": "Les textes, photos et logos de ce site appartiennent à {name} ou sont utilisés avec autorisation. Toute reproduction sans accord préalable est interdite."
+      "intellectualText": "Les textes, photos et logos de ce site appartiennent à {name} ou sont utilisés avec autorisation. Toute reproduction sans accord préalable est interdite.",
+      "publishers": "Éditrices du site"
     },
     "privacy": {
       "title": "Politique de confidentialité",
@@ -404,6 +405,7 @@
       "tabs": {
         "overview": "Fiche",
         "coordonnees": "Coordonnées",
+        "entreprises": "Entreprises",
         "modele": "Modèle",
         "logo": "Logo et couleurs",
         "prestations": "Prestations",
@@ -458,7 +460,8 @@
           "active": "Compte actif"
         },
         "subscription": "Abonnement",
-        "subscriptionNone": "Aucun abonnement Stripe (pack attribué à la main)."
+        "subscriptionNone": "Aucun abonnement Stripe (pack attribué à la main).",
+        "businesses": "Entreprises"
       },
       "identity": {
         "title": "Coordonnées",
@@ -598,7 +601,35 @@
         "empty": "Aucun témoignage pour le moment."
       },
       "preview": "Aperçu du site (1 h)",
-      "viewAsClient": "Voir comme le client"
+      "viewAsClient": "Voir comme le client",
+      "businessPicker": {
+        "label": "Entreprise",
+        "hint": "Ce site regroupe plusieurs entreprises : choisissez celle dont vous modifiez les informations."
+      },
+      "businesses": {
+        "title": "Entreprises du site",
+        "intro": "Chaque entreprise a son SIRET, son compte Stripe, son équipe, ses prestations, son agenda et ses clientes. Le site, le domaine, le modèle et l'abonnement sont communs.",
+        "primary": "Entreprise principale (règle l'abonnement)",
+        "name": "Nom affiché (ex. prénom de la professionnelle)",
+        "legalName": "Raison sociale ou nom de l'entrepreneur",
+        "siret": "SIRET",
+        "vatNumber": "N° de TVA",
+        "email": "E-mail",
+        "phone": "Téléphone",
+        "address1": "Adresse",
+        "postalCode": "Code postal",
+        "city": "Ville",
+        "managers": "Gérante : {names}",
+        "noManager": "Aucune gérante rattachée",
+        "stripe": "Paiement en ligne : {state}",
+        "viewAs": "Voir son espace",
+        "add": "Ajouter une entreprise à ce site",
+        "addHint": "Par exemple une deuxième professionnelle installée dans le même institut, avec son propre SIRET. Elle recevra un accès à son seul espace.",
+        "managerEmail": "E-mail de sa gérante",
+        "managerName": "Nom de sa gérante",
+        "addSubmit": "Ajouter l'entreprise",
+        "added": "Entreprise ajoutée. Ajoutez maintenant son équipe et ses prestations (onglets Équipe et Prestations, en choisissant l'entreprise)."
+      }
     },
     "requests": {
       "title": "Demandes de mise à jour",
@@ -759,7 +790,10 @@
     "subscription_active": "Ce client a un abonnement Stripe en cours : changez son pack depuis son espace (« Voir comme le client »).",
     "already_customer": "Vous avez déjà un site : changez de pack depuis votre espace (Plus → Abonnement).",
     "order_in_progress": "Votre commande est déjà en cours de traitement. Nous revenons vers vous très vite.",
-    "order_not_pending": "Cette commande a déjà été traitée."
+    "order_not_pending": "Cette commande a déjà été traitée.",
+    "services_mixed": "Ces prestations sont réalisées par deux professionnelles différentes : réservez-les séparément.",
+    "manager_already_linked": "Cette personne gère déjà une entreprise de ce site.",
+    "primary_business_only": "L'abonnement du site est géré par l'entreprise principale."
   },
   "status": {
     "draft": "En création",
@@ -901,6 +935,11 @@
       "refunded": "L'acompte de {amount} vous est remboursé. Il apparaît sur votre compte sous 5 à 10 jours.",
       "payNow": "Régler l'acompte pour confirmer le rendez-vous",
       "discount": "Réduction"
+    },
+    "business": {
+      "title": "Avec qui ?",
+      "intro": "Choisissez la professionnelle qui réalisera votre soin.",
+      "choose": "Réserver avec {name}"
     }
   },
   "manager": {
@@ -1186,7 +1225,8 @@
         "emailSupport": "Assistance par e-mail",
         "whatsappSupport": "Assistance prioritaire par WhatsApp"
       },
-      "overLimit": "Au-delà de votre pack : rien n'est supprimé, mais vous ne pouvez plus en ajouter."
+      "overLimit": "Au-delà de votre pack : rien n'est supprimé, mais vous ne pouvez plus en ajouter.",
+      "primaryOnly": "L'abonnement est commun à tout le site : il est géré par l'entreprise principale. Vous voyez ici le pack en cours et l'utilisation du site."
     },
     "settings": {
       "title": "Réglages",
@@ -1286,7 +1326,8 @@
       "until": "Jusqu'au {until}",
       "delete": "Supprimer",
       "deleteConfirm": "Supprimer ce code ? S'il a déjà servi, il sera seulement désactivé."
-    }
+    },
+    "switchBusiness": "Changer d'entreprise"
   },
   "notifications": {
     "common": {

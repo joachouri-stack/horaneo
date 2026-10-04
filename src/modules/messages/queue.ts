@@ -1,6 +1,6 @@
-import { and, desc, eq, like } from "drizzle-orm";
+import { and, desc, eq, like, sql } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
-import { messageLog } from "@/db/schema";
+import { appointments, messageLog } from "@/db/schema";
 
 /**
  * Ajout d'un message à la file d'envoi. Appelé dans la même transaction que
@@ -43,6 +43,8 @@ export async function queueMessage(
   tx: Transaction,
   input: {
     tenantId: string | null;
+    /** Entreprise concernée ; par défaut celle du rendez-vous, ou celle déclarée. */
+    businessId?: string | null;
     template: MessageTemplate;
     appointmentId?: string | null;
     locale?: string;
@@ -61,6 +63,13 @@ export async function queueMessage(
     .insert(messageLog)
     .values({
       tenantId: input.tenantId,
+      ...(input.businessId !== undefined
+        ? { businessId: input.businessId }
+        : input.appointmentId
+          ? {
+              businessId: sql`(SELECT ${appointments.businessId} FROM ${appointments} WHERE ${appointments.id} = ${input.appointmentId})`,
+            }
+          : {}),
       appointmentId: input.appointmentId ?? null,
       channel: channelOf(input.template),
       templateKey: input.template,

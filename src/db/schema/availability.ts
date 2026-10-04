@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import { businessForeignKey } from "./tenants";
 import {
   check,
   date,
@@ -32,6 +33,10 @@ export const openingHours = pgTable(
   {
     id: id(),
     tenantId: tenantRef(),
+    /** Rempli automatiquement avec l'entreprise en cours (app_current_business()). */
+    businessId: uuid()
+      .notNull()
+      .default(sql`app_current_business()`),
     /** 1 = lundi … 7 = dimanche (norme ISO). */
     weekday: smallint().notNull(),
     opensAt: time().notNull(),
@@ -39,6 +44,7 @@ export const openingHours = pgTable(
     ...timestamps(),
   },
   (t) => [
+    businessForeignKey("opening_hours_business_fk", t, "cascade"),
     index("opening_hours_tenant_idx").on(t.tenantId, t.weekday),
     check("opening_hours_weekday", sql`${t.weekday} between 1 and 7`),
     check("opening_hours_range", sql`${t.opensAt} < ${t.closesAt}`),
@@ -51,6 +57,10 @@ export const staffSchedules = pgTable(
   {
     id: id(),
     tenantId: tenantRef(),
+    /** Rempli automatiquement avec l'entreprise en cours (app_current_business()). */
+    businessId: uuid()
+      .notNull()
+      .default(sql`app_current_business()`),
     staffId: uuid().notNull(),
     weekday: smallint().notNull(),
     startsAt: time().notNull(),
@@ -60,6 +70,7 @@ export const staffSchedules = pgTable(
     ...timestamps(),
   },
   (t) => [
+    businessForeignKey("staff_schedules_business_fk", t, "cascade"),
     index("staff_schedules_staff_idx").on(t.tenantId, t.staffId, t.weekday),
     foreignKey({
       name: "staff_schedules_staff_fk",
@@ -83,6 +94,10 @@ export const timeOff = pgTable(
   {
     id: id(),
     tenantId: tenantRef(),
+    /** Rempli automatiquement avec l'entreprise en cours (app_current_business()). */
+    businessId: uuid()
+      .notNull()
+      .default(sql`app_current_business()`),
     staffId: uuid(),
     kind: timeOffKindEnum().notNull(),
     startsAt: utc().notNull(),
@@ -91,6 +106,7 @@ export const timeOff = pgTable(
     ...timestamps(),
   },
   (t) => [
+    businessForeignKey("time_off_business_fk", t, "cascade"),
     index("time_off_tenant_range_idx").on(t.tenantId, t.startsAt, t.endsAt),
     foreignKey({
       name: "time_off_staff_fk",

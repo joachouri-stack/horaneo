@@ -1,5 +1,6 @@
 import "server-only";
 import { resolveLocale } from "@/i18n/translator";
+import { withTenant } from "@/db/access";
 import { requireManager } from "./access";
 
 /** Contexte commun des pages de l'espace gérante (droits vérifiés). */
@@ -28,5 +29,8 @@ export async function managerPage(params: Promise<{ locale: string; tenantId: st
     money: (cents: number, currency = access.tenant.currency) =>
       new Intl.NumberFormat(locale, { style: "currency", currency }).format(cents / 100),
   };
-  return { locale, tenantId, ...access, fmt, base: `/espace/${tenantId}` };
+  /** Données de l'entreprise de la gérante (ses clientes, son agenda…), jamais celles d'une autre. */
+  const db = <T>(fn: Parameters<typeof withTenant<T>>[1]) =>
+    withTenant(tenantId, fn, undefined, access.businessId);
+  return { locale, tenantId, ...access, fmt, db, base: `/espace/${tenantId}` };
 }

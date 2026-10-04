@@ -1,14 +1,16 @@
 import { and, asc, eq, gt, inArray, isNull, lt, or } from "drizzle-orm";
+import { currentBusinessId } from "@/db/access";
 import type { Transaction } from "@/db/client";
 import {
   appointments,
+  businesses,
   openingHours,
   plans,
   services,
   staffMembers,
   staffSchedules,
   staffServices,
-  tenantSettings,
+  businessSettings,
   tenants,
   timeOff,
   type PlanFeatures,
@@ -28,29 +30,43 @@ import { addDays, localToUtc } from "./time";
 
 export type BookingContext = Awaited<ReturnType<typeof loadBookingContext>>;
 
-export async function loadBookingContext(tx: Transaction, tenantId: string) {
+/**
+ * Contexte de réservation d'UNE entreprise (celle déclarée pour la transaction,
+ * ou celle passée en paramètre) : ses réglages, ses prestations, son équipe.
+ */
+export async function loadBookingContext(tx: Transaction, tenantId: string, businessId?: string) {
+  const targetId = businessId ?? (await currentBusinessId(tx));
+  if (!targetId) throw new AppError("not_found");
   const [row] = await tx
-    .select({ tenant: tenants, settings: tenantSettings, features: plans.features, limits: plans.limits })
+    .select({
+      tenant: tenants,
+      business: businesses,
+      settings: businessSettings,
+      features: plans.features,
+      limits: plans.limits,
+    })
     .from(tenants)
     .innerJoin(plans, eq(plans.id, tenants.planId))
-    .innerJoin(tenantSettings, eq(tenantSettings.tenantId, tenants.id))
+    .innerJoin(businesses, and(eq(businesses.tenantId, tenants.id), eq(businesses.id, targetId)))
+    .innerJoin(businessSettings, eq(businessSettings.businessId, businesses.id))
     .where(eq(tenants.id, tenantId));
   if (!row) throw new AppError("not_found");
   const [serviceRows, staffRows, links] = await Promise.all([
     tx
       .select()
       .from(services)
-      .where(and(eq(services.tenantId, tenantId), eq(services.isActive, true)))
+      .where(and(eq(services.businessId, targetId), eq(services.isActive, true)))
       .orderBy(asc(services.sortOrder)),
     tx
       .select()
       .from(staffMembers)
-      .where(and(eq(staffMembers.tenantId, tenantId), eq(staffMembers.isActive, true)))
+      .where(and(eq(staffMembers.businessId, targetId), eq(staffMembers.isActive, true)))
       .orderBy(asc(staffMembers.sortOrder)),
-    tx.select().from(staffServices).where(eq(staffServices.tenantId, tenantId)),
+    tx.select().from(staffServices).where(eq(staffServices.businessId, targetId)),
   ]);
   return {
     tenant: row.tenant,
+    business: row.business,
     settings: row.settings,
     features: row.features as PlanFeatures,
     limits: row.limits as PlanLimits,
@@ -131,7 +147,7 @@ export async function getSlotsForRange(
   const staffIds = candidates.map((member) => member.id);
 
   const [hours, schedules, appointmentRows, timeOffRows] = await Promise.all([
-    tx.select().from(openingHours).where(eq(openingHours.tenantId, context.tenant.id)),
+    tx.select().from(openingHours).where(eq(openingHours.businessId, context.business.id)),
     tx
       .select()
       .from(staffSchedules)
@@ -160,7 +176,7 @@ export async function getSlotsForRange(
       .from(timeOff)
       .where(
         and(
-          eq(timeOff.tenantId, context.tenant.id),
+          eq(timeOff.businessId, context.business.id),
           or(isNull(timeOff.staffId), inArray(timeOff.staffId, staffIds)),
           lt(timeOff.startsAt, rangeEnd),
           gt(timeOff.endsAt, rangeStart),
@@ -242,7 +258,7 @@ export async function bookedMinutesOn(tx: Transaction, context: BookingContext, 
     .from(appointments)
     .where(
       and(
-        eq(appointments.tenantId, context.tenant.id),
+        eq(appointments.businessId, context.business.id),
         inArray(appointments.status, ["confirmed", "pending_payment"]),
         lt(appointments.startsAt, dayEnd),
         gt(appointments.endsAt, dayStart),

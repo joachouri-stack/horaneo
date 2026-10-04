@@ -35,9 +35,6 @@ const coordinate = (min: number, max: number) =>
 export const identityInput = z.object({
   name: z.string().trim().min(2).max(120),
   slug: z.string().trim().toLowerCase(),
-  legalName: optionalText(160),
-  siret: optionalText(20),
-  vatNumber: optionalText(20),
   phone: optionalText(40),
   email: z
     .string()

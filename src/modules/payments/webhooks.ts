@@ -2,7 +2,7 @@ import { eq, sql } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
 import { stripeEvents } from "@/db/schema";
 import { applyAccount, disconnectAccount } from "./connect";
-import { applyPaymentIntent, tenantOfAccount } from "./deposits";
+import { applyPaymentIntent, businessOfAccount } from "./deposits";
 import type { GatewayEvent, GatewayPaymentIntent, GatewayRefund, PaymentGateway } from "./gateway";
 import { applyRefund } from "./refunds";
 
@@ -47,8 +47,9 @@ async function dispatch(tx: Transaction, event: GatewayEvent, gateway: PaymentGa
     return "account_disconnected";
   }
   if (!event.account) return "no_account";
-  const tenantId = await tenantOfAccount(tx, event.account);
-  if (!tenantId) return "unknown_account";
+  const owner = await businessOfAccount(tx, event.account);
+  if (!owner) return "unknown_account";
+  const tenantId = owner.tenantId;
 
   if (event.type.startsWith("payment_intent.")) {
     const result = await applyPaymentIntent(

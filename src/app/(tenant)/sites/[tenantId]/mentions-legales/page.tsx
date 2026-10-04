@@ -35,16 +35,32 @@ export default async function LegalPage({ params }: PageProps<"/sites/[tenantId]
   return (
     <main id="contenu" className="mx-auto max-w-3xl space-y-8 px-4 py-12">
       <PageTitle title={t("title")} />
+      {/* Une entrée par entreprise du site (ex. deux indépendantes sous une même enseigne). */}
       <section>
-        <h2 className="mb-2 text-xl font-semibold text-site-accent">{t("publisher")}</h2>
-        <ul className="space-y-1">
-          <li>{t("publisherName", { name: tenant.legalName || tenant.name })}</li>
-          {tenant.siret && <li>{t("siret", { siret: tenant.siret })}</li>}
-          {tenant.vatNumber && <li>{t("vat", { vat: tenant.vatNumber })}</li>}
-          {address && <li>{t("address", { address })}</li>}
-          {tenant.phone && <li>{t("phone", { phone: formatPhone(tenant.phone) })}</li>}
-          {tenant.email && <li>{t("email", { email: tenant.email })}</li>}
-        </ul>
+        <h2 className="mb-2 text-xl font-semibold text-site-accent">
+          {site.businesses.length > 1 ? t("publishers") : t("publisher")}
+        </h2>
+        <div className="space-y-6">
+          {site.businesses.map((business) => (
+            <ul key={business.id} className="space-y-1">
+              <li className="font-semibold">
+                {t("publisherName", { name: business.legalName || business.name })}
+              </li>
+              {business.legalName && business.legalName !== business.name && <li>{business.name}</li>}
+              {business.siret && <li>{t("siret", { siret: business.siret })}</li>}
+              {business.vatNumber && <li>{t("vat", { vat: business.vatNumber })}</li>}
+              {(business.address || address) && (
+                <li>{t("address", { address: business.address || address })}</li>
+              )}
+              {(business.phone ?? tenant.phone) && (
+                <li>{t("phone", { phone: formatPhone(business.phone ?? tenant.phone) })}</li>
+              )}
+              {(business.email ?? tenant.email) && (
+                <li>{t("email", { email: (business.email ?? tenant.email)! })}</li>
+              )}
+            </ul>
+          ))}
+        </div>
       </section>
       <section>
         <h2 className="mb-2 text-xl font-semibold text-site-accent">{t("host")}</h2>
@@ -55,7 +71,7 @@ export default async function LegalPage({ params }: PageProps<"/sites/[tenantId]
       </section>
       <section>
         <h2 className="mb-2 text-xl font-semibold text-site-accent">{t("intellectual")}</h2>
-        <p>{t("intellectualText", { name: tenant.legalName || tenant.name })}</p>
+        <p>{t("intellectualText", { name: tenant.name })}</p>
       </section>
       {extra && <p className="whitespace-pre-line">{extra}</p>}
     </main>

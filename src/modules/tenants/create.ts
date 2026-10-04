@@ -1,8 +1,9 @@
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { env } from "@/config/env";
 import type { Transaction } from "@/db/client";
-import { memberships, plans, sitePages, tenantDomains, tenantSettings, tenants, users } from "@/db/schema";
+import { plans, sitePages, tenantDomains, tenants } from "@/db/schema";
+import { createBusiness } from "@/modules/businesses/businesses";
 import { AppError } from "@/modules/errors";
 import { normalizePhone } from "@/modules/phone";
 import { SITE_PAGE_KEYS } from "@/modules/content/pages";
@@ -67,7 +68,6 @@ export async function createTenant(tx: Transaction, raw: CreateTenantInput) {
     })
     .returning();
 
-  await tx.insert(tenantSettings).values({ tenantId: tenant.id });
   await tx.insert(tenantDomains).values({
     tenantId: tenant.id,
     hostname,
@@ -80,23 +80,15 @@ export async function createTenant(tx: Transaction, raw: CreateTenantInput) {
     .insert(sitePages)
     .values(SITE_PAGE_KEYS.map((pageKey) => ({ tenantId: tenant.id, pageKey, content: {} })));
 
-  // Compte de la gérante : créé s'il n'existe pas, puis rattaché à l'établissement.
-  const [existing] = await tx
-    .select()
-    .from(users)
-    .where(sql`lower(${users.email}) = ${input.managerEmail}`);
-  const manager =
-    existing ??
-    (
-      await tx
-        .insert(users)
-        .values({ email: input.managerEmail, name: input.managerName || null })
-        .returning()
-    )[0];
-  await tx
-    .insert(memberships)
-    .values({ userId: manager.id, tenantId: tenant.id, role: "owner" })
-    .onConflictDoNothing();
+  // Première entreprise du site (principale), avec le compte de sa gérante.
+  const { business, managerId } = await createBusiness(tx, tenant.id, {
+    name: input.name,
+    email: input.email ?? input.managerEmail,
+    phone: input.phone,
+    managerEmail: input.managerEmail,
+    managerName: input.managerName,
+  });
+  const manager = { id: managerId! };
 
-  return { tenant, managerId: manager.id };
+  return { tenant, business, managerId: manager.id };
 }

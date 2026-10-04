@@ -1,6 +1,6 @@
 import { and, desc, eq } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
-import { appointments, payments, tenants, type PlanFeatures } from "@/db/schema";
+import { appointments, businesses, payments, type PlanFeatures } from "@/db/schema";
 import { AppError } from "@/modules/errors";
 import { queueBookingConfirmed, queueMessage } from "@/modules/messages/queue";
 import { getPlatformSetting } from "@/modules/settings";
@@ -231,11 +231,11 @@ export async function moveDeposit(tx: Transaction, tenantId: string, fromId: str
     .where(and(eq(payments.tenantId, tenantId), eq(payments.appointmentId, fromId)));
 }
 
-/** Établissement concerné par un compte Stripe (événements reçus). */
-export async function tenantOfAccount(tx: Transaction, accountId: string) {
-  const [tenant] = await tx
-    .select({ id: tenants.id })
-    .from(tenants)
-    .where(eq(tenants.stripeAccountId, accountId));
-  return tenant?.id ?? null;
+/** Site et entreprise concernés par un compte Stripe (événements reçus). */
+export async function businessOfAccount(tx: Transaction, accountId: string) {
+  const [row] = await tx
+    .select({ tenantId: businesses.tenantId, businessId: businesses.id })
+    .from(businesses)
+    .where(eq(businesses.stripeAccountId, accountId));
+  return row ?? null;
 }

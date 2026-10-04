@@ -18,7 +18,7 @@ export default async function ManagerLayout({
   const { locale: rawLocale, tenantId } = await params;
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
-  const { tenant, role, userId } = await requireManager(locale, tenantId);
+  const { tenant, business, multiBusiness, role, userId } = await requireManager(locale, tenantId);
   const t = await getTranslations("manager");
   const several = role === "owner" && (await managedTenantIds(userId)).length > 1;
   const subscription = await withTenant(tenantId, (tx) => getSubscription(tx, tenantId));
@@ -28,7 +28,15 @@ export default async function ManagerLayout({
       <AppHeader />
       {role === "admin" && (
         <div role="status" className="bg-navy px-4 py-2 text-center text-sm text-white">
-          {t("impersonating", { name: tenant.name })}{" "}
+          {t("impersonating", { name: multiBusiness ? `${tenant.name} · ${business.name}` : tenant.name })}{" "}
+          {multiBusiness && (
+            <>
+              <Link href={`/admin/clients/${tenantId}/entreprises`} className="font-semibold underline">
+                {t("switchBusiness")}
+              </Link>{" "}
+              ·{" "}
+            </>
+          )}
           <Link href={`/admin/clients/${tenantId}`} className="font-semibold underline">
             {t("backToAdmin")}
           </Link>
@@ -44,7 +52,10 @@ export default async function ManagerLayout({
       )}
       <div className="mx-auto max-w-3xl px-4 pt-2">
         <div className="flex items-center justify-between gap-3">
-          <p className="truncate font-display text-lg font-extrabold text-navy">{tenant.name}</p>
+          <p className="truncate font-display text-lg font-extrabold text-navy">
+            {tenant.name}
+            {multiBusiness && <span className="font-semibold text-ink/70"> · {business.name}</span>}
+          </p>
           {several && (
             <Link href="/espace" className="shrink-0 text-sm font-semibold text-navy underline">
               {t("switchTenant")}

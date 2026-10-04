@@ -3,7 +3,7 @@ import type { Transaction } from "@/db/client";
 import {
   appointments,
   plans,
-  tenantSettings,
+  businessSettings,
   tenants,
   type PlanFeatures,
   type PlanLimits,
@@ -29,18 +29,34 @@ async function activeTenants(tx: Transaction) {
       defaultLocale: tenants.defaultLocale,
       limits: plans.limits,
       features: plans.features,
-      dailySummary: tenantSettings.dailySummaryEnabled,
-      monthlySummary: tenantSettings.monthlySummaryEnabled,
     })
     .from(tenants)
     .innerJoin(plans, eq(plans.id, tenants.planId))
-    .innerJoin(tenantSettings, eq(tenantSettings.tenantId, tenants.id))
     .where(eq(tenants.status, "active"));
   return rows.map((row) => ({
     ...row,
     limits: row.limits as PlanLimits,
     features: row.features as PlanFeatures,
   }));
+}
+
+/** Entreprises des sites en ligne, avec leurs choix de résumés (un résumé par entreprise). */
+async function activeBusinesses(tx: Transaction) {
+  const rows = await tx
+    .select({
+      id: businessSettings.businessId,
+      tenantId: tenants.id,
+      timezone: tenants.timezone,
+      defaultLocale: tenants.defaultLocale,
+      features: plans.features,
+      dailySummary: businessSettings.dailySummaryEnabled,
+      monthlySummary: businessSettings.monthlySummaryEnabled,
+    })
+    .from(businessSettings)
+    .innerJoin(tenants, eq(tenants.id, businessSettings.tenantId))
+    .innerJoin(plans, eq(plans.id, tenants.planId))
+    .where(eq(tenants.status, "active"));
+  return rows.map((row) => ({ ...row, features: row.features as PlanFeatures }));
 }
 
 /** L'heure locale de l'établissement est-elle dans la fenêtre qui suit `time` (ex. 18:00) ? */
@@ -122,33 +138,35 @@ export async function queueSummaries(tx: Transaction, now: Date) {
   const dailyTime = await getPlatformSetting(tx, "daily_summary_time");
   const monthlyTime = await getPlatformSetting(tx, "monthly_summary_time");
   let count = 0;
-  for (const tenant of await activeTenants(tx)) {
-    const daily = inWindow(now, tenant.timezone, dailyTime);
-    if (tenant.dailySummary && daily.open) {
+  for (const business of await activeBusinesses(tx)) {
+    const daily = inWindow(now, business.timezone, dailyTime);
+    if (business.dailySummary && daily.open) {
       const date = addDays(daily.local.date, 1);
       await queueMessage(tx, {
-        tenantId: tenant.id,
+        tenantId: business.tenantId,
+        businessId: business.id,
         template: "manager.daily_summary",
-        locale: tenant.defaultLocale,
+        locale: business.defaultLocale,
         data: { date },
-        dedupeKey: `manager.daily_summary:${tenant.id}:${date}`,
+        dedupeKey: `manager.daily_summary:${business.id}:${date}`,
       });
       count += 1;
     }
-    const monthly = inWindow(now, tenant.timezone, monthlyTime);
+    const monthly = inWindow(now, business.timezone, monthlyTime);
     if (
-      tenant.monthlySummary &&
-      tenant.features.monthlySummary &&
+      business.monthlySummary &&
+      business.features.monthlySummary &&
       monthly.open &&
       monthly.local.date.endsWith("-01")
     ) {
       const previous = addDays(monthly.local.date, -1).slice(0, 7);
       await queueMessage(tx, {
-        tenantId: tenant.id,
+        tenantId: business.tenantId,
+        businessId: business.id,
         template: "manager.monthly_summary",
-        locale: tenant.defaultLocale,
+        locale: business.defaultLocale,
         data: { period: previous },
-        dedupeKey: `manager.monthly_summary:${tenant.id}:${previous}`,
+        dedupeKey: `manager.monthly_summary:${business.id}:${previous}`,
       });
       count += 1;
     }

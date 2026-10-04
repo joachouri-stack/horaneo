@@ -93,7 +93,7 @@ Une même personne peut ainsi gérer plusieurs établissements.
 | Colonne | Rôle |
 |---|---|
 | `slug` | `institut-lea` → `institut-lea.horaneo.com` (mots réservés interdits : www, admin, api, app…) |
-| `name`, `legal_name`, `siret`, `vat_number` | identité |
+| `name` | nom du site (enseigne) |
 | `status` | `draft` (en création), `active`, `suspended`, `cancelled` (période de 30 jours), `deleted` |
 | `plan_id` | pack actuel |
 | `country`, `default_locale`, `enabled_locales`, `currency`, `timezone` | international : `FR`, `fr`, `{fr}`, `EUR`, `Europe/Paris` |
@@ -101,13 +101,16 @@ Une même personne peut ainsi gérer plusieurs établissements.
 | `business_category` | texte de configuration (`beaute`, `coiffure`…), **jamais** utilisé dans une règle `si … alors` |
 | `template_key`, `theme` | `wellness`, et `light` / `dark` / `nature` |
 | `brand` (JSON) | logo, couleurs (`primary`, `secondary`, `accent`…) |
-| `stripe_account_id`, `stripe_charges_enabled` | compte Stripe Connect de la gérante |
 | `activated_at`, `cancelled_at`, `deletion_scheduled_at` | cycle de vie |
 
 **`tenant_domains`** : adresses du site.
 `hostname` (unique : `institut-lea.horaneo.com` ou `www.institut-lea.fr`), `type` (`subdomain` / `custom`), `is_primary`, `status` (`pending`, `active`, `error`), `cloudflare_hostname_id`, `ssl_status`, `verified_at`.
 
-**`tenant_settings`** : règles de réservation et préférences (une ligne par tenant, valeurs par défaut du brief).
+**`businesses`** (migration 0012) : entreprises d'un site (une le plus souvent ; deux indépendantes dans un même institut en ont deux).
+`name` (nom affiché, ex. prénom), `legal_name`, `siret`, `vat_number`, `email`, `phone`, `address_line1`, `postal_code`, `city`, `stripe_account_id` (unique), `stripe_charges_enabled`, `is_primary` (une seule par site : elle règle l'abonnement), `sort_order`.
+Les tables d'une entreprise (prestations, équipe, horaires, indisponibilités, clientes, rendez-vous, paiements, remboursements, codes promo, gérantes, messages) portent un `business_id`, avec une clé étrangère `(tenant_id, business_id)` qui empêche de mélanger deux sites. Les clientes, rendez-vous et paiements ne sont visibles que de leur entreprise.
+
+**`business_settings`** (ancienne `tenant_settings`) : règles de réservation et préférences (une ligne par entreprise, valeurs par défaut du brief).
 | Colonne | Défaut |
 |---|---|
 | `min_notice_minutes` | 120 (2 h) |

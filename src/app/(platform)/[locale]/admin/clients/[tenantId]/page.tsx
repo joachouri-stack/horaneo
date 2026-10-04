@@ -133,7 +133,6 @@ export default async function TenantOverviewPage({
               { label: t("services"), value: usageLine(counts.services, limits.services) },
               { label: t("members"), value: usageLine(counts.members, limits.members) },
               { label: t("photos"), value: usageLine(counts.photos, limits.photos) },
-              { label: t("stripe"), value: t(`stripeState.${connectState(tenant, plan.features)}`) },
             ].map((item) => (
               <div key={item.label}>
                 <dt className="text-sm text-ink/70">{item.label}</dt>
@@ -141,6 +140,21 @@ export default async function TenantOverviewPage({
               </div>
             ))}
           </dl>
+        </Section>
+
+        <Section title={t("businesses")}>
+          <ul className="space-y-3">
+            {overview.businesses.map((business) => (
+              <li key={business.id}>
+                <p className="font-semibold">{business.name}</p>
+                <p className="text-sm text-ink/70">
+                  {[business.siret, t(`stripeState.${connectState(business, plan.features)}`)]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
+              </li>
+            ))}
+          </ul>
         </Section>
 
         <Section title={t("managers")}>

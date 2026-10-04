@@ -9,6 +9,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import { businessForeignKey } from "./tenants";
 import { sql } from "drizzle-orm";
 import { id, timestamps, utc } from "./_helpers";
 import { tenants } from "./tenants";
@@ -50,10 +51,18 @@ export const memberships = pgTable(
     tenantId: uuid()
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
+    /** Rempli automatiquement avec l'entreprise en cours (app_current_business()). */
+    businessId: uuid()
+      .notNull()
+      .default(sql`app_current_business()`),
     role: membershipRoleEnum().notNull().default("owner"),
     ...timestamps(),
   },
-  (t) => [primaryKey({ columns: [t.userId, t.tenantId] }), index("memberships_tenant_idx").on(t.tenantId)],
+  (t) => [
+    businessForeignKey("memberships_business_fk", t, "cascade"),
+    primaryKey({ columns: [t.userId, t.tenantId] }),
+    index("memberships_tenant_idx").on(t.tenantId),
+  ],
 );
 
 /** Sessions ouvertes (cookie de connexion). */

@@ -5,10 +5,32 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 import { withPlatform, withTenant } from "@/db/access";
 import type { Transaction } from "@/db/client";
-import { memberships, plans, tenants, users, type PlanFeatures, type PlanLimits } from "@/db/schema";
-import { resolveManagerRole, type ManagerRole } from "./role";
+import {
+  businesses,
+  memberships,
+  plans,
+  tenants,
+  users,
+  type PlanFeatures,
+  type PlanLimits,
+} from "@/db/schema";
+import { cookies } from "next/headers";
+import { resolveManagerAccess, resolveManagerRole, type ManagerRole } from "./role";
 
 export { resolveManagerRole, type ManagerRole };
+
+/** Entreprise choisie par l'administratrice en « voir comme le client » (site à plusieurs entreprises). */
+export const ADMIN_BUSINESS_COOKIE = "espace_entreprise";
+
+async function preferredBusiness() {
+  return (await cookies()).get(ADMIN_BUSINESS_COOKIE)?.value ?? null;
+}
+
+async function currentAccess(tenantId: string) {
+  const session = await getCurrentSession();
+  const access = session ? await resolveManagerAccess(session, tenantId, await preferredBusiness()) : null;
+  return session && access ? { session, ...access } : null;
+}
 import { toActionError, type ActionResult } from "@/lib/actions/result";
 import { recordAudit } from "@/lib/audit";
 import { sendQueuedSoon } from "@/lib/jobs/tick";
@@ -53,18 +75,32 @@ export type ManagerTenant = NonNullable<Awaited<ReturnType<typeof loadManagerTen
 /** Pour les pages : exige l'accès, sinon page de connexion ou « introuvable ». */
 export const requireManager = cache(async (locale: Locale, tenantId: string) => {
   const session = await requireSession(locale, `/espace/${tenantId}`);
-  const role = await resolveManagerRole(session, tenantId);
-  if (!role) notFound();
-  const tenant = await withTenant(tenantId, (tx) => loadManagerTenant(tx, tenantId));
-  if (!tenant) notFound();
-  return { session, role, tenant, userId: session.user.id };
+  const access = await resolveManagerAccess(session, tenantId, await preferredBusiness());
+  if (!access) notFound();
+  const { role, businessId } = access;
+  const loaded = await withTenant(
+    tenantId,
+    async (tx) => {
+      const tenant = await loadManagerTenant(tx, tenantId);
+      const [business] = await tx.select().from(businesses).where(eq(businesses.id, businessId));
+      const others = await tx
+        .select({ id: businesses.id })
+        .from(businesses)
+        .where(eq(businesses.tenantId, tenantId));
+      return tenant && business ? { tenant, business, multiBusiness: others.length > 1 } : null;
+    },
+    undefined,
+    businessId,
+  );
+  if (!loaded) notFound();
+  return { session, role, ...loaded, businessId, userId: session.user.id };
 });
 
-/** Pour les lectures dans une action : droits revérifiés, rôle du tenant. */
+/** Pour les lectures dans une action : droits revérifiés, rôle du tenant, entreprise de la gérante. */
 export async function managerQuery<T>(tenantId: string, fn: (tx: Transaction) => Promise<T>): Promise<T> {
-  const session = await getCurrentSession();
-  if (!session || !(await resolveManagerRole(session, tenantId))) throw new AppError("not_found");
-  return withTenant(tenantId, fn);
+  const access = await currentAccess(tenantId);
+  if (!access) throw new AppError("not_found");
+  return withTenant(tenantId, fn, undefined, access.businessId);
 }
 
 /**
@@ -74,13 +110,18 @@ export async function managerQuery<T>(tenantId: string, fn: (tx: Transaction) =>
 export async function managerMutation<T>(
   tenantId: string,
   action: string,
-  fn: (tx: Transaction, context: { userId: string; role: ManagerRole }) => Promise<T>,
+  fn: (tx: Transaction, context: { userId: string; role: ManagerRole; businessId: string }) => Promise<T>,
 ): Promise<ActionResult<T>> {
-  const session = await getCurrentSession();
-  const role = session ? await resolveManagerRole(session, tenantId) : null;
-  if (!session || !role) throw new Error("Accès refusé");
+  const access = await currentAccess(tenantId);
+  if (!access) throw new Error("Accès refusé");
+  const { session, role, businessId } = access;
   try {
-    const data = await withTenant(tenantId, (tx) => fn(tx, { userId: session.user.id, role }));
+    const data = await withTenant(
+      tenantId,
+      (tx) => fn(tx, { userId: session.user.id, role, businessId }),
+      undefined,
+      businessId,
+    );
     if (role === "admin") {
       await withPlatform((tx) =>
         recordAudit(tx, { actorUserId: session.user.id, action: `impersonation.${action}`, tenantId }),
@@ -102,13 +143,13 @@ export async function managerMutation<T>(
 export async function managerPlatformAction<T>(
   tenantId: string,
   action: string,
-  fn: (tx: Transaction) => Promise<T>,
+  fn: (tx: Transaction, context: { businessId: string }) => Promise<T>,
 ): Promise<T> {
-  const session = await getCurrentSession();
-  const role = session ? await resolveManagerRole(session, tenantId) : null;
-  if (!session || !role) throw new AppError("not_found");
+  const access = await currentAccess(tenantId);
+  if (!access) throw new AppError("not_found");
+  const { session, role, businessId } = access;
   return withPlatform(async (tx) => {
-    const result = await fn(tx);
+    const result = await fn(tx, { businessId });
     await recordAudit(tx, {
       actorUserId: session.user.id,
       action: role === "admin" ? `impersonation.${action}` : action,

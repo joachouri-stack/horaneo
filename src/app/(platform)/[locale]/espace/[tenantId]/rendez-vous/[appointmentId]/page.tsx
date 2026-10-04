@@ -3,7 +3,6 @@ import { getTranslations } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
 import { CheckboxField, Hidden, SelectField, TextArea, TextField } from "@/components/admin/fields";
 import { ui } from "@/components/ui/styles";
-import { withTenant } from "@/db/access";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
 import { getAppointmentDetail } from "@/modules/agenda/queries";
@@ -27,7 +26,7 @@ export default async function AppointmentPage({
   const { appointmentId } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(appointmentId)) notFound();
   const [t, tCommon] = await Promise.all([getTranslations("manager"), getTranslations("common")]);
-  const { item, staff, deposit, messages } = await withTenant(page.tenantId, async (tx) => ({
+  const { item, staff, deposit, messages } = await page.db(async (tx) => ({
     messages: await customerMessagesOf(tx, page.tenantId, appointmentId),
     item: await getAppointmentDetail(tx, page.tenantId, appointmentId, page.locale),
     staff: (await loadBookingContext(tx, page.tenantId)).staff,

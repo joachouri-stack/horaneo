@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import { businessForeignKey } from "./tenants";
 import {
   check,
   foreignKey,
@@ -42,6 +43,10 @@ export const payments = pgTable(
     tenantId: uuid()
       .notNull()
       .references(() => tenants.id, { onDelete: "restrict" }),
+    /** Rempli automatiquement avec l'entreprise en cours (app_current_business()). */
+    businessId: uuid()
+      .notNull()
+      .default(sql`app_current_business()`),
     appointmentId: uuid(),
     stripePaymentIntentId: text().notNull(),
     stripeAccountId: text().notNull(),
@@ -52,6 +57,7 @@ export const payments = pgTable(
     ...timestamps(),
   },
   (t) => [
+    businessForeignKey("payments_business_fk", t, "restrict"),
     unique("payments_tenant_id_key").on(t.tenantId, t.id),
     uniqueIndex("payments_payment_intent_key").on(t.stripePaymentIntentId),
     index("payments_appointment_idx").on(t.tenantId, t.appointmentId),
@@ -74,6 +80,10 @@ export const refunds = pgTable(
     tenantId: uuid()
       .notNull()
       .references(() => tenants.id, { onDelete: "restrict" }),
+    /** Rempli automatiquement avec l'entreprise en cours (app_current_business()). */
+    businessId: uuid()
+      .notNull()
+      .default(sql`app_current_business()`),
     paymentId: uuid().notNull(),
     stripeRefundId: text(),
     amountCents: cents().notNull(),
@@ -82,6 +92,7 @@ export const refunds = pgTable(
     ...timestamps(),
   },
   (t) => [
+    businessForeignKey("refunds_business_fk", t, "restrict"),
     uniqueIndex("refunds_stripe_refund_key").on(t.stripeRefundId),
     foreignKey({
       name: "refunds_payment_fk",

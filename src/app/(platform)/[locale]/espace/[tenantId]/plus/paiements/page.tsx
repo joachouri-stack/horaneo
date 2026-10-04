@@ -1,7 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { ui } from "@/components/ui/styles";
 import { env } from "@/config/env";
-import { withTenant } from "@/db/access";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
 import { paymentGateway } from "@/lib/payments/stripe";
@@ -21,12 +20,12 @@ export default async function PaymentsPage({
   const configured = paymentGateway() !== null;
 
   // Retour des étapes guidées de Stripe : l'état du compte est relu.
-  let state = connectState(page.tenant, page.tenant.features);
+  let state = connectState(page.business, page.tenant.features);
   const returned = query.retour === "1";
-  if (returned && configured && page.tenant.stripeAccountId) {
+  if (returned && configured && page.business.stripeAccountId) {
     state = await refreshStripeAccount(page.tenantId).catch(() => state);
   }
-  const settings = await withTenant(page.tenantId, (tx) => getBookingSettings(tx, page.tenantId));
+  const settings = await page.db((tx) => getBookingSettings(tx, page.tenantId));
   const error = typeof query.erreur === "string" ? (query.erreur as AppErrorCode) : null;
   const depositValue =
     settings.depositType === "percent" ? `${settings.depositValue} %` : page.fmt.money(settings.depositValue);

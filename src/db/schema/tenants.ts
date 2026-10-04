@@ -1,5 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
+  unique,
+  foreignKey,
   boolean,
   check,
   char,
@@ -13,6 +15,7 @@ import {
   text,
   uniqueIndex,
   uuid,
+  type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 import { currency, id, timestamps, utc } from "./_helpers";
 import { plans } from "./platform";
@@ -47,10 +50,8 @@ export const tenants = pgTable(
   {
     id: id(),
     slug: text().notNull(),
+    /** Enseigne affichée sur le site (une ou plusieurs entreprises derrière). */
     name: text().notNull(),
-    legalName: text(),
-    siret: text(),
-    vatNumber: text(),
     status: tenantStatusEnum().notNull().default("draft"),
     planId: uuid()
       .notNull()
@@ -82,10 +83,6 @@ export const tenants = pgTable(
     theme: siteThemeEnum().notNull().default("light"),
     brand: jsonb().$type<TenantBrand>().notNull().default({}),
 
-    // Stripe Connect (acomptes)
-    stripeAccountId: text(),
-    stripeChargesEnabled: boolean().notNull().default(false),
-
     // Cycle de vie
     activatedAt: utc(),
     cancelledAt: utc(),
@@ -94,11 +91,66 @@ export const tenants = pgTable(
   },
   (t) => [
     uniqueIndex("tenants_slug_key").on(t.slug),
-    uniqueIndex("tenants_stripe_account_id_key").on(t.stripeAccountId),
     index("tenants_status_idx").on(t.status),
     check("tenants_slug_format", sql`${t.slug} ~ '^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$'`),
   ],
 );
+
+/**
+ * Entreprise : l'identité légale (SIRET), le compte Stripe, et tout ce qui fait
+ * l'activité (membres, prestations, horaires, agenda, clientes, conditions
+ * d'annulation). Un site (tenant) en contient une ou plusieurs, ex. un institut
+ * partagé par deux indépendantes. Les données d'une entreprise sont isolées de
+ * celles des autres entreprises du même site, comme entre deux sites.
+ */
+export const businesses = pgTable(
+  "businesses",
+  {
+    id: id(),
+    tenantId: uuid()
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    /** Nom affiché sur le site à côté des prestations (« qui la réalise »). */
+    name: text().notNull(),
+    legalName: text(),
+    siret: text(),
+    vatNumber: text(),
+    email: text(),
+    phone: text(),
+    /** Adresse légale si elle diffère de celle du site. */
+    addressLine1: text(),
+    postalCode: text(),
+    city: text(),
+    // Stripe Connect (acomptes, encaissés par cette entreprise)
+    stripeAccountId: text(),
+    stripeChargesEnabled: boolean().notNull().default(false),
+    /** Entreprise principale : celle qui règle l'abonnement du site. */
+    isPrimary: boolean().notNull().default(false),
+    sortOrder: integer().notNull().default(0),
+    ...timestamps(),
+  },
+  (t) => [
+    unique("businesses_tenant_id_key").on(t.tenantId, t.id),
+    uniqueIndex("businesses_stripe_account_id_key").on(t.stripeAccountId),
+    uniqueIndex("businesses_one_primary_key")
+      .on(t.tenantId)
+      .where(sql`${t.isPrimary}`),
+    index("businesses_tenant_idx").on(t.tenantId),
+  ],
+);
+
+/** Rattache une ligne à une entreprise du même site (clé composée : impossible de viser l'entreprise d'un autre site). */
+export function businessForeignKey(
+  name: string,
+  columns: { tenantId: AnyPgColumn; businessId: AnyPgColumn },
+  onDelete: "cascade" | "restrict" = "cascade",
+) {
+  return foreignKey({
+    name,
+    columns: [columns.tenantId, columns.businessId],
+    foreignColumns: [businesses.tenantId, businesses.id],
+  }).onDelete(onDelete);
+}
 
 export const domainTypeEnum = pgEnum("domain_type", ["subdomain", "custom"]);
 export const domainStatusEnum = pgEnum("domain_status", ["pending", "active", "error"]);
@@ -132,12 +184,13 @@ export const tenantDomains = pgTable(
 
 export const depositTypeEnum = pgEnum("deposit_type", ["percent", "fixed"]);
 
-/** Règles de réservation et préférences de la gérante (une ligne par tenant). */
-export const tenantSettings = pgTable(
-  "tenant_settings",
+/** Règles de réservation, conditions d'annulation et préférences : une ligne par entreprise. */
+export const businessSettings = pgTable(
+  "business_settings",
   {
+    businessId: uuid().primaryKey(),
     tenantId: uuid()
-      .primaryKey()
+      .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
     minNoticeMinutes: integer().notNull().default(120),
     maxAdvanceDays: integer().notNull().default(60),
@@ -154,6 +207,8 @@ export const tenantSettings = pgTable(
     ...timestamps(),
   },
   (t) => [
+    businessForeignKey("business_settings_business_fk", t),
+    index("business_settings_tenant_idx").on(t.tenantId),
     check("tenant_settings_min_notice", sql`${t.minNoticeMinutes} >= 0`),
     check("tenant_settings_max_advance", sql`${t.maxAdvanceDays} between 1 and 730`),
     check("tenant_settings_slot_interval", sql`${t.slotIntervalMinutes} between 5 and 120`),

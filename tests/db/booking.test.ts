@@ -6,8 +6,8 @@ import {
   appointmentItems,
   appointments,
   customers,
-  tenantSettings,
-  tenants,
+  businessSettings,
+  businesses,
   timeOff,
   usageCounters,
 } from "@/db/schema";
@@ -121,9 +121,9 @@ describe.skipIf(!hasTestDatabase)("moteur de réservation", () => {
   /** Compte Stripe prêt à encaisser. */
   async function connectStripe(tenantId: string) {
     await owner
-      .update(tenants)
+      .update(businesses)
       .set({ stripeAccountId: `acct_${tenantId.replaceAll("-", "")}`, stripeChargesEnabled: true })
-      .where(eq(tenants.id, tenantId));
+      .where(eq(businesses.tenantId, tenantId));
   }
 
   async function slotTimes(tenantId: string, serviceIds: string[], staffId: string | null = null, now = NOW) {
@@ -164,9 +164,9 @@ describe.skipIf(!hasTestDatabase)("moteur de réservation", () => {
     it("respecte le nombre maximum de prestations par rendez-vous", async () => {
       const s = await setup();
       await owner
-        .update(tenantSettings)
+        .update(businessSettings)
         .set({ maxServicesPerBooking: 1 })
-        .where(eq(tenantSettings.tenantId, s.id));
+        .where(eq(businessSettings.tenantId, s.id));
       expect(await errorCode(slotTimes(s.id, [s.massage.id, s.soin.id]))).toBe("too_many_services");
     });
 
@@ -369,9 +369,9 @@ describe.skipIf(!hasTestDatabase)("moteur de réservation", () => {
       const s = await setup("serenite");
       await connectStripe(s.id);
       await owner
-        .update(tenantSettings)
+        .update(businessSettings)
         .set({ depositEnabled: true, depositType: "percent", depositValue: 30 })
-        .where(eq(tenantSettings.tenantId, s.id));
+        .where(eq(businessSettings.tenantId, s.id));
       const held = await book(s.id, { serviceIds: [s.massage.id], staffId: s.lea.id, start: at("10:00") });
       expect(held).toMatchObject({ status: "pending_payment", depositCents: 2100 });
       expect(held.holdExpiresAt!.getTime() - NOW.getTime()).toBe(10 * 60 * 1000);
@@ -399,9 +399,9 @@ describe.skipIf(!hasTestDatabase)("moteur de réservation", () => {
     it("pas d'acompte tant que le compte Stripe ne peut pas encaisser", async () => {
       const s = await setup("serenite");
       await owner
-        .update(tenantSettings)
+        .update(businessSettings)
         .set({ depositEnabled: true })
-        .where(eq(tenantSettings.tenantId, s.id));
+        .where(eq(businessSettings.tenantId, s.id));
       expect((await book(s.id, { serviceIds: [s.soin.id] })).status).toBe("confirmed");
     });
 
@@ -409,9 +409,9 @@ describe.skipIf(!hasTestDatabase)("moteur de réservation", () => {
       const s = await setup("basic");
       await connectStripe(s.id);
       await owner
-        .update(tenantSettings)
+        .update(businessSettings)
         .set({ depositEnabled: true })
-        .where(eq(tenantSettings.tenantId, s.id));
+        .where(eq(businessSettings.tenantId, s.id));
       expect((await book(s.id, { serviceIds: [s.soin.id] })).status).toBe("confirmed");
     });
   });

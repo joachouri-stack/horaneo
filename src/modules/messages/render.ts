@@ -1,4 +1,5 @@
 import { and, asc, eq } from "drizzle-orm";
+import { declareBusiness } from "@/db/access";
 import type { Transaction } from "@/db/client";
 import {
   appointmentItems,
@@ -10,7 +11,8 @@ import {
   plans,
   staffMembers,
   tenantDomains,
-  tenantSettings,
+  businessSettings,
+  businesses,
   tenants,
   users,
   type PlanFeatures,
@@ -159,12 +161,26 @@ function customerName(customer: AppointmentInfo["customer"]) {
   return [customer.firstName, customer.lastName].filter(Boolean).join(" ");
 }
 
-async function managerEmails(tx: Transaction, tenantId: string) {
+/**
+ * Destinataires d'un message aux gérantes : celles de l'entreprise concernée ;
+ * pour l'abonnement (réglé par l'entreprise principale), celles de l'entreprise
+ * principale ; sinon (quota du site), toutes les gérantes du site.
+ */
+async function managerEmails(tx: Transaction, tenantId: string, row: MessageRow) {
+  const subscription =
+    row.templateKey === "manager.payment_failed" || row.templateKey === "manager.subscription_ended";
   const rows = await tx
     .select({ email: users.email })
     .from(memberships)
     .innerJoin(users, eq(users.id, memberships.userId))
-    .where(eq(memberships.tenantId, tenantId));
+    .innerJoin(businesses, eq(businesses.id, memberships.businessId))
+    .where(
+      and(
+        eq(memberships.tenantId, tenantId),
+        row.businessId ? eq(memberships.businessId, row.businessId) : undefined,
+        !row.businessId && subscription ? eq(businesses.isPrimary, true) : undefined,
+      ),
+    );
   return [...new Set(rows.map((row) => row.email).filter(Boolean))];
 }
 
@@ -177,6 +193,8 @@ export async function renderMessage(
   if (template.startsWith("account.") || template.startsWith("admin."))
     return renderAccount(tx, row, template, options);
   if (!row.tenantId) return { kind: "skip", reason: "no_tenant" };
+  // Message d'une entreprise : seules ses données (agenda, réglages…) sont lues.
+  await declareBusiness(tx, row.businessId);
   const tenant = await loadTenant(tx, row.tenantId);
   if (!tenant) return { kind: "skip", reason: "no_tenant" };
   if (template.startsWith("manager.")) return renderManager(tx, row, template, tenant, options);
@@ -336,9 +354,9 @@ async function manageHint(
   tenant: TenantInfo,
 ) {
   const [settings] = await tx
-    .select({ hours: tenantSettings.cancellationDeadlineHours })
-    .from(tenantSettings)
-    .where(eq(tenantSettings.tenantId, tenant.id));
+    .select({ hours: businessSettings.cancellationDeadlineHours })
+    .from(businessSettings)
+    .where(eq(businessSettings.tenantId, tenant.id));
   const deadline = addMinutes(info.appointment.startsAt, -(settings?.hours ?? 24) * 60);
   return deadline > new Date()
     ? t("notifications.common.manageHint", { deadline: fmt.when(t, deadline) })
@@ -354,7 +372,7 @@ async function renderManager(
   tenant: TenantInfo,
   options: RenderOptions,
 ): Promise<Rendered> {
-  const to = await managerEmails(tx, tenant.id);
+  const to = await managerEmails(tx, tenant.id, row);
   if (to.length === 0) return { kind: "skip", reason: "no_manager" };
   const locale = resolveLocale(tenant.defaultLocale);
   const t = await getTranslator(locale);

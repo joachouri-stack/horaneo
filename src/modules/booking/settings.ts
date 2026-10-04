@@ -1,7 +1,8 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
+import { currentBusinessId } from "@/db/access";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
-import { tenantSettings } from "@/db/schema";
+import { businessSettings } from "@/db/schema";
 import { AppError } from "@/modules/errors";
 import { getTenantPlan } from "@/modules/quotas";
 
@@ -29,8 +30,19 @@ export const bookingSettingsInput = z.object({
   monthlySummaryEnabled: z.boolean(),
 });
 
-export async function getBookingSettings(tx: Transaction, tenantId: string) {
-  const [settings] = await tx.select().from(tenantSettings).where(eq(tenantSettings.tenantId, tenantId));
+/** Réglages de l'entreprise donnée, ou de celle déclarée pour la transaction. */
+async function targetBusiness(tx: Transaction, businessId?: string) {
+  const id = businessId ?? (await currentBusinessId(tx));
+  if (!id) throw new AppError("not_found");
+  return id;
+}
+
+export async function getBookingSettings(tx: Transaction, tenantId: string, businessId?: string) {
+  const id = await targetBusiness(tx, businessId);
+  const [settings] = await tx
+    .select()
+    .from(businessSettings)
+    .where(and(eq(businessSettings.tenantId, tenantId), eq(businessSettings.businessId, id)));
   if (!settings) throw new AppError("not_found");
   return settings;
 }
@@ -39,8 +51,10 @@ export async function updateBookingSettings(
   tx: Transaction,
   tenantId: string,
   raw: z.input<typeof bookingSettingsInput>,
+  businessId?: string,
 ) {
   const input = bookingSettingsInput.parse(raw);
+  const id = await targetBusiness(tx, businessId);
   const { features } = await getTenantPlan(tx, tenantId);
   const amount = Number(input.depositValue.replace(",", "."));
   const depositValue = input.depositType === "percent" ? Math.round(amount) : Math.round(amount * 100);
@@ -49,7 +63,7 @@ export async function updateBookingSettings(
   if (input.depositEnabled && !features.onlinePayment)
     throw new AppError("feature_unavailable", "depositEnabled");
   const [updated] = await tx
-    .update(tenantSettings)
+    .update(businessSettings)
     .set({
       minNoticeMinutes: Math.round(input.minNoticeHours * 60),
       maxAdvanceDays: input.maxAdvanceDays,
@@ -62,7 +76,7 @@ export async function updateBookingSettings(
       dailySummaryEnabled: input.dailySummaryEnabled,
       monthlySummaryEnabled: input.monthlySummaryEnabled,
     })
-    .where(eq(tenantSettings.tenantId, tenantId))
+    .where(and(eq(businessSettings.tenantId, tenantId), eq(businessSettings.businessId, id)))
     .returning();
   return updated;
 }

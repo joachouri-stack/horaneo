@@ -1,6 +1,6 @@
 import { and, asc, eq } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
-import { plans, subscriptions, tenants } from "@/db/schema";
+import { businesses, plans, subscriptions, tenants } from "@/db/schema";
 import { AppError } from "@/modules/errors";
 import { queueMessage } from "@/modules/messages/queue";
 import { getPlatformSetting, setPlatformSetting } from "@/modules/settings";
@@ -39,6 +39,14 @@ async function loadTenant(tx: Transaction, tenantId: string) {
     .where(eq(tenants.id, tenantId));
   if (!row) throw new AppError("not_found");
   return row;
+}
+
+async function primaryBusiness(tx: Transaction, tenantId: string) {
+  const [row] = await tx
+    .select()
+    .from(businesses)
+    .where(and(eq(businesses.tenantId, tenantId), eq(businesses.isPrimary, true)));
+  return row ?? null;
 }
 
 async function freePlan(tx: Transaction) {
@@ -107,7 +115,8 @@ async function ensureCustomer(tx: Transaction, tenantId: string, gateway: Billin
   const customer = await gateway
     .createCustomer({
       email: tenant.email,
-      name: tenant.legalName || tenant.name,
+      // Facturé à l'entreprise principale du site (celle qui règle l'abonnement).
+      name: (await primaryBusiness(tx, tenantId))?.legalName || tenant.name,
       metadata: { tenant_id: tenant.id },
     })
     .catch(billingError);

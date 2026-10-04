@@ -189,7 +189,7 @@ export async function createBooking(
     onlineOnly: source === "online",
   });
   const paymentReady =
-    source === "online" && onlinePaymentReady(context.tenant, context.features, options.gateway);
+    source === "online" && onlinePaymentReady(context.business, context.features, options.gateway);
 
   await expireStaleHolds(tx, tenantId, now);
 
@@ -273,7 +273,7 @@ export async function createBooking(
   );
 
   let payment: { clientSecret: string; accountId: string; publishableKey: string } | null = null;
-  if (pending && options.gateway && context.tenant.stripeAccountId) {
+  if (pending && options.gateway && context.business.stripeAccountId) {
     const intent = await createDepositIntent(
       tx,
       tenantId,
@@ -281,7 +281,7 @@ export async function createBooking(
         appointmentId: appointment.id,
         amountCents: depositCents,
         currency: totals.currency,
-        accountId: context.tenant.stripeAccountId,
+        accountId: context.business.stripeAccountId,
         receiptEmail: input.customer.email,
       },
       options.gateway,
@@ -289,7 +289,7 @@ export async function createBooking(
     if (!intent.clientSecret) throw new AppError("payment_provider_error");
     payment = {
       clientSecret: intent.clientSecret,
-      accountId: context.tenant.stripeAccountId,
+      accountId: context.business.stripeAccountId,
       publishableKey: options.gateway.publishableKey,
     };
   }

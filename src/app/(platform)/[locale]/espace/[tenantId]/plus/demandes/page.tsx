@@ -1,7 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
 import { Hidden, Section, TextArea, TextField } from "@/components/admin/fields";
-import { withTenant } from "@/db/access";
 import { managerPage } from "@/lib/manager/page";
 import { listTenantRequests } from "@/modules/requests/update-requests";
 import { createRequestAction } from "../../actions";
@@ -12,7 +11,7 @@ export default async function RequestsPage({
 }: PageProps<"/[locale]/espace/[tenantId]/plus/demandes">) {
   const page = await managerPage(params);
   const t = await getTranslations("manager.requests");
-  const requests = await withTenant(page.tenantId, (tx) => listTenantRequests(tx, page.tenantId));
+  const requests = await page.db((tx) => listTenantRequests(tx, page.tenantId));
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-extrabold">{t("title")}</h1>

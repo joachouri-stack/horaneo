@@ -1,7 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
 import { CheckboxField, Hidden, Section, SelectField, TextField } from "@/components/admin/fields";
-import { withTenant } from "@/db/access";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
 import { paymentGateway } from "@/lib/payments/stripe";
@@ -16,9 +15,9 @@ export default async function SettingsPage({
 }: PageProps<"/[locale]/espace/[tenantId]/plus/reglages">) {
   const page = await managerPage(params);
   const [t, tCommon] = await Promise.all([getTranslations("manager.settings"), getTranslations("common")]);
-  const settings = await withTenant(page.tenantId, (tx) => getBookingSettings(tx, page.tenantId));
+  const settings = await page.db((tx) => getBookingSettings(tx, page.tenantId));
   const paymentAvailable = Boolean(page.tenant.features.onlinePayment);
-  const stripeReady = onlinePaymentReady(page.tenant, page.tenant.features, paymentGateway());
+  const stripeReady = onlinePaymentReady(page.business, page.tenant.features, paymentGateway());
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-extrabold">{t("title")}</h1>

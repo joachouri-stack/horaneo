@@ -2,7 +2,6 @@ import { and, eq } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
 import { SubmitButton } from "@/components/ui/SubmitButton";
 import { ui } from "@/components/ui/styles";
-import { withTenant } from "@/db/access";
 import { usageCounters } from "@/db/schema";
 import { pickLocalized } from "@/i18n/locales";
 import { managerPage } from "@/lib/manager/page";
@@ -28,7 +27,7 @@ export default async function SubscriptionPage({
     getTranslations("manager.subscription"),
     getTranslations("errors"),
   ]);
-  const data = await withTenant(page.tenantId, async (tx) => {
+  const data = await page.db(async (tx) => {
     const [counter] = await tx
       .select()
       .from(usageCounters)
@@ -58,7 +57,9 @@ export default async function SubscriptionPage({
   const current = data.plans.find((plan) => plan.id === page.tenant.planId);
   const currentPrice = current?.priceCents ?? 0;
   const live = subscription && isLive(subscription.status) ? subscription : null;
-  const configured = billingGateway() !== null;
+  // Site à plusieurs entreprises : l'abonnement est réglé par l'entreprise principale.
+  const canManage = page.business.isPrimary;
+  const configured = billingGateway() !== null && canManage;
   const scheduled = data.plans.find((plan) => plan.id === live?.scheduledPlanId);
   const periodEnd = live?.currentPeriodEnd ?? null;
   const freeDate = [periodEnd, live?.commitmentEndsAt]
@@ -77,7 +78,7 @@ export default async function SubscriptionPage({
     { label: t("services"), used: usage.services, limit: limits.services },
   ];
 
-  const keepForm = (
+  const keepForm = canManage && (
     <form action={changeSubscriptionAction} className="mt-3">
       <input type="hidden" name="tenantId" value={page.tenantId} />
       <input type="hidden" name="planId" value={page.tenant.planId} />
@@ -112,6 +113,12 @@ export default async function SubscriptionPage({
       {live?.paymentFailedAt && (
         <p role="alert" className={ui.error}>
           {t("pastDue")}
+        </p>
+      )}
+
+      {!canManage && (
+        <p role="status" className={ui.card}>
+          {t("primaryOnly")}
         </p>
       )}
 
@@ -180,7 +187,7 @@ export default async function SubscriptionPage({
 
       <section className="space-y-3">
         <h2 className="text-xl font-bold">{t("choose")}</h2>
-        {!configured && <p className="text-ink/70">{t("unavailable")}</p>}
+        {!configured && canManage && <p className="text-ink/70">{t("unavailable")}</p>}
         {data.plans.map((plan) => {
           const isCurrent = plan.id === page.tenant.planId;
           const upgrade = plan.priceCents > currentPrice;

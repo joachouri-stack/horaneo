@@ -1,5 +1,4 @@
 import { ServicesEditor } from "@/components/editors/ServicesEditor";
-import { withTenant } from "@/db/access";
 import { managerPage } from "@/lib/manager/page";
 import { listCategories, listServices } from "@/modules/catalog/services";
 import {
@@ -13,7 +12,7 @@ export default async function ManagerServicesPage({
   params,
 }: PageProps<"/[locale]/espace/[tenantId]/site/prestations">) {
   const page = await managerPage(params);
-  const { categories, services } = await withTenant(page.tenantId, async (tx) => ({
+  const { categories, services } = await page.db(async (tx) => ({
     categories: await listCategories(tx, page.tenantId),
     services: await listServices(tx, page.tenantId),
   }));

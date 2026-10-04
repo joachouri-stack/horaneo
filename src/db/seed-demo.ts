@@ -9,15 +9,18 @@ import { savePromoCode } from "@/modules/promo/codes";
 import { uploadAsset, uploadLogo } from "@/modules/media/assets";
 import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
 import { saveStaff } from "@/modules/team/staff";
+import { createBusiness, updateBusiness } from "@/modules/businesses/businesses";
 import { createTenant } from "@/modules/tenants/create";
 import { changeStatus, updateAppearance, updateIdentity } from "@/modules/tenants/update";
+import { declareBusiness } from "./access";
 import { createDb, type Transaction } from "./client";
 import { tenants } from "./schema";
 
 /**
- * Deux établissements de démonstration pour le développement local :
+ * Établissements de démonstration pour le développement local :
  * - http://institut-demo.localhost:3000 : pack Basic (fiche d'une page) ;
- * - http://spa-demo.localhost:3000 : pack Sérénité (site complet, ambiance nature).
+ * - http://spa-demo.localhost:3000 : pack Sérénité (site complet, ambiance nature) ;
+ * - http://duo-demo.localhost:3000 : un site, deux entreprises (deux indépendantes).
  * Refuse de s'exécuter en production. Relançable : ne recrée pas ce qui existe.
  */
 
@@ -49,13 +52,14 @@ const weekHours = (days: number[], ranges: [string, string][]) =>
 
 async function seedBasic(tx: Transaction) {
   if (await exists(tx, "institut-demo")) return;
-  const { tenant } = await createTenant(tx, {
+  const { tenant, business } = await createTenant(tx, {
     name: "Institut Démo",
     slug: "institut-demo",
     planCode: "basic",
     managerEmail: "gerante@institut-demo.test",
     phone: "04 78 00 00 00",
   });
+  await declareBusiness(tx, business.id);
   await updateIdentity(tx, tenant.id, {
     name: "Institut Démo",
     slug: "institut-demo",
@@ -103,7 +107,7 @@ async function seedBasic(tx: Transaction) {
 
 async function seedFull(tx: Transaction) {
   if (await exists(tx, "spa-demo")) return;
-  const { tenant } = await createTenant(tx, {
+  const { tenant, business } = await createTenant(tx, {
     name: "Spa Démo Lyon",
     slug: "spa-demo",
     planCode: "serenite",
@@ -111,11 +115,20 @@ async function seedFull(tx: Transaction) {
     phone: "04 72 00 00 00",
   });
   const id = tenant.id;
+  await declareBusiness(tx, business.id);
+  await updateBusiness(tx, id, business.id, {
+    name: "Spa Démo Lyon",
+    legalName: "Spa Démo SARL",
+    siret: "123 456 789 00012",
+    email: "contact@spa-demo.test",
+    phone: "04 72 00 00 00",
+    addressLine1: "8 quai Saint-Antoine",
+    postalCode: "69002",
+    city: "Lyon",
+  });
   await updateIdentity(tx, id, {
     name: "Spa Démo Lyon",
     slug: "spa-demo",
-    legalName: "Spa Démo SARL",
-    siret: "123 456 789 00012",
     phone: "04 72 00 00 00",
     email: "contact@spa-demo.test",
     addressLine1: "8 quai Saint-Antoine",
@@ -240,6 +253,92 @@ async function seedFull(tx: Transaction) {
   await changeStatus(tx, id, "activate");
 }
 
+/** Deux indépendantes dans le même institut, chacune avec son SIRET (un site, deux entreprises). */
+async function seedDuo(tx: Transaction) {
+  if (await exists(tx, "duo-demo")) return;
+  const { tenant, business: first } = await createTenant(tx, {
+    name: "Institut Duo Démo",
+    slug: "duo-demo",
+    planCode: "serenite",
+    managerEmail: "lea@duo-demo.test",
+    managerName: "Léa",
+  });
+  const id = tenant.id;
+  await updateIdentity(tx, id, {
+    name: "Institut Duo Démo",
+    slug: "duo-demo",
+    phone: "04 90 00 00 00",
+    addressLine1: "10 avenue des Platanes",
+    postalCode: "84000",
+    city: "Avignon",
+    country: "FR",
+    timezone: "Europe/Paris",
+  });
+  await updateAppearance(tx, id, {
+    templateKey: "wellness",
+    theme: "light",
+    primary: "#b5654a",
+    secondary: "#f7e4dc",
+  });
+  await updatePage(tx, id, {
+    pageKey: "home",
+    texts: { tagline: "Esthétique et massages", intro: "Deux professionnelles, un même lieu." },
+  });
+  await updateBusiness(tx, id, first.id, {
+    name: "Léa",
+    legalName: "Léa Martin EI",
+    siret: "111 222 333 00011",
+    phone: "06 00 00 00 01",
+    email: "lea@duo-demo.test",
+  });
+  const { business: second } = await createBusiness(tx, id, {
+    name: "Inès",
+    legalName: "Inès Durand EI",
+    siret: "444 555 666 00022",
+    phone: "06 00 00 00 02",
+    email: "ines@duo-demo.test",
+    managerEmail: "ines@duo-demo.test",
+    managerName: "Inès",
+  });
+  const hours = [
+    ...weekHours([1, 2, 3, 4, 5], [["09:00", "19:00"]]),
+    ...weekHours([6], [["10:00", "20:00"]]),
+  ];
+  for (const [business, staff, category, catalog] of [
+    [
+      first.id,
+      "Léa",
+      "Beauté du regard",
+      [
+        ["Réhaussement de cils", 60, "55"],
+        ["Browlift", 35, "45"],
+      ],
+    ],
+    [
+      second.id,
+      "Inès",
+      "Massages",
+      [
+        ["Deep tissue 30 min", 30, "55"],
+        ["Aromathérapie", 60, "60"],
+      ],
+    ],
+  ] as const) {
+    await declareBusiness(tx, business);
+    await replaceOpeningHours(tx, id, hours);
+    const saved = await saveCategory(tx, id, { name: category });
+    const serviceIds: string[] = [];
+    for (const [name, duration, price] of catalog) {
+      serviceIds.push(
+        (await saveService(tx, id, { categoryId: saved.id, name, durationMinutes: duration, price })).id,
+      );
+    }
+    await saveStaff(tx, id, { name: staff, serviceIds });
+  }
+  await declareBusiness(tx, null);
+  await changeStatus(tx, id, "activate");
+}
+
 async function main() {
   if (process.env.NODE_ENV === "production") throw new Error("Démo interdite en production.");
   const url = process.env.DATABASE_URL;
@@ -249,9 +348,10 @@ async function main() {
     await database.transaction(async (tx) => {
       await seedBasic(tx);
       await seedFull(tx);
+      await seedDuo(tx);
     });
     console.log(
-      "Démos prêtes : http://institut-demo.localhost:3000 (Basic) et http://spa-demo.localhost:3000 (Sérénité)",
+      "Démos prêtes : http://institut-demo.localhost:3000 (Basic), http://spa-demo.localhost:3000 (Sérénité) et http://duo-demo.localhost:3000 (deux entreprises)",
     );
   } finally {
     await database.$client.end();

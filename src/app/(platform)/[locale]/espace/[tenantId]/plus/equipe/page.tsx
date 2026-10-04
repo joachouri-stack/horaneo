@@ -1,5 +1,4 @@
 import { TeamEditor } from "@/components/editors/TeamEditor";
-import { withTenant } from "@/db/access";
 import { managerPage } from "@/lib/manager/page";
 import { listServices } from "@/modules/catalog/services";
 import { listStaff } from "@/modules/team/staff";
@@ -9,7 +8,7 @@ export default async function ManagerTeamPage({
   params,
 }: PageProps<"/[locale]/espace/[tenantId]/plus/equipe">) {
   const page = await managerPage(params);
-  const { staff, services } = await withTenant(page.tenantId, async (tx) => ({
+  const { staff, services } = await page.db(async (tx) => ({
     staff: await listStaff(tx, page.tenantId),
     services: await listServices(tx, page.tenantId),
   }));

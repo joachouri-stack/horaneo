@@ -11,6 +11,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import { businessForeignKey } from "./tenants";
 import { sql } from "drizzle-orm";
 import { id, timestamps, utc } from "./_helpers";
 import { appointments } from "./bookings";
@@ -43,6 +44,7 @@ export const messageLog = pgTable(
   {
     id: id(),
     tenantId: uuid().references(() => tenants.id, { onDelete: "cascade" }),
+    businessId: uuid().default(sql`app_current_business()`),
     appointmentId: uuid(),
     channel: messageChannelEnum().notNull(),
     templateKey: text().notNull(),
@@ -62,6 +64,7 @@ export const messageLog = pgTable(
     ...timestamps(),
   },
   (t) => [
+    businessForeignKey("message_log_business_fk", t, "cascade"),
     index("message_log_tenant_created_idx").on(t.tenantId, t.createdAt),
     index("message_log_queue_idx")
       .on(t.nextAttemptAt)

@@ -12,6 +12,7 @@ import { managerMutation, managerPlatformAction, managerQuery } from "@/lib/mana
 import { paymentGateway } from "@/lib/payments/stripe";
 import { billingGateway } from "@/lib/payments/stripe-billing";
 import { openBillingPortal, requestPlanChange } from "@/modules/billing/subscriptions";
+import { assertPrimaryBusiness } from "@/modules/businesses/businesses";
 import { storage } from "@/lib/storage";
 import {
   cancelByManager,
@@ -417,8 +418,8 @@ export async function openStripeOnboarding(rawLocale: string, rawTenantId: strin
   const tenantId = uuid.parse(rawTenantId);
   const page = paymentsPage(resolveLocale(rawLocale), tenantId);
   try {
-    const { url } = await managerPlatformAction(tenantId, "stripe.onboarding", (tx) =>
-      startOnboarding(tx, tenantId, paymentGateway(), {
+    const { url } = await managerPlatformAction(tenantId, "stripe.onboarding", (tx, { businessId }) =>
+      startOnboarding(tx, tenantId, businessId, paymentGateway(), {
         returnUrl: `${page}?retour=1`,
         refreshUrl: `${page}/relance`,
       }),
@@ -438,8 +439,8 @@ export async function startStripeOnboardingAction(data: FormData) {
 
 /** Relit l'état du compte Stripe (retour des étapes guidées). */
 export async function refreshStripeAccount(tenantId: string) {
-  return managerPlatformAction(tenantId, "stripe.refresh", (tx) =>
-    refreshAccount(tx, tenantId, paymentGateway()),
+  return managerPlatformAction(tenantId, "stripe.refresh", (tx, { businessId }) =>
+    refreshAccount(tx, tenantId, businessId, paymentGateway()),
   );
 }
 
@@ -481,11 +482,16 @@ export async function changeSubscriptionAction(data: FormData) {
   const page = subscriptionPage(locale, tenantId);
   let target: string;
   try {
-    const result = await managerPlatformAction(tenantId, "subscription.change", (tx) =>
-      requestPlanChange(tx, tenantId, planId, billingGateway(), {
-        successUrl: `${page}?retour=ok`,
-        cancelUrl: `${page}?retour=annule`,
-      }),
+    const result = await managerPlatformAction(
+      tenantId,
+      "subscription.change",
+      async (tx, { businessId }) => {
+        await assertPrimaryBusiness(tx, tenantId, businessId);
+        return requestPlanChange(tx, tenantId, planId, billingGateway(), {
+          successUrl: `${page}?retour=ok`,
+          cancelUrl: `${page}?retour=annule`,
+        });
+      },
     );
     target = result.kind === "redirect" ? result.url : `${page}?resultat=${result.kind}`;
   } catch (error) {
@@ -502,9 +508,10 @@ export async function openBillingPortalAction(data: FormData) {
   const page = subscriptionPage(locale, tenantId);
   let target: string;
   try {
-    target = await managerPlatformAction(tenantId, "subscription.portal", (tx) =>
-      openBillingPortal(tx, tenantId, billingGateway(), page),
-    );
+    target = await managerPlatformAction(tenantId, "subscription.portal", async (tx, { businessId }) => {
+      await assertPrimaryBusiness(tx, tenantId, businessId);
+      return openBillingPortal(tx, tenantId, billingGateway(), page);
+    });
   } catch (error) {
     if (!(error instanceof AppError)) throw error;
     target = `${page}?erreur=${error.code}`;

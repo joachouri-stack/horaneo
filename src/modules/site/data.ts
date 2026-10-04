@@ -1,7 +1,8 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
 import {
   assets,
+  businesses,
   openingHours,
   plans,
   serviceCategories,
@@ -27,6 +28,8 @@ export type SiteImage = { key: string; width: number | null; height: number | nu
 
 export type SiteService = {
   id: string;
+  /** Entreprise qui réalise la prestation (site à plusieurs entreprises). */
+  businessId: string;
   categoryId: string | null;
   name: string;
   description: string;
@@ -39,6 +42,7 @@ export type SiteService = {
 
 export type SiteCategory = {
   id: string;
+  businessId: string;
   name: string;
   slug: string;
   description: string;
@@ -59,6 +63,7 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
   const text = (value: LocalizedText | null | undefined) => pickLocalized(value, lang);
 
   const [
+    businessRows,
     pageRows,
     categoryRows,
     serviceRows,
@@ -69,6 +74,11 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
     assetRows,
     domainRows,
   ] = await Promise.all([
+    tx
+      .select()
+      .from(businesses)
+      .where(eq(businesses.tenantId, tenantId))
+      .orderBy(desc(businesses.isPrimary), asc(businesses.sortOrder), asc(businesses.createdAt)),
     tx.select().from(sitePages).where(eq(sitePages.tenantId, tenantId)),
     tx
       .select()
@@ -147,6 +157,7 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
 
   const siteServices: SiteService[] = serviceRows.map((service) => ({
     id: service.id,
+    businessId: service.businessId,
     categoryId: service.categoryId,
     name: text(service.name),
     description: text(service.description),
@@ -160,6 +171,7 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
   const categories: SiteCategory[] = categoryRows
     .map((category) => ({
       id: category.id,
+      businessId: category.businessId,
       name: text(category.name),
       slug: text(category.slug),
       description: text(category.description),
@@ -176,9 +188,6 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
       id: tenant.id,
       name: tenant.name,
       status: tenant.status,
-      legalName: tenant.legalName,
-      siret: tenant.siret,
-      vatNumber: tenant.vatNumber,
       phone: tenant.phone,
       email: tenant.email,
       address: [tenant.addressLine1, tenant.addressLine2].filter(Boolean).join(", "),
@@ -205,8 +214,23 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
     categories,
     uncategorized,
     services: siteServices,
+    /** Entreprises du site : nom affiché, identité légale (mentions légales). */
+    businesses: businessRows.map((business) => ({
+      id: business.id,
+      name: business.name,
+      legalName: business.legalName,
+      siret: business.siret,
+      vatNumber: business.vatNumber,
+      phone: business.phone,
+      email: business.email,
+      address: [business.addressLine1, [business.postalCode, business.city].filter(Boolean).join(" ")]
+        .filter(Boolean)
+        .join(", "),
+      isPrimary: business.isPrimary,
+    })),
     staff: staffRows.map((member) => ({
       id: member.id,
+      businessId: member.businessId,
       name: member.name,
       bio: text(member.bio),
       photo: image(member.photoAssetId),
@@ -221,6 +245,7 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
         }))
       : [],
     openingHours: hourRows.map((range) => ({
+      businessId: range.businessId,
       weekday: range.weekday,
       opensAt: range.opensAt.slice(0, 5),
       closesAt: range.closesAt.slice(0, 5),

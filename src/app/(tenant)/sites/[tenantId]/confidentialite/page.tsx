@@ -17,7 +17,9 @@ export async function generateMetadata({
 export default async function PrivacyPage({ params }: PageProps<"/sites/[tenantId]/confidentialite">) {
   const site = await getSite((await params).tenantId);
   const t = await getTranslations("site.privacy");
-  const name = site.tenant.legalName || site.tenant.name;
+  // Chaque entreprise est responsable du fichier de ses propres clientes.
+  const name =
+    site.businesses.map((business) => business.legalName || business.name).join(" · ") || site.tenant.name;
   const sections = [
     ["controller", t("controllerText", { name })],
     ["data", t("dataText")],

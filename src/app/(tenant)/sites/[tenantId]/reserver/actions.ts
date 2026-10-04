@@ -1,9 +1,10 @@
 "use server";
 
 import { z } from "zod";
-import { withTenant } from "@/db/access";
+import type { Transaction } from "@/db/client";
 import { sendQueuedSoon } from "@/lib/jobs/tick";
 import { paymentGateway } from "@/lib/payments/stripe";
+import { withServicesBusiness, withTokenBusiness } from "@/lib/site/business";
 import { currentSiteTenant, publicLimits } from "@/lib/site/current";
 import {
   getSlotsForRange,
@@ -56,7 +57,11 @@ export async function getAvailabilityAction(
     const input = availabilityInput.parse(raw);
     const site = await currentSiteTenant();
     if (!publicLimits.availability.attempt(site.ip)) throw new AppError("rate_limited");
-    return withTenant(site.tenantId, async (tx) => {
+    const scoped = <T>(fn: (tx: Transaction) => Promise<T>) =>
+      input.manageToken
+        ? withTokenBusiness(site.tenantId, input.manageToken, fn)
+        : withServicesBusiness(site.tenantId, input.serviceIds, fn);
+    return scoped(async (tx) => {
       const now = new Date();
       let context = await loadBookingContext(tx, site.tenantId);
       let excludeAppointmentId: string | undefined;
@@ -133,7 +138,7 @@ export async function bookAction(raw: z.input<typeof bookInput>): Promise<Public
     const input = bookInput.parse(raw);
     const site = await currentSiteTenant();
     if (!publicLimits.booking.attempt(site.ip)) throw new AppError("rate_limited");
-    return withTenant(site.tenantId, async (tx) => {
+    return withServicesBusiness(site.tenantId, input.serviceIds, async (tx) => {
       const result = await createBooking(
         tx,
         site.tenantId,
@@ -178,12 +183,12 @@ export async function checkPromoAction(raw: z.input<typeof promoInput>): Promise
     const input = promoInput.parse(raw);
     const site = await currentSiteTenant();
     if (!publicLimits.promo.attempt(site.ip)) throw new AppError("rate_limited");
-    return withTenant(site.tenantId, async (tx) => {
+    return withServicesBusiness(site.tenantId, input.serviceIds, async (tx) => {
       const context = await loadBookingContext(tx, site.tenantId);
       const { totals } = resolveServices(context, input.serviceIds);
       const promo = await previewPromo(tx, site.tenantId, input.code, totals.totalCents);
       const totalCents = totals.totalCents - promo.discountCents;
-      const ready = onlinePaymentReady(context.tenant, context.features, paymentGateway());
+      const ready = onlinePaymentReady(context.business, context.features, paymentGateway());
       return {
         code: promo.code,
         totalCents,
@@ -201,8 +206,8 @@ export async function confirmPaymentAction(
   return run(async () => {
     const site = await currentSiteTenant();
     if (!publicLimits.manage.attempt(site.ip)) throw new AppError("rate_limited");
-    return withTenant(site.tenantId, async (tx) => {
-      const managed = await findByManageToken(tx, site.tenantId, z.string().max(80).parse(token));
+    return withTokenBusiness(site.tenantId, z.string().max(80).parse(token), async (tx) => {
+      const managed = await findByManageToken(tx, site.tenantId, token);
       if (!managed) throw new AppError("not_found");
       await syncDeposit(tx, site.tenantId, managed.appointment.id, paymentGateway());
       const after = await findByManageToken(tx, site.tenantId, token);
@@ -219,14 +224,9 @@ export async function cancelAction(
   return run(async () => {
     const site = await currentSiteTenant();
     if (!publicLimits.manage.attempt(site.ip)) throw new AppError("rate_limited");
-    const result = await withTenant(site.tenantId, async (tx) => {
-      const cancelled = await cancelByCustomer(
-        tx,
-        site.tenantId,
-        z.string().max(80).parse(token),
-        new Date(),
-        paymentGateway(),
-      );
+    const parsed = z.string().max(80).parse(token);
+    const result = await withTokenBusiness(site.tenantId, parsed, async (tx) => {
+      const cancelled = await cancelByCustomer(tx, site.tenantId, parsed, new Date(), paymentGateway());
       const context = await loadBookingContext(tx, site.tenantId);
       return { ...cancelled, currency: context.tenant.currency };
     });
@@ -248,7 +248,7 @@ export async function rescheduleAction(
     const input = rescheduleInput.parse(raw);
     const site = await currentSiteTenant();
     if (!publicLimits.manage.attempt(site.ip)) throw new AppError("rate_limited");
-    const result = await withTenant(site.tenantId, (tx) =>
+    const result = await withTokenBusiness(site.tenantId, input.token, (tx) =>
       rescheduleByCustomer(tx, site.tenantId, input.token, {
         start: new Date(input.start),
         staffId: input.staffId,

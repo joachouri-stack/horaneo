@@ -88,7 +88,7 @@ describe.skipIf(!hasTestDatabase)("site d'un client : données affichées", () =
     expect(site.uncategorized.map((s) => s.name)).toEqual(["Sans catégorie"]);
     expect(site.services.map((s) => s.name)).not.toContain("Ancien soin");
     expect(site.pages.home?.texts.tagline).toBe("Bienvenue");
-    expect(site.openingHours).toEqual([{ weekday: 2, opensAt: "10:00", closesAt: "19:00" }]);
+    expect(site.openingHours).toMatchObject([{ weekday: 2, opensAt: "10:00", closesAt: "19:00" }]);
 
     // Pas encore de galerie, d'équipe ni d'avis : ces pages sont masquées.
     expect(visibleSections(site)).toEqual({

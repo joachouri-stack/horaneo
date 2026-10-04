@@ -34,8 +34,9 @@ pnpm db:migrate
 pnpm db:roles
 pnpm db:seed
 
-# 5. (facultatif) Deux démos : http://institut-demo.localhost:3000 (Basic)
-#    et http://spa-demo.localhost:3000 (Sérénité, site complet)
+# 5. (facultatif) Démos : http://institut-demo.localhost:3000 (Basic),
+#    http://spa-demo.localhost:3000 (Sérénité, site complet)
+#    et http://duo-demo.localhost:3000 (un site, deux entreprises)
 pnpm db:seed-demo
 
 # 6. (facultatif) Se donner le statut d'administratrice
@@ -128,6 +129,20 @@ C'est PostgreSQL lui-même qui empêche un client de voir les données d'un autr
 Les tests `tests/db/isolation.test.ts` créent deux tenants avec une ligne dans chaque table. Ils vérifient, **table par table**, que l'un ne peut ni lire, ni modifier, ni supprimer, ni créer les données de l'autre. Ils contrôlent aussi la liste exacte des droits accordés.
 
 **Règle pour toute nouvelle table portant un `tenant_id`** : dans sa migration, activer et forcer les règles par ligne, ajouter les deux règles `tenant_isolation` et `platform_access`, accorder les droits voulus à `app_tenant` et à `app_platform`, puis mettre à jour `EXPECTED_TENANT_GRANTS` dans le test. Les tests échouent tant que ce n'est pas fait.
+
+## Un site, une ou plusieurs entreprises
+
+Un site (tenant) porte le domaine, le modèle, le logo, les couleurs, les pages et l'abonnement. Une **entreprise** (table `businesses`, migration `drizzle/0012_businesses.sql`) porte le SIRET, le compte Stripe, la gérante, les prestations, l'équipe, les horaires, l'agenda, les clientes et les réglages de réservation (`business_settings`). La plupart des sites n'ont qu'une entreprise ; un institut partagé par deux indépendantes en a deux.
+
+- Chaque table d'entreprise porte un `business_id`, rempli automatiquement avec l'entreprise déclarée (`app.business_id`), ou avec l'entreprise unique du site. Sur un site à plusieurs entreprises, rien n'est choisi au hasard : l'ajout est refusé tant que l'entreprise n'est pas déclarée.
+- `withTenant(tenantId, fn, db, businessId)` : sans `businessId`, l'entreprise unique du site (aucune s'il y en a plusieurs) ; `null` : vue « site » (pages publiques : vitrine des deux, aucune donnée privée).
+- Clientes, rendez-vous, paiements, codes promo : visibles **uniquement** par leur entreprise, comme entre deux sites. Prestations, équipe, horaires : lisibles par tout le site, modifiables seulement par leur entreprise.
+- Site public : la cliente choisit d'abord « Avec qui ? » ; ensuite tout se passe dans l'entreprise choisie (acompte versé sur son compte Stripe). Le lien de gestion retrouve l'entreprise du rendez-vous.
+- Chaque gérante entre dans sa propre entreprise. L'abonnement est réglé et géré par l'entreprise principale ; les quotas du pack (prestations, membres, photos, SMS) se comptent pour tout le site.
+- Admin : onglet « Entreprises » d'un client (identité légale, ajout d'une entreprise avec sa gérante, « Voir son espace ») ; Prestations, Équipe et Horaires ont un sélecteur d'entreprise.
+- Mentions légales : chaque entreprise avec son SIRET.
+
+Tests : `tests/db/businesses.test.ts`.
 
 ## Connexion et rôles
 

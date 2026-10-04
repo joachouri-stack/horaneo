@@ -46,4 +46,7 @@ export type AppErrorCode =
   | "subscription_active"
   | "already_customer"
   | "order_in_progress"
-  | "order_not_pending";
+  | "order_not_pending"
+  | "services_mixed"
+  | "manager_already_linked"
+  | "primary_business_only";

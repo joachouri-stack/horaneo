@@ -1,4 +1,4 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
 import { appointmentItems, appointments, staffMembers } from "@/db/schema";
 import { pickLocalized, type Locale } from "@/i18n/locales";
@@ -29,6 +29,18 @@ async function insertOrSlotTaken<T>(run: () => Promise<T>): Promise<T> {
   }
 }
 
+/**
+ * Entreprise d'un rendez-vous retrouvé par son lien de gestion. Utilisable sans
+ * entreprise déclarée (fonction dédiée de la base) : elle sert à déclarer la bonne.
+ */
+export async function businessOfManageToken(tx: Transaction, tenantId: string, token: string) {
+  if (!TOKEN.test(token)) return null;
+  const rows = await tx.execute<{ id: string | null }>(
+    sql`SELECT app_manage_token_business(${tenantId}::uuid, ${hashManageToken(token)}) AS id`,
+  );
+  return rows[0]?.id ?? null;
+}
+
 export async function findByManageToken(tx: Transaction, tenantId: string, token: string, locale?: Locale) {
   if (!TOKEN.test(token)) return null;
   const [row] = await tx
@@ -39,7 +51,7 @@ export async function findByManageToken(tx: Transaction, tenantId: string, token
       and(eq(appointments.tenantId, tenantId), eq(appointments.manageTokenHash, hashManageToken(token))),
     );
   if (!row) return null;
-  const context = await loadBookingContext(tx, tenantId);
+  const context = await loadBookingContext(tx, tenantId, row.appointment.businessId);
   const items = await tx
     .select()
     .from(appointmentItems)

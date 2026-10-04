@@ -8,8 +8,8 @@ import {
   promoCodes,
   refunds,
   stripeEvents,
-  tenantSettings,
-  tenants,
+  businessSettings,
+  businesses,
 } from "@/db/schema";
 import { cancelByManager } from "@/modules/agenda/actions";
 import { createBooking, type BookingInput } from "@/modules/booking/create";
@@ -73,10 +73,11 @@ describe.skipIf(!hasTestDatabase)("paiements", () => {
   async function setup({ planCode = "serenite", connected = true, deposit = true } = {}) {
     n += 1;
     const slug = `pay-${n}-${Date.now().toString(36)}`;
-    const { tenant } = await platform((tx) =>
+    const { tenant, business } = await platform((tx) =>
       createTenant(tx, { name: `Institut Belle ${n}`, slug, planCode, managerEmail: `${slug}@example.com` }),
     );
     const id = tenant.id;
+    const businessId = business.id;
     await platform((tx) =>
       replaceOpeningHours(tx, id, [{ weekday: 2, opensAt: "09:00", closesAt: "18:00" }]),
     );
@@ -87,23 +88,23 @@ describe.skipIf(!hasTestDatabase)("paiements", () => {
     await platform((tx) => changeStatus(tx, id, "activate"));
     if (deposit) {
       await owner
-        .update(tenantSettings)
+        .update(businessSettings)
         .set({ depositEnabled: true, depositType: "percent", depositValue: 30 })
-        .where(eq(tenantSettings.tenantId, id));
+        .where(eq(businessSettings.tenantId, id));
     }
     let accountId: string | null = null;
     if (connected) {
       const started = await platform((tx) =>
-        startOnboarding(tx, id, fake.gateway, {
+        startOnboarding(tx, id, businessId, fake.gateway, {
           returnUrl: "https://x/retour",
           refreshUrl: "https://x/relance",
         }),
       );
       accountId = started.accountId;
       fake.activate(accountId);
-      await platform((tx) => refreshAccount(tx, id, fake.gateway));
+      await platform((tx) => refreshAccount(tx, id, businessId, fake.gateway));
     }
-    return { id, massage, lea, accountId: accountId! };
+    return { id, businessId, massage, lea, accountId: accountId! };
   }
 
   const customer = () => ({
@@ -148,18 +149,24 @@ describe.skipIf(!hasTestDatabase)("paiements", () => {
     it("crée le compte une seule fois, puis suit son état", async () => {
       const s = await setup({ connected: false });
       const first = await platform((tx) =>
-        startOnboarding(tx, s.id, fake.gateway, { returnUrl: "https://x/r", refreshUrl: "https://x/f" }),
+        startOnboarding(tx, s.id, s.businessId, fake.gateway, {
+          returnUrl: "https://x/r",
+          refreshUrl: "https://x/f",
+        }),
       );
       expect(first.url).toContain(first.accountId);
       const again = await platform((tx) =>
-        startOnboarding(tx, s.id, fake.gateway, { returnUrl: "https://x/r", refreshUrl: "https://x/f" }),
+        startOnboarding(tx, s.id, s.businessId, fake.gateway, {
+          returnUrl: "https://x/r",
+          refreshUrl: "https://x/f",
+        }),
       );
       expect(again.accountId).toBe(first.accountId);
       // Libellé sur le relevé : le nom de l'établissement.
       const created = fake.calls.filter((call) => call.method === "createAccount:input");
       expect(created.at(-1)?.input).toMatchObject({ statementDescriptor: `INSTITUT BELLE ${n}` });
 
-      expect(await platform((tx) => refreshAccount(tx, s.id, fake.gateway))).toBe("incomplete");
+      expect(await platform((tx) => refreshAccount(tx, s.id, s.businessId, fake.gateway))).toBe("incomplete");
       // Stripe signale la fin des étapes guidées.
       const event = fake.event("account.updated", first.accountId, {
         id: first.accountId,
@@ -170,26 +177,31 @@ describe.skipIf(!hasTestDatabase)("paiements", () => {
         outcome: "processed",
         detail: "account_synced",
       });
-      const [tenant] = await owner.select().from(tenants).where(eq(tenants.id, s.id));
-      expect(tenant.stripeChargesEnabled).toBe(true);
+      const [business] = await owner.select().from(businesses).where(eq(businesses.id, s.businessId));
+      expect(business.stripeChargesEnabled).toBe(true);
     });
 
     it("refuse l'ouverture sur un pack sans paiement en ligne, ou sans clés Stripe", async () => {
       const basic = await setup({ planCode: "basic", connected: false, deposit: false });
       const urls = { returnUrl: "https://x/r", refreshUrl: "https://x/f" };
-      expect(await errorCode(platform((tx) => startOnboarding(tx, basic.id, fake.gateway, urls)))).toBe(
-        "feature_unavailable",
-      );
-      expect(await errorCode(platform((tx) => startOnboarding(tx, basic.id, null, urls)))).toBe(
-        "payments_unavailable",
-      );
+      expect(
+        await errorCode(
+          platform((tx) => startOnboarding(tx, basic.id, basic.businessId, fake.gateway, urls)),
+        ),
+      ).toBe("feature_unavailable");
+      expect(
+        await errorCode(platform((tx) => startOnboarding(tx, basic.id, basic.businessId, null, urls))),
+      ).toBe("payments_unavailable");
     });
 
     it("la gérante ne peut pas modifier elle-même son compte Stripe (base)", async () => {
       const s = await setup({ connected: false });
       await expect(
         asTenant(s.id, (tx) =>
-          tx.update(tenants).set({ stripeAccountId: "acct_pirate" }).where(eq(tenants.id, s.id)),
+          tx
+            .update(businesses)
+            .set({ stripeAccountId: "acct_pirate" })
+            .where(eq(businesses.id, s.businessId)),
         ),
       ).rejects.toThrow();
     });
@@ -269,9 +281,9 @@ describe.skipIf(!hasTestDatabase)("paiements", () => {
       const first = await book(s);
       // 11 minutes plus tard, une autre cliente prend le même créneau (sans acompte).
       await owner
-        .update(tenantSettings)
+        .update(businessSettings)
         .set({ depositEnabled: false })
-        .where(eq(tenantSettings.tenantId, s.id));
+        .where(eq(businessSettings.tenantId, s.id));
       const second = await book(s, {}, minutesLater(11));
       expect(second.status).toBe("confirmed");
       const payment = await payAndSync(s, first.appointmentId);

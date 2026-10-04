@@ -11,6 +11,7 @@ import {
   tenants,
   usageCounters,
   users,
+  businesses,
 } from "@/db/schema";
 import { hasTestDatabase, openTestDb, pgErrorCode, type TestDb } from "../setup/db";
 
@@ -39,6 +40,8 @@ describe.skipIf(!hasTestDatabase)("garde-fous de la base de données", () => {
       .insert(tenants)
       .values({ slug: `test-${counter}-${Date.now()}`, name: `Institut ${counter}`, planId })
       .returning();
+    // Une seule entreprise : business_id est rempli automatiquement.
+    await db.insert(businesses).values({ tenantId: tenant.id, name: tenant.name, isPrimary: true });
     const [staff] = await db.insert(staffMembers).values({ tenantId: tenant.id, name: "Léa" }).returning();
     const [customer] = await db
       .insert(customers)

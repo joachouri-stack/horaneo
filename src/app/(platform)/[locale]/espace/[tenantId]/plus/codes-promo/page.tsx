@@ -2,7 +2,6 @@ import { getTranslations } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
 import { CheckboxField, Hidden, SelectField, TextField } from "@/components/admin/fields";
 import { ui } from "@/components/ui/styles";
-import { withTenant } from "@/db/access";
 import { centsToInput } from "@/lib/format";
 import { managerPage } from "@/lib/manager/page";
 import { localToUtc } from "@/modules/booking/time";
@@ -18,7 +17,7 @@ export default async function PromoCodesPage({
   const page = await managerPage(params);
   const [t, tCommon] = await Promise.all([getTranslations("manager.promo"), getTranslations("common")]);
   const available = Boolean(page.tenant.features.promoCodes);
-  const codes = available ? await withTenant(page.tenantId, (tx) => listPromoCodes(tx, page.tenantId)) : [];
+  const codes = available ? await page.db((tx) => listPromoCodes(tx, page.tenantId)) : [];
   const dateLabel = (date: string) => page.fmt.short(localToUtc(date, "12:00", page.tenant.timezone));
 
   const fields = (code: PromoRow | null) => {

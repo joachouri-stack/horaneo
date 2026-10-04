@@ -1,6 +1,5 @@
 import { getTranslations } from "next-intl/server";
 import { ui } from "@/components/ui/styles";
-import { withTenant } from "@/db/access";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
 import { utcToLocal } from "@/modules/booking/time";
@@ -25,7 +24,7 @@ export default async function StatsPage({
     typeof requested === "string" && /^\d{4}-(0[1-9]|1[0-2])$/.test(requested) && requested <= current
       ? requested
       : current;
-  const stats = await withTenant(page.tenantId, (tx) =>
+  const stats = await page.db((tx) =>
     monthStats(tx, page.tenantId, period, page.tenant.timezone, page.locale),
   );
   const detailed = Boolean(page.tenant.features.stats);

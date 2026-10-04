@@ -15,6 +15,7 @@ import { deleteTestimonial, saveTestimonial } from "@/modules/content/testimonia
 import { restoreAsset, retireAsset, uploadAsset, uploadLogo } from "@/modules/media/assets";
 import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
 import { deleteStaff, saveStaff } from "@/modules/team/staff";
+import { createBusiness, updateBusiness } from "@/modules/businesses/businesses";
 import { createTenant } from "@/modules/tenants/create";
 import {
   addCustomDomain,
@@ -34,6 +35,7 @@ type Previous = ActionResult<unknown> | null;
 
 const uuid = z.uuid();
 const tenantIdOf = (data: FormData) => uuid.parse(form.text(data, "tenantId"));
+const businessIdOf = (data: FormData) => uuid.parse(form.text(data, "businessId"));
 const idOf = (data: FormData, key = "id") => {
   const value = form.optional(data, key);
   return value ? uuid.parse(value) : undefined;
@@ -145,9 +147,6 @@ export async function updateIdentityAction(_previous: Previous, data: FormData) 
   const keys = [
     "name",
     "slug",
-    "legalName",
-    "siret",
-    "vatNumber",
     "phone",
     "email",
     "addressLine1",
@@ -164,6 +163,52 @@ export async function updateIdentityAction(_previous: Previous, data: FormData) 
   return adminMutation({ action: "tenant.identity_updated", tenantId }, (tx) =>
     updateIdentity(tx, tenantId, input),
   );
+}
+
+// ─── Entreprises ──────────────────────────────────────────────────────────────
+
+const businessFields = (data: FormData) => ({
+  name: form.text(data, "name"),
+  legalName: form.optional(data, "legalName"),
+  siret: form.optional(data, "siret"),
+  vatNumber: form.optional(data, "vatNumber"),
+  email: form.optional(data, "email"),
+  phone: form.optional(data, "phone"),
+  addressLine1: form.optional(data, "addressLine1"),
+  postalCode: form.optional(data, "postalCode"),
+  city: form.optional(data, "city"),
+});
+
+export async function updateBusinessAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const businessId = businessIdOf(data);
+  return adminMutation(
+    { action: "business.updated", tenantId, targetType: "business", targetId: businessId },
+    (tx) => updateBusiness(tx, tenantId, businessId, businessFields(data)),
+  );
+}
+
+export async function createBusinessAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const result = await adminMutation(
+    ({ business }: Awaited<ReturnType<typeof createBusiness>>) => ({
+      action: "business.created",
+      tenantId,
+      targetType: "business",
+      targetId: business.id,
+    }),
+    (tx) =>
+      createBusiness(tx, tenantId, {
+        ...businessFields(data),
+        managerEmail: form.text(data, "managerEmail"),
+        managerName: form.optional(data, "managerName") ?? null,
+      }),
+  );
+  if (result.ok) {
+    const t = await getTranslations("admin.tenant.businesses");
+    return { ...result, message: t("added") };
+  }
+  return result;
 }
 
 export async function updateAppearanceAction(_previous: Previous, data: FormData) {
@@ -202,52 +247,63 @@ export async function uploadLogoAction(
 export async function saveCategoryAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   const id = idOf(data);
-  return adminMutation({ action: id ? "category.updated" : "category.created", tenantId }, (tx) =>
-    saveCategory(
-      tx,
-      tenantId,
-      { name: form.text(data, "name"), description: form.optional(data, "description") },
-      id,
-    ),
+  return adminMutation(
+    { action: id ? "category.updated" : "category.created", tenantId, businessId: businessIdOf(data) },
+    (tx) =>
+      saveCategory(
+        tx,
+        tenantId,
+        { name: form.text(data, "name"), description: form.optional(data, "description") },
+        id,
+      ),
   );
 }
 
 export async function deleteCategoryAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   const id = idOf(data)!;
-  return adminMutation({ action: "category.deleted", tenantId, targetId: id }, (tx) =>
-    deleteCategory(tx, tenantId, id),
+  return adminMutation(
+    { action: "category.deleted", tenantId, targetId: id, businessId: businessIdOf(data) },
+    (tx) => deleteCategory(tx, tenantId, id),
   );
 }
 
 export async function saveServiceAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   const id = idOf(data);
-  return adminMutation({ action: id ? "service.updated" : "service.created", tenantId, targetId: id }, (tx) =>
-    saveService(
-      tx,
+  return adminMutation(
+    {
+      action: id ? "service.updated" : "service.created",
       tenantId,
-      {
-        name: form.text(data, "name"),
-        description: form.optional(data, "description"),
-        categoryId: form.optional(data, "categoryId") ?? null,
-        durationMinutes: form.text(data, "durationMinutes") as unknown as number,
-        bufferMinutes: (form.optional(data, "bufferMinutes") ?? "0") as unknown as number,
-        price: form.text(data, "price"),
-        priceFrom: form.bool(data, "priceFrom"),
-        isOnlineBookable: form.bool(data, "isOnlineBookable"),
-        isActive: form.bool(data, "isActive"),
-      },
-      id,
-    ),
+      targetId: id,
+      businessId: businessIdOf(data),
+    },
+    (tx) =>
+      saveService(
+        tx,
+        tenantId,
+        {
+          name: form.text(data, "name"),
+          description: form.optional(data, "description"),
+          categoryId: form.optional(data, "categoryId") ?? null,
+          durationMinutes: form.text(data, "durationMinutes") as unknown as number,
+          bufferMinutes: (form.optional(data, "bufferMinutes") ?? "0") as unknown as number,
+          price: form.text(data, "price"),
+          priceFrom: form.bool(data, "priceFrom"),
+          isOnlineBookable: form.bool(data, "isOnlineBookable"),
+          isActive: form.bool(data, "isActive"),
+        },
+        id,
+      ),
   );
 }
 
 export async function deleteServiceAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   const id = idOf(data)!;
-  const result = await adminMutation({ action: "service.deleted", tenantId, targetId: id }, (tx) =>
-    deleteService(tx, tenantId, id),
+  const result = await adminMutation(
+    { action: "service.deleted", tenantId, targetId: id, businessId: businessIdOf(data) },
+    (tx) => deleteService(tx, tenantId, id),
   );
   if (result.ok && result.data?.deleted === false) {
     const t = await getTranslations("admin.tenant.services");
@@ -261,28 +317,36 @@ export async function deleteServiceAction(_previous: Previous, data: FormData) {
 export async function saveStaffAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   const id = idOf(data);
-  return adminMutation({ action: id ? "staff.updated" : "staff.created", tenantId, targetId: id }, (tx) =>
-    saveStaff(
-      tx,
+  return adminMutation(
+    {
+      action: id ? "staff.updated" : "staff.created",
       tenantId,
-      {
-        name: form.text(data, "name"),
-        bio: form.optional(data, "bio"),
-        color: form.optional(data, "color"),
-        isActive: form.bool(data, "isActive"),
-        serviceIds: form.all(data, "serviceIds"),
-        photoAssetId: form.optional(data, "photoAssetId") ?? null,
-      },
-      id,
-    ),
+      targetId: id,
+      businessId: businessIdOf(data),
+    },
+    (tx) =>
+      saveStaff(
+        tx,
+        tenantId,
+        {
+          name: form.text(data, "name"),
+          bio: form.optional(data, "bio"),
+          color: form.optional(data, "color"),
+          isActive: form.bool(data, "isActive"),
+          serviceIds: form.all(data, "serviceIds"),
+          photoAssetId: form.optional(data, "photoAssetId") ?? null,
+        },
+        id,
+      ),
   );
 }
 
 export async function deleteStaffAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   const id = idOf(data)!;
-  return adminMutation({ action: "staff.deleted", tenantId, targetId: id }, (tx) =>
-    deleteStaff(tx, tenantId, id),
+  return adminMutation(
+    { action: "staff.deleted", tenantId, targetId: id, businessId: businessIdOf(data) },
+    (tx) => deleteStaff(tx, tenantId, id),
   );
 }
 
@@ -297,7 +361,7 @@ export async function saveHoursAction(_previous: Previous, data: FormData) {
       return { weekday: Number(weekday), opensAt, closesAt };
     })
     .filter((range) => range.opensAt && range.closesAt);
-  return adminMutation({ action: "hours.updated", tenantId }, (tx) =>
+  return adminMutation({ action: "hours.updated", tenantId, businessId: businessIdOf(data) }, (tx) =>
     replaceOpeningHours(tx, tenantId, ranges),
   );
 }

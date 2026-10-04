@@ -50,9 +50,6 @@ export default async function IdentityPage({
             label={t("longitude")}
             defaultValue={tenant.longitude}
           />
-          <TextField name="legalName" label={t("legalName")} defaultValue={tenant.legalName} />
-          <TextField name="siret" label={t("siret")} defaultValue={tenant.siret} />
-          <TextField name="vatNumber" label={t("vatNumber")} defaultValue={tenant.vatNumber} />
         </ActionForm>
       </Section>
     </>

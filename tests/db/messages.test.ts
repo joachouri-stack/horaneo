@@ -2,7 +2,15 @@ import { and, eq, inArray } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { withPlatform, withTenant } from "@/db/access";
 import type { Transaction } from "@/db/client";
-import { appointments, assets, messageLog, plans, tenantSettings, tenants, usageCounters } from "@/db/schema";
+import {
+  appointments,
+  assets,
+  businesses,
+  messageLog,
+  plans,
+  businessSettings,
+  usageCounters,
+} from "@/db/schema";
 import { cancelByManager, createManualAppointment, moveAppointment } from "@/modules/agenda/actions";
 import { createBooking, manageTokenFor, type BookingInput } from "@/modules/booking/create";
 import { cancelByCustomer, findByManageToken, rescheduleByCustomer } from "@/modules/booking/manage";
@@ -167,16 +175,19 @@ describe.skipIf(!hasTestDatabase)("messages automatiques", () => {
 
     it("avec acompte : confirmation seulement une fois le paiement reçu", async () => {
       const s = await setup();
-      await platform((tx) =>
-        startOnboarding(tx, s.id, gateway.gateway, { returnUrl: "https://x", refreshUrl: "https://x" }),
+      const [business] = await owner.select().from(businesses).where(eq(businesses.tenantId, s.id));
+      const { accountId } = await platform((tx) =>
+        startOnboarding(tx, s.id, business.id, gateway.gateway, {
+          returnUrl: "https://x",
+          refreshUrl: "https://x",
+        }),
       );
-      const [tenant] = await owner.select().from(tenants).where(eq(tenants.id, s.id));
-      gateway.activate(tenant.stripeAccountId!);
-      await platform((tx) => refreshAccount(tx, s.id, gateway.gateway));
+      gateway.activate(accountId);
+      await platform((tx) => refreshAccount(tx, s.id, business.id, gateway.gateway));
       await owner
-        .update(tenantSettings)
+        .update(businessSettings)
         .set({ depositEnabled: true })
-        .where(eq(tenantSettings.tenantId, s.id));
+        .where(eq(businessSettings.tenantId, s.id));
       const result = await book(s);
       expect(result.status).toBe("pending_payment");
       expect(await logOf(s.id)).toHaveLength(0);
@@ -395,9 +406,9 @@ describe.skipIf(!hasTestDatabase)("messages automatiques", () => {
 
       // Résumé coupé dans les réglages.
       await owner
-        .update(tenantSettings)
+        .update(businessSettings)
         .set({ dailySummaryEnabled: false })
-        .where(eq(tenantSettings.tenantId, s.id));
+        .where(eq(businessSettings.tenantId, s.id));
       const rowsBefore = (await logOf(s.id)).length;
       await platform((tx) => queueSummaries(tx, localToUtc("2026-10-07", "19:10", TZ)));
       expect((await logOf(s.id)).length).toBe(rowsBefore);
