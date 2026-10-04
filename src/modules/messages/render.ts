@@ -465,6 +465,25 @@ async function renderManager(
       t("notifications.manager.basic_quota.upgrade"),
     ];
     action = { label: t("notifications.manager.basic_quota.open"), url: `${space}/plus/abonnement` };
+  } else if (template === "manager.payment_failed") {
+    subject = t("notifications.manager.payment_failed.subject");
+    title = t("notifications.manager.payment_failed.title");
+    paragraphs = [
+      t("notifications.manager.payment_failed.intro"),
+      t("notifications.manager.payment_failed.action"),
+    ];
+    action = { label: t("notifications.manager.payment_failed.open"), url: `${space}/plus/abonnement` };
+  } else if (template === "manager.subscription_ended") {
+    const reason = (row.data as { reason?: string }).reason;
+    subject = t("notifications.manager.subscription_ended.subject");
+    title = t("notifications.manager.subscription_ended.title");
+    paragraphs = [
+      reason === "unpaid"
+        ? t("notifications.manager.subscription_ended.unpaid")
+        : t("notifications.manager.subscription_ended.requested"),
+      t("notifications.manager.subscription_ended.back"),
+    ];
+    action = { label: t("notifications.manager.subscription_ended.open"), url: `${space}/plus/abonnement` };
   } else {
     return { kind: "skip", reason: "unknown_template" };
   }

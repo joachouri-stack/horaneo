@@ -13,7 +13,12 @@ export async function seed(url: string) {
   try {
     await database
       .insert(platformSettings)
-      .values(Object.entries(DEFAULT_PLATFORM_SETTINGS).map(([key, value]) => ({ key, value })))
+      .values(
+        Object.entries(DEFAULT_PLATFORM_SETTINGS)
+          // Un réglage sans valeur de départ (rempli plus tard, ex. taux de TVA Stripe) n'est pas copié.
+          .filter(([, value]) => value !== null)
+          .map(([key, value]) => ({ key, value: value as object })),
+      )
       .onConflictDoNothing();
     await database
       .insert(plans)

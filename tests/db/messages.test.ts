@@ -310,6 +310,15 @@ describe.skipIf(!hasTestDatabase)("messages automatiques", () => {
     it("SMS la veille à 18 h, au nom de l'établissement, une seule fois", async () => {
       const s = await setup();
       await book(s, { start: at("10:00") });
+      // Pris 23 h avant : pas de rappel SMS (décision n° 6).
+      const recent = await book(
+        s,
+        {
+          start: at("11:30"),
+          customer: { firstName: "Nina", email: `nina-${n}@example.com`, phone: "06 55 44 33 22" },
+        },
+        localToUtc("2026-10-05", "12:30", TZ),
+      );
       await dispatch(s.id);
       const beforeTime = localToUtc("2026-10-05", "17:55", TZ);
       const atTime = localToUtc("2026-10-05", "18:05", TZ);
@@ -331,6 +340,8 @@ describe.skipIf(!hasTestDatabase)("messages automatiques", () => {
       expect(sms[0].sender.length).toBeLessThanOrEqual(11);
       const [counter] = await owner.select().from(usageCounters).where(eq(usageCounters.tenantId, s.id));
       expect(counter.smsSent).toBe(1);
+      const smsRows = (await logOf(s.id)).filter((row) => row.channel === "sms");
+      expect(smsRows.map((row) => row.appointmentId)).not.toContain(recent.appointmentId);
     });
 
     it("pas de SMS sur le pack Basic ; envoi bloqué au-delà du quota du mois", async () => {

@@ -1,5 +1,6 @@
 "use server";
 
+import { changePlanManually } from "@/modules/billing/subscriptions";
 import { getLocale, getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { redirect } from "@/i18n/navigation";
@@ -19,7 +20,7 @@ import {
   removeCustomDomain,
   setPrimaryDomain,
 } from "@/modules/tenants/domains";
-import { changePlan, changeStatus, updateAppearance, updateIdentity } from "@/modules/tenants/update";
+import { changeStatus, updateAppearance, updateIdentity } from "@/modules/tenants/update";
 import type { LogoPalette } from "@/lib/images/palette";
 
 /**
@@ -86,12 +87,12 @@ export async function changePlanAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   const planCode = form.text(data, "planCode");
   return adminMutation(
-    (change: Awaited<ReturnType<typeof changePlan>>) => ({
+    (change: Awaited<ReturnType<typeof changePlanManually>>) => ({
       action: "tenant.plan_changed",
       tenantId,
       details: change,
     }),
-    (tx) => changePlan(tx, tenantId, planCode),
+    (tx) => changePlanManually(tx, tenantId, planCode),
   );
 }
 

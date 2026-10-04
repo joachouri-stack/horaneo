@@ -42,4 +42,5 @@ export type AppErrorCode =
   | "promo_code_taken"
   | "payments_unavailable"
   | "payment_not_refundable"
-  | "payment_provider_error";
+  | "payment_provider_error"
+  | "subscription_active";

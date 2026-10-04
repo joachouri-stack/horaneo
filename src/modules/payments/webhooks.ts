@@ -66,19 +66,22 @@ async function dispatch(tx: Transaction, event: GatewayEvent, gateway: PaymentGa
   return null;
 }
 
-export async function handleEvent(
+/**
+ * Traite un événement une seule fois : il est enregistré, verrouillé (une seconde
+ * réception simultanée attend), puis marqué comme traité.
+ */
+export async function processEventOnce(
   tx: Transaction,
-  event: GatewayEvent,
-  gateway: PaymentGateway | null,
+  event: Pick<GatewayEvent, "id" | "type" | "account" | "raw">,
+  handler: () => Promise<string | null>,
 ): Promise<EventOutcome> {
   await tx
     .insert(stripeEvents)
     .values({ id: event.id, type: event.type, account: event.account, payload: event.raw as object })
     .onConflictDoNothing();
-  // Verrou sur l'événement : une seconde réception simultanée attend la fin de la première.
   const [row] = await tx.select().from(stripeEvents).where(eq(stripeEvents.id, event.id)).for("update");
   if (row?.processedAt) return { outcome: "duplicate" };
-  const detail = await dispatch(tx, event, gateway);
+  const detail = await handler();
   await tx
     .update(stripeEvents)
     .set({ processedAt: sql`now()`, error: null })
@@ -86,8 +89,20 @@ export async function handleEvent(
   return detail === null ? { outcome: "ignored" } : { outcome: "processed", detail };
 }
 
+export async function handleEvent(
+  tx: Transaction,
+  event: GatewayEvent,
+  gateway: PaymentGateway | null,
+): Promise<EventOutcome> {
+  return processEventOnce(tx, event, () => dispatch(tx, event, gateway));
+}
+
 /** Garde la trace d'un échec (Stripe renverra l'événement plus tard). */
-export async function recordEventError(tx: Transaction, event: GatewayEvent, error: unknown) {
+export async function recordEventError(
+  tx: Transaction,
+  event: Pick<GatewayEvent, "id" | "type" | "account" | "raw">,
+  error: unknown,
+) {
   const message = (error instanceof Error ? error.message : String(error)).slice(0, 1000);
   await tx
     .insert(stripeEvents)

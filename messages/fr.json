@@ -224,7 +224,10 @@
       "home": "Accueil",
       "clients": "Clients",
       "newClient": "Nouveau client",
-      "requests": "Demandes"
+      "requests": "Demandes",
+      "plans": "Packs",
+      "settings": "Réglages",
+      "billing": "Paiements"
     },
     "dashboard": {
       "activeClients": "Clients en ligne",
@@ -237,7 +240,8 @@
       "alerts": "Alertes à traiter",
       "noAlerts": "Rien à signaler.",
       "basicAtLimit": "{name} a atteint ses {count} réservations du mois (pack Basic).",
-      "openRequests": "{count, plural, one {# demande de mise à jour à traiter} other {# demandes de mise à jour à traiter}}"
+      "openRequests": "{count, plural, one {# demande de mise à jour à traiter} other {# demandes de mise à jour à traiter}}",
+      "pastDue": "{count, plural, one {# prélèvement en échec} other {# prélèvements en échec}}"
     },
     "clients": {
       "title": "Clients",
@@ -332,7 +336,9 @@
           "not_started": "Compte non ouvert",
           "incomplete": "Compte ouvert, en attente de validation",
           "active": "Compte actif"
-        }
+        },
+        "subscription": "Abonnement",
+        "subscriptionNone": "Aucun abonnement Stripe (pack attribué à la main)."
       },
       "identity": {
         "title": "Coordonnées",
@@ -488,6 +494,83 @@
         "done": "Faite",
         "rejected": "Refusée"
       }
+    },
+    "plans": {
+      "title": "Packs",
+      "intro": "Prix, limites et fonctions de chaque pack. Un champ de limite vide signifie « illimité » (sauf les SMS : jamais illimités).",
+      "name": "Nom (français)",
+      "price": "Prix mensuel (€)",
+      "priceHint": "Un nouveau prix s'applique aux prochaines souscriptions ; les abonnements en cours gardent leur prix.",
+      "onlineBookingsPerMonth": "Réservations en ligne par mois",
+      "members": "Membres",
+      "photos": "Photos",
+      "services": "Prestations",
+      "smsPerMonth": "SMS de rappel par mois",
+      "unlimitedHint": "Vide = illimité",
+      "features": "Fonctions incluses",
+      "isPublic": "Proposé à la souscription",
+      "stripe": "Prix Stripe : {id}",
+      "noStripe": "Prix Stripe : créé à la première souscription",
+      "featureLabels": {
+        "fullSite": "Site complet personnalisé",
+        "customDomain": "Votre propre nom de domaine",
+        "onlinePayment": "Paiement en ligne et acompte",
+        "promoCodes": "Codes promo",
+        "testimonials": "Témoignages",
+        "stats": "Statistiques détaillées",
+        "monthlySummary": "Bilan mensuel",
+        "emailSupport": "Assistance par e-mail",
+        "whatsappSupport": "Assistance prioritaire par WhatsApp",
+        "brandingFooter": "Signature du SaaS en bas du site"
+      }
+    },
+    "settings": {
+      "title": "Réglages",
+      "pricing": "Prix et engagement",
+      "prices_display": "Affichage des prix",
+      "vat_rate_percent": "Taux de TVA (%)",
+      "vatHint": "À valider avec votre comptable. Appliqué aux factures des abonnements.",
+      "commitment_months": "Engagement (mois, 0 = sans engagement)",
+      "setup_fee": "Frais de création (€, 0 = offerts)",
+      "go_live_delay_days": "Délai de mise en ligne annoncé (jours ouvrés)",
+      "payments": "Paiements et données",
+      "deposit_commission_percent": "Commission sur les acomptes (%)",
+      "retention_days_after_cancel": "Site en ligne après la fin de l'abonnement (jours)",
+      "replaced_asset_retention_days": "Conservation des photos remplacées (jours)",
+      "messages": "Messages automatiques",
+      "sms_reminder_time": "Heure du rappel SMS (la veille)",
+      "email_reminder_hours_before": "Rappel par e-mail (heures avant)",
+      "daily_summary_time": "Heure du résumé du lendemain",
+      "monthly_summary_time": "Heure du bilan mensuel (le 1er)",
+      "legal": "Mentions légales",
+      "legal_infrastructure": "Hébergeur (affiché dans les mentions légales des sites)"
+    },
+    "billing": {
+      "title": "Paiements des abonnements",
+      "revenue": "Revenu mensuel réel",
+      "paying": "Abonnements payants",
+      "pastDue": "Prélèvements en échec",
+      "empty": "Aucun abonnement pour le moment.",
+      "client": "Client",
+      "plan": "Pack",
+      "status": "État",
+      "next": "Prochaine échéance",
+      "failedOn": "Échec le {date}",
+      "scheduled": "Passera au pack {name}",
+      "cancelAt": "Fin le {date}",
+      "commitment": "Engagé jusqu'au {date}",
+      "statuses": {
+        "active": "Actif",
+        "trialing": "Essai",
+        "past_due": "Impayé (nouvelles tentatives)",
+        "canceled": "Terminé",
+        "unpaid": "Impayé",
+        "incomplete": "Paiement en cours",
+        "incomplete_expired": "Paiement abandonné",
+        "none": "Pas encore souscrit",
+        "paused": "En pause"
+      },
+      "openClient": "Fiche"
     }
   },
   "errors": {
@@ -521,7 +604,8 @@
     "promo_code_taken": "Ce code existe déjà.",
     "payments_unavailable": "Le paiement en ligne n'est pas disponible pour le moment.",
     "payment_not_refundable": "Il n'y a pas d'acompte à rembourser.",
-    "payment_provider_error": "Le service de paiement ne répond pas. Merci de réessayer dans un instant."
+    "payment_provider_error": "Le service de paiement ne répond pas. Merci de réessayer dans un instant.",
+    "subscription_active": "Ce client a un abonnement Stripe en cours : changez son pack depuis son espace (« Voir comme le client »)."
   },
   "status": {
     "draft": "En création",
@@ -894,7 +978,61 @@
       "sms": "SMS de rappel",
       "unlimited": "illimité",
       "of": "{used} sur {limit}",
-      "change": "Pour changer de pack, contactez-nous : le changement en ligne arrive bientôt."
+      "status": {
+        "nextPayment": "Prochain prélèvement le {date} : {amount}",
+        "commitment": "Engagement jusqu'au {date}",
+        "scheduled": "Passage au pack {name} le {date}.",
+        "cancelAt": "Votre pack payant se termine le {date}. Votre site passera ensuite au pack gratuit.",
+        "keep": "Garder mon pack actuel",
+        "free": "Pack gratuit, sans prélèvement."
+      },
+      "pastDue": "Votre dernier prélèvement n'a pas abouti. Mettez à jour votre carte pour garder votre pack.",
+      "pastDueBanner": "Prélèvement refusé : mettez à jour votre carte.",
+      "portal": "Ma carte et mes factures",
+      "choose": "Changer de pack",
+      "current": "Votre pack actuel",
+      "perMonth": "{amount} / mois {display}",
+      "free": "Gratuit",
+      "upgrade": "Passer à ce pack",
+      "upgradeHint": "Immédiat : la différence est prélevée au prorata des jours restants.",
+      "upgradeConfirm": "Passer à ce pack maintenant ? La différence sera prélevée tout de suite, au prorata.",
+      "downgrade": "Choisir ce pack",
+      "downgradeHint": "À partir du {date}, à la fin de la période déjà payée.",
+      "toFree": "Passer au pack gratuit",
+      "toFreeHint": "Votre pack payant continue jusqu'au {date}, puis votre site devient une fiche gratuite d'une page. Rien n'est supprimé.",
+      "toFreeConfirm": "Passer au pack gratuit le {date} ?",
+      "subscribe": "Choisir ce pack",
+      "subscribeHint": "Paiement par carte sur la page sécurisée de Stripe.",
+      "setupFee": "Frais de création : {amount} (une seule fois).",
+      "commitmentInfo": "Engagement de {months} mois.",
+      "unavailable": "Le changement de pack en ligne n'est pas encore disponible. Contactez-nous.",
+      "returnOk": "Merci ! Votre paiement est enregistré : votre nouveau pack s'active dans quelques instants.",
+      "returnCancel": "Paiement annulé : votre pack n'a pas changé.",
+      "result": {
+        "upgraded": "C'est fait : votre nouveau pack est actif.",
+        "downgrade_scheduled": "C'est noté : le changement se fera à la fin de la période en cours.",
+        "cancel_scheduled": "C'est noté : votre pack payant se terminera à la date indiquée.",
+        "kept": "Votre pack actuel est conservé."
+      },
+      "limits": {
+        "members": "{count, plural, =-1 {Membres illimités} one {# membre} other {# membres}}",
+        "photos": "{count, plural, =-1 {Photos illimitées} one {# photo} other {# photos}}",
+        "services": "{count, plural, =-1 {Prestations illimitées} one {# prestation} other {# prestations}}",
+        "onlineBookingsPerMonth": "{count, plural, =-1 {Réservations illimitées} one {# réservation en ligne par mois} other {# réservations en ligne par mois}}",
+        "smsPerMonth": "{count, plural, =0 {Rappels par e-mail uniquement} one {# SMS de rappel par mois} other {# SMS de rappel par mois}}"
+      },
+      "features": {
+        "fullSite": "Site complet personnalisé",
+        "customDomain": "Votre propre nom de domaine",
+        "onlinePayment": "Paiement en ligne et acompte",
+        "promoCodes": "Codes promo",
+        "testimonials": "Témoignages",
+        "stats": "Statistiques détaillées",
+        "monthlySummary": "Bilan mensuel",
+        "emailSupport": "Assistance par e-mail",
+        "whatsappSupport": "Assistance prioritaire par WhatsApp"
+      },
+      "overLimit": "Au-delà de votre pack : rien n'est supprimé, mais vous ne pouvez plus en ajouter."
     },
     "settings": {
       "title": "Réglages",
@@ -1098,6 +1236,21 @@
         "reached": "Vous avez atteint les {limit} réservations en ligne de votre pack ce mois-ci. Jusqu'à la fin du mois, votre site affiche votre numéro de téléphone à la place des créneaux.",
         "upgrade": "Pour recevoir des réservations sans limite, vous pouvez changer de pack.",
         "open": "Voir mon abonnement"
+      },
+      "payment_failed": {
+        "subject": "Votre prélèvement n'a pas abouti",
+        "title": "Prélèvement refusé",
+        "intro": "Le prélèvement de votre abonnement n'a pas pu être effectué. Une nouvelle tentative sera faite automatiquement dans les prochains jours.",
+        "action": "Mettez à jour votre carte pour éviter le retour au pack gratuit.",
+        "open": "Mettre à jour ma carte"
+      },
+      "subscription_ended": {
+        "subject": "Votre site est passé au pack gratuit",
+        "title": "Retour au pack gratuit",
+        "requested": "Comme demandé, votre abonnement payant est terminé. Votre site est désormais une fiche gratuite d'une page.",
+        "unpaid": "Les prélèvements de votre abonnement n'ont pas abouti malgré plusieurs tentatives. Votre site est passé au pack gratuit : rien n'est supprimé.",
+        "back": "Vous pouvez reprendre un pack payant à tout moment depuis votre espace.",
+        "open": "Voir les packs"
       }
     }
   }

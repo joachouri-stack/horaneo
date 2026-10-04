@@ -92,7 +92,10 @@ export const refunds = pgTable(
   ],
 );
 
-/** Abonnement du professionnel au SaaS (Stripe Billing). */
+/**
+ * Abonnement du professionnel au SaaS (Stripe Billing) : une ligne par
+ * établissement, mise à jour au fil des événements Stripe.
+ */
 export const subscriptions = pgTable(
   "subscriptions",
   {
@@ -105,16 +108,24 @@ export const subscriptions = pgTable(
       .references(() => plans.id, { onDelete: "restrict" }),
     stripeCustomerId: text(),
     stripeSubscriptionId: text(),
-    /** Statut Stripe : active, past_due, canceled, unpaid, trialing… */
+    /** Statut Stripe : active, past_due, canceled, unpaid, incomplete… (« none » avant la première souscription). */
     status: text().notNull(),
     currentPeriodEnd: utc(),
+    /** Fin programmée de l'abonnement payant (passage au Basic). */
     cancelAt: utc(),
+    cancelRequestedAt: utc(),
     commitmentEndsAt: utc(),
+    /** Pack inférieur choisi, appliqué à la fin de la période en cours. */
+    scheduledPlanId: uuid().references(() => plans.id, { onDelete: "set null" }),
+    /** Dernier échec de prélèvement (effacé quand un paiement réussit). */
+    paymentFailedAt: utc(),
+    lastPaymentError: text(),
     ...timestamps(),
   },
   (t) => [
     uniqueIndex("subscriptions_stripe_subscription_key").on(t.stripeSubscriptionId),
-    index("subscriptions_tenant_idx").on(t.tenantId),
+    uniqueIndex("subscriptions_tenant_key").on(t.tenantId),
+    uniqueIndex("subscriptions_stripe_customer_key").on(t.stripeCustomerId),
   ],
 );
 

@@ -10,6 +10,8 @@ import type { ActionResult } from "@/lib/actions/result";
 import { form } from "@/lib/admin/mutation";
 import { managerMutation, managerPlatformAction, managerQuery } from "@/lib/manager/access";
 import { paymentGateway } from "@/lib/payments/stripe";
+import { billingGateway } from "@/lib/payments/stripe-billing";
+import { openBillingPortal, requestPlanChange } from "@/modules/billing/subscriptions";
 import { storage } from "@/lib/storage";
 import {
   cancelByManager,
@@ -463,4 +465,49 @@ export async function savePromoCodeAction(_previous: Previous, data: FormData) {
 export async function deletePromoCodeAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   return managerMutation(tenantId, "promo.deleted", (tx) => deletePromoCode(tx, tenantId, idOf(data)!));
+}
+
+// ─── Abonnement ──────────────────────────────────────────────────────────────
+
+function subscriptionPage(locale: string, tenantId: string) {
+  return `${publicAppUrl()}/${locale}/espace/${tenantId}/plus/abonnement`;
+}
+
+/** Changement de pack : page de paiement Stripe depuis le Basic, sinon changement direct. */
+export async function changeSubscriptionAction(data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const planId = uuid.parse(form.text(data, "planId"));
+  const locale = resolveLocale(await getLocale());
+  const page = subscriptionPage(locale, tenantId);
+  let target: string;
+  try {
+    const result = await managerPlatformAction(tenantId, "subscription.change", (tx) =>
+      requestPlanChange(tx, tenantId, planId, billingGateway(), {
+        successUrl: `${page}?retour=ok`,
+        cancelUrl: `${page}?retour=annule`,
+      }),
+    );
+    target = result.kind === "redirect" ? result.url : `${page}?resultat=${result.kind}`;
+  } catch (error) {
+    if (!(error instanceof AppError)) throw error;
+    target = `${page}?erreur=${error.code}`;
+  }
+  redirectTo(target);
+}
+
+/** Portail Stripe : carte bancaire et factures. */
+export async function openBillingPortalAction(data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const locale = resolveLocale(await getLocale());
+  const page = subscriptionPage(locale, tenantId);
+  let target: string;
+  try {
+    target = await managerPlatformAction(tenantId, "subscription.portal", (tx) =>
+      openBillingPortal(tx, tenantId, billingGateway(), page),
+    );
+  } catch (error) {
+    if (!(error instanceof AppError)) throw error;
+    target = `${page}?erreur=${error.code}`;
+  }
+  redirectTo(target);
 }

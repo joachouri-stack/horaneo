@@ -8,6 +8,9 @@ const ITEMS = [
   { href: "/admin/clients", key: "clients", exact: false },
   { href: "/admin/clients/nouveau", key: "newClient", exact: true },
   { href: "/admin/demandes", key: "requests", exact: false },
+  { href: "/admin/paiements", key: "billing", exact: false },
+  { href: "/admin/packs", key: "plans", exact: false },
+  { href: "/admin/reglages", key: "settings", exact: false },
 ] as const;
 
 /** Navigation principale de l'espace admin. */

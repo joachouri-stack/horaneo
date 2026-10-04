@@ -8,6 +8,7 @@ import { resolveLocale } from "@/i18n/translator";
 import { adminQuery } from "@/lib/admin/mutation";
 import { loadTenantOverview } from "@/lib/admin/tenant";
 import { formatDate, formatDateTime } from "@/lib/format";
+import { getSubscription } from "@/modules/billing/subscriptions";
 import { connectState } from "@/modules/payments/connect";
 import { formatPhone } from "@/modules/phone";
 import { listPlans } from "@/modules/tenants/queries";
@@ -26,6 +27,10 @@ export default async function TenantOverviewPage({
     getTranslations("status"),
     loadTenantOverview(tenantId),
     adminQuery((tx) => listPlans(tx)),
+  ]);
+  const [subscription, tBilling] = await Promise.all([
+    adminQuery((tx) => getSubscription(tx, tenantId)),
+    getTranslations("admin.billing"),
   ]);
   const { tenant, plan, domains, managers, usage, counts } = overview;
   const limits = plan.limits;
@@ -93,6 +98,29 @@ export default async function TenantOverviewPage({
               hint={t("changePlanHint")}
             />
           </ActionForm>
+          <div className="mt-4 border-t border-navy/10 pt-4 text-sm">
+            <p className="font-semibold">{t("subscription")}</p>
+            {subscription?.stripeSubscriptionId ? (
+              <p className="text-ink/80">
+                {tBilling.has(`statuses.${subscription.status}` as "statuses.active")
+                  ? tBilling(`statuses.${subscription.status}` as "statuses.active")
+                  : subscription.status}
+                {subscription.currentPeriodEnd &&
+                  ` · ${tBilling("next")} : ${formatDate(subscription.currentPeriodEnd, locale)}`}
+                {subscription.commitmentEndsAt &&
+                  ` · ${tBilling("commitment", { date: formatDate(subscription.commitmentEndsAt, locale) })}`}
+                {subscription.cancelAt &&
+                  ` · ${tBilling("cancelAt", { date: formatDate(subscription.cancelAt, locale) })}`}
+              </p>
+            ) : (
+              <p className="text-ink/70">{t("subscriptionNone")}</p>
+            )}
+            {subscription?.paymentFailedAt && (
+              <p className="font-semibold text-coral-dark">
+                {tBilling("failedOn", { date: formatDate(subscription.paymentFailedAt, locale) })}
+              </p>
+            )}
+          </div>
         </Section>
 
         <Section title={t("usage")}>

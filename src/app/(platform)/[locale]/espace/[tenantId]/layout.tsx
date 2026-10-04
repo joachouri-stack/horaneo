@@ -4,7 +4,9 @@ import { AppHeader } from "@/components/layout/AppHeader";
 import { ManagerTabs } from "@/components/manager/ManagerTabs";
 import { Link } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/translator";
+import { withTenant } from "@/db/access";
 import { managedTenantIds, requireManager } from "@/lib/manager/access";
+import { getSubscription } from "@/modules/billing/subscriptions";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
@@ -19,6 +21,7 @@ export default async function ManagerLayout({
   const { tenant, role, userId } = await requireManager(locale, tenantId);
   const t = await getTranslations("manager");
   const several = role === "owner" && (await managedTenantIds(userId)).length > 1;
+  const subscription = await withTenant(tenantId, (tx) => getSubscription(tx, tenantId));
 
   return (
     <>
@@ -28,6 +31,14 @@ export default async function ManagerLayout({
           {t("impersonating", { name: tenant.name })}{" "}
           <Link href={`/admin/clients/${tenantId}`} className="font-semibold underline">
             {t("backToAdmin")}
+          </Link>
+        </div>
+      )}
+      {subscription?.paymentFailedAt && (
+        <div role="alert" className="bg-coral-dark px-4 py-2 text-center text-sm font-semibold text-white">
+          {t("subscription.pastDueBanner")}{" "}
+          <Link href={`/espace/${tenantId}/plus/abonnement`} className="underline">
+            {t("subscription.portal")}
           </Link>
         </div>
       )}

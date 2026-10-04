@@ -24,6 +24,8 @@ export const MESSAGE_TEMPLATES = [
   "manager.daily_summary",
   "manager.monthly_summary",
   "manager.basic_quota",
+  "manager.payment_failed",
+  "manager.subscription_ended",
 ] as const;
 
 export type MessageTemplate = (typeof MESSAGE_TEMPLATES)[number];

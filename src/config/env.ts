@@ -73,6 +73,8 @@ const envSchema = z.object({
   STRIPE_PUBLISHABLE_KEY: z.string().startsWith("pk_").optional(),
   /** Secret du point de réception « Connect » (événements des comptes des professionnels). */
   STRIPE_CONNECT_WEBHOOK_SECRET: z.string().startsWith("whsec_").optional(),
+  /** Secret du point de réception des abonnements (événements du compte de la plateforme). */
+  STRIPE_BILLING_WEBHOOK_SECRET: z.string().startsWith("whsec_").optional(),
 
   // Tâche planifiée : secret attendu par /api/cron/tick (32 caractères minimum).
   CRON_SECRET: z.string().min(32).optional(),

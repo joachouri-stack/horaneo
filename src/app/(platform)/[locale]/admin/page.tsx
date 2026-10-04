@@ -7,6 +7,7 @@ import { resolveLocale } from "@/i18n/translator";
 import { adminQuery } from "@/lib/admin/mutation";
 import { requireAdmin } from "@/lib/auth/session";
 import { formatMoney } from "@/lib/format";
+import { liveRevenue } from "@/modules/billing/admin";
 import { getDashboardStats } from "@/modules/tenants/queries";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/admin">): Promise<Metadata> {
@@ -28,7 +29,11 @@ export default async function AdminHomePage({ params }: PageProps<"/[locale]/adm
   const locale = resolveLocale((await params).locale);
   setRequestLocale(locale);
   await requireAdmin(locale);
-  const [t, stats] = await Promise.all([getTranslations("admin"), adminQuery((tx) => getDashboardStats(tx))]);
+  const [t, stats, revenue] = await Promise.all([
+    getTranslations("admin"),
+    adminQuery((tx) => getDashboardStats(tx)),
+    adminQuery((tx) => liveRevenue(tx)),
+  ]);
 
   return (
     <main id="contenu" className="mx-auto max-w-6xl space-y-6 px-4 py-8">
@@ -37,7 +42,7 @@ export default async function AdminHomePage({ params }: PageProps<"/[locale]/adm
         <Stat label={t("dashboard.activeClients")} value={stats.activeClients} />
         <Stat
           label={t("dashboard.monthlyRevenue")}
-          value={formatMoney(stats.monthlyRevenueCents, "EUR", locale)}
+          value={formatMoney(revenue.monthlyRevenueCents, "EUR", locale)}
         />
         <Stat label={t("dashboard.newThisMonth")} value={stats.newThisMonth} />
         <Stat label={t("dashboard.cancelledThisMonth")} value={stats.cancelledThisMonth} />
@@ -64,6 +69,13 @@ export default async function AdminHomePage({ params }: PageProps<"/[locale]/adm
         <section className={ui.card}>
           <h2 className="text-xl font-bold">{t("dashboard.alerts")}</h2>
           <ul className="mt-4 space-y-3">
+            {revenue.pastDue > 0 && (
+              <li>
+                <Link href="/admin/paiements" className="font-semibold text-coral-dark underline">
+                  {t("dashboard.pastDue", { count: revenue.pastDue })}
+                </Link>
+              </li>
+            )}
             {stats.drafts > 0 && (
               <li>
                 <Link
@@ -88,9 +100,10 @@ export default async function AdminHomePage({ params }: PageProps<"/[locale]/adm
                 </Link>
               </li>
             ))}
-            {stats.drafts === 0 && stats.openRequests === 0 && stats.basicAtLimit.length === 0 && (
-              <li className="text-ink/70">{t("dashboard.noAlerts")}</li>
-            )}
+            {revenue.pastDue === 0 &&
+              stats.drafts === 0 &&
+              stats.openRequests === 0 &&
+              stats.basicAtLimit.length === 0 && <li className="text-ink/70">{t("dashboard.noAlerts")}</li>}
           </ul>
         </section>
       </div>

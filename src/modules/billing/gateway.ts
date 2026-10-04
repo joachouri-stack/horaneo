@@ -1,0 +1,53 @@
+/**
+ * Ce dont les abonnements ont besoin chez Stripe Billing (compte de la plateforme).
+ * Implémentation réelle : `src/lib/payments/stripe-billing.ts` ; les tests utilisent une fausse.
+ */
+
+export type BillingSubscription = {
+  id: string;
+  customerId: string;
+  status: string;
+  /** Prix en cours et pack correspondant (renseigné dans les informations du prix). */
+  priceId: string | null;
+  planId: string | null;
+  currentPeriodStart: Date | null;
+  currentPeriodEnd: Date | null;
+  cancelAt: Date | null;
+  /** Pack programmé à la fin de la période (changement vers un pack inférieur). */
+  scheduleId: string | null;
+  metadata: Record<string, string>;
+};
+
+export interface BillingGateway {
+  createProduct(input: { name: string; metadata: Record<string, string> }): Promise<{ id: string }>;
+  createPrice(input: {
+    productId: string;
+    amountCents: number;
+    currency: string;
+    interval: "month" | "year";
+    taxInclusive: boolean;
+    metadata: Record<string, string>;
+  }): Promise<{ id: string }>;
+  createTaxRate(input: { percent: number; inclusive: boolean; name: string }): Promise<{ id: string }>;
+  createCustomer(input: { email: string | null; name: string; metadata: Record<string, string> }): Promise<{
+    id: string;
+  }>;
+  createCheckout(input: {
+    customerId: string;
+    priceId: string;
+    setupFee: { amountCents: number; currency: string; label: string } | null;
+    taxRateId: string | null;
+    successUrl: string;
+    cancelUrl: string;
+    metadata: Record<string, string>;
+  }): Promise<{ id: string; url: string }>;
+  retrieveSubscription(subscriptionId: string): Promise<BillingSubscription>;
+  /** Pack supérieur : changement immédiat, différence facturée au prorata tout de suite. */
+  changePriceNow(input: { subscriptionId: string; priceId: string }): Promise<BillingSubscription>;
+  /** Pack inférieur : appliqué à la fin de la période en cours. */
+  schedulePriceChange(input: { subscriptionId: string; priceId: string }): Promise<{ scheduleId: string }>;
+  releaseSchedule(scheduleId: string): Promise<void>;
+  /** Fin programmée de l'abonnement (null : annule la fin programmée). */
+  setCancelAt(input: { subscriptionId: string; at: Date | null }): Promise<BillingSubscription>;
+  createPortal(input: { customerId: string; returnUrl: string }): Promise<{ url: string }>;
+}

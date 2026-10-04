@@ -100,8 +100,8 @@ export async function queueSmsReminders(tx: Transaction, now: Date) {
           eq(appointments.status, "confirmed"),
           gte(appointments.startsAt, localToUtc(tomorrow, "00:00", tenant.timezone)),
           lt(appointments.startsAt, localToUtc(addDays(tomorrow, 1), "00:00", tenant.timezone)),
-          // Pris après l'heure du rappel : la cliente vient de recevoir sa confirmation.
-          lt(appointments.createdAt, localToUtc(local.date, time, tenant.timezone)),
+          // Pris moins de 24 h avant : pas de rappel (décision n° 6), la confirmation vient d'arriver.
+          lte(appointments.createdAt, sql`${appointments.startsAt} - interval '24 hours'`),
         ),
       );
     for (const row of rows) {

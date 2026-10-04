@@ -3,7 +3,7 @@
 SaaS multi-tenant : chaque professionnel travaillant sur rendez-vous reçoit son propre site web, avec réservation et paiement d'acompte en ligne.
 
 - Brief et décisions : [`docs/01-base-de-donnees.md`](docs/01-base-de-donnees.md)
-- Avancement : étape 9 sur 14 (messages automatiques : e-mails, SMS, tâche planifiée)
+- Avancement : étape 10 sur 14 (packs, limites et abonnements Stripe Billing)
 
 ## Technologies
 
@@ -286,6 +286,27 @@ Toutes les 5 minutes, `/api/cron/tick` (protégé par `CRON_SECRET`) :
 - supprime définitivement les photos remplacées depuis plus de 7 jours.
 
 Chaque étape peut être rejouée sans risque. En local : `pnpm jobs:tick` (le serveur doit tourner).
+
+## Packs et abonnements (Stripe Billing)
+
+Les packs (prix, limites, fonctions) et les réglages commerciaux se modifient dans l'admin : **Admin → Packs** et **Admin → Réglages** (prix HT ou TTC, TVA, engagement, frais de création, délais, heures des messages). Rien n'est écrit dans le code. Une limite vide signifie « illimité », sauf pour les SMS (jamais illimités).
+
+| Situation           | Ce qui se passe                                                                                                                         |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Basic → pack payant | La gérante choisit son pack (Plus → Abonnement) et paie sur la page sécurisée de Stripe. Le pack s'active dès que Stripe confirme.      |
+| Pack supérieur      | Immédiat ; la différence est prélevée au prorata des jours restants.                                                                    |
+| Pack inférieur      | À la fin de la période déjà payée. Elle peut revenir sur son choix d'ici là.                                                            |
+| Passage au Basic    | À la fin de la période, et au plus tôt à la fin de l'engagement (12 mois, réglable) : les prélèvements continuent jusque-là. Annulable. |
+| Prélèvement refusé  | La gérante est prévenue par e-mail et par un bandeau dans son espace ; Stripe réessaie pendant environ 2 semaines.                      |
+| Impayé définitif    | Retour automatique au pack Basic ; rien n'est supprimé, elle peut reprendre un pack payant à tout moment.                               |
+
+- **Carte et factures** : bouton « Ma carte et mes factures », qui ouvre le portail Stripe.
+- **Prix Stripe** : créés automatiquement (un produit par pack, un prix par tarif). Un nouveau tarif s'applique aux prochaines souscriptions ; les abonnements en cours gardent leur prix.
+- **TVA** : taux réglable (20 % par défaut), compris dans le prix si l'affichage est TTC. **À valider avec votre comptable.**
+- **Dépassement après un changement de pack** (ex. 3 membres sur un pack qui en permet 1) : rien n'est supprimé, mais aucun ajout n'est possible ; la page Abonnement le signale.
+- **Admin → Paiements** : revenu mensuel réel, abonnements, échéances, prélèvements en échec. L'accueil admin signale les impayés et les clients Basic à 5 réservations.
+- L'administratrice ne peut pas changer à la main le pack d'un client qui a un abonnement Stripe en cours (pour ne jamais désynchroniser les deux) : elle passe par « Voir comme le client ».
+- Événements Stripe des abonnements : point de réception `/api/stripe/billing` (voir `.env.example` pour les événements et les réglages Stripe à faire).
 
 ## Autres garde-fous de la base de données
 

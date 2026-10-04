@@ -263,3 +263,12 @@ Je préfère vous les signaler plutôt que deviner. Pour chacun, une proposition
 - **Résumé du lendemain** : envoyé vers 19 h seulement s'il y a au moins un rendez-vous.
 - **E-mails aux gérantes** : au nom du SaaS ; ceux aux clientes, au nom de l'établissement.
 - **Tâche planifiée** : tâche Coolify toutes les 5 minutes qui appelle une adresse protégée par un secret (pas de service supplémentaire).
+
+## 9. Décisions de l'étape 10 (abonnements)
+
+- **Impayé définitif** (validé) : retour automatique au pack Basic, rien n'est supprimé.
+- **Changement de pack par la gérante** (validé) : pack supérieur immédiat au prorata, pack inférieur à la fin de la période, passage au Basic = fin du pack payant.
+- **Engagement** (validé) : une demande de passage au Basic prend effet à la fin de l'engagement ; les prélèvements continuent jusque-là.
+- **`subscriptions`** (migration 0010) : une ligne par établissement ; ajout de `scheduled_plan_id` (pack inférieur programmé), `cancel_requested_at`, `payment_failed_at`, `last_payment_error`. **`plans.stripe_product_id`** : produit Stripe du pack.
+- **Prix Stripe** : un nouveau tarif ne change pas les abonnements en cours (ils gardent leur prix).
+- **Rappel SMS** : corrigé pour respecter la décision n° 6 (pas de rappel si le rendez-vous est pris moins de 24 h avant).
