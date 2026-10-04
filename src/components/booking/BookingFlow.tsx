@@ -200,12 +200,12 @@ export function BookingFlow(props: Props) {
     const pendingPayment = confirmation.status === "pending_payment";
     const manageUrl = `${props.managePath}/${confirmation.manageToken}`;
     return (
-      <section aria-labelledby="titre-etape" className="rounded-site bg-site-surface p-6 sm:p-8">
+      <section aria-labelledby="titre-etape" className="rounded-site bg-site-panel p-6 sm:p-8">
         <h2
           id="titre-etape"
           ref={headingRef}
           tabIndex={-1}
-          className="scroll-mt-28 font-site-display text-3xl font-semibold text-site-accent"
+          className="scroll-mt-28 font-site-display text-3xl font-semibold text-site-heading"
         >
           {pendingPayment ? t("confirmation.pendingTitle") : t("confirmation.title")}
         </h2>
@@ -329,7 +329,7 @@ export function BookingFlow(props: Props) {
             id="titre-etape"
             ref={headingRef}
             tabIndex={-1}
-            className="scroll-mt-28 font-site-display text-3xl font-semibold text-site-accent"
+            className="scroll-mt-28 font-site-display text-3xl font-semibold text-site-heading"
           >
             {props.maxServices > 1
               ? t("services.chooseMany", { max: props.maxServices })
@@ -412,7 +412,7 @@ export function BookingFlow(props: Props) {
             id="titre-etape"
             ref={headingRef}
             tabIndex={-1}
-            className="scroll-mt-28 font-site-display text-3xl font-semibold text-site-accent"
+            className="scroll-mt-28 font-site-display text-3xl font-semibold text-site-heading"
           >
             {t("steps.slot")}
           </h2>
@@ -456,11 +456,11 @@ export function BookingFlow(props: Props) {
             id="titre-etape"
             ref={headingRef}
             tabIndex={-1}
-            className="scroll-mt-28 font-site-display text-3xl font-semibold text-site-accent"
+            className="scroll-mt-28 font-site-display text-3xl font-semibold text-site-heading"
           >
             {t("details.title")}
           </h2>
-          <div className="rounded-site bg-site-surface p-4">
+          <div className="rounded-site bg-site-panel p-4">
             <h3 className="font-semibold">{t("details.summary")}</h3>
             <p className="mt-1">
               {t("slot.chosen", {

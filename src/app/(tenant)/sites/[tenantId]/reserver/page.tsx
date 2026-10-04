@@ -70,7 +70,7 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
         </ol>
         <form action={SITE_PATHS.booking} className="mt-6 space-y-4">
           <fieldset className="space-y-3">
-            <legend className="mb-4 font-site-display text-3xl font-semibold text-site-accent">
+            <legend className="mb-4 font-site-display text-3xl font-semibold text-site-heading">
               {t("business.title")}
             </legend>
             {site.businesses.map((item, index) => {
@@ -171,7 +171,7 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
 
   return (
     <main id="contenu" className="mx-auto max-w-3xl px-4 py-10">
-      <h1 className={multi ? "sr-only" : "mb-6 font-site-display text-4xl font-semibold text-site-accent"}>
+      <h1 className={multi ? "sr-only" : "mb-6 font-site-display text-4xl font-semibold text-site-heading"}>
         {t("title")}
       </h1>
       <BookingFlow

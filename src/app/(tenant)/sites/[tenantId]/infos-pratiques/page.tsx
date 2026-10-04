@@ -31,13 +31,13 @@ export default async function PracticalPage({ params }: PageProps<"/sites/[tenan
     <main id="contenu" className="mx-auto max-w-6xl px-4 py-12">
       <PageTitle title={t("title")} />
       <div className="grid gap-8 md:grid-cols-2">
-        <section aria-labelledby="horaires" className="rounded-site bg-site-surface p-6">
-          <h2 id="horaires" className="mb-4 font-site-display text-2xl font-semibold text-site-accent">
+        <section aria-labelledby="horaires" className="rounded-site bg-site-panel p-6">
+          <h2 id="horaires" className="mb-4 font-site-display text-2xl font-semibold text-site-heading">
             {t("hours")}
           </h2>
           <OpeningHoursTable site={site} />
         </section>
-        <section className="space-y-6 rounded-site bg-site-surface p-6">
+        <section className="space-y-6 rounded-site bg-site-panel p-6">
           <AddressBlock site={site} showMap />
           {access && (
             <div>

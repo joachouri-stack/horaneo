@@ -73,6 +73,9 @@ export default async function TenantLayout({ children, params }: LayoutProps<"/s
     ...themeCssVariables(theme),
     "--site-font-display": theme.displayFont === "organic" ? "var(--font-fraunces)" : "var(--font-cormorant)",
     "--site-font-body": atelier ? "var(--font-jost)" : "var(--font-inter)",
+    // Atelier : titres bruns et blocs blancs ; sinon titres à la couleur principale et blocs teintés.
+    "--site-heading": atelier ? "var(--site-text)" : "var(--site-accent)",
+    "--site-panel": atelier ? "var(--site-card)" : "var(--site-surface)",
   } as React.CSSProperties;
   const Header = atelier ? AtelierHeader : SiteHeader;
   const Footer = atelier ? AtelierFooter : SiteFooter;

@@ -152,7 +152,9 @@ Tests : `tests/db/businesses.test.ts`.
   - Accueil : accroche avec fin en italique, chiffres clés, bandeau des soins, cartes des catégories (pictogramme, « dès … », filtre par professionnelle, catégories « Spécialité » en grand), les professionnelles, l'institut, les avis, horaires et adresse.
   - Page de chaque professionnelle : `/avec/<adresse>` (présentation, ses soins par catégorie, « Réserver avec … »).
   - Réservation : « Avec qui ? » (étape 1), soin, créneau, coordonnées, acompte « versé directement à … », puis « C'est confirmé » avec « Ajouter à mon agenda ».
-  - Pied de page brun, nom en filigrane, réseaux sociaux, crédit facultatif. Aucune marque du SaaS sur un site payant.
+  - Pied de page brun, nom en filigrane, réseaux sociaux, crédit facultatif, horaires résumés (« Lundi au vendredi », « Jeudi dès 9 h 30 »). Aucune marque du SaaS sur un site payant.
+  - Pages L'institut, Prestations (par professionnelle), Infos pratiques au même style ; menu avec la page en cours soulignée ; apparition douce des sections au défilement (désactivée si la personne demande moins d'animations).
+- Page « Conditions d'annulation » (`/conditions-annulation`, tous modèles) : délai et acompte lus dans les réglages de chaque entreprise.
 - Tout se saisit dans l'admin : Entreprises → « Sa page sur le site » ; Prestations → pictogramme et « Spécialité » de chaque catégorie ; Textes → accroche, étiquette, chiffres clés, crédit ; Coordonnées → réseaux sociaux.
 
 ## Connexion et rôles

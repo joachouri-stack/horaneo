@@ -311,3 +311,8 @@ export function visibleSections(site: NonNullable<SiteData>) {
     practical: true,
   };
 }
+
+/** Site au modèle Atelier (une page par professionnelle) : réservé au site complet. */
+export function isAtelier(site: NonNullable<SiteData>) {
+  return site.tenant.templateKey === "atelier" && site.features.fullSite;
+}

@@ -1,15 +1,13 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { ArrowIcon, ClockIcon, PhoneIcon } from "@/components/site/atelier/icons";
+import { ClockIcon, PhoneIcon } from "@/components/site/atelier/icons";
 import { OpenFromHash } from "@/components/site/atelier/OpenFromHash";
+import { ServiceAccordion } from "@/components/site/atelier/ServiceAccordion";
 import { PillLink, Tag } from "@/components/site/atelier/ui";
 import { SiteImage } from "@/components/site/SiteImage";
 import { getSite } from "@/lib/site/load";
-import { formatMoney } from "@/lib/format";
 import { formatPhone } from "@/modules/phone";
-import { formatDuration } from "@/modules/site/format";
 import { businessPath, SITE_PATHS } from "@/modules/site/paths";
 
 async function load(params: PageProps<"/sites/[tenantId]/avec/[slug]">["params"]) {
@@ -37,22 +35,6 @@ export async function generateMetadata({
 export default async function BusinessPage({ params }: PageProps<"/sites/[tenantId]/avec/[slug]">) {
   const { site, business, index } = await load(params);
   const t = await getTranslations("site.atelier");
-  const tServices = await getTranslations("site.services");
-  const categories = site.categories.filter((category) => category.businessId === business.id);
-  const loose = site.uncategorized.filter((service) => service.businessId === business.id);
-  const groups = [
-    ...categories.map((category) => ({
-      id: category.slug,
-      name: category.name,
-      featured: category.isFeatured,
-      services: category.services,
-    })),
-    ...(loose.length > 0
-      ? [{ id: "autres", name: tServices("other"), featured: false, services: loose }]
-      : []),
-  ];
-  const duration = (minutes: number) =>
-    formatDuration((key, values) => tServices(key as "durationMinutes", values), minutes);
   const bookHref = `${SITE_PATHS.booking}?avec=${business.id}`;
   const cardFirst = index % 2 === 0;
 
@@ -108,66 +90,7 @@ export default async function BusinessPage({ params }: PageProps<"/sites/[tenant
           className={`mt-10 grid items-start gap-6 lg:gap-8 ${cardFirst ? "lg:grid-cols-[0.8fr_1.2fr]" : "lg:grid-cols-[1.2fr_0.8fr]"}`}
         >
           {cardFirst && card}
-          <div className="space-y-3">
-            {groups.map((group, position) => (
-              <details
-                key={group.id}
-                id={group.id}
-                open={position === 0}
-                className="group scroll-mt-28 rounded-[1.5rem] border border-site-border bg-site-card open:shadow-[0_10px_30px_-12px_rgba(0,0,0,0.15)]"
-              >
-                <summary className="flex cursor-pointer list-none items-center gap-3 px-5 py-4 sm:px-6 [&::-webkit-details-marker]:hidden">
-                  <span className="flex flex-1 flex-wrap items-center gap-3">
-                    <span className="font-site-display text-2xl font-medium sm:text-[1.7rem]">
-                      {group.name}
-                    </span>
-                    {group.featured && <Tag>{t("speciality")}</Tag>}
-                  </span>
-                  <span className="hidden text-sm text-site-muted sm:inline">
-                    {t("servicesCount", { count: group.services.length })}
-                  </span>
-                  <span
-                    aria-hidden="true"
-                    className="flex h-8 w-8 items-center justify-center rounded-full bg-site-surface text-lg text-site-accent transition group-open:rotate-45"
-                  >
-                    +
-                  </span>
-                </summary>
-                <ul className="px-5 pb-4 sm:px-6">
-                  {group.services.map((service) => {
-                    const price = formatMoney(service.priceCents, service.currency, site.locale);
-                    return (
-                      <li key={service.id} className="flex items-center gap-4 py-3">
-                        <div className="min-w-0 flex-1">
-                          <h3 className="font-semibold">{service.name}</h3>
-                          <p className="text-sm text-site-muted">
-                            {duration(service.durationMinutes)}
-                            {service.description && ` · ${service.description}`}
-                          </p>
-                        </div>
-                        <span className="shrink-0 font-bold text-site-accent">
-                          {service.priceFrom ? tServices("priceFrom", { price }) : price}
-                        </span>
-                        {service.isOnlineBookable ? (
-                          <Link
-                            href={`${SITE_PATHS.booking}?prestation=${service.id}`}
-                            aria-label={t("bookService", { service: service.name })}
-                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-site-surface text-site-accent hover:bg-site-button hover:text-site-on-button"
-                          >
-                            <ArrowIcon />
-                          </Link>
-                        ) : (
-                          <span className="w-9 shrink-0 text-center text-xs text-site-muted">
-                            {t("onRequest")}
-                          </span>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              </details>
-            ))}
-          </div>
+          <ServiceAccordion site={site} businessId={business.id} />
           {!cardFirst && card}
         </div>
       </div>

@@ -44,8 +44,17 @@
       "duration": "1 h",
       "day": "Jour",
       "time": "Heure",
-      "days": ["lun. 12", "mar. 13", "mer. 14"],
-      "times": ["9:30", "11:00", "14:15", "16:45"],
+      "days": [
+        "lun. 12",
+        "mar. 13",
+        "mer. 14"
+      ],
+      "times": [
+        "9:30",
+        "11:00",
+        "14:15",
+        "16:45"
+      ],
       "deposit": "Acompte à régler",
       "pay": "Payer l'acompte"
     },
@@ -220,7 +229,8 @@
     "footer": {
       "legal": "Mentions légales",
       "privacy": "Confidentialité",
-      "madeBy": "Site créé par {product}"
+      "madeBy": "Site créé par {product}",
+      "cancellation": "Conditions d'annulation"
     },
     "legal": {
       "title": "Mentions légales",
@@ -304,7 +314,18 @@
       "onRequest": "Sur demande",
       "instagram": "Instagram",
       "facebook": "Facebook",
-      "otherPhotos": "Photo de l'institut"
+      "otherPhotos": "Photo de l'institut",
+      "opensAt": "dès {time}"
+    },
+    "cancellation": {
+      "title": "Conditions d'annulation",
+      "intro": "Vous pouvez annuler ou déplacer votre rendez-vous vous-même, avec le lien reçu dans l'e-mail de confirmation.",
+      "free": "Annulation et report gratuits jusqu'à {hours} h avant le rendez-vous.",
+      "late": "Passé ce délai, contactez directement {name}.",
+      "deposit": "Un acompte de {amount} est demandé à la réservation en ligne, versé directement à {name}.",
+      "depositRefund": "Il est remboursé automatiquement si vous annulez dans le délai. Il reste acquis en cas d'annulation tardive ou d'absence.",
+      "noDeposit": "Aucun acompte n'est demandé : le soin se règle sur place.",
+      "percent": "{value} % du prix"
     }
   },
   "emails": {

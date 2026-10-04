@@ -105,6 +105,7 @@ describe.skipIf(!hasTestDatabase)("site d'un client : données affichées", () =
       "/infos-pratiques",
       "/mentions-legales",
       "/confidentialite",
+      "/conditions-annulation",
     ]);
   });
 
@@ -146,6 +147,7 @@ describe.skipIf(!hasTestDatabase)("site d'un client : données affichées", () =
       "/",
       "/mentions-legales",
       "/confidentialite",
+      "/conditions-annulation",
     ]);
   });
 

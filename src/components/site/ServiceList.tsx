@@ -64,11 +64,11 @@ export async function ServiceList({
         <section
           key={category.id}
           aria-labelledby={`cat-${category.id}`}
-          className="rounded-site bg-site-surface p-5 sm:p-6"
+          className="rounded-site bg-site-panel p-5 sm:p-6"
         >
           <Heading
             id={`cat-${category.id}`}
-            className="font-site-display text-2xl font-semibold text-site-accent"
+            className="font-site-display text-2xl font-semibold text-site-heading"
           >
             {linkCategories ? (
               <Link href={categoryPath(category.slug)} className="hover:underline">
@@ -87,9 +87,9 @@ export async function ServiceList({
         </section>
       ))}
       {uncategorized.length > 0 && (
-        <section aria-labelledby="cat-other" className="rounded-site bg-site-surface p-5 sm:p-6">
+        <section aria-labelledby="cat-other" className="rounded-site bg-site-panel p-5 sm:p-6">
           {categories.length > 0 && (
-            <Heading id="cat-other" className="font-site-display text-2xl font-semibold text-site-accent">
+            <Heading id="cat-other" className="font-site-display text-2xl font-semibold text-site-heading">
               {t("other")}
             </Heading>
           )}

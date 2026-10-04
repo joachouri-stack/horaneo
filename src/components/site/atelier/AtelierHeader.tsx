@@ -5,6 +5,7 @@ import { visibleSections } from "@/modules/site/data";
 import { businessPath, SITE_PATHS } from "@/modules/site/paths";
 import { MobileMenu } from "../MobileMenu";
 import { SiteImage } from "../SiteImage";
+import { NavLinks } from "./NavLinks";
 import { PillLink } from "./ui";
 
 type Site = NonNullable<SiteData>;
@@ -68,15 +69,7 @@ export async function AtelierHeader({ site, showBook = true }: { site: Site; sho
           <AtelierBrand site={site} />
         </Link>
         <nav aria-label={t("menu")} className="hidden lg:block">
-          <ul className="flex items-center gap-7 text-[0.95rem] font-medium">
-            {links.map((link) => (
-              <li key={link.href}>
-                <Link href={link.href} className="text-site-text hover:text-site-accent">
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <NavLinks links={links} />
         </nav>
         <div className="flex items-center gap-2">
           {showBook && (

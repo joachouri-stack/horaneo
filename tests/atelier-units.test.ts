@@ -73,3 +73,39 @@ describe("modèle Atelier", () => {
     expect(theme.colors.card).toBe("#ffffff");
   });
 });
+
+describe("horaires résumés", () => {
+  const range = (weekday: number, opensAt: string, closesAt: string) => ({ weekday, opensAt, closesAt });
+  it("« Lundi au vendredi », puis « Jeudi dès 9 h 30 », samedi, dimanche fermé", async () => {
+    const { summarizeHours } = await import("@/modules/site/format");
+    const rows = summarizeHours([
+      ...[1, 2, 3, 5].map((d) => range(d, "09:00", "19:00")),
+      range(4, "09:30", "19:00"),
+      range(6, "10:00", "20:00"),
+    ]);
+    expect(rows).toEqual([
+      { from: 1, to: 5, kind: "ranges", ranges: [{ weekday: 0, opensAt: "09:00", closesAt: "19:00" }] },
+      { from: 4, to: 4, kind: "opensLater", opensAt: "09:30" },
+      { from: 6, to: 6, kind: "ranges", ranges: [range(6, "10:00", "20:00")] },
+      { from: 7, to: 7, kind: "closed" },
+    ]);
+  });
+  it("ne regroupe pas des jours fermés séparés par la semaine", async () => {
+    const { summarizeHours } = await import("@/modules/site/format");
+    const rows = summarizeHours([2, 3, 4].map((d) => range(d, "09:00", "18:00")));
+    expect(rows.map((row) => [row.from, row.to, row.kind])).toEqual([
+      [1, 1, "closed"],
+      [2, 4, "ranges"],
+      [5, 7, "closed"],
+    ]);
+  });
+  it("horaires coupés : un jour par ligne, sans résumé hasardeux", async () => {
+    const { summarizeHours } = await import("@/modules/site/format");
+    const rows = summarizeHours([
+      range(1, "09:00", "12:00"),
+      range(1, "14:00", "19:00"),
+      range(2, "09:00", "12:00"),
+    ]);
+    expect(rows[0]).toMatchObject({ from: 1, to: 1, kind: "ranges" });
+  });
+});

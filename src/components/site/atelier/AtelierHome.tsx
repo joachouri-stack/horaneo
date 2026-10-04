@@ -8,8 +8,9 @@ import { openDaysSpan } from "@/modules/site/format";
 import { businessPath, SITE_PATHS } from "@/modules/site/paths";
 import { SiteImage } from "../SiteImage";
 import { CategoryGrid } from "./CategoryGrid";
+import { presentedBusinesses, ProfessionalCards } from "./ProfessionalCards";
 import { HoursSummary } from "./AtelierFooter";
-import { PillLink, SectionTitle, Tag } from "./ui";
+import { PillLink, SectionTitle } from "./ui";
 
 type Site = NonNullable<SiteData>;
 
@@ -28,7 +29,7 @@ export async function AtelierHome({ site }: { site: Site }) {
   const span = openDaysSpan(site.openingHours);
   const businessName = (id: string) => site.businesses.find((business) => business.id === id)?.name ?? "";
   const pageOf = (businessId: string) => site.businesses.find((business) => business.id === businessId)?.slug;
-  const presented = site.businesses.filter((business) => business.slug && (business.role || business.bio));
+  const presented = presentedBusinesses(site);
 
   const highlights = [1, 2, 3]
     .map((n) => ({ value: texts[`highlight${n}Value`], label: texts[`highlight${n}Label`] }))
@@ -175,7 +176,7 @@ export async function AtelierHome({ site }: { site: Site }) {
 
       {/* ─── Les professionnelles ─── */}
       {presented.length > 0 && (
-        <section aria-labelledby="titre-equipe" className="rounded-[2.5rem] bg-site-card py-20">
+        <section aria-labelledby="titre-equipe" className="reveal rounded-[2.5rem] bg-site-card py-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-8">
             <SectionTitle
               id="titre-equipe"
@@ -183,63 +184,14 @@ export async function AtelierHome({ site }: { site: Site }) {
               accent={t("teamTitleAccent")}
               breakLine
             />
-            <ul className={`mt-10 grid gap-6 ${presented.length > 1 ? "md:grid-cols-2" : ""}`}>
-              {presented.map((business) => {
-                const services = site.services
-                  .filter((service) => service.businessId === business.id)
-                  .slice(0, 3);
-                return (
-                  <li
-                    key={business.id}
-                    className="overflow-hidden rounded-[1.75rem] border border-site-border bg-site-bg"
-                  >
-                    {business.photo && (
-                      <SiteImage
-                        image={business.photo}
-                        alt={business.photo.alt}
-                        sizes="(min-width: 768px) 45vw, 100vw"
-                        className="aspect-[16/10] w-full object-cover"
-                      />
-                    )}
-                    <div className="p-6 sm:p-8">
-                      {business.title && <Tag>{business.title}</Tag>}
-                      <h3 className="mt-3 font-site-display text-4xl font-medium">{business.name}</h3>
-                      {business.role && (
-                        <p className="mt-1 font-semibold text-site-accent">{business.role}</p>
-                      )}
-                      {business.bio && (
-                        <p className="mt-3 whitespace-pre-line text-site-muted">{business.bio}</p>
-                      )}
-                      {services.length > 0 && (
-                        <ul className="mt-5 divide-y divide-site-border border-y border-site-border text-sm">
-                          {services.map((service) => (
-                            <li key={service.id} className="flex justify-between gap-4 py-2.5">
-                              <span>{service.name}</span>
-                              <span className="font-bold text-site-accent">{money(service.priceCents)}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                      <div className="mt-6 flex flex-wrap gap-3">
-                        <PillLink href={`${SITE_PATHS.booking}?avec=${business.id}`} size="sm">
-                          {tSite("book")}
-                        </PillLink>
-                        <PillLink href={businessPath(business.slug!)} variant="outline" size="sm">
-                          {t("allTheirServices")}
-                        </PillLink>
-                      </div>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
+            <ProfessionalCards site={site} businesses={presented} />
           </div>
         </section>
       )}
 
       {/* ─── L'institut ─── */}
       {sections.about && site.pages.about?.texts.body && (
-        <section aria-labelledby="titre-institut" className="bg-site-bg py-20">
+        <section aria-labelledby="titre-institut" className="reveal bg-site-bg py-20">
           <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-8 lg:grid-cols-2">
             <div className="grid grid-cols-2 gap-4">
               {site.pages.about.photo && (
@@ -274,7 +226,7 @@ export async function AtelierHome({ site }: { site: Site }) {
 
       {/* ─── Avis ─── */}
       {sections.testimonials && (
-        <section aria-labelledby="titre-avis" className="bg-site-surface py-20">
+        <section aria-labelledby="titre-avis" className="reveal bg-site-surface py-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-8">
             <h2 id="titre-avis" className="text-center font-site-display text-4xl font-medium sm:text-5xl">
               {t("testimonialsTitle")}

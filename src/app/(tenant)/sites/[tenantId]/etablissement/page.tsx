@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { PageTitle, Prose, TeamGrid } from "@/components/site/blocks";
+import { presentedBusinesses, ProfessionalCards } from "@/components/site/atelier/ProfessionalCards";
+import { PillLink, SectionTitle } from "@/components/site/atelier/ui";
 import { SiteImage } from "@/components/site/SiteImage";
+import { isAtelier } from "@/modules/site/data";
 import { requireSection } from "@/lib/site/guards";
 import { getSite } from "@/lib/site/load";
 import { SITE_PATHS } from "@/modules/site/paths";
@@ -26,6 +29,77 @@ export default async function AboutPage({ params }: PageProps<"/sites/[tenantId]
   const t = await getTranslations("site.about");
   const page = site.pages.about;
   const teamIntro = site.pages.team?.texts.intro;
+
+  if (isAtelier(site)) {
+    const tAtelier = await getTranslations("site.atelier");
+    const tSite = await getTranslations("site");
+    const presented = presentedBusinesses(site);
+    const extra = site.gallery.find((photo) => photo.key !== page?.photo?.key) ?? null;
+    return (
+      <main id="contenu">
+        <section className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-14 sm:px-8 lg:grid-cols-2">
+          <div>
+            <SectionTitle as="h1" start={page?.texts.title || tAtelier("aboutTitle")} />
+            {page?.texts.body && (
+              <p className="mt-6 whitespace-pre-line text-lg leading-relaxed text-site-muted">
+                {page.texts.body}
+              </p>
+            )}
+            <PillLink href={SITE_PATHS.booking} size="lg" className="mt-8">
+              {tAtelier("takeAppointment")}
+            </PillLink>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            {page?.photo && (
+              <SiteImage
+                image={page.photo}
+                sizes="(min-width: 1024px) 25vw, 50vw"
+                priority
+                className="aspect-[3/4] w-full rounded-[1.5rem] object-cover"
+              />
+            )}
+            {extra && (
+              <SiteImage
+                image={extra}
+                sizes="(min-width: 1024px) 25vw, 50vw"
+                className="mt-10 aspect-[3/4] w-full rounded-[1.5rem] object-cover"
+              />
+            )}
+          </div>
+        </section>
+        {presented.length > 0 && (
+          <section aria-labelledby="equipe" className="rounded-[2.5rem] bg-site-card py-16">
+            <div className="mx-auto max-w-7xl px-4 sm:px-8">
+              <SectionTitle
+                id="equipe"
+                start={tAtelier("teamTitle", { count: presented.length })}
+                accent={tAtelier("teamTitleAccent")}
+                breakLine
+              />
+              {teamIntro && <p className="mt-4 max-w-3xl whitespace-pre-line text-site-muted">{teamIntro}</p>}
+              <ProfessionalCards site={site} businesses={presented} />
+            </div>
+          </section>
+        )}
+        {site.gallery.length > 2 && (
+          <section aria-label={tSite("gallery.title")} className="mx-auto max-w-7xl px-4 py-16 sm:px-8">
+            <ul className="grid grid-cols-2 gap-4 md:grid-cols-3">
+              {site.gallery.slice(0, 6).map((photo) => (
+                <li key={photo.key}>
+                  <SiteImage
+                    image={photo}
+                    sizes="(min-width: 768px) 33vw, 50vw"
+                    className="aspect-[4/3] w-full rounded-[1.5rem] object-cover"
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </main>
+    );
+  }
+
   return (
     <main id="contenu" className="mx-auto max-w-6xl space-y-12 px-4 py-12">
       <PageTitle title={page?.texts.title || t("title")} />
@@ -43,7 +117,7 @@ export default async function AboutPage({ params }: PageProps<"/sites/[tenantId]
       )}
       {site.staff.length > 0 && site.pages.team?.isPublished !== false && (
         <section aria-labelledby="equipe">
-          <h2 id="equipe" className="mb-4 font-site-display text-3xl font-semibold text-site-accent">
+          <h2 id="equipe" className="mb-4 font-site-display text-3xl font-semibold text-site-heading">
             {t("teamTitle")}
           </h2>
           {teamIntro && <p className="mb-6 max-w-3xl whitespace-pre-line text-site-muted">{teamIntro}</p>}

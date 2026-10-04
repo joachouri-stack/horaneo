@@ -11,6 +11,7 @@ export const SITE_PATHS = {
   practical: "/infos-pratiques",
   legal: "/mentions-legales",
   privacy: "/confidentialite",
+  cancellation: "/conditions-annulation",
   booking: "/reserver",
   /** Gestion d'un rendez-vous par le lien reçu : /rendez-vous/<jeton>. */
   appointment: "/rendez-vous",

@@ -66,11 +66,11 @@ export default async function ManageAppointmentPage({
   return (
     <main id="contenu" className="mx-auto max-w-2xl space-y-8 px-4 py-12">
       <PageTitle title={t("title")} />
-      <section className="rounded-site bg-site-surface p-6">
+      <section className="rounded-site bg-site-panel p-6">
         <p className="text-sm font-semibold uppercase tracking-wide text-site-muted">
           {t(`status.${appointment.status}`)}
         </p>
-        <p className="mt-2 font-site-display text-2xl font-semibold text-site-accent">
+        <p className="mt-2 font-site-display text-2xl font-semibold text-site-heading">
           {t("when", {
             date: formatLongDate(iso, site.locale, timezone),
             time: formatTimeOf(iso, site.locale, timezone),

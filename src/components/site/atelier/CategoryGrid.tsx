@@ -64,7 +64,7 @@ export function CategoryGrid({
               <Link
                 href={card.href}
                 aria-label={`${labels.see} ${card.name}`}
-                className={`group flex h-full min-h-48 flex-col rounded-[1.5rem] p-4 sm:min-h-56 sm:p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition hover:-translate-y-0.5 ${colors}`}
+                className={`group flex h-full min-h-48 flex-col rounded-[1.5rem] p-4 sm:min-h-56 sm:p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_36px_-18px_rgba(0,0,0,0.3)] ${colors}`}
               >
                 <div className="flex items-start justify-between">
                   <span

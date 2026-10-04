@@ -17,7 +17,7 @@ export async function SiteFooter({ site }: { site: NonNullable<SiteData> }) {
     <footer className="mt-16 border-t border-site-border bg-site-surface pb-28 sm:pb-8">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 sm:flex-row sm:justify-between">
         <div>
-          <p className="font-site-display text-xl font-semibold text-site-accent">{tenant.name}</p>
+          <p className="font-site-display text-xl font-semibold text-site-heading">{tenant.name}</p>
           <p className="mt-1 text-site-muted">
             {[tenant.address, [tenant.postalCode, tenant.city].filter(Boolean).join(" ")]
               .filter(Boolean)
@@ -38,6 +38,11 @@ export async function SiteFooter({ site }: { site: NonNullable<SiteData> }) {
           <li>
             <Link href={SITE_PATHS.privacy} className="underline">
               {t("privacy")}
+            </Link>
+          </li>
+          <li>
+            <Link href={SITE_PATHS.cancellation} className="underline">
+              {t("cancellation")}
             </Link>
           </li>
           {site.features.brandingFooter && (

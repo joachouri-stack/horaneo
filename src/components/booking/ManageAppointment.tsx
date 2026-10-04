@@ -123,7 +123,7 @@ export function ManageAppointment({
       )}
       {mode === "reschedule" && (
         <section aria-labelledby="report" className="space-y-4">
-          <h2 id="report" className="font-site-display text-2xl font-semibold text-site-accent">
+          <h2 id="report" className="font-site-display text-2xl font-semibold text-site-heading">
             {t("rescheduleTitle")}
           </h2>
           <SlotPicker

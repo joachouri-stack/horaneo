@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { formatPhone } from "@/modules/phone";
 import type { SiteData } from "@/modules/site/data";
 import { visibleSections } from "@/modules/site/data";
-import { formatClock, groupHours } from "@/modules/site/format";
+import { formatClock, summarizeHours, type HoursRow } from "@/modules/site/format";
 import { businessPath, SITE_PATHS } from "@/modules/site/paths";
 import { AtelierBrand } from "./AtelierHeader";
 import { FacebookIcon, InstagramIcon } from "./icons";
@@ -16,36 +16,35 @@ export async function HoursSummary({ site, detailed = false }: { site: Site; det
   const t = await getTranslations("site.atelier");
   const tDays = await getTranslations("weekdays");
   const day = (n: number) => tDays(String(n) as "1");
-  const groups = detailed
-    ? [1, 2, 3, 4, 5, 6, 7].map((n) => ({
-        from: n,
-        to: n,
-        ranges: site.openingHours.filter((range) => range.weekday === n),
-      }))
-    : groupHours(site.openingHours);
+  const time = (value: string) => formatClock(value, site.locale);
+  const rows: HoursRow[] = detailed
+    ? [1, 2, 3, 4, 5, 6, 7].map((n) => {
+        const ranges = site.openingHours.filter((range) => range.weekday === n);
+        return ranges.length
+          ? { from: n, to: n, kind: "ranges", ranges }
+          : { from: n, to: n, kind: "closed" };
+      })
+    : summarizeHours(site.openingHours);
   return (
     <dl className="space-y-2">
-      {groups.map((group) => (
+      {rows.map((row) => (
         <div
-          key={group.from}
-          className={`flex justify-between gap-4 ${group.ranges.length ? "" : "opacity-70"}`}
+          key={`${row.from}-${row.kind}`}
+          className={`flex justify-between gap-4 ${row.kind === "closed" ? "opacity-70" : ""}`}
         >
           <dt>
-            {group.from === group.to
-              ? day(group.from)
-              : t("groupDays", { from: day(group.from), to: day(group.to).toLowerCase() })}
+            {row.from === row.to
+              ? day(row.from)
+              : t("groupDays", { from: day(row.from), to: day(row.to).toLowerCase() })}
           </dt>
           <dd className="text-right">
-            {group.ranges.length === 0
+            {row.kind === "closed"
               ? t("closed")
-              : group.ranges
-                  .map((range) =>
-                    t("range", {
-                      from: formatClock(range.opensAt, site.locale),
-                      to: formatClock(range.closesAt, site.locale),
-                    }),
-                  )
-                  .join(", ")}
+              : row.kind === "opensLater"
+                ? t("opensAt", { time: time(row.opensAt) })
+                : row.ranges
+                    .map((range) => t("range", { from: time(range.opensAt), to: time(range.closesAt) }))
+                    .join(", ")}
           </dd>
         </div>
       ))}
@@ -196,6 +195,11 @@ export async function AtelierFooter({ site }: { site: Site }) {
             <li>
               <Link href={SITE_PATHS.privacy} className="underline underline-offset-4">
                 {tFooter("privacy")}
+              </Link>
+            </li>
+            <li>
+              <Link href={SITE_PATHS.cancellation} className="underline underline-offset-4">
+                {tFooter("cancellation")}
               </Link>
             </li>
           </ul>

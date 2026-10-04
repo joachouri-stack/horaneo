@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { formatPhone } from "@/modules/phone";
 import type { SiteData } from "@/modules/site/data";
-import { directionsUrl, formatTime, isoWeekdayIn, osmEmbedUrl } from "@/modules/site/format";
+import { directionsUrl, formatClock, isoWeekdayIn, osmEmbedUrl } from "@/modules/site/format";
 
 /** Horaires de la semaine, avec le jour en cours mis en évidence. */
 export async function OpeningHoursTable({ site }: { site: NonNullable<SiteData> }) {
@@ -30,7 +30,7 @@ export async function OpeningHoursTable({ site }: { site: NonNullable<SiteData> 
                   : ranges
                       .map(
                         (range) =>
-                          `${formatTime(range.opensAt, site.locale)} – ${formatTime(range.closesAt, site.locale)}`,
+                          `${formatClock(range.opensAt, site.locale)} – ${formatClock(range.closesAt, site.locale)}`,
                       )
                       .join(", ")}
               </td>
@@ -55,6 +55,14 @@ export async function AddressBlock({
   const { tenant } = site;
   const cityLine = [tenant.postalCode, tenant.city].filter(Boolean).join(" ");
   const hasAddress = Boolean(tenant.address || cityLine);
+  // Plusieurs entreprises avec leur propre numéro : un numéro par professionnelle.
+  const own = site.businesses.filter((business) => business.phone);
+  const phones =
+    own.length > 1
+      ? own.map((business) => ({ name: business.name, phone: business.phone! }))
+      : tenant.phone
+        ? [{ name: "", phone: tenant.phone }]
+        : [];
   return (
     <div className="space-y-4">
       {hasAddress && (
@@ -77,15 +85,18 @@ export async function AddressBlock({
       {(tenant.phone || tenant.email) && (
         <div>
           <h3 className="font-semibold text-site-text">{t("contact")}</h3>
-          {tenant.phone && (
-            <a
-              href={`tel:${tenant.phone}`}
-              className="mt-1 block text-site-accent underline"
-              aria-label={tSite("callNumber", { phone: formatPhone(tenant.phone) })}
-            >
-              {formatPhone(tenant.phone)}
-            </a>
-          )}
+          {phones.map((item) => (
+            <p key={item.phone} className="mt-1">
+              {item.name && <span className="text-site-text">{item.name} : </span>}
+              <a
+                href={`tel:${item.phone}`}
+                className="text-site-accent underline"
+                aria-label={tSite("callNumber", { phone: formatPhone(item.phone, tenant.country) })}
+              >
+                {formatPhone(item.phone, tenant.country)}
+              </a>
+            </p>
+          ))}
           {tenant.email && (
             <a href={`mailto:${tenant.email}`} className="mt-1 block break-all text-site-accent underline">
               {tenant.email}

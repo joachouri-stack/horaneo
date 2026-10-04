@@ -8,7 +8,7 @@ type Site = NonNullable<SiteData>;
 export function PageTitle({ title, intro }: { title: string; intro?: string }) {
   return (
     <div className="mb-8">
-      <h1 className="font-site-display text-4xl font-semibold text-site-accent sm:text-5xl">{title}</h1>
+      <h1 className="font-site-display text-4xl font-semibold text-site-heading sm:text-5xl">{title}</h1>
       {intro && <p className="mt-4 max-w-3xl whitespace-pre-line text-lg text-site-muted">{intro}</p>}
     </div>
   );
@@ -23,7 +23,7 @@ export async function TeamGrid({ site }: { site: Site }) {
   return (
     <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {site.staff.map((member) => (
-        <li key={member.id} className="rounded-site bg-site-surface p-5">
+        <li key={member.id} className="rounded-site bg-site-panel p-5">
           {member.photo && (
             <SiteImage
               image={member.photo}
@@ -32,7 +32,7 @@ export async function TeamGrid({ site }: { site: Site }) {
               className="mb-4 aspect-square w-full rounded-site object-cover"
             />
           )}
-          <h3 className="font-site-display text-2xl font-semibold text-site-accent">{member.name}</h3>
+          <h3 className="font-site-display text-2xl font-semibold text-site-heading">{member.name}</h3>
           {member.bio && <p className="mt-2 whitespace-pre-line text-site-muted">{member.bio}</p>}
         </li>
       ))}
@@ -65,7 +65,7 @@ export async function TestimonialList({ site, limit }: { site: Site; limit?: num
     <ul className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {items.map((item) => (
         <li key={item.id}>
-          <figure className="h-full rounded-site bg-site-surface p-6">
+          <figure className="h-full rounded-site bg-site-panel p-6">
             {item.rating && (
               <p className="text-site-accent" aria-label={t("rating", { rating: item.rating })}>
                 <span aria-hidden="true">

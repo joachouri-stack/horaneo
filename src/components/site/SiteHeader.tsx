@@ -52,7 +52,7 @@ export async function SiteHeader({
               className="h-10 w-auto max-w-40 object-contain sm:h-12"
             />
           ) : (
-            <span className="truncate font-site-display text-2xl font-semibold text-site-accent">
+            <span className="truncate font-site-display text-2xl font-semibold text-site-heading">
               {site.tenant.name}
             </span>
           )}
