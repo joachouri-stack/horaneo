@@ -1,8 +1,9 @@
 import { publicAppUrl } from "@/config/env";
 
+import { ENABLED_LOCALES } from "@/i18n/enabled";
+
 // Recalculé à chaque appel : l'adresse publique et les langues viennent de la configuration du serveur.
 export const dynamic = "force-dynamic";
-import { ENABLED_LOCALES } from "@/i18n/enabled";
 
 /** Plan du site commercial (accueil et documents légaux, dans chaque langue activée). */
 export function GET() {
