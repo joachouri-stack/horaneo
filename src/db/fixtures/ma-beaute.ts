@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { eq } from "drizzle-orm";
+import type { FileStorage } from "@/lib/storage/types";
 import type { CategoryIcon } from "@/modules/catalog/icons";
 import { saveCategory, saveService } from "@/modules/catalog/services";
 import { updatePage } from "@/modules/content/pages";
@@ -5,8 +8,10 @@ import { createBusiness, updateBusiness, updateBusinessProfile } from "@/modules
 import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
 import { saveStaff } from "@/modules/team/staff";
 import { updateAppearance, updateIdentity } from "@/modules/tenants/update";
+import { uploadAsset, uploadLogo } from "@/modules/media/assets";
 import { declareBusiness } from "../access";
 import type { Transaction } from "../client";
+import { assets, businesses } from "../schema";
 
 /**
  * Contenu du site de Ma Beauté Institut, repris de ses maquettes : identité,
@@ -196,4 +201,60 @@ export async function fillMaBeaute(tx: Transaction, tenantId: string, options: M
   }
   await declareBusiness(tx, null);
   return { lailaId, natachaId: natacha.id };
+}
+
+/** Photos et logo repris des maquettes (rangés à côté de ce fichier). */
+const PHOTO_DIR = new URL("./ma-beaute/", import.meta.url);
+const readPhoto = (file: string) => new Uint8Array(readFileSync(new URL(file, PHOTO_DIR)));
+
+/**
+ * Ajoute les photos et le logo des maquettes, aux mêmes places que la démo :
+ * logo, accueil et page de Laïla (sa cabine), présentation et page de Natacha,
+ * entrée de l'institut dans la galerie. Refuse un site qui a déjà des photos.
+ */
+export async function addMaBeautePhotos(tx: Transaction, store: FileStorage, tenantId: string) {
+  const id = tenantId;
+  const existing = await tx.select({ id: assets.id }).from(assets).where(eq(assets.tenantId, id));
+  if (existing.length > 0) throw new Error("Ce site a déjà des photos : ajout annulé.");
+  const siteBusinesses = await tx.select().from(businesses).where(eq(businesses.tenantId, id));
+  const laila = siteBusinesses.find((business) => business.slug === "laila");
+  const natacha = siteBusinesses.find((business) => business.slug === "natacha");
+  if (!laila || !natacha) throw new Error("Importez d'abord le contenu (pnpm import:ma-beaute).");
+
+  await uploadLogo(tx, store, id, readPhoto("logo.png"), null);
+  const lailaPhoto = await uploadAsset(tx, store, id, {
+    bytes: readPhoto("laila.jpg"),
+    kind: "cover",
+    uploadedByUserId: null,
+    alt: "La cabine de Laïla",
+  });
+  const natachaPhoto = await uploadAsset(tx, store, id, {
+    bytes: readPhoto("natacha.jpg"),
+    kind: "gallery",
+    uploadedByUserId: null,
+    alt: "La cabine de massage de Natacha",
+  });
+  await uploadAsset(tx, store, id, {
+    bytes: readPhoto("facade.jpg"),
+    kind: "gallery",
+    uploadedByUserId: null,
+    alt: "L'entrée de l'institut",
+  });
+  await updatePage(tx, id, { pageKey: "home", texts: {}, photoAssetId: lailaPhoto.id });
+  await updatePage(tx, id, { pageKey: "about", texts: {}, photoAssetId: natachaPhoto.id });
+  // La photo seule : les textes de la page de chacune sont repris tels quels.
+  for (const [business, photo] of [
+    [laila, lailaPhoto.id],
+    [natacha, natachaPhoto.id],
+  ] as const) {
+    const profile = business.profile ?? {};
+    await updateBusinessProfile(tx, id, business.id, {
+      slug: business.slug ?? undefined,
+      title: profile.title?.fr,
+      role: profile.role?.fr,
+      bio: profile.bio?.fr,
+      availability: profile.availability?.fr,
+      photoAssetId: photo,
+    });
+  }
 }
