@@ -41,7 +41,7 @@
     },
     "badge": "Pour les professionnels sur rendez-vous",
     "title": "Nous créons votre site.",
-    "titleAccent": "Vos clientes réservent.",
+    "titleAccent": "Votre clientèle réserve.",
     "subtitle": "Un site à votre nom, la réservation en ligne et l'acompte contre les absences. Nous faisons tout, de la création aux mises à jour.",
     "cta": "Je veux mon site",
     "seePlans": "Voir les tarifs",
@@ -52,7 +52,7 @@
     },
     "heroImageAlt": "Une esthéticienne applique un soin du visage à une cliente",
     "demo": {
-      "label": "Exemple de réservation sur le site d'une cliente",
+      "label": "Exemple de réservation sur le site d'un établissement",
       "notification": "Nouvelle réservation",
       "notificationDetail": "Mardi à 14 h, soin du visage",
       "service": "Soin du visage",
@@ -86,8 +86,8 @@
         "tag": "C'est nous qui le faisons"
       },
       "book": {
-        "title": "Vos clientes réservent",
-        "text": "Jour et nuit, en quelques gestes, sans créer de compte. Vous êtes prévenue à chaque réservation.",
+        "title": "Votre clientèle réserve",
+        "text": "Jour et nuit, en quelques gestes, sans créer de compte. Une alerte vous prévient à chaque réservation.",
         "tag": "Sans rien installer"
       },
       "cash": {
@@ -159,8 +159,8 @@
           "a": "Directement sur votre compte bancaire. L'argent ne passe jamais par nous, et {commission}."
         },
         {
-          "q": "Et si une cliente annule ?",
-          "a": "Vous fixez vos conditions. Dans les délais, elle est remboursée. Sinon, l'acompte vous reste acquis."
+          "q": "Et en cas d'annulation ?",
+          "a": "Vous fixez vos conditions. Dans les délais, l'acompte est remboursé. Sinon, il vous reste acquis."
         },
         {
           "q": "Je n'y connais rien en informatique, est-ce un problème ?",
@@ -213,7 +213,7 @@
       "title": "En chiffres",
       "booking": {
         "value": "24 h/24",
-        "label": "vos clientes réservent, même quand vous travaillez"
+        "label": "votre clientèle réserve, même quand vous travaillez"
       },
       "commission": {
         "value": "{percent} %",
@@ -251,8 +251,8 @@
           },
           {
             "time": "11:00",
-            "name": "Inès",
-            "service": "Manucure"
+            "name": "Karim",
+            "service": "Coupe et barbe"
           },
           {
             "time": "14:15",
@@ -263,7 +263,7 @@
       },
       "reminders": {
         "title": "Moins d'oublis",
-        "text": "Un e-mail la veille et un SMS : vos clientes viennent, ou préviennent.",
+        "text": "Un e-mail la veille et un SMS : votre clientèle vient, ou prévient.",
         "sms": "Rappel : demain à 14 h, soin du visage. Pour déplacer ou annuler, suivez votre lien."
       },
       "deposit": {
@@ -275,7 +275,7 @@
       },
       "manage": {
         "title": "Déplacer ou annuler, sans vous appeler",
-        "text": "Chaque cliente reçoit un lien. Vous fixez le délai, le remboursement est automatique.",
+        "text": "Chaque rendez-vous a son lien pour déplacer ou annuler. Vous fixez le délai, le remboursement est automatique.",
         "actions": ["Déplacer", "Annuler"]
       },
       "stats": {
@@ -543,7 +543,7 @@
     },
     "legal": "En continuant, vous acceptez les conditions d'utilisation et la politique de confidentialité.",
     "signupTitle": "Créez votre compte",
-    "signupSubtitle": "Sans mot de passe : continuez avec Google ou Apple, ou recevez un lien par e-mail. Si vous avez déjà un compte, vous serez simplement connectée."
+    "signupSubtitle": "Sans mot de passe : continuez avec Google ou Apple, ou recevez un lien par e-mail. Si vous avez déjà un compte, vous retrouverez simplement votre espace."
   },
   "account": {
     "metaTitle": "Mon espace",
