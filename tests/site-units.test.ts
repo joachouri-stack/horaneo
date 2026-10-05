@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { contrastRatio } from "@/lib/colors";
 import { createPreviewToken, verifyPreviewToken } from "@/lib/tenancy/preview";
 import { directionsUrl, formatDuration, isoWeekdayIn, osmEmbedUrl } from "@/modules/site/format";
-import { renderSitemap, serializeJsonLd } from "@/modules/site/seo";
+import { formatMoney } from "@/lib/format";
+import { homeDescription, renderSitemap, serializeJsonLd } from "@/modules/site/seo";
 import { buildTheme, themeCssVariables } from "@/modules/site/theme";
 
 describe("ambiances du site client", () => {
@@ -105,5 +106,45 @@ describe("référencement", () => {
     expect(xml).toContain("<loc>https://institut.fr</loc>");
     expect(xml).toContain("<loc>https://institut.fr/prestations</loc>");
     expect(xml).toContain("/a&amp;b");
+  });
+});
+
+describe("description de l'accueil pour Google", () => {
+  const home = (texts: Record<string, string>, seoDescription = "") => ({ seoDescription, texts });
+
+  it("garde celle saisie dans l'admin", () => {
+    expect(homeDescription(home({ tagline: "Bonjour" }, "Ma description"))).toBe("Ma description");
+  });
+
+  it("assemble l'accroche et l'introduction en phrases complètes", () => {
+    expect(
+      homeDescription(
+        home({
+          tagline: "Beauté et bien-être,",
+          taglineAccent: "dans un même lieu.",
+          intro: "Soins et massages.",
+        }),
+      ),
+    ).toBe("Beauté et bien-être, dans un même lieu. Soins et massages.");
+    expect(homeDescription(home({ tagline: "Beauté et bien-être," }))).toBe("Beauté et bien-être.");
+  });
+
+  it("coupe un texte trop long entre deux mots", () => {
+    const description = homeDescription(home({ intro: "mot ".repeat(80) }))!;
+    expect(description.length).toBeLessThanOrEqual(160);
+    expect(description).toMatch(/ mot…$/);
+  });
+
+  it("ne renvoie rien sans texte", () => {
+    expect(homeDescription(home({}))).toBeUndefined();
+    expect(homeDescription(undefined)).toBeUndefined();
+  });
+});
+
+describe("montants", () => {
+  it("n'affiche pas de centimes inutiles", () => {
+    const nbsp = (text: string) => text.replace(/\s/g, " ");
+    expect(nbsp(formatMoney(3600, "EUR", "fr-FR"))).toBe("36 €");
+    expect(nbsp(formatMoney(4550, "EUR", "fr-FR"))).toBe("45,50 €");
   });
 });

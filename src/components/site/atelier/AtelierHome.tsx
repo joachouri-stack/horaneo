@@ -54,11 +54,14 @@ export async function AtelierHome({ site }: { site: Site }) {
   const tGift = await getTranslations("site.giftCard");
   const giftAmounts = [3000, 5000, 10000];
 
+  const serviceCount = (keep: (category: (typeof site.categories)[number]) => boolean) =>
+    site.categories.filter(keep).reduce((total, category) => total + category.services.length, 0);
+
   return (
     <main id="contenu" className="overflow-x-clip">
-      {/* ─── Accroche ─── */}
-      <section className="mx-auto grid max-w-7xl items-center gap-12 px-4 pb-16 pt-10 sm:px-8 lg:grid-cols-[1.05fr_1fr] lg:pt-16">
-        <div>
+      {/* ─── Accroche (téléphone : texte, photo, puis chiffres clés ; ordinateur : photo à droite) ─── */}
+      <section className="mx-auto grid max-w-7xl gap-10 px-4 pb-16 pt-10 sm:px-8 lg:grid-cols-[1.05fr_1fr] lg:gap-x-12 lg:pt-16">
+        <div className="lg:col-start-1 lg:row-start-1 lg:self-end">
           {texts.badge && (
             <p className="inline-flex items-center gap-2 rounded-full bg-site-card px-3 py-1.5 text-xs font-semibold shadow-sm">
               <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-site-accent" />
@@ -89,31 +92,10 @@ export async function AtelierHome({ site }: { site: Site }) {
               {t("seeAllServices")}
             </PillLink>
           </div>
-          <dl className="mt-10 grid max-w-xl grid-cols-2 gap-x-8 gap-y-5 border-t border-site-border pt-6 sm:flex sm:flex-wrap">
-            {reviews && ratingText && (
-              <div>
-                <dt className="flex items-baseline gap-2 font-site-display text-3xl font-medium leading-none">
-                  {ratingText}
-                  <Stars rating={reviews.rating!} className="text-sm" />
-                </dt>
-                <dd className="mt-1 text-xs text-site-muted">
-                  <a href={reviews.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                    {tReviews("short", { count: reviews.total })}
-                  </a>
-                </dd>
-              </div>
-            )}
-            {highlights.map((item) => (
-              <div key={item.value}>
-                <dt className="font-site-display text-3xl font-medium leading-none">{item.value}</dt>
-                {item.label && <dd className="mt-1 text-xs text-site-muted">{item.label}</dd>}
-              </div>
-            ))}
-          </dl>
         </div>
 
         {home?.photo && (
-          <div className="relative mx-auto w-full max-w-xl pb-10 pl-6 sm:pl-10">
+          <div className="relative mx-auto w-full max-w-xl pb-10 pl-6 sm:pl-10 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-center">
             <div
               className="absolute right-0 top-0 h-[92%] w-[94%] rounded-t-full bg-site-surface"
               aria-hidden="true"
@@ -150,6 +132,27 @@ export async function AtelierHome({ site }: { site: Site }) {
             </p>
           </div>
         )}
+        <dl className="grid max-w-xl self-start lg:col-start-1 grid-cols-2 gap-x-8 gap-y-5 border-t border-site-border pt-6 sm:flex sm:flex-wrap">
+          {reviews && ratingText && (
+            <div>
+              <dt className="flex items-baseline gap-2 font-site-display text-3xl font-medium leading-none">
+                {ratingText}
+                <Stars rating={reviews.rating!} className="text-sm" />
+              </dt>
+              <dd className="mt-1 text-xs text-site-muted">
+                <a href={reviews.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                  {tReviews("short", { count: reviews.total })}
+                </a>
+              </dd>
+            </div>
+          )}
+          {highlights.map((item) => (
+            <div key={item.value}>
+              <dt className="font-site-display text-3xl font-medium leading-none">{item.value}</dt>
+              {item.label && <dd className="mt-1 text-xs text-site-muted">{item.label}</dd>}
+            </div>
+          ))}
+        </dl>
       </section>
 
       {/* ─── Bandeau des soins ─── */}
@@ -184,10 +187,33 @@ export async function AtelierHome({ site }: { site: Site }) {
             </div>
           </div>
           <CategoryGrid
-            labels={{ all: t("filterAll"), filter: t("servicesIntro"), see: "" }}
+            labels={{
+              all: t("filterAll"),
+              allDetail: t("filterServices", { count: serviceCount(() => true) }),
+              filter: t("filterQuestion"),
+              see: "",
+            }}
             filters={site.businesses
               .filter((business) => site.categories.some((category) => category.businessId === business.id))
-              .map((business) => ({ id: business.id, label: t("filterWith", { name: business.name }) }))}
+              .map((business) => {
+                const count = t("filterServices", {
+                  count: serviceCount((category) => category.businessId === business.id),
+                });
+                return {
+                  id: business.id,
+                  label: business.name,
+                  detail: business.title || count,
+                  count: business.title ? count : undefined,
+                  avatar: business.photo ? (
+                    <SiteImage
+                      image={business.photo}
+                      alt=""
+                      sizes="48px"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : null,
+                };
+              })}
             cards={site.categories.map((category) => {
               const slug = pageOf(category.businessId);
               const bookable = category.services.some((service) => service.isOnlineBookable);

@@ -109,12 +109,12 @@ export async function AtelierFooter({ site }: { site: Site }) {
 
           <div>
             <h2 className="mb-4 font-site-display text-2xl">{t("footerServices")}</h2>
-            <ul className="space-y-2">
+            <ul>
               {pages.map((business) => (
                 <li key={business.id}>
                   <Link
                     href={businessPath(business.slug!)}
-                    className="underline underline-offset-4 hover:opacity-80"
+                    className="inline-block py-2 underline underline-offset-4 hover:opacity-80"
                   >
                     {t("businessLink", { title: business.title, name: business.name })}
                   </Link>
@@ -122,14 +122,17 @@ export async function AtelierFooter({ site }: { site: Site }) {
               ))}
               {pages.length === 0 && sections.services && (
                 <li>
-                  <Link href={SITE_PATHS.services} className="underline underline-offset-4">
+                  <Link href={SITE_PATHS.services} className="inline-block py-2 underline underline-offset-4">
                     {tSite("nav.services")}
                   </Link>
                 </li>
               )}
               {site.giftCardBusinessIds.length > 0 && (
                 <li>
-                  <Link href={SITE_PATHS.giftCard} className="underline underline-offset-4 hover:opacity-80">
+                  <Link
+                    href={SITE_PATHS.giftCard}
+                    className="inline-block py-2 underline underline-offset-4 hover:opacity-80"
+                  >
                     {tGift("navLabel")}
                   </Link>
                 </li>
@@ -138,7 +141,7 @@ export async function AtelierFooter({ site }: { site: Site }) {
                 <li>
                   <Link
                     href={SITE_PATHS.testimonials}
-                    className="underline underline-offset-4 hover:opacity-80"
+                    className="inline-block py-2 underline underline-offset-4 hover:opacity-80"
                   >
                     {t("nav.testimonials")}
                   </Link>
@@ -153,14 +156,14 @@ export async function AtelierFooter({ site }: { site: Site }) {
               {tenant.address && <p>{tenant.address}</p>}
               <p>{[tenant.postalCode, tenant.city].filter(Boolean).join(" ")}</p>
               {access && <p className="whitespace-pre-line opacity-75">{access}</p>}
-              <div className="space-y-1 pt-3">
+              <div className="pt-2">
                 {phones.length > 1
                   ? phones.map((business) => (
                       <p key={business.id}>
                         {t("phoneOf", { name: business.name })}{" "}
                         <a
                           href={`tel:${business.phone}`}
-                          className="font-semibold underline underline-offset-4"
+                          className="inline-block py-2 font-semibold underline underline-offset-4"
                         >
                           {formatPhone(business.phone, site.tenant.country)}
                         </a>
@@ -169,14 +172,17 @@ export async function AtelierFooter({ site }: { site: Site }) {
                   : (phones[0]?.phone ?? tenant.phone) && (
                       <a
                         href={`tel:${phones[0]?.phone ?? tenant.phone}`}
-                        className="font-semibold underline underline-offset-4"
+                        className="inline-block py-2 font-semibold underline underline-offset-4"
                       >
                         {formatPhone(phones[0]?.phone ?? tenant.phone, site.tenant.country)}
                       </a>
                     )}
                 {tenant.email && (
                   <p>
-                    <a href={`mailto:${tenant.email}`} className="underline underline-offset-4">
+                    <a
+                      href={`mailto:${tenant.email}`}
+                      className="inline-block py-2 underline underline-offset-4"
+                    >
                       {tenant.email}
                     </a>
                   </p>
@@ -198,19 +204,19 @@ export async function AtelierFooter({ site }: { site: Site }) {
 
         <div className="mt-12 flex flex-col gap-4 border-t border-current/15 py-6 text-sm sm:flex-row sm:items-center sm:justify-between">
           <p className="uppercase tracking-wide opacity-90">{t("rights", { year, name: tenant.name })}</p>
-          <ul className="flex flex-wrap gap-x-6 gap-y-2">
+          <ul className="flex flex-wrap gap-x-6">
             <li>
-              <Link href={SITE_PATHS.legal} className="underline underline-offset-4">
+              <Link href={SITE_PATHS.legal} className="inline-block py-2 underline underline-offset-4">
                 {tFooter("legal")}
               </Link>
             </li>
             <li>
-              <Link href={SITE_PATHS.privacy} className="underline underline-offset-4">
+              <Link href={SITE_PATHS.privacy} className="inline-block py-2 underline underline-offset-4">
                 {tFooter("privacy")}
               </Link>
             </li>
             <li>
-              <Link href={SITE_PATHS.cancellation} className="underline underline-offset-4">
+              <Link href={SITE_PATHS.cancellation} className="inline-block py-2 underline underline-offset-4">
                 {tFooter("cancellation")}
               </Link>
             </li>
