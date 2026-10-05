@@ -35,7 +35,9 @@
     "nav": {
       "how": "Comment ça marche",
       "pricing": "Tarifs",
-      "questions": "Questions"
+      "questions": "Questions",
+      "menu": "Menu",
+      "close": "Fermer le menu"
     },
     "badge": "Pour les professionnels sur rendez-vous",
     "title": "Nous créons votre site.",
@@ -190,6 +192,97 @@
       "terms": "Conditions",
       "rights": "© {year} {product} · Tous droits réservés",
       "credit": "Design by Johane A."
+    }
+  },
+  "landing": {
+    "live": [
+      {
+        "title": "Nouvelle réservation",
+        "detail": "Mardi à 14 h, soin du visage"
+      },
+      {
+        "title": "Acompte reçu",
+        "detail": "16,50 € pour mardi 14 h"
+      },
+      {
+        "title": "Rappel SMS envoyé",
+        "detail": "Demain à 10 h 30, coupe et brushing"
+      }
+    ],
+    "figures": {
+      "title": "En chiffres",
+      "booking": {
+        "value": "24 h/24",
+        "label": "vos clientes réservent, même quand vous travaillez"
+      },
+      "commission": {
+        "value": "{percent} %",
+        "label": "de commission sur vos acomptes"
+      },
+      "delay": {
+        "value": "{days, plural, one {# jour} other {# jours}}",
+        "label": "pour mettre votre site en ligne"
+      },
+      "reminders": {
+        "value": "2 rappels",
+        "label": "envoyés avant chaque rendez-vous, par e-mail et SMS"
+      }
+    },
+    "bento": {
+      "badge": "Tout compris",
+      "title": "Tout ce qu'il vous faut,",
+      "titleAccent": "rien de superflu.",
+      "intro": "Un site qui vous ressemble et les outils pour remplir votre agenda, sans y passer vos soirées.",
+      "site": {
+        "title": "Un site à votre nom",
+        "text": "Votre logo, vos couleurs, vos photos. Rapide sur téléphone et bien placé sur Google dans votre ville.",
+        "url": "votre-institut.fr",
+        "name": "Institut Lumière",
+        "cta": "Réserver"
+      },
+      "agenda": {
+        "title": "Votre agenda dans la poche",
+        "text": "Les rendez-vous du jour en un coup d'œil, et ceux pris au téléphone en deux gestes.",
+        "items": [
+          {
+            "time": "09:30",
+            "name": "Camille",
+            "service": "Soin du visage"
+          },
+          {
+            "time": "11:00",
+            "name": "Inès",
+            "service": "Manucure"
+          },
+          {
+            "time": "14:15",
+            "name": "Sarah",
+            "service": "Épilation"
+          }
+        ]
+      },
+      "reminders": {
+        "title": "Moins d'oublis",
+        "text": "Un e-mail la veille et un SMS : vos clientes viennent, ou préviennent.",
+        "sms": "Rappel : demain à 14 h, soin du visage. Pour déplacer ou annuler, suivez votre lien."
+      },
+      "deposit": {
+        "title": "L'acompte en ligne",
+        "text": "Par carte, Apple Pay ou Google Pay, versé directement sur votre compte.",
+        "amount": "16,50 €",
+        "methods": ["Carte", "Apple Pay", "Google Pay"],
+        "status": "Payé"
+      },
+      "manage": {
+        "title": "Déplacer ou annuler, sans vous appeler",
+        "text": "Chaque cliente reçoit un lien. Vous fixez le délai, le remboursement est automatique.",
+        "actions": ["Déplacer", "Annuler"]
+      },
+      "stats": {
+        "title": "Vos chiffres, clairement",
+        "text": "Réservations, chiffre d'affaires et prestations phares, mois après mois.",
+        "months": ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin"]
+      }
     }
   },
   "site": {
