@@ -7,7 +7,12 @@ import { resolveManagerAccess } from "@/lib/manager/role";
 import { createBooking } from "@/modules/booking/create";
 import { businessOfManageToken, findByManageToken } from "@/modules/booking/manage";
 import { localToUtc } from "@/modules/booking/time";
-import { businessOfServices, createBusiness, updateBusinessProfile } from "@/modules/businesses/businesses";
+import {
+  addBusinessManager,
+  businessOfServices,
+  createBusiness,
+  updateBusinessProfile,
+} from "@/modules/businesses/businesses";
 import { loadSiteData } from "@/modules/site/data";
 import { listServices, saveService } from "@/modules/catalog/services";
 import { AppError } from "@/modules/errors";
@@ -316,5 +321,38 @@ describe.skipIf(!hasTestDatabase)("plusieurs entreprises sur un même site", () 
       role: "Esthéticienne, spécialiste du regard",
       availability: "Du lundi au samedi",
     });
+  });
+
+  it("l'admin donne l'accès gérante à une entreprise créée sans gérante", async () => {
+    const { business } = await platform((tx) => createBusiness(tx, site.tenantId, { name: "Sans gérante" }));
+    const { managerId } = await platform((tx) =>
+      addBusinessManager(tx, site.tenantId, {
+        businessId: business.id,
+        email: "Nouvelle.Gerante@exemple.fr",
+        name: "Nouvelle",
+      }),
+    );
+    const access = await resolveManagerAccess(
+      { user: { id: managerId }, session: {} },
+      site.tenantId,
+      business.id,
+      app,
+    );
+    expect(access).toEqual({ role: "owner", businessId: business.id });
+    const [laila] = await owner.select().from(users).where(eq(users.id, site.laila.managerId));
+    expect(
+      await errorCode(
+        platform((tx) =>
+          addBusinessManager(tx, site.tenantId, { businessId: business.id, email: laila.email }),
+        ),
+      ),
+    ).toBe("manager_already_linked");
+    expect(
+      await errorCode(
+        platform((tx) =>
+          addBusinessManager(tx, site.tenantId, { businessId: business.id, email: "pas-un-email" }),
+        ),
+      ),
+    ).toBe("invalid");
   });
 });

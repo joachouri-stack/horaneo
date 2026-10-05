@@ -124,20 +124,44 @@ export async function createBusiness(
     })
     .returning();
   await tx.insert(businessSettings).values({ businessId: business.id, tenantId });
-  let managerId: string | null = null;
-  if (raw.managerEmail) {
-    const manager = await ensureUser(tx, raw.managerEmail, raw.managerName);
-    managerId = manager.id;
-    const [already] = await tx
-      .select()
-      .from(memberships)
-      .where(and(eq(memberships.userId, manager.id), eq(memberships.tenantId, tenantId)));
-    // Une gérante est rattachée à une seule entreprise d'un site.
-    if (already) throw new AppError("manager_already_linked", "managerEmail");
-    await tx
-      .insert(memberships)
-      .values({ userId: manager.id, tenantId, businessId: business.id, role: "owner" });
-  }
+  const managerId = raw.managerEmail
+    ? await linkManager(tx, tenantId, business.id, raw.managerEmail, raw.managerName)
+    : null;
+  return { business, managerId };
+}
+
+async function linkManager(
+  tx: Transaction,
+  tenantId: string,
+  businessId: string,
+  email: string,
+  name?: string | null,
+) {
+  const manager = await ensureUser(tx, email, name);
+  const [already] = await tx
+    .select()
+    .from(memberships)
+    .where(and(eq(memberships.userId, manager.id), eq(memberships.tenantId, tenantId)));
+  // Une gérante est rattachée à une seule entreprise d'un site.
+  if (already) throw new AppError("manager_already_linked", "managerEmail");
+  await tx.insert(memberships).values({ userId: manager.id, tenantId, businessId, role: "owner" });
+  return manager.id;
+}
+
+/**
+ * Donne l'accès gérante d'une entreprise existante (ex. entreprise ajoutée ou
+ * importée sans gérante). Elle se connecte ensuite avec son e-mail (lien de
+ * connexion) et ne voit que cette entreprise.
+ */
+export async function addBusinessManager(
+  tx: Transaction,
+  tenantId: string,
+  input: { businessId: string; email: string; name?: string | null },
+) {
+  const email = z.email().safeParse(input.email.trim());
+  if (!email.success) throw new AppError("invalid", "managerEmail");
+  const business = await getBusiness(tx, tenantId, input.businessId);
+  const managerId = await linkManager(tx, tenantId, business.id, email.data, input.name?.trim() || null);
   return { business, managerId };
 }
 
