@@ -129,13 +129,20 @@ export async function consumeOnlineQuota(
   return rows.length > 0 ? { used: rows[0].value, limit, period } : false;
 }
 
-/** Retrouve ou crée la fiche cliente (même e-mail chez un même établissement = même fiche). */
+/**
+ * Retrouve ou crée la fiche cliente (même e-mail chez un même établissement = même fiche).
+ * En ligne, n'importe qui peut saisir l'e-mail d'une autre : une fiche existante n'est
+ * donc que complétée (téléphone ou nom manquant), jamais modifiée. Sinon, un inconnu
+ * pourrait y mettre son numéro et se connecter par SMS à l'espace de la cliente.
+ * La gérante, elle, met la fiche à jour.
+ */
 async function upsertCustomer(
   tx: Transaction,
   context: BookingContext,
   input: z.infer<typeof customerInput>,
   locale: string,
   now: Date,
+  source: "online" | "manual",
 ) {
   const phone = normalizePhone(input.phone, context.tenant.country, "phone");
   const [existing] = await tx
@@ -146,13 +153,21 @@ async function upsertCustomer(
   if (existing) {
     await tx
       .update(customers)
-      .set({
-        firstName: input.firstName,
-        lastName: input.lastName || existing.lastName,
-        phone,
-        locale,
-        ...consent,
-      })
+      .set(
+        source === "online"
+          ? {
+              phone: existing.phone ?? phone,
+              lastName: existing.lastName ?? (input.lastName || null),
+              ...consent,
+            }
+          : {
+              firstName: input.firstName,
+              lastName: input.lastName || existing.lastName,
+              phone,
+              locale,
+              ...consent,
+            },
+      )
       .where(eq(customers.id, existing.id));
     return existing.id;
   }
@@ -240,7 +255,7 @@ export async function createBooking(
     source === "online" && input.giftCardCode && context.features.giftCards ? input.giftCardCode : null;
   if (giftCardCode) await checkGiftCard(tx, tenantId, giftCardCode, depositCents, now);
 
-  const customerId = await upsertCustomer(tx, context, input.customer, input.locale, now);
+  const customerId = await upsertCustomer(tx, context, input.customer, input.locale, now, source);
   const endsAt = addMinutes(input.start, totals.durationMinutes);
   const pending = depositCents > 0 && !giftCardCode;
 

@@ -1,6 +1,7 @@
 import "server-only";
 import { cookies, headers } from "next/headers";
-import { authSecret, env } from "@/config/env";
+import { authSecret } from "@/config/env";
+import { clientIp } from "@/lib/client-ip";
 import { createRateLimiter } from "@/lib/rate-limit";
 import { classifyHost } from "@/lib/tenancy/hosts";
 import { PREVIEW_COOKIE, verifyPreviewToken } from "@/lib/tenancy/preview";
@@ -26,8 +27,7 @@ export async function currentSiteTenant(): Promise<{ tenantId: string; preview: 
     authSecret(),
   );
   if (route.previewOnly && !preview) throw new AppError("not_found");
-  const ipHeader = env().CLIENT_IP_HEADERS.split(",")[0].trim().toLowerCase();
-  const ip = requestHeaders.get(ipHeader)?.split(",")[0]?.trim() || "inconnue";
+  const ip = clientIp(requestHeaders) ?? "inconnue";
   return { tenantId: route.tenantId, preview, ip };
 }
 

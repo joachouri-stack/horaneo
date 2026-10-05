@@ -1,7 +1,7 @@
 import "server-only";
 import { headers } from "next/headers";
 import { refresh } from "next/cache";
-import { env } from "@/config/env";
+import { clientIp } from "@/lib/client-ip";
 import { withPlatform } from "@/db/access";
 import type { Transaction } from "@/db/client";
 import { recordAudit } from "@/lib/audit";
@@ -36,10 +36,8 @@ export async function requireAdminContext(): Promise<AdminContext> {
   });
   if (access !== "granted") throw new Error("Accès admin refusé");
   const requestHeaders = await headers();
-  // En-tête configuré (CLIENT_IP_HEADERS), le même que pour la limitation des tentatives.
-  const header = env().CLIENT_IP_HEADERS.split(",")[0].trim().toLowerCase();
-  const ip = requestHeaders.get(header)?.split(",")[0]?.trim() || null;
-  return { userId: session.user.id, ip: ip && /^[0-9a-f.:]+$/i.test(ip) ? ip : null };
+  // Le même en-tête que pour la limitation des tentatives.
+  return { userId: session.user.id, ip: clientIp(requestHeaders) };
 }
 
 type AuditInfo = {

@@ -19,11 +19,12 @@ import { normalizePhone } from "@/modules/phone";
  * règle « pas deux rendez-vous en même temps pour un membre » est imposée (par la base).
  */
 
-async function loadAppointment(tx: Transaction, tenantId: string, appointmentId: string) {
-  const [row] = await tx
+async function loadAppointment(tx: Transaction, tenantId: string, appointmentId: string, lock = false) {
+  const query = tx
     .select()
     .from(appointments)
     .where(and(eq(appointments.id, appointmentId), eq(appointments.tenantId, tenantId)));
+  const [row] = lock ? await query.for("update") : await query;
   if (!row) throw new AppError("not_found");
   return row;
 }
@@ -41,7 +42,8 @@ export async function setAttendance(
   appointmentId: string,
   status: "attended" | "no_show" | "confirmed",
 ) {
-  const appointment = await loadAppointment(tx, tenantId, appointmentId);
+  // Verrouillé : deux changements de statut simultanés ne comptent pas deux fois le point.
+  const appointment = await loadAppointment(tx, tenantId, appointmentId, true);
   if (!["confirmed", "attended", "no_show"].includes(appointment.status))
     throw new AppError("booking_not_modifiable");
   await tx.update(appointments).set({ status }).where(eq(appointments.id, appointment.id));

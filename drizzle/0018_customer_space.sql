@@ -96,7 +96,7 @@ CREATE INDEX "customer_login_codes_identifier_idx" ON "customer_login_codes" USI
 CREATE UNIQUE INDEX "customer_sessions_token_key" ON "customer_sessions" USING btree ("token_hash");--> statement-breakpoint
 CREATE INDEX "customer_sessions_identifier_idx" ON "customer_sessions" USING btree ("tenant_id","identifier");--> statement-breakpoint
 CREATE INDEX "loyalty_events_customer_idx" ON "loyalty_events" USING btree ("business_id","customer_id","created_at");--> statement-breakpoint
-CREATE UNIQUE INDEX "loyalty_events_visit_key" ON "loyalty_events" USING btree ("appointment_id","kind") WHERE "loyalty_events"."kind" in ('visit', 'visit_reverted');--> statement-breakpoint
+CREATE INDEX "loyalty_events_appointment_idx" ON "loyalty_events" USING btree ("appointment_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "loyalty_rewards_open_key" ON "loyalty_rewards" USING btree ("business_id","customer_id") WHERE "loyalty_rewards"."used_at" is null;--> statement-breakpoint
 ALTER TABLE "business_settings" ADD CONSTRAINT "business_settings_loyalty_visits" CHECK ("business_settings"."loyalty_visits_required" between 2 and 50);--> statement-breakpoint
 ALTER TABLE "business_settings" ADD CONSTRAINT "business_settings_loyalty_validity" CHECK ("business_settings"."loyalty_reward_validity_days" between 7 and 730);--> statement-breakpoint
@@ -169,6 +169,8 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
       WHERE tenant_id = p_tenant AND status = 'active' AND p_channel = 'email'
         AND (lower(purchaser_email) = lower(p_identifier) OR lower(recipient_email) = lower(p_identifier))
   ) AS known
+  -- Seulement pour le site déclaré dans la transaction : jamais un autre tenant.
+  WHERE p_tenant = app_current_tenant()
 $$;
 --> statement-breakpoint
 REVOKE ALL ON FUNCTION app_customer_businesses(uuid, text, text) FROM PUBLIC;

@@ -177,8 +177,9 @@ export async function signInWithLink(tx: Transaction, tenantId: string, token: s
 
 /**
  * Code reçu par SMS : dernière demande du numéro, 5 essais au plus, valable une
- * fois. Un code faux renvoie null (sans erreur) pour que l'essai soit bien
- * compté : l'appelant affiche alors « code invalide ».
+ * fois. Code faux, expiré ou numéro inconnu : null (sans erreur, pour que l'essai
+ * soit bien compté), et l'appelant affiche le même « code invalide » dans tous
+ * les cas, sans révéler si le numéro est connu.
  */
 export async function signInWithCode(
   tx: Transaction,
@@ -200,9 +201,10 @@ export async function signInWithCode(
       ),
     )
     .orderBy(desc(customerLoginCodes.createdAt))
-    .limit(1);
-  if (!row || row.expiresAt <= now || row.failedAttempts >= CUSTOMER_LOGIN.maxCodeAttempts)
-    throw new AppError("login_invalid");
+    .limit(1)
+    // Verrouillé : des essais simultanés sont comptés un par un.
+    .for("update");
+  if (!row || row.expiresAt <= now || row.failedAttempts >= CUSTOMER_LOGIN.maxCodeAttempts) return null;
   const expected = Buffer.from(row.secretHash);
   const actual = Buffer.from(secretHash(row.id, "sms", entered));
   if (entered.length !== 6 || !timingSafeEqual(expected, actual)) {

@@ -117,19 +117,26 @@ async function refreshReward(
 ) {
   let reward: typeof loyaltyRewards.$inferSelect | null = await openReward(tx, customerId);
   if (reward && reward.expiresAt <= now) {
-    await tx.update(loyaltyRewards).set({ usedAt: reward.expiresAt }).where(eq(loyaltyRewards.id, reward.id));
-    await tx.insert(loyaltyEvents).values({
-      tenantId,
-      businessId: config.businessId,
-      customerId,
-      kind: "reward_used",
-      points: -reward.visitsRequired,
-      reason: "expired",
-    });
+    // Clos une seule fois, même si deux pages le lisent en même temps.
+    const [closed] = await tx
+      .update(loyaltyRewards)
+      .set({ usedAt: reward.expiresAt })
+      .where(and(eq(loyaltyRewards.id, reward.id), isNull(loyaltyRewards.usedAt)))
+      .returning({ id: loyaltyRewards.id });
+    if (closed)
+      await tx.insert(loyaltyEvents).values({
+        tenantId,
+        businessId: config.businessId,
+        customerId,
+        kind: "reward_used",
+        points: -reward.visitsRequired,
+        reason: "expired",
+      });
     reward = null;
   }
   if (reward || !config.active) return reward;
   if ((await balanceOf(tx, [customerId])) < config.visitsRequired) return null;
+  // Un seul bon en cours (règle de la base) : si un autre vient d'être créé, c'est lui qui compte.
   const [created] = await tx
     .insert(loyaltyRewards)
     .values({
@@ -141,8 +148,9 @@ async function refreshReward(
       visitsRequired: config.visitsRequired,
       expiresAt: new Date(now.getTime() + config.validityDays * DAY_MS),
     })
+    .onConflictDoNothing()
     .returning();
-  return created;
+  return created ?? (await openReward(tx, customerId));
 }
 
 /**
@@ -160,36 +168,26 @@ export async function trackAttendance(
 ) {
   if (before === after) return;
   const config = await loyaltyConfig(tx, tenantId, appointment.businessId);
+  // Solde des mouvements de ce rendez-vous : 1 s'il a rapporté son point, 0 sinon.
+  // (Le rendez-vous est verrouillé par l'appelant : pas de double comptage.)
+  const [{ net }] = await tx
+    .select({ net: sql<number>`coalesce(sum(${loyaltyEvents.points}), 0)::int` })
+    .from(loyaltyEvents)
+    .where(
+      and(
+        eq(loyaltyEvents.appointmentId, appointment.id),
+        inArray(loyaltyEvents.kind, ["visit", "visit_reverted"]),
+      ),
+    );
+  const event = { tenantId, businessId: appointment.businessId, customerId: appointment.customerId };
   if (after === "attended") {
-    if (!config.active) return;
-    await tx
-      .insert(loyaltyEvents)
-      .values({
-        tenantId,
-        businessId: appointment.businessId,
-        customerId: appointment.customerId,
-        kind: "visit",
-        points: 1,
-        appointmentId: appointment.id,
-      })
-      .onConflictDoNothing();
+    if (!config.active || net > 0) return;
+    await tx.insert(loyaltyEvents).values({ ...event, kind: "visit", points: 1, appointmentId: appointment.id });
   } else if (before === "attended") {
-    const [visit] = await tx
-      .select({ id: loyaltyEvents.id })
-      .from(loyaltyEvents)
-      .where(and(eq(loyaltyEvents.appointmentId, appointment.id), eq(loyaltyEvents.kind, "visit")));
-    if (!visit) return;
+    if (net <= 0) return;
     await tx
       .insert(loyaltyEvents)
-      .values({
-        tenantId,
-        businessId: appointment.businessId,
-        customerId: appointment.customerId,
-        kind: "visit_reverted",
-        points: -1,
-        appointmentId: appointment.id,
-      })
-      .onConflictDoNothing();
+      .values({ ...event, kind: "visit_reverted", points: -1, appointmentId: appointment.id });
   }
   await refreshReward(tx, tenantId, appointment.customerId, config, now);
 }
@@ -293,10 +291,13 @@ export async function redeemReward(
     .where(and(eq(loyaltyRewards.id, rewardId), eq(loyaltyRewards.tenantId, tenantId)));
   if (!reward) throw new AppError("not_found");
   if (reward.usedAt || reward.expiresAt <= now) throw new AppError("reward_unavailable");
-  await tx
+  // Utilisé une seule fois, même en cas de double clic.
+  const [used] = await tx
     .update(loyaltyRewards)
     .set({ usedAt: now, usedByUserId: userId })
-    .where(eq(loyaltyRewards.id, reward.id));
+    .where(and(eq(loyaltyRewards.id, reward.id), isNull(loyaltyRewards.usedAt)))
+    .returning({ id: loyaltyRewards.id });
+  if (!used) throw new AppError("reward_unavailable");
   await tx.insert(loyaltyEvents).values({
     tenantId,
     businessId: reward.businessId,

@@ -1,8 +1,17 @@
+import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { withPlatform, withTenant } from "@/db/access";
 import type { Transaction } from "@/db/client";
-import { appointments, customerLoginCodes, loyaltyEvents, loyaltyRewards, messageLog } from "@/db/schema";
+import {
+  appointments,
+  customerLoginCodes,
+  customers,
+  giftCards,
+  loyaltyEvents,
+  loyaltyRewards,
+  messageLog,
+} from "@/db/schema";
 import { setAttendance } from "@/modules/agenda/actions";
 import { createBooking } from "@/modules/booking/create";
 import { localToUtc } from "@/modules/booking/time";
@@ -199,6 +208,36 @@ describe.skipIf(!hasTestDatabase)("espace des clientes", () => {
       expect(results.at(-1)?.issued).toBe(false);
     });
 
+    it("une réservation en ligne avec l'e-mail d'une autre ne change pas son numéro", async () => {
+      // Quelqu'un réserve avec l'e-mail de Camille et son propre numéro…
+      const booked = await asBusiness(laila.id, (tx) =>
+        createBooking(
+          tx,
+          tenantId,
+          {
+            serviceIds: [laila.serviceId],
+            staffId: null,
+            start: at("2026-10-06", "16:00"),
+            customer: { firstName: "Intrus", email: "camille@example.com", phone: "07 99 99 99 99" },
+          },
+          { now: NOW },
+        ),
+      );
+      const [fiche] = await owner.select().from(customers).where(eq(customers.email, "camille@example.com"));
+      expect(fiche).toMatchObject({ firstName: "camille", phone: "+33612345678" });
+      // …et ne peut donc pas se connecter par SMS à l'espace de Camille.
+      const intrus = { channel: "sms" as const, identifier: "+33799999999" };
+      expect(await asBusiness(null, (tx) => knownBusinesses(tx, tenantId, intrus))).toEqual([]);
+      // (Rendez-vous retiré pour ne pas fausser les tests suivants.)
+      await owner.update(appointments).set({ status: "cancelled" }).where(eq(appointments.id, booked.appointmentId));
+    });
+
+    it("la recherche d'une cliente reste limitée au site déclaré", async () => {
+      expect(
+        await withTenant(randomUUID(), (tx) => knownBusinesses(tx, tenantId, camille), app, null),
+      ).toEqual([]);
+    });
+
     it("le code SMS est refusé après 5 erreurs, même juste ensuite", async () => {
       const phone = { channel: "sms" as const, identifier: "+33612345678" };
       const issued = await asBusiness(laila.id, (tx) =>
@@ -212,8 +251,12 @@ describe.skipIf(!hasTestDatabase)("espace des clientes", () => {
           await asBusiness(null, (tx) => signInWithCode(tx, tenantId, phone.identifier, wrong, NOW)),
         ).toBeNull();
       expect(
-        await errorCode(asBusiness(null, (tx) => signInWithCode(tx, tenantId, phone.identifier, code, NOW))),
-      ).toBe("login_invalid");
+        await asBusiness(null, (tx) => signInWithCode(tx, tenantId, phone.identifier, code, NOW)),
+      ).toBeNull();
+      // Numéro inconnu : même réponse qu'un code faux (rien ne révèle s'il est connu).
+      expect(
+        await asBusiness(null, (tx) => signInWithCode(tx, tenantId, "+33699999999", code, NOW)),
+      ).toBeNull();
       const [row] = await owner
         .select()
         .from(customerLoginCodes)
@@ -291,6 +334,40 @@ describe.skipIf(!hasTestDatabase)("espace des clientes", () => {
     });
   });
 
+  describe("cartes cadeaux", () => {
+    it("le code n'est montré qu'à la personne qui reçoit la carte, une fois envoyée", async () => {
+      const sendAt = at("2026-10-10", "08:00");
+      await owner.insert(giftCards).values({
+        tenantId,
+        businessId: laila.id,
+        codeHash: randomUUID().replace(/-/g, "").padEnd(64, "0"),
+        codeLast4: "TEST",
+        status: "active",
+        initialCents: 5000,
+        balanceCents: 5000,
+        purchaserName: "Camille",
+        purchaserEmail: "camille@example.com",
+        recipientName: "Lou",
+        recipientEmail: "lou@example.com",
+        sendAt,
+        expiresAt: at("2027-10-10", "08:00"),
+      });
+      const lou = { channel: "email" as const, identifier: "lou@example.com" };
+      const cardOf = async (identity: typeof lou, now: Date) => {
+        const space = await asBusiness(laila.id, (tx) =>
+          loadBusinessSpace(tx, tenantId, laila.id, identity, { now, locale: "fr" }),
+        );
+        return space.giftCards?.find((card) => card.balanceCents === 5000);
+      };
+      // L'acheteuse voit la carte offerte, jamais son code.
+      expect(await cardOf(camille, NOW)).toMatchObject({ code: null, received: false, recipientName: "Lou" });
+      expect(await cardOf(camille, sendAt)).toMatchObject({ code: null });
+      // La personne qui la reçoit : pas de code avant la date d'envoi, puis le code.
+      expect(await cardOf(lou, NOW)).toMatchObject({ code: null, received: true });
+      expect((await cardOf(lou, sendAt))?.code).toMatch(/\S+/);
+    });
+  });
+
   describe("fidélité", () => {
     it("le compteur n'avance que sur un rendez-vous honoré", async () => {
       const first = await book(laila.id, laila.serviceId, "zoe@example.com", "2026-10-05", "11:30");
@@ -307,6 +384,11 @@ describe.skipIf(!hasTestDatabase)("espace des clientes", () => {
       // Correction : venue → absente, le point est retiré.
       await asBusiness(laila.id, (tx) => setAttendance(tx, tenantId, first.appointmentId, "no_show"));
       expect(await points()).toMatchObject({ points: 0, remaining: 2, reward: null });
+      // Nouvelle correction : de nouveau venue, le point revient (une seule fois).
+      await asBusiness(laila.id, (tx) => setAttendance(tx, tenantId, first.appointmentId, "attended"));
+      expect((await points())?.points).toBe(1);
+      await asBusiness(laila.id, (tx) => setAttendance(tx, tenantId, first.appointmentId, "attended"));
+      expect((await points())?.points).toBe(1);
     });
 
     it("le bon apparaît au nombre de visites, et son utilisation garde les points en trop", async () => {

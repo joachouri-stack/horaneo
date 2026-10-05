@@ -183,14 +183,24 @@ export async function loadBusinessSpace(
               ),
             )
             .orderBy(asc(giftCards.expiresAt))
-        ).map((card) => ({
-          id: card.id,
-          code: giftCardCodeFor(card.id),
-          balanceCents: card.balanceCents,
-          currency: card.currency,
-          expiresAt: card.expiresAt,
-          received: card.recipientEmail?.toLowerCase() === identity.identifier,
-        }))
+        ).map((card) => {
+          // Le code n'est montré qu'à la personne qui reçoit la carte (l'acheteuse si elle
+          // se l'est offerte), et seulement une fois la carte envoyée : une carte offerte
+          // reste une surprise, et l'acheteuse ne peut pas l'utiliser à la place.
+          const recipient = card.recipientEmail?.toLowerCase() ?? card.purchaserEmail.toLowerCase();
+          const received = recipient === identity.identifier;
+          const sent = card.sendAt <= now;
+          return {
+            id: card.id,
+            code: received && sent ? giftCardCodeFor(card.id) : null,
+            balanceCents: card.balanceCents,
+            currency: card.currency,
+            expiresAt: card.expiresAt,
+            received,
+            recipientName: received ? null : card.recipientName,
+            sendAt: card.sendAt,
+          };
+        })
       : null;
 
   const loyalty = features.loyalty ? await customerLoyalty(tx, tenantId, customerIds, now) : null;

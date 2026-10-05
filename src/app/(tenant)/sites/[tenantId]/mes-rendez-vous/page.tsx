@@ -249,19 +249,36 @@ export default async function CustomerSpacePage({ params }: PageProps<"/sites/[t
                     {space.giftCards.map((gift) => (
                       <li key={gift.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
                         <div>
-                          <p className="font-mono text-lg font-semibold tracking-wider">{gift.code}</p>
+                          {gift.code ? (
+                            <p className="font-mono text-lg font-semibold tracking-wider">{gift.code}</p>
+                          ) : (
+                            <p className="font-semibold">
+                              {gift.received
+                                ? t("giftReceived")
+                                : gift.recipientName
+                                  ? t("giftOffered", { name: gift.recipientName })
+                                  : t("giftOfferedNoName")}
+                            </p>
+                          )}
                           <p className="text-sm text-site-muted">
-                            {gift.received ? t("giftReceived") : t("giftBought")} ·{" "}
+                            {gift.code && <>{gift.received ? t("giftReceived") : t("giftBought")} · </>}
                             {t("giftBalance", { amount: money(gift.balanceCents, gift.currency) })} ·{" "}
-                            {t("giftValid", { date: date(gift.expiresAt) })}
+                            {gift.code || !gift.received
+                              ? t("giftValid", { date: date(gift.expiresAt) })
+                              : t("giftScheduled", { date: date(gift.sendAt) })}
                           </p>
+                          {!gift.code && !gift.received && (
+                            <p className="mt-1 text-sm text-site-muted">{t("giftHiddenCode")}</p>
+                          )}
                         </div>
-                        <Link
-                          href={`${SITE_PATHS.booking}?avec=${space.businessId}&carte=${encodeURIComponent(gift.code)}`}
-                          className={`${pill} border border-site-border text-site-text`}
-                        >
-                          {t("giftUse")}
-                        </Link>
+                        {gift.code && (
+                          <Link
+                            href={`${SITE_PATHS.booking}?avec=${space.businessId}&carte=${encodeURIComponent(gift.code)}`}
+                            className={`${pill} border border-site-border text-site-text`}
+                          >
+                            {t("giftUse")}
+                          </Link>
+                        )}
                       </li>
                     ))}
                   </ul>

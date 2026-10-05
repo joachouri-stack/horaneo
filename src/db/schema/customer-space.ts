@@ -120,10 +120,8 @@ export const loyaltyEvents = pgTable(
       foreignColumns: [appointments.businessId, appointments.id],
     }).onDelete("cascade"),
     index("loyalty_events_customer_idx").on(t.businessId, t.customerId, t.createdAt),
-    // Un rendez-vous honoré ne rapporte qu'un point (une annulation de la visite peut suivre).
-    uniqueIndex("loyalty_events_visit_key")
-      .on(t.appointmentId, t.kind)
-      .where(sql`${t.kind} in ('visit', 'visit_reverted')`),
+    // Un rendez-vous honoré ne rapporte qu'un point : le solde de ses mouvements reste 0 ou 1.
+    index("loyalty_events_appointment_idx").on(t.appointmentId),
     check("loyalty_events_points", sql`${t.points} <> 0`),
   ],
 );

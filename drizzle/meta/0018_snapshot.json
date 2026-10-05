@@ -7454,24 +7454,17 @@
           "method": "btree",
           "with": {}
         },
-        "loyalty_events_visit_key": {
-          "name": "loyalty_events_visit_key",
+        "loyalty_events_appointment_idx": {
+          "name": "loyalty_events_appointment_idx",
           "columns": [
             {
               "expression": "appointment_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
-            },
-            {
-              "expression": "kind",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
             }
           ],
-          "isUnique": true,
-          "where": "\"loyalty_events\".\"kind\" in ('visit', 'visit_reverted')",
+          "isUnique": false,
           "concurrently": false,
           "method": "btree",
           "with": {}
