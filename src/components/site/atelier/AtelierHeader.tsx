@@ -56,7 +56,9 @@ export function AtelierBrand({ site, size = "md" }: { site: Site; size?: "md" | 
           />
         </span>
       )}
-      <span className="truncate font-site-display text-xl font-medium sm:text-[1.7rem]">
+      <span
+        className={`truncate font-site-display text-xl font-medium sm:text-[1.7rem] ${size === "md" ? "lg:text-2xl xl:text-[1.7rem]" : ""}`}
+      >
         {site.tenant.name}
       </span>
     </span>
