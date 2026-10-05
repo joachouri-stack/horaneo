@@ -52,12 +52,12 @@ export default async function ManagerLayout({
       )}
       <div className="mx-auto max-w-3xl px-4 pt-2">
         <div className="flex items-center justify-between gap-3">
-          <p className="truncate font-display text-lg font-extrabold text-navy">
+          <p className="truncate font-display text-lg font-extrabold text-night">
             {tenant.name}
             {multiBusiness && <span className="font-semibold text-ink/70"> · {business.name}</span>}
           </p>
           {several && (
-            <Link href="/espace" className="shrink-0 text-sm font-semibold text-navy underline">
+            <Link href="/espace" className="shrink-0 text-sm font-semibold text-night underline">
               {t("switchTenant")}
             </Link>
           )}

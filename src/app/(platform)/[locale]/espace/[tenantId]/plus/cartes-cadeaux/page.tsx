@@ -80,7 +80,7 @@ export default async function GiftCardsPage({
               key={item}
               href={`${page.base}/plus/cartes-cadeaux${item === "all" ? "" : `?filtre=${item}`}`}
               aria-current={filter === item ? "page" : undefined}
-              className="rounded-full border border-navy/20 px-4 py-2 text-sm font-semibold text-navy aria-[current=page]:bg-navy aria-[current=page]:text-white"
+              className="rounded-full border border-navy/20 px-4 py-2 text-sm font-semibold text-night aria-[current=page]:bg-navy aria-[current=page]:text-white"
             >
               {t(`filter.${item}`)}
             </Link>

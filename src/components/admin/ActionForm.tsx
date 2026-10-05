@@ -54,7 +54,7 @@ export function ActionForm({
         ? `${ui.secondaryButton} sm:w-auto`
         : variant === "danger"
           ? "font-semibold text-coral-dark underline disabled:opacity-60"
-          : "font-semibold text-navy underline disabled:opacity-60";
+          : "font-semibold text-night underline disabled:opacity-60";
 
   return (
     <form

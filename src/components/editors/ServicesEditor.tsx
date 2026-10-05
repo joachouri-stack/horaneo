@@ -129,7 +129,7 @@ export async function ServicesEditor({
             <li key={service.id}>
               <details className="rounded-lg border border-navy/10 p-4">
                 <summary className="flex cursor-pointer flex-wrap justify-between gap-2">
-                  <span className="font-semibold text-navy">
+                  <span className="font-semibold text-night">
                     {text(service.name)}
                     {!service.isActive && <span className="ml-2 text-sm text-ink/60">({t("disabled")})</span>}
                   </span>

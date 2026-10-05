@@ -427,23 +427,26 @@ export function BookingFlow(props: Props) {
           {props.maxServices > 1 && selected.length >= props.maxServices && (
             <p className="text-sm text-site-muted">{t("services.maxReached")}</p>
           )}
-          <div className="sticky bottom-24 rounded-site border border-site-border bg-site-bg p-4 shadow-lg sm:bottom-4">
-            <p className="mb-3 text-site-text" aria-live="polite">
-              {t("services.selected", {
-                count: chosen.length,
-                duration: durationLabel(totalMinutes),
-                price: money(totalCents, props.currency, props.locale),
-              })}
-            </p>
-            <button
-              type="button"
-              disabled={chosen.length === 0}
-              onClick={() => setStep("slot")}
-              className={primaryClass}
-            >
-              {t("continue")}
-            </button>
-          </div>
+          {/* Récapitulatif collé en bas de l'écran, seulement une fois une prestation choisie. */}
+          {chosen.length > 0 && (
+            <div className="sticky bottom-3 z-10 rounded-site border border-site-border bg-site-bg p-4 shadow-lg sm:bottom-4">
+              <p className="mb-3 text-site-text" aria-live="polite">
+                {t("services.selected", {
+                  count: chosen.length,
+                  duration: durationLabel(totalMinutes),
+                  price: money(totalCents, props.currency, props.locale),
+                })}
+              </p>
+              <button
+                type="button"
+                disabled={chosen.length === 0}
+                onClick={() => setStep("slot")}
+                className={primaryClass}
+              >
+                {t("continue")}
+              </button>
+            </div>
+          )}
           {props.previousHref && (
             <Link href={props.previousHref} className="inline-block font-semibold text-site-accent underline">
               ← {t("back")}
@@ -520,7 +523,7 @@ export function BookingFlow(props: Props) {
               <button
                 type="button"
                 onClick={() => setStep("slot")}
-                className="font-semibold text-site-accent underline"
+                className="inline-flex min-h-11 items-center font-semibold text-site-accent underline"
               >
                 {t("change")}
               </button>

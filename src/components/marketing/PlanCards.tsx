@@ -119,7 +119,7 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
               >
                 {money(plan.priceCents)}{" "}
                 <span
-                  className={`font-sans text-base font-normal tracking-normal ${featured ? "text-[#c9d0de]" : "text-stone"}`}
+                  className={`whitespace-nowrap font-sans text-base font-normal tracking-normal ${featured ? "text-[#c9d0de]" : "text-stone"}`}
                 >
                   {plan.priceCents > 0 ? t("perMonthShort") : t("freeForever")}
                 </span>
@@ -154,14 +154,14 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
             </dl>
             <Link
               href={{ pathname: "/commander", query: { pack: plan.code } }}
-              className={`relative flex items-center justify-center gap-2.5 rounded-full p-4 text-[1.05rem] font-semibold transition hover:-translate-y-0.5 ${
+              className={`relative flex items-center justify-center gap-2 whitespace-nowrap rounded-full px-3 py-4 text-[1rem] font-semibold transition hover:-translate-y-0.5 ${
                 featured
                   ? "bg-brick text-white hover:shadow-[0_12px_26px_rgba(212,64,47,.32)]"
                   : "bg-blush text-rust hover:bg-brick hover:text-white"
               }`}
             >
               {plan.priceCents > 0 ? t("choose", { plan: name }) : t("start")}
-              <ArrowIcon className="size-[18px] transition-transform group-hover:translate-x-1.5" />
+              <ArrowIcon className="size-[18px] shrink-0 transition-transform group-hover:translate-x-1.5" />
             </Link>
             <ul
               className={`relative flex flex-col gap-3 border-t pt-[1.4rem] ${featured ? "border-[#3a4a6e]" : "border-line"}`}

@@ -154,7 +154,7 @@ export function PhotoCropUpload({ tenantId, action }: Props) {
                 />
               </div>
               <label className="flex items-center gap-3">
-                <span className="text-sm font-semibold text-navy">{t("zoom")}</span>
+                <span className="text-sm font-semibold text-night">{t("zoom")}</span>
                 <input
                   type="range"
                   min={1}

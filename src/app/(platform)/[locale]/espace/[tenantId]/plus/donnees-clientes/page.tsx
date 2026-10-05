@@ -25,7 +25,7 @@ export default async function CustomerDataPage({
           <li key={request.id} className={`${ui.card} space-y-3`}>
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-lg font-bold">{t(`kinds.${request.kind}`)}</p>
-              <span className="rounded-full bg-navy/10 px-3 py-1 text-sm font-semibold text-navy">
+              <span className="rounded-full bg-navy/10 px-3 py-1 text-sm font-semibold text-night">
                 {t(`status.${request.status}`)}
               </span>
             </div>

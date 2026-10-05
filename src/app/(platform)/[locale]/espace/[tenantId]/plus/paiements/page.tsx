@@ -49,7 +49,7 @@ export default async function PaymentsPage({
       <section className={ui.card}>
         {/* Paiement en ligne pas encore configuré sur la plateforme : un seul message, jamais « compte actif ». */}
         {(configured || state === "unavailable") && (
-          <p className={`text-lg font-bold ${state === "active" ? "text-success" : "text-navy"}`}>
+          <p className={`text-lg font-bold ${state === "active" ? "text-success" : "text-night"}`}>
             {t(`state.${state}`)}
           </p>
         )}
@@ -64,7 +64,7 @@ export default async function PaymentsPage({
         )}
 
         {state !== "unavailable" && !configured && (
-          <p className="text-lg font-bold text-navy">{t("notConfigured")}</p>
+          <p className="text-lg font-bold text-night">{t("notConfigured")}</p>
         )}
 
         {(state === "not_started" || state === "incomplete") && configured && (

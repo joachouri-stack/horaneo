@@ -60,7 +60,7 @@ export default async function RequestsAdminPage({
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <Link
                   href={`/admin/clients/${request.tenantId}`}
-                  className="text-lg font-bold text-navy underline"
+                  className="text-lg font-bold text-night underline"
                 >
                   {request.tenantName}
                 </Link>

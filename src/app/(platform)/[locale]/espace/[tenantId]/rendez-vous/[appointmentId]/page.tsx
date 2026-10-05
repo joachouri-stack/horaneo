@@ -57,7 +57,7 @@ export default async function AppointmentPage({
 
       <section className={ui.card}>
         <h2 className="text-sm font-semibold uppercase text-ink/60">{t("appointment.customer")}</h2>
-        <p className="mt-1 text-xl font-bold text-navy">
+        <p className="mt-1 text-xl font-bold text-night">
           <Link href={`${page.base}/clientes/${item.customerId}`} className="underline">
             {item.customerName}
           </Link>
@@ -72,13 +72,13 @@ export default async function AppointmentPage({
               >
                 {t("appointment.call")}
               </a>
-              <a href={`sms:${item.customerPhone}`} className={`${big} border-2 border-navy/20 text-navy`}>
+              <a href={`sms:${item.customerPhone}`} className={`${big} border-2 border-navy/20 text-night`}>
                 {t("appointment.sms")}
               </a>
             </>
           )}
           {item.customerEmail && (
-            <a href={`mailto:${item.customerEmail}`} className={`${big} border-2 border-navy/20 text-navy`}>
+            <a href={`mailto:${item.customerEmail}`} className={`${big} border-2 border-navy/20 text-night`}>
               {t("appointment.email")}
             </a>
           )}
@@ -200,7 +200,7 @@ export default async function AppointmentPage({
 
       {item.status === "confirmed" && (
         <details className={ui.card}>
-          <summary className="cursor-pointer text-lg font-bold text-navy">{t("appointment.move")}</summary>
+          <summary className="cursor-pointer text-lg font-bold text-night">{t("appointment.move")}</summary>
           <ActionForm
             action={moveAppointmentAction}
             submitLabel={t("appointment.move")}

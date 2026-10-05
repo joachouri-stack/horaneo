@@ -132,7 +132,7 @@ export default async function PromotionsPage({
                     <details className={ui.card}>
                       <summary className="cursor-pointer">
                         <span
-                          className={`block text-lg font-bold ${state === "ended" ? "text-ink/50" : "text-navy"}`}
+                          className={`block text-lg font-bold ${state === "ended" ? "text-ink/50" : "text-night"}`}
                         >
                           {pickLocalized(promotion.title, locale)}{" "}
                           <span className="text-sm font-semibold text-ink/70">· {t(`state.${state}`)}</span>
@@ -172,7 +172,7 @@ export default async function PromotionsPage({
             </ul>
           )}
           <details className={ui.card} open={promotions.length === 0}>
-            <summary className="cursor-pointer text-lg font-bold text-navy">+ {t("new")}</summary>
+            <summary className="cursor-pointer text-lg font-bold text-night">+ {t("new")}</summary>
             <ActionForm
               action={savePromotionAction}
               submitLabel={tCommon("save")}

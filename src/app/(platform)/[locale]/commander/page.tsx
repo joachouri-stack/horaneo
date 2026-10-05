@@ -71,7 +71,7 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
                         defaultChecked={plan.id === selected?.id}
                         className="h-5 w-5 accent-navy"
                       />
-                      <span className="font-bold text-navy">{pickLocalized(plan.name, locale)}</span>
+                      <span className="font-bold text-night">{pickLocalized(plan.name, locale)}</span>
                     </span>
                     <span className="text-right">
                       {plan.priceCents > 0

@@ -123,7 +123,7 @@ export default async function SubscriptionPage({
       )}
 
       <section className={ui.card}>
-        <p className="text-xl font-bold text-navy">
+        <p className="text-xl font-bold text-night">
           {t("plan", { name: pickLocalized(page.tenant.planName, page.locale) })}
         </p>
         <div className="mt-2 space-y-1 text-ink/80">
@@ -213,7 +213,7 @@ export default async function SubscriptionPage({
               aria-current={isCurrent ? "true" : undefined}
             >
               <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h3 className="text-lg font-bold text-navy">{pickLocalized(plan.name, page.locale)}</h3>
+                <h3 className="text-lg font-bold text-night">{pickLocalized(plan.name, page.locale)}</h3>
                 <p className="font-semibold">{priceLabel(plan.priceCents)}</p>
               </div>
               {isCurrent && <p className="text-sm font-semibold text-success">{t("current")}</p>}

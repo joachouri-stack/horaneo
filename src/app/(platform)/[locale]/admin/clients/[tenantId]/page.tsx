@@ -142,7 +142,7 @@ export default async function TenantOverviewPage({
             ].map((item) => (
               <div key={item.label}>
                 <dt className="text-sm text-ink/70">{item.label}</dt>
-                <dd className="text-xl font-bold text-navy">{item.value}</dd>
+                <dd className="text-xl font-bold text-night">{item.value}</dd>
               </div>
             ))}
           </dl>

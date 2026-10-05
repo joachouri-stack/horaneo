@@ -36,7 +36,7 @@ export default async function PhotosPage({ params }: PageProps<"/[locale]/admin/
         <div className="space-y-6">
           <PhotoCropUpload tenantId={tenantId} action={uploadPhotoAction} />
           <details>
-            <summary className="cursor-pointer text-sm font-semibold text-navy">{t("uploadNoCrop")}</summary>
+            <summary className="cursor-pointer text-sm font-semibold text-night">{t("uploadNoCrop")}</summary>
             <ActionForm
               action={uploadPhotoAction}
               submitLabel={t("upload")}

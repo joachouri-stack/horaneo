@@ -45,7 +45,7 @@
   .saas h1,
   .saas h2,
   .saas h3 {
-    color: var(--color-navy);
+    color: var(--color-night);
     font-family: var(--font-display);
   }
 

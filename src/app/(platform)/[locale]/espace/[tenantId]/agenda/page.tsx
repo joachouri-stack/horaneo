@@ -82,17 +82,17 @@ export default async function AgendaPage({
         <Link
           href={link({ date: addDays(date, -step) })}
           aria-label={t("previous")}
-          className={`${pill} border-2 border-navy/15 text-navy`}
+          className={`${pill} border-2 border-navy/15 text-night`}
         >
           ←
         </Link>
-        <Link href={link({ date: today })} className={`${pill} border-2 border-navy/15 text-navy`}>
+        <Link href={link({ date: today })} className={`${pill} border-2 border-navy/15 text-night`}>
           {t("today")}
         </Link>
         <Link
           href={link({ date: addDays(date, step) })}
           aria-label={t("next")}
-          className={`${pill} border-2 border-navy/15 text-navy`}
+          className={`${pill} border-2 border-navy/15 text-night`}
         >
           →
         </Link>
@@ -100,14 +100,14 @@ export default async function AgendaPage({
           <Link
             href={link({ vue: "jour" })}
             aria-current={view === "day" ? "page" : undefined}
-            className={`${pill} text-navy aria-[current=page]:bg-navy aria-[current=page]:text-white`}
+            className={`${pill} text-night aria-[current=page]:bg-navy aria-[current=page]:text-white`}
           >
             {t("day")}
           </Link>
           <Link
             href={link({ vue: "semaine" })}
             aria-current={view === "week" ? "page" : undefined}
-            className={`${pill} text-navy aria-[current=page]:bg-navy aria-[current=page]:text-white`}
+            className={`${pill} text-night aria-[current=page]:bg-navy aria-[current=page]:text-white`}
           >
             {t("week")}
           </Link>
@@ -118,7 +118,7 @@ export default async function AgendaPage({
           <Link
             href={link({ membre: null })}
             aria-current={!memberFilter ? "page" : undefined}
-            className={`${pill} shrink-0 bg-white text-navy aria-[current=page]:bg-navy aria-[current=page]:text-white`}
+            className={`${pill} shrink-0 bg-white text-night aria-[current=page]:bg-navy aria-[current=page]:text-white`}
           >
             {t("allStaff")}
           </Link>
@@ -127,7 +127,7 @@ export default async function AgendaPage({
               key={member.id}
               href={link({ membre: member.id })}
               aria-current={memberFilter === member.id ? "page" : undefined}
-              className={`${pill} shrink-0 bg-white text-navy aria-[current=page]:bg-navy aria-[current=page]:text-white`}
+              className={`${pill} shrink-0 bg-white text-night aria-[current=page]:bg-navy aria-[current=page]:text-white`}
             >
               {member.name}
             </Link>
@@ -237,7 +237,7 @@ export default async function AgendaPage({
               ) : (
                 <Link
                   href={`${page.base}/rendez-vous/nouveau?date=${date}&membre=${member.id}`}
-                  className="flex h-10 items-center justify-center gap-1 truncate font-semibold text-navy"
+                  className="flex h-10 items-center justify-center gap-1 truncate font-semibold text-night"
                 >
                   {member.name} <span aria-hidden="true">+</span>
                 </Link>
@@ -278,7 +278,7 @@ export default async function AgendaPage({
                         className={`absolute inset-x-1 overflow-hidden rounded-md border-l-4 bg-navy/5 p-1 text-xs leading-tight hover:bg-navy/10 ${item.status === "no_show" ? "opacity-50" : ""}`}
                         style={{ top: from, height: size, borderLeftColor: item.staffColor ?? "#1b2a4a" }}
                       >
-                        <span className="block font-bold text-navy">
+                        <span className="block font-bold text-night">
                           {page.fmt.time(item.startsAt)} {item.customerName}
                         </span>
                         <span className="block text-ink/70">{item.services.join(" + ")}</span>

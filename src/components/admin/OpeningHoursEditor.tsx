@@ -42,7 +42,7 @@ export function OpeningHoursEditor({
           const dayRanges = ranges.filter((range) => range.weekday === day);
           return (
             <li key={day} className="grid gap-2 py-3 sm:grid-cols-[8rem_1fr] sm:items-start">
-              <span className="pt-3 font-semibold text-navy">{tDays(String(day) as "1")}</span>
+              <span className="pt-3 font-semibold text-night">{tDays(String(day) as "1")}</span>
               <div className="space-y-2">
                 {dayRanges.length === 0 && <p className="pt-3 text-ink/60">{t("closed")}</p>}
                 {dayRanges.map((range) => (
@@ -101,7 +101,7 @@ export function OpeningHoursEditor({
                     }
                     setNextKey(nextKey + 1);
                   }}
-                  className="text-sm font-semibold text-navy underline"
+                  className="text-sm font-semibold text-night underline"
                 >
                   + {t("addRange")}
                 </button>

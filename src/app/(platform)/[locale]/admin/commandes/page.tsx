@@ -30,7 +30,7 @@ export default async function OrdersPage({ params }: PageProps<"/[locale]/admin/
         {rows.map(({ order, planName, email, userName }) => (
           <li key={order.id} className={ui.card}>
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <h2 className="text-xl font-bold text-navy">{order.businessName}</h2>
+              <h2 className="text-xl font-bold text-night">{order.businessName}</h2>
               <span className="font-semibold">
                 {pickLocalized(planName, locale)} · {t(`status.${order.status as "paid"}`)}
               </span>

@@ -44,7 +44,7 @@ export default async function UnavailabilityPage({
             key={value}
             href={`${page.base}/indisponibilites?type=${value}`}
             aria-current={kind === value ? "page" : undefined}
-            className="flex-1 rounded-full px-2 py-2 text-center text-sm font-semibold text-navy aria-[current=page]:bg-navy aria-[current=page]:text-white"
+            className="flex-1 rounded-full px-2 py-2 text-center text-sm font-semibold text-night aria-[current=page]:bg-navy aria-[current=page]:text-white"
           >
             {t(value)}
           </Link>

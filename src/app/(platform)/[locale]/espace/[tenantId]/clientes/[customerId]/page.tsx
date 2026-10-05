@@ -46,13 +46,13 @@ export default async function CustomerPage({
             <a href={`tel:${customer.phone}`} className={`${big} bg-navy text-white`}>
               {tManager("appointment.call")}
             </a>
-            <a href={`sms:${customer.phone}`} className={`${big} border-2 border-navy/20 text-navy`}>
+            <a href={`sms:${customer.phone}`} className={`${big} border-2 border-navy/20 text-night`}>
               {tManager("appointment.sms")}
             </a>
           </>
         )}
         {customer.email && (
-          <a href={`mailto:${customer.email}`} className={`${big} border-2 border-navy/20 text-navy`}>
+          <a href={`mailto:${customer.email}`} className={`${big} border-2 border-navy/20 text-night`}>
             {tManager("appointment.email")}
           </a>
         )}
@@ -64,7 +64,7 @@ export default async function CustomerPage({
           { label: t("spent"), value: page.fmt.money(stats.spentCents) },
         ].map((stat) => (
           <div key={stat.label} className="rounded-[var(--radius-card)] bg-white p-3 text-center shadow-sm">
-            <dd className="font-display text-xl font-extrabold text-navy">{stat.value}</dd>
+            <dd className="font-display text-xl font-extrabold text-night">{stat.value}</dd>
             <dt className="text-xs text-ink/70">{stat.label}</dt>
           </div>
         ))}
@@ -76,7 +76,7 @@ export default async function CustomerPage({
           </h2>
           {loyalty.summary?.active && (
             <>
-              <p className="font-display text-2xl font-extrabold text-navy">
+              <p className="font-display text-2xl font-extrabold text-night">
                 {tLoyalty("progress", {
                   points: loyalty.summary.points,
                   required: loyalty.summary.visitsRequired,
@@ -119,7 +119,7 @@ export default async function CustomerPage({
           )}
           {loyalty.config.included && (
             <details>
-              <summary className="cursor-pointer font-semibold text-navy">{tLoyalty("adjust")}</summary>
+              <summary className="cursor-pointer font-semibold text-night">{tLoyalty("adjust")}</summary>
               <ActionForm
                 action={adjustLoyaltyAction}
                 submitLabel={tLoyalty("adjustSubmit")}

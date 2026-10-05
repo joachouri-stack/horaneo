@@ -77,14 +77,14 @@ export default async function BusinessesPage({
               <Link
                 href={`/espace/${tenantId}/entreprise/${business.id}`}
                 prefetch={false}
-                className="font-semibold text-navy underline"
+                className="font-semibold text-night underline"
               >
                 {t("viewAs")} →
               </Link>
             }
           >
             <div className="mb-4 space-y-1 text-sm text-ink/80">
-              {business.isPrimary && <p className="font-semibold text-navy">{t("primary")}</p>}
+              {business.isPrimary && <p className="font-semibold text-night">{t("primary")}</p>}
               <p>
                 {managers.length > 0
                   ? t("managers", {

@@ -80,7 +80,7 @@ export default async function ClientsPage({ params, searchParams }: PageProps<"/
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-lg font-bold text-navy">{row.name}</p>
+                    <p className="text-lg font-bold text-night">{row.name}</p>
                     <p className="text-sm text-ink/70">{row.primaryHostname}</p>
                   </div>
                   <StatusBadge status={row.status} />
