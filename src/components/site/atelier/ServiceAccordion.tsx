@@ -5,8 +5,8 @@ import type { SiteData } from "@/modules/site/data";
 import { formatDuration } from "@/modules/site/format";
 import { SITE_PATHS } from "@/modules/site/paths";
 import { PriceTag } from "../PriceTag";
-import { ArrowIcon } from "./icons";
-import { Tag } from "./ui";
+import { ArrowIcon, CheckIcon } from "./icons";
+import { PillLink, Tag } from "./ui";
 import { OpenFromHash } from "./OpenFromHash";
 
 type Site = NonNullable<SiteData>;
@@ -33,6 +33,7 @@ export async function ServiceAccordion({
     ...categories.map((category) => ({
       id: category.slug,
       name: category.name,
+      details: category.details,
       featured: category.isFeatured,
       services: category.services,
     })),
@@ -41,12 +42,20 @@ export async function ServiceAccordion({
           {
             id: `autres-${businessId.slice(0, 8)}`,
             name: tServices("other"),
+            details: "",
             featured: false,
             services: loose,
           },
         ]
       : []),
   ];
+  // Catégorie sans réservation en ligne (ex. formations) : « Demander des informations ».
+  const business = site.businesses.find((item) => item.id === businessId);
+  const contactHref = business?.phone
+    ? `tel:${business.phone}`
+    : (business?.email ?? site.tenant.email)
+      ? `mailto:${business?.email ?? site.tenant.email}`
+      : null;
   const duration = (minutes: number) =>
     formatDuration((key, values) => tServices(key as "durationMinutes", values), minutes);
 
@@ -75,6 +84,7 @@ export async function ServiceAccordion({
               +
             </span>
           </summary>
+          {group.details && <CategoryDetails text={group.details} />}
           <ul className="divide-y divide-site-border/60 px-5 pb-3 sm:px-6">
             {group.services.map((service) => {
               const price = formatMoney(
@@ -116,8 +126,51 @@ export async function ServiceAccordion({
               );
             })}
           </ul>
+          {contactHref && group.services.length > 0 && !group.services.some((s) => s.bookOnline) && (
+            <div className="px-5 pb-5 sm:px-6">
+              <PillLink href={contactHref} size="sm">
+                {t("askInfo")}
+              </PillLink>
+            </div>
+          )}
         </details>
       ))}
+    </div>
+  );
+}
+
+/** Présentation d'une catégorie : paragraphes, et les lignes « - … » en liste cochée. */
+function CategoryDetails({ text }: { text: string }) {
+  const blocks: ({ kind: "p"; text: string } | { kind: "ul"; items: string[] })[] = [];
+  for (const raw of text.split("\n")) {
+    const line = raw.trim();
+    if (!line) continue;
+    const item = line.match(/^[-•]\s*(.+)$/)?.[1];
+    const last = blocks.at(-1);
+    if (item && last?.kind === "ul") last.items.push(item);
+    else if (item) blocks.push({ kind: "ul", items: [item] });
+    else blocks.push({ kind: "p", text: line });
+  }
+  return (
+    <div className="mx-5 mb-2 space-y-3 rounded-2xl bg-site-surface p-4 sm:mx-6 sm:p-5">
+      {blocks.map((block, index) =>
+        block.kind === "p" ? (
+          <p key={index} className="text-site-muted">
+            {block.text}
+          </p>
+        ) : (
+          <ul key={index} className="grid gap-2 sm:grid-cols-2">
+            {block.items.map((item) => (
+              <li key={item} className="flex gap-2.5">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-site-button text-site-on-button">
+                  <CheckIcon className="h-3 w-3" />
+                </span>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        ),
+      )}
     </div>
   );
 }

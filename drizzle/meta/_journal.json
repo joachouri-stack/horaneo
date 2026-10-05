@@ -120,6 +120,13 @@
       "when": 1791205898115,
       "tag": "0016_category_in_menu",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1791211191162,
+      "tag": "0017_category_details",
+      "breakpoints": true
     }
   ]
 }
