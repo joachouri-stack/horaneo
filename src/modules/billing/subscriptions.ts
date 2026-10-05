@@ -137,7 +137,7 @@ async function ensureCustomer(tx: Transaction, tenantId: string, gateway: Billin
 
 export type PlanChangeResult =
   | { kind: "redirect"; url: string }
-  | { kind: "upgraded" | "downgrade_scheduled" | "cancel_scheduled" | "kept" };
+  | { kind: "upgraded" | "downgraded" | "downgrade_scheduled" | "cancel_scheduled" | "kept" };
 
 /**
  * Changement de pack demandé par la gérante (ou l'administratrice pour elle).
@@ -162,7 +162,9 @@ export async function requestPlanChange(
   if (!live) {
     if (target.priceCents <= 0) {
       if (target.id === current.id) return { kind: "kept" };
-      throw new AppError("invalid", "planId");
+      // Pack payant attribué par l'équipe (sans abonnement) : retour libre au pack gratuit.
+      await changePlan(tx, tenantId, target.code);
+      return { kind: "downgraded" };
     }
     const row = await ensureCustomer(tx, tenantId, gateway);
     const priceId = await ensurePlanPrice(tx, target.id, gateway);

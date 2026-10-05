@@ -259,6 +259,28 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
     });
   });
 
+  describe("limites du pack", () => {
+    it("une fiche archivée ne compte plus ; la réactiver est contrôlé", async () => {
+      const s = await setup("basic");
+      await onlineBooking(s.id, s.massage.id, at("10:00"));
+      expect((await asManager(s.id, (tx) => deleteStaff(tx, s.id, s.lea.id, NOW))).deleted).toBe(false);
+      // Basic : 1 membre. Léa archivée (elle a un historique), une nouvelle fiche est possible.
+      await asManager(s.id, (tx) => saveStaff(tx, s.id, { name: "Nora", serviceIds: [s.massage.id] }));
+      expect(
+        await errorCode(
+          asManager(s.id, (tx) => saveStaff(tx, s.id, { name: "Léa", isActive: true }, s.lea.id)),
+        ),
+      ).toBe("quota_reached");
+    });
+
+    it("les réservations en ligne sont comptées même sans limite", async () => {
+      const s = await setup();
+      await onlineBooking(s.id, s.massage.id, at("10:00"));
+      const [row] = await owner.select().from(usageCounters).where(eq(usageCounters.tenantId, s.id));
+      expect(row.onlineBookings).toBe(1);
+    });
+  });
+
   describe("ajout manuel", () => {
     it("toute prestation, nouvelle cliente, hors quota Basic, même hors horaires", async () => {
       const s = await setup("basic");

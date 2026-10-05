@@ -21,6 +21,7 @@ export type AppErrorCode =
   | "hostname_invalid"
   | "feature_unavailable"
   | "quota_reached"
+  | "last_free_plan"
   | "hours_overlap"
   | "hours_invalid"
   | "phone_invalid"

@@ -74,7 +74,7 @@ export default async function CustomerPage({
           <h2 id="fidelite" className="text-lg font-bold">
             {tLoyalty("card")}
           </h2>
-          {loyalty.summary ? (
+          {loyalty.summary?.active && (
             <>
               <p className="font-display text-2xl font-extrabold text-navy">
                 {tLoyalty("progress", {
@@ -90,44 +90,48 @@ export default async function CustomerPage({
                   }}
                 />
               </div>
-              {loyalty.summary.reward && (
-                <div className="space-y-2 rounded-[var(--radius-card)] border-2 border-dashed border-navy/30 p-4">
-                  <p className="font-bold">
-                    {tLoyalty("reward", {
-                      label:
-                        loyalty.summary.reward.label ||
-                        page.fmt.money(loyalty.summary.reward.amountCents ?? 0),
-                    })}
-                  </p>
-                  <p className="text-sm text-ink/70">
-                    {tLoyalty("rewardValid", { date: page.fmt.short(loyalty.summary.reward.expiresAt) })}
-                  </p>
-                  <ActionForm
-                    action={useLoyaltyRewardAction}
-                    submitLabel={tLoyalty("useReward")}
-                    confirm={tLoyalty("useRewardConfirm")}
-                  >
-                    <Hidden values={{ tenantId: page.tenantId, rewardId: loyalty.summary.reward.id }} />
-                  </ActionForm>
-                </div>
-              )}
             </>
-          ) : (
-            <p className="text-ink/70">{tLoyalty("inactive")}</p>
           )}
-          <details>
-            <summary className="cursor-pointer font-semibold text-navy">{tLoyalty("adjust")}</summary>
-            <ActionForm
-              action={adjustLoyaltyAction}
-              submitLabel={tLoyalty("adjustSubmit")}
-              resetOnSuccess
-              className="mt-3 space-y-3"
-            >
-              <Hidden values={{ tenantId: page.tenantId, customerId: customer.id }} />
-              <TextField name="points" type="number" label={tLoyalty("adjustPoints")} required />
-              <TextField name="reason" label={tLoyalty("adjustReason")} required />
-            </ActionForm>
-          </details>
+          {loyalty.summary?.reward && (
+            <div className="space-y-2 rounded-[var(--radius-card)] border-2 border-dashed border-navy/30 p-4">
+              <p className="font-bold">
+                {tLoyalty("reward", {
+                  label:
+                    loyalty.summary.reward.label || page.fmt.money(loyalty.summary.reward.amountCents ?? 0),
+                })}
+              </p>
+              <p className="text-sm text-ink/70">
+                {tLoyalty("rewardValid", { date: page.fmt.short(loyalty.summary.reward.expiresAt) })}
+              </p>
+              <ActionForm
+                action={useLoyaltyRewardAction}
+                submitLabel={tLoyalty("useReward")}
+                confirm={tLoyalty("useRewardConfirm")}
+              >
+                <Hidden values={{ tenantId: page.tenantId, rewardId: loyalty.summary.reward.id }} />
+              </ActionForm>
+            </div>
+          )}
+          {!loyalty.summary?.active && (
+            <p className="text-ink/70">
+              {loyalty.config.included ? tLoyalty("inactive") : tLoyalty("notIncluded")}
+            </p>
+          )}
+          {loyalty.config.included && (
+            <details>
+              <summary className="cursor-pointer font-semibold text-navy">{tLoyalty("adjust")}</summary>
+              <ActionForm
+                action={adjustLoyaltyAction}
+                submitLabel={tLoyalty("adjustSubmit")}
+                resetOnSuccess
+                className="mt-3 space-y-3"
+              >
+                <Hidden values={{ tenantId: page.tenantId, customerId: customer.id }} />
+                <TextField name="points" type="number" label={tLoyalty("adjustPoints")} required />
+                <TextField name="reason" label={tLoyalty("adjustReason")} required />
+              </ActionForm>
+            </details>
+          )}
           {loyalty.history.length > 0 && (
             <div>
               <h3 className="mb-2 font-semibold">{tLoyalty("history")}</h3>

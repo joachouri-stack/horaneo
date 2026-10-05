@@ -5,10 +5,11 @@ import type { Transaction } from "@/db/client";
 import { messageLog, plans, subscriptions, tenants } from "@/db/schema";
 import { handleBillingEvent, type BillingEvent } from "@/modules/billing/events";
 import type { BillingSubscription } from "@/modules/billing/gateway";
+import { savePlan } from "@/modules/billing/admin";
 import { ensurePlanPrice, openBillingPortal, requestPlanChange } from "@/modules/billing/subscriptions";
 import { AppError } from "@/modules/errors";
 import { createTenant } from "@/modules/tenants/create";
-import { changeStatus } from "@/modules/tenants/update";
+import { changePlan, changeStatus } from "@/modules/tenants/update";
 import { createFakeBilling } from "../setup/fake-billing";
 import { hasTestDatabase, openAppDb, openTestDb, type TestDb } from "../setup/db";
 
@@ -205,6 +206,39 @@ describe.skipIf(!hasTestDatabase)("abonnements", () => {
     expect(messages.find((m) => m.templateKey === "manager.subscription_ended")?.data).toEqual({
       reason: "requested",
     });
+  });
+
+  it("pack payant attribué à la main (sans abonnement) : retour libre au pack gratuit", async () => {
+    const tenantId = await setup();
+    await platform((tx) => changePlan(tx, tenantId, "serenite"));
+    expect(
+      (
+        await platform(async (tx) =>
+          requestPlanChange(tx, tenantId, await planId("basic"), billing.gateway, urls),
+        )
+      ).kind,
+    ).toBe("downgraded");
+    expect(await tenantPlan(tenantId)).toBe("basic");
+  });
+
+  it("le seul pack gratuit ne peut pas devenir payant", async () => {
+    const [basic] = await owner.select().from(plans).where(eq(plans.code, "basic"));
+    const input = {
+      name: basic.name.fr ?? "Basic",
+      description: basic.description?.fr ?? "",
+      price: "9",
+      onlineBookingsPerMonth: String(basic.limits.onlineBookingsPerMonth ?? ""),
+      members: String(basic.limits.members ?? ""),
+      photos: String(basic.limits.photos ?? ""),
+      services: String(basic.limits.services ?? ""),
+      smsPerMonth: basic.limits.smsPerMonth ?? 0,
+      features: [],
+      isPublic: basic.isPublic,
+    };
+    expect(await errorCode(platform((tx) => savePlan(tx, basic.id, input, null)))).toBe(
+      "last_free_plan",
+    );
+    expect((await owner.select().from(plans).where(eq(plans.id, basic.id)))[0].priceCents).toBe(0);
   });
 
   it("un pack inférieur programmé est remplacé par une demande de passage au Basic", async () => {

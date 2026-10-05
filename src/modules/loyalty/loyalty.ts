@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, gt, inArray, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { currentBusinessId } from "@/db/access";
 import type { Transaction } from "@/db/client";
@@ -182,7 +182,9 @@ export async function trackAttendance(
   const event = { tenantId, businessId: appointment.businessId, customerId: appointment.customerId };
   if (after === "attended") {
     if (!config.active || net > 0) return;
-    await tx.insert(loyaltyEvents).values({ ...event, kind: "visit", points: 1, appointmentId: appointment.id });
+    await tx
+      .insert(loyaltyEvents)
+      .values({ ...event, kind: "visit", points: 1, appointmentId: appointment.id });
   } else if (before === "attended") {
     if (net <= 0) return;
     await tx
@@ -193,13 +195,49 @@ export async function trackAttendance(
 }
 
 /** Compteur d'une cliente (plusieurs fiches possibles : même téléphone), bon en cours et réglages. */
-export async function customerLoyalty(tx: Transaction, tenantId: string, customerIds: string[], now = new Date()) {
+export async function customerLoyalty(
+  tx: Transaction,
+  tenantId: string,
+  customerIds: string[],
+  now = new Date(),
+) {
   const config = await loyaltyConfig(tx, tenantId);
-  if (!config.active || customerIds.length === 0) return null;
+  if (customerIds.length === 0) return null;
+  if (!config.active) {
+    // Programme arrêté (réglage ou changement de pack) : plus de points, mais un bon
+    // déjà gagné reste valable jusqu'à sa date de fin.
+    const [reward] = await tx
+      .select()
+      .from(loyaltyRewards)
+      .where(
+        and(
+          inArray(loyaltyRewards.customerId, customerIds),
+          isNull(loyaltyRewards.usedAt),
+          gt(loyaltyRewards.expiresAt, now),
+        ),
+      )
+      .limit(1);
+    if (!reward) return null;
+    return {
+      active: false,
+      points: 0,
+      visitsRequired: config.visitsRequired,
+      remaining: 0,
+      rewardLabel: config.rewardLabel,
+      rewardCents: config.rewardCents,
+      reward: {
+        id: reward.id,
+        label: reward.label,
+        amountCents: reward.amountCents,
+        expiresAt: reward.expiresAt,
+      },
+    };
+  }
   let reward = null;
   for (const id of customerIds) reward ??= await refreshReward(tx, tenantId, id, config, now);
   const points = Math.max(0, await balanceOf(tx, customerIds));
   return {
+    active: true,
     points,
     visitsRequired: config.visitsRequired,
     remaining: Math.max(0, config.visitsRequired - points),
@@ -217,10 +255,16 @@ export async function customerLoyalty(tx: Transaction, tenantId: string, custome
 }
 
 /** Fiche cliente (gérante) : compteur, bon en cours et derniers mouvements. */
-export async function loyaltyForManager(tx: Transaction, tenantId: string, customerId: string, now = new Date()) {
+export async function loyaltyForManager(
+  tx: Transaction,
+  tenantId: string,
+  customerId: string,
+  now = new Date(),
+) {
   const config = await loyaltyConfig(tx, tenantId);
-  if (!config.included) return null;
-  const summary = config.active ? await customerLoyalty(tx, tenantId, [customerId], now) : null;
+  const summary = await customerLoyalty(tx, tenantId, [customerId], now);
+  // Hors pack : la fiche n'affiche plus que le bon encore valable (s'il y en a un).
+  if (!config.included && !summary) return null;
   const history = await tx
     .select()
     .from(loyaltyEvents)

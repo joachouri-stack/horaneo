@@ -13,6 +13,7 @@ import { contactForBooking } from "@/modules/customer-space/space";
 import { isOnlineQuotaReached, loadBookingContext } from "@/modules/booking/availability";
 import { onlinePaymentReady } from "@/modules/payments/deposits";
 import { formatPhone } from "@/modules/phone";
+import { hasUsableGiftCards } from "@/modules/giftcards/giftcards";
 import { hasActivePromoCodes } from "@/modules/promo/codes";
 import { SITE_PATHS } from "@/modules/site/paths";
 
@@ -128,7 +129,7 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
 
   // Cliente connectée à son espace : ses coordonnées sont déjà remplies.
   const session = site.features.customerSpace ? await customerSession(tenantId) : null;
-  const { context, quotaReached, promoEnabled, prefill } = await withTenant(
+  const { context, quotaReached, promoEnabled, giftCardsEnabled, prefill } = await withTenant(
     tenantId,
     async (tx) => {
       const context = await loadBookingContext(tx, tenantId);
@@ -136,6 +137,8 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
         context,
         quotaReached: await isOnlineQuotaReached(tx, context),
         promoEnabled: Boolean(context.features.promoCodes) && (await hasActivePromoCodes(tx, tenantId)),
+        // Champ carte cadeau : pack qui les inclut, ou cartes déjà vendues encore valables.
+        giftCardsEnabled: Boolean(context.features.giftCards) || (await hasUsableGiftCards(tx, tenantId)),
         prefill: session ? await contactForBooking(tx, tenantId, session) : null,
       };
     },
@@ -215,7 +218,7 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
           value: context.settings.depositValue,
         }}
         promoEnabled={promoEnabled}
-        giftCardsEnabled={Boolean(context.features.giftCards)}
+        giftCardsEnabled={giftCardsEnabled}
         holdMinutes={context.settings.holdMinutes}
         cancellationHours={context.settings.cancellationDeadlineHours}
         privacyPath={SITE_PATHS.privacy}

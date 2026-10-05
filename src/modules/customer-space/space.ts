@@ -203,7 +203,8 @@ export async function loadBusinessSpace(
         })
       : null;
 
-  const loyalty = features.loyalty ? await customerLoyalty(tx, tenantId, customerIds, now) : null;
+  // Fidélité : compteur si le pack l'inclut ; sinon, seulement un bon déjà gagné encore valable.
+  const loyalty = await customerLoyalty(tx, tenantId, customerIds, now);
   const pending = customerIds.length
     ? await tx
         .select({ kind: customerDataRequests.kind })

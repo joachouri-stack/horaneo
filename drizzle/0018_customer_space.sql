@@ -176,3 +176,13 @@ $$;
 REVOKE ALL ON FUNCTION app_customer_businesses(uuid, text, text) FROM PUBLIC;
 --> statement-breakpoint
 GRANT EXECUTE ON FUNCTION app_customer_businesses(uuid, text, text) TO app_tenant, app_platform;
+--> statement-breakpoint
+-- Quotas du pack : seuls les membres et prestations actifs comptent (une fiche
+-- archivée parce qu'elle a un historique ne bloque plus l'ajout d'une nouvelle).
+CREATE OR REPLACE FUNCTION app_site_usage(p_tenant uuid, p_kind text) RETURNS integer
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT CASE p_kind
+    WHEN 'services' THEN (SELECT count(*)::int FROM services WHERE tenant_id = p_tenant AND is_active)
+    WHEN 'members' THEN (SELECT count(*)::int FROM staff_members WHERE tenant_id = p_tenant AND is_active)
+  END
+$$;

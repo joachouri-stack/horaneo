@@ -14,7 +14,7 @@ import { getPlatformSetting } from "@/modules/settings";
 import { currentPeriod } from "@/modules/tenants/queries";
 import { changeSubscriptionAction, openBillingPortalAction } from "../../actions";
 
-const RESULTS = ["upgraded", "downgrade_scheduled", "cancel_scheduled", "kept"] as const;
+const RESULTS = ["upgraded", "downgraded", "downgrade_scheduled", "cancel_scheduled", "kept"] as const;
 
 /** Pack, échéances, utilisation du mois, changement de pack et carte bancaire. */
 export default async function SubscriptionPage({
@@ -204,7 +204,8 @@ export default async function SubscriptionPage({
                 : upgrade
                   ? t("upgradeHint")
                   : t("downgradeHint", { date: periodEnd ? page.fmt.short(periodEnd) : "" });
-          const canChoose = configured && !isCurrent && (live || plan.priceCents > 0);
+          // Pack gratuit : choisi directement quand le pack actuel est payant (abonnement ou attribué).
+          const canChoose = configured && !isCurrent && (live || plan.priceCents > 0 || currentPrice > 0);
           return (
             <article
               key={plan.id}

@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { ui } from "@/components/ui/styles";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
+import { firstPlanWith } from "@/modules/billing/plans";
 import { utcToLocal } from "@/modules/booking/time";
 import { monthStats } from "@/modules/stats/month";
 
@@ -91,7 +92,11 @@ export default async function StatsPage({
           )}
         </section>
       ) : (
-        <p className="text-ink/70">{t("detailed")}</p>
+        <p className="text-ink/70">
+          {t("detailed", {
+            plan: (await page.db((tx) => firstPlanWith(tx, "stats", page.locale))) ?? "none",
+          })}
+        </p>
       )}
     </div>
   );

@@ -4,6 +4,7 @@ import { CheckboxField, Hidden, Section, TextField } from "@/components/admin/fi
 import { ui } from "@/components/ui/styles";
 import { centsToInput } from "@/lib/format";
 import { managerPage } from "@/lib/manager/page";
+import { firstPlanWith } from "@/modules/billing/plans";
 import { loyaltyConfig } from "@/modules/loyalty/loyalty";
 import { saveLoyaltySettingsAction } from "../../actions";
 
@@ -19,7 +20,11 @@ export default async function LoyaltyPage({
     return (
       <div className="space-y-6">
         <h1 className="text-2xl font-extrabold">{t("title")}</h1>
-        <p className={ui.card}>{t("unavailable")}</p>
+        <p className={ui.card}>
+          {t("unavailable", {
+            plan: (await page.db((tx) => firstPlanWith(tx, "loyalty", page.locale))) ?? "none",
+          })}
+        </p>
       </div>
     );
   }

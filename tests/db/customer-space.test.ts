@@ -28,11 +28,17 @@ import {
 } from "@/modules/customer-space/auth";
 import { loadBusinessSpace, requestDataAction } from "@/modules/customer-space/space";
 import { AppError } from "@/modules/errors";
-import { adjustLoyalty, customerLoyalty, setLoyaltySettings, redeemReward } from "@/modules/loyalty/loyalty";
+import {
+  adjustLoyalty,
+  customerLoyalty,
+  loyaltyForManager,
+  setLoyaltySettings,
+  redeemReward,
+} from "@/modules/loyalty/loyalty";
 import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
 import { saveStaff } from "@/modules/team/staff";
 import { createTenant } from "@/modules/tenants/create";
-import { changeStatus } from "@/modules/tenants/update";
+import { changePlan, changeStatus } from "@/modules/tenants/update";
 import { hasTestDatabase, openAppDb, openTestDb, type TestDb } from "../setup/db";
 
 /**
@@ -229,7 +235,10 @@ describe.skipIf(!hasTestDatabase)("espace des clientes", () => {
       const intrus = { channel: "sms" as const, identifier: "+33799999999" };
       expect(await asBusiness(null, (tx) => knownBusinesses(tx, tenantId, intrus))).toEqual([]);
       // (Rendez-vous retiré pour ne pas fausser les tests suivants.)
-      await owner.update(appointments).set({ status: "cancelled" }).where(eq(appointments.id, booked.appointmentId));
+      await owner
+        .update(appointments)
+        .set({ status: "cancelled" })
+        .where(eq(appointments.id, booked.appointmentId));
     });
 
     it("la recherche d'une cliente reste limitée au site déclaré", async () => {
@@ -409,6 +418,28 @@ describe.skipIf(!hasTestDatabase)("espace des clientes", () => {
           asBusiness(laila.id, (tx) => redeemReward(tx, tenantId, summary!.reward!.id, null, NOW)),
         ),
       ).toBe("reward_unavailable");
+    });
+
+    it("après un passage à un pack sans fidélité, le bon déjà gagné reste visible et utilisable", async () => {
+      const visit = await book(laila.id, laila.serviceId, "maya@example.com", "2026-10-05", "16:30");
+      const customerId = await customerOf(visit.appointmentId);
+      await asBusiness(laila.id, (tx) =>
+        adjustLoyalty(tx, tenantId, customerId, { points: 2, reason: "Reprise" }, null, NOW),
+      );
+      await platform((tx) => changePlan(tx, tenantId, "essentiel"));
+      try {
+        const summary = await asBusiness(laila.id, (tx) => customerLoyalty(tx, tenantId, [customerId], NOW));
+        expect(summary).toMatchObject({ active: false, reward: { label: "Un soin offert" } });
+        const manager = await asBusiness(laila.id, (tx) => loyaltyForManager(tx, tenantId, customerId, NOW));
+        expect(manager?.summary?.reward?.id).toBe(summary!.reward!.id);
+        await asBusiness(laila.id, (tx) => redeemReward(tx, tenantId, summary!.reward!.id, null, NOW));
+        // Plus de bon, et plus de points qui s'accumulent : rien à afficher.
+        expect(
+          await asBusiness(laila.id, (tx) => customerLoyalty(tx, tenantId, [customerId], NOW)),
+        ).toBeNull();
+      } finally {
+        await platform((tx) => changePlan(tx, tenantId, "serenite"));
+      }
     });
 
     it("le compteur et les bons restent propres à chaque entreprise", async () => {

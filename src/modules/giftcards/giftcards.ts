@@ -1,5 +1,5 @@
 import { createHash, createHmac, hkdfSync } from "node:crypto";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, gt, sql } from "drizzle-orm";
 import { z } from "zod";
 import { authSecret } from "@/config/env";
 import type { Transaction } from "@/db/client";
@@ -434,6 +434,27 @@ export async function moveGiftCardRedemption(
 }
 
 // ─── Liste (gérante) ──────────────────────────────────────────────────────────
+
+/**
+ * L'entreprise a encore des cartes utilisables. Une carte déjà vendue reste
+ * valable même si le pack ne permet plus d'en vendre (changement de pack) :
+ * elle s'utilise en ligne et s'encaisse sur place jusqu'à son expiration.
+ */
+export async function hasUsableGiftCards(tx: Transaction, tenantId: string, now = new Date()) {
+  const [row] = await tx
+    .select({ id: giftCards.id })
+    .from(giftCards)
+    .where(
+      and(
+        eq(giftCards.tenantId, tenantId),
+        eq(giftCards.status, "active"),
+        gt(giftCards.balanceCents, 0),
+        gt(giftCards.expiresAt, now),
+      ),
+    )
+    .limit(1);
+  return Boolean(row);
+}
 
 export async function listGiftCards(tx: Transaction, tenantId: string, now = new Date()) {
   const rows = await tx

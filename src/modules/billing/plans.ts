@@ -1,5 +1,6 @@
 import { asc, eq } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
+import { pickLocalized, type Locale } from "@/i18n/locales";
 import { plans, type PlanFeatures, type PlanLimits } from "@/db/schema";
 
 /** Packs proposés (site commercial, page Abonnement), du moins cher au plus cher. */
@@ -11,15 +12,29 @@ export async function listPublicPlans(tx: Transaction) {
     .orderBy(asc(plans.sortOrder), asc(plans.priceCents));
 }
 
+/**
+ * Nom du premier pack proposé qui comprend une fonction (« à partir du pack … ») :
+ * jamais écrit en dur, il suit la configuration des packs. null si aucun.
+ */
+export async function firstPlanWith(tx: Transaction, feature: keyof PlanFeatures, locale: Locale) {
+  const plan = (await listPublicPlans(tx)).find((item) => item.features[feature]);
+  return plan ? pickLocalized(plan.name, locale) : null;
+}
+
 const LIMIT_KEYS = ["onlineBookingsPerMonth", "members", "photos", "services", "smsPerMonth"] as const;
 const FEATURE_KEYS = [
   "fullSite",
   "customDomain",
   "onlinePayment",
   "promoCodes",
+  "promotions",
   "testimonials",
+  "customerSpace",
   "stats",
   "monthlySummary",
+  "giftCards",
+  "loyalty",
+  "googleReviews",
   "emailSupport",
   "whatsappSupport",
 ] as const;

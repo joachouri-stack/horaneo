@@ -39,7 +39,11 @@ describe("présentation des packs sur le site commercial", () => {
       "+customDomain",
       "+onlinePayment",
       "+promoCodes",
+      "+promotions",
+      "+testimonials",
+      "+customerSpace",
       "+monthlyUpdate",
+      "+photosLimit",
       "-stats",
       "-whatsappSupport",
     ]);
@@ -50,9 +54,16 @@ describe("présentation des packs sur le site commercial", () => {
       "+statsSummary",
       "+whatsappSupport",
       "+giftCards",
+      "+loyalty",
       "+googleReviews",
       "~aiMessaging",
     ]);
+    // L'Essentiel annonce sa limite de photos (plus haute que le Basic, pas illimitée).
+    expect(
+      planItems(DEFAULT_PLANS, 1).find((item) => item.kind === "included" && item.key === "photosLimit"),
+    ).toMatchObject({
+      values: { photos: 20 },
+    });
   });
 
   it("annonce « avec ou sans réservation » seulement pour les packs avec un vrai site", () => {

@@ -74,6 +74,8 @@ export async function saveStaff(
       .from(staffMembers)
       .where(and(eq(staffMembers.id, staffId), eq(staffMembers.tenantId, tenantId)));
     if (!existing) throw new AppError("not_found");
+    // Seuls les membres actifs comptent dans le pack : une réactivation est contrôlée.
+    if (!existing.isActive && input.isActive) await assertQuota(tx, tenantId, "members");
     const [updated] = await tx
       .update(staffMembers)
       .set({
@@ -89,7 +91,7 @@ export async function saveStaff(
     return updated;
   }
 
-  await assertQuota(tx, tenantId, "members");
+  if (input.isActive) await assertQuota(tx, tenantId, "members");
   const [{ value: position }] = await tx
     .select({ value: count() })
     .from(staffMembers)

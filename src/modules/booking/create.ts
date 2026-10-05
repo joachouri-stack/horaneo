@@ -114,9 +114,19 @@ export async function consumeOnlineQuota(
   now: Date,
 ): Promise<{ used: number; limit: number; period: string } | null | false> {
   const limit = context.limits.onlineBookingsPerMonth;
-  if (limit === null || limit === undefined) return null;
-  if (limit <= 0) return false;
   const period = currentPeriod(context.tenant.timezone, now);
+  // Sans limite, la réservation est quand même comptée (suivi du mois, changement de pack).
+  if (limit === null || limit === undefined) {
+    await tx
+      .insert(usageCounters)
+      .values({ tenantId: context.tenant.id, period, onlineBookings: 1 })
+      .onConflictDoUpdate({
+        target: [usageCounters.tenantId, usageCounters.period],
+        set: { onlineBookings: sql`${usageCounters.onlineBookings} + 1`, updatedAt: now },
+      });
+    return null;
+  }
+  if (limit <= 0) return false;
   const rows = await tx
     .insert(usageCounters)
     .values({ tenantId: context.tenant.id, period, onlineBookings: 1 })
@@ -250,9 +260,9 @@ export async function createBooking(
   const discountCents = promo?.discountCents ?? 0;
   const totalCents = totals.totalCents - discountCents;
   const depositCents = computeDeposit(totalCents, context.settings, paymentReady);
-  // Carte cadeau (pack qui l'inclut) : vérifiée avant tout, débitée une fois le rendez-vous créé.
-  const giftCardCode =
-    source === "online" && input.giftCardCode && context.features.giftCards ? input.giftCardCode : null;
+  // Carte cadeau : vérifiée avant tout, débitée une fois le rendez-vous créé. Une carte déjà
+  // vendue reste valable même si le pack ne permet plus d'en vendre ; un code inconnu est refusé.
+  const giftCardCode = source === "online" && input.giftCardCode ? input.giftCardCode : null;
   if (giftCardCode) await checkGiftCard(tx, tenantId, giftCardCode, depositCents, now);
 
   const customerId = await upsertCustomer(tx, context, input.customer, input.locale, now, source);
