@@ -17,7 +17,12 @@ import { deleteTestimonial, saveTestimonial } from "@/modules/content/testimonia
 import { restoreAsset, retireAsset, uploadAsset, uploadLogo } from "@/modules/media/assets";
 import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
 import { deleteStaff, saveStaff } from "@/modules/team/staff";
-import { createBusiness, updateBusiness, updateBusinessProfile } from "@/modules/businesses/businesses";
+import {
+  addBusinessManager,
+  createBusiness,
+  updateBusiness,
+  updateBusinessProfile,
+} from "@/modules/businesses/businesses";
 import { createTenant } from "@/modules/tenants/create";
 import {
   addCustomDomain,
@@ -246,6 +251,30 @@ export async function createBusinessAction(_previous: Previous, data: FormData) 
   if (result.ok) {
     const t = await getTranslations("admin.tenant.businesses");
     return { ...result, message: t("added") };
+  }
+  return result;
+}
+
+export async function addBusinessManagerAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const result = await adminMutation(
+    ({ business, managerId }: Awaited<ReturnType<typeof addBusinessManager>>) => ({
+      action: "business.manager_added",
+      tenantId,
+      targetType: "business",
+      targetId: business.id,
+      details: { managerId },
+    }),
+    (tx) =>
+      addBusinessManager(tx, tenantId, {
+        businessId: form.text(data, "businessId"),
+        email: form.text(data, "managerEmail"),
+        name: form.optional(data, "managerName") ?? null,
+      }),
+  );
+  if (result.ok) {
+    const t = await getTranslations("admin.tenant.businesses");
+    return { ...result, message: t("managerAdded") };
   }
   return result;
 }
