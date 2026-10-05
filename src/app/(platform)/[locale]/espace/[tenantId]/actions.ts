@@ -40,6 +40,9 @@ import { createTimeOff, deleteTimeOff } from "@/modules/schedule/time-off";
 import { replaceStaffSchedules } from "@/modules/team/schedules";
 import { deleteStaff, saveStaff } from "@/modules/team/staff";
 import { tenants } from "@/db/schema";
+import { resolveDataRequest } from "@/modules/customer-space/space";
+import { adjustLoyalty, setLoyaltySettings, redeemReward } from "@/modules/loyalty/loyalty";
+import { parseMoney } from "@/modules/money";
 import { eq } from "drizzle-orm";
 
 /**
@@ -372,7 +375,14 @@ export async function saveStaffAction(_previous: Previous, data: FormData) {
 
 export async function deleteStaffAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "staff.deleted", (tx) => deleteStaff(tx, tenantId, idOf(data)!));
+  const result = await managerMutation(tenantId, "staff.deleted", (tx) =>
+    deleteStaff(tx, tenantId, idOf(data)!),
+  );
+  if (result.ok && result.data?.deleted === false) {
+    const t = await getTranslations("manager.team");
+    return { ...result, message: t("deactivatedInstead", { upcoming: result.data.upcoming }) };
+  }
+  return result;
 }
 
 export async function saveStaffScheduleAction(_previous: Previous, data: FormData) {
@@ -590,4 +600,48 @@ export async function openBillingPortalAction(data: FormData) {
     target = `${page}?erreur=${error.code}`;
   }
   redirectTo(target);
+}
+
+// ─── Fidélité et demandes des clientes ───────────────────────────────────────
+
+export async function saveLoyaltySettingsAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const amount = form.optional(data, "rewardAmount");
+  return managerMutation(tenantId, "loyalty.settings", (tx) =>
+    setLoyaltySettings(tx, tenantId, {
+      enabled: form.bool(data, "enabled"),
+      visitsRequired: form.text(data, "visitsRequired") as unknown as number,
+      rewardLabel: form.optional(data, "rewardLabel"),
+      rewardCents: amount ? parseMoney(amount) : undefined,
+      validityDays: form.text(data, "validityDays") as unknown as number,
+    }),
+  );
+}
+
+export async function adjustLoyaltyAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "loyalty.adjusted", (tx, { userId }) =>
+    adjustLoyalty(
+      tx,
+      tenantId,
+      idOf(data, "customerId")!,
+      { points: form.text(data, "points") as unknown as number, reason: form.text(data, "reason") },
+      userId,
+    ),
+  );
+}
+
+export async function useLoyaltyRewardAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "loyalty.reward_used", (tx, { userId }) =>
+    redeemReward(tx, tenantId, idOf(data, "rewardId")!, userId),
+  );
+}
+
+export async function resolveDataRequestAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const status = z.enum(["done", "rejected"]).parse(form.text(data, "status"));
+  return managerMutation(tenantId, `customer_data.${status}`, (tx, { userId }) =>
+    resolveDataRequest(tx, tenantId, idOf(data)!, status, userId),
+  );
 }

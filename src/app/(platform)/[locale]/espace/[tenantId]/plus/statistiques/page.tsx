@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { ui } from "@/components/ui/styles";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
+import { firstPlanWith } from "@/modules/billing/plans";
 import { utcToLocal } from "@/modules/booking/time";
 import { monthStats } from "@/modules/stats/month";
 
@@ -48,7 +49,7 @@ export default async function StatsPage({
       <div className="flex items-center justify-between">
         <Link
           href={`${page.base}/plus/statistiques?mois=${shift(period, -1)}`}
-          className="font-semibold text-navy underline"
+          className="font-semibold text-night underline"
         >
           ← {t("previous")}
         </Link>
@@ -56,7 +57,7 @@ export default async function StatsPage({
         {period < current ? (
           <Link
             href={`${page.base}/plus/statistiques?mois=${shift(period, 1)}`}
-            className="font-semibold text-navy underline"
+            className="font-semibold text-night underline"
           >
             {t("next")} →
           </Link>
@@ -67,7 +68,7 @@ export default async function StatsPage({
       <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {cards.map((card) => (
           <div key={card.label} className="rounded-[var(--radius-card)] bg-white p-4 shadow-sm">
-            <dd className="font-display text-2xl font-extrabold text-navy">{card.value}</dd>
+            <dd className="font-display text-2xl font-extrabold text-night">{card.value}</dd>
             <dt className="text-sm text-ink/70">{card.label}</dt>
           </div>
         ))}
@@ -91,7 +92,11 @@ export default async function StatsPage({
           )}
         </section>
       ) : (
-        <p className="text-ink/70">{t("detailed")}</p>
+        <p className="text-ink/70">
+          {t("detailed", {
+            plan: (await page.db((tx) => firstPlanWith(tx, "stats", page.locale))) ?? "none",
+          })}
+        </p>
       )}
     </div>
   );

@@ -196,6 +196,7 @@ export async function rescheduleByCustomer(
         rescheduledFromId: old.id,
         locale: old.locale,
         customerNote: old.customerNote,
+        beneficiaryName: old.beneficiaryName,
       })
       .returning(),
   );

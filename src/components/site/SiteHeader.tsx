@@ -5,6 +5,7 @@ import { visibleSections } from "@/modules/site/data";
 import { ctaLabelKey, siteCta } from "@/modules/site/cta";
 import { SITE_PATHS } from "@/modules/site/paths";
 import { BookButton } from "./BookButton";
+import { AccountLink, accountMenuLink } from "./AccountLink";
 import { MobileMenu } from "./MobileMenu";
 import { SiteImage } from "./SiteImage";
 
@@ -71,8 +72,9 @@ export async function SiteHeader({
           </ul>
         </nav>
         <div className="flex items-center gap-2">
+          <AccountLink site={site} />
           {showBook && cta && <BookButton href={cta.href} label={t(ctaLabelKey(cta))} size="sm" />}
-          <MobileMenu links={links} />
+          <MobileMenu links={[...links, ...(await accountMenuLink(site))]} />
         </div>
       </div>
     </header>

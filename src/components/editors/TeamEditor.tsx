@@ -61,7 +61,7 @@ export async function TeamEditor({
         <TextArea id={`${prefix}-bio`} name="bio" label={t("bio")} defaultValue={member.bio} rows={2} />
       </div>
       <fieldset className="sm:col-span-2">
-        <legend className="mb-2 font-semibold text-navy">{t("services")}</legend>
+        <legend className="mb-2 font-semibold text-night">{t("services")}</legend>
         <div className="grid gap-x-6 sm:grid-cols-2">
           {services.map((service) => (
             <CheckboxField
@@ -83,7 +83,9 @@ export async function TeamEditor({
       title={t("title")}
       aside={
         limit !== null && limit !== undefined ? (
-          <span className="text-sm text-ink/70">{t("quota", { used: staff.length, limit })}</span>
+          <span className="text-sm text-ink/70">
+            {t("quota", { used: staff.filter((member) => member.isActive).length, limit })}
+          </span>
         ) : null
       }
     >
@@ -92,7 +94,7 @@ export async function TeamEditor({
         {staff.map((member) => (
           <li key={member.id}>
             <details className="rounded-lg border border-navy/10 p-4">
-              <summary className="flex cursor-pointer items-center gap-3 font-semibold text-navy">
+              <summary className="flex cursor-pointer items-center gap-3 font-semibold text-night">
                 <span
                   className="inline-block h-4 w-4 rounded-full"
                   style={{ background: member.color ?? "#6b8f71" }}
@@ -102,7 +104,7 @@ export async function TeamEditor({
               {memberHref && (
                 <Link
                   href={memberHref(member.id)}
-                  className="mt-3 inline-block font-semibold text-navy underline"
+                  className="mt-3 inline-block font-semibold text-night underline"
                 >
                   {tManager("schedule")} →
                 </Link>

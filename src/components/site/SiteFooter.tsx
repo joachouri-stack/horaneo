@@ -12,6 +12,7 @@ import { SITE_PATHS } from "@/modules/site/paths";
 export async function SiteFooter({ site }: { site: NonNullable<SiteData> }) {
   const t = await getTranslations("site.footer");
   const tGift = await getTranslations("site.giftCard");
+  const tAccount = await getTranslations("site.account");
   const { tenant } = site;
   const config = env();
   return (
@@ -53,6 +54,13 @@ export async function SiteFooter({ site }: { site: NonNullable<SiteData> }) {
               {t("cancellation")}
             </Link>
           </li>
+          {site.features.customerSpace && (
+            <li>
+              <Link href={SITE_PATHS.account} className="underline">
+                {tAccount("navLink")}
+              </Link>
+            </li>
+          )}
           {site.features.brandingFooter && (
             <li>
               <a href={`https://${config.MAIN_DOMAIN}`} className="underline">

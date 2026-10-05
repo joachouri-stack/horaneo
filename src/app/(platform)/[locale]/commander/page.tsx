@@ -6,7 +6,7 @@ import { PlatformHeader } from "@/components/layout/PlatformHeader";
 import { ui } from "@/components/ui/styles";
 import { withPlatform } from "@/db/access";
 import { pickLocalized } from "@/i18n/locales";
-import { redirect } from "@/i18n/navigation";
+import { Link, redirect } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/translator";
 import { getManagedTenants, requireSession } from "@/lib/auth/session";
 import { listPublicPlans } from "@/modules/billing/plans";
@@ -34,9 +34,11 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
   // Déjà cliente : le changement de pack se fait depuis son espace.
   if ((await getManagedTenants(session.user.id)).length > 0) redirect({ href: "/espace", locale });
   const [t, tHome] = await Promise.all([getTranslations("order"), getTranslations("home.plans")]);
-  const { plans, display } = await withPlatform(async (tx) => ({
+  const { plans, display, commitment, setupFee } = await withPlatform(async (tx) => ({
     plans: await listPublicPlans(tx),
     display: await getPlatformSetting(tx, "prices_display"),
+    commitment: Number(await getPlatformSetting(tx, "commitment_months")),
+    setupFee: Number(await getPlatformSetting(tx, "setup_fee_cents")),
   }));
   const selected =
     plans.find((plan) => plan.code === pack) ?? plans.find((plan) => plan.priceCents > 0) ?? plans[0];
@@ -69,7 +71,7 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
                         defaultChecked={plan.id === selected?.id}
                         className="h-5 w-5 accent-navy"
                       />
-                      <span className="font-bold text-navy">{pickLocalized(plan.name, locale)}</span>
+                      <span className="font-bold text-night">{pickLocalized(plan.name, locale)}</span>
                     </span>
                     <span className="text-right">
                       {plan.priceCents > 0
@@ -87,11 +89,30 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
               name="currentWebsite"
               inputMode="url"
               label={t("currentWebsite")}
-              placeholder="www.exemple.fr"
+              placeholder={t("currentWebsitePlaceholder")}
             />
+            {/* Rappel avant le paiement : engagement et frais de création des packs payants. */}
             <p className="text-sm text-ink/70">
+              {t("paidRecap", { months: commitment, fee: setupFee > 0 ? money(setupFee) : "none" })}{" "}
               {t("paidHint")} {t("freeHint")}
             </p>
+            <label className="flex items-start gap-3 text-sm">
+              <input
+                type="checkbox"
+                name="acceptTerms"
+                required
+                className="mt-0.5 h-5 w-5 shrink-0 accent-navy"
+              />
+              <span>
+                {t.rich("terms", {
+                  link: (chunks) => (
+                    <Link href="/conditions" target="_blank" className="font-semibold underline">
+                      {chunks}
+                    </Link>
+                  ),
+                })}
+              </span>
+            </label>
           </ActionForm>
         </div>
       </main>

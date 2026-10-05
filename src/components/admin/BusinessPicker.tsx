@@ -21,7 +21,7 @@ export async function BusinessPicker({ businesses, currentId, href }: Props) {
             <Link
               href={`${href}?entreprise=${business.id}`}
               aria-current={business.id === currentId ? "page" : undefined}
-              className="inline-block rounded-full border border-navy/20 px-4 py-2 text-sm font-semibold text-navy hover:bg-navy/5 aria-[current=page]:border-navy aria-[current=page]:bg-navy aria-[current=page]:text-white"
+              className="inline-block rounded-full border border-navy/20 px-4 py-2 text-sm font-semibold text-night hover:bg-navy/5 aria-[current=page]:border-navy aria-[current=page]:bg-navy aria-[current=page]:text-white"
             >
               {business.name}
             </Link>

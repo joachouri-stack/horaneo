@@ -5,6 +5,7 @@ import { ui } from "@/components/ui/styles";
 import { pickLocalized } from "@/i18n/locales";
 import { centsToInput } from "@/lib/format";
 import { managerPage } from "@/lib/manager/page";
+import { firstPlanWith } from "@/modules/billing/plans";
 import { localToUtc, utcToLocal } from "@/modules/booking/time";
 import { listServices } from "@/modules/catalog/services";
 import { listPromotions } from "@/modules/promotions/promotions";
@@ -111,7 +112,11 @@ export default async function PromotionsPage({
     <div className="space-y-6">
       <h1 className="text-2xl font-extrabold">{t("title")}</h1>
       {!available ? (
-        <p className={ui.card}>{t("unavailable")}</p>
+        <p className={ui.card}>
+          {t("unavailable", {
+            plan: (await page.db((tx) => firstPlanWith(tx, "promotions", page.locale))) ?? "none",
+          })}
+        </p>
       ) : (
         <>
           <p className="text-ink/80">{t("intro")}</p>
@@ -127,7 +132,7 @@ export default async function PromotionsPage({
                     <details className={ui.card}>
                       <summary className="cursor-pointer">
                         <span
-                          className={`block text-lg font-bold ${state === "ended" ? "text-ink/50" : "text-navy"}`}
+                          className={`block text-lg font-bold ${state === "ended" ? "text-ink/50" : "text-night"}`}
                         >
                           {pickLocalized(promotion.title, locale)}{" "}
                           <span className="text-sm font-semibold text-ink/70">· {t(`state.${state}`)}</span>
@@ -167,7 +172,7 @@ export default async function PromotionsPage({
             </ul>
           )}
           <details className={ui.card} open={promotions.length === 0}>
-            <summary className="cursor-pointer text-lg font-bold text-navy">+ {t("new")}</summary>
+            <summary className="cursor-pointer text-lg font-bold text-night">+ {t("new")}</summary>
             <ActionForm
               action={savePromotionAction}
               submitLabel={tCommon("save")}

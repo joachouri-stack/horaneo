@@ -114,6 +114,7 @@ const bookInput = z.object({
     email: z.string(),
     phone: z.string(),
     note: z.string().optional(),
+    beneficiaryName: z.string().max(80).optional(),
     marketingConsent: z.boolean(),
   }),
   promoCode: z.string().max(30).optional(),
@@ -287,7 +288,6 @@ export async function checkGiftCardAction(
     if (!publicLimits.promo.attempt(site.ip)) throw new AppError("rate_limited");
     return withServicesBusiness(site.tenantId, input.serviceIds, async (tx) => {
       const context = await loadBookingContext(tx, site.tenantId);
-      if (!context.features.giftCards) throw new AppError("gift_card_not_found", "giftCardCode");
       const { totals } = resolveServices(context, input.serviceIds);
       const ready = onlinePaymentReady(context.business, context.features, paymentGateway());
       const promo = input.promoCode

@@ -31,13 +31,18 @@ const ROW_KEYS = [
   "customDomain",
   "onlinePayment",
   "promoCodes",
+  "promotions",
+  "testimonials",
+  "customerSpace",
   "monthlyUpdate",
   "onDemandUpdates",
   "unlimitedPhotos",
+  "photosLimit",
   "stats",
   "monthlySummary",
   "whatsappSupport",
   "giftCards",
+  "loyalty",
   "googleReviews",
 ] as const;
 
@@ -82,7 +87,13 @@ export function planItems(plans: ShowcasePlan[], index: number): ShowcaseItem[] 
     }
   }
   for (const key of ROW_KEYS) {
-    if (key === "unlimitedPhotos") {
+    if (key === "photosLimit") {
+      // Limite de photos plus haute que le pack précédent, mais pas illimitée : annoncée.
+      const photos = plan.limits.photos;
+      if (previous && !unlimited(photos) && photos !== previous.limits.photos) {
+        items.push({ kind: "included", key, values: { photos: photos! } });
+      }
+    } else if (key === "unlimitedPhotos") {
       if (base && unlimited(plan.limits.photos) && !unlimited(base.limits.photos)) {
         items.push({ kind: "included", key });
       }

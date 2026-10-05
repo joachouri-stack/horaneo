@@ -7,6 +7,7 @@ import { paymentGateway } from "@/lib/payments/stripe";
 import { getBookingSettings } from "@/modules/booking/settings";
 import type { AppErrorCode } from "@/modules/errors";
 import { connectState } from "@/modules/payments/connect";
+import { getPlatformSetting } from "@/modules/settings";
 import { refreshStripeAccount, startStripeOnboardingAction } from "../../actions";
 
 /** Compte Stripe de l'établissement : ouverture guidée et état. */
@@ -25,7 +26,10 @@ export default async function PaymentsPage({
   if (returned && configured && page.business.stripeAccountId) {
     state = await refreshStripeAccount(page.tenantId).catch(() => state);
   }
-  const settings = await page.db((tx) => getBookingSettings(tx, page.tenantId));
+  const { settings, percent } = await page.db(async (tx) => ({
+    settings: await getBookingSettings(tx, page.tenantId),
+    percent: Number(await getPlatformSetting(tx, "deposit_commission_percent")),
+  }));
   const error = typeof query.erreur === "string" ? (query.erreur as AppErrorCode) : null;
   const depositValue =
     settings.depositType === "percent" ? `${settings.depositValue} %` : page.fmt.money(settings.depositValue);
@@ -33,7 +37,7 @@ export default async function PaymentsPage({
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-extrabold">{t("title")}</h1>
-      <p className="text-ink/80">{t("intro", { product: env().PRODUCT_NAME })}</p>
+      <p className="text-ink/80">{t("intro", { product: env().PRODUCT_NAME, percent })}</p>
 
       {error && (
         <p role="alert" className={ui.error}>
@@ -43,9 +47,12 @@ export default async function PaymentsPage({
       {returned && state !== "active" && <p className={ui.success}>{t("returned")}</p>}
 
       <section className={ui.card}>
-        <p className={`text-lg font-bold ${state === "active" ? "text-success" : "text-navy"}`}>
-          {t(`state.${state}`)}
-        </p>
+        {/* Paiement en ligne pas encore configuré sur la plateforme : un seul message, jamais « compte actif ». */}
+        {(configured || state === "unavailable") && (
+          <p className={`text-lg font-bold ${state === "active" ? "text-success" : "text-night"}`}>
+            {t(`state.${state}`)}
+          </p>
+        )}
 
         {state === "unavailable" && (
           <p className="mt-3">
@@ -56,7 +63,9 @@ export default async function PaymentsPage({
           </p>
         )}
 
-        {state !== "unavailable" && !configured && <p className="mt-3 text-ink/70">{t("notConfigured")}</p>}
+        {state !== "unavailable" && !configured && (
+          <p className="text-lg font-bold text-night">{t("notConfigured")}</p>
+        )}
 
         {(state === "not_started" || state === "incomplete") && configured && (
           <form action={startStripeOnboardingAction} className="mt-4 space-y-3">
@@ -68,7 +77,7 @@ export default async function PaymentsPage({
           </form>
         )}
 
-        {state === "active" && (
+        {state === "active" && configured && (
           <div className="mt-4 space-y-3">
             <p>{settings.depositEnabled ? t("depositOn", { value: depositValue }) : t("depositOff")}</p>
             <Link href={`${page.base}/plus/reglages`} className={`${ui.secondaryButton} w-full sm:w-auto`}>

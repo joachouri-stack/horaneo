@@ -24,7 +24,7 @@ export default async function LegalDocumentsPage({ params }: PageProps<"/[locale
       <p className="text-ink/80">{t("intro")}</p>
       {docs.map(({ key, doc }) => (
         <section key={key} className={ui.card} aria-labelledby={`doc-${key}`}>
-          <h2 id={`doc-${key}`} className="text-xl font-bold text-navy">
+          <h2 id={`doc-${key}`} className="text-xl font-bold text-night">
             {tLegal(`titles.${key}`)}
           </h2>
           <p className="mb-4 text-sm text-ink/60">

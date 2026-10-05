@@ -45,6 +45,10 @@ export type PlanFeatures = {
   onDemandUpdates?: boolean;
   /** Fonction annoncée « bientôt » sur le site commercial (pas encore disponible). */
   aiMessaging?: boolean;
+  /** Espace des clientes sur le site (rendez-vous, historique, « Reprendre ce soin »). */
+  customerSpace?: boolean;
+  /** Programme de fidélité (compteur et bons) ; s'affiche aussi dans l'espace des clientes. */
+  loyalty?: boolean;
   [feature: string]: boolean | undefined;
 };
 

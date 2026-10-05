@@ -51,6 +51,11 @@ const EXPECTED_TENANT_GRANTS: Record<string, string[]> = {
   google_reviews: ["SELECT"],
   gift_cards: ["INSERT", "SELECT", "UPDATE"],
   gift_card_transactions: ["INSERT", "SELECT"],
+  customer_login_codes: ["INSERT", "SELECT", "UPDATE"],
+  customer_sessions: ["INSERT", "SELECT", "UPDATE"],
+  loyalty_events: ["INSERT", "SELECT"],
+  loyalty_rewards: ["INSERT", "SELECT", "UPDATE"],
+  customer_data_requests: ["INSERT", "SELECT", "UPDATE"],
 };
 
 describe.skipIf(!hasTestDatabase)("isolation des données entre tenants", () => {

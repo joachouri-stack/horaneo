@@ -21,6 +21,8 @@ export type AppErrorCode =
   | "hostname_invalid"
   | "feature_unavailable"
   | "quota_reached"
+  | "last_free_plan"
+  | "terms_required"
   | "hours_overlap"
   | "hours_invalid"
   | "phone_invalid"
@@ -56,4 +58,8 @@ export type AppErrorCode =
   | "gift_card_used"
   | "gift_card_insufficient"
   | "gift_cards_unavailable"
-  | "gift_card_amount";
+  | "gift_card_amount"
+  | "reward_unavailable"
+  | "login_invalid"
+  | "sms_unavailable"
+  | "customer_space_unavailable";

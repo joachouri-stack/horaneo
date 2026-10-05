@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 
 const COLORS: Record<string, string> = {
-  draft: "bg-navy/10 text-navy",
+  draft: "bg-navy/10 text-night",
   active: "bg-success/15 text-[#1e6b48]",
   suspended: "bg-coral/15 text-coral-dark",
   cancelled: "bg-ink/10 text-ink",

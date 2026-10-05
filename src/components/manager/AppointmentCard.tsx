@@ -3,7 +3,7 @@ import { Link } from "@/i18n/navigation";
 import type { AgendaAppointment } from "@/modules/agenda/queries";
 
 const STATUS_STYLE: Record<string, string> = {
-  confirmed: "bg-navy/10 text-navy",
+  confirmed: "bg-navy/10 text-night",
   pending_payment: "bg-coral/15 text-coral-dark",
   attended: "bg-success/15 text-[#1e6b48]",
   no_show: "bg-ink/10 text-ink/70",
@@ -29,7 +29,7 @@ export async function AppointmentCard({
       className={`flex gap-3 rounded-[var(--radius-card)] border-l-8 bg-white p-4 shadow-sm ${highlight ? "ring-2 ring-coral" : ""}`}
       style={{ borderLeftColor: item.staffColor ?? "#1b2a4a" }}
     >
-      <div className="w-16 shrink-0 font-display text-lg font-extrabold text-navy">{time}</div>
+      <div className="w-16 shrink-0 font-display text-lg font-extrabold text-night">{time}</div>
       <div className="min-w-0 flex-1">
         <p className="truncate font-semibold text-ink">
           {item.customerName}

@@ -1,5 +1,6 @@
 import { and, asc, eq } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
+import { getTranslator, resolveLocale } from "@/i18n/translator";
 import { businesses, plans, subscriptions, tenants } from "@/db/schema";
 import { AppError } from "@/modules/errors";
 import { queueMessage } from "@/modules/messages/queue";
@@ -137,7 +138,7 @@ async function ensureCustomer(tx: Transaction, tenantId: string, gateway: Billin
 
 export type PlanChangeResult =
   | { kind: "redirect"; url: string }
-  | { kind: "upgraded" | "downgrade_scheduled" | "cancel_scheduled" | "kept" };
+  | { kind: "upgraded" | "downgraded" | "downgrade_scheduled" | "cancel_scheduled" | "kept" };
 
 /**
  * Changement de pack demandé par la gérante (ou l'administratrice pour elle).
@@ -152,7 +153,7 @@ export async function requestPlanChange(
   now = new Date(),
 ): Promise<PlanChangeResult> {
   if (!gateway) throw new AppError("payments_unavailable");
-  const { plan: current } = await loadTenant(tx, tenantId);
+  const { tenant, plan: current } = await loadTenant(tx, tenantId);
   const [target] = await tx.select().from(plans).where(eq(plans.id, targetPlanId));
   if (!target || (!target.isPublic && target.id !== current.id)) throw new AppError("invalid", "planId");
   const subscription = await getSubscription(tx, tenantId);
@@ -162,7 +163,9 @@ export async function requestPlanChange(
   if (!live) {
     if (target.priceCents <= 0) {
       if (target.id === current.id) return { kind: "kept" };
-      throw new AppError("invalid", "planId");
+      // Pack payant attribué par l'équipe (sans abonnement) : retour libre au pack gratuit.
+      await changePlan(tx, tenantId, target.code);
+      return { kind: "downgraded" };
     }
     const row = await ensureCustomer(tx, tenantId, gateway);
     const priceId = await ensurePlanPrice(tx, target.id, gateway);
@@ -173,7 +176,11 @@ export async function requestPlanChange(
         priceId,
         setupFee:
           setupFeeCents > 0
-            ? { amountCents: setupFeeCents, currency: target.currency, label: "Frais de création" }
+            ? {
+                amountCents: setupFeeCents,
+                currency: target.currency,
+                label: (await getTranslator(resolveLocale(tenant.defaultLocale)))("billing.setupFeeLabel"),
+              }
             : null,
         taxRateId: await ensureTaxRate(tx, gateway),
         successUrl: urls.successUrl,

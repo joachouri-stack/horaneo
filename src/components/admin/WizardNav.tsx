@@ -29,14 +29,14 @@ export async function WizardNav({
 
   return (
     <div className="rounded-[var(--radius-card)] border-2 border-navy/15 bg-white p-4">
-      <p className="text-sm font-semibold text-navy">
+      <p className="text-sm font-semibold text-night">
         {t("step", { current: index + 1, total: WIZARD_STEPS.length })} · {t(`steps.${current}`)}
       </p>
       <ol className="mt-2 flex flex-wrap gap-2 text-sm">
         {WIZARD_STEPS.map((step, i) => (
           <li
             key={step}
-            className={i === index ? "font-bold text-navy" : i < index ? "text-success" : "text-ink/50"}
+            className={i === index ? "font-bold text-night" : i < index ? "text-success" : "text-ink/50"}
           >
             {i + 1}. {t(`steps.${step}`)}
           </li>

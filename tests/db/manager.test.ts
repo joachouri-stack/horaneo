@@ -11,7 +11,7 @@ import {
   setAttendance,
 } from "@/modules/agenda/actions";
 import { dayRange, listAgenda, todaySummary } from "@/modules/agenda/queries";
-import { getSlotsForRange, loadBookingContext } from "@/modules/booking/availability";
+import { getSlotsForRange, loadBookingContext, onlineStaff } from "@/modules/booking/availability";
 import { createBooking } from "@/modules/booking/create";
 import { updateBookingSettings } from "@/modules/booking/settings";
 import { localToUtc } from "@/modules/booking/time";
@@ -28,9 +28,9 @@ import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
 import { createTimeOff } from "@/modules/schedule/time-off";
 import { monthStats } from "@/modules/stats/month";
 import { replaceStaffSchedules } from "@/modules/team/schedules";
-import { saveStaff } from "@/modules/team/staff";
+import { deleteStaff, saveStaff } from "@/modules/team/staff";
 import { createTenant } from "@/modules/tenants/create";
-import { changeStatus } from "@/modules/tenants/update";
+import { changePlan, changeStatus } from "@/modules/tenants/update";
 import { resolveManagerRole } from "@/lib/manager/role";
 import { hasTestDatabase, openAppDb, openTestDb, type TestDb } from "../setup/db";
 
@@ -235,6 +235,57 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
           ),
         ),
       ).toBe("slot_unavailable");
+    });
+  });
+
+  describe("équipe", () => {
+    it("un membre sans rendez-vous est supprimé ; avec des rendez-vous, il est désactivé et on le dit", async () => {
+      const s = await setup();
+      expect(await asManager(s.id, (tx) => deleteStaff(tx, s.id, s.ines!.id, NOW))).toEqual({
+        deleted: true,
+        upcoming: 0,
+      });
+      await onlineBooking(s.id, s.massage.id, at("10:00"));
+      expect(await asManager(s.id, (tx) => deleteStaff(tx, s.id, s.lea.id, NOW))).toEqual({
+        deleted: false,
+        upcoming: 1,
+      });
+      // Ses rendez-vous restent visibles dans l'agenda (colonne « désactivée »).
+      const range = dayRange(DAY, TZ, 1);
+      const agenda = await asManager(s.id, (tx) =>
+        listAgenda(tx, s.id, { from: range.start, to: range.end, locale: "fr" }),
+      );
+      expect(agenda.map((item) => item.staffName)).toEqual(["Léa"]);
+    });
+  });
+
+  describe("limites du pack", () => {
+    it("une fiche archivée ne compte plus ; la réactiver est contrôlé", async () => {
+      const s = await setup("basic");
+      await onlineBooking(s.id, s.massage.id, at("10:00"));
+      expect((await asManager(s.id, (tx) => deleteStaff(tx, s.id, s.lea.id, NOW))).deleted).toBe(false);
+      // Basic : 1 membre. Léa archivée (elle a un historique), une nouvelle fiche est possible.
+      await asManager(s.id, (tx) => saveStaff(tx, s.id, { name: "Nora", serviceIds: [s.massage.id] }));
+      expect(
+        await errorCode(
+          asManager(s.id, (tx) => saveStaff(tx, s.id, { name: "Léa", isActive: true }, s.lea.id)),
+        ),
+      ).toBe("quota_reached");
+    });
+
+    it("après un passage à un pack inférieur, seuls les premiers membres sont proposés en ligne", async () => {
+      const s = await setup();
+      await platform((tx) => changePlan(tx, s.id, "basic"));
+      const context = await asManager(s.id, (tx) => loadBookingContext(tx, s.id));
+      expect(context.staff.map((member) => member.name)).toEqual(["Léa", "Inès"]);
+      expect(onlineStaff(context).map((member) => member.name)).toEqual(["Léa"]);
+    });
+
+    it("les réservations en ligne sont comptées même sans limite", async () => {
+      const s = await setup();
+      await onlineBooking(s.id, s.massage.id, at("10:00"));
+      const [row] = await owner.select().from(usageCounters).where(eq(usageCounters.tenantId, s.id));
+      expect(row.onlineBookings).toBe(1);
     });
   });
 

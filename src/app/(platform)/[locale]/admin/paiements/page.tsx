@@ -25,18 +25,18 @@ export default async function BillingAdminPage({ params }: PageProps<"/[locale]/
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className={ui.card}>
           <p className="text-sm text-ink/70">{t("revenue")}</p>
-          <p className="mt-1 font-display text-3xl font-extrabold text-navy">
+          <p className="mt-1 font-display text-3xl font-extrabold text-night">
             {formatMoney(revenue.monthlyRevenueCents, "EUR", locale)}
           </p>
         </div>
         <div className={ui.card}>
           <p className="text-sm text-ink/70">{t("paying")}</p>
-          <p className="mt-1 font-display text-3xl font-extrabold text-navy">{revenue.paying}</p>
+          <p className="mt-1 font-display text-3xl font-extrabold text-night">{revenue.paying}</p>
         </div>
         <div className={ui.card}>
           <p className="text-sm text-ink/70">{t("pastDue")}</p>
           <p
-            className={`mt-1 font-display text-3xl font-extrabold ${revenue.pastDue ? "text-coral-dark" : "text-navy"}`}
+            className={`mt-1 font-display text-3xl font-extrabold ${revenue.pastDue ? "text-coral-dark" : "text-night"}`}
           >
             {revenue.pastDue}
           </p>
@@ -51,7 +51,7 @@ export default async function BillingAdminPage({ params }: PageProps<"/[locale]/
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <Link
                   href={`/admin/clients/${sub.tenantId}`}
-                  className="text-lg font-bold text-navy underline"
+                  className="text-lg font-bold text-night underline"
                 >
                   {tenantName}
                 </Link>

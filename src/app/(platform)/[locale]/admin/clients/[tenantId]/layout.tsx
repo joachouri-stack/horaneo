@@ -23,7 +23,7 @@ export default async function TenantAdminLayout({
 
   return (
     <main id="contenu" className="mx-auto max-w-6xl space-y-4 px-4 py-6">
-      <Link href="/admin/clients" className="text-sm font-semibold text-navy underline">
+      <Link href="/admin/clients" className="text-sm font-semibold text-night underline">
         ← {t("backToList")}
       </Link>
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -32,7 +32,7 @@ export default async function TenantAdminLayout({
           <StatusBadge status={overview.tenant.status} />
         </div>
         <div className="flex flex-wrap items-center gap-4">
-          <Link href={`/espace/${tenantId}`} className="font-semibold text-navy underline">
+          <Link href={`/espace/${tenantId}`} className="font-semibold text-night underline">
             {t("viewAsClient")} →
           </Link>
           {primary && (
@@ -44,7 +44,7 @@ export default async function TenantAdminLayout({
               }
               target="_blank"
               rel="noreferrer"
-              className="font-semibold text-navy underline"
+              className="font-semibold text-night underline"
             >
               {overview.tenant.status === "draft" ? t("preview") : t("viewSite")} ↗
             </a>

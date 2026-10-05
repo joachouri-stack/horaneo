@@ -78,6 +78,8 @@ export const DEFAULT_PLANS: PlanSeed[] = [
       monthlyUpdate: false,
       onDemandUpdates: false,
       aiMessaging: false,
+      customerSpace: false,
+      loyalty: false,
     },
   },
   {
@@ -104,6 +106,8 @@ export const DEFAULT_PLANS: PlanSeed[] = [
       monthlyUpdate: true,
       onDemandUpdates: false,
       aiMessaging: false,
+      customerSpace: true,
+      loyalty: false,
     },
   },
   {
@@ -130,6 +134,8 @@ export const DEFAULT_PLANS: PlanSeed[] = [
       monthlyUpdate: false,
       onDemandUpdates: true,
       aiMessaging: true,
+      customerSpace: true,
+      loyalty: true,
     },
   },
 ];

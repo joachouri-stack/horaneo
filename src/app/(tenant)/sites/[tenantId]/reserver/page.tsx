@@ -7,10 +7,13 @@ import { withTenant } from "@/db/access";
 import { pickLocalized } from "@/i18n/locales";
 import { paymentGateway } from "@/lib/payments/stripe";
 import { SiteImage } from "@/components/site/SiteImage";
+import { customerSession } from "@/lib/site/customer-session";
 import { getSite } from "@/lib/site/load";
-import { isOnlineQuotaReached, loadBookingContext } from "@/modules/booking/availability";
+import { contactForBooking } from "@/modules/customer-space/space";
+import { isOnlineQuotaReached, loadBookingContext, onlineStaff } from "@/modules/booking/availability";
 import { onlinePaymentReady } from "@/modules/payments/deposits";
 import { formatPhone } from "@/modules/phone";
+import { hasUsableGiftCards } from "@/modules/giftcards/giftcards";
 import { hasActivePromoCodes } from "@/modules/promo/codes";
 import { SITE_PATHS } from "@/modules/site/paths";
 
@@ -124,7 +127,9 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
     );
   }
 
-  const { context, quotaReached, promoEnabled } = await withTenant(
+  // Cliente connectée à son espace : ses coordonnées sont déjà remplies.
+  const session = site.features.customerSpace ? await customerSession(tenantId) : null;
+  const { context, quotaReached, promoEnabled, giftCardsEnabled, prefill } = await withTenant(
     tenantId,
     async (tx) => {
       const context = await loadBookingContext(tx, tenantId);
@@ -132,16 +137,21 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
         context,
         quotaReached: await isOnlineQuotaReached(tx, context),
         promoEnabled: Boolean(context.features.promoCodes) && (await hasActivePromoCodes(tx, tenantId)),
+        // Champ carte cadeau : pack qui les inclut, ou cartes déjà vendues encore valables.
+        giftCardsEnabled: Boolean(context.features.giftCards) || (await hasUsableGiftCards(tx, tenantId)),
+        prefill: session ? await contactForBooking(tx, tenantId, session) : null,
       };
     },
     undefined,
     business.id,
   );
   const phone = business.phone ?? site.tenant.phone;
+  // Membres proposés en ligne (limite du pack).
+  const bookableStaff = onlineStaff(context);
 
   const bookable = context.services.filter(
     (service) =>
-      service.isOnlineBookable && context.staff.some((member) => member.serviceIds.includes(service.id)),
+      service.isOnlineBookable && bookableStaff.some((member) => member.serviceIds.includes(service.id)),
   );
 
   if (quotaReached || bookable.length === 0) {
@@ -190,13 +200,17 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
           priceFrom: service.priceFrom,
           categoryName: categoryName(service.categoryId),
         }))}
-        staff={context.staff.map((member) => ({
+        staff={bookableStaff.map((member) => ({
           id: member.id,
           name: member.name,
           serviceIds: member.serviceIds,
         }))}
         maxServices={context.settings.maxServicesPerBooking}
         preselectedServiceId={preselected}
+        preselectedStaffId={typeof query.membre === "string" ? query.membre : null}
+        startAtSlot={Boolean(preselected) && query.reprise === "1"}
+        prefill={prefill}
+        initialGiftCode={typeof query.carte === "string" ? query.carte.slice(0, 40) : undefined}
         deposit={{
           // Acompte demandé seulement si le compte Stripe de l'établissement peut encaisser.
           enabled:
@@ -206,7 +220,7 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
           value: context.settings.depositValue,
         }}
         promoEnabled={promoEnabled}
-        giftCardsEnabled={Boolean(context.features.giftCards)}
+        giftCardsEnabled={giftCardsEnabled}
         holdMinutes={context.settings.holdMinutes}
         cancellationHours={context.settings.cancellationDeadlineHours}
         privacyPath={SITE_PATHS.privacy}

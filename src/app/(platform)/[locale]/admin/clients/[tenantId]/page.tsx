@@ -71,6 +71,7 @@ export default async function TenantOverviewPage({
               key={item.action}
               action={changeStatusAction}
               submitLabel={item.label}
+              confirm={item.action === "suspend" ? t("suspendConfirm", { name: tenant.name }) : undefined}
               variant={item.action === "suspend" ? "secondary" : "primary"}
             >
               <Hidden values={{ tenantId, statusAction: item.action }} />
@@ -88,7 +89,12 @@ export default async function TenantOverviewPage({
         </Section>
 
         <Section title={t("plan")}>
-          <ActionForm action={changePlanAction} submitLabel={t("changePlan")} variant="secondary">
+          <ActionForm
+            action={changePlanAction}
+            submitLabel={t("changePlan")}
+            confirm={t("changePlanConfirm", { name: tenant.name })}
+            variant="secondary"
+          >
             <Hidden values={{ tenantId }} />
             <SelectField
               name="planCode"
@@ -136,7 +142,7 @@ export default async function TenantOverviewPage({
             ].map((item) => (
               <div key={item.label}>
                 <dt className="text-sm text-ink/70">{item.label}</dt>
-                <dd className="text-xl font-bold text-navy">{item.value}</dd>
+                <dd className="text-xl font-bold text-night">{item.value}</dd>
               </div>
             ))}
           </dl>
@@ -193,6 +199,7 @@ export default async function TenantOverviewPage({
                     <ActionForm
                       action={domainAction}
                       submitLabel={t("markActive")}
+                      confirm={t("markActiveConfirm", { host: domain.hostname })}
                       variant="link"
                       className=""
                     >
@@ -214,7 +221,7 @@ export default async function TenantOverviewPage({
                     submitLabel={t("removeDomain")}
                     variant="danger"
                     className=""
-                    confirm={t("removeDomain") + " ?"}
+                    confirm={t("removeDomainConfirm", { host: domain.hostname })}
                   >
                     <Hidden values={{ tenantId, domainId: domain.id, operation: "remove" }} />
                   </ActionForm>

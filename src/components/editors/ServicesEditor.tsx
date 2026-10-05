@@ -117,7 +117,9 @@ export async function ServicesEditor({
         title={t("title")}
         aside={
           limit !== null && limit !== undefined ? (
-            <span className="text-sm text-ink/70">{t("quota", { used: services.length, limit })}</span>
+            <span className="text-sm text-ink/70">
+              {t("quota", { used: services.filter((service) => service.isActive).length, limit })}
+            </span>
           ) : null
         }
       >
@@ -127,7 +129,7 @@ export async function ServicesEditor({
             <li key={service.id}>
               <details className="rounded-lg border border-navy/10 p-4">
                 <summary className="flex cursor-pointer flex-wrap justify-between gap-2">
-                  <span className="font-semibold text-navy">
+                  <span className="font-semibold text-night">
                     {text(service.name)}
                     {!service.isActive && <span className="ml-2 text-sm text-ink/60">({t("disabled")})</span>}
                   </span>

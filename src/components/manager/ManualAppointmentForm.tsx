@@ -142,7 +142,7 @@ export function ManualAppointmentForm({ tenantId, services, staff, defaults }: P
 
       {serviceIds.length > 0 && free !== null && (
         <div>
-          <p className="mb-2 text-sm font-semibold text-navy">{t("freeSlots")}</p>
+          <p className="mb-2 text-sm font-semibold text-night">{t("freeSlots")}</p>
           {free.length === 0 ? (
             <p className="text-sm text-ink/70">{t("noFreeSlots")}</p>
           ) : (
@@ -153,7 +153,7 @@ export function ManualAppointmentForm({ tenantId, services, staff, defaults }: P
                   type="button"
                   onClick={() => setTime(slot)}
                   aria-pressed={time === slot}
-                  className="rounded-full border-2 border-navy/15 px-3 py-1 font-semibold text-navy aria-pressed:bg-navy aria-pressed:text-white"
+                  className="rounded-full border-2 border-navy/15 px-3 py-1 font-semibold text-night aria-pressed:bg-navy aria-pressed:text-white"
                 >
                   {slot}
                 </button>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderEmail } from "@/modules/messages/layout";
-import { smsSenderName } from "@/modules/messages/senders";
+import { smsSenderName, toGsm7 } from "@/modules/messages/senders";
 
 describe("expéditeur des SMS", () => {
   it("nom de l'établissement sans accent, 11 caractères au plus", () => {
@@ -8,6 +8,15 @@ describe("expéditeur des SMS", () => {
     expect(smsSenderName("L'Atelier", "Horaneo")).toBe("LAtelier");
     expect(smsSenderName("Салон", "Horaneo")).toBe("Horaneo");
     expect(smsSenderName("12", "Horaneo")).toBe("Horaneo");
+  });
+});
+
+describe("texte des SMS", () => {
+  it("reste dans l'alphabet standard (un SMS au lieu de deux)", () => {
+    expect(
+      toGsm7("Rappel : rendez-vous demain à 10:00 chez La Forêt Câline. Pour annuler ou déplacer : 06 12"),
+    ).toBe("Rappel : rendez-vous demain à 10:00 chez La Foret Caline. Pour annuler ou déplacer : 06 12");
+    expect(toGsm7("« Cœur » façon\u00a0été")).toBe('" Coeur " facon été');
   });
 });
 

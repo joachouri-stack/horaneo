@@ -20,7 +20,7 @@ function Stat({ label, value }: { label: string; value: string | number }) {
   return (
     <div className={ui.card}>
       <p className="text-sm text-ink/70">{label}</p>
-      <p className="mt-1 font-display text-3xl font-extrabold text-navy">{value}</p>
+      <p className="mt-1 font-display text-3xl font-extrabold text-night">{value}</p>
     </div>
   );
 }
@@ -60,7 +60,7 @@ export default async function AdminHomePage({ params }: PageProps<"/[locale]/adm
               <li key={plan.code} className="flex justify-between py-3">
                 <Link
                   href={{ pathname: "/admin/clients", query: { plan: plan.code, status: "active" } }}
-                  className="font-semibold text-navy underline"
+                  className="font-semibold text-night underline"
                 >
                   {pickLocalized(plan.name, locale)}
                 </Link>
@@ -91,7 +91,7 @@ export default async function AdminHomePage({ params }: PageProps<"/[locale]/adm
               <li>
                 <Link
                   href={{ pathname: "/admin/clients", query: { status: "draft" } }}
-                  className="font-semibold text-navy underline"
+                  className="font-semibold text-night underline"
                 >
                   {t("dashboard.drafts")} : {stats.drafts}
                 </Link>
@@ -99,19 +99,20 @@ export default async function AdminHomePage({ params }: PageProps<"/[locale]/adm
             )}
             {stats.openRequests > 0 && (
               <li>
-                <Link href="/admin/demandes" className="font-semibold text-navy underline">
+                <Link href="/admin/demandes" className="font-semibold text-night underline">
                   {t("dashboard.openRequests", { count: stats.openRequests })}
                 </Link>
               </li>
             )}
             {stats.basicAtLimit.map((tenant) => (
               <li key={tenant.id}>
-                <Link href={`/admin/clients/${tenant.id}`} className="text-navy underline">
+                <Link href={`/admin/clients/${tenant.id}`} className="text-night underline">
                   {t("dashboard.basicAtLimit", { name: tenant.name, count: tenant.bookings })}
                 </Link>
               </li>
             ))}
             {revenue.pastDue === 0 &&
+              pendingOrders === 0 &&
               stats.drafts === 0 &&
               stats.openRequests === 0 &&
               stats.basicAtLimit.length === 0 && <li className="text-ink/70">{t("dashboard.noAlerts")}</li>}

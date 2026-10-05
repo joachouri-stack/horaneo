@@ -1,7 +1,15 @@
-import { and, asc, count, eq, inArray } from "drizzle-orm";
+import { and, asc, count, eq, gt, inArray } from "drizzle-orm";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
-import { openingHours, services, staffMembers, staffSchedules, staffServices, tenants } from "@/db/schema";
+import {
+  appointments,
+  openingHours,
+  services,
+  staffMembers,
+  staffSchedules,
+  staffServices,
+  tenants,
+} from "@/db/schema";
 import { HEX_COLOR } from "@/lib/colors";
 import { setLocalized } from "@/modules/content/localized";
 import { AppError } from "@/modules/errors";
@@ -66,6 +74,8 @@ export async function saveStaff(
       .from(staffMembers)
       .where(and(eq(staffMembers.id, staffId), eq(staffMembers.tenantId, tenantId)));
     if (!existing) throw new AppError("not_found");
+    // Seuls les membres actifs comptent dans le pack : une réactivation est contrôlée.
+    if (!existing.isActive && input.isActive) await assertQuota(tx, tenantId, "members");
     const [updated] = await tx
       .update(staffMembers)
       .set({
@@ -81,7 +91,7 @@ export async function saveStaff(
     return updated;
   }
 
-  await assertQuota(tx, tenantId, "members");
+  if (input.isActive) await assertQuota(tx, tenantId, "members");
   const [{ value: position }] = await tx
     .select({ value: count() })
     .from(staffMembers)
@@ -119,7 +129,7 @@ export async function saveStaff(
 }
 
 /** Supprime un membre ; s'il a déjà des rendez-vous, il est seulement désactivé. */
-export async function deleteStaff(tx: Transaction, tenantId: string, staffId: string) {
+export async function deleteStaff(tx: Transaction, tenantId: string, staffId: string, now = new Date()) {
   const [existing] = await tx
     .select()
     .from(staffMembers)
@@ -129,9 +139,22 @@ export async function deleteStaff(tx: Transaction, tenantId: string, staffId: st
     await tx.transaction(async (savepoint) => {
       await savepoint.delete(staffMembers).where(eq(staffMembers.id, staffId));
     });
-    return { deleted: true };
-  } catch {
+    return { deleted: true, upcoming: 0 };
+  } catch (error) {
+    // Seulement si des rendez-vous y sont rattachés (clé étrangère) : désactivé à la place.
+    const err = error as { code?: string; cause?: { code?: string } };
+    if ((err.code ?? err.cause?.code) !== "23503") throw error;
     await tx.update(staffMembers).set({ isActive: false }).where(eq(staffMembers.id, staffId));
-    return { deleted: false };
+    const [{ upcoming }] = await tx
+      .select({ upcoming: count() })
+      .from(appointments)
+      .where(
+        and(
+          eq(appointments.staffId, staffId),
+          gt(appointments.startsAt, now),
+          inArray(appointments.status, ["confirmed", "pending_payment"]),
+        ),
+      );
+    return { deleted: false, upcoming };
   }
 }

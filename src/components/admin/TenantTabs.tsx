@@ -34,7 +34,7 @@ export function TenantTabs({ tenantId }: { tenantId: string }) {
             <Link
               href={item.href}
               aria-current={pathname === item.href ? "page" : undefined}
-              className="inline-block whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold text-navy hover:bg-navy/5 aria-[current=page]:bg-navy aria-[current=page]:text-white"
+              className="inline-block whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold text-night hover:bg-navy/5 aria-[current=page]:bg-navy aria-[current=page]:text-white"
             >
               {item.label}
             </Link>

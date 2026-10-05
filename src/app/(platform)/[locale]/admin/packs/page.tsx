@@ -29,7 +29,7 @@ export default async function PlansPage({ params }: PageProps<"/[locale]/admin/p
       <p className="text-ink/80">{t("intro")}</p>
       {plans.map((plan) => (
         <section key={plan.id} className={ui.card} aria-labelledby={`plan-${plan.id}`}>
-          <h2 id={`plan-${plan.id}`} className="mb-4 text-xl font-bold text-navy">
+          <h2 id={`plan-${plan.id}`} className="mb-4 text-xl font-bold text-night">
             {pickLocalized(plan.name, locale)}{" "}
             <span className="text-sm font-normal text-ink/60">({plan.code})</span>
           </h2>

@@ -24,14 +24,14 @@ export function AdminNav() {
       ? pathname === item.href
       : pathname.startsWith(item.href) && pathname !== "/admin/clients/nouveau";
   return (
-    <nav aria-label="Admin" className="mx-auto max-w-6xl overflow-x-auto px-4">
+    <nav aria-label={t("label")} className="mx-auto max-w-6xl overflow-x-auto px-4">
       <ul className="flex gap-2 border-b border-navy/10">
         {ITEMS.map((item) => (
           <li key={item.href}>
             <Link
               href={item.href}
               aria-current={isActive(item) ? "page" : undefined}
-              className="inline-block whitespace-nowrap border-b-4 border-transparent px-3 py-3 font-semibold text-navy/70 hover:text-navy aria-[current=page]:border-coral aria-[current=page]:text-navy"
+              className="inline-block whitespace-nowrap border-b-4 border-transparent px-3 py-3 font-semibold text-navy/70 hover:text-night aria-[current=page]:border-coral aria-[current=page]:text-night"
             >
               {t(item.key)}
             </Link>

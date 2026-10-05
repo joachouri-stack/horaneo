@@ -37,7 +37,7 @@ import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
 import { loadSiteData } from "@/modules/site/data";
 import { saveStaff } from "@/modules/team/staff";
 import { createTenant } from "@/modules/tenants/create";
-import { changeStatus } from "@/modules/tenants/update";
+import { changePlan, changeStatus } from "@/modules/tenants/update";
 import { createFakeGateway } from "../setup/fake-gateway";
 import { hasTestDatabase, openAppDb, openTestDb, type TestDb } from "../setup/db";
 
@@ -410,6 +410,16 @@ describe.skipIf(!hasTestDatabase)("promotions, cartes cadeaux et avis Google", (
       const card = await buyCard(s, "10");
       expect(await errorCode(book(s, { giftCardCode: card.code }))).toBe("gift_card_insufficient");
       expect(await balanceOf(card.id)).toBe(1000);
+    });
+
+    it("après un passage à un pack sans cartes cadeaux, une carte déjà vendue reste utilisable", async () => {
+      const s = await setup();
+      const card = await buyCard(s, "50");
+      await withPlatform((tx) => changePlan(tx, s.id, "essentiel"), app);
+      // Un code inconnu est refusé, pas ignoré.
+      expect(await errorCode(book(s, { giftCardCode: "AAAA-BBBB-CCCC" }))).toBe("gift_card_not_found");
+      expect(await book(s, { giftCardCode: card.code })).toMatchObject({ paidWithGiftCard: true });
+      expect(await balanceOf(card.id)).toBe(2900);
     });
 
     it("sur place : la gérante déduit un montant, le solde est conservé ; carte expirée refusée", async () => {

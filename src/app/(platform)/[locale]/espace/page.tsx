@@ -53,7 +53,7 @@ export default async function AccountPage({ params }: PageProps<"/[locale]/espac
         {managed.length === 0 && order && order.order.status !== "abandoned" ? (
           <section className={ui.card}>
             <h2 className="text-xl font-bold">{tOrder("title")}</h2>
-            <p className="mt-2 font-semibold text-navy">
+            <p className="mt-2 font-semibold text-night">
               {order.order.businessName} · {pickLocalized(order.planName, locale)}
             </p>
             <p className="mt-1">{tOrder(order.order.status)}</p>
@@ -93,7 +93,7 @@ export default async function AccountPage({ params }: PageProps<"/[locale]/espac
         )}
 
         {user.isPlatformAdmin && (
-          <Link href="/admin" className="inline-block font-semibold text-navy underline">
+          <Link href="/admin" className="inline-block font-semibold text-night underline">
             {t("adminLink")}
           </Link>
         )}

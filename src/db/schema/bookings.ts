@@ -144,6 +144,8 @@ export const appointments = pgTable(
     cancellationReason: text(),
     rescheduledFromId: uuid(),
     locale: text().notNull().default("fr"),
+    /** Prénom de la personne qui reçoit le soin, si la réservation est faite pour quelqu'un d'autre. */
+    beneficiaryName: text(),
     customerNote: text(),
     internalNote: text(),
     ...timestamps(),

@@ -35,6 +35,8 @@ export const customerInput = z.object({
   email: z.email().trim().toLowerCase(),
   phone: z.string().trim().min(6).max(40),
   note: z.string().trim().max(500).optional(),
+  /** Prénom de la personne qui reçoit le soin, si ce n'est pas la cliente qui réserve. */
+  beneficiaryName: z.string().trim().max(80).optional(),
   marketingConsent: z.boolean().default(false),
 });
 
@@ -112,9 +114,19 @@ export async function consumeOnlineQuota(
   now: Date,
 ): Promise<{ used: number; limit: number; period: string } | null | false> {
   const limit = context.limits.onlineBookingsPerMonth;
-  if (limit === null || limit === undefined) return null;
-  if (limit <= 0) return false;
   const period = currentPeriod(context.tenant.timezone, now);
+  // Sans limite, la réservation est quand même comptée (suivi du mois, changement de pack).
+  if (limit === null || limit === undefined) {
+    await tx
+      .insert(usageCounters)
+      .values({ tenantId: context.tenant.id, period, onlineBookings: 1 })
+      .onConflictDoUpdate({
+        target: [usageCounters.tenantId, usageCounters.period],
+        set: { onlineBookings: sql`${usageCounters.onlineBookings} + 1`, updatedAt: now },
+      });
+    return null;
+  }
+  if (limit <= 0) return false;
   const rows = await tx
     .insert(usageCounters)
     .values({ tenantId: context.tenant.id, period, onlineBookings: 1 })
@@ -127,13 +139,20 @@ export async function consumeOnlineQuota(
   return rows.length > 0 ? { used: rows[0].value, limit, period } : false;
 }
 
-/** Retrouve ou crée la fiche cliente (même e-mail chez un même établissement = même fiche). */
+/**
+ * Retrouve ou crée la fiche cliente (même e-mail chez un même établissement = même fiche).
+ * En ligne, n'importe qui peut saisir l'e-mail d'une autre : une fiche existante n'est
+ * donc que complétée (téléphone ou nom manquant), jamais modifiée. Sinon, un inconnu
+ * pourrait y mettre son numéro et se connecter par SMS à l'espace de la cliente.
+ * La gérante, elle, met la fiche à jour.
+ */
 async function upsertCustomer(
   tx: Transaction,
   context: BookingContext,
   input: z.infer<typeof customerInput>,
   locale: string,
   now: Date,
+  source: "online" | "manual",
 ) {
   const phone = normalizePhone(input.phone, context.tenant.country, "phone");
   const [existing] = await tx
@@ -144,13 +163,21 @@ async function upsertCustomer(
   if (existing) {
     await tx
       .update(customers)
-      .set({
-        firstName: input.firstName,
-        lastName: input.lastName || existing.lastName,
-        phone,
-        locale,
-        ...consent,
-      })
+      .set(
+        source === "online"
+          ? {
+              phone: existing.phone ?? phone,
+              lastName: existing.lastName ?? (input.lastName || null),
+              ...consent,
+            }
+          : {
+              firstName: input.firstName,
+              lastName: input.lastName || existing.lastName,
+              phone,
+              locale,
+              ...consent,
+            },
+      )
       .where(eq(customers.id, existing.id));
     return existing.id;
   }
@@ -233,12 +260,12 @@ export async function createBooking(
   const discountCents = promo?.discountCents ?? 0;
   const totalCents = totals.totalCents - discountCents;
   const depositCents = computeDeposit(totalCents, context.settings, paymentReady);
-  // Carte cadeau (pack qui l'inclut) : vérifiée avant tout, débitée une fois le rendez-vous créé.
-  const giftCardCode =
-    source === "online" && input.giftCardCode && context.features.giftCards ? input.giftCardCode : null;
+  // Carte cadeau : vérifiée avant tout, débitée une fois le rendez-vous créé. Une carte déjà
+  // vendue reste valable même si le pack ne permet plus d'en vendre ; un code inconnu est refusé.
+  const giftCardCode = source === "online" && input.giftCardCode ? input.giftCardCode : null;
   if (giftCardCode) await checkGiftCard(tx, tenantId, giftCardCode, depositCents, now);
 
-  const customerId = await upsertCustomer(tx, context, input.customer, input.locale, now);
+  const customerId = await upsertCustomer(tx, context, input.customer, input.locale, now, source);
   const endsAt = addMinutes(input.start, totals.durationMinutes);
   const pending = depositCents > 0 && !giftCardCode;
 
@@ -263,6 +290,7 @@ export async function createBooking(
         promoCodeId: promo?.promoCodeId ?? null,
         locale: input.locale,
         customerNote: input.customer.note || null,
+        beneficiaryName: input.customer.beneficiaryName || null,
       })
       .returning();
   } catch (error) {

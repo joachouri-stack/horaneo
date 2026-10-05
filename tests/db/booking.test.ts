@@ -241,7 +241,8 @@ describe.skipIf(!hasTestDatabase)("moteur de réservation", () => {
         .from(customers)
         .where(sql`${customers.tenantId} = ${s.id}`);
       expect(rows).toHaveLength(1);
-      expect(rows[0].phone).toBe("+33700000000");
+      // En ligne, une fiche existante n'est jamais modifiée (le numéro sert à se connecter).
+      expect(rows[0].phone).toBe("+33612345678");
     });
 
     it("refuse un créneau trop proche, fermé ou mal aligné (recalcul côté serveur)", async () => {

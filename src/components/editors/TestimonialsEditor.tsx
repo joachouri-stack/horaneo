@@ -69,7 +69,7 @@ export async function TestimonialsEditor({
         {items.map((item) => (
           <li key={item.id}>
             <details className="rounded-lg border border-navy/10 p-4">
-              <summary className="cursor-pointer font-semibold text-navy">
+              <summary className="cursor-pointer font-semibold text-night">
                 {item.authorName}
                 {item.rating ? ` · ${"★".repeat(item.rating)}` : ""}
               </summary>

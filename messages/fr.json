@@ -3,6 +3,17 @@
     "title": "{product} : votre site avec réservation en ligne",
     "description": "Un site web à votre image, avec prise de rendez-vous et acomptes en ligne, pour les professionnels qui travaillent sur rendez-vous."
   },
+  "platformErrors": {
+    "notFoundTitle": "Page introuvable",
+    "notFoundText": "Cette page n'existe pas ou n'est plus disponible. Vérifiez l'adresse, ou repartez de l'accueil.",
+    "errorTitle": "Un problème est survenu",
+    "errorText": "La page n'a pas pu s'afficher. Réessayez dans un instant ; si le problème continue, contactez-nous.",
+    "retry": "Réessayer",
+    "backHome": "Retour à l'accueil"
+  },
+  "billing": {
+    "setupFeeLabel": "Frais de création du site"
+  },
   "common": {
     "skipToContent": "Aller au contenu",
     "login": "Connexion",
@@ -91,7 +102,7 @@
       },
       "book": {
         "title": "Vos clients réservent",
-        "text": "Jour et nuit, en quelques gestes, sans créer de compte. Une alerte vous prévient à chaque réservation.",
+        "text": "Jour et nuit, en quelques gestes, sans créer de compte. Un e-mail vous prévient à chaque réservation.",
         "tag": "Sans rien installer"
       },
       "cash": {
@@ -104,7 +115,7 @@
       "badge": "Tarifs",
       "title": "Un prix clair,",
       "titleAccent": "{percent, plural, =0 {sans commission.} other {commission de # %.}}",
-      "subtitle": "Commencez gratuitement, puis changez de pack quand vous voulez.",
+      "subtitle": "Commencez gratuitement, puis passez à un pack supérieur quand vous voulez.",
       "perMonth": "par mois {display}",
       "perMonthShort": "par mois",
       "free": "Gratuit",
@@ -135,24 +146,29 @@
         "customDomain": "Votre propre nom de domaine",
         "onlinePayment": "Paiement et acompte en ligne",
         "promoCodes": "Codes promo",
+        "promotions": "Promotions datées et prix barrés",
+        "testimonials": "Témoignages de vos clientes",
+        "customerSpace": "Espace client : rendez-vous et historique",
         "monthlyUpdate": "Une mise à jour par mois, faite pour vous",
         "onDemandUpdates": "Mises à jour à la demande",
         "unlimitedPhotos": "Photos illimitées",
+        "photosLimit": "Jusqu'à {photos} photos",
         "stats": "Statistiques détaillées",
         "statsSummary": "Statistiques détaillées et résumé mensuel",
         "monthlySummary": "Résumé mensuel",
         "googleReviews": "Avis Google affichés sur votre site",
         "whatsappSupport": "Assistance prioritaire par WhatsApp",
         "giftCards": "Cartes cadeaux en ligne",
+        "loyalty": "Carte de fidélité",
         "smsReminders": "SMS de rappel"
       },
       "soon": {
         "aiMessaging": "Bientôt : messagerie IA"
       },
       "trust": {
-        "commission": "{percent, plural, =0 {Aucune commission} other {Commission de # % seulement}}",
+        "commission": "{percent, plural, =0 {Aucune commission (hors frais Stripe)} other {Commission de # % seulement (hors frais Stripe)}}",
         "secure": "Paiements sécurisés",
-        "data": "Vos données vous appartiennent"
+        "data": "Vos données vous appartiennent, remises sur simple demande"
       },
       "pricesDisplay": "Prix {display}."
     },
@@ -160,23 +176,23 @@
       "title": "Les questions qu'on nous pose",
       "intro": "Une autre question ? Nous répondons sous 24 heures.",
       "contact": "Nous écrire",
-      "commission": "{percent, plural, =0 {nous ne prenons aucune commission} other {nous prenons seulement # % de commission sur les acomptes}}",
+      "commission": "{percent, plural, =0 {nous ne prenons aucune commission} other {nous prenons seulement # % de commission sur les acomptes}} : seuls les frais bancaires de Stripe s'appliquent, prélevés directement par Stripe",
       "items": [
         {
           "q": "Comment je reçois mes paiements ?",
-          "a": "Directement sur votre compte bancaire. L'argent ne passe jamais par nous, et {commission}."
+          "a": "Avec le paiement en ligne (à partir du pack {plan:onlinePayment}), les acomptes arrivent directement sur votre compte bancaire. L'argent ne passe jamais par nous, et {commission}."
         },
         {
           "q": "Et en cas d'annulation ?",
-          "a": "Vous fixez vos conditions. Dans les délais, l'acompte est remboursé. Sinon, il vous reste acquis."
+          "a": "Vous fixez vos conditions. Avec un acompte, il est remboursé si la cliente annule dans les délais ; sinon, il vous reste acquis."
         },
         {
           "q": "Je n'y connais rien en informatique, est-ce un problème ?",
-          "a": "Non. Nous créons le site, nous le mettons en ligne et nous vous montrons comment suivre vos rendez-vous sur votre téléphone."
+          "a": "Non. Avec un site complet (à partir du pack {plan:fullSite}), nous créons le site et nous le mettons en ligne. Dans tous les cas, nous vous montrons comment suivre vos rendez-vous sur votre téléphone."
         },
         {
           "q": "J'ai déjà un site, que devient-il ?",
-          "a": "Nous le remplaçons par le nouveau, à la même adresse. Vous gardez votre nom de domaine."
+          "a": "À partir du pack {plan:customDomain}, nous le remplaçons par le nouveau, à la même adresse : vous gardez votre nom de domaine."
         },
         {
           "q": "En combien de temps mon site est-il en ligne ?",
@@ -184,7 +200,7 @@
         },
         {
           "q": "Si j'arrête, qu'est-ce que je garde ?",
-          "a": "Votre nom de domaine, vos photos, vos textes et votre fichier clients."
+          "a": "Vos photos, vos textes et votre fichier clients (remis sur simple demande), ainsi que votre nom de domaine si vous en avez un."
         }
       ]
     },
@@ -199,10 +215,84 @@
       "privacy": "Confidentialité",
       "terms": "Conditions",
       "rights": "© {year} {product} · Tous droits réservés",
-      "credit": "Design by Johane A."
+      "credit": "Design : Johane A."
     }
   },
   "site": {
+    "account": {
+      "title": "Mes rendez-vous",
+      "navLink": "Mes rendez-vous",
+      "loginIntro": "Retrouvez vos rendez-vous et vos avantages, sans mot de passe.",
+      "identifierLabel": "Votre e-mail ou votre numéro de téléphone",
+      "identifierHint": "Celui que vous avez donné en réservant.",
+      "send": "Recevoir mon lien de connexion",
+      "sentEmail": "Si cette adresse est connue, un lien de connexion vient de vous être envoyé à {identifier}. Il est valable 15 minutes.",
+      "sentSms": "Si ce numéro est connu, un code vient de vous être envoyé par SMS. Il est valable 10 minutes.",
+      "codeLabel": "Code reçu par SMS",
+      "verify": "Valider",
+      "other": "Utiliser une autre adresse",
+      "checkSpam": "Rien reçu ? Vérifiez vos courriers indésirables, ou réessayez dans quelques minutes.",
+      "optional": "Votre espace est un plus : vous pouvez toujours réserver sans vous connecter.",
+      "linkTitle": "Connexion à votre espace",
+      "linkIntro": "Appuyez sur le bouton pour ouvrir votre espace sur cet appareil.",
+      "linkButton": "Ouvrir mon espace",
+      "linkMissing": "Ce lien est incomplet. Demandez un nouveau lien de connexion.",
+      "askAgain": "Demander un nouveau lien",
+      "hello": "Bonjour {name}",
+      "helloAnonymous": "Bonjour",
+      "logout": "Se déconnecter",
+      "upcoming": "À venir",
+      "noUpcoming": "Aucun rendez-vous à venir.",
+      "book": "Prendre rendez-vous",
+      "when": "{date} à {time}",
+      "with": "avec {name}",
+      "at": "chez {name}",
+      "for": "Pour {name}",
+      "depositPaid": "Acompte payé : {amount}",
+      "manage": "Déplacer ou annuler",
+      "freeUntil": "Modification gratuite jusqu'au {date}",
+      "tooLate": "Pour modifier ce rendez-vous, contactez directement l'établissement.",
+      "history": "Historique",
+      "noHistory": "Vos rendez-vous passés apparaîtront ici.",
+      "rebook": "Reprendre ce soin",
+      "seeServices": "Voir les prestations",
+      "status": {
+        "attended": "Effectué",
+        "no_show": "Manqué",
+        "confirmed": "Passé"
+      },
+      "perks": "Mes avantages",
+      "perksAt": "Mes avantages chez {name}",
+      "loyaltyTitle": "Carte de fidélité",
+      "loyaltyRemaining": "{count, plural, one {Encore # soin} other {Encore # soins}} avant : {reward}",
+      "loyaltyProgress": "{points} sur {required} soins",
+      "rewardReady": "Votre avantage est prêt",
+      "rewardValid": "Valable jusqu'au {date}",
+      "rewardHint": "Signalez-le lors de votre prochain rendez-vous.",
+      "rewardAmount": "{amount} offerts",
+      "giftCards": "Cartes cadeaux",
+      "giftCode": "Code",
+      "giftBalance": "Solde : {amount}",
+      "giftValid": "Valable jusqu'au {date}",
+      "giftUse": "Utiliser pour réserver",
+      "giftReceived": "Reçue",
+      "giftBought": "Achetée",
+      "giftOffered": "Offerte à {name}",
+      "giftOfferedNoName": "Carte offerte",
+      "giftScheduled": "Envoi prévu le {date}",
+      "giftHiddenCode": "Le code est envoyé directement à la personne qui reçoit la carte.",
+      "data": "Mes données",
+      "dataIntro": "Vous pouvez demander une copie de vos données ou leur suppression. La demande est transmise à l'établissement, qui vous répondra.",
+      "dataExport": "Demander une copie",
+      "dataDelete": "Demander la suppression",
+      "dataConfirmDelete": "Envoyer une demande de suppression de vos données ?",
+      "dataSent": "Votre demande a bien été transmise.",
+      "dataPending": "Demande en cours : {kind}",
+      "dataKinds": {
+        "export": "copie de vos données",
+        "deletion": "suppression de vos données"
+      }
+    },
     "suspended": "Ce site est temporairement indisponible. Merci de contacter l'établissement par téléphone.",
     "book": "Réserver",
     "bookService": "Réserver : {service}",
@@ -217,7 +307,7 @@
       "featured": "Nos prestations",
       "testimonialsTitle": "Ils nous font confiance"
     },
-    "previewBanner": "Aperçu : ce site n'est pas encore en ligne. Seule l'administratrice le voit.",
+    "previewBanner": "Aperçu : ce site n'est pas encore en ligne. Aperçu privé, invisible du public.",
     "nav": {
       "services": "Prestations et tarifs",
       "about": "L'établissement",
@@ -278,7 +368,7 @@
     "legal": {
       "title": "Mentions légales",
       "publisher": "Éditeur du site",
-      "publisherName": "Raison sociale : {name}",
+      "publisherName": "Nom ou raison sociale : {name}",
       "siret": "SIRET : {siret}",
       "vat": "N° de TVA : {vat}",
       "address": "Adresse : {address}",
@@ -296,11 +386,11 @@
       "controller": "Responsable du traitement",
       "controllerText": "{name} est responsable des données personnelles collectées sur ce site.",
       "data": "Données collectées",
-      "dataText": "Lors d'une réservation : vos nom, prénom, adresse e-mail, numéro de téléphone et, le cas échéant, votre message. Aucune donnée n'est collectée si vous consultez simplement le site.",
+      "dataText": "Lors d'une réservation : vos nom, prénom, adresse e-mail, numéro de téléphone et, le cas échéant, votre message, ainsi que l'historique de vos rendez-vous. Lors de l'achat d'une carte cadeau : les nom et e-mail de l'acheteur et du bénéficiaire. Pour l'espace client : votre e-mail ou numéro, utilisé seulement pour vous connecter. Aucune donnée n'est collectée si vous consultez simplement le site.",
       "purpose": "Utilisation",
       "purposeText": "Ces données servent uniquement à gérer vos rendez-vous : confirmation, rappel, modification ou annulation. Elles ne sont jamais vendues. Les messages commerciaux ne vous sont envoyés qu'avec votre accord.",
       "processor": "Sous-traitant",
-      "processorText": "Le site et les réservations sont gérés par le service {product}, qui agit pour le compte de l'établissement. Les paiements d'acompte sont traités par Stripe.",
+      "processorText": "Le site et les réservations sont gérés par le service {product}, qui agit pour le compte de l'établissement. Les paiements d'acompte sont traités par Stripe, et les e-mails et SMS sont envoyés par Brevo.",
       "retention": "Durée de conservation",
       "retentionText": "Vos données sont conservées pendant la durée de la relation avec l'établissement, puis au maximum 3 ans après votre dernier rendez-vous.",
       "rights": "Vos droits",
@@ -403,10 +493,10 @@
       "otherAmount": "Autre montant (de {min} à {max})",
       "recipient": "Pour qui ?",
       "recipientName": "Prénom de la personne",
-      "recipientEmail": "Son e-mail (vide : la carte vous est envoyée, à imprimer ou transférer)",
+      "recipientEmail": "Son e-mail (sinon, la carte vous est envoyée)",
       "message": "Votre message (facultatif)",
       "sendOn": "Date d'envoi",
-      "sendOnHint": "Vide : envoyée tout de suite après le paiement.",
+      "sendOnHint": "Laissez vide pour l'envoyer tout de suite après le paiement.",
       "from": "De la part de",
       "purchaserName": "Votre nom",
       "purchaserEmail": "Votre e-mail (pour le reçu)",
@@ -439,7 +529,7 @@
   "auth": {
     "metaTitle": "Connexion",
     "title": "Connexion",
-    "subtitle": "Pas de mot de passe : connectez-vous avec votre compte Google ou Apple, ou recevez un lien par e-mail.",
+    "subtitle": "Pas de mot de passe : {social, select, both {connectez-vous avec votre compte Google ou Apple, ou recevez un lien par e-mail} google {connectez-vous avec votre compte Google, ou recevez un lien par e-mail} apple {connectez-vous avec votre compte Apple, ou recevez un lien par e-mail} other {recevez simplement un lien de connexion par e-mail}}.",
     "continueWith": "Continuer avec {provider}",
     "providers": {
       "google": "Google",
@@ -450,7 +540,7 @@
     "emailPlaceholder": "vous@exemple.fr",
     "sendLink": "Recevoir un lien de connexion",
     "sending": "Envoi…",
-    "sentTitle": "Vérifiez votre boîte mail",
+    "sentTitle": "Vérifiez votre boîte de réception",
     "sentBody": "Un lien de connexion vient d'être envoyé à {email}. Il est valable 15 minutes.",
     "sentHint": "Rien reçu ? Regardez dans les courriers indésirables, ou réessayez.",
     "useAnotherEmail": "Utiliser une autre adresse",
@@ -463,7 +553,8 @@
     },
     "legal": "En continuant, vous acceptez les conditions d'utilisation et la politique de confidentialité.",
     "signupTitle": "Créez votre compte",
-    "signupSubtitle": "Sans mot de passe : continuez avec Google ou Apple, ou recevez un lien par e-mail. Si vous avez déjà un compte, vous retrouverez simplement votre espace."
+    "signupSubtitle": "Sans mot de passe : {social, select, both {continuez avec Google ou Apple, ou recevez un lien par e-mail} google {continuez avec Google, ou recevez un lien par e-mail} apple {continuez avec Apple, ou recevez un lien par e-mail} other {recevez simplement un lien par e-mail}}. Si vous avez déjà un compte, vous retrouverez votre espace.",
+    "chosenPack": "Pack choisi : {name}"
   },
   "account": {
     "metaTitle": "Mon espace",
@@ -514,7 +605,8 @@
       "settings": "Réglages",
       "billing": "Paiements",
       "orders": "Commandes",
-      "documents": "Documents légaux"
+      "documents": "Documents légaux",
+      "label": "Navigation de l'administration"
     },
     "dashboard": {
       "activeClients": "Clients en ligne",
@@ -526,7 +618,7 @@
       "draftsLink": "Voir les sites en création",
       "alerts": "Alertes à traiter",
       "noAlerts": "Rien à signaler.",
-      "basicAtLimit": "{name} a atteint ses {count} réservations du mois (pack Basic).",
+      "basicAtLimit": "{name} a atteint ses {count} réservations du mois (limite de son pack).",
       "openRequests": "{count, plural, one {# demande de mise à jour à traiter} other {# demandes de mise à jour à traiter}}",
       "pastDue": "{count, plural, one {# prélèvement en échec} other {# prélèvements en échec}}",
       "pendingOrders": "{count, plural, one {# commande à traiter} other {# commandes à traiter}}"
@@ -587,7 +679,9 @@
       "overview": {
         "plan": "Pack",
         "changePlan": "Changer de pack",
-        "changePlanHint": "Le prélèvement sera ajusté automatiquement une fois les paiements branchés.",
+        "changePlanHint": "Sans abonnement Stripe, le pack est attribué sans prélèvement. Avec un abonnement, utilisez plutôt le changement de pack de l'espace du client.",
+        "changePlanConfirm": "Changer le pack de {name} ? Ses limites et ses fonctions changent tout de suite ; sans domaine personnel inclus, son adresse principale redevient le sous-domaine.",
+        "suspendConfirm": "Suspendre {name} ? Son site sera hors ligne immédiatement.",
         "status": "Statut",
         "activate": "Mettre en ligne",
         "suspend": "Suspendre",
@@ -612,9 +706,11 @@
         "addDomain": "Ajouter un domaine propre",
         "domainPlaceholder": "www.institut-lea.fr",
         "markActive": "Marquer comme branché",
-        "markActiveHint": "Temporaire : la vérification automatique arrive avec Cloudflare.",
+        "markActiveConfirm": "Le domaine {host} pointe-t-il bien vers le serveur (DNS vérifié) ? S'il ne répond pas, le site sera inaccessible une fois ce domaine en adresse principale.",
+        "markActiveHint": "Vérifiez d'abord que le domaine pointe bien vers le serveur (DNS).",
         "makePrimary": "Définir comme principale",
         "removeDomain": "Retirer",
+        "removeDomainConfirm": "Retirer le domaine {host} ?",
         "noCustomDomain": "Le pack de ce client n'inclut pas de domaine propre.",
         "created": "Client depuis le {date}",
         "countryTimezone": "{country} · {timezone} · {currency}",
@@ -687,7 +783,7 @@
         "onlineBookable": "Réservable en ligne",
         "active": "Active",
         "empty": "Aucune prestation pour le moment.",
-        "quota": "{used} prestation(s) sur {limit}",
+        "quota": "{used, plural, one {# prestation} other {# prestations}} sur {limit}",
         "minutes": "{count} min",
         "disabled": "désactivée",
         "deactivatedInstead": "Prestation déjà réservée : elle a été désactivée au lieu d'être supprimée.",
@@ -695,7 +791,7 @@
         "noIcon": "Aucun",
         "featured": "Mettre en avant (« Spécialité »)",
         "inMenu": "Afficher dans le menu du site",
-        "categoryDetails": "Présentation détaillée (facultatif)",
+        "categoryDetails": "Présentation détaillée (facultative)",
         "categoryDetailsHint": "Affichée quand on ouvre la catégorie sur le site. Une ligne qui commence par « - » devient un point de liste.",
         "categoryDescription": "Courte description de la catégorie",
         "icons": {
@@ -724,7 +820,8 @@
         "services": "Prestations réalisées",
         "active": "Actif",
         "empty": "Aucun membre pour le moment.",
-        "quota": "{used} membre(s) sur {limit}",
+        "deactivatedInstead": "Ce membre a déjà des rendez-vous : il a été désactivé au lieu d'être supprimé.{upcoming, plural, =0 {} one { # rendez-vous à venir lui reste attribué : pensez à le déplacer.} other { # rendez-vous à venir lui restent attribués : pensez à les déplacer.}}",
+        "quota": "{used, plural, one {# membre} other {# membres}} sur {limit}",
         "hoursHint": "Un nouveau membre travaille par défaut aux horaires d'ouverture."
       },
       "hours": {
@@ -777,7 +874,7 @@
           "other": "Autre"
         },
         "alt": "Description (pour l'accessibilité)",
-        "quota": "{used} photo(s) sur {limit}",
+        "quota": "{used, plural, one {# photo} other {# photos}} sur {limit}",
         "empty": "Aucune photo pour le moment.",
         "remove": "Retirer",
         "restore": "Restaurer",
@@ -835,7 +932,7 @@
         "profile": "Sa page sur le site",
         "profileHint": "Modèle Atelier : chaque professionnelle a sa page, avec ses soins et le bouton « Réserver avec … ».",
         "slug": "Adresse de sa page (/avec/…)",
-        "slugHint": "Lettres, chiffres et tirets. Vide : proposée à partir du nom.",
+        "slugHint": "Lettres, chiffres et tirets. Laissez vide pour la créer à partir du nom.",
         "pageTitle": "Titre de sa page et du menu (ex. « Esthétique »)",
         "role": "Métier (ex. « Esthéticienne, spécialiste du regard »)",
         "bio": "Présentation",
@@ -853,6 +950,7 @@
       "open": "À traiter (reçues et en cours)",
       "empty": "Aucune demande.",
       "thisMonth": "{count, plural, one {# demande} other {# demandes}} ce mois-ci",
+      "planUpdates": "Pack {plan} : {rule, select, monthly {1 mise à jour par mois incluse} onDemand {mises à jour à la demande} other {aucune mise à jour incluse}}",
       "from": "De {email} · {date}",
       "setStatus": "Changer le statut",
       "status": {
@@ -894,7 +992,9 @@
         "giftCards": "Cartes cadeaux",
         "monthlyUpdate": "Une mise à jour du site par mois",
         "onDemandUpdates": "Mises à jour du site à la demande",
-        "aiMessaging": "Messagerie IA (annoncée « bientôt »)"
+        "aiMessaging": "Messagerie IA (annoncée « bientôt »)",
+        "customerSpace": "Espace des clientes (mes rendez-vous)",
+        "loyalty": "Programme de fidélité"
       },
       "description": "Accroche",
       "descriptionHint": "Affichée sous le nom du pack sur le site commercial."
@@ -987,8 +1087,10 @@
     "slug_invalid": "L'adresse ne peut contenir que des lettres minuscules sans accent, des chiffres et des tirets.",
     "hostname_taken": "Ce domaine est déjà rattaché à un établissement.",
     "hostname_invalid": "Ce nom de domaine n'est pas valide (exemple : www.institut-lea.fr).",
-    "feature_unavailable": "Cette fonction n'est pas incluse dans le pack de ce client.",
+    "feature_unavailable": "Cette fonction n'est pas incluse dans le pack actuel.",
+    "terms_required": "Cochez la case pour accepter les conditions générales de vente.",
     "quota_reached": "La limite du pack est atteinte. Passez à un pack supérieur ou retirez un élément.",
+    "last_free_plan": "Il faut garder au moins un pack gratuit : c'est là que vont les sites dont l'abonnement se termine.",
     "hours_overlap": "Deux plages horaires se chevauchent dans la même journée.",
     "hours_invalid": "L'heure de fin doit être après l'heure de début.",
     "phone_invalid": "Ce numéro de téléphone n'est pas valide.",
@@ -1024,7 +1126,11 @@
     "gift_card_used": "Cette carte cadeau a déjà été entièrement utilisée.",
     "gift_card_insufficient": "Le solde de la carte cadeau est insuffisant.",
     "gift_cards_unavailable": "Les cartes cadeaux ne sont pas proposées pour le moment.",
-    "gift_card_amount": "Choisissez un montant entre le minimum et le maximum indiqués."
+    "gift_card_amount": "Choisissez un montant entre le minimum et le maximum indiqués.",
+    "reward_unavailable": "Ce bon a déjà été utilisé ou a expiré.",
+    "login_invalid": "Ce lien ou ce code n'est plus valable. Demandez-en un nouveau.",
+    "sms_unavailable": "La connexion par SMS n'est pas disponible. Saisissez votre adresse e-mail.",
+    "customer_space_unavailable": "Cet espace n'est pas disponible sur ce site."
   },
   "status": {
     "draft": "En création",
@@ -1089,6 +1195,8 @@
       "phone": "Téléphone",
       "phoneHint": "Pour le rappel la veille du rendez-vous.",
       "note": "Un message pour l'établissement ?",
+      "beneficiary": "Ce rendez-vous est pour quelqu'un d'autre ?",
+      "beneficiaryHint": "Indiquez son prénom (facultatif).",
       "marketingConsent": "J'accepte de recevoir des offres de l'établissement par e-mail ou SMS.",
       "privacy": "Vos données servent uniquement à gérer ce rendez-vous.",
       "privacyLink": "En savoir plus",
@@ -1182,7 +1290,7 @@
       "label": "Carte cadeau",
       "apply": "Utiliser",
       "applied": "Carte •••• {last4} : l'acompte de {amount} sera pris sur la carte (solde {balance}).",
-      "appliedNoDeposit": "Carte •••• {last4} enregistrée : le soin se déduira sur place (solde {balance}).",
+      "appliedNoDeposit": "Carte •••• {last4} enregistrée : le montant sera déduit sur place (solde {balance}).",
       "remove": "Retirer",
       "paidWith": "Acompte réglé avec votre carte cadeau."
     },
@@ -1242,6 +1350,7 @@
       "internalNote": "Note interne (invisible pour la cliente)",
       "attended": "Venue",
       "noShow": "Absente",
+      "noShowConfirm": "Marquer ce rendez-vous comme manqué (cliente absente) ?",
       "undo": "Remettre « confirmé »",
       "move": "Déplacer",
       "moveTitle": "Déplacer le rendez-vous",
@@ -1306,6 +1415,7 @@
       "previous": "Précédent",
       "next": "Suivant",
       "allStaff": "Toute l'équipe",
+      "inactiveStaff": "désactivée",
       "empty": "Aucun rendez-vous.",
       "closed": "Fermé",
       "timeOff": {
@@ -1332,7 +1442,8 @@
       "none": "Aucune indisponibilité prévue.",
       "everyone": "Tout l'établissement",
       "remove": "Supprimer",
-      "conflicts": "Attention : {count, plural, one {# rendez-vous est déjà pris} other {# rendez-vous sont déjà pris}} sur cette période. Pensez à prévenir ou déplacer."
+      "conflicts": "C'est enregistré, mais attention : {count, plural, one {# rendez-vous est déjà pris} other {# rendez-vous sont déjà pris}} sur cette période. Pensez à prévenir la cliente ou à déplacer le rendez-vous :",
+      "removeConfirm": "Supprimer cette indisponibilité ? Les créneaux seront de nouveau proposés en ligne."
     },
     "customers": {
       "title": "Clientes",
@@ -1345,7 +1456,7 @@
       "noShows": "Absences",
       "spent": "Dépensé",
       "notes": "Notes",
-      "notesHint": "Préférences, allergies… Visible uniquement par vous.",
+      "notesHint": "Préférences, habitudes… Visible uniquement par vous. Évitez les informations de santé.",
       "contact": "Coordonnées",
       "history": "Historique",
       "noHistory": "Aucun rendez-vous.",
@@ -1385,7 +1496,9 @@
       "payments": "Paiements en ligne",
       "promo": "Codes promo",
       "promotions": "Promotions",
-      "giftCards": "Cartes cadeaux"
+      "giftCards": "Cartes cadeaux",
+      "loyalty": "Fidélité",
+      "customerData": "Demandes des clientes (données)"
     },
     "stats": {
       "title": "Statistiques",
@@ -1401,10 +1514,12 @@
       "none": "Pas encore de données ce mois-ci.",
       "previous": "Mois précédent",
       "next": "Mois suivant",
-      "detailed": "Les statistiques détaillées sont incluses dans le pack Sérénité."
+      "detailed": "Les statistiques détaillées sont incluses {plan, select, none {dans un pack supérieur} other {à partir du pack {plan}}}."
     },
     "team": {
       "title": "Équipe",
+      "overLimit": "Votre pack prévoit {limit, plural, one {# membre} other {# membres}} : seuls {limit, plural, one {le premier} other {les # premiers}} de la liste {limit, plural, one {est proposé} other {sont proposés}} à la réservation en ligne. Vous pouvez toujours noter des rendez-vous avec toute l'équipe, ou passer à un pack supérieur.",
+      "deactivatedInstead": "Ce membre a déjà des rendez-vous : il a été désactivé au lieu d'être supprimé.{upcoming, plural, =0 {} one { # rendez-vous à venir lui reste attribué : pensez à le déplacer.} other { # rendez-vous à venir lui restent attribués : pensez à les déplacer.}}",
       "schedule": "Horaires de travail",
       "scheduleHint": "Les créneaux proposés en ligne tiennent compte de ces horaires et des horaires d'ouverture."
     },
@@ -1425,7 +1540,8 @@
         "scheduled": "Passage au pack {name} le {date}.",
         "cancelAt": "Votre pack payant se termine le {date}. Votre site passera ensuite au pack gratuit.",
         "keep": "Garder mon pack actuel",
-        "free": "Pack gratuit, sans prélèvement."
+        "free": "Pack gratuit, sans prélèvement.",
+        "assigned": "Pack mis en place par notre équipe : aucun prélèvement automatique pour le moment."
       },
       "pastDue": "Votre dernier prélèvement n'a pas abouti. Mettez à jour votre carte pour garder votre pack.",
       "pastDueBanner": "Prélèvement refusé : mettez à jour votre carte.",
@@ -1451,6 +1567,7 @@
       "returnCancel": "Paiement annulé : votre pack n'a pas changé.",
       "result": {
         "upgraded": "C'est fait : votre nouveau pack est actif.",
+        "downgraded": "C'est fait : votre site est passé au pack gratuit.",
         "downgrade_scheduled": "C'est noté : le changement se fera à la fin de la période en cours.",
         "cancel_scheduled": "C'est noté : votre pack payant se terminera à la date indiquée.",
         "kept": "Votre pack actuel est conservé."
@@ -1467,9 +1584,14 @@
         "customDomain": "Votre propre nom de domaine",
         "onlinePayment": "Paiement en ligne et acompte",
         "promoCodes": "Codes promo",
+        "promotions": "Promotions datées et prix barrés",
         "testimonials": "Témoignages",
+        "customerSpace": "Espace client : rendez-vous et historique",
         "stats": "Statistiques détaillées",
         "monthlySummary": "Bilan mensuel",
+        "giftCards": "Cartes cadeaux en ligne",
+        "loyalty": "Carte de fidélité",
+        "googleReviews": "Avis Google affichés sur votre site",
         "emailSupport": "Assistance par e-mail",
         "whatsappSupport": "Assistance prioritaire par WhatsApp"
       },
@@ -1485,7 +1607,7 @@
       "onlineOff": "Réservation en ligne coupée : votre site est en mode vitrine.",
       "booking": "Réservation en ligne",
       "minNotice": "Délai minimum avant un rendez-vous (heures)",
-      "maxAdvance": "Réservation au plus tard (jours à l'avance)",
+      "maxAdvance": "Réservation possible jusqu'à (jours à l'avance)",
       "interval": "Créneaux proposés toutes les",
       "minutes": "{count} minutes",
       "maxServices": "Prestations maximum par rendez-vous",
@@ -1534,7 +1656,7 @@
     },
     "payments": {
       "title": "Paiements en ligne",
-      "intro": "Les acomptes de vos clientes sont versés directement sur votre compte Stripe, puis sur votre compte bancaire. {product} ne touche pas cet argent et ne prend aucune commission.",
+      "intro": "Les acomptes de vos clientes sont versés directement sur votre compte Stripe, puis sur votre compte bancaire. {product} ne touche pas cet argent{percent, plural, =0 { et ne prend aucune commission} other { et prend une commission de # % sur les acomptes}}. Stripe prélève ses propres frais bancaires.",
       "state": {
         "unavailable": "Le paiement en ligne n'est pas inclus dans votre pack.",
         "not_started": "Votre compte Stripe n'est pas encore ouvert.",
@@ -1585,7 +1707,7 @@
       "title": "Promotions",
       "intro": "Pendant la période choisie, le site affiche un bandeau « offre du moment » et le prix barré à côté du prix réduit. La promotion s'arrête seule à la date de fin.",
       "referenceRule": "Le prix barré est le prix le plus bas pratiqué dans les 30 jours avant le début de la promotion (règle française). Un code promo ne s'ajoute pas à une promotion.",
-      "unavailable": "Les promotions datées sont incluses à partir du pack Essentiel.",
+      "unavailable": "Les promotions datées sont incluses {plan, select, none {dans un pack supérieur} other {à partir du pack {plan}}}.",
       "empty": "Aucune promotion pour le moment.",
       "new": "Nouvelle promotion",
       "titleLabel": "Intitulé (affiché dans le bandeau)",
@@ -1609,13 +1731,15 @@
     "giftCards": {
       "title": "Cartes cadeaux",
       "intro": "Vos clientes achètent une carte sur votre site ; le paiement arrive directement sur votre compte Stripe. La carte s'utilise en ligne (elle remplace l'acompte) ou ici, sur place.",
-      "unavailable": "Les cartes cadeaux sont incluses dans le pack Sérénité.",
+      "unavailable": "Les cartes cadeaux sont incluses {plan, select, none {dans un pack supérieur} other {à partir du pack {plan}}}.",
+      "soldBefore": "Votre pack actuel ne permet plus de vendre de cartes cadeaux. Les cartes déjà vendues restent valables jusqu'à leur date d'expiration : vos clientes peuvent les utiliser en ligne, et vous pouvez les encaisser ici.",
       "needsStripe": "Pour vendre des cartes, ouvrez d'abord votre compte de paiement (Plus → Paiements).",
       "redeemTitle": "Encaisser une carte sur place",
       "code": "Code de la carte",
       "amount": "Montant à déduire (€)",
-      "note": "Note (facultatif, ex. soin réalisé)",
+      "note": "Note (facultative, ex. prestation réalisée)",
       "redeem": "Déduire",
+      "redeemConfirm": "Déduire ce montant de la carte ? Vérifiez le code et le montant : l'opération ne peut pas être annulée.",
       "redeemed": "Montant déduit de la carte •••• {last4}. Solde restant : {balance}.",
       "listTitle": "Cartes vendues",
       "empty": "Aucune carte vendue pour le moment.",
@@ -1642,6 +1766,57 @@
       "min": "Montant libre minimum (€)",
       "max": "Montant libre maximum (€)",
       "rules": "Règles affichées à l'achat et dans vos conditions de vente : utilisable en plusieurs fois (le solde est conservé), non remboursable, non échangeable contre de l'argent."
+    },
+    "loyalty": {
+      "title": "Programme de fidélité",
+      "intro": "Vos clientes gagnent un point à chaque rendez-vous marqué « venue ». Au nombre de visites choisi, un bon apparaît dans leur espace et sur leur fiche.",
+      "unavailable": "Le programme de fidélité est inclus {plan, select, none {dans un pack supérieur} other {à partir du pack {plan}}}.",
+      "enabled": "Activer le programme de fidélité",
+      "visitsRequired": "Nombre de visites pour obtenir l'avantage",
+      "rewardLabel": "Avantage offert (texte libre)",
+      "rewardLabelHint": "Par exemple : « Un soin du visage offert ».",
+      "rewardAmount": "Ou un montant offert (€)",
+      "rewardAmountHint": "Facultatif. Laissez vide si vous avez écrit un avantage.",
+      "validityDays": "Durée de validité du bon (jours)",
+      "card": "Fidélité",
+      "progress": "{points} sur {required} visites",
+      "inactive": "Le programme de fidélité n'est pas activé. Activez-le dans Plus → Fidélité.",
+      "notIncluded": "Votre pack actuel ne comprend plus la fidélité : les points ne s'accumulent plus, mais le bon déjà gagné reste valable jusqu'à sa date de fin.",
+      "reward": "Bon à utiliser : {label}",
+      "rewardValid": "Valable jusqu'au {date}",
+      "useReward": "Marquer le bon comme utilisé",
+      "useRewardConfirm": "Le bon a bien été utilisé ? Le compteur repartira de zéro.",
+      "adjust": "Ajuster le compteur",
+      "adjustPoints": "Points à ajouter ou retirer (ex. 2 ou -1)",
+      "adjustReason": "Raison (gardée dans l'historique)",
+      "adjustSubmit": "Ajuster",
+      "history": "Derniers mouvements",
+      "kinds": {
+        "visit": "Rendez-vous honoré",
+        "visit_reverted": "Rendez-vous corrigé",
+        "manual_adjustment": "Ajustement",
+        "reward_used": "Bon utilisé ou expiré"
+      }
+    },
+    "customerData": {
+      "title": "Demandes des clientes (données)",
+      "intro": "Depuis leur espace, vos clientes peuvent demander une copie de leurs données ou leur suppression. La loi vous donne un mois pour répondre.",
+      "empty": "Aucune demande pour le moment.",
+      "kinds": {
+        "export": "Copie des données",
+        "deletion": "Suppression des données"
+      },
+      "status": {
+        "new": "À traiter",
+        "done": "Traitée",
+        "rejected": "Refusée"
+      },
+      "received": "Reçue le {date}",
+      "openCustomer": "Voir la fiche",
+      "markDone": "Marquer comme traitée",
+      "markRejected": "Refuser",
+      "howExport": "Pour une copie : envoyez-lui par e-mail ses coordonnées et son historique (visibles sur sa fiche).",
+      "howDeletion": "Pour une suppression : effacez ses coordonnées et notes sur sa fiche. Les rendez-vous passés restent dans votre comptabilité."
     }
   },
   "notifications": {
@@ -1664,6 +1839,7 @@
       "contactEmail": "Une question ? Répondez simplement à cet e-mail.",
       "managerFooter": "Message automatique envoyé par {product}.",
       "openSpace": "Ouvrir mon espace",
+      "spaceHint": "Retrouvez tous vos rendez-vous et vos avantages sur {url}",
       "summaryFooter": "Vous pouvez couper les résumés dans Plus → Réglages."
     },
     "customer": {
@@ -1679,13 +1855,14 @@
       },
       "reminder_sms": {
         "text": "Rappel : rendez-vous demain à {time} chez {business}.",
-        "phone": " Empêchement : {phone}"
+        "phone": " Pour annuler ou déplacer : {phone}"
       },
       "cancelled": {
         "subject": "Votre rendez-vous du {date} est annulé",
         "title": "Rendez-vous annulé",
         "byCustomer": "Votre rendez-vous chez {business} du {when} est bien annulé.",
-        "byEstablishment": "{business} a dû annuler votre rendez-vous du {when}. Toutes nos excuses pour ce contretemps."
+        "byEstablishment": "{business} a dû annuler votre rendez-vous du {when}. Toutes nos excuses pour ce contretemps.",
+        "depositContact": "Pour l'acompte que vous aviez versé, contactez directement {business} : il doit vous être rendu."
       },
       "rescheduled": {
         "subject": "Votre rendez-vous est déplacé au {date}",
@@ -1694,16 +1871,37 @@
       },
       "moved": {
         "subject": "Nouvel horaire pour votre rendez-vous du {date}",
-        "title": "Votre rendez-vous a changé d'horaire",
+        "title": "Votre rendez-vous a été déplacé",
         "intro": "{business} a déplacé votre rendez-vous (ancien créneau : {previous}). Voici le nouveau créneau :"
+      },
+      "login_link": {
+        "subject": "Votre lien de connexion — {business}",
+        "title": "Accédez à vos rendez-vous",
+        "intro": "Cliquez sur le bouton ci-dessous pour retrouver vos rendez-vous chez {business}.",
+        "action": "Ouvrir mon espace",
+        "expiry": "Ce lien est valable {minutes} minutes et ne sert qu'une fois.",
+        "ignore": "Vous n'avez rien demandé ? Ignorez simplement cet e-mail."
+      },
+      "login_code": {
+        "text": "{code} : votre code pour accéder à vos rendez-vous chez {business}. Valable {minutes} min."
       },
       "payment_refunded": {
         "subject": "Votre acompte vous est remboursé",
-        "title": "Créneau plus disponible",
+        "title": "Ce créneau n'est plus disponible",
         "intro": "Votre paiement chez {business} est arrivé après la fin du délai de réservation, et le créneau a été pris entre-temps. Toutes nos excuses."
       }
     },
     "manager": {
+      "data_request": {
+        "subject_export": "Demande d'export des données : {customer}",
+        "subject_deletion": "Demande de suppression des données : {customer}",
+        "title_export": "Une cliente demande ses données",
+        "title_deletion": "Une cliente demande la suppression de ses données",
+        "intro_export": "{customer} demande, depuis son espace, une copie des données que vous avez sur elle.",
+        "intro_deletion": "{customer} demande, depuis son espace, la suppression des données que vous avez sur elle.",
+        "delay": "La loi vous donne un mois pour répondre. Traitez la demande depuis votre espace.",
+        "open": "Voir la demande"
+      },
       "new_booking": {
         "subject": "Nouvelle réservation : {customer}, {when}",
         "title": "Nouvelle réservation",
@@ -1829,7 +2027,7 @@
     }
   },
   "legal": {
-    "updated": "Mise à jour le {date}",
+    "updated": "Dernière mise à jour : {date}",
     "draft": "Document en cours de rédaction.",
     "titles": {
       "legal_notice": "Mentions légales",
@@ -1848,6 +2046,9 @@
     "activityHint": "Par exemple : institut de beauté, coiffure, massage…",
     "phone": "Téléphone",
     "currentWebsite": "Site actuel (facultatif)",
+    "currentWebsitePlaceholder": "www.exemple.fr",
+    "paidRecap": "Packs payants : {months, plural, =0 {sans engagement} other {engagement de # mois}}{fee, select, none {} other {, frais de création de {fee}}}.",
+    "terms": "J'ai lu et j'accepte les <link>conditions générales de vente</link>.",
     "paidHint": "Paiement par carte sur la page sécurisée de Stripe. Votre site est ensuite créé par notre équipe.",
     "freeHint": "Les demandes de fiche gratuite sont validées à la main par notre équipe.",
     "thanks": {

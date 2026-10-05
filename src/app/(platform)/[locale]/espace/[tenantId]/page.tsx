@@ -31,7 +31,7 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
           { label: t("newBookings"), value: String(summary.newBookings) },
         ].map((stat) => (
           <div key={stat.label} className="rounded-[var(--radius-card)] bg-white p-3 text-center shadow-sm">
-            <dd className="font-display text-xl font-extrabold text-navy sm:text-2xl">{stat.value}</dd>
+            <dd className="font-display text-xl font-extrabold text-night sm:text-2xl">{stat.value}</dd>
             <dt className="mt-1 text-xs leading-tight text-ink/70">{stat.label}</dt>
           </div>
         ))}

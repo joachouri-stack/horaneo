@@ -125,7 +125,7 @@ export default async function PromoCodesPage({
                   <details className={ui.card}>
                     <summary className="cursor-pointer">
                       <span
-                        className={`block text-lg font-bold ${code.isActive ? "text-navy" : "text-ink/50"}`}
+                        className={`block text-lg font-bold ${code.isActive ? "text-night" : "text-ink/50"}`}
                       >
                         {code.code}
                       </span>
@@ -153,7 +153,7 @@ export default async function PromoCodesPage({
             </ul>
           )}
           <details className={ui.card} open={codes.length === 0}>
-            <summary className="cursor-pointer text-lg font-bold text-navy">+ {t("new")}</summary>
+            <summary className="cursor-pointer text-lg font-bold text-night">+ {t("new")}</summary>
             <ActionForm
               action={savePromoCodeAction}
               submitLabel={tCommon("save")}

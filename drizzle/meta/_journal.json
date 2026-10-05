@@ -127,6 +127,13 @@
       "when": 1791211191162,
       "tag": "0017_category_details",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1791213971950,
+      "tag": "0018_customer_space",
+      "breakpoints": true
     }
   ]
 }

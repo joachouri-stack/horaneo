@@ -28,6 +28,8 @@ export async function submitOrderAction(
   const base = `${publicAppUrl()}/${locale}/commander`;
   let target: string;
   try {
+    // Conditions générales de vente acceptées (case obligatoire, vérifiée aussi ici).
+    if (data.get("acceptTerms") !== "on") throw new AppError("terms_required", "acceptTerms");
     const result = await withPlatform((tx) =>
       createOrder(
         tx,

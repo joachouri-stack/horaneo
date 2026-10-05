@@ -1,4 +1,4 @@
-import { asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ne, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
@@ -33,6 +33,8 @@ export const FEATURE_KEYS = [
   "monthlyUpdate",
   "onDemandUpdates",
   "aiMessaging",
+  "customerSpace",
+  "loyalty",
 ] as const;
 
 export const planInput = z.object({
@@ -79,6 +81,15 @@ export async function savePlan(
     FEATURE_KEYS.map((key) => [key, input.features.includes(key)]),
   );
   const priceChanged = priceCents !== plan.priceCents;
+  // Il faut toujours un pack gratuit : c'est là que vont les sites dont l'abonnement se termine.
+  if (plan.priceCents <= 0 && priceCents > 0) {
+    const [other] = await tx
+      .select({ id: plans.id })
+      .from(plans)
+      .where(and(eq(plans.priceCents, 0), ne(plans.id, plan.id)))
+      .limit(1);
+    if (!other) throw new AppError("last_free_plan", "price");
+  }
   await tx
     .update(plans)
     .set({

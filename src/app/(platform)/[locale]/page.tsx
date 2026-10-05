@@ -17,6 +17,7 @@ import { env, publicAppUrl } from "@/config/env";
 import { withPlatform } from "@/db/access";
 import { ENABLED_LOCALES } from "@/i18n/enabled";
 import { resolveLocale } from "@/i18n/translator";
+import { pickLocalized } from "@/i18n/locales";
 import { listPublicPlans } from "@/modules/billing/plans";
 import { getPlatformSetting } from "@/modules/settings";
 
@@ -70,6 +71,13 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
   const money = (cents: number) =>
     new Intl.NumberFormat(locale, { style: "currency", currency: "EUR" }).format(cents / 100);
   const faq = t.raw("faq.items") as Faq[];
+  // « {plan:fonction} » dans la FAQ : nom du premier pack qui la comprend (suit la configuration).
+  const planWith = (feature: string) =>
+    pickLocalized(data.plans.find((plan) => plan.features[feature])?.name ?? data.plans.at(-1)!.name, locale);
+  const answer = (text: string) =>
+    text
+      .replace("{commission}", t("faq.commission", { percent }))
+      .replace(/\{plan:(\w+)\}/g, (_, feature: string) => planWith(feature));
   const contact = config.SUPPORT_EMAIL ?? `support@${config.MAIN_DOMAIN}`;
   const steps = [
     { key: "create", Icon: BrowserIcon, accent: false },
@@ -255,9 +263,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                       <PlusIcon className="size-4" />
                     </span>
                   </summary>
-                  <p className="px-6 pb-[1.4rem]">
-                    {item.a.replace("{commission}", t("faq.commission", { percent }))}
-                  </p>
+                  <p className="px-6 pb-[1.4rem]">{answer(item.a)}</p>
                 </details>
               ))}
             </div>

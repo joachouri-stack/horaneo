@@ -59,6 +59,7 @@ export async function AtelierFooter({ site }: { site: Site }) {
   const tFooter = await getTranslations("site.footer");
   const tSite = await getTranslations("site");
   const tGift = await getTranslations("site.giftCard");
+  const tAccount = await getTranslations("site.account");
   const cta = siteCta(site);
   const { tenant } = site;
   const sections = visibleSections(site);
@@ -220,6 +221,13 @@ export async function AtelierFooter({ site }: { site: Site }) {
                 {tFooter("cancellation")}
               </Link>
             </li>
+            {site.features.customerSpace && (
+              <li>
+                <Link href={SITE_PATHS.account} className="inline-block py-2 underline underline-offset-4">
+                  {tAccount("navLink")}
+                </Link>
+              </li>
+            )}
           </ul>
         </div>
         {credit && <p className="pb-4 text-right text-sm opacity-75">{credit}</p>}

@@ -159,6 +159,8 @@ export async function saveService(
       .from(services)
       .where(and(eq(services.id, serviceId), eq(services.tenantId, tenantId)));
     if (!existing) throw new AppError("not_found");
+    // Seules les prestations actives comptent dans le pack : une réactivation est contrôlée.
+    if (!existing.isActive && input.isActive) await assertQuota(tx, tenantId, "services");
     const [updated] = await tx
       .update(services)
       .set({
@@ -170,7 +172,7 @@ export async function saveService(
       .returning();
     return updated;
   }
-  await assertQuota(tx, tenantId, "services");
+  if (input.isActive) await assertQuota(tx, tenantId, "services");
   const [{ value: position }] = await tx
     .select({ value: count() })
     .from(services)

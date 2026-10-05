@@ -5,6 +5,7 @@ import { ui } from "@/components/ui/styles";
 import { Link } from "@/i18n/navigation";
 import { centsToInput } from "@/lib/format";
 import { managerPage } from "@/lib/manager/page";
+import { firstPlanWith } from "@/modules/billing/plans";
 import { getBookingSettings } from "@/modules/booking/settings";
 import { listGiftCards, type GiftCardState } from "@/modules/giftcards/giftcards";
 import { redeemGiftCardAction, saveGiftCardSettingsAction } from "../../actions";
@@ -21,18 +22,22 @@ export default async function GiftCardsPage({
   const [t, tCommon] = await Promise.all([getTranslations("manager.giftCards"), getTranslations("common")]);
   const available = Boolean(page.tenant.features.giftCards);
   const filter = FILTERS.find((item) => item === query.filtre) ?? "all";
-  const data = available
-    ? await page.db(async (tx) => ({
-        cards: await listGiftCards(tx, page.tenantId),
-        settings: await getBookingSettings(tx, page.tenantId),
-      }))
-    : null;
+  // Cartes déjà vendues : toujours visibles et encaissables, même si le pack
+  // ne permet plus d'en vendre (seuls la vente et les réglages disparaissent).
+  const data = await page.db(async (tx) => ({
+    cards: await listGiftCards(tx, page.tenantId),
+    settings: await getBookingSettings(tx, page.tenantId),
+  }));
 
-  if (!data) {
+  if (!available && data.cards.length === 0) {
     return (
       <div className="space-y-6">
         <h1 className="text-2xl font-extrabold">{t("title")}</h1>
-        <p className={ui.card}>{t("unavailable")}</p>
+        <p className={ui.card}>
+          {t("unavailable", {
+            plan: (await page.db((tx) => firstPlanWith(tx, "giftCards", page.locale))) ?? "none",
+          })}
+        </p>
       </div>
     );
   }
@@ -43,7 +48,8 @@ export default async function GiftCardsPage({
     <div className="space-y-6">
       <h1 className="text-2xl font-extrabold">{t("title")}</h1>
       <p className="text-ink/80">{t("intro")}</p>
-      {!page.business.stripeChargesEnabled && (
+      {!available && <p className={ui.card}>{t("soldBefore")}</p>}
+      {available && !page.business.stripeChargesEnabled && (
         <p className={ui.card}>
           {t("needsStripe")}{" "}
           <Link href={`${page.base}/plus/paiements`} className="font-semibold underline">
@@ -56,6 +62,7 @@ export default async function GiftCardsPage({
         <ActionForm
           action={redeemGiftCardAction}
           submitLabel={t("redeem")}
+          confirm={t("redeemConfirm")}
           resetOnSuccess
           className="space-y-4"
         >
@@ -73,7 +80,7 @@ export default async function GiftCardsPage({
               key={item}
               href={`${page.base}/plus/cartes-cadeaux${item === "all" ? "" : `?filtre=${item}`}`}
               aria-current={filter === item ? "page" : undefined}
-              className="rounded-full border border-navy/20 px-4 py-2 text-sm font-semibold text-navy aria-[current=page]:bg-navy aria-[current=page]:text-white"
+              className="rounded-full border border-navy/20 px-4 py-2 text-sm font-semibold text-night aria-[current=page]:bg-navy aria-[current=page]:text-white"
             >
               {t(`filter.${item}`)}
             </Link>
@@ -108,43 +115,45 @@ export default async function GiftCardsPage({
         )}
       </Section>
 
-      <Section title={t("settingsTitle")}>
-        <ActionForm action={saveGiftCardSettingsAction} submitLabel={tCommon("save")} className="space-y-4">
-          <Hidden values={{ tenantId: page.tenantId }} />
-          <CheckboxField name="enabled" label={t("enabled")} defaultChecked={settings.giftCardsEnabled} />
-          <TextField
-            name="validityMonths"
-            type="number"
-            inputMode="numeric"
-            label={t("validityMonths")}
-            defaultValue={settings.giftCardValidityMonths}
-            required
-          />
-          <TextField
-            name="amounts"
-            label={t("amounts")}
-            defaultValue={settings.giftCardAmounts.map(centsToInput).join(", ")}
-            required
-          />
-          <div className="grid grid-cols-2 gap-3">
+      {available && (
+        <Section title={t("settingsTitle")}>
+          <ActionForm action={saveGiftCardSettingsAction} submitLabel={tCommon("save")} className="space-y-4">
+            <Hidden values={{ tenantId: page.tenantId }} />
+            <CheckboxField name="enabled" label={t("enabled")} defaultChecked={settings.giftCardsEnabled} />
             <TextField
-              name="min"
-              inputMode="decimal"
-              label={t("min")}
-              defaultValue={centsToInput(settings.giftCardMinCents)}
+              name="validityMonths"
+              type="number"
+              inputMode="numeric"
+              label={t("validityMonths")}
+              defaultValue={settings.giftCardValidityMonths}
               required
             />
             <TextField
-              name="max"
-              inputMode="decimal"
-              label={t("max")}
-              defaultValue={centsToInput(settings.giftCardMaxCents)}
+              name="amounts"
+              label={t("amounts")}
+              defaultValue={settings.giftCardAmounts.map(centsToInput).join(", ")}
               required
             />
-          </div>
-          <p className="text-sm text-ink/70">{t("rules")}</p>
-        </ActionForm>
-      </Section>
+            <div className="grid grid-cols-2 gap-3">
+              <TextField
+                name="min"
+                inputMode="decimal"
+                label={t("min")}
+                defaultValue={centsToInput(settings.giftCardMinCents)}
+                required
+              />
+              <TextField
+                name="max"
+                inputMode="decimal"
+                label={t("max")}
+                defaultValue={centsToInput(settings.giftCardMaxCents)}
+                required
+              />
+            </div>
+            <p className="text-sm text-ink/70">{t("rules")}</p>
+          </ActionForm>
+        </Section>
+      )}
     </div>
   );
 }

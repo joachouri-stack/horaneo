@@ -68,7 +68,7 @@ export function LoginForm({ providers, callbackPath, errorPath }: Props) {
         <button
           type="button"
           onClick={() => setState({ step: "form" })}
-          className="mt-6 font-semibold text-navy underline"
+          className="mt-6 font-semibold text-night underline"
         >
           {t("useAnotherEmail")}
         </button>

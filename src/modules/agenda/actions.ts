@@ -7,6 +7,7 @@ import { computeTotals } from "@/modules/booking/pricing";
 import { addMinutes } from "@/modules/booking/time";
 import { creditBackForAppointment } from "@/modules/giftcards/giftcards";
 import { AppError } from "@/modules/errors";
+import { trackAttendance } from "@/modules/loyalty/loyalty";
 import { queueBookingConfirmed, queueMessage } from "@/modules/messages/queue";
 import type { PaymentGateway } from "@/modules/payments/gateway";
 import { refundDeposit } from "@/modules/payments/refunds";
@@ -18,11 +19,12 @@ import { normalizePhone } from "@/modules/phone";
  * règle « pas deux rendez-vous en même temps pour un membre » est imposée (par la base).
  */
 
-async function loadAppointment(tx: Transaction, tenantId: string, appointmentId: string) {
-  const [row] = await tx
+async function loadAppointment(tx: Transaction, tenantId: string, appointmentId: string, lock = false) {
+  const query = tx
     .select()
     .from(appointments)
     .where(and(eq(appointments.id, appointmentId), eq(appointments.tenantId, tenantId)));
+  const [row] = lock ? await query.for("update") : await query;
   if (!row) throw new AppError("not_found");
   return row;
 }
@@ -40,10 +42,13 @@ export async function setAttendance(
   appointmentId: string,
   status: "attended" | "no_show" | "confirmed",
 ) {
-  const appointment = await loadAppointment(tx, tenantId, appointmentId);
+  // Verrouillé : deux changements de statut simultanés ne comptent pas deux fois le point.
+  const appointment = await loadAppointment(tx, tenantId, appointmentId, true);
   if (!["confirmed", "attended", "no_show"].includes(appointment.status))
     throw new AppError("booking_not_modifiable");
   await tx.update(appointments).set({ status }).where(eq(appointments.id, appointment.id));
+  // Fidélité : un point par rendez-vous honoré (retiré si la gérante corrige).
+  await trackAttendance(tx, tenantId, appointment, appointment.status, status);
   return { before: appointment.status, after: status };
 }
 
@@ -77,7 +82,12 @@ export async function cancelByManager(
     template: "customer.cancelled",
     appointmentId: appointment.id,
     locale: appointment.locale,
-    data: { by: "establishment", refundedCents: refund?.amountCents ?? 0 },
+    data: {
+      by: "establishment",
+      refundedCents: refund?.amountCents ?? 0,
+      // Acompte payé et non remboursé ici : la cliente est invitée à voir avec l'établissement.
+      depositKept: !payment.refund && appointment.status === "confirmed" && appointment.depositCents > 0,
+    },
   });
   return { depositCents: appointment.depositCents, refundedCents: refund?.amountCents ?? 0 };
 }

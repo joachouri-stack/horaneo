@@ -211,6 +211,41 @@ export async function createTenantWithData(db: TestDb, label: string) {
     .insert(s.updateRequests)
     .values({ tenantId, createdByUserId: user.id, subject: "Logo", message: "Nouveau logo" });
   await db.insert(s.auditLog).values({ action: "tenant.created", tenantId, actorUserId: user.id });
+  // Espace des clientes et fidélité.
+  const soon = new Date("2030-01-01T00:00:00Z");
+  const identifier = `client-${tag}@example.com`;
+  await db.insert(s.customerLoginCodes).values({
+    tenantId,
+    channel: "email",
+    identifier,
+    secretHash: tag.padEnd(64, "a"),
+    expiresAt: soon,
+  });
+  await db.insert(s.customerSessions).values({
+    tenantId,
+    channel: "email",
+    identifier,
+    tokenHash: tag.padEnd(64, "b"),
+    expiresAt: soon,
+  });
+  await db.insert(s.loyaltyEvents).values({
+    businessId,
+    tenantId,
+    customerId: customer.id,
+    kind: "manual_adjustment",
+    points: 1,
+  });
+  await db.insert(s.loyaltyRewards).values({
+    businessId,
+    tenantId,
+    customerId: customer.id,
+    label: "Soin offert",
+    visitsRequired: 10,
+    expiresAt: soon,
+  });
+  await db
+    .insert(s.customerDataRequests)
+    .values({ businessId, tenantId, customerId: customer.id, kind: "export" });
 
   return { tenant, business, user, domain, service, staff, customer, appointment };
 }

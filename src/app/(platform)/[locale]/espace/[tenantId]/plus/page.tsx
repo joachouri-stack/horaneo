@@ -15,6 +15,8 @@ export default async function MorePage({ params }: PageProps<"/[locale]/espace/[
     { href: "/plus/codes-promo", label: t("promo") },
     { href: "/plus/promotions", label: t("promotions") },
     { href: "/plus/cartes-cadeaux", label: t("giftCards") },
+    { href: "/plus/fidelite", label: t("loyalty") },
+    { href: "/plus/donnees-clientes", label: t("customerData") },
     { href: "/plus/abonnement", label: t("subscription") },
     { href: "/plus/reglages", label: t("settings") },
     { href: "/plus/demandes", label: t("requests") },

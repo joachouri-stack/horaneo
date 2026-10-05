@@ -14,7 +14,7 @@ import { getPlatformSetting } from "@/modules/settings";
 import { currentPeriod } from "@/modules/tenants/queries";
 import { changeSubscriptionAction, openBillingPortalAction } from "../../actions";
 
-const RESULTS = ["upgraded", "downgrade_scheduled", "cancel_scheduled", "kept"] as const;
+const RESULTS = ["upgraded", "downgraded", "downgrade_scheduled", "cancel_scheduled", "kept"] as const;
 
 /** Pack, échéances, utilisation du mois, changement de pack et carte bancaire. */
 export default async function SubscriptionPage({
@@ -123,11 +123,12 @@ export default async function SubscriptionPage({
       )}
 
       <section className={ui.card}>
-        <p className="text-xl font-bold text-navy">
+        <p className="text-xl font-bold text-night">
           {t("plan", { name: pickLocalized(page.tenant.planName, page.locale) })}
         </p>
         <div className="mt-2 space-y-1 text-ink/80">
-          {!live && <p>{t("status.free")}</p>}
+          {/* Sans abonnement : pack gratuit, ou pack payant attribué par notre équipe (pas de prélèvement). */}
+          {!live && <p>{currentPrice > 0 ? t("status.assigned") : t("status.free")}</p>}
           {live && periodEnd && !live.cancelAt && (
             <p>
               {t("status.nextPayment", {
@@ -203,7 +204,8 @@ export default async function SubscriptionPage({
                 : upgrade
                   ? t("upgradeHint")
                   : t("downgradeHint", { date: periodEnd ? page.fmt.short(periodEnd) : "" });
-          const canChoose = configured && !isCurrent && (live || plan.priceCents > 0);
+          // Pack gratuit : choisi directement quand le pack actuel est payant (abonnement ou attribué).
+          const canChoose = configured && !isCurrent && (live || plan.priceCents > 0 || currentPrice > 0);
           return (
             <article
               key={plan.id}
@@ -211,7 +213,7 @@ export default async function SubscriptionPage({
               aria-current={isCurrent ? "true" : undefined}
             >
               <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h3 className="text-lg font-bold text-navy">{pickLocalized(plan.name, page.locale)}</h3>
+                <h3 className="text-lg font-bold text-night">{pickLocalized(plan.name, page.locale)}</h3>
                 <p className="font-semibold">{priceLabel(plan.priceCents)}</p>
               </div>
               {isCurrent && <p className="text-sm font-semibold text-success">{t("current")}</p>}
