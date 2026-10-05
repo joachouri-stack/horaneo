@@ -113,6 +113,13 @@
       "when": 1791189034179,
       "tag": "0015_online_booking_toggle",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1791205898115,
+      "tag": "0016_category_in_menu",
+      "breakpoints": true
     }
   ]
 }

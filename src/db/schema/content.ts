@@ -109,6 +109,8 @@ export const serviceCategories = pgTable(
     icon: text(),
     /** Catégorie mise en avant (« Spécialité ») : grande carte sur l'accueil. */
     isFeatured: boolean().notNull().default(false),
+    /** Lien direct dans le menu du site (ex. « Formations »). */
+    inMenu: boolean().notNull().default(false),
     sortOrder: integer().notNull().default(0),
     ...timestamps(),
   },

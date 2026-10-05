@@ -11,14 +11,27 @@ import { PillLink } from "./ui";
 
 type Site = NonNullable<SiteData>;
 
-/** Liens du menu : la page de chaque professionnelle, puis l'institut, les avis, les infos pratiques. */
+/**
+ * Liens du menu : la page de chaque professionnelle, les catégories choisies
+ * pour le menu (ex. « Formations »), puis l'institut, les avis, les infos pratiques.
+ */
 export async function atelierLinks(site: Site) {
   const t = await getTranslations("site.atelier.nav");
   const sections = visibleSections(site);
+  const slugOf = (businessId: string) => site.businesses.find((business) => business.id === businessId)?.slug;
   return [
     ...site.businesses
       .filter((business) => business.slug && business.title)
       .map((business) => ({ href: businessPath(business.slug!), label: business.title })),
+    ...site.categories
+      .filter((category) => category.inMenu)
+      .map((category) => {
+        const slug = slugOf(category.businessId);
+        return {
+          href: slug ? `${businessPath(slug)}#${category.slug}` : SITE_PATHS.services,
+          label: category.name,
+        };
+      }),
     ...(sections.about ? [{ href: SITE_PATHS.about, label: t("about") }] : []),
     ...(sections.testimonials ? [{ href: SITE_PATHS.testimonials, label: t("testimonials") }] : []),
     { href: SITE_PATHS.practical, label: t("practical") },

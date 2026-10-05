@@ -319,8 +319,6 @@
       },
       "bookMoment": "Réserver un moment",
       "seeAllServices": "Voir tous les soins",
-      "onlineBooking": "24 h/24",
-      "onlineBookingLabel": "réservation en ligne",
       "byAppointment": "Sur rendez-vous",
       "daysSpan": "Du {from} au {to}",
       "servicesTitle": "Que souhaitez-vous",
@@ -694,6 +692,7 @@
         "icon": "Pictogramme (modèle Atelier)",
         "noIcon": "Aucun",
         "featured": "Mettre en avant (« Spécialité »)",
+        "inMenu": "Afficher dans le menu du site",
         "categoryDescription": "Courte description de la catégorie",
         "icons": {
           "eye": "Regard",
@@ -759,12 +758,6 @@
           "extra": "Informations complémentaires",
           "taglineAccent": "Fin du titre, en italique (modèle Atelier)",
           "badge": "Petite étiquette au-dessus du titre (ex. « Institut de beauté à Avignon »)",
-          "highlight1Value": "Chiffre clé 1 (ex. « + 3 ans »)",
-          "highlight1Label": "Légende du chiffre clé 1 (ex. « à votre service »)",
-          "highlight2Value": "Chiffre clé 2",
-          "highlight2Label": "Légende du chiffre clé 2",
-          "highlight3Value": "Chiffre clé 3",
-          "highlight3Label": "Légende du chiffre clé 3",
           "credit": "Crédit en bas du site (ex. « Design by … »)"
         }
       },

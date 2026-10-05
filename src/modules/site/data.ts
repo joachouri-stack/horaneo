@@ -55,6 +55,8 @@ export type SiteCategory = {
   description: string;
   icon: string | null;
   isFeatured: boolean;
+  /** Lien direct dans le menu du site. */
+  inMenu: boolean;
   /** Prix le plus bas de la catégorie (« dès 45 € »). */
   minPriceCents: number;
   services: SiteService[];
@@ -218,6 +220,7 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
       description: text(category.description),
       icon: category.icon,
       isFeatured: category.isFeatured,
+      inMenu: category.inMenu,
       minPriceCents: Math.min(
         ...siteServices
           .filter((service) => service.categoryId === category.id)
