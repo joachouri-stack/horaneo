@@ -7,7 +7,7 @@ import type { SiteData } from "@/modules/site/data";
 import { siteReviews, visibleSections } from "@/modules/site/data";
 import { openDaysSpan } from "@/modules/site/format";
 import { businessPath, SITE_PATHS } from "@/modules/site/paths";
-import { GoogleReviewCards, ReviewsSummary } from "../GoogleReviews";
+import { GoogleReviewCards, ReviewsSummary, Stars } from "../GoogleReviews";
 import { SiteImage } from "../SiteImage";
 import { CategoryGrid } from "./CategoryGrid";
 import { presentedBusinesses, ProfessionalCards } from "./ProfessionalCards";
@@ -38,6 +38,7 @@ export async function AtelierHome({ site }: { site: Site }) {
   const ctaLabel = (bookLabel: string) =>
     cta?.kind === "book" ? bookLabel : cta ? tSite(ctaLabelKey(cta)) : "";
   const reviews = siteReviews(site);
+  const tReviews = await getTranslations("site.reviews");
   const giftCards = site.giftCardBusinessIds.length > 0;
   const tGift = await getTranslations("site.giftCard");
   const giftAmounts = [3000, 5000, 10000];
@@ -80,6 +81,24 @@ export async function AtelierHome({ site }: { site: Site }) {
               {t("seeAllServices")}
             </PillLink>
           </div>
+          {/* Note Google : une seule ligne discrète sous les boutons. */}
+          {reviews?.rating != null && (
+            <a
+              href={reviews.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-6 inline-flex items-center gap-2 text-sm text-site-muted hover:text-site-text"
+            >
+              <Stars rating={reviews.rating} />
+              <strong className="text-site-text">
+                {new Intl.NumberFormat(site.locale, {
+                  minimumFractionDigits: 1,
+                  maximumFractionDigits: 1,
+                }).format(reviews.rating)}
+              </strong>
+              <span>· {tReviews("short", { count: reviews.total })}</span>
+            </a>
+          )}
         </div>
 
         {home?.photo && (
@@ -154,33 +173,28 @@ export async function AtelierHome({ site }: { site: Site }) {
             </div>
           </div>
           <CategoryGrid
+            allCount={serviceCount(() => true)}
             labels={{
               all: t("filterAll"),
-              allDetail: t("filterServices", { count: serviceCount(() => true) }),
               filter: t("filterQuestion"),
-              see: "",
+              see: t("seeServices"),
+              speciality: t("speciality"),
             }}
             filters={site.businesses
               .filter((business) => site.categories.some((category) => category.businessId === business.id))
-              .map((business) => {
-                const count = t("filterServices", {
-                  count: serviceCount((category) => category.businessId === business.id),
-                });
-                return {
-                  id: business.id,
-                  label: business.name,
-                  detail: business.title || count,
-                  count: business.title ? count : undefined,
-                  avatar: business.photo ? (
-                    <SiteImage
-                      image={business.photo}
-                      alt=""
-                      sizes="48px"
-                      className="h-full w-full object-cover"
-                    />
-                  ) : null,
-                };
-              })}
+              .map((business) => ({
+                id: business.id,
+                label: business.name,
+                count: serviceCount((category) => category.businessId === business.id),
+                avatar: business.photo ? (
+                  <SiteImage
+                    image={business.photo}
+                    alt=""
+                    sizes="32px"
+                    className="h-full w-full object-cover"
+                  />
+                ) : null,
+              }))}
             cards={site.categories.map((category) => {
               const slug = pageOf(category.businessId);
               const bookable = category.services.some((service) => service.isOnlineBookable);
@@ -191,7 +205,9 @@ export async function AtelierHome({ site }: { site: Site }) {
                 icon: category.icon,
                 featured: category.isFeatured,
                 businessId: category.businessId,
-                businessName: businessName(category.businessId),
+                withLabel:
+                  site.businesses.length > 1 ? t("withPro", { name: businessName(category.businessId) }) : "",
+                ariaLabel: t("seeCategory", { category: category.name }),
                 priceLabel: bookable ? t("from", { price: money(category.minPriceCents) }) : t("onRequest"),
                 href: slug ? `${businessPath(slug)}#${category.slug}` : `${SITE_PATHS.services}`,
               };
