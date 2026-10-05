@@ -366,7 +366,7 @@ async function renderCustomer(
       subject = t("notifications.customer.confirmation.subject", { date: fmt.date(a.startsAt) });
       title = t("notifications.customer.confirmation.title");
       paragraphs = [greeting, t("notifications.customer.confirmation.intro", { business })];
-      after = [await manageHint(tx, t, fmt, info, tenant)];
+      after = [await manageHint(tx, t, fmt, info, tenant, options.now)];
       break;
     case "customer.reminder_email":
       subject = t("notifications.customer.reminder_email.subject", {
@@ -375,7 +375,7 @@ async function renderCustomer(
       });
       title = t("notifications.customer.reminder_email.title");
       paragraphs = [greeting, t("notifications.customer.reminder_email.intro", { business })];
-      after = [await manageHint(tx, t, fmt, info, tenant)];
+      after = [await manageHint(tx, t, fmt, info, tenant, options.now)];
       break;
     case "customer.cancelled":
       subject = t("notifications.customer.cancelled.subject", { date: fmt.date(a.startsAt) });
@@ -400,7 +400,7 @@ async function renderCustomer(
       subject = t(`notifications.customer.${key}.subject`, { date: fmt.date(a.startsAt) });
       title = t(`notifications.customer.${key}.title`);
       paragraphs = [greeting, t(`notifications.customer.${key}.intro`, { business, previous })];
-      after = [await manageHint(tx, t, fmt, info, tenant)];
+      after = [await manageHint(tx, t, fmt, info, tenant, options.now)];
       break;
     }
     case "customer.payment_refunded":
@@ -447,13 +447,14 @@ async function manageHint(
   fmt: ReturnType<typeof formatters>,
   info: AppointmentInfo,
   tenant: TenantInfo,
+  now: Date,
 ) {
   const [settings] = await tx
     .select({ hours: businessSettings.cancellationDeadlineHours })
     .from(businessSettings)
     .where(eq(businessSettings.tenantId, tenant.id));
   const deadline = addMinutes(info.appointment.startsAt, -(settings?.hours ?? 24) * 60);
-  return deadline > new Date()
+  return deadline > now
     ? t("notifications.common.manageHint", { deadline: fmt.when(t, deadline) })
     : t("notifications.common.tooLateHint");
 }
