@@ -12,3 +12,4 @@
 - Toute action de l'espace admin passe par `adminMutation` (droits revérifiés, transaction, journal).
 - Paiements : jamais d'appel direct à Stripe dans les modules. Ils reçoivent un `PaymentGateway` (`src/modules/payments/gateway.ts`) ; l'implémentation réelle est `paymentGateway()` (`src/lib/payments/stripe.ts`), les tests utilisent `tests/setup/fake-gateway.ts`.
 - Messages : jamais d'envoi direct depuis une action. Ajouter le message à la file avec `queueMessage` (`src/modules/messages/queue.ts`) dans la même transaction ; son contenu est préparé dans `render.ts` au moment de l'envoi.
+- Apparence du SaaS (site commercial, espaces gérante et admin) : suivre `docs/design-horaneo.md` et la maquette `docs/maquette-accueil-horaneo.html`. Toute amélioration visuelle est proposée avant d'être appliquée.

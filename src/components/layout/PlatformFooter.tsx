@@ -13,7 +13,7 @@ export async function PlatformFooter() {
     { href: "/conditions", label: t("terms") },
   ] as const;
   return (
-    <footer className="mx-auto max-w-6xl px-4 pb-10 pt-8 sm:px-6">
+    <footer className="mx-auto max-w-[75rem] px-4 pb-10 pt-8 sm:px-6">
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-6">
         <Link href="/" aria-label={tCommon("homeLink", { product })}>
           <Logo productName={product} className="text-[1.8rem]" />
