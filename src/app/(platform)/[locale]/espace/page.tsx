@@ -18,6 +18,7 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/espace">
 /**
  * Entrée de l'espace : ouvre l'établissement géré, propose le choix s'il y en a
  * plusieurs, ou montre où en est la commande tant que le site n'existe pas.
+ * Une administratrice sans établissement arrive directement dans l'admin.
  */
 export default async function AccountPage({ params }: PageProps<"/[locale]/espace">) {
   const locale = resolveLocale((await params).locale);
@@ -27,6 +28,8 @@ export default async function AccountPage({ params }: PageProps<"/[locale]/espac
   const { user } = session;
   // Un seul établissement : on l'ouvre directement.
   if (managed.length === 1) redirect({ href: `/espace/${managed[0].id}`, locale });
+  // Administratrice sans établissement à gérer : directement l'espace admin.
+  if (managed.length === 0 && user.isPlatformAdmin) redirect({ href: "/admin", locale });
   const [tOrder, { orders, days }] = await Promise.all([
     getTranslations("order.status"),
     withPlatform(async (tx) => ({
@@ -70,7 +73,7 @@ export default async function AccountPage({ params }: PageProps<"/[locale]/espac
           <section className={ui.card}>
             <h2 className="text-xl font-bold">{t("noTenantTitle")}</h2>
             <p className="mt-2">{t("noTenantBody")}</p>
-            <Link href="/#packs" className={`mt-6 ${ui.primaryButton} sm:w-auto`}>
+            <Link href={{ pathname: "/", hash: "tarifs" }} className={`mt-6 ${ui.primaryButton} sm:w-auto`}>
               {t("noTenantCta")}
             </Link>
           </section>
