@@ -34,6 +34,7 @@ type Category = {
   name: string;
   icon: CategoryIcon;
   description?: string;
+  details?: string;
   featured?: boolean;
   inMenu?: boolean;
   items: Item[];
@@ -69,6 +70,14 @@ const LAILA_CATALOG: Category[] = [
     icon: "graduation",
     inMenu: true,
     description: "Formations professionnelles certifiées Qualiopi.",
+    details: [
+      "Formations professionnelles assurées par Laïla, au sein de l'institut.",
+      "- Organisme de formation certifié Qualiopi",
+      "- Réhaussement de cils et browlift",
+      "- 1 journée (7 h)",
+      "- Formatrice : Laïla, spécialiste de la beauté du regard",
+      "Contactez-nous pour connaître les prochaines dates et les modalités.",
+    ].join("\n"),
     items: [["Réhaussement de cils et browlift (formation, 1 journée)", 420, "900", false]],
   },
 ];
@@ -187,6 +196,7 @@ export async function fillMaBeaute(tx: Transaction, tenantId: string, options: M
       const saved = await saveCategory(tx, id, {
         name: category.name,
         description: category.description,
+        details: category.details,
         icon: category.icon,
         isFeatured: category.featured ?? false,
         inMenu: category.inMenu ?? false,

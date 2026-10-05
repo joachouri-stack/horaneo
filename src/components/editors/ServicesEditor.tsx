@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
-import { CheckboxField, Hidden, Section, SelectField, TextField } from "@/components/admin/fields";
+import { CheckboxField, Hidden, Section, SelectField, TextArea, TextField } from "@/components/admin/fields";
 import { ServiceFields } from "@/components/admin/ServiceFields";
 import { pickLocalized, type LocalizedText } from "@/i18n/locales";
 import type { ActionResult } from "@/lib/actions/result";
@@ -78,6 +78,16 @@ export async function ServicesEditor({
                 />
                 <CheckboxField name="isFeatured" label={t("featured")} defaultChecked={category.isFeatured} />
                 <CheckboxField name="inMenu" label={t("inMenu")} defaultChecked={category.inMenu} />
+                <div className="sm:col-span-2">
+                  <TextArea
+                    id={`cat-details-${category.id}`}
+                    name="details"
+                    label={t("categoryDetails")}
+                    hint={t("categoryDetailsHint")}
+                    rows={5}
+                    defaultValue={text(category.details)}
+                  />
+                </div>
               </ActionForm>
               <ActionForm
                 action={actions.deleteCategory}

@@ -105,6 +105,11 @@ export const serviceCategories = pgTable(
     /** Adresse de la page de la catégorie, par langue : { "fr": "soins-visage" }. */
     slug: localized().notNull(),
     description: localized(),
+    /**
+     * Présentation détaillée, affichée quand on ouvre la catégorie (ex. une
+     * formation : certification, programme…). Les lignes « - … » forment une liste.
+     */
+    details: localized(),
     /** Pictogramme affiché sur sa carte (clé d'une liste fixe, voir src/modules/catalog/icons.ts). */
     icon: text(),
     /** Catégorie mise en avant (« Spécialité ») : grande carte sur l'accueil. */

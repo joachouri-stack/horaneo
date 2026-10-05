@@ -53,6 +53,8 @@ export type SiteCategory = {
   name: string;
   slug: string;
   description: string;
+  /** Présentation détaillée (ouverture de la catégorie). */
+  details: string;
   icon: string | null;
   isFeatured: boolean;
   /** Lien direct dans le menu du site. */
@@ -218,6 +220,7 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
       name: text(category.name),
       slug: text(category.slug),
       description: text(category.description),
+      details: text(category.details),
       icon: category.icon,
       isFeatured: category.isFeatured,
       inMenu: category.inMenu,

@@ -355,6 +355,7 @@
       "servicesCount": "{count, plural, one {# prestation} other {# prestations}}",
       "bookService": "Réserver : {service}",
       "onRequest": "Sur demande",
+      "askInfo": "Demander des informations",
       "instagram": "Instagram",
       "facebook": "Facebook",
       "otherPhotos": "Photo de l'institut",
@@ -693,6 +694,8 @@
         "noIcon": "Aucun",
         "featured": "Mettre en avant (« Spécialité »)",
         "inMenu": "Afficher dans le menu du site",
+        "categoryDetails": "Présentation détaillée (facultatif)",
+        "categoryDetailsHint": "Affichée quand on ouvre la catégorie sur le site. Une ligne qui commence par « - » devient un point de liste.",
         "categoryDescription": "Courte description de la catégorie",
         "icons": {
           "eye": "Regard",

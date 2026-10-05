@@ -36,5 +36,6 @@ export function categoryFields(data: FormData) {
     ...(data.has("icon") ? { icon: isCategoryIcon(icon) ? icon : null } : {}),
     ...(data.has("icon") ? { isFeatured: data.get("isFeatured") === "on" } : {}),
     ...(data.has("icon") ? { inMenu: data.get("inMenu") === "on" } : {}),
+    ...(data.has("details") ? { details: text("details") } : {}),
   };
 }

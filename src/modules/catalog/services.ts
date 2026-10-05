@@ -25,6 +25,8 @@ export const categoryInput = z.object({
   name: z.string().trim().min(1).max(80),
   description: z.string().trim().max(1000).optional(),
   /** Absent : inchangé. */
+  details: z.string().trim().max(3000).optional(),
+  /** Absent : inchangé. */
   icon: z.enum(CATEGORY_ICONS).nullable().optional(),
   isFeatured: z.boolean().optional(),
   inMenu: z.boolean().optional(),
@@ -58,6 +60,9 @@ export async function saveCategory(
         name: setLocalized(existing.name, locale, input.name),
         slug: setLocalized(existing.slug, locale, slugify(input.name)),
         description: setLocalized(existing.description, locale, input.description),
+        ...(input.details !== undefined
+          ? { details: setLocalized(existing.details, locale, input.details) }
+          : {}),
         ...(input.icon !== undefined ? { icon: input.icon } : {}),
         ...(input.isFeatured !== undefined ? { isFeatured: input.isFeatured } : {}),
         ...(input.inMenu !== undefined ? { inMenu: input.inMenu } : {}),
@@ -77,6 +82,7 @@ export async function saveCategory(
       name: setLocalized({}, locale, input.name),
       slug: setLocalized({}, locale, slugify(input.name)),
       description: setLocalized({}, locale, input.description),
+      details: setLocalized({}, locale, input.details),
       icon: input.icon ?? null,
       isFeatured: input.isFeatured ?? false,
       inMenu: input.inMenu ?? false,
