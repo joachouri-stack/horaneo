@@ -406,10 +406,15 @@ export async function saveStaffAction(_previous: Previous, data: FormData) {
 export async function deleteStaffAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   const id = idOf(data)!;
-  return adminMutation(
+  const result = await adminMutation(
     { action: "staff.deleted", tenantId, targetId: id, businessId: businessIdOf(data) },
     (tx) => deleteStaff(tx, tenantId, id),
   );
+  if (result.ok && result.data?.deleted === false) {
+    const t = await getTranslations("admin.tenant.team");
+    return { ...result, message: t("deactivatedInstead", { upcoming: result.data.upcoming }) };
+  }
+  return result;
 }
 
 // ─── Horaires ─────────────────────────────────────────────────────────────────

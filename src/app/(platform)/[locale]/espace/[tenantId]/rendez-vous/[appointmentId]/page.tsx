@@ -129,7 +129,8 @@ export default async function AppointmentPage({
         )}
       </section>
 
-      {item.status !== "cancelled" && item.status !== "expired" && (
+      {/* Venue / absente : seulement une fois le rendez-vous commencé (un point de fidélité en dépend). */}
+      {["confirmed", "attended", "no_show"].includes(item.status) && item.startsAt <= new Date() && (
         <div className="flex gap-3">
           {item.status !== "attended" && (
             <ActionForm
@@ -144,6 +145,7 @@ export default async function AppointmentPage({
             <ActionForm
               action={setAttendanceAction}
               submitLabel={t("appointment.noShow")}
+              confirm={t("appointment.noShowConfirm")}
               variant="secondary"
               className="flex-1 [&>button]:w-full"
             >

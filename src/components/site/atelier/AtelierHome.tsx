@@ -121,7 +121,7 @@ export async function AtelierHome({ site }: { site: Site }) {
                 <SiteImage
                   image={secondPhoto}
                   alt={secondPhoto.alt}
-                  sizes="20vw"
+                  sizes="(min-width: 640px) 220px, 40vw"
                   className="aspect-[4/5] w-full object-cover"
                 />
               </div>
@@ -240,7 +240,7 @@ export async function AtelierHome({ site }: { site: Site }) {
                 <SiteImage
                   image={site.pages.about.photo}
                   alt={site.pages.about.photo.alt}
-                  sizes="25vw"
+                  sizes="(min-width: 1024px) 25vw, 50vw"
                   className="aspect-[3/4] w-full rounded-[1.5rem] object-cover"
                 />
               )}
@@ -248,7 +248,7 @@ export async function AtelierHome({ site }: { site: Site }) {
                 <SiteImage
                   image={aboutExtra}
                   alt={aboutExtra.alt}
-                  sizes="25vw"
+                  sizes="(min-width: 1024px) 25vw, 50vw"
                   className="mt-10 aspect-[3/4] w-full rounded-[1.5rem] object-cover"
                 />
               )}
@@ -317,7 +317,7 @@ export async function AtelierHome({ site }: { site: Site }) {
             <div className="mt-10 space-y-8">
               {reviews && <GoogleReviewCards reviews={reviews} />}
               {site.testimonials.length > 0 && (
-                <ul className="flex snap-x gap-5 overflow-x-auto pb-4">
+                <ul className="relative flex snap-x gap-5 overflow-x-auto pb-4">
                   {site.testimonials.map((item) => (
                     <li key={item.id} className="w-[85%] shrink-0 snap-start sm:w-[23rem]">
                       <figure className="flex h-full flex-col rounded-[1.5rem] bg-site-card p-6">

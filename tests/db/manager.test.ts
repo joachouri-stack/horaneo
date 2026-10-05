@@ -28,7 +28,7 @@ import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
 import { createTimeOff } from "@/modules/schedule/time-off";
 import { monthStats } from "@/modules/stats/month";
 import { replaceStaffSchedules } from "@/modules/team/schedules";
-import { saveStaff } from "@/modules/team/staff";
+import { deleteStaff, saveStaff } from "@/modules/team/staff";
 import { createTenant } from "@/modules/tenants/create";
 import { changeStatus } from "@/modules/tenants/update";
 import { resolveManagerRole } from "@/lib/manager/role";
@@ -235,6 +235,27 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
           ),
         ),
       ).toBe("slot_unavailable");
+    });
+  });
+
+  describe("équipe", () => {
+    it("un membre sans rendez-vous est supprimé ; avec des rendez-vous, il est désactivé et on le dit", async () => {
+      const s = await setup();
+      expect(await asManager(s.id, (tx) => deleteStaff(tx, s.id, s.ines!.id, NOW))).toEqual({
+        deleted: true,
+        upcoming: 0,
+      });
+      await onlineBooking(s.id, s.massage.id, at("10:00"));
+      expect(await asManager(s.id, (tx) => deleteStaff(tx, s.id, s.lea.id, NOW))).toEqual({
+        deleted: false,
+        upcoming: 1,
+      });
+      // Ses rendez-vous restent visibles dans l'agenda (colonne « désactivée »).
+      const range = dayRange(DAY, TZ, 1);
+      const agenda = await asManager(s.id, (tx) =>
+        listAgenda(tx, s.id, { from: range.start, to: range.end, locale: "fr" }),
+      );
+      expect(agenda.map((item) => item.staffName)).toEqual(["Léa"]);
     });
   });
 

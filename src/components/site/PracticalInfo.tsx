@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { getTranslations } from "next-intl/server";
 import { formatPhone } from "@/modules/phone";
 import type { SiteData } from "@/modules/site/data";
@@ -27,12 +28,16 @@ export async function OpeningHoursTable({ site }: { site: NonNullable<SiteData> 
               <td className="py-2 text-right text-site-text">
                 {ranges.length === 0
                   ? t("closed")
-                  : ranges
-                      .map(
-                        (range) =>
-                          `${formatClock(range.opensAt, site.locale)} – ${formatClock(range.closesAt, site.locale)}`,
-                      )
-                      .join(", ")}
+                  : ranges.map((range, index) => (
+                      // Une plage par ligne si besoin, jamais coupée au milieu (« 14 » / « h – 19 h »).
+                      <Fragment key={index}>
+                        {index > 0 && " "}
+                        <span className="whitespace-nowrap">
+                          {`${formatClock(range.opensAt, site.locale)} – ${formatClock(range.closesAt, site.locale)}`}
+                          {index < ranges.length - 1 && ","}
+                        </span>
+                      </Fragment>
+                    ))}
               </td>
             </tr>
           );

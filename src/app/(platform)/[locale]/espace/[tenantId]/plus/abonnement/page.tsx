@@ -127,7 +127,8 @@ export default async function SubscriptionPage({
           {t("plan", { name: pickLocalized(page.tenant.planName, page.locale) })}
         </p>
         <div className="mt-2 space-y-1 text-ink/80">
-          {!live && <p>{t("status.free")}</p>}
+          {/* Sans abonnement : pack gratuit, ou pack payant attribué par notre équipe (pas de prélèvement). */}
+          {!live && <p>{currentPrice > 0 ? t("status.assigned") : t("status.free")}</p>}
           {live && periodEnd && !live.cancelAt && (
             <p>
               {t("status.nextPayment", {

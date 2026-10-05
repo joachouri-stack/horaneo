@@ -43,9 +43,12 @@ export default async function PaymentsPage({
       {returned && state !== "active" && <p className={ui.success}>{t("returned")}</p>}
 
       <section className={ui.card}>
-        <p className={`text-lg font-bold ${state === "active" ? "text-success" : "text-navy"}`}>
-          {t(`state.${state}`)}
-        </p>
+        {/* Paiement en ligne pas encore configuré sur la plateforme : un seul message, jamais « compte actif ». */}
+        {(configured || state === "unavailable") && (
+          <p className={`text-lg font-bold ${state === "active" ? "text-success" : "text-navy"}`}>
+            {t(`state.${state}`)}
+          </p>
+        )}
 
         {state === "unavailable" && (
           <p className="mt-3">
@@ -56,7 +59,9 @@ export default async function PaymentsPage({
           </p>
         )}
 
-        {state !== "unavailable" && !configured && <p className="mt-3 text-ink/70">{t("notConfigured")}</p>}
+        {state !== "unavailable" && !configured && (
+          <p className="text-lg font-bold text-navy">{t("notConfigured")}</p>
+        )}
 
         {(state === "not_started" || state === "incomplete") && configured && (
           <form action={startStripeOnboardingAction} className="mt-4 space-y-3">
@@ -68,7 +73,7 @@ export default async function PaymentsPage({
           </form>
         )}
 
-        {state === "active" && (
+        {state === "active" && configured && (
           <div className="mt-4 space-y-3">
             <p>{settings.depositEnabled ? t("depositOn", { value: depositValue }) : t("depositOff")}</p>
             <Link href={`${page.base}/plus/reglages`} className={`${ui.secondaryButton} w-full sm:w-auto`}>

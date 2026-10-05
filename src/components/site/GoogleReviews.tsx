@@ -66,7 +66,7 @@ export async function GoogleReviewCards({ reviews }: { reviews: Reviews }) {
   const t = await getTranslations("site.reviews");
   if (reviews.reviews.length === 0) return null;
   return (
-    <ul className="flex snap-x gap-5 overflow-x-auto pb-4">
+    <ul className="relative flex snap-x gap-5 overflow-x-auto pb-4">
       {reviews.reviews.map((review, index) => (
         <li key={`${review.author}-${index}`} className="w-[85%] shrink-0 snap-start sm:w-[23rem]">
           <figure className="flex h-full flex-col rounded-[1.5rem] bg-site-card p-6">

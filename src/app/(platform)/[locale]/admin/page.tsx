@@ -112,6 +112,7 @@ export default async function AdminHomePage({ params }: PageProps<"/[locale]/adm
               </li>
             ))}
             {revenue.pastDue === 0 &&
+              pendingOrders === 0 &&
               stats.drafts === 0 &&
               stats.openRequests === 0 &&
               stats.basicAtLimit.length === 0 && <li className="text-ink/70">{t("dashboard.noAlerts")}</li>}

@@ -299,16 +299,22 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
             };
           })
       : [],
-    /** Entreprises qui vendent des cartes cadeaux (compte Stripe actif). */
-    giftCardBusinessIds: features.giftCards
-      ? businessRows
-          .filter(
-            (business) =>
-              business.stripeChargesEnabled &&
-              settingsRows.find((item) => item.businessId === business.id)?.giftCardsEnabled,
-          )
-          .map((business) => business.id)
-      : [],
+    /**
+     * Entreprises qui vendent des cartes cadeaux en ligne (compte Stripe actif) : les
+     * mêmes conditions que la page d'achat, pour ne jamais mener à une impasse.
+     * Le site retire ensuite la liste si le paiement en ligne n'est pas configuré.
+     */
+    giftCardBusinessIds:
+      features.giftCards && features.onlinePayment
+        ? businessRows
+            .filter(
+              (business) =>
+                business.stripeAccountId &&
+                business.stripeChargesEnabled &&
+                settingsRows.find((item) => item.businessId === business.id)?.giftCardsEnabled,
+            )
+            .map((business) => business.id)
+        : [],
     /** Au moins une entreprise du site prend des rendez-vous en ligne. */
     bookingEnabled:
       businessRows.length === 0 ||

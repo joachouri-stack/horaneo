@@ -375,7 +375,14 @@ export async function saveStaffAction(_previous: Previous, data: FormData) {
 
 export async function deleteStaffAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "staff.deleted", (tx) => deleteStaff(tx, tenantId, idOf(data)!));
+  const result = await managerMutation(tenantId, "staff.deleted", (tx) =>
+    deleteStaff(tx, tenantId, idOf(data)!),
+  );
+  if (result.ok && result.data?.deleted === false) {
+    const t = await getTranslations("manager.team");
+    return { ...result, message: t("deactivatedInstead", { upcoming: result.data.upcoming }) };
+  }
+  return result;
 }
 
 export async function saveStaffScheduleAction(_previous: Previous, data: FormData) {

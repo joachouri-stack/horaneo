@@ -41,7 +41,20 @@ export default async function AgendaPage({
     staff: (await loadBookingContext(tx, page.tenantId)).staff,
     hours: await tx.select().from(openingHours).where(eq(openingHours.tenantId, page.tenantId)),
   }));
-  const columns = memberFilter ? staff.filter((member) => member.id === memberFilter) : staff;
+  // Membres désactivés qui ont encore des rendez-vous sur la période : une colonne
+  // pour eux aussi, sinon leurs rendez-vous disparaîtraient de la vue Jour.
+  const inactive = [
+    ...new Map(
+      appointments
+        .filter((item) => !staff.some((member) => member.id === item.staffId))
+        .map((item) => [item.staffId, { id: item.staffId, name: item.staffName, inactive: true }]),
+    ).values(),
+  ];
+  const allColumns = [
+    ...staff.map((member) => ({ id: member.id, name: member.name, inactive: false })),
+    ...inactive,
+  ];
+  const columns = memberFilter ? allColumns.filter((member) => member.id === memberFilter) : allColumns;
 
   const link = (changes: Record<string, string | null>) => {
     const next = { date, vue: view === "week" ? "semaine" : "jour", membre: memberFilter, ...changes };
@@ -217,12 +230,18 @@ export default async function AgendaPage({
           </div>
           {columns.map((member) => (
             <div key={member.id} className="w-44 shrink-0 border-l border-navy/10 sm:w-56">
-              <Link
-                href={`${page.base}/rendez-vous/nouveau?date=${date}&membre=${member.id}`}
-                className="flex h-10 items-center justify-center gap-1 truncate font-semibold text-navy"
-              >
-                {member.name} <span aria-hidden="true">+</span>
-              </Link>
+              {member.inactive ? (
+                <p className="flex h-10 items-center justify-center gap-1 truncate font-semibold text-ink/60">
+                  {member.name} <span className="text-xs font-normal">({t("inactiveStaff")})</span>
+                </p>
+              ) : (
+                <Link
+                  href={`${page.base}/rendez-vous/nouveau?date=${date}&membre=${member.id}`}
+                  className="flex h-10 items-center justify-center gap-1 truncate font-semibold text-navy"
+                >
+                  {member.name} <span aria-hidden="true">+</span>
+                </Link>
+              )}
               <div className="relative bg-white" style={{ height }}>
                 {Array.from({ length: lastHour - firstHour }, (_, index) => (
                   <div

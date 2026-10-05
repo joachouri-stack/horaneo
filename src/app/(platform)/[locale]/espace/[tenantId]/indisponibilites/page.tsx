@@ -57,6 +57,7 @@ export default async function UnavailabilityPage({
           kind={kind}
           staff={staff}
           today={utcToLocal(new Date(), page.tenant.timezone).date}
+          timeZone={page.tenant.timezone}
         />
       </section>
       <section aria-labelledby="a-venir" className="space-y-3">
@@ -84,6 +85,7 @@ export default async function UnavailabilityPage({
                 <ActionForm
                   action={deleteTimeOffAction}
                   submitLabel={t("remove")}
+                  confirm={t("removeConfirm")}
                   variant="danger"
                   className=""
                 >

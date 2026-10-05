@@ -56,6 +56,7 @@ export default async function GiftCardsPage({
         <ActionForm
           action={redeemGiftCardAction}
           submitLabel={t("redeem")}
+          confirm={t("redeemConfirm")}
           resetOnSuccess
           className="space-y-4"
         >

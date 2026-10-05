@@ -3,6 +3,14 @@
     "title": "{product} : votre site avec réservation en ligne",
     "description": "Un site web à votre image, avec prise de rendez-vous et acomptes en ligne, pour les professionnels qui travaillent sur rendez-vous."
   },
+  "platformErrors": {
+    "notFoundTitle": "Page introuvable",
+    "notFoundText": "Cette page n'existe pas ou n'est plus disponible. Vérifiez l'adresse, ou repartez de l'accueil.",
+    "errorTitle": "Un problème est survenu",
+    "errorText": "La page n'a pas pu s'afficher. Réessayez dans un instant ; si le problème continue, contactez-nous.",
+    "retry": "Réessayer",
+    "backHome": "Retour à l'accueil"
+  },
   "common": {
     "skipToContent": "Aller au contenu",
     "login": "Connexion",
@@ -662,6 +670,8 @@
         "plan": "Pack",
         "changePlan": "Changer de pack",
         "changePlanHint": "Le prélèvement sera ajusté automatiquement une fois les paiements branchés.",
+        "changePlanConfirm": "Changer le pack de {name} ? Ses limites et ses fonctions changent tout de suite ; sans domaine personnel inclus, son adresse principale redevient le sous-domaine.",
+        "suspendConfirm": "Suspendre {name} ? Son site sera hors ligne immédiatement.",
         "status": "Statut",
         "activate": "Mettre en ligne",
         "suspend": "Suspendre",
@@ -686,9 +696,11 @@
         "addDomain": "Ajouter un domaine propre",
         "domainPlaceholder": "www.institut-lea.fr",
         "markActive": "Marquer comme branché",
+        "markActiveConfirm": "Le domaine {host} pointe-t-il bien vers le serveur (DNS vérifié) ? S'il ne répond pas, le site sera inaccessible une fois ce domaine en adresse principale.",
         "markActiveHint": "Temporaire : la vérification automatique arrive avec Cloudflare.",
         "makePrimary": "Définir comme principale",
         "removeDomain": "Retirer",
+        "removeDomainConfirm": "Retirer le domaine {host} ?",
         "noCustomDomain": "Le pack de ce client n'inclut pas de domaine propre.",
         "created": "Client depuis le {date}",
         "countryTimezone": "{country} · {timezone} · {currency}",
@@ -798,6 +810,7 @@
         "services": "Prestations réalisées",
         "active": "Actif",
         "empty": "Aucun membre pour le moment.",
+        "deactivatedInstead": "Ce membre a déjà des rendez-vous : il a été désactivé au lieu d'être supprimé.{upcoming, plural, =0 {} one { # rendez-vous à venir lui reste attribué : pensez à le déplacer.} other { # rendez-vous à venir lui restent attribués : pensez à les déplacer.}}",
         "quota": "{used} membre(s) sur {limit}",
         "hoursHint": "Un nouveau membre travaille par défaut aux horaires d'ouverture."
       },
@@ -1324,6 +1337,7 @@
       "internalNote": "Note interne (invisible pour la cliente)",
       "attended": "Venue",
       "noShow": "Absente",
+      "noShowConfirm": "Marquer ce rendez-vous comme manqué (cliente absente) ?",
       "undo": "Remettre « confirmé »",
       "move": "Déplacer",
       "moveTitle": "Déplacer le rendez-vous",
@@ -1388,6 +1402,7 @@
       "previous": "Précédent",
       "next": "Suivant",
       "allStaff": "Toute l'équipe",
+      "inactiveStaff": "désactivée",
       "empty": "Aucun rendez-vous.",
       "closed": "Fermé",
       "timeOff": {
@@ -1414,7 +1429,8 @@
       "none": "Aucune indisponibilité prévue.",
       "everyone": "Tout l'établissement",
       "remove": "Supprimer",
-      "conflicts": "Attention : {count, plural, one {# rendez-vous est déjà pris} other {# rendez-vous sont déjà pris}} sur cette période. Pensez à prévenir ou déplacer."
+      "conflicts": "C'est enregistré, mais attention : {count, plural, one {# rendez-vous est déjà pris} other {# rendez-vous sont déjà pris}} sur cette période. Pensez à prévenir la cliente ou à déplacer le rendez-vous :",
+      "removeConfirm": "Supprimer cette indisponibilité ? Les créneaux seront de nouveau proposés en ligne."
     },
     "customers": {
       "title": "Clientes",
@@ -1489,6 +1505,7 @@
     },
     "team": {
       "title": "Équipe",
+      "deactivatedInstead": "Ce membre a déjà des rendez-vous : il a été désactivé au lieu d'être supprimé.{upcoming, plural, =0 {} one { # rendez-vous à venir lui reste attribué : pensez à le déplacer.} other { # rendez-vous à venir lui restent attribués : pensez à les déplacer.}}",
       "schedule": "Horaires de travail",
       "scheduleHint": "Les créneaux proposés en ligne tiennent compte de ces horaires et des horaires d'ouverture."
     },
@@ -1509,7 +1526,8 @@
         "scheduled": "Passage au pack {name} le {date}.",
         "cancelAt": "Votre pack payant se termine le {date}. Votre site passera ensuite au pack gratuit.",
         "keep": "Garder mon pack actuel",
-        "free": "Pack gratuit, sans prélèvement."
+        "free": "Pack gratuit, sans prélèvement.",
+        "assigned": "Pack mis en place par notre équipe : aucun prélèvement automatique pour le moment."
       },
       "pastDue": "Votre dernier prélèvement n'a pas abouti. Mettez à jour votre carte pour garder votre pack.",
       "pastDueBanner": "Prélèvement refusé : mettez à jour votre carte.",
@@ -1700,6 +1718,7 @@
       "amount": "Montant à déduire (€)",
       "note": "Note (facultatif, ex. soin réalisé)",
       "redeem": "Déduire",
+      "redeemConfirm": "Déduire ce montant de la carte ? Vérifiez le code et le montant : l'opération ne peut pas être annulée.",
       "redeemed": "Montant déduit de la carte •••• {last4}. Solde restant : {balance}.",
       "listTitle": "Cartes vendues",
       "empty": "Aucune carte vendue pour le moment.",
