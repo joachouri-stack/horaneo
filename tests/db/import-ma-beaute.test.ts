@@ -1,8 +1,12 @@
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { withPlatform, withTenant } from "@/db/access";
 import type { Transaction } from "@/db/client";
-import { importMaBeaute } from "@/db/import-ma-beaute";
+import { importMaBeaute, importMaBeautePhotos } from "@/db/import-ma-beaute";
+import { createLocalStorage } from "@/lib/storage/local";
 import { businesses, services, tenants } from "@/db/schema";
 import { loadSiteData } from "@/modules/site/data";
 import { createTenant } from "@/modules/tenants/create";
@@ -60,6 +64,27 @@ describe.skipIf(!hasTestDatabase)("import du contenu de Ma Beauté Institut", ()
     await expect(importMaBeaute(owner, tenant.slug)).rejects.toThrow(/déjà/);
     expect(await owner.select().from(businesses).where(eq(businesses.tenantId, tenant.id))).toHaveLength(2);
     expect(await owner.select().from(services).where(eq(services.tenantId, tenant.id))).toHaveLength(13);
+  });
+
+  it("ajoute les photos et le logo sans effacer les textes, une seule fois", async () => {
+    const tenant = await newSite();
+    await importMaBeaute(owner, tenant.slug);
+    const dir = await mkdtemp(path.join(tmpdir(), "horaneo-mb-"));
+    try {
+      const store = createLocalStorage(dir);
+      await importMaBeautePhotos(owner, tenant.slug, store);
+      const site = (await withTenant(tenant.id, (tx) => loadSiteData(tx, tenant.id), app))!;
+      expect(site.logo).not.toBeNull();
+      expect(site.businesses.map((b) => [b.name, b.role, Boolean(b.photo)])).toEqual([
+        ["Laïla", "Esthéticienne, spécialiste du regard", true],
+        ["Natacha", "Praticienne en massage et soins du corps", true],
+      ]);
+      expect(site.pages.home?.photo).not.toBeNull();
+      expect(site.pages.home?.texts.tagline).toBe("Beauté et bien-être,");
+      await expect(importMaBeautePhotos(owner, tenant.slug, store)).rejects.toThrow(/déjà des photos/);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
   });
 
   it("refuse une adresse provisoire inconnue", async () => {
