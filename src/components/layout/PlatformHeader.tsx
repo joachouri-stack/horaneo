@@ -7,6 +7,7 @@ import { routing } from "@/i18n/routing";
 
 const NAV = [
   { hash: "etapes", key: "how" },
+  { hash: "fonctions", key: "features" },
   { hash: "tarifs", key: "pricing" },
   { hash: "questions", key: "questions" },
 ] as const;
