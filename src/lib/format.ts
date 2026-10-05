@@ -1,7 +1,14 @@
 /** Mises en forme selon la langue (montants, dates). */
 
+/** Montant sans centimes inutiles : « 36 € », mais « 45,50 € ». */
 export function formatMoney(cents: number, currency: string, locale: string): string {
-  return new Intl.NumberFormat(locale, { style: "currency", currency }).format(cents / 100);
+  const whole = cents % 100 === 0;
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+    minimumFractionDigits: whole ? 0 : 2,
+    maximumFractionDigits: whole ? 0 : 2,
+  }).format(cents / 100);
 }
 
 /** Montant en centimes → texte à modifier dans un champ (« 45,50 »). */

@@ -46,6 +46,31 @@ export function localBusinessJsonLd(site: Site, url: string, imageUrl: string | 
   };
 }
 
+/**
+ * Description pour Google : celle saisie dans l'admin, sinon l'accroche et le
+ * texte d'introduction de l'accueil, coupés proprement vers 160 caractères
+ * (jamais au milieu d'un mot ni sur une virgule).
+ */
+export function homeDescription(
+  home: { seoDescription: string; texts: Record<string, string> } | undefined,
+  max = 160,
+): string | undefined {
+  if (!home) return undefined;
+  if (home.seoDescription) return home.seoDescription;
+  const sentence = (value: string | undefined) => {
+    const trimmed = value?.trim().replace(/\s+/g, " ");
+    if (!trimmed) return "";
+    return /[.!?…]$/.test(trimmed) ? trimmed : `${trimmed.replace(/[,;:]$/, "")}.`;
+  };
+  const { tagline, taglineAccent, intro } = home.texts;
+  const lead = [tagline, taglineAccent].filter(Boolean).join(" ");
+  const full = [sentence(lead), sentence(intro)].filter(Boolean).join(" ");
+  if (!full) return undefined;
+  if (full.length <= max) return full;
+  const cut = full.slice(0, max - 1);
+  return `${cut.slice(0, cut.lastIndexOf(" ")).replace(/[\s,;:.]+$/, "")}…`;
+}
+
 /** Insertion sûre du JSON dans une balise <script> (aucune fermeture de balise possible). */
 export function serializeJsonLd(data: unknown): string {
   return JSON.stringify(data).replace(/</g, "\\u003c");

@@ -31,6 +31,19 @@ export function CategoryGrid({
 }) {
   const [filter, setFilter] = useState<string | null>(null);
   const visible = cards.filter((card) => !filter || card.businessId === filter);
+  // Sur téléphone (deux colonnes), une carte qui resterait seule sur sa ligne
+  // prend toute la largeur : pas de trou dans la grille.
+  const alone = new Set<string>();
+  let column = 0;
+  visible.forEach((card, index) => {
+    if (card.featured) {
+      column = 0;
+      return;
+    }
+    const next = visible[index + 1];
+    if (column === 0 && (!next || next.featured)) alone.add(card.id);
+    column = column === 0 && !alone.has(card.id) ? 1 : 0;
+  });
   let featuredIndex = 0;
   return (
     <>
@@ -60,7 +73,10 @@ export function CategoryGrid({
                 ? "bg-site-text text-site-bg"
                 : "bg-site-card text-site-text";
           return (
-            <li key={card.id} className={card.featured ? "col-span-2" : ""}>
+            <li
+              key={card.id}
+              className={card.featured ? "col-span-2" : alone.has(card.id) ? "col-span-2 lg:col-span-1" : ""}
+            >
               <Link
                 href={card.href}
                 aria-label={`${labels.see} ${card.name}`}

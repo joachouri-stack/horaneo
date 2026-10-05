@@ -13,7 +13,7 @@ import { routing } from "@/i18n/routing";
 import { getSite, isPreview } from "@/lib/site/load";
 import { absoluteImageUrl, siteBaseUrl } from "@/lib/site/urls";
 import { siteCta } from "@/modules/site/cta";
-import { localBusinessJsonLd, serializeJsonLd } from "@/modules/site/seo";
+import { homeDescription, localBusinessJsonLd, serializeJsonLd } from "@/modules/site/seo";
 import { buildTheme, themeCssVariables } from "@/modules/site/theme";
 import "../../../globals.css";
 
@@ -46,8 +46,11 @@ export async function generateMetadata({ params }: LayoutProps<"/sites/[tenantId
   const logoUrl = absoluteImageUrl(site, site.logo);
   return {
     metadataBase: new URL(siteBaseUrl(site)),
-    title: { default: home?.seoTitle || site.tenant.name, template: `%s · ${site.tenant.name}` },
-    description: home?.seoDescription || home?.texts.tagline || undefined,
+    title: {
+      default: home?.seoTitle || [home?.texts.badge, site.tenant.name].filter(Boolean).join(" · "),
+      template: `%s · ${site.tenant.name}`,
+    },
+    description: homeDescription(home),
     robots: noindex ? { index: false, follow: false } : undefined,
     icons: logoUrl ? { icon: logoUrl } : undefined,
     openGraph: { siteName: site.tenant.name, type: "website", locale: site.locale },

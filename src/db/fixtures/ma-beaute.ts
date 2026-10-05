@@ -125,7 +125,7 @@ export async function fillMaBeaute(tx: Transaction, tenantId: string, options: M
       tagline: "Beauté et bien-être,",
       taglineAccent: "dans un même lieu.",
       intro:
-        "Soins du visage, beauté du regard, épilation, onglerie et massages. Réservez votre moment en ligne, à toute heure.",
+        "Beauté du regard, soins du visage, épilation et massages. Réservez votre moment en ligne, à toute heure.",
       highlight1Value: "+ 3 ans",
       highlight1Label: "à votre service",
       highlight2Value: "Qualiopi",
