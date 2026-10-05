@@ -33,7 +33,7 @@ import { monthStats } from "@/modules/stats/month";
 import { SITE_PATHS } from "@/modules/site/paths";
 import { renderEmail } from "./layout";
 import type { MessageTemplate } from "./queue";
-import { smsSenderName } from "./senders";
+import { smsSenderName, toGsm7 } from "./senders";
 import { dailyAgenda } from "./summaries";
 
 /**
@@ -319,7 +319,13 @@ async function renderLogin(
       kind: "sms",
       to: code.identifier,
       sender: smsSenderName(tenant.name, options.productName),
-      text: t("notifications.customer.login_code.text", { code: code.secret, business: tenant.name, minutes }),
+      text: toGsm7(
+        t("notifications.customer.login_code.text", {
+          code: code.secret,
+          business: tenant.name,
+          minutes,
+        }),
+      ),
     };
   }
   const siteUrl = tenant.siteUrl ?? options.appUrl;
@@ -333,7 +339,10 @@ async function renderLogin(
       label: t("notifications.customer.login_link.action"),
       url: `${siteUrl}${SITE_PATHS.account}/connexion?jeton=${code.secret}`,
     },
-    after: [t("notifications.customer.login_link.expiry", { minutes }), t("notifications.customer.login_link.ignore")],
+    after: [
+      t("notifications.customer.login_link.expiry", { minutes }),
+      t("notifications.customer.login_link.ignore"),
+    ],
     footer: tenantFooter(tenant),
   });
   return {
@@ -365,7 +374,12 @@ async function renderCustomer(
   const a = info.appointment;
   const business = tenant.name;
   const siteUrl = tenant.siteUrl ?? options.appUrl;
-  const data = row.data as { refundedCents?: number; by?: string; previousStartsAt?: string };
+  const data = row.data as {
+    refundedCents?: number;
+    by?: string;
+    previousStartsAt?: string;
+    depositKept?: boolean;
+  };
 
   // Un rappel ou une confirmation n'a plus de sens si le rendez-vous a été annulé ou est passé.
   const needsConfirmed: MessageTemplate[] = [
@@ -390,7 +404,8 @@ async function renderCustomer(
       kind: "sms",
       to: info.customer.phone,
       sender: smsSenderName(business, options.productName),
-      text,
+      // Alphabet SMS standard : un seul caractère hors alphabet (ê, ç…) doublerait le prix du SMS.
+      text: toGsm7(text),
     };
   }
 
@@ -444,6 +459,7 @@ async function renderCustomer(
               when: fmt.when(t, a.startsAt),
             }),
         ...refundLine(data.refundedCents),
+        ...(data.depositKept ? [t("notifications.customer.cancelled.depositContact", { business })] : []),
       ];
       details = undefined;
       action = rebook;

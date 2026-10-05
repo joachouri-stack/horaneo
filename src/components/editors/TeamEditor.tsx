@@ -83,7 +83,9 @@ export async function TeamEditor({
       title={t("title")}
       aside={
         limit !== null && limit !== undefined ? (
-          <span className="text-sm text-ink/70">{t("quota", { used: staff.length, limit })}</span>
+          <span className="text-sm text-ink/70">
+            {t("quota", { used: staff.filter((member) => member.isActive).length, limit })}
+          </span>
         ) : null
       }
     >

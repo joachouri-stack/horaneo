@@ -45,3 +45,28 @@ export function smsSenderName(name: string, fallback: string): string {
   if (candidate.length >= 3 && /[A-Za-z]/.test(candidate)) return candidate;
   return clean(fallback) || "Info";
 }
+
+/** Caractères accentués de l'alphabet SMS standard (GSM 03.38), gardés tels quels. */
+const GSM7_ACCENTS = "àèéìòùÇÉÄÖÑÜäöñüÅåØøÆæß";
+const GSM7_BASIC = /[A-Za-z0-9 @£$¥\n\r!"#¤%&'()*+,\-./:;<=>?¡§¿_]/;
+
+/**
+ * Texte de SMS dans l'alphabet standard : un caractère hors alphabet (ê, ç, â,
+ * « », espace insécable…) fait passer le SMS en Unicode, limité à 70 caractères
+ * par envoi, et double souvent son coût. On le remplace par son équivalent simple.
+ */
+export function toGsm7(text: string): string {
+  return [...text]
+    .map((char) => {
+      if (GSM7_BASIC.test(char) || GSM7_ACCENTS.includes(char)) return char;
+      if (char === "«" || char === "»" || char === "“" || char === "”") return '"';
+      if (char === "’" || char === "‘") return "'";
+      if (char === "\u00a0" || char === "\u202f") return " ";
+      if (char === "–" || char === "—") return "-";
+      if (char === "œ") return "oe";
+      if (char === "Œ") return "OE";
+      const base = char.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      return GSM7_BASIC.test(base) ? base : "";
+    })
+    .join("");
+}

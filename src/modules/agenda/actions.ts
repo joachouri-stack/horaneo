@@ -82,7 +82,12 @@ export async function cancelByManager(
     template: "customer.cancelled",
     appointmentId: appointment.id,
     locale: appointment.locale,
-    data: { by: "establishment", refundedCents: refund?.amountCents ?? 0 },
+    data: {
+      by: "establishment",
+      refundedCents: refund?.amountCents ?? 0,
+      // Acompte payé et non remboursé ici : la cliente est invitée à voir avec l'établissement.
+      depositKept: !payment.refund && appointment.status === "confirmed" && appointment.depositCents > 0,
+    },
   });
   return { depositCents: appointment.depositCents, refundedCents: refund?.amountCents ?? 0 };
 }

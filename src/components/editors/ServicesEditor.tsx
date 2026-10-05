@@ -117,7 +117,9 @@ export async function ServicesEditor({
         title={t("title")}
         aside={
           limit !== null && limit !== undefined ? (
-            <span className="text-sm text-ink/70">{t("quota", { used: services.length, limit })}</span>
+            <span className="text-sm text-ink/70">
+              {t("quota", { used: services.filter((service) => service.isActive).length, limit })}
+            </span>
           ) : null
         }
       >

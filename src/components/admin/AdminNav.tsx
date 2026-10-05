@@ -24,7 +24,7 @@ export function AdminNav() {
       ? pathname === item.href
       : pathname.startsWith(item.href) && pathname !== "/admin/clients/nouveau";
   return (
-    <nav aria-label="Admin" className="mx-auto max-w-6xl overflow-x-auto px-4">
+    <nav aria-label={t("label")} className="mx-auto max-w-6xl overflow-x-auto px-4">
       <ul className="flex gap-2 border-b border-navy/10">
         {ITEMS.map((item) => (
           <li key={item.href}>

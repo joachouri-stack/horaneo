@@ -22,6 +22,7 @@ export type AppErrorCode =
   | "feature_unavailable"
   | "quota_reached"
   | "last_free_plan"
+  | "terms_required"
   | "hours_overlap"
   | "hours_invalid"
   | "phone_invalid"

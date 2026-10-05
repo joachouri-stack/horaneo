@@ -11,6 +11,9 @@
     "retry": "Réessayer",
     "backHome": "Retour à l'accueil"
   },
+  "billing": {
+    "setupFeeLabel": "Frais de création du site"
+  },
   "common": {
     "skipToContent": "Aller au contenu",
     "login": "Connexion",
@@ -99,7 +102,7 @@
       },
       "book": {
         "title": "Vos clients réservent",
-        "text": "Jour et nuit, en quelques gestes, sans créer de compte. Une alerte vous prévient à chaque réservation.",
+        "text": "Jour et nuit, en quelques gestes, sans créer de compte. Un e-mail vous prévient à chaque réservation.",
         "tag": "Sans rien installer"
       },
       "cash": {
@@ -112,7 +115,7 @@
       "badge": "Tarifs",
       "title": "Un prix clair,",
       "titleAccent": "{percent, plural, =0 {sans commission.} other {commission de # %.}}",
-      "subtitle": "Commencez gratuitement, puis changez de pack quand vous voulez.",
+      "subtitle": "Commencez gratuitement, puis passez à un pack supérieur quand vous voulez.",
       "perMonth": "par mois {display}",
       "perMonthShort": "par mois",
       "free": "Gratuit",
@@ -163,9 +166,9 @@
         "aiMessaging": "Bientôt : messagerie IA"
       },
       "trust": {
-        "commission": "{percent, plural, =0 {Aucune commission} other {Commission de # % seulement}}",
+        "commission": "{percent, plural, =0 {Aucune commission (hors frais Stripe)} other {Commission de # % seulement (hors frais Stripe)}}",
         "secure": "Paiements sécurisés",
-        "data": "Vos données vous appartiennent"
+        "data": "Vos données vous appartiennent, remises sur simple demande"
       },
       "pricesDisplay": "Prix {display}."
     },
@@ -173,7 +176,7 @@
       "title": "Les questions qu'on nous pose",
       "intro": "Une autre question ? Nous répondons sous 24 heures.",
       "contact": "Nous écrire",
-      "commission": "{percent, plural, =0 {nous ne prenons aucune commission} other {nous prenons seulement # % de commission sur les acomptes}}",
+      "commission": "{percent, plural, =0 {nous ne prenons aucune commission} other {nous prenons seulement # % de commission sur les acomptes}} : seuls les frais bancaires de Stripe s'appliquent, prélevés directement par Stripe",
       "items": [
         {
           "q": "Comment je reçois mes paiements ?",
@@ -197,7 +200,7 @@
         },
         {
           "q": "Si j'arrête, qu'est-ce que je garde ?",
-          "a": "Vos photos, vos textes et votre fichier clients, ainsi que votre nom de domaine si vous en avez un."
+          "a": "Vos photos, vos textes et votre fichier clients (remis sur simple demande), ainsi que votre nom de domaine si vous en avez un."
         }
       ]
     },
@@ -212,7 +215,7 @@
       "privacy": "Confidentialité",
       "terms": "Conditions",
       "rights": "© {year} {product} · Tous droits réservés",
-      "credit": "Design by Johane A."
+      "credit": "Design : Johane A."
     }
   },
   "site": {
@@ -304,7 +307,7 @@
       "featured": "Nos prestations",
       "testimonialsTitle": "Ils nous font confiance"
     },
-    "previewBanner": "Aperçu : ce site n'est pas encore en ligne. Seule l'administratrice le voit.",
+    "previewBanner": "Aperçu : ce site n'est pas encore en ligne. Aperçu privé, invisible du public.",
     "nav": {
       "services": "Prestations et tarifs",
       "about": "L'établissement",
@@ -365,7 +368,7 @@
     "legal": {
       "title": "Mentions légales",
       "publisher": "Éditeur du site",
-      "publisherName": "Raison sociale : {name}",
+      "publisherName": "Nom ou raison sociale : {name}",
       "siret": "SIRET : {siret}",
       "vat": "N° de TVA : {vat}",
       "address": "Adresse : {address}",
@@ -383,11 +386,11 @@
       "controller": "Responsable du traitement",
       "controllerText": "{name} est responsable des données personnelles collectées sur ce site.",
       "data": "Données collectées",
-      "dataText": "Lors d'une réservation : vos nom, prénom, adresse e-mail, numéro de téléphone et, le cas échéant, votre message. Aucune donnée n'est collectée si vous consultez simplement le site.",
+      "dataText": "Lors d'une réservation : vos nom, prénom, adresse e-mail, numéro de téléphone et, le cas échéant, votre message, ainsi que l'historique de vos rendez-vous. Lors de l'achat d'une carte cadeau : les nom et e-mail de l'acheteur et du bénéficiaire. Pour l'espace client : votre e-mail ou numéro, utilisé seulement pour vous connecter. Aucune donnée n'est collectée si vous consultez simplement le site.",
       "purpose": "Utilisation",
       "purposeText": "Ces données servent uniquement à gérer vos rendez-vous : confirmation, rappel, modification ou annulation. Elles ne sont jamais vendues. Les messages commerciaux ne vous sont envoyés qu'avec votre accord.",
       "processor": "Sous-traitant",
-      "processorText": "Le site et les réservations sont gérés par le service {product}, qui agit pour le compte de l'établissement. Les paiements d'acompte sont traités par Stripe.",
+      "processorText": "Le site et les réservations sont gérés par le service {product}, qui agit pour le compte de l'établissement. Les paiements d'acompte sont traités par Stripe, et les e-mails et SMS sont envoyés par Brevo.",
       "retention": "Durée de conservation",
       "retentionText": "Vos données sont conservées pendant la durée de la relation avec l'établissement, puis au maximum 3 ans après votre dernier rendez-vous.",
       "rights": "Vos droits",
@@ -490,10 +493,10 @@
       "otherAmount": "Autre montant (de {min} à {max})",
       "recipient": "Pour qui ?",
       "recipientName": "Prénom de la personne",
-      "recipientEmail": "Son e-mail (vide : la carte vous est envoyée, à imprimer ou transférer)",
+      "recipientEmail": "Son e-mail (sinon, la carte vous est envoyée)",
       "message": "Votre message (facultatif)",
       "sendOn": "Date d'envoi",
-      "sendOnHint": "Vide : envoyée tout de suite après le paiement.",
+      "sendOnHint": "Laissez vide pour l'envoyer tout de suite après le paiement.",
       "from": "De la part de",
       "purchaserName": "Votre nom",
       "purchaserEmail": "Votre e-mail (pour le reçu)",
@@ -526,7 +529,7 @@
   "auth": {
     "metaTitle": "Connexion",
     "title": "Connexion",
-    "subtitle": "Pas de mot de passe : connectez-vous avec votre compte Google ou Apple, ou recevez un lien par e-mail.",
+    "subtitle": "Pas de mot de passe : {social, select, both {connectez-vous avec votre compte Google ou Apple, ou recevez un lien par e-mail} google {connectez-vous avec votre compte Google, ou recevez un lien par e-mail} apple {connectez-vous avec votre compte Apple, ou recevez un lien par e-mail} other {recevez simplement un lien de connexion par e-mail}}.",
     "continueWith": "Continuer avec {provider}",
     "providers": {
       "google": "Google",
@@ -537,7 +540,7 @@
     "emailPlaceholder": "vous@exemple.fr",
     "sendLink": "Recevoir un lien de connexion",
     "sending": "Envoi…",
-    "sentTitle": "Vérifiez votre boîte mail",
+    "sentTitle": "Vérifiez votre boîte de réception",
     "sentBody": "Un lien de connexion vient d'être envoyé à {email}. Il est valable 15 minutes.",
     "sentHint": "Rien reçu ? Regardez dans les courriers indésirables, ou réessayez.",
     "useAnotherEmail": "Utiliser une autre adresse",
@@ -550,7 +553,8 @@
     },
     "legal": "En continuant, vous acceptez les conditions d'utilisation et la politique de confidentialité.",
     "signupTitle": "Créez votre compte",
-    "signupSubtitle": "Sans mot de passe : continuez avec Google ou Apple, ou recevez un lien par e-mail. Si vous avez déjà un compte, vous retrouverez simplement votre espace."
+    "signupSubtitle": "Sans mot de passe : {social, select, both {continuez avec Google ou Apple, ou recevez un lien par e-mail} google {continuez avec Google, ou recevez un lien par e-mail} apple {continuez avec Apple, ou recevez un lien par e-mail} other {recevez simplement un lien par e-mail}}. Si vous avez déjà un compte, vous retrouverez votre espace.",
+    "chosenPack": "Pack choisi : {name}"
   },
   "account": {
     "metaTitle": "Mon espace",
@@ -601,7 +605,8 @@
       "settings": "Réglages",
       "billing": "Paiements",
       "orders": "Commandes",
-      "documents": "Documents légaux"
+      "documents": "Documents légaux",
+      "label": "Navigation de l'administration"
     },
     "dashboard": {
       "activeClients": "Clients en ligne",
@@ -674,7 +679,7 @@
       "overview": {
         "plan": "Pack",
         "changePlan": "Changer de pack",
-        "changePlanHint": "Le prélèvement sera ajusté automatiquement une fois les paiements branchés.",
+        "changePlanHint": "Sans abonnement Stripe, le pack est attribué sans prélèvement. Avec un abonnement, utilisez plutôt le changement de pack de l'espace du client.",
         "changePlanConfirm": "Changer le pack de {name} ? Ses limites et ses fonctions changent tout de suite ; sans domaine personnel inclus, son adresse principale redevient le sous-domaine.",
         "suspendConfirm": "Suspendre {name} ? Son site sera hors ligne immédiatement.",
         "status": "Statut",
@@ -702,7 +707,7 @@
         "domainPlaceholder": "www.institut-lea.fr",
         "markActive": "Marquer comme branché",
         "markActiveConfirm": "Le domaine {host} pointe-t-il bien vers le serveur (DNS vérifié) ? S'il ne répond pas, le site sera inaccessible une fois ce domaine en adresse principale.",
-        "markActiveHint": "Temporaire : la vérification automatique arrive avec Cloudflare.",
+        "markActiveHint": "Vérifiez d'abord que le domaine pointe bien vers le serveur (DNS).",
         "makePrimary": "Définir comme principale",
         "removeDomain": "Retirer",
         "removeDomainConfirm": "Retirer le domaine {host} ?",
@@ -778,7 +783,7 @@
         "onlineBookable": "Réservable en ligne",
         "active": "Active",
         "empty": "Aucune prestation pour le moment.",
-        "quota": "{used} prestation(s) sur {limit}",
+        "quota": "{used, plural, one {# prestation} other {# prestations}} sur {limit}",
         "minutes": "{count} min",
         "disabled": "désactivée",
         "deactivatedInstead": "Prestation déjà réservée : elle a été désactivée au lieu d'être supprimée.",
@@ -786,7 +791,7 @@
         "noIcon": "Aucun",
         "featured": "Mettre en avant (« Spécialité »)",
         "inMenu": "Afficher dans le menu du site",
-        "categoryDetails": "Présentation détaillée (facultatif)",
+        "categoryDetails": "Présentation détaillée (facultative)",
         "categoryDetailsHint": "Affichée quand on ouvre la catégorie sur le site. Une ligne qui commence par « - » devient un point de liste.",
         "categoryDescription": "Courte description de la catégorie",
         "icons": {
@@ -816,7 +821,7 @@
         "active": "Actif",
         "empty": "Aucun membre pour le moment.",
         "deactivatedInstead": "Ce membre a déjà des rendez-vous : il a été désactivé au lieu d'être supprimé.{upcoming, plural, =0 {} one { # rendez-vous à venir lui reste attribué : pensez à le déplacer.} other { # rendez-vous à venir lui restent attribués : pensez à les déplacer.}}",
-        "quota": "{used} membre(s) sur {limit}",
+        "quota": "{used, plural, one {# membre} other {# membres}} sur {limit}",
         "hoursHint": "Un nouveau membre travaille par défaut aux horaires d'ouverture."
       },
       "hours": {
@@ -869,7 +874,7 @@
           "other": "Autre"
         },
         "alt": "Description (pour l'accessibilité)",
-        "quota": "{used} photo(s) sur {limit}",
+        "quota": "{used, plural, one {# photo} other {# photos}} sur {limit}",
         "empty": "Aucune photo pour le moment.",
         "remove": "Retirer",
         "restore": "Restaurer",
@@ -927,7 +932,7 @@
         "profile": "Sa page sur le site",
         "profileHint": "Modèle Atelier : chaque professionnelle a sa page, avec ses soins et le bouton « Réserver avec … ».",
         "slug": "Adresse de sa page (/avec/…)",
-        "slugHint": "Lettres, chiffres et tirets. Vide : proposée à partir du nom.",
+        "slugHint": "Lettres, chiffres et tirets. Laissez vide pour la créer à partir du nom.",
         "pageTitle": "Titre de sa page et du menu (ex. « Esthétique »)",
         "role": "Métier (ex. « Esthéticienne, spécialiste du regard »)",
         "bio": "Présentation",
@@ -1082,7 +1087,8 @@
     "slug_invalid": "L'adresse ne peut contenir que des lettres minuscules sans accent, des chiffres et des tirets.",
     "hostname_taken": "Ce domaine est déjà rattaché à un établissement.",
     "hostname_invalid": "Ce nom de domaine n'est pas valide (exemple : www.institut-lea.fr).",
-    "feature_unavailable": "Cette fonction n'est pas incluse dans le pack de ce client.",
+    "feature_unavailable": "Cette fonction n'est pas incluse dans le pack actuel.",
+    "terms_required": "Cochez la case pour accepter les conditions générales de vente.",
     "quota_reached": "La limite du pack est atteinte. Passez à un pack supérieur ou retirez un élément.",
     "last_free_plan": "Il faut garder au moins un pack gratuit : c'est là que vont les sites dont l'abonnement se termine.",
     "hours_overlap": "Deux plages horaires se chevauchent dans la même journée.",
@@ -1284,7 +1290,7 @@
       "label": "Carte cadeau",
       "apply": "Utiliser",
       "applied": "Carte •••• {last4} : l'acompte de {amount} sera pris sur la carte (solde {balance}).",
-      "appliedNoDeposit": "Carte •••• {last4} enregistrée : le soin se déduira sur place (solde {balance}).",
+      "appliedNoDeposit": "Carte •••• {last4} enregistrée : le montant sera déduit sur place (solde {balance}).",
       "remove": "Retirer",
       "paidWith": "Acompte réglé avec votre carte cadeau."
     },
@@ -1450,7 +1456,7 @@
       "noShows": "Absences",
       "spent": "Dépensé",
       "notes": "Notes",
-      "notesHint": "Préférences, allergies… Visible uniquement par vous.",
+      "notesHint": "Préférences, habitudes… Visible uniquement par vous. Évitez les informations de santé.",
       "contact": "Coordonnées",
       "history": "Historique",
       "noHistory": "Aucun rendez-vous.",
@@ -1601,7 +1607,7 @@
       "onlineOff": "Réservation en ligne coupée : votre site est en mode vitrine.",
       "booking": "Réservation en ligne",
       "minNotice": "Délai minimum avant un rendez-vous (heures)",
-      "maxAdvance": "Réservation au plus tard (jours à l'avance)",
+      "maxAdvance": "Réservation possible jusqu'à (jours à l'avance)",
       "interval": "Créneaux proposés toutes les",
       "minutes": "{count} minutes",
       "maxServices": "Prestations maximum par rendez-vous",
@@ -1650,7 +1656,7 @@
     },
     "payments": {
       "title": "Paiements en ligne",
-      "intro": "Les acomptes de vos clientes sont versés directement sur votre compte Stripe, puis sur votre compte bancaire. {product} ne touche pas cet argent et ne prend aucune commission.",
+      "intro": "Les acomptes de vos clientes sont versés directement sur votre compte Stripe, puis sur votre compte bancaire. {product} ne touche pas cet argent{percent, plural, =0 { et ne prend aucune commission} other { et prend une commission de # % sur les acomptes}}. Stripe prélève ses propres frais bancaires.",
       "state": {
         "unavailable": "Le paiement en ligne n'est pas inclus dans votre pack.",
         "not_started": "Votre compte Stripe n'est pas encore ouvert.",
@@ -1731,7 +1737,7 @@
       "redeemTitle": "Encaisser une carte sur place",
       "code": "Code de la carte",
       "amount": "Montant à déduire (€)",
-      "note": "Note (facultatif, ex. soin réalisé)",
+      "note": "Note (facultative, ex. prestation réalisée)",
       "redeem": "Déduire",
       "redeemConfirm": "Déduire ce montant de la carte ? Vérifiez le code et le montant : l'opération ne peut pas être annulée.",
       "redeemed": "Montant déduit de la carte •••• {last4}. Solde restant : {balance}.",
@@ -1849,13 +1855,14 @@
       },
       "reminder_sms": {
         "text": "Rappel : rendez-vous demain à {time} chez {business}.",
-        "phone": " Empêchement : {phone}"
+        "phone": " Pour annuler ou déplacer : {phone}"
       },
       "cancelled": {
         "subject": "Votre rendez-vous du {date} est annulé",
         "title": "Rendez-vous annulé",
         "byCustomer": "Votre rendez-vous chez {business} du {when} est bien annulé.",
-        "byEstablishment": "{business} a dû annuler votre rendez-vous du {when}. Toutes nos excuses pour ce contretemps."
+        "byEstablishment": "{business} a dû annuler votre rendez-vous du {when}. Toutes nos excuses pour ce contretemps.",
+        "depositContact": "Pour l'acompte que vous aviez versé, contactez directement {business} : il doit vous être rendu."
       },
       "rescheduled": {
         "subject": "Votre rendez-vous est déplacé au {date}",
@@ -1864,7 +1871,7 @@
       },
       "moved": {
         "subject": "Nouvel horaire pour votre rendez-vous du {date}",
-        "title": "Votre rendez-vous a changé d'horaire",
+        "title": "Votre rendez-vous a été déplacé",
         "intro": "{business} a déplacé votre rendez-vous (ancien créneau : {previous}). Voici le nouveau créneau :"
       },
       "login_link": {
@@ -1880,7 +1887,7 @@
       },
       "payment_refunded": {
         "subject": "Votre acompte vous est remboursé",
-        "title": "Créneau plus disponible",
+        "title": "Ce créneau n'est plus disponible",
         "intro": "Votre paiement chez {business} est arrivé après la fin du délai de réservation, et le créneau a été pris entre-temps. Toutes nos excuses."
       }
     },
@@ -2020,7 +2027,7 @@
     }
   },
   "legal": {
-    "updated": "Mise à jour le {date}",
+    "updated": "Dernière mise à jour : {date}",
     "draft": "Document en cours de rédaction.",
     "titles": {
       "legal_notice": "Mentions légales",
@@ -2039,6 +2046,9 @@
     "activityHint": "Par exemple : institut de beauté, coiffure, massage…",
     "phone": "Téléphone",
     "currentWebsite": "Site actuel (facultatif)",
+    "currentWebsitePlaceholder": "www.exemple.fr",
+    "paidRecap": "Packs payants : {months, plural, =0 {sans engagement} other {engagement de # mois}}{fee, select, none {} other {, frais de création de {fee}}}.",
+    "terms": "J'ai lu et j'accepte les <link>conditions générales de vente</link>.",
     "paidHint": "Paiement par carte sur la page sécurisée de Stripe. Votre site est ensuite créé par notre équipe.",
     "freeHint": "Les demandes de fiche gratuite sont validées à la main par notre équipe.",
     "thanks": {

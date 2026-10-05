@@ -47,7 +47,7 @@ const LAILA_CATALOG: Category[] = [
     featured: true,
     description: "Notre spécialité : réhaussement de cils, browlift, teinture.",
     items: [
-      ["Réhaussement de cils, teinture offerte", 60, "55"],
+      ["Rehaussement de cils, teinture offerte", 60, "55"],
       ["Browlift sans teinture", 35, "45"],
       ["Browlift avec teinture", 45, "50"],
       ["Browlift et restructuration des sourcils", 70, "55"],
@@ -73,12 +73,12 @@ const LAILA_CATALOG: Category[] = [
     details: [
       "Formations professionnelles assurées par Laïla, au sein de l'institut.",
       "- Organisme de formation certifié Qualiopi",
-      "- Réhaussement de cils et browlift",
+      "- Rehaussement de cils et browlift",
       "- 1 journée (7 h)",
       "- Formatrice : Laïla, spécialiste de la beauté du regard",
       "Contactez-nous pour connaître les prochaines dates et les modalités.",
     ].join("\n"),
-    items: [["Réhaussement de cils et browlift (formation, 1 journée)", 420, "900", false]],
+    items: [["Rehaussement de cils et browlift (formation, 1 journée)", 420, "900", false]],
   },
 ];
 

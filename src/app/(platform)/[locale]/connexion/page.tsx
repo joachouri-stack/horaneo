@@ -4,10 +4,13 @@ import { LoginForm } from "@/components/auth/LoginForm";
 import { PlatformHeader } from "@/components/layout/PlatformHeader";
 import { ui } from "@/components/ui/styles";
 import { env } from "@/config/env";
+import { withPlatform } from "@/db/access";
+import { pickLocalized } from "@/i18n/locales";
 import { redirect } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/translator";
 import { enabledSocialProviders, safeRedirectPath } from "@/lib/auth/providers";
 import { getCurrentSession } from "@/lib/auth/session";
+import { listPublicPlans } from "@/modules/billing/plans";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/connexion">): Promise<Metadata> {
   const t = await getTranslations({ locale: resolveLocale((await params).locale), namespace: "auth" });
@@ -33,6 +36,14 @@ export default async function LoginPage({ params, searchParams }: PageProps<"/[l
   const errorParam = typeof query.erreur === "string" ? query.erreur : null;
   const errorKey =
     errorParam && errorParam in ERROR_KEYS ? ERROR_KEYS[errorParam as keyof typeof ERROR_KEYS] : null;
+  // Le texte ne cite que les connexions réellement proposées (Google, Apple ou aucune).
+  const providers = enabledSocialProviders(env());
+  const social = providers.length === 2 ? "both" : providers.length === 1 ? providers[0] : "none";
+  // Depuis la page Tarifs : rappel du pack choisi.
+  const packCode = signup ? new URLSearchParams(suite.split("?")[1] ?? "").get("pack") : null;
+  const pack = packCode
+    ? (await withPlatform((tx) => listPublicPlans(tx))).find((plan) => plan.code === packCode)
+    : undefined;
 
   return (
     <>
@@ -43,14 +54,21 @@ export default async function LoginPage({ params, searchParams }: PageProps<"/[l
         <div className={ui.card}>
           {/* Depuis « Commander » : la même page sert à créer son compte. */}
           <h1 className="text-3xl font-extrabold">{signup ? t("signupTitle") : t("title")}</h1>
-          <p className="mt-3 text-ink/80">{signup ? t("signupSubtitle") : t("subtitle")}</p>
+          {pack && (
+            <p className="mt-3 font-semibold">
+              {t("chosenPack", { name: pickLocalized(pack.name, locale) })}
+            </p>
+          )}
+          <p className="mt-3 text-ink/80">
+            {signup ? t("signupSubtitle", { social }) : t("subtitle", { social })}
+          </p>
           {errorKey && (
             <p role="alert" className={`mt-6 ${ui.error}`}>
               {t(`errors.${errorKey}`)}
             </p>
           )}
           <LoginForm
-            providers={enabledSocialProviders(env())}
+            providers={providers}
             callbackPath={`/${locale}${suite}`}
             errorPath={`/${locale}/connexion`}
           />

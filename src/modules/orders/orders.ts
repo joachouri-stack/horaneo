@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
+import { getTranslator, resolveLocale } from "@/i18n/translator";
 import { memberships, orders, plans, subscriptions, users } from "@/db/schema";
 import type { BillingGateway } from "@/modules/billing/gateway";
 import { applySubscription, ensurePlanPrice, ensureTaxRate } from "@/modules/billing/subscriptions";
@@ -112,7 +113,11 @@ export async function createOrder(
       priceId: await ensurePlanPrice(tx, plan.id, gateway),
       setupFee:
         setupFeeCents > 0
-          ? { amountCents: setupFeeCents, currency: plan.currency, label: "Frais de création" }
+          ? {
+              amountCents: setupFeeCents,
+              currency: plan.currency,
+              label: (await getTranslator(resolveLocale(input.locale)))("billing.setupFeeLabel"),
+            }
           : null,
       taxRateId: await ensureTaxRate(tx, gateway),
       ...urls(order.id),
