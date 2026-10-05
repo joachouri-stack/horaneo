@@ -67,6 +67,51 @@ export const EuroIcon = ({ className }: IconProps) => (
   </Icon>
 );
 
+export const BellIcon = ({ className }: IconProps) => (
+  <Icon className={className}>
+    <path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15L6 16zM10 20.5a2 2 0 0 0 4 0" strokeWidth="2" />
+  </Icon>
+);
+
+export const CardIcon = ({ className }: IconProps) => (
+  <Icon className={className}>
+    <rect x="2.5" y="5" width="19" height="14" rx="3" strokeWidth="2" />
+    <path d="M2.5 10h19M6.5 15h4" strokeWidth="2" />
+  </Icon>
+);
+
+export const UserIcon = ({ className }: IconProps) => (
+  <Icon className={className}>
+    <circle cx="12" cy="8" r="4" strokeWidth="2" />
+    <path d="M4 21a8 8 0 0 1 16 0" strokeWidth="2" />
+  </Icon>
+);
+
+export const GiftIcon = ({ className }: IconProps) => (
+  <Icon className={className}>
+    <rect x="3" y="8" width="18" height="5" rx="1.5" strokeWidth="2" />
+    <path
+      d="M5 13v7h14v-7M12 8v12M12 8S10.5 3.5 8 4.2 8.5 8 12 8zm0 0s1.5-4.5 4-3.8S15.5 8 12 8z"
+      strokeWidth="2"
+    />
+  </Icon>
+);
+
+export const HeartIcon = ({ className }: IconProps) => (
+  <Icon className={className}>
+    <path
+      d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7a4.3 4.3 0 0 1 7.5 2.8C19.5 15.4 12 20 12 20z"
+      strokeWidth="2"
+    />
+  </Icon>
+);
+
+export const ReviewIcon = ({ className }: IconProps) => (
+  <Icon className={className}>
+    <path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" strokeWidth="2" />
+  </Icon>
+);
+
 /** Icônes des packs, du plus simple au plus complet. */
 export const PLAN_ICONS = [
   ({ className }: IconProps) => (

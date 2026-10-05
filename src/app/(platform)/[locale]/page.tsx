@@ -5,11 +5,17 @@ import { PlatformFooter } from "@/components/layout/PlatformFooter";
 import { PlatformHeader } from "@/components/layout/PlatformHeader";
 import {
   ArrowIcon,
+  BellIcon,
   BrowserIcon,
   CalendarCheckIcon,
+  CardIcon,
   CheckIcon,
   EuroIcon,
+  GiftIcon,
+  HeartIcon,
   PlusIcon,
+  ReviewIcon,
+  UserIcon,
 } from "@/components/marketing/icons";
 import { HeroVisual } from "@/components/marketing/HeroVisual";
 import { PlanCards } from "@/components/marketing/PlanCards";
@@ -79,6 +85,22 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
       .replace("{commission}", t("faq.commission", { percent }))
       .replace(/\{plan:(\w+)\}/g, (_, feature: string) => planWith(feature));
   const contact = config.SUPPORT_EMAIL ?? `support@${config.MAIN_DOMAIN}`;
+  // Fonctions présentées : l'étiquette dit à partir de quel pack (lu dans la configuration).
+  const features = [
+    { key: "reminders", Icon: BellIcon, feature: null },
+    { key: "deposit", Icon: CardIcon, feature: "onlinePayment" },
+    { key: "customerSpace", Icon: UserIcon, feature: "customerSpace" },
+    { key: "giftCards", Icon: GiftIcon, feature: "giftCards" },
+    { key: "loyalty", Icon: HeartIcon, feature: "loyalty" },
+    { key: "reviews", Icon: ReviewIcon, feature: "googleReviews" },
+  ] as const;
+  const featureTag = (feature: string | null) => {
+    const plan = feature ? data.plans.find((item) => item.features[feature]) : data.plans[0];
+    if (!plan) return null;
+    return plan.priceCents <= 0
+      ? t("features.tagAll")
+      : t("features.tagFrom", { plan: pickLocalized(plan.name, locale) });
+  };
   const steps = [
     { key: "create", Icon: BrowserIcon, accent: false },
     { key: "book", Icon: CalendarCheckIcon, accent: true },
@@ -126,15 +148,19 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
 
         {/* Métiers */}
         <section aria-labelledby="titre-metiers" className="mx-auto max-w-[75rem] px-4 pb-14 sm:px-6">
-          <div className="flex flex-wrap items-center gap-3">
-            <h2 id="titre-metiers" className="mr-2 font-sans text-[1.05rem] font-semibold text-night">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-3 lg:flex-nowrap">
+            <h2
+              id="titre-metiers"
+              className="mr-1 shrink-0 font-sans text-[1.05rem] font-semibold text-night"
+            >
               {t("madeFor.title")}
             </h2>
-            <ul className="contents">
+            {/* Sur téléphone, les métiers défilent sur une seule ligne. */}
+            <ul className="-mx-4 flex w-[calc(100%+2rem)] gap-2.5 overflow-x-auto px-4 py-1 sm:mx-0 sm:w-auto sm:flex-wrap sm:overflow-visible sm:px-0 lg:flex-nowrap">
               {(t.raw("madeFor.items") as string[]).map((item) => (
                 <li
                   key={item}
-                  className="rounded-full border-[1.5px] border-line bg-white px-[1.1rem] py-2 transition hover:-translate-y-[3px] hover:border-coral"
+                  className="shrink-0 whitespace-nowrap rounded-full border-[1.5px] border-line bg-white px-4 py-2 transition hover:-translate-y-[3px] hover:border-coral"
                 >
                   {item}
                 </li>
@@ -200,6 +226,46 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               ))}
             </ol>
           </div>
+        </section>
+
+        {/* Fonctions incluses */}
+        <section
+          id="fonctions"
+          aria-labelledby="titre-fonctions"
+          className="mx-auto max-w-[75rem] scroll-mt-4 px-4 pt-[5.5rem] sm:px-6"
+        >
+          <div className="mb-12 flex flex-wrap items-end justify-between gap-6">
+            <div>
+              <p className={`${BADGE} mb-5`}>{t("features.badge")}</p>
+              <h2 id="titre-fonctions" className={`${TITLE} text-[2.5rem] leading-none sm:text-[3.2rem]`}>
+                {t("features.title")} <span className="text-brick">{t("features.titleAccent")}</span>
+              </h2>
+            </div>
+            <p className="max-w-sm text-[1.15rem]">{t("features.intro")}</p>
+          </div>
+          <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {features.map(({ key, Icon, feature }) => {
+              const tag = featureTag(feature);
+              if (!tag) return null;
+              return (
+                <li
+                  key={key}
+                  className="flex flex-col gap-3 rounded-[1.75rem] border-2 border-line bg-white p-7 transition duration-200 hover:-translate-y-2 hover:border-coral hover:shadow-[0_22px_44px_rgba(22,24,29,.08)]"
+                >
+                  <span className="flex size-[3.2rem] items-center justify-center rounded-[1rem] bg-blush text-brick">
+                    <Icon className="size-[26px]" />
+                  </span>
+                  <h3 className="mt-1 font-sans text-[1.3rem] font-semibold text-night">
+                    {t(`features.items.${key}.title`)}
+                  </h3>
+                  <p className="flex-1">{t(`features.items.${key}.text`)}</p>
+                  <p className="self-start rounded-full bg-sand px-3 py-1 text-[0.85rem] font-semibold text-stone">
+                    {tag}
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
         </section>
 
         {/* Packs */}
@@ -279,9 +345,8 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             />
             <div aria-hidden="true" className="absolute -bottom-12 -right-12 size-44 rounded-full bg-navy" />
             <div className="relative">
-              <h2 className="mb-4 font-display text-[2.5rem] font-bold leading-none tracking-[-0.03em] text-white sm:text-[3.2rem]">
-                {t("final.title")}
-                <br />
+              <h2 className="hn-balance mb-4 font-display text-[2rem] font-bold leading-[1.05] tracking-[-0.03em] text-white sm:text-[3.2rem] sm:leading-none">
+                {t("final.title")} <br className="hidden sm:block" />
                 {t("final.titleEnd")}
               </h2>
               <p className="mx-auto mb-9 max-w-[34rem] text-[1.2rem] text-white">{t("final.text")}</p>

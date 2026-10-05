@@ -45,6 +45,7 @@
   "home": {
     "nav": {
       "how": "Comment ça marche",
+      "features": "Fonctions",
       "pricing": "Tarifs",
       "questions": "Questions"
     },
@@ -109,6 +110,40 @@
         "title": "Vous encaissez",
         "text": "Acompte, paiement complet ou règlement sur place : vous choisissez. L'argent arrive directement sur votre compte.",
         "tag": "{percent, plural, =0 {Sans commission} other {Commission de # %}}"
+      }
+    },
+    "features": {
+      "badge": "Fonctions",
+      "title": "Tout est inclus,",
+      "titleAccent": "rien à brancher.",
+      "intro": "Les outils dont vous avez besoin au quotidien, déjà prêts sur votre site.",
+      "tagAll": "Tous les packs",
+      "tagFrom": "Dès le pack {plan}",
+      "items": {
+        "reminders": {
+          "title": "Rappels automatiques",
+          "text": "Vos clients reçoivent un rappel la veille : moins d'oublis, moins de rendez-vous manqués."
+        },
+        "deposit": {
+          "title": "Acompte en ligne",
+          "text": "Un acompte à la réservation, versé directement sur votre compte. Fini les absences sans prévenir."
+        },
+        "customerSpace": {
+          "title": "Espace client",
+          "text": "Vos clients retrouvent leurs rendez-vous et reprennent la même prestation en un clic, sans mot de passe."
+        },
+        "giftCards": {
+          "title": "Cartes cadeaux",
+          "text": "Vendues en ligne, envoyées par e-mail, utilisables en plusieurs fois."
+        },
+        "loyalty": {
+          "title": "Carte de fidélité",
+          "text": "Un avantage offert au bout de quelques visites : vos clients reviennent plus souvent."
+        },
+        "reviews": {
+          "title": "Avis Google",
+          "text": "Vos meilleurs avis Google affichés sur votre site, mis à jour automatiquement."
+        }
       }
     },
     "plans": {
