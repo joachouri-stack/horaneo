@@ -7,6 +7,7 @@ import { resolveLocale } from "@/i18n/translator";
 import { adminQuery } from "@/lib/admin/mutation";
 import { requireAdmin } from "@/lib/auth/session";
 import { formatDate } from "@/lib/format";
+import { pickLocalized } from "@/i18n/locales";
 import { listAllRequests, monthlyRequestCounts, REQUEST_STATUSES } from "@/modules/requests/update-requests";
 import { setRequestStatusAction } from "./actions";
 
@@ -64,7 +65,15 @@ export default async function RequestsAdminPage({
                   {request.tenantName}
                 </Link>
                 <span className="text-sm text-ink/60">
-                  {t("thisMonth", { count: counts.get(request.tenantId) ?? 0 })}
+                  {t("planUpdates", {
+                    plan: pickLocalized(request.planName, locale),
+                    rule: request.planFeatures.onDemandUpdates
+                      ? "onDemand"
+                      : request.planFeatures.monthlyUpdate
+                        ? "monthly"
+                        : "none",
+                  })}{" "}
+                  · {t("thisMonth", { count: counts.get(request.tenantId) ?? 0 })}
                 </span>
               </div>
               <p className="mt-2 font-semibold">{request.subject}</p>

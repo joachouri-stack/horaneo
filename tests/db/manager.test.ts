@@ -11,7 +11,7 @@ import {
   setAttendance,
 } from "@/modules/agenda/actions";
 import { dayRange, listAgenda, todaySummary } from "@/modules/agenda/queries";
-import { getSlotsForRange, loadBookingContext } from "@/modules/booking/availability";
+import { getSlotsForRange, loadBookingContext, onlineStaff } from "@/modules/booking/availability";
 import { createBooking } from "@/modules/booking/create";
 import { updateBookingSettings } from "@/modules/booking/settings";
 import { localToUtc } from "@/modules/booking/time";
@@ -30,7 +30,7 @@ import { monthStats } from "@/modules/stats/month";
 import { replaceStaffSchedules } from "@/modules/team/schedules";
 import { deleteStaff, saveStaff } from "@/modules/team/staff";
 import { createTenant } from "@/modules/tenants/create";
-import { changeStatus } from "@/modules/tenants/update";
+import { changePlan, changeStatus } from "@/modules/tenants/update";
 import { resolveManagerRole } from "@/lib/manager/role";
 import { hasTestDatabase, openAppDb, openTestDb, type TestDb } from "../setup/db";
 
@@ -271,6 +271,14 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
           asManager(s.id, (tx) => saveStaff(tx, s.id, { name: "Léa", isActive: true }, s.lea.id)),
         ),
       ).toBe("quota_reached");
+    });
+
+    it("après un passage à un pack inférieur, seuls les premiers membres sont proposés en ligne", async () => {
+      const s = await setup();
+      await platform((tx) => changePlan(tx, s.id, "basic"));
+      const context = await asManager(s.id, (tx) => loadBookingContext(tx, s.id));
+      expect(context.staff.map((member) => member.name)).toEqual(["Léa", "Inès"]);
+      expect(onlineStaff(context).map((member) => member.name)).toEqual(["Léa"]);
     });
 
     it("les réservations en ligne sont comptées même sans limite", async () => {

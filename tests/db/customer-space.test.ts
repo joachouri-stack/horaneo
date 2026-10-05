@@ -247,6 +247,21 @@ describe.skipIf(!hasTestDatabase)("espace des clientes", () => {
       ).toEqual([]);
     });
 
+    it("pas plus de 3 codes SMS par jour pour un même numéro (quota de SMS protégé)", async () => {
+      const phone = { channel: "sms" as const, identifier: "+33611111111" };
+      const issue = (hoursLater: number) =>
+        asBusiness(laila.id, (tx) =>
+          issueLoginCode(tx, tenantId, phone, {
+            businessId: laila.id,
+            locale: "fr",
+            now: new Date(NOW.getTime() + hoursLater * 3_600_000),
+          }),
+        );
+      const results = [await issue(0), await issue(2), await issue(4), await issue(6)];
+      expect(results.map((result) => result.issued)).toEqual([true, true, true, false]);
+      expect((await issue(25)).issued).toBe(true);
+    });
+
     it("le code SMS est refusé après 5 erreurs, même juste ensuite", async () => {
       const phone = { channel: "sms" as const, identifier: "+33612345678" };
       const issued = await asBusiness(laila.id, (tx) =>

@@ -10,7 +10,7 @@ import { SiteImage } from "@/components/site/SiteImage";
 import { customerSession } from "@/lib/site/customer-session";
 import { getSite } from "@/lib/site/load";
 import { contactForBooking } from "@/modules/customer-space/space";
-import { isOnlineQuotaReached, loadBookingContext } from "@/modules/booking/availability";
+import { isOnlineQuotaReached, loadBookingContext, onlineStaff } from "@/modules/booking/availability";
 import { onlinePaymentReady } from "@/modules/payments/deposits";
 import { formatPhone } from "@/modules/phone";
 import { hasUsableGiftCards } from "@/modules/giftcards/giftcards";
@@ -146,10 +146,12 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
     business.id,
   );
   const phone = business.phone ?? site.tenant.phone;
+  // Membres proposés en ligne (limite du pack).
+  const bookableStaff = onlineStaff(context);
 
   const bookable = context.services.filter(
     (service) =>
-      service.isOnlineBookable && context.staff.some((member) => member.serviceIds.includes(service.id)),
+      service.isOnlineBookable && bookableStaff.some((member) => member.serviceIds.includes(service.id)),
   );
 
   if (quotaReached || bookable.length === 0) {
@@ -198,7 +200,7 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
           priceFrom: service.priceFrom,
           categoryName: categoryName(service.categoryId),
         }))}
-        staff={context.staff.map((member) => ({
+        staff={bookableStaff.map((member) => ({
           id: member.id,
           name: member.name,
           serviceIds: member.serviceIds,

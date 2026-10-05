@@ -1,7 +1,7 @@
 import { and, count, desc, eq, gte, inArray } from "drizzle-orm";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
-import { tenants, updateRequests, users } from "@/db/schema";
+import { plans, tenants, updateRequests, users } from "@/db/schema";
 import { AppError } from "@/modules/errors";
 
 /**
@@ -55,10 +55,14 @@ export async function listAllRequests(tx: Transaction, filters: { status?: strin
       resolvedAt: updateRequests.resolvedAt,
       tenantId: updateRequests.tenantId,
       tenantName: tenants.name,
+      // Pack du client : ce qu'il comprend en mises à jour (une par mois, ou à la demande).
+      planName: plans.name,
+      planFeatures: plans.features,
       authorEmail: users.email,
     })
     .from(updateRequests)
     .innerJoin(tenants, eq(tenants.id, updateRequests.tenantId))
+    .innerJoin(plans, eq(plans.id, tenants.planId))
     .leftJoin(users, eq(users.id, updateRequests.createdByUserId))
     .where(
       and(

@@ -35,7 +35,7 @@ const FEATURE_KEYS = [
   "giftCards",
   "loyalty",
   "googleReviews",
-  "emailSupport",
+  // L'assistance par e-mail est offerte à tous les packs : elle n'est pas présentée comme un avantage.
   "whatsappSupport",
 ] as const;
 

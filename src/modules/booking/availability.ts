@@ -111,6 +111,16 @@ export function resolveServices(context: BookingContext, serviceIds: string[], {
   return { services: list, totals: computeTotals(list) };
 }
 
+/**
+ * Membres proposés à la réservation en ligne : pas plus que le pack n'en prévoit
+ * (les premiers de la liste), par exemple après un passage à un pack inférieur.
+ * La gérante, elle, peut toujours noter un rendez-vous avec n'importe quel membre.
+ */
+export function onlineStaff(context: BookingContext) {
+  const limit = context.limits.members;
+  return limit === null || limit === undefined ? context.staff : context.staff.slice(0, Math.max(0, limit));
+}
+
 /** Membres capables de réaliser TOUTES les prestations choisies (décision n° 3). */
 export function eligibleStaff(context: BookingContext, serviceIds: string[], staffId: string | null) {
   return context.staff.filter(
@@ -154,7 +164,11 @@ export async function getSlotsForRange(
   options: RangeOptions,
 ): Promise<Map<string, Slot[]>> {
   const { totals } = resolveServices(context, options.serviceIds, { onlineOnly: options.onlineOnly ?? true });
-  const candidates = eligibleStaff(context, options.serviceIds, options.staffId);
+  const allowed =
+    (options.onlineOnly ?? true) ? new Set(onlineStaff(context).map((member) => member.id)) : null;
+  const candidates = eligibleStaff(context, options.serviceIds, options.staffId).filter(
+    (member) => !allowed || allowed.has(member.id),
+  );
   const result = new Map<string, Slot[]>();
   if (candidates.length === 0) return result;
 

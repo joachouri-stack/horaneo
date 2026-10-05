@@ -21,6 +21,8 @@ export const CUSTOMER_LOGIN = {
   maxCodeAttempts: 5,
   /** Demandes de connexion par adresse (ou numéro) et par heure. */
   maxRequestsPerHour: 5,
+  /** Codes SMS par numéro et par jour : protège le quota de SMS (rappels) du pack. */
+  maxSmsPerDay: 3,
   sessionDays: 30,
 } as const;
 
@@ -105,6 +107,20 @@ export async function issueLoginCode(
       ),
     );
   if (recent >= CUSTOMER_LOGIN.maxRequestsPerHour) return { issued: false as const };
+  if (identity.channel === "sms") {
+    const [{ today }] = await tx
+      .select({ today: sql<number>`count(*)::int` })
+      .from(customerLoginCodes)
+      .where(
+        and(
+          eq(customerLoginCodes.tenantId, tenantId),
+          eq(customerLoginCodes.identifier, identity.identifier),
+          eq(customerLoginCodes.channel, "sms"),
+          gt(customerLoginCodes.createdAt, new Date(now.getTime() - 86_400_000)),
+        ),
+      );
+    if (today >= CUSTOMER_LOGIN.maxSmsPerDay) return { issued: false as const };
+  }
   // Une seule demande valable à la fois : les précédentes ne servent plus.
   await tx
     .update(customerLoginCodes)
@@ -219,7 +235,12 @@ export async function signInWithCode(
 }
 
 /** Session d'une cliente (cookie) : null si inconnue, expirée ou fermée. */
-export async function readSession(tx: Transaction, tenantId: string, token: string | undefined, now = new Date()) {
+export async function readSession(
+  tx: Transaction,
+  tenantId: string,
+  token: string | undefined,
+  now = new Date(),
+) {
   if (!token || token.length > 100) return null;
   const [session] = await tx
     .select()
@@ -231,7 +252,12 @@ export async function readSession(tx: Transaction, tenantId: string, token: stri
   };
 }
 
-export async function closeSession(tx: Transaction, tenantId: string, token: string | undefined, now = new Date()) {
+export async function closeSession(
+  tx: Transaction,
+  tenantId: string,
+  token: string | undefined,
+  now = new Date(),
+) {
   if (!token) return;
   await tx
     .update(customerSessions)
