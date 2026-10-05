@@ -27,15 +27,9 @@ export const PAGE_TEXT_FIELDS = {
   home: [
     "tagline",
     "intro",
-    // Modèle Atelier : fin du titre en italique, petite étiquette au-dessus, chiffres clés.
+    // Modèle Atelier : fin du titre en italique, petite étiquette au-dessus.
     "taglineAccent",
     "badge",
-    "highlight1Value",
-    "highlight1Label",
-    "highlight2Value",
-    "highlight2Label",
-    "highlight3Value",
-    "highlight3Label",
   ],
   about: ["title", "body"],
   team: ["intro"],

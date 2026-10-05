@@ -30,7 +30,14 @@ export const MA_BEAUTE_HOURS = [
 ];
 
 type Item = readonly [name: string, minutes: number, price: string, online?: boolean];
-type Category = { name: string; icon: CategoryIcon; description?: string; featured?: boolean; items: Item[] };
+type Category = {
+  name: string;
+  icon: CategoryIcon;
+  description?: string;
+  featured?: boolean;
+  inMenu?: boolean;
+  items: Item[];
+};
 
 const LAILA_CATALOG: Category[] = [
   {
@@ -60,6 +67,7 @@ const LAILA_CATALOG: Category[] = [
   {
     name: "Formations",
     icon: "graduation",
+    inMenu: true,
     description: "Formations professionnelles certifiées Qualiopi.",
     items: [["Réhaussement de cils et browlift (formation, 1 journée)", 420, "900", false]],
   },
@@ -126,10 +134,6 @@ export async function fillMaBeaute(tx: Transaction, tenantId: string, options: M
       taglineAccent: "dans un même lieu.",
       intro:
         "Beauté du regard, soins du visage, épilation et massages. Réservez votre moment en ligne, à toute heure.",
-      highlight1Value: "+ 3 ans",
-      highlight1Label: "à votre service",
-      highlight2Value: "Qualiopi",
-      highlight2Label: "Formations certifiées",
     },
     photoAssetId: options.photos?.laila ?? null,
   });
@@ -185,6 +189,7 @@ export async function fillMaBeaute(tx: Transaction, tenantId: string, options: M
         description: category.description,
         icon: category.icon,
         isFeatured: category.featured ?? false,
+        inMenu: category.inMenu ?? false,
       });
       for (const [name, minutes, price, online = true] of category.items) {
         const service = await saveService(tx, id, {

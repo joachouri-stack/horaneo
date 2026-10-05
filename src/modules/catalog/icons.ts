@@ -35,5 +35,6 @@ export function categoryFields(data: FormData) {
     // Formulaire d'ajout rapide (nom seul) : pictogramme et mise en avant inchangés.
     ...(data.has("icon") ? { icon: isCategoryIcon(icon) ? icon : null } : {}),
     ...(data.has("icon") ? { isFeatured: data.get("isFeatured") === "on" } : {}),
+    ...(data.has("icon") ? { inMenu: data.get("inMenu") === "on" } : {}),
   };
 }

@@ -7,7 +7,7 @@ import type { SiteData } from "@/modules/site/data";
 import { siteReviews, visibleSections } from "@/modules/site/data";
 import { openDaysSpan } from "@/modules/site/format";
 import { businessPath, SITE_PATHS } from "@/modules/site/paths";
-import { GoogleReviewCards, ReviewsSummary, Stars } from "../GoogleReviews";
+import { GoogleReviewCards, ReviewsSummary } from "../GoogleReviews";
 import { SiteImage } from "../SiteImage";
 import { CategoryGrid } from "./CategoryGrid";
 import { presentedBusinesses, ProfessionalCards } from "./ProfessionalCards";
@@ -33,23 +33,11 @@ export async function AtelierHome({ site }: { site: Site }) {
   const pageOf = (businessId: string) => site.businesses.find((business) => business.id === businessId)?.slug;
   const presented = presentedBusinesses(site);
 
-  const highlights = [1, 2, 3]
-    .map((n) => ({ value: texts[`highlight${n}Value`], label: texts[`highlight${n}Label`] }))
-    .filter((item) => item.value);
-  if (site.bookingEnabled) highlights.push({ value: t("onlineBooking"), label: t("onlineBookingLabel") });
   // Réservation coupée : « Appeler » ou « Nous écrire » à la place de « Réserver ».
   const cta = siteCta(site);
   const ctaLabel = (bookLabel: string) =>
     cta?.kind === "book" ? bookLabel : cta ? tSite(ctaLabelKey(cta)) : "";
-  // Note Google en tête des chiffres clés (fiche de l'établissement).
   const reviews = siteReviews(site);
-  const tReviews = await getTranslations("site.reviews");
-  const ratingText =
-    reviews?.rating != null
-      ? new Intl.NumberFormat(site.locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(
-          reviews.rating,
-        )
-      : null;
   const giftCards = site.giftCardBusinessIds.length > 0;
   const tGift = await getTranslations("site.giftCard");
   const giftAmounts = [3000, 5000, 10000];
@@ -59,9 +47,9 @@ export async function AtelierHome({ site }: { site: Site }) {
 
   return (
     <main id="contenu" className="overflow-x-clip">
-      {/* ─── Accroche (téléphone : texte, photo, puis chiffres clés ; ordinateur : photo à droite) ─── */}
-      <section className="mx-auto grid max-w-7xl gap-10 px-4 pb-16 pt-10 sm:px-8 lg:grid-cols-[1.05fr_1fr] lg:gap-x-12 lg:pt-16">
-        <div className="lg:col-start-1 lg:row-start-1 lg:self-end">
+      {/* ─── Accroche ─── */}
+      <section className="mx-auto grid max-w-7xl items-center gap-10 px-4 pb-16 pt-10 sm:px-8 lg:grid-cols-[1.05fr_1fr] lg:gap-12 lg:pt-16">
+        <div>
           {texts.badge && (
             <p className="inline-flex items-center gap-2 rounded-full bg-site-card px-3 py-1.5 text-xs font-semibold shadow-sm">
               <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-site-accent" />
@@ -95,7 +83,7 @@ export async function AtelierHome({ site }: { site: Site }) {
         </div>
 
         {home?.photo && (
-          <div className="relative mx-auto w-full max-w-xl pb-10 pl-6 sm:pl-10 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-center">
+          <div className="relative mx-auto w-full max-w-xl pb-10 pl-6 sm:pl-10">
             <div
               className="absolute right-0 top-0 h-[92%] w-[94%] rounded-t-full bg-site-surface"
               aria-hidden="true"
@@ -132,27 +120,6 @@ export async function AtelierHome({ site }: { site: Site }) {
             </p>
           </div>
         )}
-        <dl className="grid max-w-xl self-start lg:col-start-1 grid-cols-2 gap-x-8 gap-y-5 border-t border-site-border pt-6 sm:flex sm:flex-wrap">
-          {reviews && ratingText && (
-            <div>
-              <dt className="flex items-baseline gap-2 font-site-display text-3xl font-medium leading-none">
-                {ratingText}
-                <Stars rating={reviews.rating!} className="text-sm" />
-              </dt>
-              <dd className="mt-1 text-xs text-site-muted">
-                <a href={reviews.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                  {tReviews("short", { count: reviews.total })}
-                </a>
-              </dd>
-            </div>
-          )}
-          {highlights.map((item) => (
-            <div key={item.value}>
-              <dt className="font-site-display text-3xl font-medium leading-none">{item.value}</dt>
-              {item.label && <dd className="mt-1 text-xs text-site-muted">{item.label}</dd>}
-            </div>
-          ))}
-        </dl>
       </section>
 
       {/* ─── Bandeau des soins ─── */}

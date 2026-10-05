@@ -77,6 +77,7 @@ export async function ServicesEditor({
                   options={iconOptions}
                 />
                 <CheckboxField name="isFeatured" label={t("featured")} defaultChecked={category.isFeatured} />
+                <CheckboxField name="inMenu" label={t("inMenu")} defaultChecked={category.inMenu} />
               </ActionForm>
               <ActionForm
                 action={actions.deleteCategory}

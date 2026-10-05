@@ -1,0 +1,1 @@
+ALTER TABLE "service_categories" ADD COLUMN "in_menu" boolean DEFAULT false NOT NULL;

@@ -27,6 +27,7 @@ export const categoryInput = z.object({
   /** Absent : inchangé. */
   icon: z.enum(CATEGORY_ICONS).nullable().optional(),
   isFeatured: z.boolean().optional(),
+  inMenu: z.boolean().optional(),
 });
 
 export async function listCategories(tx: Transaction, tenantId: string) {
@@ -59,6 +60,7 @@ export async function saveCategory(
         description: setLocalized(existing.description, locale, input.description),
         ...(input.icon !== undefined ? { icon: input.icon } : {}),
         ...(input.isFeatured !== undefined ? { isFeatured: input.isFeatured } : {}),
+        ...(input.inMenu !== undefined ? { inMenu: input.inMenu } : {}),
       })
       .where(eq(serviceCategories.id, existing.id))
       .returning();
@@ -77,6 +79,7 @@ export async function saveCategory(
       description: setLocalized({}, locale, input.description),
       icon: input.icon ?? null,
       isFeatured: input.isFeatured ?? false,
+      inMenu: input.inMenu ?? false,
       sortOrder: position,
     })
     .returning();
