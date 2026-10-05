@@ -54,6 +54,9 @@ export async function AtelierHome({ site }: { site: Site }) {
   const tGift = await getTranslations("site.giftCard");
   const giftAmounts = [3000, 5000, 10000];
 
+  const serviceCount = (keep: (category: (typeof site.categories)[number]) => boolean) =>
+    site.categories.filter(keep).reduce((total, category) => total + category.services.length, 0);
+
   return (
     <main id="contenu" className="overflow-x-clip">
       {/* ─── Accroche (téléphone : texte, photo, puis chiffres clés ; ordinateur : photo à droite) ─── */}
@@ -184,10 +187,33 @@ export async function AtelierHome({ site }: { site: Site }) {
             </div>
           </div>
           <CategoryGrid
-            labels={{ all: t("filterAll"), filter: t("servicesIntro"), see: "" }}
+            labels={{
+              all: t("filterAll"),
+              allDetail: t("filterServices", { count: serviceCount(() => true) }),
+              filter: t("filterQuestion"),
+              see: "",
+            }}
             filters={site.businesses
               .filter((business) => site.categories.some((category) => category.businessId === business.id))
-              .map((business) => ({ id: business.id, label: t("filterWith", { name: business.name }) }))}
+              .map((business) => {
+                const count = t("filterServices", {
+                  count: serviceCount((category) => category.businessId === business.id),
+                });
+                return {
+                  id: business.id,
+                  label: business.name,
+                  detail: business.title || count,
+                  count: business.title ? count : undefined,
+                  avatar: business.photo ? (
+                    <SiteImage
+                      image={business.photo}
+                      alt=""
+                      sizes="48px"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : null,
+                };
+              })}
             cards={site.categories.map((category) => {
               const slug = pageOf(category.businessId);
               const bookable = category.services.some((service) => service.isOnlineBookable);

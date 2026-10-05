@@ -99,6 +99,18 @@
   }
 }
 
+/* Cartes des soins qui apparaissent quand on change de professionnelle (modèle Atelier). */
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /*
  * Apparition douce au défilement (modèle Atelier). Seulement si le navigateur
  * sait lier l'animation au défilement et si la personne n'a pas demandé moins
