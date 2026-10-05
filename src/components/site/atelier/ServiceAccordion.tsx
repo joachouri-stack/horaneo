@@ -7,6 +7,7 @@ import { SITE_PATHS } from "@/modules/site/paths";
 import { PriceTag } from "../PriceTag";
 import { ArrowIcon } from "./icons";
 import { Tag } from "./ui";
+import { OpenFromHash } from "./OpenFromHash";
 
 type Site = NonNullable<SiteData>;
 
@@ -51,6 +52,7 @@ export async function ServiceAccordion({
 
   return (
     <div className="space-y-3">
+      <OpenFromHash />
       {groups.map((group, position) => (
         <details
           key={group.id}

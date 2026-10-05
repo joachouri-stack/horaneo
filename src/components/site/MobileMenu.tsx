@@ -45,13 +45,24 @@ export function MobileMenu({
           <ul>
             {links.map((link) => (
               <li key={link.href}>
-                <Link
-                  href={link.href}
-                  onClick={() => setOpen(false)}
-                  className="block border-b border-site-border py-3 text-lg text-site-text"
-                >
-                  {link.label}
-                </Link>
+                {/* Lien vers une catégorie (#…) : lien classique, pour que la page s'ouvre sur elle. */}
+                {link.href.includes("#") ? (
+                  <a
+                    href={link.href}
+                    onClick={() => setOpen(false)}
+                    className="block border-b border-site-border py-3 text-lg text-site-text"
+                  >
+                    {link.label}
+                  </a>
+                ) : (
+                  <Link
+                    href={link.href}
+                    onClick={() => setOpen(false)}
+                    className="block border-b border-site-border py-3 text-lg text-site-text"
+                  >
+                    {link.label}
+                  </Link>
+                )}
               </li>
             ))}
           </ul>
