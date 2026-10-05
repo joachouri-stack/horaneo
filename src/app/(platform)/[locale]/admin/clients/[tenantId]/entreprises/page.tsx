@@ -1,13 +1,19 @@
 import { getTranslations } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
-import { Hidden, Section, SelectField, TextArea, TextField } from "@/components/admin/fields";
+import { CheckboxField, Hidden, Section, SelectField, TextArea, TextField } from "@/components/admin/fields";
 import { pickLocalized } from "@/i18n/locales";
 import { adminQuery } from "@/lib/admin/mutation";
 import { listActiveAssets } from "@/modules/media/assets";
 import { Link } from "@/i18n/navigation";
 import { loadTenantOverview } from "@/lib/admin/tenant";
 import { connectState } from "@/modules/payments/connect";
-import { createBusinessAction, updateBusinessAction, updateBusinessProfileAction } from "../../actions";
+import {
+  createBusinessAction,
+  setOnlineBookingAdminAction,
+  updateBusinessAction,
+  updateBusinessProfileAction,
+} from "../../actions";
+import { onlineBookingByBusiness } from "@/modules/booking/settings";
 
 /** Entreprises d'un site : identité légale, gérante, compte Stripe ; ajout d'une entreprise. */
 export default async function BusinessesPage({
@@ -20,7 +26,10 @@ export default async function BusinessesPage({
     getTranslations("common"),
     loadTenantOverview(tenantId),
   ]);
-  const photos = await adminQuery((tx) => listActiveAssets(tx, tenantId));
+  const [photos, booking] = await Promise.all([
+    adminQuery((tx) => listActiveAssets(tx, tenantId)),
+    adminQuery((tx) => onlineBookingByBusiness(tx, tenantId)),
+  ]);
   const locale = overview.tenant.defaultLocale as "fr";
   const photoOptions = [
     { value: "", label: t("noPhoto") },
@@ -96,6 +105,22 @@ export default async function BusinessesPage({
               <Hidden values={{ tenantId, businessId: business.id }} />
               {fields(business)}
             </ActionForm>
+            <div className="mt-6 border-t border-navy/10 pt-6">
+              <h3 className="text-lg font-bold">{t("onlineBooking")}</h3>
+              <ActionForm
+                action={setOnlineBookingAdminAction}
+                submitLabel={tCommon("save")}
+                className="mt-2 space-y-2"
+              >
+                <Hidden values={{ tenantId, businessId: business.id }} />
+                <CheckboxField
+                  name="onlineBookingEnabled"
+                  label={t("onlineBookingEnabled")}
+                  defaultChecked={booking.get(business.id) ?? true}
+                />
+                <p className="text-sm text-ink/70">{t("onlineBookingHint")}</p>
+              </ActionForm>
+            </div>
             <div className="mt-6 border-t border-navy/10 pt-6">
               <h3 className="text-lg font-bold">{t("profile")}</h3>
               <p className="mb-4 text-sm text-ink/70">{t("profileHint")}</p>

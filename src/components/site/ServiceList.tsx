@@ -34,7 +34,7 @@ async function ServiceRow({ service, locale }: { service: SiteService; locale: s
           </span>
         </p>
       </div>
-      {service.isOnlineBookable && (
+      {service.bookOnline && (
         <BookButton
           label={t("book")}
           ariaLabel={t("bookService", { service: service.name })}

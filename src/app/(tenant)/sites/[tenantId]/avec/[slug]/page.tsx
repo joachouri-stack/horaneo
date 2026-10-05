@@ -1,3 +1,4 @@
+import { ctaLabelKey, siteCta } from "@/modules/site/cta";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -9,7 +10,7 @@ import { GoogleReviewCards, ReviewsSummary } from "@/components/site/GoogleRevie
 import { SiteImage } from "@/components/site/SiteImage";
 import { getSite } from "@/lib/site/load";
 import { formatPhone } from "@/modules/phone";
-import { businessPath, SITE_PATHS } from "@/modules/site/paths";
+import { businessPath } from "@/modules/site/paths";
 
 async function load(params: PageProps<"/sites/[tenantId]/avec/[slug]">["params"]) {
   const { tenantId, slug } = await params;
@@ -38,7 +39,8 @@ export default async function BusinessPage({ params }: PageProps<"/sites/[tenant
   const t = await getTranslations("site.atelier");
   // Sa propre fiche Google (site à plusieurs entreprises) : ses avis sur sa page.
   const ownReviews = site.reviews.find((item) => item.businessId === business.id) ?? null;
-  const bookHref = `${SITE_PATHS.booking}?avec=${business.id}`;
+  const cta = siteCta(site, { businessId: business.id });
+  const tSite = await getTranslations("site");
   const cardFirst = index % 2 === 0;
 
   const card = (
@@ -72,9 +74,11 @@ export default async function BusinessPage({ params }: PageProps<"/sites/[tenant
             </li>
           )}
         </ul>
-        <PillLink href={bookHref} size="lg" className="mt-6 w-full">
-          {t("bookWith", { name: business.name })}
-        </PillLink>
+        {cta && (
+          <PillLink href={cta.href} size="lg" className="mt-6 w-full">
+            {cta.kind === "book" ? t("bookWith", { name: business.name }) : tSite(ctaLabelKey(cta))}
+          </PillLink>
+        )}
       </div>
     </aside>
   );

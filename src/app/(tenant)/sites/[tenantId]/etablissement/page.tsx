@@ -1,3 +1,4 @@
+import { ctaLabelKey, siteCta } from "@/modules/site/cta";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { PageTitle, Prose, TeamGrid } from "@/components/site/blocks";
@@ -33,6 +34,7 @@ export default async function AboutPage({ params }: PageProps<"/sites/[tenantId]
   if (isAtelier(site)) {
     const tAtelier = await getTranslations("site.atelier");
     const tSite = await getTranslations("site");
+    const cta = siteCta(site);
     const presented = presentedBusinesses(site);
     const extra = site.gallery.find((photo) => photo.key !== page?.photo?.key) ?? null;
     return (
@@ -45,9 +47,11 @@ export default async function AboutPage({ params }: PageProps<"/sites/[tenantId]
                 {page.texts.body}
               </p>
             )}
-            <PillLink href={SITE_PATHS.booking} size="lg" className="mt-8">
-              {tAtelier("takeAppointment")}
-            </PillLink>
+            {cta && (
+              <PillLink href={cta.href} size="lg" className="mt-8">
+                {cta.kind === "book" ? tAtelier("takeAppointment") : tSite(ctaLabelKey(cta))}
+              </PillLink>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-4">
             {page?.photo && (

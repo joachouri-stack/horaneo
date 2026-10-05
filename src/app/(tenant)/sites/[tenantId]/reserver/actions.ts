@@ -73,6 +73,8 @@ export async function getAvailabilityAction(
         context = managed.context;
         excludeAppointmentId = managed.appointment.id;
         serviceIds = managed.items.map((item) => item.serviceId).filter((id): id is string => Boolean(id));
+      } else if (!context.settings.onlineBookingEnabled) {
+        throw new AppError("booking_closed");
       } else if (await isOnlineQuotaReached(tx, context, now)) {
         throw new AppError("booking_quota_reached");
       }

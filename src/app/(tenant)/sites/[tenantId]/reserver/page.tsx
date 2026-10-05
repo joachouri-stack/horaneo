@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { BookingFlow } from "@/components/booking/BookingFlow";
 import { PageTitle } from "@/components/site/blocks";
@@ -33,18 +34,19 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
 
   // Site à plusieurs entreprises : la cliente choisit d'abord avec qui elle réserve
   // (ou l'entreprise découle de la prestation choisie sur le site).
+  // Seules les entreprises qui prennent des rendez-vous en ligne sont proposées.
+  const open = site.businesses.filter((item) => item.bookingEnabled);
+  if (open.length === 0) redirect(SITE_PATHS.home);
   const requestedService = site.services.find((service) => service.id === query.prestation);
   const business =
-    site.businesses.length === 1
-      ? site.businesses[0]
-      : site.businesses.find(
-          (item) => item.id === (requestedService ? requestedService.businessId : query.avec),
-        );
-  const multi = site.businesses.length > 1;
+    open.length === 1
+      ? open[0]
+      : open.find((item) => item.id === (requestedService ? requestedService.businessId : query.avec));
+  const multi = open.length > 1;
   if (!business) {
     // Nombre d'étapes affiché : « Avec qui ? », puis le parcours (avec l'acompte si l'une le demande).
     const contexts = await Promise.all(
-      site.businesses.map((item) =>
+      open.map((item) =>
         withTenant(tenantId, (tx) => loadBookingContext(tx, tenantId), undefined, item.id).catch(() => null),
       ),
     );
@@ -73,7 +75,7 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
             <legend className="mb-4 font-site-display text-3xl font-semibold text-site-heading">
               {t("business.title")}
             </legend>
-            {site.businesses.map((item, index) => {
+            {open.map((item, index) => {
               const team = site.staff.filter((member) => member.businessId === item.id);
               const detail =
                 item.role ||

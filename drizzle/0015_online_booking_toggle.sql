@@ -1,0 +1,1 @@
+ALTER TABLE "business_settings" ADD COLUMN "online_booking_enabled" boolean DEFAULT true NOT NULL;

@@ -25,7 +25,7 @@ import {
   updateInternalNote,
 } from "@/modules/agenda/actions";
 import { getSlotsForRange, loadBookingContext } from "@/modules/booking/availability";
-import { updateBookingSettings } from "@/modules/booking/settings";
+import { setOnlineBooking, updateBookingSettings } from "@/modules/booking/settings";
 import { DATE_PATTERN, localToUtc } from "@/modules/booking/time";
 import { deleteCategory, deleteService, saveCategory, saveService } from "@/modules/catalog/services";
 import { deleteTestimonial, saveTestimonial } from "@/modules/content/testimonials";
@@ -397,6 +397,13 @@ export async function updateSettingsAction(_previous: Previous, data: FormData) 
       dailySummaryEnabled: form.bool(data, "dailySummaryEnabled"),
       monthlySummaryEnabled: form.bool(data, "monthlySummaryEnabled"),
     } as never),
+  );
+}
+
+export async function setOnlineBookingAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "settings.online_booking", (tx) =>
+    setOnlineBooking(tx, tenantId, form.bool(data, "onlineBookingEnabled")),
   );
 }
 

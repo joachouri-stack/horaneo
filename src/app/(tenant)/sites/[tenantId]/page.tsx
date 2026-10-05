@@ -8,6 +8,7 @@ import { ServiceList } from "@/components/site/ServiceList";
 import { SiteImage } from "@/components/site/SiteImage";
 import { getSite } from "@/lib/site/load";
 import { visibleSections } from "@/modules/site/data";
+import { ctaLabelKey, siteCta } from "@/modules/site/cta";
 import { SITE_PATHS } from "@/modules/site/paths";
 
 /**
@@ -21,6 +22,7 @@ export default async function TenantHomePage({ params }: PageProps<"/sites/[tena
   const home = site.pages.home;
   const cover = home?.photo ?? null;
   const sections = visibleSections(site);
+  const cta = siteCta(site);
   if (site.tenant.templateKey === "atelier" && site.features.fullSite) return <AtelierHome site={site} />;
 
   const hero = (
@@ -47,7 +49,7 @@ export default async function TenantHomePage({ params }: PageProps<"/sites/[tena
             </p>
           )}
           <div className="mt-8 flex flex-wrap gap-3">
-            <BookButton label={t("book")} size="lg" />
+            {cta && <BookButton href={cta.href} label={t(ctaLabelKey(cta))} size="lg" />}
             {site.features.fullSite && sections.services && (
               <Link
                 href={SITE_PATHS.services}

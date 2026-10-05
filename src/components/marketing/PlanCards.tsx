@@ -2,8 +2,14 @@ import { getTranslations } from "next-intl/server";
 import type { PlanFeatures, PlanLimits } from "@/db/schema";
 import { Link } from "@/i18n/navigation";
 import { pickLocalized, type Locale, type LocalizedText } from "@/i18n/locales";
-import { planItems, planTiles, type ShowcaseItem, type ShowcaseTile } from "@/modules/billing/showcase";
-import { ArrowIcon, CheckIcon, DashIcon, PLAN_ICONS, StarIcon } from "./icons";
+import {
+  bookingOptional,
+  planItems,
+  planTiles,
+  type ShowcaseItem,
+  type ShowcaseTile,
+} from "@/modules/billing/showcase";
+import { ArrowIcon, CheckIcon, DashIcon, PLAN_ICONS, SparkleIcon, StarIcon } from "./icons";
 
 type Plan = {
   id: string;
@@ -49,7 +55,9 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
   const itemText = (item: ShowcaseItem) =>
     item.kind === "everythingIn"
       ? t("items.everythingIn", { plan: pickLocalized(plans[item.planIndex].name, locale) })
-      : t(`items.${item.key}`, item.kind === "included" ? item.values : undefined);
+      : item.kind === "soon"
+        ? t(`soon.${item.key}`)
+        : t(`items.${item.key}`, item.kind === "included" ? item.values : undefined);
 
   return (
     <div className="grid items-center gap-6 lg:grid-cols-3">
@@ -105,16 +113,25 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
                 )}
               </div>
             </div>
-            <p
-              className={`relative font-display text-[3.6rem] font-bold leading-none tracking-[-0.03em] ${featured ? "text-white" : "text-night"}`}
-            >
-              {money(plan.priceCents)}{" "}
-              <span
-                className={`font-sans text-base font-normal tracking-normal ${featured ? "text-[#c9d0de]" : "text-stone"}`}
+            <div className="relative">
+              <p
+                className={`font-display text-[3.6rem] font-bold leading-none tracking-[-0.03em] ${featured ? "text-white" : "text-night"}`}
               >
-                {plan.priceCents > 0 ? t("perMonthShort") : t("freeForever")}
-              </span>
-            </p>
+                {money(plan.priceCents)}{" "}
+                <span
+                  className={`font-sans text-base font-normal tracking-normal ${featured ? "text-[#c9d0de]" : "text-stone"}`}
+                >
+                  {plan.priceCents > 0 ? t("perMonthShort") : t("freeForever")}
+                </span>
+              </p>
+              {bookingOptional(plan) && (
+                <p
+                  className={`hn-balance mt-2.5 text-[0.9rem] leading-snug ${featured ? "text-[#c9d0de]" : "text-stone"}`}
+                >
+                  {t("bookingOptional")}
+                </p>
+              )}
+            </div>
             <dl className="relative grid grid-cols-3 gap-2">
               {planTiles(plan).map((item) => {
                 const { value, label } = tile(item);
@@ -151,20 +168,25 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
             >
               {items.map((item, itemIndex) => {
                 const missing = item.kind === "missing";
+                const soon = item.kind === "soon";
                 return (
                   <li
                     key={itemIndex}
-                    className={`flex gap-2.5 ${missing ? (featured ? "text-[#c9d0de]" : "text-stone") : ""}`}
+                    className={`flex gap-2.5 ${missing || soon ? (featured ? "text-[#c9d0de]" : "text-stone") : ""} ${soon ? "italic" : ""}`}
                   >
                     {missing ? (
                       <DashIcon className="mt-[3px] size-5 flex-none text-[#b5afa4]" />
+                    ) : soon ? (
+                      <SparkleIcon
+                        className={`mt-[3px] size-5 flex-none ${featured ? "text-salmon" : "text-brick"}`}
+                      />
                     ) : (
                       <CheckIcon
                         className={`mt-[3px] size-5 flex-none ${featured ? "text-salmon" : "text-brick"}`}
                       />
                     )}
                     <span>
-                      <span className="sr-only">{missing ? t("missing") : t("included")} </span>
+                      {!soon && <span className="sr-only">{missing ? t("missing") : t("included")} </span>}
                       {itemText(item)}
                     </span>
                   </li>

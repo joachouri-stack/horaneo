@@ -99,7 +99,7 @@ export async function ServiceAccordion({
                       wasLabel={was ? tOffers("was", { price: was }) : undefined}
                     />
                   </span>
-                  {service.isOnlineBookable ? (
+                  {service.bookOnline ? (
                     <Link
                       href={`${SITE_PATHS.booking}?prestation=${service.id}`}
                       aria-label={t("bookService", { service: service.name })}
@@ -107,7 +107,7 @@ export async function ServiceAccordion({
                     >
                       <ArrowIcon />
                     </Link>
-                  ) : (
+                  ) : service.isOnlineBookable ? null : (
                     <span className="w-16 shrink-0 text-right text-xs text-site-muted">{t("onRequest")}</span>
                   )}
                 </li>

@@ -12,6 +12,7 @@ import { SiteHeader } from "@/components/site/SiteHeader";
 import { routing } from "@/i18n/routing";
 import { getSite, isPreview } from "@/lib/site/load";
 import { absoluteImageUrl, siteBaseUrl } from "@/lib/site/urls";
+import { siteCta } from "@/modules/site/cta";
 import { localBusinessJsonLd, serializeJsonLd } from "@/modules/site/seo";
 import { buildTheme, themeCssVariables } from "@/modules/site/theme";
 import "../../../globals.css";
@@ -111,7 +112,9 @@ export default async function TenantLayout({ children, params }: LayoutProps<"/s
             children
           )}
           <Footer site={site} />
-          {site.tenant.status !== "suspended" && <MobileBookBar phone={site.tenant.phone} />}
+          {site.tenant.status !== "suspended" && (
+            <MobileBookBar phone={site.tenant.phone} cta={siteCta(site)} />
+          )}
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />
         </NextIntlClientProvider>
       </body>

@@ -1,3 +1,4 @@
+import { ctaLabelKey, siteCta } from "@/modules/site/cta";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import type { SiteData } from "@/modules/site/data";
@@ -51,6 +52,7 @@ export function AtelierBrand({ site, size = "md" }: { site: Site; size?: "md" | 
 
 export async function AtelierHeader({ site, showBook = true }: { site: Site; showBook?: boolean }) {
   const t = await getTranslations("site");
+  const cta = siteCta(site);
   const links = await atelierLinks(site);
   return (
     <header className="sticky top-0 z-30 border-b border-site-border bg-site-bg/95 backdrop-blur">
@@ -72,10 +74,10 @@ export async function AtelierHeader({ site, showBook = true }: { site: Site; sho
           <NavLinks links={links} />
         </nav>
         <div className="flex items-center gap-2">
-          {showBook && (
+          {showBook && cta && (
             <span className="hidden sm:block">
-              <PillLink href={SITE_PATHS.booking} size="sm">
-                {t("book")}
+              <PillLink href={cta.href} size="sm">
+                {t(ctaLabelKey(cta))}
               </PillLink>
             </span>
           )}

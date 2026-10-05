@@ -77,6 +77,7 @@ export const DEFAULT_PLANS: PlanSeed[] = [
       giftCards: false,
       monthlyUpdate: false,
       onDemandUpdates: false,
+      aiMessaging: false,
     },
   },
   {
@@ -102,6 +103,7 @@ export const DEFAULT_PLANS: PlanSeed[] = [
       giftCards: false,
       monthlyUpdate: true,
       onDemandUpdates: false,
+      aiMessaging: false,
     },
   },
   {
@@ -127,6 +129,7 @@ export const DEFAULT_PLANS: PlanSeed[] = [
       giftCards: true,
       monthlyUpdate: false,
       onDemandUpdates: true,
+      aiMessaging: true,
     },
   },
 ];

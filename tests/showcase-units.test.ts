@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_PLANS } from "@/config/defaults";
-import { planItems, planTiles, type ShowcaseItem } from "@/modules/billing/showcase";
+import { bookingOptional, planItems, planTiles, type ShowcaseItem } from "@/modules/billing/showcase";
 
 const label = (item: ShowcaseItem) =>
   item.kind === "everythingIn"
     ? `tout:${item.planIndex}`
-    : `${item.kind === "missing" ? "-" : "+"}${item.key}`;
+    : `${item.kind === "missing" ? "-" : item.kind === "soon" ? "~" : "+"}${item.key}`;
 
 describe("présentation des packs sur le site commercial", () => {
   it("donne les trois chiffres clés de chaque pack", () => {
@@ -48,10 +48,15 @@ describe("présentation des packs sur le site commercial", () => {
       "+onDemandUpdates",
       "+unlimitedPhotos",
       "+statsSummary",
-      "+googleReviews",
       "+whatsappSupport",
       "+giftCards",
+      "+googleReviews",
+      "~aiMessaging",
     ]);
+  });
+
+  it("annonce « avec ou sans réservation » seulement pour les packs avec un vrai site", () => {
+    expect(DEFAULT_PLANS.map(bookingOptional)).toEqual([false, true, true]);
   });
 
   it("suit les réglages de l'admin", () => {
