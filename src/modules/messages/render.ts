@@ -23,6 +23,7 @@ import { pickLocalized, type Locale } from "@/i18n/locales";
 import { getTranslator, resolveLocale } from "@/i18n/translator";
 import { tenantSiteUrl } from "@/lib/tenancy/urls";
 import { manageTokenFor } from "@/modules/booking/create";
+import { loginCodeForMessage } from "@/modules/customer-space/auth";
 import { giftCardCodeFor } from "@/modules/giftcards/giftcards";
 import { addMinutes } from "@/modules/booking/time";
 import { depositSummary } from "@/modules/payments/refunds";
@@ -201,6 +202,8 @@ export async function renderMessage(
   if (!tenant) return { kind: "skip", reason: "no_tenant" };
   if (template === "customer.gift_card" || template === "customer.gift_card_receipt")
     return renderGiftCard(tx, row, template, tenant, options);
+  if (template === "customer.login_link" || template === "customer.login_code")
+    return renderLogin(tx, row, tenant, options);
   if (template.startsWith("manager.")) return renderManager(tx, row, template, tenant, options);
   return renderCustomer(tx, row, template, tenant, options);
 }
@@ -296,6 +299,54 @@ async function renderGiftCard(
   return { kind: "email", to: [to], subject, html, text, fromName: tenant.name, replyTo: tenant.email };
 }
 
+// ─── Connexion à l'espace des clientes ────────────────────────────────────────
+
+/** Lien (e-mail) ou code (SMS) de connexion, au nom de l'établissement. Rien s'il a expiré ou servi. */
+async function renderLogin(
+  tx: Transaction,
+  row: MessageRow,
+  tenant: TenantInfo,
+  options: RenderOptions,
+): Promise<Rendered> {
+  const loginCodeId = (row.data as { loginCodeId?: string }).loginCodeId;
+  const code = loginCodeId ? await loginCodeForMessage(tx, loginCodeId) : null;
+  if (!code || code.usedAt || code.expiresAt <= options.now) return { kind: "skip", reason: "login_expired" };
+  const locale = resolveLocale(row.locale);
+  const t = await getTranslator(locale);
+  const minutes = Math.round((code.expiresAt.getTime() - code.createdAt.getTime()) / 60_000);
+  if (code.channel === "sms") {
+    return {
+      kind: "sms",
+      to: code.identifier,
+      sender: smsSenderName(tenant.name, options.productName),
+      text: t("notifications.customer.login_code.text", { code: code.secret, business: tenant.name, minutes }),
+    };
+  }
+  const siteUrl = tenant.siteUrl ?? options.appUrl;
+  const { html, text } = renderEmail({
+    locale,
+    brandName: tenant.name,
+    color: tenant.color,
+    title: t("notifications.customer.login_link.title"),
+    paragraphs: [t("notifications.customer.login_link.intro", { business: tenant.name })],
+    action: {
+      label: t("notifications.customer.login_link.action"),
+      url: `${siteUrl}${SITE_PATHS.account}/connexion?jeton=${code.secret}`,
+    },
+    after: [t("notifications.customer.login_link.expiry", { minutes }), t("notifications.customer.login_link.ignore")],
+    footer: tenantFooter(tenant),
+  });
+  return {
+    kind: "email",
+    to: [code.identifier],
+    subject: t("notifications.customer.login_link.subject", { business: tenant.name }),
+    html,
+    text,
+    fromName: tenant.name,
+    replyTo: tenant.email,
+  };
+}
+
 // ─── Messages aux clientes ────────────────────────────────────────────────────
 
 async function renderCustomer(
@@ -351,6 +402,10 @@ async function renderCustomer(
     : t("notifications.common.contactEmail");
   const rebook = { label: t("notifications.common.rebook"), url: `${siteUrl}${SITE_PATHS.booking}` };
   const manageAction = { label: t("notifications.common.manage"), url: manageUrl };
+  // Espace des clientes (pack qui l'inclut) : « Retrouvez tous vos rendez-vous sur … ».
+  const spaceLine = tenant.features.customerSpace
+    ? [t("notifications.common.spaceHint", { url: `${siteUrl}${SITE_PATHS.account}` })]
+    : [];
   const refundLine = (cents: number | undefined) =>
     cents && cents > 0 ? [t("notifications.common.refund", { amount: fmt.money(cents, a.currency) })] : [];
 
@@ -366,7 +421,7 @@ async function renderCustomer(
       subject = t("notifications.customer.confirmation.subject", { date: fmt.date(a.startsAt) });
       title = t("notifications.customer.confirmation.title");
       paragraphs = [greeting, t("notifications.customer.confirmation.intro", { business })];
-      after = [await manageHint(tx, t, fmt, info, tenant, options.now)];
+      after = [await manageHint(tx, t, fmt, info, tenant, options.now), ...spaceLine];
       break;
     case "customer.reminder_email":
       subject = t("notifications.customer.reminder_email.subject", {
@@ -375,7 +430,7 @@ async function renderCustomer(
       });
       title = t("notifications.customer.reminder_email.title");
       paragraphs = [greeting, t("notifications.customer.reminder_email.intro", { business })];
-      after = [await manageHint(tx, t, fmt, info, tenant, options.now)];
+      after = [await manageHint(tx, t, fmt, info, tenant, options.now), ...spaceLine];
       break;
     case "customer.cancelled":
       subject = t("notifications.customer.cancelled.subject", { date: fmt.date(a.startsAt) });
@@ -597,6 +652,19 @@ async function renderManager(
       { label: t("notifications.giftCard.validity"), value: fmt.date(found.card.expiresAt) },
     ];
     action = { label: t("notifications.manager.gift_card_sold.open"), url: `${space}/plus/cartes-cadeaux` };
+  } else if (template === "manager.data_request") {
+    const kind = (row.data as { kind?: string }).kind === "deletion" ? "deletion" : "export";
+    const name = (row.data as { customerName?: string }).customerName ?? "";
+    subject = t(`notifications.manager.data_request.subject_${kind}`, { customer: name });
+    title = t(`notifications.manager.data_request.title_${kind}`);
+    paragraphs = [
+      t(`notifications.manager.data_request.intro_${kind}`, { customer: name }),
+      t("notifications.manager.data_request.delay"),
+    ];
+    action = {
+      label: t("notifications.manager.data_request.open"),
+      url: `${space}/plus/donnees-clientes`,
+    };
   } else if (template === "manager.payment_failed") {
     subject = t("notifications.manager.payment_failed.subject");
     title = t("notifications.manager.payment_failed.title");

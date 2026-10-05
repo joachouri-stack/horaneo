@@ -35,6 +35,8 @@ export const customerInput = z.object({
   email: z.email().trim().toLowerCase(),
   phone: z.string().trim().min(6).max(40),
   note: z.string().trim().max(500).optional(),
+  /** Prénom de la personne qui reçoit le soin, si ce n'est pas la cliente qui réserve. */
+  beneficiaryName: z.string().trim().max(80).optional(),
   marketingConsent: z.boolean().default(false),
 });
 
@@ -263,6 +265,7 @@ export async function createBooking(
         promoCodeId: promo?.promoCodeId ?? null,
         locale: input.locale,
         customerNote: input.customer.note || null,
+        beneficiaryName: input.customer.beneficiaryName || null,
       })
       .returning();
   } catch (error) {

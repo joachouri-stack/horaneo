@@ -114,6 +114,7 @@ const bookInput = z.object({
     email: z.string(),
     phone: z.string(),
     note: z.string().optional(),
+    beneficiaryName: z.string().max(80).optional(),
     marketingConsent: z.boolean(),
   }),
   promoCode: z.string().max(30).optional(),

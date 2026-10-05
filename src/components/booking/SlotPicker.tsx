@@ -14,12 +14,25 @@ type Props = {
   onPick: (slot: PickedSlot) => void;
   onError: (error: string) => void;
   selected?: PickedSlot | null;
+  /** Praticienne choisie d'avance (« Reprendre ce soin »). */
+  initialStaffId?: string | null;
 };
 
 /** Choix du membre (ou « sans préférence »), du jour puis de l'heure. */
-export function SlotPicker({ locale, staffOptions, loadDays, onPick, onError, selected }: Props) {
+export function SlotPicker({
+  locale,
+  staffOptions,
+  loadDays,
+  onPick,
+  onError,
+  selected,
+  initialStaffId,
+}: Props) {
   const t = useTranslations("booking.slot");
-  const [staffId, setStaffId] = useState<string | null>(selected?.staffId ?? null);
+  const [staffId, setStaffId] = useState<string | null>(
+    selected?.staffId ??
+      (initialStaffId && staffOptions.some((option) => option.id === initialStaffId) ? initialStaffId : null),
+  );
   const [days, setDays] = useState<DayAvailability[]>([]);
   const [pages, setPages] = useState<string[]>([]);
   const [date, setDate] = useState<string | null>(null);

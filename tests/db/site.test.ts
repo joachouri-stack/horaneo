@@ -176,6 +176,8 @@ describe.skipIf(!hasTestDatabase)("site d'un client : données affichées", () =
       promotions: false,
       googleReviews: false,
       giftCards: false,
+      // Basic : pas d'espace des clientes (le lien de l'e-mail suffit).
+      customerSpace: false,
     });
     expect(site.testimonials).toEqual([]);
     expect(Object.values(visibleSections(site)).every((visible) => !visible)).toBe(true);

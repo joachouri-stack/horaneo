@@ -16,6 +16,8 @@ export const SITE_PATHS = {
   booking: "/reserver",
   /** Gestion d'un rendez-vous par le lien reçu : /rendez-vous/<jeton>. */
   appointment: "/rendez-vous",
+  /** Espace des clientes : leurs rendez-vous, cartes cadeaux et fidélité. */
+  account: "/mes-rendez-vous",
 } as const;
 
 export type SitePathKey = keyof typeof SITE_PATHS;

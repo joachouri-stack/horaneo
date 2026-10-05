@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import type { SiteData } from "@/modules/site/data";
 import { visibleSections } from "@/modules/site/data";
 import { businessPath, SITE_PATHS } from "@/modules/site/paths";
+import { AccountLink, accountMenuLink } from "../AccountLink";
 import { MobileMenu } from "../MobileMenu";
 import { SiteImage } from "../SiteImage";
 import { NavLinks } from "./NavLinks";
@@ -69,6 +70,7 @@ export async function AtelierHeader({ site, showBook = true }: { site: Site; sho
   const t = await getTranslations("site");
   const cta = siteCta(site);
   const links = await atelierLinks(site);
+  const mobileLinks = [...links, ...(await accountMenuLink(site))];
   return (
     <header className="sticky top-0 z-30 border-b border-site-border bg-site-bg/95 backdrop-blur">
       <a
@@ -89,6 +91,7 @@ export async function AtelierHeader({ site, showBook = true }: { site: Site; sho
           <NavLinks links={links} />
         </nav>
         <div className="flex items-center gap-2">
+          <AccountLink site={site} />
           {showBook && cta && (
             <span className="hidden sm:block">
               <PillLink href={cta.href} size="sm">
@@ -96,7 +99,7 @@ export async function AtelierHeader({ site, showBook = true }: { site: Site; sho
               </PillLink>
             </span>
           )}
-          <MobileMenu links={links} hideFrom="lg" />
+          <MobileMenu links={mobileLinks} hideFrom="lg" />
         </div>
       </div>
     </header>

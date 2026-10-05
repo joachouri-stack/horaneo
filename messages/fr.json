@@ -203,6 +203,76 @@
     }
   },
   "site": {
+    "account": {
+      "title": "Mes rendez-vous",
+      "navLink": "Mes rendez-vous",
+      "loginIntro": "Retrouvez vos rendez-vous et vos avantages, sans mot de passe.",
+      "identifierLabel": "Votre e-mail ou votre numéro de téléphone",
+      "identifierHint": "Celui que vous avez donné en réservant.",
+      "send": "Recevoir mon lien de connexion",
+      "sentEmail": "Si cette adresse est connue, un lien de connexion vient de vous être envoyé à {identifier}. Il est valable 15 minutes.",
+      "sentSms": "Si ce numéro est connu, un code vient de vous être envoyé par SMS. Il est valable 10 minutes.",
+      "codeLabel": "Code reçu par SMS",
+      "verify": "Valider",
+      "other": "Utiliser une autre adresse",
+      "checkSpam": "Rien reçu ? Vérifiez vos courriers indésirables, ou réessayez dans quelques minutes.",
+      "optional": "Votre espace est un plus : vous pouvez toujours réserver sans vous connecter.",
+      "linkTitle": "Connexion à votre espace",
+      "linkIntro": "Appuyez sur le bouton pour ouvrir votre espace sur cet appareil.",
+      "linkButton": "Ouvrir mon espace",
+      "linkMissing": "Ce lien est incomplet. Demandez un nouveau lien de connexion.",
+      "askAgain": "Demander un nouveau lien",
+      "hello": "Bonjour {name}",
+      "helloAnonymous": "Bonjour",
+      "logout": "Se déconnecter",
+      "upcoming": "À venir",
+      "noUpcoming": "Aucun rendez-vous à venir.",
+      "book": "Prendre rendez-vous",
+      "when": "{date} à {time}",
+      "with": "avec {name}",
+      "at": "chez {name}",
+      "for": "Pour {name}",
+      "depositPaid": "Acompte payé : {amount}",
+      "manage": "Déplacer ou annuler",
+      "freeUntil": "Modification gratuite jusqu'au {date}",
+      "tooLate": "Pour modifier ce rendez-vous, contactez directement l'établissement.",
+      "history": "Historique",
+      "noHistory": "Vos rendez-vous passés apparaîtront ici.",
+      "rebook": "Reprendre ce soin",
+      "seeServices": "Voir les prestations",
+      "status": {
+        "attended": "Effectué",
+        "no_show": "Manqué",
+        "confirmed": "Passé"
+      },
+      "perks": "Mes avantages",
+      "perksAt": "Mes avantages chez {name}",
+      "loyaltyTitle": "Carte de fidélité",
+      "loyaltyRemaining": "{count, plural, one {Encore # soin} other {Encore # soins}} avant : {reward}",
+      "loyaltyProgress": "{points} sur {required} soins",
+      "rewardReady": "Votre avantage est prêt",
+      "rewardValid": "Valable jusqu'au {date}",
+      "rewardHint": "Signalez-le lors de votre prochain rendez-vous.",
+      "rewardAmount": "{amount} offerts",
+      "giftCards": "Cartes cadeaux",
+      "giftCode": "Code",
+      "giftBalance": "Solde : {amount}",
+      "giftValid": "Valable jusqu'au {date}",
+      "giftUse": "Utiliser pour réserver",
+      "giftReceived": "Reçue",
+      "giftBought": "Achetée",
+      "data": "Mes données",
+      "dataIntro": "Vous pouvez demander une copie de vos données ou leur suppression. La demande est transmise à l'établissement, qui vous répondra.",
+      "dataExport": "Demander une copie",
+      "dataDelete": "Demander la suppression",
+      "dataConfirmDelete": "Envoyer une demande de suppression de vos données ?",
+      "dataSent": "Votre demande a bien été transmise.",
+      "dataPending": "Demande en cours : {kind}",
+      "dataKinds": {
+        "export": "copie de vos données",
+        "deletion": "suppression de vos données"
+      }
+    },
     "suspended": "Ce site est temporairement indisponible. Merci de contacter l'établissement par téléphone.",
     "book": "Réserver",
     "bookService": "Réserver : {service}",
@@ -894,7 +964,9 @@
         "giftCards": "Cartes cadeaux",
         "monthlyUpdate": "Une mise à jour du site par mois",
         "onDemandUpdates": "Mises à jour du site à la demande",
-        "aiMessaging": "Messagerie IA (annoncée « bientôt »)"
+        "aiMessaging": "Messagerie IA (annoncée « bientôt »)",
+        "customerSpace": "Espace des clientes (mes rendez-vous)",
+        "loyalty": "Programme de fidélité"
       },
       "description": "Accroche",
       "descriptionHint": "Affichée sous le nom du pack sur le site commercial."
@@ -1024,7 +1096,11 @@
     "gift_card_used": "Cette carte cadeau a déjà été entièrement utilisée.",
     "gift_card_insufficient": "Le solde de la carte cadeau est insuffisant.",
     "gift_cards_unavailable": "Les cartes cadeaux ne sont pas proposées pour le moment.",
-    "gift_card_amount": "Choisissez un montant entre le minimum et le maximum indiqués."
+    "gift_card_amount": "Choisissez un montant entre le minimum et le maximum indiqués.",
+    "reward_unavailable": "Ce bon a déjà été utilisé ou a expiré.",
+    "login_invalid": "Ce lien ou ce code n'est plus valable. Demandez-en un nouveau.",
+    "sms_unavailable": "La connexion par SMS n'est pas disponible. Saisissez votre adresse e-mail.",
+    "customer_space_unavailable": "Cet espace n'est pas disponible sur ce site."
   },
   "status": {
     "draft": "En création",
@@ -1089,6 +1165,8 @@
       "phone": "Téléphone",
       "phoneHint": "Pour le rappel la veille du rendez-vous.",
       "note": "Un message pour l'établissement ?",
+      "beneficiary": "Ce rendez-vous est pour quelqu'un d'autre ?",
+      "beneficiaryHint": "Indiquez son prénom (facultatif).",
       "marketingConsent": "J'accepte de recevoir des offres de l'établissement par e-mail ou SMS.",
       "privacy": "Vos données servent uniquement à gérer ce rendez-vous.",
       "privacyLink": "En savoir plus",
@@ -1385,7 +1463,9 @@
       "payments": "Paiements en ligne",
       "promo": "Codes promo",
       "promotions": "Promotions",
-      "giftCards": "Cartes cadeaux"
+      "giftCards": "Cartes cadeaux",
+      "loyalty": "Fidélité",
+      "customerData": "Demandes des clientes (données)"
     },
     "stats": {
       "title": "Statistiques",
@@ -1642,6 +1722,56 @@
       "min": "Montant libre minimum (€)",
       "max": "Montant libre maximum (€)",
       "rules": "Règles affichées à l'achat et dans vos conditions de vente : utilisable en plusieurs fois (le solde est conservé), non remboursable, non échangeable contre de l'argent."
+    },
+    "loyalty": {
+      "title": "Programme de fidélité",
+      "intro": "Vos clientes gagnent un point à chaque rendez-vous marqué « venue ». Au nombre de visites choisi, un bon apparaît dans leur espace et sur leur fiche.",
+      "unavailable": "Le programme de fidélité est inclus dans le pack Sérénité.",
+      "enabled": "Activer le programme de fidélité",
+      "visitsRequired": "Nombre de visites pour obtenir l'avantage",
+      "rewardLabel": "Avantage offert (texte libre)",
+      "rewardLabelHint": "Par exemple : « Un soin du visage offert ».",
+      "rewardAmount": "Ou un montant offert (€)",
+      "rewardAmountHint": "Facultatif. Laissez vide si vous avez écrit un avantage.",
+      "validityDays": "Durée de validité du bon (jours)",
+      "card": "Fidélité",
+      "progress": "{points} sur {required} visites",
+      "inactive": "Le programme de fidélité n'est pas activé. Activez-le dans Plus → Fidélité.",
+      "reward": "Bon à utiliser : {label}",
+      "rewardValid": "Valable jusqu'au {date}",
+      "useReward": "Marquer le bon comme utilisé",
+      "useRewardConfirm": "Le bon a bien été utilisé ? Le compteur repartira de zéro.",
+      "adjust": "Ajuster le compteur",
+      "adjustPoints": "Points à ajouter ou retirer (ex. 2 ou -1)",
+      "adjustReason": "Raison (gardée dans l'historique)",
+      "adjustSubmit": "Ajuster",
+      "history": "Derniers mouvements",
+      "kinds": {
+        "visit": "Rendez-vous honoré",
+        "visit_reverted": "Rendez-vous corrigé",
+        "manual_adjustment": "Ajustement",
+        "reward_used": "Bon utilisé ou expiré"
+      }
+    },
+    "customerData": {
+      "title": "Demandes des clientes (données)",
+      "intro": "Depuis leur espace, vos clientes peuvent demander une copie de leurs données ou leur suppression. La loi vous donne un mois pour répondre.",
+      "empty": "Aucune demande pour le moment.",
+      "kinds": {
+        "export": "Copie des données",
+        "deletion": "Suppression des données"
+      },
+      "status": {
+        "new": "À traiter",
+        "done": "Traitée",
+        "rejected": "Refusée"
+      },
+      "received": "Reçue le {date}",
+      "openCustomer": "Voir la fiche",
+      "markDone": "Marquer comme traitée",
+      "markRejected": "Refuser",
+      "howExport": "Pour une copie : envoyez-lui par e-mail ses coordonnées et son historique (visibles sur sa fiche).",
+      "howDeletion": "Pour une suppression : effacez ses coordonnées et notes sur sa fiche. Les rendez-vous passés restent dans votre comptabilité."
     }
   },
   "notifications": {
@@ -1664,6 +1794,7 @@
       "contactEmail": "Une question ? Répondez simplement à cet e-mail.",
       "managerFooter": "Message automatique envoyé par {product}.",
       "openSpace": "Ouvrir mon espace",
+      "spaceHint": "Retrouvez tous vos rendez-vous et vos avantages sur {url}",
       "summaryFooter": "Vous pouvez couper les résumés dans Plus → Réglages."
     },
     "customer": {
@@ -1697,6 +1828,17 @@
         "title": "Votre rendez-vous a changé d'horaire",
         "intro": "{business} a déplacé votre rendez-vous (ancien créneau : {previous}). Voici le nouveau créneau :"
       },
+      "login_link": {
+        "subject": "Votre lien de connexion — {business}",
+        "title": "Accédez à vos rendez-vous",
+        "intro": "Cliquez sur le bouton ci-dessous pour retrouver vos rendez-vous chez {business}.",
+        "action": "Ouvrir mon espace",
+        "expiry": "Ce lien est valable {minutes} minutes et ne sert qu'une fois.",
+        "ignore": "Vous n'avez rien demandé ? Ignorez simplement cet e-mail."
+      },
+      "login_code": {
+        "text": "{code} : votre code pour accéder à vos rendez-vous chez {business}. Valable {minutes} min."
+      },
       "payment_refunded": {
         "subject": "Votre acompte vous est remboursé",
         "title": "Créneau plus disponible",
@@ -1704,6 +1846,16 @@
       }
     },
     "manager": {
+      "data_request": {
+        "subject_export": "Demande d'export des données : {customer}",
+        "subject_deletion": "Demande de suppression des données : {customer}",
+        "title_export": "Une cliente demande ses données",
+        "title_deletion": "Une cliente demande la suppression de ses données",
+        "intro_export": "{customer} demande, depuis son espace, une copie des données que vous avez sur elle.",
+        "intro_deletion": "{customer} demande, depuis son espace, la suppression des données que vous avez sur elle.",
+        "delay": "La loi vous donne un mois pour répondre. Traitez la demande depuis votre espace.",
+        "open": "Voir la demande"
+      },
       "new_booking": {
         "subject": "Nouvelle réservation : {customer}, {when}",
         "title": "Nouvelle réservation",

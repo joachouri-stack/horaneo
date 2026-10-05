@@ -237,6 +237,14 @@ export const businessSettings = pgTable(
       .default(sql`'{3000,5000,10000}'`),
     giftCardMinCents: integer().notNull().default(1000),
     giftCardMaxCents: integer().notNull().default(50000),
+    // Fidélité (pack qui l'inclut) : un point par rendez-vous honoré.
+    loyaltyEnabled: boolean().notNull().default(false),
+    loyaltyVisitsRequired: smallint().notNull().default(10),
+    /** Avantage offert, en texte libre (ex. « Un soin du visage offert »). */
+    loyaltyRewardLabel: text(),
+    /** Ou un montant offert, en centimes. */
+    loyaltyRewardCents: integer(),
+    loyaltyRewardValidityDays: smallint().notNull().default(90),
     ...timestamps(),
   },
   (t) => [
@@ -250,6 +258,12 @@ export const businessSettings = pgTable(
     check("tenant_settings_deposit_percent", sql`${t.depositType} <> 'percent' or ${t.depositValue} <= 100`),
     check("tenant_settings_hold", sql`${t.holdMinutes} between 1 and 60`),
     check("business_settings_gift_validity", sql`${t.giftCardValidityMonths} between 1 and 60`),
+    check("business_settings_loyalty_visits", sql`${t.loyaltyVisitsRequired} between 2 and 50`),
+    check("business_settings_loyalty_validity", sql`${t.loyaltyRewardValidityDays} between 7 and 730`),
+    check(
+      "business_settings_loyalty_reward",
+      sql`${t.loyaltyRewardCents} is null or ${t.loyaltyRewardCents} > 0`,
+    ),
     check(
       "business_settings_gift_range",
       sql`${t.giftCardMinCents} > 0 and ${t.giftCardMinCents} <= ${t.giftCardMaxCents}`,

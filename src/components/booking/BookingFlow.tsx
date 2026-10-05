@@ -38,6 +38,13 @@ type Props = {
   staff: { id: string; name: string; serviceIds: string[] }[];
   maxServices: number;
   preselectedServiceId: string | null;
+  /** « Reprendre ce soin » : praticienne déjà choisie et passage direct au choix du créneau. */
+  preselectedStaffId?: string | null;
+  startAtSlot?: boolean;
+  /** Cliente connectée à son espace : coordonnées déjà remplies. */
+  prefill?: { firstName: string; lastName: string; email: string; phone: string } | null;
+  /** Carte cadeau choisie depuis l'espace des clientes. */
+  initialGiftCode?: string;
   deposit: { enabled: boolean; type: "percent" | "fixed"; value: number };
   promoEnabled: boolean;
   /** Pack avec cartes cadeaux : la carte peut remplacer l'acompte. */
@@ -72,7 +79,9 @@ export function BookingFlow(props: Props) {
   const t = useTranslations("booking");
   const tErrors = useTranslations("errors");
   const router = useRouter();
-  const [step, setStep] = useState<Step>("services");
+  const [step, setStep] = useState<Step>(
+    props.preselectedServiceId && props.startAtSlot ? "slot" : "services",
+  );
   const [selected, setSelected] = useState<string[]>(
     props.preselectedServiceId ? [props.preselectedServiceId] : [],
   );
@@ -84,7 +93,7 @@ export function BookingFlow(props: Props) {
   const [promoCode, setPromoCode] = useState("");
   const [promoError, setPromoError] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
-  const [giftCode, setGiftCode] = useState("");
+  const [giftCode, setGiftCode] = useState(props.initialGiftCode ?? "");
   const [gift, setGift] = useState<GiftPreview | null>(null);
   const [giftError, setGiftError] = useState<string | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -196,6 +205,7 @@ export function BookingFlow(props: Props) {
         email: String(form.get("email") ?? ""),
         phone: String(form.get("phone") ?? ""),
         note: String(form.get("note") ?? ""),
+        beneficiaryName: String(form.get("beneficiaryName") ?? ""),
         marketingConsent: form.get("marketingConsent") === "on",
       },
     });
@@ -469,6 +479,7 @@ export function BookingFlow(props: Props) {
             staffOptions={eligibleStaff.map((member) => ({ id: member.id, name: member.name }))}
             loadDays={loadDays}
             selected={slot}
+            initialStaffId={props.preselectedStaffId ?? null}
             onError={setError}
             onPick={(picked) => {
               setError(null);
@@ -662,8 +673,19 @@ export function BookingFlow(props: Props) {
               </label>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field name="firstName" label={t("details.firstName")} autoComplete="given-name" required />
-              <Field name="lastName" label={t("details.lastName")} autoComplete="family-name" />
+              <Field
+                name="firstName"
+                label={t("details.firstName")}
+                autoComplete="given-name"
+                required
+                defaultValue={props.prefill?.firstName}
+              />
+              <Field
+                name="lastName"
+                label={t("details.lastName")}
+                autoComplete="family-name"
+                defaultValue={props.prefill?.lastName}
+              />
               <Field
                 name="email"
                 type="email"
@@ -672,6 +694,7 @@ export function BookingFlow(props: Props) {
                 autoComplete="email"
                 inputMode="email"
                 required
+                defaultValue={props.prefill?.email}
               />
               <Field
                 name="phone"
@@ -681,8 +704,15 @@ export function BookingFlow(props: Props) {
                 autoComplete="tel"
                 inputMode="tel"
                 required
+                defaultValue={props.prefill?.phone}
               />
             </div>
+            <Field
+              name="beneficiaryName"
+              label={t("details.beneficiary")}
+              hint={t("details.beneficiaryHint")}
+              autoComplete="off"
+            />
             <div>
               <label htmlFor="b-note" className="mb-2 block font-semibold text-site-text">
                 {t("details.note")}
@@ -750,7 +780,9 @@ function Field({
   required,
   autoComplete,
   inputMode,
+  defaultValue,
 }: {
+  defaultValue?: string;
   name: string;
   label: string;
   hint?: string;
@@ -772,6 +804,7 @@ function Field({
         required={required}
         autoComplete={autoComplete}
         inputMode={inputMode}
+        defaultValue={defaultValue}
         aria-describedby={hint ? `b-${name}-hint` : undefined}
         className={inputClass}
       />

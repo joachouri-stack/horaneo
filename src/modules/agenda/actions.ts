@@ -7,6 +7,7 @@ import { computeTotals } from "@/modules/booking/pricing";
 import { addMinutes } from "@/modules/booking/time";
 import { creditBackForAppointment } from "@/modules/giftcards/giftcards";
 import { AppError } from "@/modules/errors";
+import { trackAttendance } from "@/modules/loyalty/loyalty";
 import { queueBookingConfirmed, queueMessage } from "@/modules/messages/queue";
 import type { PaymentGateway } from "@/modules/payments/gateway";
 import { refundDeposit } from "@/modules/payments/refunds";
@@ -44,6 +45,8 @@ export async function setAttendance(
   if (!["confirmed", "attended", "no_show"].includes(appointment.status))
     throw new AppError("booking_not_modifiable");
   await tx.update(appointments).set({ status }).where(eq(appointments.id, appointment.id));
+  // Fidélité : un point par rendez-vous honoré (retiré si la gérante corrige).
+  await trackAttendance(tx, tenantId, appointment, appointment.status, status);
   return { before: appointment.status, after: status };
 }
 

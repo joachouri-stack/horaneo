@@ -38,4 +38,9 @@ export const publicLimits = {
   manage: createRateLimiter({ max: 30, windowMs: 10 * 60 * 1000 }),
   /** Essais de codes promo : limités pour empêcher de les deviner. */
   promo: createRateLimiter({ max: 10, windowMs: 10 * 60 * 1000 }),
+  /** Espace des clientes : demandes de lien ou de code (par appareil, puis par adresse). */
+  customerLogin: createRateLimiter({ max: 20, windowMs: 60 * 60 * 1000 }),
+  customerIdentifier: createRateLimiter({ max: 5, windowMs: 60 * 60 * 1000 }),
+  /** Saisie des codes SMS. */
+  customerCode: createRateLimiter({ max: 15, windowMs: 10 * 60 * 1000 }),
 };

@@ -19,6 +19,8 @@ export const MESSAGE_TEMPLATES = [
   "customer.payment_refunded",
   "customer.gift_card",
   "customer.gift_card_receipt",
+  "customer.login_link",
+  "customer.login_code",
   // À la gérante
   "manager.new_booking",
   "manager.cancelled",
@@ -29,6 +31,7 @@ export const MESSAGE_TEMPLATES = [
   "manager.payment_failed",
   "manager.subscription_ended",
   "manager.gift_card_sold",
+  "manager.data_request",
   // Au professionnel avant que son site existe, et à l'administratrice
   "account.order_received",
   "account.order_rejected",
@@ -39,7 +42,9 @@ export const MESSAGE_TEMPLATES = [
 export type MessageTemplate = (typeof MESSAGE_TEMPLATES)[number];
 
 export function channelOf(template: MessageTemplate) {
-  return template === "customer.reminder_sms" ? ("sms" as const) : ("email" as const);
+  return template === "customer.reminder_sms" || template === "customer.login_code"
+    ? ("sms" as const)
+    : ("email" as const);
 }
 
 export async function queueMessage(

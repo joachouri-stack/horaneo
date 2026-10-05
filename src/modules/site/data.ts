@@ -279,6 +279,7 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
       promotions: Boolean(features.promotions),
       googleReviews: Boolean(features.googleReviews),
       giftCards: Boolean(features.giftCards),
+      customerSpace: Boolean(features.customerSpace),
     },
     offers,
     /** Avis Google par entreprise (copie de moins de 30 jours ; sinon seulement le lien). */

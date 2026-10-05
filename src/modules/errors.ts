@@ -56,4 +56,8 @@ export type AppErrorCode =
   | "gift_card_used"
   | "gift_card_insufficient"
   | "gift_cards_unavailable"
-  | "gift_card_amount";
+  | "gift_card_amount"
+  | "reward_unavailable"
+  | "login_invalid"
+  | "sms_unavailable"
+  | "customer_space_unavailable";

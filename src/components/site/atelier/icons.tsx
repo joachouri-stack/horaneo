@@ -133,6 +133,15 @@ export function PhoneIcon({ className = "h-4 w-4" }: IconProps) {
   );
 }
 
+export function UserIcon({ className = "h-5 w-5" }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21a8 8 0 0 1 16 0" />
+    </svg>
+  );
+}
+
 export function CheckIcon({ className = "h-4 w-4" }: IconProps) {
   return (
     <svg {...base} strokeWidth={2.4} className={className}>

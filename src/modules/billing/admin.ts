@@ -33,6 +33,8 @@ export const FEATURE_KEYS = [
   "monthlyUpdate",
   "onDemandUpdates",
   "aiMessaging",
+  "customerSpace",
+  "loyalty",
 ] as const;
 
 export const planInput = z.object({

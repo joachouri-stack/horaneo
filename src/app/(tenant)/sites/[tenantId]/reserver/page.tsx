@@ -7,7 +7,9 @@ import { withTenant } from "@/db/access";
 import { pickLocalized } from "@/i18n/locales";
 import { paymentGateway } from "@/lib/payments/stripe";
 import { SiteImage } from "@/components/site/SiteImage";
+import { customerSession } from "@/lib/site/customer-session";
 import { getSite } from "@/lib/site/load";
+import { contactForBooking } from "@/modules/customer-space/space";
 import { isOnlineQuotaReached, loadBookingContext } from "@/modules/booking/availability";
 import { onlinePaymentReady } from "@/modules/payments/deposits";
 import { formatPhone } from "@/modules/phone";
@@ -124,7 +126,9 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
     );
   }
 
-  const { context, quotaReached, promoEnabled } = await withTenant(
+  // Cliente connectée à son espace : ses coordonnées sont déjà remplies.
+  const session = site.features.customerSpace ? await customerSession(tenantId) : null;
+  const { context, quotaReached, promoEnabled, prefill } = await withTenant(
     tenantId,
     async (tx) => {
       const context = await loadBookingContext(tx, tenantId);
@@ -132,6 +136,7 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
         context,
         quotaReached: await isOnlineQuotaReached(tx, context),
         promoEnabled: Boolean(context.features.promoCodes) && (await hasActivePromoCodes(tx, tenantId)),
+        prefill: session ? await contactForBooking(tx, tenantId, session) : null,
       };
     },
     undefined,
@@ -197,6 +202,10 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
         }))}
         maxServices={context.settings.maxServicesPerBooking}
         preselectedServiceId={preselected}
+        preselectedStaffId={typeof query.membre === "string" ? query.membre : null}
+        startAtSlot={Boolean(preselected) && query.reprise === "1"}
+        prefill={prefill}
+        initialGiftCode={typeof query.carte === "string" ? query.carte.slice(0, 40) : undefined}
         deposit={{
           // Acompte demandé seulement si le compte Stripe de l'établissement peut encaisser.
           enabled:
