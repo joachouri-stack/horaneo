@@ -187,6 +187,8 @@ export async function createBooking(
   const status = context.tenant.status;
   if (!(status === "active" || (options.allowDraft && status === "draft")))
     throw new AppError("booking_closed");
+  // Réservation en ligne coupée par l'entreprise : la gérante peut toujours noter un rendez-vous.
+  if (source === "online" && !context.settings.onlineBookingEnabled) throw new AppError("booking_closed");
 
   const { services, totals } = resolveServices(context, input.serviceIds, {
     onlineOnly: source === "online",

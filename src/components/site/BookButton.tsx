@@ -1,21 +1,24 @@
 import Link from "next/link";
 import { SITE_PATHS } from "@/modules/site/paths";
 
-/** Bouton « Réserver » aux couleurs du client. */
+/** Bouton « Réserver » aux couleurs du client (ou « Appeler » / « Nous écrire » via href). */
 export function BookButton({
   label,
   serviceId,
+  href: target,
   size = "md",
   className = "",
   ariaLabel,
 }: {
   label: string;
   serviceId?: string;
+  /** Adresse imposée (ex. tel: quand la réservation en ligne est coupée). */
+  href?: string;
   size?: "sm" | "md" | "lg";
   className?: string;
   ariaLabel?: string;
 }) {
-  const href = serviceId ? `${SITE_PATHS.booking}?prestation=${serviceId}` : SITE_PATHS.booking;
+  const href = target ?? (serviceId ? `${SITE_PATHS.booking}?prestation=${serviceId}` : SITE_PATHS.booking);
   const sizes = { sm: "min-h-10 px-4 text-sm", md: "min-h-12 px-6 text-base", lg: "min-h-14 px-8 text-lg" };
   return (
     <Link

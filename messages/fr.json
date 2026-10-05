@@ -105,6 +105,7 @@
       "perMonthShort": "par mois",
       "free": "Gratuit",
       "freeForever": "sans limite de durée",
+      "bookingOptional": "Avec ou sans réservation en ligne, au même prix.",
       "recommended": "Recommandé",
       "start": "Commencer gratuitement",
       "choose": "Choisir {plan}",
@@ -136,10 +137,13 @@
         "stats": "Statistiques détaillées",
         "statsSummary": "Statistiques détaillées et résumé mensuel",
         "monthlySummary": "Résumé mensuel",
-        "googleReviews": "Témoignages et avis mis en avant",
+        "googleReviews": "Avis Google affichés sur votre site",
         "whatsappSupport": "Assistance prioritaire par WhatsApp",
-        "giftCards": "Cartes cadeaux",
+        "giftCards": "Cartes cadeaux en ligne",
         "smsReminders": "SMS de rappel"
+      },
+      "soon": {
+        "aiMessaging": "Bientôt : messagerie IA"
       },
       "trust": {
         "commission": "{percent, plural, =0 {Aucune commission} other {Commission de # % seulement}}",
@@ -291,6 +295,7 @@
     "bookService": "Réserver : {service}",
     "call": "Appeler",
     "callNumber": "Appeler le {phone}",
+    "write": "Nous écrire",
     "menu": "Menu",
     "closeMenu": "Fermer le menu",
     "skipToContent": "Aller au contenu",
@@ -423,6 +428,7 @@
       "findUs": "Nous trouver",
       "ctaTitle": "Un moment rien que pour vous",
       "ctaText": "Réservez en ligne, à toute heure.",
+      "ctaTextContact": "Appelez-nous ou écrivez-nous : nous vous répondons rapidement.",
       "closed": "Fermé",
       "range": "{from} à {to}",
       "groupDays": "{from} au {to}",
@@ -908,6 +914,9 @@
         "managerName": "Nom de sa gérante",
         "addSubmit": "Ajouter l'entreprise",
         "added": "Entreprise ajoutée. Ajoutez maintenant son équipe et ses prestations (onglets Équipe et Prestations, en choisissant l'entreprise).",
+        "onlineBooking": "Réservation en ligne",
+        "onlineBookingEnabled": "Accepter les réservations en ligne",
+        "onlineBookingHint": "Décoché : site vitrine, les boutons « Réserver » deviennent « Appeler » ou « Nous écrire ». La gérante peut aussi changer ce réglage.",
         "profile": "Sa page sur le site",
         "profileHint": "Modèle Atelier : chaque professionnelle a sa page, avec ses soins et le bouton « Réserver avec … ».",
         "slug": "Adresse de sa page (/avec/…)",
@@ -969,7 +978,8 @@
         "googleReviews": "Avis Google",
         "giftCards": "Cartes cadeaux",
         "monthlyUpdate": "Une mise à jour du site par mois",
-        "onDemandUpdates": "Mises à jour du site à la demande"
+        "onDemandUpdates": "Mises à jour du site à la demande",
+        "aiMessaging": "Messagerie IA (annoncée « bientôt »)"
       },
       "description": "Accroche",
       "descriptionHint": "Affichée sous le nom du pack sur le site commercial."
@@ -1553,6 +1563,11 @@
     },
     "settings": {
       "title": "Réglages",
+      "onlineTitle": "Prise de rendez-vous en ligne",
+      "onlineEnabled": "Accepter les réservations en ligne",
+      "onlineHelp": "Décochez si vous voulez seulement un site vitrine : les boutons « Réserver » deviennent « Appeler » (ou « Nous écrire »). Vous pouvez toujours noter vos rendez-vous dans votre agenda, et les rendez-vous déjà pris restent valables.",
+      "onlineOn": "Réservation en ligne ouverte.",
+      "onlineOff": "Réservation en ligne coupée : votre site est en mode vitrine.",
       "booking": "Réservation en ligne",
       "minNotice": "Délai minimum avant un rendez-vous (heures)",
       "maxAdvance": "Réservation au plus tard (jours à l'avance)",

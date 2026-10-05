@@ -7,7 +7,7 @@ import { paymentGateway } from "@/lib/payments/stripe";
 import { onlinePaymentReady } from "@/modules/payments/deposits";
 import { getBookingSettings, SLOT_INTERVALS } from "@/modules/booking/settings";
 import { centsToInput } from "@/lib/format";
-import { updateSettingsAction } from "../../actions";
+import { setOnlineBookingAction, updateSettingsAction } from "../../actions";
 
 /** Réglages de la réservation en ligne, de l'acompte et des résumés. */
 export default async function SettingsPage({
@@ -21,6 +21,22 @@ export default async function SettingsPage({
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-extrabold">{t("title")}</h1>
+      <ActionForm action={setOnlineBookingAction} submitLabel={tCommon("save")} className="space-y-3">
+        <Hidden values={{ tenantId: page.tenantId }} />
+        <Section title={t("onlineTitle")}>
+          <p
+            className={`font-semibold ${settings.onlineBookingEnabled ? "text-success" : "text-coral-dark"}`}
+          >
+            {settings.onlineBookingEnabled ? t("onlineOn") : t("onlineOff")}
+          </p>
+          <CheckboxField
+            name="onlineBookingEnabled"
+            label={t("onlineEnabled")}
+            defaultChecked={settings.onlineBookingEnabled}
+          />
+          <p className="text-sm text-ink/70">{t("onlineHelp")}</p>
+        </Section>
+      </ActionForm>
       <ActionForm action={updateSettingsAction} submitLabel={tCommon("save")} className="space-y-6">
         <Hidden values={{ tenantId: page.tenantId }} />
         <Section title={t("booking")}>

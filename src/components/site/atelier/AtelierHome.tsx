@@ -1,3 +1,4 @@
+import { ctaLabelKey, siteCta } from "@/modules/site/cta";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { formatMoney } from "@/lib/format";
@@ -35,7 +36,11 @@ export async function AtelierHome({ site }: { site: Site }) {
   const highlights = [1, 2, 3]
     .map((n) => ({ value: texts[`highlight${n}Value`], label: texts[`highlight${n}Label`] }))
     .filter((item) => item.value);
-  highlights.push({ value: t("onlineBooking"), label: t("onlineBookingLabel") });
+  if (site.bookingEnabled) highlights.push({ value: t("onlineBooking"), label: t("onlineBookingLabel") });
+  // Réservation coupée : « Appeler » ou « Nous écrire » à la place de « Réserver ».
+  const cta = siteCta(site);
+  const ctaLabel = (bookLabel: string) =>
+    cta?.kind === "book" ? bookLabel : cta ? tSite(ctaLabelKey(cta)) : "";
   // Note Google en tête des chiffres clés (fiche de l'établissement).
   const reviews = siteReviews(site);
   const tReviews = await getTranslations("site.reviews");
@@ -75,9 +80,11 @@ export async function AtelierHome({ site }: { site: Site }) {
             </p>
           )}
           <div className="mt-8 flex flex-wrap gap-3">
-            <PillLink href={SITE_PATHS.booking} size="lg">
-              {t("bookMoment")}
-            </PillLink>
+            {cta && (
+              <PillLink href={cta.href} size="lg">
+                {ctaLabel(t("bookMoment"))}
+              </PillLink>
+            )}
             <PillLink href="#soins" variant="outline" size="lg">
               {t("seeAllServices")}
             </PillLink>
@@ -242,9 +249,11 @@ export async function AtelierHome({ site }: { site: Site }) {
               <p className="mt-5 whitespace-pre-line leading-relaxed text-site-muted">
                 {site.pages.about.texts.body}
               </p>
-              <PillLink href={SITE_PATHS.booking} className="mt-8">
-                {t("takeAppointment")}
-              </PillLink>
+              {cta && (
+                <PillLink href={cta.href} className="mt-8">
+                  {ctaLabel(t("takeAppointment"))}
+                </PillLink>
+              )}
             </div>
           </div>
         </section>
@@ -376,10 +385,12 @@ export async function AtelierHome({ site }: { site: Site }) {
         </div>
         <div className="flex flex-col justify-center rounded-[1.75rem] bg-site-text p-8 text-site-bg">
           <h2 className="font-site-display text-4xl font-medium leading-tight">{t("ctaTitle")}</h2>
-          <p className="mt-3 opacity-85">{t("ctaText")}</p>
-          <PillLink href={SITE_PATHS.booking} variant="light" className="mt-6 self-start">
-            {tSite("book")}
-          </PillLink>
+          <p className="mt-3 opacity-85">{t(cta?.kind === "book" ? "ctaText" : "ctaTextContact")}</p>
+          {cta && (
+            <PillLink href={cta.href} variant="light" className="mt-6 self-start">
+              {tSite(ctaLabelKey(cta))}
+            </PillLink>
+          )}
         </div>
       </section>
     </main>

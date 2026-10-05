@@ -1,5 +1,6 @@
 "use server";
 
+import { setOnlineBooking } from "@/modules/booking/settings";
 import { categoryFields } from "@/modules/catalog/icons";
 import { billingGateway } from "@/lib/payments/stripe-billing";
 import { changePlanManually } from "@/modules/billing/subscriptions";
@@ -187,6 +188,15 @@ export async function updateBusinessAction(_previous: Previous, data: FormData) 
   return adminMutation(
     { action: "business.updated", tenantId, targetType: "business", targetId: businessId },
     (tx) => updateBusiness(tx, tenantId, businessId, businessFields(data)),
+  );
+}
+
+export async function setOnlineBookingAdminAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const businessId = businessIdOf(data);
+  return adminMutation(
+    { action: "business.online_booking", tenantId, targetType: "business", targetId: businessId, businessId },
+    (tx) => setOnlineBooking(tx, tenantId, form.bool(data, "onlineBookingEnabled"), businessId),
   );
 }
 

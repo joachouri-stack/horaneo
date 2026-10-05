@@ -2,19 +2,23 @@ import { getTranslations } from "next-intl/server";
 import { formatPhone } from "@/modules/phone";
 import { BookButton } from "./BookButton";
 import { HideOnPaths } from "./HideOnPaths";
+import { ctaLabelKey, type SiteCta } from "@/modules/site/cta";
 import { SITE_PATHS } from "@/modules/site/paths";
 
 /** Barre fixe en bas de l'écran sur téléphone : « Réserver » toujours à portée de pouce. */
-export async function MobileBookBar({ phone }: { phone: string | null }) {
+export async function MobileBookBar({ phone, cta }: { phone: string | null; cta: SiteCta }) {
   const t = await getTranslations("site");
+  if (!cta) return null;
+  // Réservation coupée : un seul bouton (appeler ou écrire), pas de doublon avec le téléphone.
+  const showPhone = Boolean(phone) && cta.kind === "book";
   return (
     <HideOnPaths prefixes={[SITE_PATHS.booking, SITE_PATHS.appointment, SITE_PATHS.giftCard]}>
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-site-border bg-site-bg/95 px-4 py-3 backdrop-blur sm:hidden">
         <div className="flex gap-3">
-          {phone && (
+          {showPhone && (
             <a
               href={`tel:${phone}`}
-              aria-label={t("callNumber", { phone: formatPhone(phone) })}
+              aria-label={t("callNumber", { phone: formatPhone(phone!) })}
               className="flex min-h-12 items-center justify-center rounded-site border border-site-border px-4 font-semibold text-site-text"
             >
               <svg
@@ -30,7 +34,7 @@ export async function MobileBookBar({ phone }: { phone: string | null }) {
               {t("call")}
             </a>
           )}
-          <BookButton label={t("book")} size="md" className="flex-1" />
+          <BookButton href={cta.href} label={t(ctaLabelKey(cta))} size="md" className="flex-1" />
         </div>
       </div>
     </HideOnPaths>

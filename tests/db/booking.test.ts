@@ -12,6 +12,7 @@ import {
   usageCounters,
 } from "@/db/schema";
 import { getSlotsForRange, isOnlineQuotaReached, loadBookingContext } from "@/modules/booking/availability";
+import { setOnlineBooking } from "@/modules/booking/settings";
 import { createBooking, type BookingInput } from "@/modules/booking/create";
 import { cancelByCustomer, findByManageToken, rescheduleByCustomer } from "@/modules/booking/manage";
 import { localToUtc } from "@/modules/booking/time";
@@ -268,6 +269,24 @@ describe.skipIf(!hasTestDatabase)("moteur de réservation", () => {
       const s = await setup();
       await platform((tx) => changeStatus(tx, s.id, "suspend"));
       expect(await errorCode(book(s.id, { serviceIds: [s.soin.id] }))).toBe("booking_closed");
+    });
+
+    it("réservation en ligne coupée : refusée sur le site, toujours possible pour la gérante", async () => {
+      const s = await setup();
+      const updated = await asSite(s.id, (tx) => setOnlineBooking(tx, s.id, false));
+      expect(updated.onlineBookingEnabled).toBe(false);
+      expect(await errorCode(book(s.id, { serviceIds: [s.soin.id] }))).toBe("booking_closed");
+      const manual = await asSite(s.id, (tx) =>
+        createBooking(
+          tx,
+          s.id,
+          { staffId: null, start: at("10:00"), customer: customer(), serviceIds: [s.soin.id] },
+          { now: NOW, gateway: fake.gateway, source: "manual" },
+        ),
+      );
+      expect(manual.status).toBe("confirmed");
+      await asSite(s.id, (tx) => setOnlineBooking(tx, s.id, true));
+      expect(await errorCode(book(s.id, { serviceIds: [s.soin.id], start: at("11:00") }))).toBeUndefined();
     });
 
     it("refuse un téléphone invalide sans rien enregistrer", async () => {

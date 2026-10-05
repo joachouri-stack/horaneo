@@ -1,7 +1,8 @@
 import { getTranslations } from "next-intl/server";
 import { formatMoney } from "@/lib/format";
 import type { SiteData } from "@/modules/site/data";
-import { businessPath, SITE_PATHS } from "@/modules/site/paths";
+import { ctaLabelKey, siteCta } from "@/modules/site/cta";
+import { businessPath } from "@/modules/site/paths";
 import { PriceTag } from "../PriceTag";
 import { SiteImage } from "../SiteImage";
 import { PillLink, Tag } from "./ui";
@@ -27,6 +28,7 @@ export async function ProfessionalCards({
   return (
     <ul className={`mt-10 grid gap-6 ${businesses.length > 1 ? "md:grid-cols-2" : ""}`}>
       {businesses.map((business) => {
+        const cta = siteCta(site, { businessId: business.id });
         const services = site.services.filter((service) => service.businessId === business.id).slice(0, 3);
         return (
           <li
@@ -61,9 +63,11 @@ export async function ProfessionalCards({
                 </ul>
               )}
               <div className="mt-6 flex flex-wrap gap-3">
-                <PillLink href={`${SITE_PATHS.booking}?avec=${business.id}`} size="sm">
-                  {tSite("book")}
-                </PillLink>
+                {cta && (
+                  <PillLink href={cta.href} size="sm">
+                    {tSite(ctaLabelKey(cta))}
+                  </PillLink>
+                )}
                 <PillLink href={businessPath(business.slug!)} variant="outline" size="sm">
                   {t("allTheirServices")}
                 </PillLink>

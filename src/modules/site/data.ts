@@ -42,6 +42,7 @@ export type SiteService = {
   currency: string;
   priceFrom: boolean;
   isOnlineBookable: boolean;
+  bookOnline: boolean;
   /** Promotion en cours : prix réduit et prix barré (le plus bas des 30 jours précédents). */
   promo: { priceCents: number; referenceCents: number; title: string; endsOn: string } | null;
 };
@@ -132,6 +133,7 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
       .select({
         businessId: businessSettings.businessId,
         giftCardsEnabled: businessSettings.giftCardsEnabled,
+        onlineBookingEnabled: businessSettings.onlineBookingEnabled,
       })
       .from(businessSettings)
       .where(eq(businessSettings.tenantId, tenantId)),
@@ -190,6 +192,10 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
     currency: service.currency,
     priceFrom: service.priceFrom,
     isOnlineBookable: service.isOnlineBookable,
+    // Bouton « Réserver » : seulement si l'entreprise prend aussi des rendez-vous en ligne.
+    bookOnline:
+      service.isOnlineBookable &&
+      (settingsRows.find((item) => item.businessId === service.businessId)?.onlineBookingEnabled ?? true),
     promo: (() => {
       const promotion = promoted.get(service.id);
       return promotion
@@ -296,6 +302,12 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
           )
           .map((business) => business.id)
       : [],
+    /** Au moins une entreprise du site prend des rendez-vous en ligne. */
+    bookingEnabled:
+      businessRows.length === 0 ||
+      settingsRows.some(
+        (item) => businessRows.some((b) => b.id === item.businessId) && item.onlineBookingEnabled,
+      ),
     primaryHostname: domainRows[0]?.hostname ?? null,
     logo: image(tenant.brand.logoAssetId),
     pages,
@@ -322,6 +334,9 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
       bio: text(business.profile.bio),
       availability: text(business.profile.availability),
       photo: image(business.profile.photoAssetId),
+      /** Réservation en ligne ouverte pour cette entreprise (sinon : appeler, écrire). */
+      bookingEnabled:
+        settingsRows.find((item) => item.businessId === business.id)?.onlineBookingEnabled ?? true,
     })),
     staff: staffRows.map((member) => ({
       id: member.id,

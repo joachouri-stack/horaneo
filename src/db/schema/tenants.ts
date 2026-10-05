@@ -218,6 +218,8 @@ export const businessSettings = pgTable(
     slotIntervalMinutes: smallint().notNull().default(15),
     maxServicesPerBooking: smallint().notNull().default(3),
     cancellationDeadlineHours: integer().notNull().default(24),
+    /** Réservation en ligne ouverte. Coupée : le site reste une vitrine (appeler, écrire). */
+    onlineBookingEnabled: boolean().notNull().default(true),
     depositEnabled: boolean().notNull().default(false),
     depositType: depositTypeEnum().notNull().default("percent"),
     /** Pourcentage (30 = 30 %) ou montant fixe en centimes, selon depositType. */

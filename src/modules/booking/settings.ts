@@ -80,3 +80,37 @@ export async function updateBookingSettings(
     .returning();
   return updated;
 }
+
+/**
+ * Ouvre ou coupe la réservation en ligne de l'entreprise. Coupée, le site
+ * reste une vitrine : les boutons « Réserver » laissent place à « Appeler »
+ * ou « Écrire », et aucun nouveau rendez-vous ne peut être pris en ligne
+ * (les rendez-vous existants restent gérables avec leur lien).
+ */
+export async function setOnlineBooking(
+  tx: Transaction,
+  tenantId: string,
+  enabled: boolean,
+  businessId?: string,
+) {
+  const id = await targetBusiness(tx, businessId);
+  const [updated] = await tx
+    .update(businessSettings)
+    .set({ onlineBookingEnabled: enabled })
+    .where(and(eq(businessSettings.tenantId, tenantId), eq(businessSettings.businessId, id)))
+    .returning({
+      businessId: businessSettings.businessId,
+      onlineBookingEnabled: businessSettings.onlineBookingEnabled,
+    });
+  if (!updated) throw new AppError("not_found");
+  return updated;
+}
+
+/** Réservation en ligne ouverte ou non, pour chaque entreprise du site. */
+export async function onlineBookingByBusiness(tx: Transaction, tenantId: string) {
+  const rows = await tx
+    .select({ businessId: businessSettings.businessId, enabled: businessSettings.onlineBookingEnabled })
+    .from(businessSettings)
+    .where(eq(businessSettings.tenantId, tenantId));
+  return new Map(rows.map((row) => [row.businessId, row.enabled]));
+}

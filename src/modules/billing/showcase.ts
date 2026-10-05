@@ -4,8 +4,9 @@ import type { PlanFeatures, PlanLimits } from "@/db/schema";
  * Présentation des packs sur le site commercial, calculée à partir de leurs
  * limites et de leurs fonctions (jamais écrites dans le code) :
  * - trois chiffres clés (réservations, membres, SMS ou rappels par e-mail) ;
- * - la liste de ce que le pack ajoute au précédent, puis ce qui lui manque
- *   par rapport au suivant.
+ * - la liste de ce que le pack ajoute au précédent, les fonctions annoncées
+ *   « bientôt », puis ce qui lui manque par rapport au suivant ;
+ * - la mention « avec ou sans réservation » pour les packs avec un vrai site.
  */
 
 type ShowcasePlan = { limits: PlanLimits; features: PlanFeatures; priceCents: number };
@@ -18,7 +19,8 @@ export type ShowcaseTile =
 export type ShowcaseItem =
   | { kind: "included"; key: ShowcaseKey; values?: Record<string, number> }
   | { kind: "everythingIn"; planIndex: number }
-  | { kind: "missing"; key: ShowcaseKey };
+  | { kind: "missing"; key: ShowcaseKey }
+  | { kind: "soon"; key: (typeof SOON_KEYS)[number] };
 
 export type ShowcaseKey =
   (typeof ROW_KEYS)[number] | "basePage" | "agenda" | "photosServices" | "statsSummary" | "smsReminders";
@@ -34,10 +36,13 @@ const ROW_KEYS = [
   "unlimitedPhotos",
   "stats",
   "monthlySummary",
-  "googleReviews",
   "whatsappSupport",
   "giftCards",
+  "googleReviews",
 ] as const;
+
+/** Fonctions pas encore disponibles, annoncées en fin de liste. */
+const SOON_KEYS = ["aiMessaging"] as const;
 
 /** Ce qui manque au pack, par rapport au suivant (deux au plus). */
 const MISSING_KEYS = ["customDomain", "onlinePayment", "stats", "whatsappSupport"] as const;
@@ -88,6 +93,10 @@ export function planItems(plans: ShowcasePlan[], index: number): ShowcaseItem[] 
     }
   }
 
+  for (const key of SOON_KEYS) {
+    if (plan.features[key]) items.push({ kind: "soon", key });
+  }
+
   if (next) {
     MISSING_KEYS.filter((key) => next.features[key] && !plan.features[key])
       .slice(0, MAX_MISSING)
@@ -96,3 +105,6 @@ export function planItems(plans: ShowcasePlan[], index: number): ShowcaseItem[] 
   if ((plan.limits.smsPerMonth ?? 0) === 0) items.push({ kind: "missing", key: "smsReminders" });
   return items;
 }
+
+/** Un pack avec un vrai site peut servir avec ou sans réservation en ligne, au même prix. */
+export const bookingOptional = (plan: ShowcasePlan) => Boolean(plan.features.fullSite);

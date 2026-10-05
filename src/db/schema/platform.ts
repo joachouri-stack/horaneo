@@ -43,6 +43,8 @@ export type PlanFeatures = {
   /** Promesses de service affichées sur le site commercial (mises à jour du site faites pour la cliente). */
   monthlyUpdate?: boolean;
   onDemandUpdates?: boolean;
+  /** Fonction annoncée « bientôt » sur le site commercial (pas encore disponible). */
+  aiMessaging?: boolean;
   [feature: string]: boolean | undefined;
 };
 

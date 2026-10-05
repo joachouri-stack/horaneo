@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import type { SiteData } from "@/modules/site/data";
 import { visibleSections } from "@/modules/site/data";
+import { ctaLabelKey, siteCta } from "@/modules/site/cta";
 import { SITE_PATHS } from "@/modules/site/paths";
 import { BookButton } from "./BookButton";
 import { MobileMenu } from "./MobileMenu";
@@ -17,6 +18,7 @@ export async function SiteHeader({
 }) {
   const t = await getTranslations("site");
   const sections = visibleSections(site);
+  const cta = siteCta(site);
   const links = (
     [
       ["services", SITE_PATHS.services],
@@ -69,7 +71,7 @@ export async function SiteHeader({
           </ul>
         </nav>
         <div className="flex items-center gap-2">
-          {showBook && <BookButton label={t("book")} size="sm" />}
+          {showBook && cta && <BookButton href={cta.href} label={t(ctaLabelKey(cta))} size="sm" />}
           <MobileMenu links={links} />
         </div>
       </div>

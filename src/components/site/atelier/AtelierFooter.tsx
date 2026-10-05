@@ -1,3 +1,4 @@
+import { ctaLabelKey, siteCta } from "@/modules/site/cta";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { formatPhone } from "@/modules/phone";
@@ -58,6 +59,7 @@ export async function AtelierFooter({ site }: { site: Site }) {
   const tFooter = await getTranslations("site.footer");
   const tSite = await getTranslations("site");
   const tGift = await getTranslations("site.giftCard");
+  const cta = siteCta(site);
   const { tenant } = site;
   const sections = visibleSections(site);
   const pages = site.businesses.filter((business) => business.slug && business.title);
@@ -186,9 +188,11 @@ export async function AtelierFooter({ site }: { site: Site }) {
           <div>
             <h2 className="mb-4 font-site-display text-2xl">{t("hoursTitle")}</h2>
             <HoursSummary site={site} />
-            <PillLink href={SITE_PATHS.booking} variant="light" className="mt-6">
-              {tSite("book")}
-            </PillLink>
+            {cta && (
+              <PillLink href={cta.href} variant="light" className="mt-6">
+                {tSite(ctaLabelKey(cta))}
+              </PillLink>
+            )}
           </div>
         </div>
 

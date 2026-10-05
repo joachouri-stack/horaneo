@@ -3,7 +3,9 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import sharp from "sharp";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { eq } from "drizzle-orm";
 import { withPlatform, withTenant } from "@/db/access";
+import { tenants } from "@/db/schema";
 import type { Transaction } from "@/db/client";
 import { createLocalStorage } from "@/lib/storage/local";
 import type { FileStorage } from "@/lib/storage/types";
@@ -12,6 +14,8 @@ import { updatePage } from "@/modules/content/pages";
 import { saveTestimonial } from "@/modules/content/testimonials";
 import { retireAsset, uploadAsset } from "@/modules/media/assets";
 import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
+import { setOnlineBooking } from "@/modules/booking/settings";
+import { siteCta } from "@/modules/site/cta";
 import { loadSiteData, visibleSections } from "@/modules/site/data";
 import { sitemapPaths } from "@/modules/site/seo";
 import { categoryPath, SITE_PATHS } from "@/modules/site/paths";
@@ -107,6 +111,31 @@ describe.skipIf(!hasTestDatabase)("site d'un client : données affichées", () =
       "/confidentialite",
       "/conditions-annulation",
     ]);
+  });
+
+  it("réservation en ligne coupée : le site devient une vitrine (appeler au lieu de réserver)", async () => {
+    const tenant = await newTenant("essentiel");
+    const service = await platform((tx) =>
+      saveService(tx, tenant.id, { name: "Coupe", durationMinutes: 30, price: "25" }),
+    );
+    await owner.update(tenants).set({ phone: "+33612345678" }).where(eq(tenants.id, tenant.id));
+    let site = (await load(tenant.id))!;
+    expect(siteCta(site)).toEqual({ kind: "book", href: SITE_PATHS.booking });
+    expect(siteCta(site, { serviceId: service.id })?.href).toBe(
+      `${SITE_PATHS.booking}?prestation=${service.id}`,
+    );
+
+    await withTenant(tenant.id, (tx) => setOnlineBooking(tx, tenant.id, false), app);
+    site = (await load(tenant.id))!;
+    expect(site.bookingEnabled).toBe(false);
+    expect(siteCta(site)).toEqual({ kind: "call", href: "tel:+33612345678" });
+    const [shown] = site.services;
+    expect(shown).toMatchObject({
+      name: "Coupe",
+      priceCents: 2500,
+      isOnlineBookable: true,
+      bookOnline: false,
+    });
   });
 
   it("galerie : photos actives seulement ; page masquable par l'administratrice", async () => {
