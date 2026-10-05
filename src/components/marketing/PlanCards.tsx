@@ -70,9 +70,9 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
         return (
           <article
             key={plan.id}
-            className={`hn-reveal group relative flex flex-col gap-[1.4rem] overflow-hidden rounded-[2rem] px-8 transition duration-300 hover:-translate-y-2.5 ${
+            className={`group relative flex flex-col gap-[1.4rem] overflow-hidden rounded-[2rem] px-8 transition duration-200 hover:-translate-y-2.5 ${
               featured
-                ? "hn-glow-border py-11 text-sand shadow-[0_30px_60px_rgba(27,42,74,.35)] hover:shadow-[0_34px_64px_rgba(27,42,74,.45)]"
+                ? "border-2 border-coral bg-navy py-11 text-sand shadow-[0_30px_60px_rgba(27,42,74,.35)] hover:shadow-[0_34px_64px_rgba(27,42,74,.45)]"
                 : "border-2 border-line bg-white py-8 text-body hover:border-coral hover:shadow-[0_28px_56px_rgba(22,24,29,.16)]"
             }`}
           >

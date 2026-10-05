@@ -1,90 +1,103 @@
-import Image from "next/image";
 import { getTranslations } from "next-intl/server";
-
-type Live = { title: string; detail: string };
+import { CheckIcon } from "./icons";
 
 /**
- * Visuel de l'accroche : photo, notifications qui se relaient (réservation,
- * acompte, rappel) et carte de réservation. Purement décoratif : lu une seule
- * fois par les lecteurs d'écran grâce au texte de remplacement de la photo.
+ * Visuel de l'accroche (maquette validée) : un téléphone dessiné en HTML/CSS
+ * qui montre le site d'un client à l'étape du créneau, un disque rose derrière,
+ * et deux petites cartes droites (« Nouvelle réservation », « Acompte reçu »)
+ * qui ne cachent pas l'écran. Les données sont des exemples (traductions).
  */
 export async function HeroVisual() {
-  const [t, tLanding] = await Promise.all([getTranslations("home"), getTranslations("landing")]);
-  const live = tLanding.raw("live") as Live[];
-  const days = t.raw("demo.days") as string[];
-  const times = t.raw("demo.times") as string[];
+  const t = await getTranslations("home.demo");
+  const days = t.raw("days") as string[];
+  const times = t.raw("times") as string[];
+  const chip = (label: string, selected: boolean) => (
+    <span
+      key={label}
+      className={`block rounded-[10px] py-[7px] text-center text-xs ${selected ? "bg-brick font-semibold text-white" : "bg-sand text-night"}`}
+    >
+      {label}
+    </span>
+  );
   return (
-    <div className="hn-up-late relative min-w-0 flex-[1_1_22rem] pr-6 pt-6">
-      <div aria-hidden="true" className="absolute right-0 top-0 size-48 rounded-full bg-blush-strong" />
+    <div
+      role="img"
+      aria-label={t("label")}
+      className="hn-up-late relative flex min-w-0 flex-[1_1_20rem] justify-center pb-[2.2rem] pt-[4.5rem] sm:pt-2"
+    >
       <div
         aria-hidden="true"
-        className="absolute bottom-16 right-[0.2rem] size-[4.5rem] rounded-full border-[0.9rem] border-navy"
+        className="absolute left-1/2 top-1/2 size-[23rem] max-w-full -translate-x-1/2 -translate-y-1/2 rounded-full bg-blush"
       />
-      <div className="relative overflow-hidden rounded-[2.25rem_2.25rem_2.25rem_6rem] shadow-[0_40px_80px_-30px_rgba(27,42,74,.45)]">
-        <Image
-          src="/marketing/hero.jpg"
-          alt={t("heroImageAlt")}
-          width={1100}
-          height={733}
-          priority
-          sizes="(min-width: 1024px) 45vw, 100vw"
-          className="block h-[26rem] w-full object-cover sm:h-[32rem]"
-        />
-        <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-navy/25 via-transparent" />
-      </div>
-
-      <div aria-hidden="true">
-        <div className="hn-float-alt absolute right-1 top-12">
-          <div className="hn-cycle grid [&>*]:[grid-area:1/1]">
-            {live.map((item, index) => (
-              <div
-                key={item.title}
-                className="flex items-center gap-3 rounded-2xl border border-white/60 bg-white/85 px-4 py-3 shadow-[0_12px_30px_rgba(22,24,29,.18)] backdrop-blur-md"
-              >
-                <span className="relative flex size-3">
-                  <span
-                    className={`hn-ping absolute inline-flex size-full rounded-full ${index === 1 ? "bg-brick" : "bg-success"}`}
-                  />
-                  <span
-                    className={`relative inline-flex size-3 rounded-full ${index === 1 ? "bg-brick" : "bg-success"}`}
-                  />
-                </span>
-                <div>
-                  <p className="text-[0.85rem] font-semibold text-night">{item.title}</p>
-                  <p className="text-[0.8rem] text-stone">{item.detail}</p>
-                </div>
-              </div>
-            ))}
+      <div
+        aria-hidden="true"
+        className="relative w-[17rem] rounded-[2.4rem] bg-night p-2 shadow-[0_30px_60px_rgba(22,24,29,.22)]"
+      >
+        <div className="overflow-hidden rounded-[2rem] bg-white">
+          <div className="flex items-center justify-center gap-1.5 bg-sand px-2.5 py-2 text-[11px] text-body">
+            <svg
+              viewBox="0 0 24 24"
+              className="size-[11px]"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.4"
+            >
+              <rect x="5" y="11" width="14" height="9" rx="2" />
+              <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+            </svg>
+            {t("url")}
+          </div>
+          <div className="px-3.5 pb-4 pt-3.5">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="flex size-[30px] items-center justify-center rounded-full bg-navy text-[13px] font-semibold text-white">
+                {t("initial")}
+              </span>
+              <span className="text-sm font-semibold text-night">{t("business")}</span>
+            </div>
+            <p className="mb-2 text-xs text-stone">{t("step")}</p>
+            <div className="mb-2.5 flex items-baseline justify-between rounded-xl bg-ivory px-3 py-2.5">
+              <span>
+                <span className="block text-sm font-semibold text-night">{t("service")}</span>
+                <span className="block text-xs text-stone">{t("duration")}</span>
+              </span>
+              <span className="text-[15px] font-semibold text-night">{t("price")}</span>
+            </div>
+            <div className="mb-1.5 grid grid-cols-4 gap-[5px]">
+              {days.map((day, i) => chip(day, i === 1))}
+            </div>
+            <div className="mb-3 grid grid-cols-4 gap-[5px]">
+              {times.map((time, i) => chip(time, i === 2))}
+            </div>
+            <div className="mb-2.5 flex justify-between text-[13px]">
+              <span>{t("deposit")}</span>
+              <span className="font-semibold text-night">{t("depositAmount")}</span>
+            </div>
+            <div className="rounded-[30px] bg-brick p-[11px] text-center text-sm font-semibold text-white">
+              {t("pay")}
+            </div>
           </div>
         </div>
-
-        <div className="hn-float absolute -bottom-11 left-4 w-[17.5rem] max-w-[calc(100%-2rem)] rounded-[1.4rem] border border-white/70 bg-white/90 p-5 shadow-[0_20px_44px_rgba(22,24,29,.2)] backdrop-blur-md">
-          <div className="mb-3 flex items-baseline justify-between">
-            <div>
-              <p className="font-semibold text-night">{t("demo.service")}</p>
-              <p className="text-[0.82rem] text-stone">{t("demo.duration")}</p>
-            </div>
-            <p className="font-semibold text-night">{t("demo.price")}</p>
-          </div>
-          {[days, times].map((row, rowIndex) => (
-            <div
-              key={rowIndex}
-              className={`grid grid-cols-4 gap-1.5 text-center text-[0.8rem] ${rowIndex === 0 ? "mb-2" : "mb-3"}`}
-            >
-              {row.map((label, index) => (
-                <span
-                  key={label}
-                  className={`rounded-[0.6rem] py-1.5 ${index === (rowIndex === 0 ? 1 : 2) ? "bg-brick text-white shadow-[0_6px_14px_-4px_rgba(212,64,47,.6)]" : "bg-sand"}`}
-                >
-                  {label}
-                </span>
-              ))}
-            </div>
-          ))}
-          <p className="flex items-center justify-between gap-2.5 rounded-[0.9rem] bg-blush px-3.5 py-2.5 text-[0.88rem] text-rust">
-            <span>{t("demo.deposit")}</span>
-            <span className="font-semibold">{t("demo.paid")}</span>
-          </p>
+      </div>
+      <div
+        aria-hidden="true"
+        className="absolute right-0 top-0 sm:top-[2.2rem] flex items-center gap-2.5 rounded-[0.9rem] bg-white px-3.5 py-2.5 shadow-[0_12px_28px_rgba(22,24,29,.16)]"
+      >
+        <span className="block size-2.5 rounded-full bg-success" />
+        <div>
+          <p className="text-[0.8rem] font-semibold text-night">{t("notification")}</p>
+          <p className="text-xs text-stone">{t("notificationDetail")}</p>
+        </div>
+      </div>
+      <div
+        aria-hidden="true"
+        className="absolute -bottom-[1.9rem] left-1 flex items-center gap-2.5 rounded-[0.9rem] bg-white px-3.5 py-2.5 shadow-[0_12px_28px_rgba(22,24,29,.16)]"
+      >
+        <span className="flex size-[1.6rem] items-center justify-center rounded-full bg-success text-white">
+          <CheckIcon className="size-3" />
+        </span>
+        <div>
+          <p className="text-[0.8rem] font-semibold text-night">{t("received")}</p>
+          <p className="text-xs text-stone">{t("receivedDetail")}</p>
         </div>
       </div>
     </div>
