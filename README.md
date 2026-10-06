@@ -58,6 +58,7 @@ pnpm dev          # site en développement sur http://localhost:3000 (redirige v
 | `pnpm db:generate`                                   | crée une migration après une modification de `src/db/schema/`                 |
 | `pnpm db:migrate`                                    | applique les migrations en attente                                            |
 | `pnpm db:seed`                                       | insère les valeurs de départ (n'écrase jamais un réglage modifié)             |
+| `pnpm db:deploy`                                     | `db:migrate` puis `db:seed` (lancé automatiquement par `pnpm start`)          |
 | `pnpm db:studio`                                     | explorateur visuel de la base                                                 |
 
 Ces vérifications (format, lint, types, tests, construction) tournent automatiquement sur GitHub à chaque pull request (`.github/workflows/ci.yml`).
@@ -404,7 +405,7 @@ Le déploiement complet (image Docker, sauvegardes horaires vers R2, alertes, pr
 
 1. Dans Coolify, créer une base **PostgreSQL 16** sans port public.
 2. Créer une application reliée au dépôt GitHub (branche `main`). Renseigner les variables de `.env.example`, avec l'adresse interne de la base dans `DATABASE_URL` (propriétaire) et `APP_DATABASE_URL` (rôle `app_runtime`, avec un long mot de passe aléatoire), ainsi que `BETTER_AUTH_SECRET` (`openssl rand -base64 32`), `BREVO_API_KEY` et les variables `R2_*` du stockage des photos.
-3. Commande de construction : `pnpm install --frozen-lockfile && pnpm build`. Avant chaque mise en ligne : `pnpm db:migrate && pnpm db:roles`. À la première mise en ligne, ajouter `pnpm db:seed` (packs et réglages de départ ; relançable sans risque). Démarrage : `pnpm start`.
+3. Commande de construction : `pnpm install --frozen-lockfile && pnpm build`. Démarrage : `pnpm start`. Il applique d'abord tout seul les migrations en attente et les valeurs de départ (`pnpm db:deploy` = `db:migrate` puis `db:seed`, relançables sans risque), puis lance le site : plus rien à taper après un Redeploy. Si une migration échoue, le site ne démarre pas (rien n'est appliqué à moitié) : le message d'erreur est dans les journaux (Logs) de l'application. `pnpm db:roles` ne sert qu'à la première installation, ou si le mot de passe de `APP_DATABASE_URL` change.
 4. Pointer `horaneo.com` et `horaneo.fr` vers l'application. `horaneo.fr` redirige automatiquement vers `horaneo.com/fr`.
 5. Se donner le statut d'administratrice depuis le terminal Coolify : `pnpm admin:grant votre@email.fr`.
 6. **Tâche planifiée** : dans Coolify, onglet « Scheduled Tasks » de l'application, ajouter une tâche toutes les 5 minutes (`*/5 * * * *`) avec la commande :

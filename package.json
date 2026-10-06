@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "pnpm db:deploy && next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
     "format": "prettier --write .",
@@ -14,6 +14,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/db/migrate.ts",
     "db:seed": "tsx src/db/seed.ts",
+    "db:deploy": "tsx src/db/migrate.ts && tsx src/db/seed.ts",
     "db:studio": "drizzle-kit studio",
     "format:check": "prettier --check .",
     "db:roles": "tsx src/db/setup-roles.ts",
