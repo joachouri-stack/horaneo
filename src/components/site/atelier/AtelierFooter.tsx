@@ -234,7 +234,10 @@ export async function AtelierFooter({ site }: { site: Site }) {
       </div>
       <p
         aria-hidden="true"
-        className="pointer-events-none -mb-[0.22em] select-none whitespace-nowrap text-center font-site-display text-[clamp(3.5rem,11vw,10rem)] leading-none italic opacity-[0.07]"
+        // Taille calculée d'après la longueur du nom : il tient toujours en entier
+        // dans la largeur de l'écran, même long et sur téléphone.
+        style={{ fontSize: `min(10rem, ${(92 / (Math.max(tenant.name.length, 6) * 0.5)).toFixed(1)}vw)` }}
+        className="pointer-events-none -mb-[0.22em] select-none overflow-hidden whitespace-nowrap px-2 text-center font-site-display leading-none italic opacity-[0.07]"
       >
         {tenant.name}
       </p>
