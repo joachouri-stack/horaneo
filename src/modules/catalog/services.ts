@@ -111,6 +111,24 @@ export async function saveCategory(
   return created;
 }
 
+/** Ajoute un logo (photo du site) à la page formation d'une catégorie, sans retirer les autres. */
+export async function addCategoryLogo(tx: Transaction, tenantId: string, categoryId: string, assetId: string) {
+  await assertOwnAssets(tx, tenantId, [assetId]);
+  const [existing] = await tx
+    .select()
+    .from(serviceCategories)
+    .where(and(eq(serviceCategories.id, categoryId), eq(serviceCategories.tenantId, tenantId)));
+  if (!existing) throw new AppError("not_found");
+  const logoAssetIds = [...new Set([...existing.logoAssetIds, assetId])];
+  if (logoAssetIds.length > 6) throw new AppError("invalid", "logoAssetIds");
+  const [updated] = await tx
+    .update(serviceCategories)
+    .set({ logoAssetIds })
+    .where(eq(serviceCategories.id, existing.id))
+    .returning();
+  return updated;
+}
+
 export async function deleteCategory(tx: Transaction, tenantId: string, categoryId: string) {
   const [{ value }] = await tx
     .select({ value: count() })

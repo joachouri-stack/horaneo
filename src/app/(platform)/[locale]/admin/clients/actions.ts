@@ -11,7 +11,7 @@ import { redirect } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/translator";
 import { adminMutation, form, type ActionResult } from "@/lib/admin/mutation";
 import { storage } from "@/lib/storage";
-import { deleteCategory, deleteService, saveCategory, saveService } from "@/modules/catalog/services";
+import { addCategoryLogo, deleteCategory, deleteService, saveCategory, saveService } from "@/modules/catalog/services";
 import { SITE_PAGE_KEYS, PAGE_TEXT_FIELDS, updatePage } from "@/modules/content/pages";
 import { deleteTestimonial, saveTestimonial } from "@/modules/content/testimonials";
 import { restoreAsset, retireAsset, uploadAsset, uploadLogo } from "@/modules/media/assets";
@@ -319,6 +319,25 @@ export async function saveCategoryAction(_previous: Previous, data: FormData) {
   return adminMutation(
     { action: id ? "category.updated" : "category.created", tenantId, businessId: businessIdOf(data) },
     (tx) => saveCategory(tx, tenantId, categoryFields(data), id),
+  );
+}
+
+/** Logo envoyé depuis la catégorie : image gardée entière (type « Autre »), aussitôt cochée. */
+export async function addCategoryLogoAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const id = idOf(data)!;
+  const bytes = (await form.file(data, "file")) ?? new Uint8Array();
+  return adminMutation(
+    { action: "category.logo_added", tenantId, targetId: id, businessId: businessIdOf(data) },
+    async (tx, context) => {
+      const asset = await uploadAsset(tx, storage(), tenantId, {
+        bytes,
+        kind: "other",
+        uploadedByUserId: context.userId,
+        alt: form.optional(data, "alt"),
+      });
+      return addCategoryLogo(tx, tenantId, id, asset.id);
+    },
   );
 }
 

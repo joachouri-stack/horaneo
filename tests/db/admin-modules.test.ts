@@ -12,6 +12,7 @@ import type { FileStorage } from "@/lib/storage/types";
 import {
   deleteCategory,
   saveCategory,
+  addCategoryLogo,
   saveService,
   listServices,
   deleteService,
@@ -389,6 +390,14 @@ describe.skipIf(!hasTestDatabase)("espace admin : modules", () => {
       );
       expect(renamed.isTraining).toBe(true);
       expect(renamed.logoAssetIds).toEqual([logo.id]);
+      const second = await platform((tx) =>
+        uploadAsset(tx, store, tenant.id, { bytes, kind: "other", uploadedByUserId: null }),
+      );
+      const added = await platform((tx) => addCategoryLogo(tx, tenant.id, category.id, second.id));
+      expect(added.logoAssetIds).toEqual([logo.id, second.id]);
+      expect(await errorCode(platform((tx) => addCategoryLogo(tx, tenant.id, category.id, foreign.id)))).toBe(
+        "invalid",
+      );
     });
 
     it("refuse un fichier qui n'est pas une image", async () => {
