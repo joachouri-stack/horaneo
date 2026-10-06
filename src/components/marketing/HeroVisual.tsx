@@ -23,15 +23,15 @@ export async function HeroVisual() {
     <div
       role="img"
       aria-label={t("label")}
-      className="hn-up-late relative flex min-w-0 flex-[1_1_20rem] justify-center pb-[2.2rem] pt-[4.5rem] sm:pt-2"
+      className="hn-up-late relative flex min-w-0 flex-[1_1_20rem] justify-center pb-8 pt-16 sm:pt-2"
     >
       <div
         aria-hidden="true"
-        className="absolute left-1/2 top-1/2 size-[23rem] max-w-full -translate-x-1/2 -translate-y-1/2 rounded-full bg-blush"
+        className="absolute left-1/2 top-1/2 size-[19rem] max-w-full -translate-x-1/2 sm:size-[23rem] -translate-y-1/2 rounded-full bg-blush"
       />
       <div
         aria-hidden="true"
-        className="relative w-[17rem] rounded-[2.4rem] bg-night p-2 shadow-[0_30px_60px_rgba(22,24,29,.22)]"
+        className="relative w-[15.5rem] rounded-[2.4rem] bg-night p-2 sm:w-[17rem] shadow-[0_30px_60px_rgba(22,24,29,.22)]"
       >
         <div className="overflow-hidden rounded-[2rem] bg-white">
           <div className="flex items-center justify-center gap-1.5 bg-sand px-2.5 py-2 text-[11px] text-body">

@@ -111,11 +111,11 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
   ] as const;
 
   return (
-    <div className="text-[1.05rem] leading-[1.55] text-body">
+    <div className="text-base leading-[1.6] text-body lg:text-[1.05rem]">
       <PlatformHeader />
       <main id="contenu">
         {/* Accroche */}
-        <section className="mx-auto flex max-w-[75rem] flex-wrap items-center gap-12 overflow-hidden px-4 pb-16 pt-8 sm:px-6">
+        <section className="mx-auto flex max-w-[75rem] flex-wrap items-center gap-8 overflow-hidden px-4 pb-10 pt-6 sm:px-6 lg:gap-12 lg:pb-14 lg:pt-8">
           <div className="hn-up flex-[1_1_27rem]">
             <p className={`${BADGE} mb-5`}>{t("badge")}</p>
             <h1 className={`${TITLE} mb-[1.1rem] text-[clamp(1.85rem,4.1vw,3.4rem)] leading-[1.06]`}>
@@ -125,7 +125,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 {t("titleAccent")}
               </span>
             </h1>
-            <p className="mb-7 max-w-[30rem] text-[1.125rem]">{t("subtitle")}</p>
+            <p className="mb-7 max-w-[30rem] text-[1.05rem] lg:text-[1.125rem]">{t("subtitle")}</p>
             <div className="mb-8 flex flex-wrap items-center gap-6">
               <a href="#tarifs" className={`${PRIMARY} min-h-11 px-6 py-3 text-base`}>
                 {t("cta")}
@@ -150,8 +150,8 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
         </section>
 
         {/* Métiers */}
-        <section aria-labelledby="titre-metiers" className="mx-auto max-w-[75rem] px-4 pb-14 sm:px-6">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-3 lg:flex-nowrap">
+        <section aria-labelledby="titre-metiers" className="mx-auto max-w-[75rem] px-4 pb-12 sm:px-6">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-3 xl:flex-nowrap">
             <h2
               id="titre-metiers"
               className="mr-1 shrink-0 font-sans text-[1.05rem] font-semibold text-night"
@@ -159,7 +159,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               {t("madeFor.title")}
             </h2>
             {/* Sur téléphone, les métiers défilent sur une seule ligne. */}
-            <ul className="-mx-4 flex w-[calc(100%+2rem)] gap-2.5 overflow-x-auto px-4 py-1 sm:mx-0 sm:w-auto sm:flex-wrap sm:overflow-visible sm:px-0 lg:flex-nowrap">
+            <ul className="-mx-4 flex w-[calc(100%+2rem)] gap-2.5 overflow-x-auto px-4 py-1 sm:mx-0 sm:w-auto sm:flex-wrap sm:overflow-visible sm:px-0 xl:flex-nowrap">
               {(t.raw("madeFor.items") as string[]).map((item) => (
                 <li
                   key={item}
@@ -176,7 +176,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
         <section
           id="etapes"
           aria-labelledby="titre-etapes"
-          className="relative mx-3 scroll-mt-4 overflow-hidden rounded-[3rem] bg-navy px-4 py-[5.5rem] sm:px-6"
+          className="relative mx-3 scroll-mt-4 overflow-hidden rounded-[2rem] bg-navy px-4 py-14 sm:px-6 lg:rounded-[3rem] lg:py-20"
         >
           <div
             aria-hidden="true"
@@ -184,22 +184,23 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           />
           <div aria-hidden="true" className="absolute -bottom-16 -left-16 size-48 rounded-full bg-coral" />
           <div className="relative mx-auto max-w-[75rem]">
-            <div className="mb-12 flex flex-wrap items-end justify-between gap-6">
+            <div className="mb-8 flex flex-wrap items-end justify-between gap-4 lg:mb-10 lg:gap-6">
               <h2
                 id="titre-etapes"
-                className="font-display text-[2.5rem] font-bold leading-none tracking-[-0.03em] text-white sm:text-[3.4rem]"
+                className="font-display text-[clamp(1.9rem,3.6vw,2.75rem)] font-bold leading-[1.05] tracking-[-0.03em] text-white"
               >
                 {t("steps.title")}
                 <br />
                 <span className="text-salmon">{t("steps.titleAccent")}</span>
               </h2>
-              <p className="max-w-sm text-[1.2rem] text-[#d7dce6]">{t("steps.intro")}</p>
+              <p className="max-w-sm text-[1.05rem] text-[#d7dce6]">{t("steps.intro")}</p>
             </div>
-            <ol className="grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(16.5rem,1fr))]">
+            {/* Téléphone : les trois cartes défilent d'un geste ; plus large : côte à côte. */}
+            <ol className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 pt-1 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-3 md:gap-5 md:overflow-visible md:p-0 lg:gap-6 [&::-webkit-scrollbar]:hidden">
               {steps.map(({ key, Icon, accent }, index) => (
                 <li
                   key={key}
-                  className={`flex flex-col gap-4 rounded-[1.75rem] p-8 transition duration-200 hover:-translate-y-2.5 hover:shadow-[0_28px_54px_rgba(0,0,0,.38)] ${accent ? "bg-brick" : "bg-white"}`}
+                  className={`flex w-[82%] shrink-0 snap-center flex-col gap-3 rounded-[1.75rem] p-6 transition duration-200 hover:-translate-y-2.5 sm:w-[58%] md:w-auto lg:gap-4 lg:p-7 hover:shadow-[0_28px_54px_rgba(0,0,0,.38)] ${accent ? "bg-brick" : "bg-white"}`}
                 >
                   <div className="flex items-start justify-between">
                     <span
@@ -209,13 +210,13 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     </span>
                     <span
                       aria-hidden="true"
-                      className={`font-display text-[4.4rem] font-bold leading-[0.9] ${accent ? "text-white" : "text-coral"}`}
+                      className={`font-display text-[3.2rem] font-bold leading-[0.9] lg:text-[3.8rem] ${accent ? "text-white" : "text-coral"}`}
                     >
                       {String(index + 1).padStart(2, "0")}
                     </span>
                   </div>
                   <h3
-                    className={`mt-2 font-sans text-2xl font-semibold ${accent ? "text-white" : "text-night"}`}
+                    className={`mt-1 font-sans text-xl font-semibold lg:text-[1.35rem] ${accent ? "text-white" : "text-night"}`}
                   >
                     {t(`steps.${key}.title`)}
                   </h3>
@@ -235,33 +236,37 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
         <section
           id="fonctions"
           aria-labelledby="titre-fonctions"
-          className="mx-auto max-w-[75rem] scroll-mt-4 px-4 pt-[5.5rem] sm:px-6"
+          className="mx-auto max-w-[75rem] scroll-mt-4 px-4 pt-14 sm:px-6 lg:pt-20"
         >
-          <div className="mb-12 flex flex-wrap items-end justify-between gap-6">
+          <div className="mb-8 flex flex-wrap items-end justify-between gap-4 lg:mb-10 lg:gap-6">
             <div>
-              <p className={`${BADGE} mb-5`}>{t("features.badge")}</p>
-              <h2 id="titre-fonctions" className={`${TITLE} text-[2.5rem] leading-none sm:text-[3.2rem]`}>
+              <p className={`${BADGE} mb-4`}>{t("features.badge")}</p>
+              <h2
+                id="titre-fonctions"
+                className={`${TITLE} text-[clamp(1.9rem,3.6vw,2.75rem)] leading-[1.05]`}
+              >
                 {t("features.title")} <span className="text-brick">{t("features.titleAccent")}</span>
               </h2>
             </div>
-            <p className="max-w-sm text-[1.15rem]">{t("features.intro")}</p>
+            <p className="max-w-sm text-[1.05rem]">{t("features.intro")}</p>
           </div>
-          <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
             {features.map(({ key, Icon, feature }) => {
               const tag = featureTag(feature);
               if (!tag) return null;
               return (
                 <li
                   key={key}
-                  className="flex flex-col gap-3 rounded-[1.75rem] border-2 border-line bg-white p-7 transition duration-200 hover:-translate-y-2 hover:border-coral hover:shadow-[0_22px_44px_rgba(22,24,29,.08)]"
+                  className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 rounded-[1.5rem] border-2 border-line bg-white p-5 transition duration-200 sm:flex sm:flex-col sm:gap-3 sm:p-6 lg:rounded-[1.75rem] lg:p-7 hover:-translate-y-2 hover:border-coral hover:shadow-[0_22px_44px_rgba(22,24,29,.08)]"
                 >
-                  <span className="flex size-[3.2rem] items-center justify-center rounded-[1rem] bg-blush text-brick">
-                    <Icon className="size-[26px]" />
+                  {/* Téléphone : icône à gauche, texte à droite (ligne compacte). */}
+                  <span className="row-span-3 flex size-11 items-center justify-center rounded-[0.9rem] bg-blush text-brick sm:size-[3.2rem] sm:rounded-[1rem]">
+                    <Icon className="size-[22px] sm:size-[26px]" />
                   </span>
-                  <h3 className="mt-1 font-sans text-[1.3rem] font-semibold text-night">
+                  <h3 className="font-sans text-[1.1rem] font-semibold text-night sm:mt-1 lg:text-[1.25rem]">
                     {t(`features.items.${key}.title`)}
                   </h3>
-                  <p className="flex-1">{t(`features.items.${key}.text`)}</p>
+                  <p className="flex-1 text-[0.95rem] lg:text-base">{t(`features.items.${key}.text`)}</p>
                   <p className="self-start rounded-full bg-sand px-3 py-1 text-[0.85rem] font-semibold text-stone">
                     {tag}
                   </p>
@@ -275,14 +280,17 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
         <section
           id="tarifs"
           aria-labelledby="titre-tarifs"
-          className="mx-auto max-w-[75rem] scroll-mt-4 px-4 py-[5.5rem] sm:px-6"
+          className="mx-auto max-w-[75rem] scroll-mt-4 px-4 py-14 sm:px-6 lg:py-20"
         >
-          <div className="mb-14 text-center">
+          <div className="mb-8 text-center lg:mb-10">
             <p className={`${BADGE} mb-5`}>{t("plans.badge")}</p>
-            <h2 id="titre-tarifs" className={`${TITLE} mb-3 text-[2.5rem] leading-none sm:text-[3.2rem]`}>
+            <h2
+              id="titre-tarifs"
+              className={`${TITLE} mb-3 text-[clamp(1.9rem,3.6vw,2.75rem)] leading-[1.05]`}
+            >
               {t("plans.title")} <span className="text-brick">{t("plans.titleAccent", { percent })}</span>
             </h2>
-            <p className="mx-auto max-w-[34rem] text-[1.15rem]">{t("plans.subtitle")}</p>
+            <p className="mx-auto max-w-[34rem] text-[1.05rem]">{t("plans.subtitle")}</p>
             <p className="mx-auto mt-2 max-w-[34rem] text-[0.95rem] text-stone">
               {t("plans.pricesDisplay", { display: String(data.display) })}{" "}
               {t("plans.commitment", { months: data.commitment })}{" "}
@@ -292,7 +300,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             </p>
           </div>
           <PlanCards plans={data.plans} locale={locale} />
-          <ul className="mt-12 flex flex-wrap justify-center gap-x-10 gap-y-3 font-medium text-night">
+          <ul className="mt-8 flex flex-wrap justify-center gap-x-8 gap-y-2.5 text-[0.95rem] font-medium text-night lg:mt-10">
             {[t("plans.trust.commission", { percent }), t("plans.trust.secure"), t("plans.trust.data")].map(
               (text) => (
                 <li key={text} className="flex items-center gap-2">
@@ -305,34 +313,38 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
         </section>
 
         {/* Questions */}
-        <section id="questions" aria-labelledby="titre-questions" className="scroll-mt-4 px-4 py-20 sm:px-6">
-          <div className="mx-auto flex max-w-[75rem] flex-wrap gap-12">
+        <section
+          id="questions"
+          aria-labelledby="titre-questions"
+          className="scroll-mt-4 px-4 py-14 sm:px-6 lg:py-20"
+        >
+          <div className="mx-auto flex max-w-[75rem] flex-wrap gap-8 lg:gap-12">
             <div className="flex-[1_1_18rem]">
               <h2
                 id="titre-questions"
-                className={`${TITLE} mb-4 text-[2.3rem] leading-[1.02] sm:text-[2.8rem]`}
+                className={`${TITLE} mb-3 text-[clamp(1.8rem,3.2vw,2.5rem)] leading-[1.05]`}
               >
                 {t("faq.title")}
               </h2>
-              <p className="mb-6 text-[1.15rem]">{t("faq.intro")}</p>
+              <p className="mb-5 text-[1.05rem]">{t("faq.intro")}</p>
               <a href={`mailto:${contact}`} className={`${LINK} font-semibold`}>
                 {t("faq.contact")}
               </a>
             </div>
-            <div className="flex flex-[2_1_26rem] flex-col gap-3.5">
+            <div className="flex flex-[2_1_26rem] flex-col gap-3">
               {faq.map((item, index) => (
                 <details
                   key={item.q}
                   open={index === 0}
                   className="group rounded-[1.25rem] border-[1.5px] border-line bg-ivory transition-colors open:border-coral open:bg-white"
                 >
-                  <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 px-6 py-5 text-[1.15rem] font-semibold text-night [&::-webkit-details-marker]:hidden">
+                  <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-base font-semibold lg:px-6 lg:text-[1.1rem] text-night [&::-webkit-details-marker]:hidden">
                     {item.q}
                     <span className="flex size-[2.2rem] flex-none items-center justify-center rounded-full bg-blush text-rust transition group-open:rotate-45 group-open:bg-brick group-open:text-white">
                       <PlusIcon className="size-4" />
                     </span>
                   </summary>
-                  <p className="px-6 pb-[1.4rem]">{answer(item.a)}</p>
+                  <p className="px-5 pb-5 text-[0.95rem] lg:px-6 lg:text-base">{answer(item.a)}</p>
                 </details>
               ))}
             </div>
@@ -341,21 +353,23 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
 
         {/* Bandeau final */}
         <section className="px-3 pb-12 pt-4">
-          <div className="relative mx-auto max-w-[74rem] overflow-hidden rounded-[3rem] bg-brick px-8 py-[4.5rem] text-center">
+          <div className="relative mx-auto max-w-[74rem] overflow-hidden rounded-[2rem] bg-brick px-6 py-12 text-center lg:rounded-[3rem] lg:px-8 lg:py-16">
             <div
               aria-hidden="true"
               className="absolute -left-20 -top-20 size-64 rounded-full border-[2.5rem] border-[#dd5646]"
             />
             <div aria-hidden="true" className="absolute -bottom-12 -right-12 size-44 rounded-full bg-navy" />
             <div className="relative">
-              <h2 className="hn-balance mb-4 font-display text-[2rem] font-bold leading-[1.05] tracking-[-0.03em] text-white sm:text-[3.2rem] sm:leading-none">
+              <h2 className="hn-balance mb-4 font-display text-[clamp(1.8rem,3.6vw,2.75rem)] font-bold leading-[1.05] tracking-[-0.03em] text-white">
                 {t("final.title")} <br className="hidden sm:block" />
                 {t("final.titleEnd")}
               </h2>
-              <p className="mx-auto mb-9 max-w-[34rem] text-[1.2rem] text-white">{t("final.text")}</p>
+              <p className="mx-auto mb-7 max-w-[34rem] text-[1.05rem] text-white lg:mb-8">
+                {t("final.text")}
+              </p>
               <a
                 href="#tarifs"
-                className="group inline-flex min-h-11 items-center gap-2.5 rounded-full bg-white px-[1.9rem] py-[1.05rem] text-[1.1rem] font-semibold text-rust transition hover:-translate-y-0.5 hover:shadow-[0_12px_26px_rgba(70,15,8,.35)]"
+                className="group inline-flex min-h-11 items-center gap-2.5 rounded-full bg-white px-7 py-3.5 text-base font-semibold text-rust transition hover:-translate-y-0.5 hover:shadow-[0_12px_26px_rgba(70,15,8,.35)]"
               >
                 {t("final.cta")}
                 <ArrowIcon className="size-5 transition-transform group-hover:translate-x-1" />
