@@ -5,6 +5,7 @@ import { BusinessPicker } from "@/components/admin/BusinessPicker";
 import { loadAdminBusiness } from "@/lib/admin/business";
 import { listCategories, listServices } from "@/modules/catalog/services";
 import { listActiveAssets } from "@/modules/media/assets";
+import { storage } from "@/lib/storage";
 import { pickLocalized } from "@/i18n/locales";
 import {
   deleteCategoryAction,
@@ -48,6 +49,7 @@ export default async function ServicesPage({
         logoOptions={photos.map((photo, index) => ({
           value: photo.id,
           label: pickLocalized(photo.alt, overview.tenant.defaultLocale as "fr") || `Photo ${index + 1}`,
+          src: storage().publicUrl(photo.storageKey),
         }))}
         actions={{
           saveCategory: saveCategoryAction,

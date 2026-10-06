@@ -924,7 +924,7 @@
           "cover": "Grande photo d'accueil",
           "staff": "Photo d'un membre",
           "service": "Photo d'une prestation",
-          "other": "Autre"
+          "other": "Autre (logo… envoyé sans recadrage)"
         },
         "alt": "Description (pour l'accessibilité)",
         "quota": "{used, plural, one {# photo} other {# photos}} sur {limit}",
@@ -1537,6 +1537,7 @@
       "sending": "Envoi…",
       "cancel": "Annuler",
       "noCrop": "Le recadrage n'est pas possible pour ce format : la photo sera envoyée telle quelle.",
+      "asIs": "Image envoyée en entier, sans recadrage (idéal pour un logo).",
       "tooLarge": "Cette photo dépasse 10 Mo. Choisissez-en une plus légère."
     },
     "more": {

@@ -32,7 +32,7 @@ export async function ServicesEditor({
   categories: Awaited<ReturnType<typeof listCategories>>;
   services: Awaited<ReturnType<typeof listServices>>;
   /** Photos du site proposées comme logos d'une page formation (espace admin). */
-  logoOptions?: { value: string; label: string }[];
+  logoOptions?: { value: string; label: string; src: string }[];
   actions: { saveCategory: Action; deleteCategory: Action; saveService: Action; deleteService: Action };
 }) {
   const [t, tCommon] = await Promise.all([
@@ -89,13 +89,23 @@ export async function ServicesEditor({
                     <input type="hidden" name="logoAssetIdsShown" value="1" />
                     <div className="grid sm:grid-cols-2">
                       {logoOptions.map((option) => (
-                        <CheckboxField
-                          key={option.value}
-                          name="logoAssetIds"
-                          value={option.value}
-                          label={option.label}
-                          defaultChecked={category.logoAssetIds.includes(option.value)}
-                        />
+                        <label key={option.value} className="flex min-h-14 cursor-pointer items-center gap-3 text-ink">
+                          <input
+                            type="checkbox"
+                            name="logoAssetIds"
+                            value={option.value}
+                            defaultChecked={category.logoAssetIds.includes(option.value)}
+                            className="h-6 w-6 shrink-0 accent-navy"
+                          />
+                          {/* Vignette : on reconnaît le logo même sans description. */}
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={option.src}
+                            alt=""
+                            className="h-12 w-16 shrink-0 rounded border border-navy/10 bg-white object-contain"
+                          />
+                          <span>{option.label}</span>
+                        </label>
                       ))}
                     </div>
                   </fieldset>

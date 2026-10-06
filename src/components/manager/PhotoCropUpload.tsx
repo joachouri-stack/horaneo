@@ -12,8 +12,9 @@ const ASPECTS: Record<string, number> = {
   cover: 16 / 9,
   staff: 1,
   service: 4 / 3,
-  other: 4 / 3,
 };
+/** Sans recadrage : envoyée telle quelle (ex. un logo, en entier et avec sa transparence). */
+const UNCROPPED = new Set<string>(["other"]);
 const KINDS = ["gallery", "cover", "staff", "service", "other"] as const;
 
 type Props = {
@@ -95,7 +96,7 @@ export function PhotoCropUpload({ tenantId, action }: Props) {
     data.set("alt", alt);
     data.set(
       "file",
-      canCrop && area
+      canCrop && area && !UNCROPPED.has(kind)
         ? new File([await cropToBlob(source, area)], "photo.jpg", { type: "image/jpeg" })
         : file,
     );
@@ -139,7 +140,17 @@ export function PhotoCropUpload({ tenantId, action }: Props) {
         </label>
       ) : (
         <div className="space-y-3">
-          {canCrop ? (
+          {canCrop && UNCROPPED.has(kind) ? (
+            <>
+              <p className="text-sm text-ink/70">{t("asIs")}</p>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={source}
+                alt=""
+                className="max-h-48 w-auto rounded-[var(--radius-card)] border border-navy/10 bg-white object-contain p-2"
+              />
+            </>
+          ) : canCrop ? (
             <>
               <p className={ui.label}>{t("crop")}</p>
               <div className="relative h-72 overflow-hidden rounded-[var(--radius-card)] bg-ink">
