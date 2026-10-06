@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { splitPlans } from "@/modules/billing/showcase";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
 import { TextField } from "@/components/admin/fields";
@@ -42,6 +43,7 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
   }));
   const selected =
     plans.find((plan) => plan.code === pack) ?? plans.find((plan) => plan.priceCents > 0) ?? plans[0];
+  const groups = splitPlans(plans);
   const money = (cents: number) =>
     new Intl.NumberFormat(locale, { style: "currency", currency: "EUR" }).format(cents / 100);
 
@@ -57,29 +59,49 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
           <ActionForm action={submitOrderAction} submitLabel={t("submit")} className="space-y-5">
             <fieldset>
               <legend className={ui.label}>{t("plan")}</legend>
-              <div className="space-y-2">
-                {plans.map((plan) => (
-                  <label
-                    key={plan.id}
-                    className="flex cursor-pointer items-center justify-between gap-3 rounded-[var(--radius-card)] border-2 border-navy/15 p-4 has-[:checked]:border-navy"
-                  >
-                    <span className="flex items-center gap-3">
-                      <input
-                        type="radio"
-                        name="planCode"
-                        value={plan.code}
-                        defaultChecked={plan.id === selected?.id}
-                        className="h-5 w-5 accent-navy"
-                      />
-                      <span className="font-bold text-night">{pickLocalized(plan.name, locale)}</span>
-                    </span>
-                    <span className="text-right">
-                      {plan.priceCents > 0
-                        ? `${money(plan.priceCents)} ${tHome("perMonth", { display })}`
-                        : tHome("free")}
-                    </span>
-                  </label>
-                ))}
+              {/* Deux groupes : avec réservation en ligne, puis « site seul ». */}
+              <div className="space-y-5">
+                {[
+                  { key: "booking", title: tHome("toggleBooking"), items: groups.booking },
+                  { key: "site", title: tHome("toggleSite"), items: groups.siteOnly },
+                ]
+                  .filter((group) => group.items.length > 0)
+                  .map((group) => (
+                    <div key={group.key} className="space-y-2">
+                      {groups.siteOnly.length > 0 && (
+                        <p className="text-sm font-semibold uppercase tracking-wide text-ink/60">
+                          {group.title}
+                        </p>
+                      )}
+                      {group.items.map((plan) => (
+                        <label
+                          key={plan.id}
+                          className="flex cursor-pointer items-center justify-between gap-3 rounded-[var(--radius-card)] border-2 border-navy/15 p-4 has-[:checked]:border-navy"
+                        >
+                          <span className="flex items-center gap-3">
+                            <input
+                              type="radio"
+                              name="planCode"
+                              value={plan.code}
+                              defaultChecked={plan.id === selected?.id}
+                              className="h-5 w-5 accent-navy"
+                            />
+                            <span className="font-bold text-night">{pickLocalized(plan.name, locale)}</span>
+                          </span>
+                          <span className="text-right">
+                            {plan.priceCents > 0
+                              ? `${money(plan.priceCents)} ${tHome("perMonth", { display })}`
+                              : tHome("free")}
+                            {plan.setupFeeCents !== null && plan.setupFeeCents > 0 && (
+                              <span className="block text-sm text-ink/70">
+                                {tHome("setupFeeBadge", { amount: money(plan.setupFeeCents) })}
+                              </span>
+                            )}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  ))}
               </div>
             </fieldset>
             <TextField name="businessName" label={t("businessName")} required />

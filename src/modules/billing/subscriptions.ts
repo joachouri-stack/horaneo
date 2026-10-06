@@ -1,4 +1,5 @@
 import { and, asc, eq } from "drizzle-orm";
+import { setupFeeFor } from "./plans";
 import type { Transaction } from "@/db/client";
 import { getTranslator, resolveLocale } from "@/i18n/translator";
 import { businesses, plans, subscriptions, tenants } from "@/db/schema";
@@ -169,7 +170,7 @@ export async function requestPlanChange(
     }
     const row = await ensureCustomer(tx, tenantId, gateway);
     const priceId = await ensurePlanPrice(tx, target.id, gateway);
-    const setupFeeCents = Number(await getPlatformSetting(tx, "setup_fee_cents"));
+    const setupFeeCents = await setupFeeFor(tx, target);
     const checkout = await gateway
       .createCheckout({
         customerId: row.stripeCustomerId!,

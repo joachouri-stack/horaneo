@@ -21,7 +21,7 @@ import { AppError } from "@/modules/errors";
 import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
 import { saveStaff } from "@/modules/team/staff";
 import { createTenant } from "@/modules/tenants/create";
-import { changeStatus } from "@/modules/tenants/update";
+import { changePlan, changeStatus } from "@/modules/tenants/update";
 import { createFakeGateway } from "../setup/fake-gateway";
 import { hasTestDatabase, openAppDb, openTestDb, type TestDb } from "../setup/db";
 
@@ -288,6 +288,16 @@ describe.skipIf(!hasTestDatabase)("moteur de réservation", () => {
       expect(manual.status).toBe("confirmed");
       await asSite(s.id, (tx) => setOnlineBooking(tx, s.id, true));
       expect(await errorCode(book(s.id, { serviceIds: [s.soin.id], start: at("11:00") }))).toBeUndefined();
+    });
+
+    it("pack « site seul » : réservation en ligne fermée, même si l'entreprise l'a laissée ouverte", async () => {
+      const s = await setup();
+      await platform((tx) => changePlan(tx, s.id, "vitrine"));
+      const context = await asSite(s.id, (tx) => loadBookingContext(tx, s.id));
+      expect(context?.settings.onlineBookingEnabled).toBe(false);
+      expect(await errorCode(book(s.id, { serviceIds: [s.soin.id] }))).toBe("booking_closed");
+      await platform((tx) => changePlan(tx, s.id, "serenite"));
+      expect(await errorCode(book(s.id, { serviceIds: [s.soin.id] }))).toBeUndefined();
     });
 
     it("refuse un téléphone invalide sans rien enregistrer", async () => {

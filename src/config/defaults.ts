@@ -47,12 +47,17 @@ type PlanSeed = {
   /** Accroche affichée sous le nom du pack. */
   description: LocalizedText;
   priceCents: number;
+  /** Frais de création propres au pack (sinon : réglage général). */
+  setupFeeCents?: number | null;
   sortOrder: number;
   limits: PlanLimits;
   features: PlanFeatures;
 };
 
-/** Les trois packs de départ. null = illimité. */
+/**
+ * Les packs de départ. null = illimité. Trois packs avec réservation en ligne,
+ * puis trois packs « site seul » du même niveau (même ordre), affichés au dos.
+ */
 export const DEFAULT_PLANS: PlanSeed[] = [
   {
     code: "basic",
@@ -62,6 +67,7 @@ export const DEFAULT_PLANS: PlanSeed[] = [
     sortOrder: 1,
     limits: { onlineBookingsPerMonth: 5, members: 1, photos: 5, services: 10, smsPerMonth: 0 },
     features: {
+      onlineBooking: true,
       fullSite: false,
       customDomain: false,
       onlinePayment: false,
@@ -90,6 +96,7 @@ export const DEFAULT_PLANS: PlanSeed[] = [
     sortOrder: 2,
     limits: { onlineBookingsPerMonth: null, members: 3, photos: 20, services: null, smsPerMonth: 30 },
     features: {
+      onlineBooking: true,
       fullSite: true,
       customDomain: true,
       onlinePayment: true,
@@ -118,6 +125,7 @@ export const DEFAULT_PLANS: PlanSeed[] = [
     sortOrder: 3,
     limits: { onlineBookingsPerMonth: null, members: null, photos: null, services: null, smsPerMonth: 150 },
     features: {
+      onlineBooking: true,
       fullSite: true,
       customDomain: true,
       onlinePayment: true,
@@ -136,6 +144,92 @@ export const DEFAULT_PLANS: PlanSeed[] = [
       aiMessaging: true,
       customerSpace: true,
       loyalty: true,
+    },
+  },
+];
+
+const NO_BOOKING = {
+  onlineBooking: false,
+  onlinePayment: false,
+  promoCodes: false,
+  monthlySummary: false,
+  customerSpace: false,
+  loyalty: false,
+  aiMessaging: false,
+} as const;
+
+/** Packs « site seul » : un site, sans réservation en ligne (ajoutée en changeant de pack). */
+export const DEFAULT_SITE_ONLY_PLANS: PlanSeed[] = [
+  {
+    code: "express",
+    name: { fr: "Express", en: "Express", es: "Express", ru: "Экспресс" },
+    description: { fr: "Votre vitrine en une page" },
+    priceCents: 900,
+    sortOrder: 4,
+    limits: { onlineBookingsPerMonth: 0, members: 1, photos: 10, services: 20, smsPerMonth: 0 },
+    features: {
+      ...NO_BOOKING,
+      fullSite: false,
+      customDomain: true,
+      testimonials: false,
+      stats: false,
+      brandingFooter: false,
+      emailSupport: true,
+      whatsappSupport: false,
+      promotions: false,
+      googleReviews: false,
+      giftCards: false,
+      monthlyUpdate: false,
+      onDemandUpdates: false,
+    },
+  },
+  {
+    code: "vitrine",
+    name: { fr: "Vitrine", en: "Showcase", es: "Escaparate", ru: "Витрина" },
+    description: { fr: "Un vrai site à vos couleurs" },
+    priceCents: 2200,
+    sortOrder: 5,
+    limits: { onlineBookingsPerMonth: 0, members: 3, photos: 20, services: null, smsPerMonth: 0 },
+    features: {
+      ...NO_BOOKING,
+      fullSite: true,
+      customDomain: true,
+      testimonials: true,
+      stats: false,
+      brandingFooter: false,
+      emailSupport: true,
+      whatsappSupport: false,
+      promotions: true,
+      googleReviews: true,
+      giftCards: false,
+      monthlyUpdate: true,
+      onDemandUpdates: false,
+    },
+  },
+  {
+    code: "signature",
+    name: { fr: "Signature", en: "Signature", es: "Firma", ru: "Подпись" },
+    description: { fr: "Un site sur mesure, unique" },
+    priceCents: 3900,
+    setupFeeCents: 29000,
+    sortOrder: 6,
+    limits: { onlineBookingsPerMonth: 0, members: null, photos: null, services: null, smsPerMonth: 0 },
+    features: {
+      ...NO_BOOKING,
+      fullSite: true,
+      customDomain: true,
+      testimonials: true,
+      stats: false,
+      brandingFooter: false,
+      emailSupport: true,
+      whatsappSupport: true,
+      promotions: true,
+      googleReviews: true,
+      // Les cartes cadeaux se paient en ligne, même sans réservation.
+      giftCards: true,
+      onlinePayment: true,
+      monthlyUpdate: false,
+      onDemandUpdates: true,
     },
   },
 ];

@@ -1,4 +1,5 @@
 import type { PlanFeatures, PlanLimits } from "@/db/schema";
+import { planAllowsBooking } from "./features";
 
 /**
  * Présentation des packs sur le site commercial, calculée à partir de leurs
@@ -6,15 +7,18 @@ import type { PlanFeatures, PlanLimits } from "@/db/schema";
  * - trois chiffres clés (réservations, membres, SMS ou rappels par e-mail) ;
  * - la liste de ce que le pack ajoute au précédent, les fonctions annoncées
  *   « bientôt », puis ce qui lui manque par rapport au suivant ;
- * - la mention « avec ou sans réservation » pour les packs avec un vrai site.
+ * - les packs « site seul » (sans réservation) à part, présentés au dos des
+ *   packs avec réservation du même rang.
  */
 
 type ShowcasePlan = { limits: PlanLimits; features: PlanFeatures; priceCents: number };
 
 export type ShowcaseTile =
-  | { key: "bookings" | "members"; count: number | null }
+  | { key: "bookings" | "members" | "photos"; count: number | null }
   | { key: "sms"; count: number }
-  | { key: "emailReminders" };
+  | { key: "emailReminders" }
+  | { key: "pages"; fullSite: boolean }
+  | { key: "domain" };
 
 export type ShowcaseItem =
   | { kind: "included"; key: ShowcaseKey; values?: Record<string, number> }
@@ -53,9 +57,27 @@ const SOON_KEYS = ["aiMessaging"] as const;
 const MISSING_KEYS = ["customDomain", "onlinePayment", "stats", "whatsappSupport"] as const;
 const MAX_MISSING = 2;
 
+/** Fonctions liées aux rendez-vous : jamais annoncées sur un pack « site seul ». */
+const BOOKING_KEYS = new Set<string>([
+  "onlinePayment",
+  "promoCodes",
+  "customerSpace",
+  "stats",
+  "monthlySummary",
+  "loyalty",
+]);
+
 const unlimited = (value: number | null | undefined) => value === null || value === undefined;
 
 export function planTiles(plan: ShowcasePlan): ShowcaseTile[] {
+  // Site seul : la taille du site plutôt que réservations et rappels.
+  if (!planAllowsBooking(plan.features)) {
+    return [
+      { key: "pages", fullSite: Boolean(plan.features.fullSite) },
+      { key: "photos", count: plan.limits.photos ?? null },
+      plan.features.customDomain ? { key: "domain" } : { key: "members", count: plan.limits.members ?? null },
+    ];
+  }
   const sms = plan.limits.smsPerMonth ?? 0;
   return [
     { key: "bookings", count: plan.limits.onlineBookingsPerMonth ?? null },
@@ -70,13 +92,14 @@ export function planItems(plans: ShowcasePlan[], index: number): ShowcaseItem[] 
   const next = plans[index + 1] ?? null;
   // Un pack payant reprend le précédent (« Tout le pack … ») ; après un pack gratuit, on liste tout.
   const base = previous && previous.priceCents > 0 ? previous : null;
-  const gained = (key: string) => Boolean(plan.features[key]) && !base?.features[key];
+  const shown = (key: string) => planAllowsBooking(plan.features) || !BOOKING_KEYS.has(key);
+  const gained = (key: string) => shown(key) && Boolean(plan.features[key]) && !base?.features[key];
   const items: ShowcaseItem[] = [];
 
   if (base) items.push({ kind: "everythingIn", planIndex: index - 1 });
   if (!previous) {
     if (!plan.features.fullSite) items.push({ kind: "included", key: "basePage" });
-    items.push({ kind: "included", key: "agenda" });
+    if (planAllowsBooking(plan.features)) items.push({ kind: "included", key: "agenda" });
     const { photos, services } = plan.limits;
     if (!unlimited(photos) && !unlimited(services)) {
       items.push({
@@ -109,13 +132,23 @@ export function planItems(plans: ShowcasePlan[], index: number): ShowcaseItem[] 
   }
 
   if (next) {
-    MISSING_KEYS.filter((key) => next.features[key] && !plan.features[key])
+    MISSING_KEYS.filter((key) => shown(key) && next.features[key] && !plan.features[key])
       .slice(0, MAX_MISSING)
       .forEach((key) => items.push({ kind: "missing", key }));
   }
-  if ((plan.limits.smsPerMonth ?? 0) === 0) items.push({ kind: "missing", key: "smsReminders" });
+  if (planAllowsBooking(plan.features) && (plan.limits.smsPerMonth ?? 0) === 0) {
+    items.push({ kind: "missing", key: "smsReminders" });
+  }
   return items;
 }
 
-/** Un pack avec un vrai site peut servir avec ou sans réservation en ligne, au même prix. */
-export const bookingOptional = (plan: ShowcasePlan) => Boolean(plan.features.fullSite);
+/**
+ * Packs avec réservation d'un côté, « site seul » de l'autre (chacun dans son
+ * ordre) : le pack « site seul » de rang n se présente au dos du pack de rang n.
+ */
+export function splitPlans<T extends { features: PlanFeatures }>(plans: T[]) {
+  return {
+    booking: plans.filter((plan) => planAllowsBooking(plan.features)),
+    siteOnly: plans.filter((plan) => !planAllowsBooking(plan.features)),
+  };
+}

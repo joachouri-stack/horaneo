@@ -15,9 +15,16 @@ describe.skipIf(!hasTestDatabase)("valeurs de départ en base", () => {
     await db?.$client.end();
   });
 
-  it("insère les trois packs", async () => {
+  it("insère les trois packs avec réservation et les trois packs « site seul »", async () => {
     const rows = await db.select().from(plans);
-    expect(rows.map((plan) => plan.code).sort()).toEqual(["basic", "essentiel", "serenite"]);
+    expect(rows.map((plan) => plan.code).sort()).toEqual([
+      "basic",
+      "essentiel",
+      "express",
+      "serenite",
+      "signature",
+      "vitrine",
+    ]);
   });
 
   it("peut être relancé sans doublon ni écrasement des réglages modifiés", async () => {
@@ -26,7 +33,7 @@ describe.skipIf(!hasTestDatabase)("valeurs de départ en base", () => {
       .set({ value: 7 })
       .where(sql`key = 'go_live_delay_days'`);
     await seed(testDatabaseUrl!);
-    expect(await db.select().from(plans)).toHaveLength(3);
+    expect(await db.select().from(plans)).toHaveLength(6);
     const [delay] = await db
       .select()
       .from(platformSettings)

@@ -513,7 +513,14 @@ describe.skipIf(!hasTestDatabase)("espace admin : modules", () => {
       expect(overview?.counts).toEqual({ services: 0, members: 0, photos: 0 });
       const stats = await platform((tx) => getDashboardStats(tx));
       expect(stats.drafts).toBeGreaterThan(0);
-      expect(stats.byPlan.map((plan) => plan.code)).toEqual(["basic", "essentiel", "serenite"]);
+      expect(stats.byPlan.map((plan) => plan.code)).toEqual([
+        "basic",
+        "essentiel",
+        "serenite",
+        "express",
+        "vitrine",
+        "signature",
+      ]);
     });
   });
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseEnv } from "@/config/env";
-import { DEFAULT_PLANS, DEFAULT_PLATFORM_SETTINGS } from "@/config/defaults";
+import { DEFAULT_PLANS, DEFAULT_PLATFORM_SETTINGS, DEFAULT_SITE_ONLY_PLANS } from "@/config/defaults";
 
 describe("configuration", () => {
   it("utilise Horaneo et horaneo.com comme valeurs de départ", () => {
@@ -42,8 +42,18 @@ describe("valeurs de départ des packs", () => {
     expect(byCode.serenite.priceCents).toBe(6900);
   });
 
+  it("propose trois packs « site seul », sans réservation, Signature avec frais de création", () => {
+    const site = Object.fromEntries(DEFAULT_SITE_ONLY_PLANS.map((plan) => [plan.code, plan]));
+    expect([site.express.priceCents, site.vitrine.priceCents, site.signature.priceCents]).toEqual([
+      900, 2200, 3900,
+    ]);
+    expect(site.signature.setupFeeCents).toBe(29000);
+    for (const plan of DEFAULT_SITE_ONLY_PLANS) expect(plan.features.onlineBooking).toBe(false);
+    for (const plan of DEFAULT_PLANS) expect(plan.features.onlineBooking).toBe(true);
+  });
+
   it("ne propose jamais de SMS illimités", () => {
-    for (const plan of DEFAULT_PLANS) {
+    for (const plan of [...DEFAULT_PLANS, ...DEFAULT_SITE_ONLY_PLANS]) {
       expect(typeof plan.limits.smsPerMonth).toBe("number");
     }
   });

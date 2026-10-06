@@ -25,6 +25,7 @@ import { ENABLED_LOCALES } from "@/i18n/enabled";
 import { resolveLocale } from "@/i18n/translator";
 import { pickLocalized } from "@/i18n/locales";
 import { listPublicPlans } from "@/modules/billing/plans";
+import { planAllowsBooking } from "@/modules/billing/features";
 import { getPlatformSetting } from "@/modules/settings";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]">): Promise<Metadata> {
@@ -95,7 +96,9 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     { key: "reviews", Icon: ReviewIcon, feature: "googleReviews" },
   ] as const;
   const featureTag = (feature: string | null) => {
-    const plan = feature ? data.plans.find((item) => item.features[feature]) : data.plans[0];
+    // Fonctions de la réservation : on ne regarde que les packs qui la comprennent.
+    const withBooking = data.plans.filter((item) => planAllowsBooking(item.features));
+    const plan = feature ? withBooking.find((item) => item.features[feature]) : withBooking[0];
     if (!plan) return null;
     return plan.priceCents <= 0
       ? t("features.tagAll")

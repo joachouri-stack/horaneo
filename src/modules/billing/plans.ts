@@ -2,6 +2,8 @@ import { asc, eq } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
 import { pickLocalized, type Locale } from "@/i18n/locales";
 import { plans, type PlanFeatures, type PlanLimits } from "@/db/schema";
+import { getPlatformSetting } from "@/modules/settings";
+import { planAllowsBooking } from "./features";
 
 /** Packs proposés (site commercial, page Abonnement), du moins cher au plus cher. */
 export async function listPublicPlans(tx: Transaction) {
@@ -10,6 +12,11 @@ export async function listPublicPlans(tx: Transaction) {
     .from(plans)
     .where(eq(plans.isPublic, true))
     .orderBy(asc(plans.sortOrder), asc(plans.priceCents));
+}
+
+/** Frais de création d'un pack : les siens s'ils sont fixés, sinon le réglage général. */
+export async function setupFeeFor(tx: Transaction, plan: { setupFeeCents: number | null }) {
+  return plan.setupFeeCents ?? Number(await getPlatformSetting(tx, "setup_fee_cents"));
 }
 
 /**
@@ -48,7 +55,11 @@ export type PlanHighlight =
  * « illimité » (-1), sauf pour les SMS : jamais de SMS illimités (0 si absent).
  */
 export function planHighlights(plan: { limits: PlanLimits; features: PlanFeatures }): PlanHighlight[] {
-  const limits: PlanHighlight[] = LIMIT_KEYS.map((key) => {
+  // Pack « site seul » : ni réservations ni SMS de rappel à annoncer.
+  const keys = planAllowsBooking(plan.features)
+    ? LIMIT_KEYS
+    : LIMIT_KEYS.filter((key) => key !== "onlineBookingsPerMonth" && key !== "smsPerMonth");
+  const limits: PlanHighlight[] = keys.map((key) => {
     const value = plan.limits[key];
     return {
       kind: "limit",

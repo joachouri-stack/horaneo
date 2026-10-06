@@ -17,6 +17,7 @@ const optionalLimit = z
   .pipe(z.number().int().min(0).max(1_000_000).nullable());
 
 export const FEATURE_KEYS = [
+  "onlineBooking",
   "fullSite",
   "customDomain",
   "onlinePayment",
@@ -52,6 +53,12 @@ export const planInput = z.object({
   services: optionalLimit,
   /** Jamais de SMS illimités : un nombre est obligatoire (0 = aucun SMS). */
   smsPerMonth: z.coerce.number().int().min(0).max(100_000),
+  /** Frais de création propres au pack, en euros ; vide : réglage général. */
+  setupFee: z
+    .string()
+    .trim()
+    .regex(/^(\d{1,5}([.,]\d{1,2})?)?$/)
+    .default(""),
   features: z.array(z.enum(FEATURE_KEYS)),
   isPublic: z.boolean(),
 });
@@ -99,6 +106,7 @@ export async function savePlan(
       limits,
       features,
       isPublic: input.isPublic,
+      setupFeeCents: input.setupFee ? Math.round(Number(input.setupFee.replace(",", ".")) * 100) : null,
       ...(priceChanged ? { stripePriceId: null } : {}),
     })
     .where(eq(plans.id, plan.id));
