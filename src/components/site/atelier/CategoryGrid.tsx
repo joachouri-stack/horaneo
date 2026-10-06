@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { type ReactNode, useEffect, useRef, useState } from "react";
-import { ArrowIcon, CategoryIcon } from "./icons";
+import { ArrowIcon, CategoryIcon, CheckIcon } from "./icons";
 
 export type CategoryCard = {
   id: string;
@@ -131,10 +131,13 @@ export function CategoryGrid({
 
   return (
     <div ref={rootRef}>
+      <p className="mt-8 text-sm font-semibold uppercase tracking-[0.12em] text-site-muted">
+        {labels.choose}
+      </p>
       <div
         role="group"
         aria-label={labels.choose}
-        className={`mt-8 grid gap-3 ${withCards.length === 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3"}`}
+        className={`mt-3 grid gap-3 ${withCards.length === 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3"}`}
       >
         {withCards.map((group) => {
           const active = selected === group.id;
@@ -144,10 +147,11 @@ export function CategoryGrid({
               type="button"
               aria-pressed={active}
               onClick={() => setSelected(group.id)}
-              className={`flex min-w-0 items-center gap-3 rounded-[1.25rem] border p-2.5 text-left transition duration-300 active:scale-[0.98] sm:gap-4 sm:p-3 ${
+              className={`relative flex min-w-0 items-center gap-3 rounded-[1.25rem] border-2 p-2.5 pr-9 text-left transition duration-300 active:scale-[0.98] sm:gap-4 sm:p-3 sm:pr-11 ${
                 active
                   ? "border-site-text bg-site-text text-site-bg shadow-[0_14px_30px_-18px_rgba(0,0,0,0.55)]"
-                  : "border-site-border bg-site-card text-site-text hover:border-site-accent"
+                  : // Professionnelle non choisie : contour coloré et léger halo qui invite à toucher.
+                    "border-site-accent/60 bg-site-card text-site-text shadow-[0_10px_24px_-18px_rgba(0,0,0,0.45)] hover:border-site-accent motion-safe:animate-[pro-hint_1.8s_ease-in-out_0.8s_2]"
               }`}
             >
               <span
@@ -166,6 +170,14 @@ export function CategoryGrid({
                     {group.subtitle}
                   </span>
                 )}
+              </span>
+              <span
+                aria-hidden="true"
+                className={`absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full sm:right-3 sm:h-7 sm:w-7 ${
+                  active ? "bg-site-bg/20 text-site-bg" : "bg-site-button text-site-on-button"
+                }`}
+              >
+                {active ? <CheckIcon /> : <ArrowIcon />}
               </span>
             </button>
           );
