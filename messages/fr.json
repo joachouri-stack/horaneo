@@ -969,6 +969,8 @@
         "pageTitle": "Titre de sa page et du menu (ex. « Esthétique »)",
         "role": "Métier (ex. « Esthéticienne, spécialiste du regard »)",
         "bio": "Présentation",
+        "quote": "Sa phrase (citation sur l'accueil)",
+        "quoteHint": "Une ou deux phrases à la première personne, ex. « Je prends le temps d'écouter chaque cliente… ». Laissez vide pour ne rien afficher.",
         "availability": "Disponibilités (ex. « Du lundi au samedi »)",
         "photo": "Photo",
         "noPhoto": "Aucune photo",

@@ -228,6 +228,7 @@ export const businessProfileInput = z.object({
   title: z.string().trim().max(60).optional(),
   role: z.string().trim().max(120).optional(),
   bio: z.string().trim().max(2000).optional(),
+  quote: z.string().trim().max(280).optional(),
   availability: z.string().trim().max(80).optional(),
   photoAssetId: z.uuid().nullable().optional(),
 });
@@ -268,6 +269,7 @@ export async function updateBusinessProfile(
     title: setLocalized(previous.title, locale, input.title),
     role: setLocalized(previous.role, locale, input.role),
     bio: setLocalized(previous.bio, locale, input.bio),
+    quote: setLocalized(previous.quote, locale, input.quote),
     availability: setLocalized(previous.availability, locale, input.availability),
     photoAssetId: input.photoAssetId !== undefined ? input.photoAssetId : (previous.photoAssetId ?? null),
   };

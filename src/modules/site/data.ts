@@ -345,6 +345,7 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
       title: text(business.profile.title),
       role: text(business.profile.role),
       bio: text(business.profile.bio),
+      quote: text(business.profile.quote),
       availability: text(business.profile.availability),
       photo: image(business.profile.photoAssetId),
       /** Réservation en ligne ouverte pour cette entreprise (sinon : appeler, écrire). */
