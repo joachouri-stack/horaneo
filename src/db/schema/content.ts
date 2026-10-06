@@ -116,6 +116,10 @@ export const serviceCategories = pgTable(
     isFeatured: boolean().notNull().default(false),
     /** Lien direct dans le menu du site (ex. « Formations »). */
     inMenu: boolean().notNull().default(false),
+    /** Présentée comme une formation : page dédiée (programme, durée, financement, contact) sans liste de tarifs. */
+    isTraining: boolean().notNull().default(false),
+    /** Logos affichés sur sa page (ex. organismes de financement) : photos du site. */
+    logoAssetIds: jsonb().$type<string[]>().notNull().default([]),
     sortOrder: integer().notNull().default(0),
     ...timestamps(),
   },

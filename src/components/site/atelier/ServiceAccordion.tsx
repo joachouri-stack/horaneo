@@ -3,7 +3,8 @@ import { getTranslations } from "next-intl/server";
 import { formatMoney } from "@/lib/format";
 import type { SiteData } from "@/modules/site/data";
 import { formatDuration } from "@/modules/site/format";
-import { SITE_PATHS } from "@/modules/site/paths";
+import { detailBlocks } from "@/modules/site/details";
+import { categoryPath, SITE_PATHS } from "@/modules/site/paths";
 import { PriceTag } from "../PriceTag";
 import { ArrowIcon, CheckIcon } from "./icons";
 import { PillLink, Tag } from "./ui";
@@ -27,7 +28,10 @@ export async function ServiceAccordion({
   const t = await getTranslations("site.atelier");
   const tServices = await getTranslations("site.services");
   const tOffers = await getTranslations("site.offers");
-  const categories = site.categories.filter((category) => category.businessId === businessId);
+  const own = site.categories.filter((category) => category.businessId === businessId);
+  // Les formations ont leur propre page : un simple lien, sans liste de tarifs.
+  const categories = own.filter((category) => !category.isTraining);
+  const trainings = own.filter((category) => category.isTraining);
   const loose = site.uncategorized.filter((service) => service.businessId === businessId);
   const groups = [
     ...categories.map((category) => ({
@@ -135,22 +139,33 @@ export async function ServiceAccordion({
           )}
         </details>
       ))}
+      {trainings.map((category) => (
+        <Link
+          key={category.id}
+          id={category.slug}
+          href={categoryPath(category.slug)}
+          className="group flex scroll-mt-28 items-center gap-4 rounded-[1.5rem] border border-site-border bg-site-card px-5 py-4 transition-shadow hover:shadow-[0_10px_30px_-12px_rgba(0,0,0,0.15)] sm:px-6"
+        >
+          <span className="min-w-0 flex-1">
+            <span className="block font-site-display text-2xl font-medium sm:text-[1.7rem]">{category.name}</span>
+            {category.description && <span className="block text-sm text-site-muted">{category.description}</span>}
+          </span>
+          <span className="hidden text-sm font-semibold text-site-accent sm:inline">{t("seeTraining")}</span>
+          <span
+            aria-hidden="true"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-site-button text-site-on-button"
+          >
+            <ArrowIcon />
+          </span>
+        </Link>
+      ))}
     </div>
   );
 }
 
 /** Présentation d'une catégorie : paragraphes, et les lignes « - … » en liste cochée. */
 function CategoryDetails({ text }: { text: string }) {
-  const blocks: ({ kind: "p"; text: string } | { kind: "ul"; items: string[] })[] = [];
-  for (const raw of text.split("\n")) {
-    const line = raw.trim();
-    if (!line) continue;
-    const item = line.match(/^[-•]\s*(.+)$/)?.[1];
-    const last = blocks.at(-1);
-    if (item && last?.kind === "ul") last.items.push(item);
-    else if (item) blocks.push({ kind: "ul", items: [item] });
-    else blocks.push({ kind: "p", text: line });
-  }
+  const blocks = detailBlocks(text);
   return (
     <div className="mx-5 mb-2 space-y-3 rounded-2xl bg-site-surface p-4 sm:mx-6 sm:p-5">
       {blocks.map((block, index) =>

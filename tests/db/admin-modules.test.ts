@@ -357,6 +357,40 @@ describe.skipIf(!hasTestDatabase)("espace admin : modules", () => {
       expect(await platform((tx) => countUsage(tx, tenant.id, "photos"))).toBe(1);
     });
 
+    it("page formation : logos choisis parmi les photos du site uniquement", async () => {
+      const tenant = await newTenant();
+      const other = await newTenant();
+      const bytes = await png("#336699");
+      const logo = await platform((tx) =>
+        uploadAsset(tx, store, tenant.id, { bytes, kind: "other", uploadedByUserId: null }),
+      );
+      const foreign = await platform((tx) =>
+        uploadAsset(tx, store, other.id, { bytes, kind: "other", uploadedByUserId: null }),
+      );
+      const category = await platform((tx) =>
+        saveCategory(tx, tenant.id, {
+          name: "Formations",
+          isTraining: true,
+          logoAssetIds: [logo.id, logo.id],
+        }),
+      );
+      expect(category.isTraining).toBe(true);
+      expect(category.logoAssetIds).toEqual([logo.id]);
+      expect(
+        await errorCode(
+          platform((tx) =>
+            saveCategory(tx, tenant.id, { name: "Formations", logoAssetIds: [foreign.id] }, category.id),
+          ),
+        ),
+      ).toBe("invalid");
+      // Champs absents : inchangés.
+      const renamed = await platform((tx) =>
+        saveCategory(tx, tenant.id, { name: "Nos formations" }, category.id),
+      );
+      expect(renamed.isTraining).toBe(true);
+      expect(renamed.logoAssetIds).toEqual([logo.id]);
+    });
+
     it("refuse un fichier qui n'est pas une image", async () => {
       const tenant = await newTenant();
       expect(

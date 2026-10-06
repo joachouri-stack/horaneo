@@ -1,7 +1,7 @@
-import { and, asc, count, eq } from "drizzle-orm";
+import { and, asc, count, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
-import { serviceCategories, services, staffServices, tenants } from "@/db/schema";
+import { assets, serviceCategories, services, staffServices, tenants } from "@/db/schema";
 import { setLocalized } from "@/modules/content/localized";
 import { slugify } from "@/modules/tenants/slug";
 import { CATEGORY_ICONS } from "./icons";
@@ -30,7 +30,21 @@ export const categoryInput = z.object({
   icon: z.enum(CATEGORY_ICONS).nullable().optional(),
   isFeatured: z.boolean().optional(),
   inMenu: z.boolean().optional(),
+  /** Page « formation » dédiée. Absent : inchangé. */
+  isTraining: z.boolean().optional(),
+  /** Logos de sa page (photos du site). Absent : inchangé. */
+  logoAssetIds: z.array(z.uuid()).max(6).optional(),
 });
+
+/** Les logos doivent être des photos de ce site. */
+async function assertOwnAssets(tx: Transaction, tenantId: string, ids: string[]) {
+  if (ids.length === 0) return;
+  const found = await tx
+    .select({ id: assets.id })
+    .from(assets)
+    .where(and(eq(assets.tenantId, tenantId), inArray(assets.id, ids)));
+  if (found.length !== new Set(ids).size) throw new AppError("invalid", "logoAssetIds");
+}
 
 export async function listCategories(tx: Transaction, tenantId: string) {
   return tx
@@ -48,6 +62,7 @@ export async function saveCategory(
 ) {
   const input = categoryInput.parse(raw);
   const { locale } = await tenantInfo(tx, tenantId);
+  if (input.logoAssetIds) await assertOwnAssets(tx, tenantId, input.logoAssetIds);
   if (categoryId) {
     const [existing] = await tx
       .select()
@@ -66,6 +81,8 @@ export async function saveCategory(
         ...(input.icon !== undefined ? { icon: input.icon } : {}),
         ...(input.isFeatured !== undefined ? { isFeatured: input.isFeatured } : {}),
         ...(input.inMenu !== undefined ? { inMenu: input.inMenu } : {}),
+        ...(input.isTraining !== undefined ? { isTraining: input.isTraining } : {}),
+        ...(input.logoAssetIds !== undefined ? { logoAssetIds: [...new Set(input.logoAssetIds)] } : {}),
       })
       .where(eq(serviceCategories.id, existing.id))
       .returning();
@@ -86,6 +103,8 @@ export async function saveCategory(
       icon: input.icon ?? null,
       isFeatured: input.isFeatured ?? false,
       inMenu: input.inMenu ?? false,
+      isTraining: input.isTraining ?? false,
+      logoAssetIds: [...new Set(input.logoAssetIds ?? [])],
       sortOrder: position,
     })
     .returning();

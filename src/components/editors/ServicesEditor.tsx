@@ -21,6 +21,7 @@ export async function ServicesEditor({
   limit,
   categories,
   services,
+  logoOptions,
   actions,
 }: {
   tenantId: string;
@@ -30,6 +31,8 @@ export async function ServicesEditor({
   limit: number | null | undefined;
   categories: Awaited<ReturnType<typeof listCategories>>;
   services: Awaited<ReturnType<typeof listServices>>;
+  /** Photos du site proposées comme logos d'une page formation (espace admin). */
+  logoOptions?: { value: string; label: string }[];
   actions: { saveCategory: Action; deleteCategory: Action; saveService: Action; deleteService: Action };
 }) {
   const [t, tCommon] = await Promise.all([
@@ -78,6 +81,25 @@ export async function ServicesEditor({
                 />
                 <CheckboxField name="isFeatured" label={t("featured")} defaultChecked={category.isFeatured} />
                 <CheckboxField name="inMenu" label={t("inMenu")} defaultChecked={category.inMenu} />
+                <CheckboxField name="isTraining" label={t("isTraining")} defaultChecked={category.isTraining} />
+                {logoOptions && logoOptions.length > 0 && (
+                  <fieldset className="sm:col-span-2">
+                    <legend className="font-semibold text-night">{t("trainingLogos")}</legend>
+                    <p className="text-sm text-ink/60">{t("trainingLogosHint")}</p>
+                    <input type="hidden" name="logoAssetIdsShown" value="1" />
+                    <div className="grid sm:grid-cols-2">
+                      {logoOptions.map((option) => (
+                        <CheckboxField
+                          key={option.value}
+                          name="logoAssetIds"
+                          value={option.value}
+                          label={option.label}
+                          defaultChecked={category.logoAssetIds.includes(option.value)}
+                        />
+                      ))}
+                    </div>
+                  </fieldset>
+                )}
                 <div className="sm:col-span-2">
                   <TextArea
                     id={`cat-details-${category.id}`}
