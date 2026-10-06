@@ -13,6 +13,8 @@ export type CategoryCard = {
   businessId: string;
   /** « avec Laïla » (site à plusieurs professionnelles). */
   withLabel: string;
+  /** « 4 soins » : nombre de prestations dans la catégorie. */
+  servicesLabel: string;
   /** Texte du lien pour les lecteurs d'écran. */
   ariaLabel: string;
   priceLabel: string;
@@ -22,7 +24,7 @@ export type CategoryCard = {
 export type CategoryFilter = {
   id: string;
   label: string;
-  /** Nombre de soins, en pastille. */
+  /** Nombre de catégories (cartes), en pastille. */
   count: number;
   /** Photo ronde (rendue côté serveur) ; sinon l'initiale. */
   avatar: ReactNode | null;
@@ -136,7 +138,7 @@ export function CategoryGrid({
                     {card.featured && (
                       <span className="mr-2 font-semibold text-site-accent">{labels.speciality} ·</span>
                     )}
-                    {card.withLabel}
+                    {[card.withLabel, card.servicesLabel].filter(Boolean).join(" · ")}
                   </p>
                 </div>
               </div>

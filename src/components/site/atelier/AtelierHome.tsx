@@ -43,8 +43,9 @@ export async function AtelierHome({ site }: { site: Site }) {
   const tGift = await getTranslations("site.giftCard");
   const giftAmounts = [3000, 5000, 10000];
 
-  const serviceCount = (keep: (category: (typeof site.categories)[number]) => boolean) =>
-    site.categories.filter(keep).reduce((total, category) => total + category.services.length, 0);
+  // Pastilles du choix de la professionnelle : nombre de cartes (catégories) affichées.
+  const categoryCount = (keep: (category: (typeof site.categories)[number]) => boolean) =>
+    site.categories.filter(keep).length;
 
   return (
     <main id="contenu" className="overflow-x-clip">
@@ -173,7 +174,7 @@ export async function AtelierHome({ site }: { site: Site }) {
             </div>
           </div>
           <CategoryGrid
-            allCount={serviceCount(() => true)}
+            allCount={categoryCount(() => true)}
             labels={{
               all: t("filterAll"),
               filter: t("filterQuestion"),
@@ -185,7 +186,7 @@ export async function AtelierHome({ site }: { site: Site }) {
               .map((business) => ({
                 id: business.id,
                 label: business.name,
-                count: serviceCount((category) => category.businessId === business.id),
+                count: categoryCount((category) => category.businessId === business.id),
                 avatar: business.photo ? (
                   <SiteImage
                     image={business.photo}
@@ -207,6 +208,7 @@ export async function AtelierHome({ site }: { site: Site }) {
                 businessId: category.businessId,
                 withLabel:
                   site.businesses.length > 1 ? t("withPro", { name: businessName(category.businessId) }) : "",
+                servicesLabel: t("servicesCount", { count: category.services.length }),
                 ariaLabel: t("seeCategory", { category: category.name }),
                 priceLabel: bookable ? t("from", { price: money(category.minPriceCents) }) : t("onRequest"),
                 href: slug ? `${businessPath(slug)}#${category.slug}` : `${SITE_PATHS.services}`,
