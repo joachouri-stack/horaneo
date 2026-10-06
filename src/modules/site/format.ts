@@ -34,7 +34,25 @@ export function formatClock(time: string, locale: string): string {
 
 /** Lien d'itinéraire (ouvre l'application de cartes du téléphone). */
 export function directionsUrl(parts: (string | null | undefined)[]): string {
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(parts.filter(Boolean).join(", "))}`;
+  // Itinéraire Google Maps vers l'adresse, depuis la position de la personne
+  // (ouvre la navigation sur téléphone). Adresse seule : un nom de commerce en
+  // tête peut faire chercher un autre lieu.
+  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(parts.filter(Boolean).join(", "))}`;
+}
+
+/** Parties de l'adresse d'un site pour l'itinéraire : rue, code postal et ville, pays en toutes lettres. */
+export function addressParts(
+  tenant: { address: string | null; postalCode: string | null; city: string | null; country: string },
+  locale: string,
+) {
+  const city = [tenant.postalCode, tenant.city].filter(Boolean).join(" ");
+  let country: string | undefined = tenant.country;
+  try {
+    country = new Intl.DisplayNames([locale], { type: "region" }).of(tenant.country) ?? tenant.country;
+  } catch {
+    // Code pays inconnu : on le garde tel quel.
+  }
+  return [tenant.address, city, country];
 }
 
 /** Carte OpenStreetMap intégrable (sans cookie publicitaire), si l'adresse a des coordonnées. */

@@ -1,11 +1,10 @@
 import { ctaLabelKey, siteCta } from "@/modules/site/cta";
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { formatMoney } from "@/lib/format";
 import { formatPhone } from "@/modules/phone";
 import type { SiteData } from "@/modules/site/data";
 import { siteReviews, visibleSections } from "@/modules/site/data";
-import { openDaysSpan } from "@/modules/site/format";
+import { addressParts, directionsUrl, openDaysSpan } from "@/modules/site/format";
 import { businessPath, SITE_PATHS } from "@/modules/site/paths";
 import { GoogleReviewCards, ReviewsSummary, Stars } from "../GoogleReviews";
 import { SiteImage } from "../SiteImage";
@@ -377,12 +376,15 @@ export async function AtelierHome({ site }: { site: Site }) {
               </p>
             )}
           </address>
-          <Link
-            href={SITE_PATHS.practical}
-            className="mt-5 inline-block font-semibold text-site-accent underline underline-offset-4"
+          {/* Itinéraire direct vers l'adresse (navigation sur téléphone). */}
+          <a
+            href={directionsUrl(addressParts(site.tenant, site.locale))}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-5 inline-flex min-h-11 items-center font-semibold text-site-accent underline underline-offset-4"
           >
-            {tSite("practical.directions")} →
-          </Link>
+            {tSite("practical.directions")} ↗
+          </a>
         </div>
         <div className="flex flex-col justify-center rounded-[1.75rem] bg-site-text p-8 text-site-bg">
           <h2 className="font-site-display text-4xl font-medium leading-tight">{t("ctaTitle")}</h2>

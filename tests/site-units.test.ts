@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { contrastRatio } from "@/lib/colors";
 import { createPreviewToken, verifyPreviewToken } from "@/lib/tenancy/preview";
-import { directionsUrl, formatDuration, isoWeekdayIn, osmEmbedUrl } from "@/modules/site/format";
+import {
+  addressParts,
+  directionsUrl,
+  formatDuration,
+  isoWeekdayIn,
+  osmEmbedUrl,
+} from "@/modules/site/format";
 import { formatMoney } from "@/lib/format";
 import { homeDescription, renderSitemap, serializeJsonLd } from "@/modules/site/seo";
 import { buildTheme, themeCssVariables } from "@/modules/site/theme";
@@ -85,8 +91,19 @@ describe("mises en forme du site", () => {
   });
 
   it("construit les liens d'itinéraire et de plan", () => {
-    expect(directionsUrl(["Spa", "8 quai", null, "69002 Lyon"])).toContain(
-      "Spa%2C%208%20quai%2C%2069002%20Lyon",
+    // Itinéraire (navigation) vers l'adresse seule, pays en toutes lettres.
+    const parts = addressParts(
+      {
+        address: "458 avenue des Vertes Rives",
+        postalCode: "84140",
+        city: "Avignon-Montfavet",
+        country: "FR",
+      },
+      "fr",
+    );
+    expect(parts).toEqual(["458 avenue des Vertes Rives", "84140 Avignon-Montfavet", "France"]);
+    expect(directionsUrl(parts)).toBe(
+      "https://www.google.com/maps/dir/?api=1&destination=458%20avenue%20des%20Vertes%20Rives%2C%2084140%20Avignon-Montfavet%2C%20France",
     );
     expect(osmEmbedUrl(45.7627, 4.8314)).toContain("marker=45.76270,4.83140");
   });

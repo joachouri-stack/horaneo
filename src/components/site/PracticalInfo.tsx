@@ -2,7 +2,7 @@ import { Fragment } from "react";
 import { getTranslations } from "next-intl/server";
 import { formatPhone } from "@/modules/phone";
 import type { SiteData } from "@/modules/site/data";
-import { directionsUrl, formatClock, isoWeekdayIn, osmEmbedUrl } from "@/modules/site/format";
+import { addressParts, directionsUrl, formatClock, isoWeekdayIn, osmEmbedUrl } from "@/modules/site/format";
 
 /** Horaires de la semaine, avec le jour en cours mis en évidence. */
 export async function OpeningHoursTable({ site }: { site: NonNullable<SiteData> }) {
@@ -78,7 +78,7 @@ export async function AddressBlock({
             {cityLine && <span className="block">{cityLine}</span>}
           </address>
           <a
-            href={directionsUrl([site.tenant.name, tenant.address, cityLine, tenant.country])}
+            href={directionsUrl(addressParts(tenant, site.locale))}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-2 inline-block font-semibold text-site-accent underline"
