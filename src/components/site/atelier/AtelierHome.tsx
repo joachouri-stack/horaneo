@@ -248,13 +248,24 @@ export async function AtelierHome({ site }: { site: Site }) {
                 />
               )}
             </div>
-            <div>
-              <SectionTitle id="titre-institut" start={site.pages.about.texts.title || t("aboutTitle")} />
-              <p className="mt-5 whitespace-pre-line leading-relaxed text-site-muted">
+            <div className="relative">
+              {/* Empreinte du logo, très légère, derrière le texte. */}
+              {site.logo && (
+                <SiteImage
+                  image={site.logo}
+                  alt=""
+                  sizes="320px"
+                  className="pointer-events-none absolute -right-4 -top-16 h-72 w-72 select-none rounded-full object-cover opacity-[0.08] mix-blend-multiply"
+                />
+              )}
+              <div className="relative">
+                <SectionTitle id="titre-institut" start={site.pages.about.texts.title || t("aboutTitle")} />
+              </div>
+              <p className="relative mt-5 whitespace-pre-line leading-relaxed text-site-muted">
                 {site.pages.about.texts.body}
               </p>
               {cta && (
-                <PillLink href={cta.href} className="mt-8">
+                <PillLink href={cta.href} className="relative mt-8">
                   {ctaLabel(t("takeAppointment"))}
                 </PillLink>
               )}
@@ -400,14 +411,26 @@ export async function AtelierHome({ site }: { site: Site }) {
         </div>
         {/* Dans la couleur des boutons du site (et non foncé) : il ne se confond pas avec le pied de page. */}
         <div className="relative flex flex-col justify-center overflow-hidden rounded-[1.75rem] bg-site-button p-8 text-site-on-button">
-          <span
-            aria-hidden="true"
-            className="absolute -right-12 -top-12 h-44 w-44 rounded-full border-[1.75rem] border-site-on-button/10"
-          />
-          <span
-            aria-hidden="true"
-            className="absolute -bottom-10 right-16 h-24 w-24 rounded-full bg-site-on-button/10"
-          />
+          {site.logo ? (
+            // Le logo en filigrane, sous le texte (le blanc du logo se fond dans la couleur du bloc).
+            <SiteImage
+              image={site.logo}
+              alt=""
+              sizes="240px"
+              className="pointer-events-none absolute -bottom-10 -right-8 h-56 w-56 select-none rounded-full object-cover opacity-30 mix-blend-multiply"
+            />
+          ) : (
+            <>
+              <span
+                aria-hidden="true"
+                className="absolute -right-12 -top-12 h-44 w-44 rounded-full border-[1.75rem] border-site-on-button/10"
+              />
+              <span
+                aria-hidden="true"
+                className="absolute -bottom-10 right-16 h-24 w-24 rounded-full bg-site-on-button/10"
+              />
+            </>
+          )}
           <h2 className="relative font-site-display text-4xl font-medium leading-tight">{t("ctaTitle")}</h2>
           <p className="relative mt-3 opacity-90">{t(cta?.kind === "book" ? "ctaText" : "ctaTextContact")}</p>
           {cta && (
