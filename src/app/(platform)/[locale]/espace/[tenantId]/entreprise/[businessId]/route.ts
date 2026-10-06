@@ -8,7 +8,7 @@ import { ADMIN_BUSINESS_COOKIE } from "@/lib/manager/access";
  * choisit l'entreprise dont elle ouvre l'espace (retenue jusqu'au prochain choix).
  */
 export async function GET(
-  request: Request,
+  _request: Request,
   context: RouteContext<"/[locale]/espace/[tenantId]/entreprise/[businessId]">,
 ) {
   const { locale: rawLocale, tenantId, businessId } = await context.params;
@@ -19,8 +19,10 @@ export async function GET(
   (await cookies()).set(ADMIN_BUSINESS_COOKIE, businessId, {
     httpOnly: true,
     sameSite: "lax",
-    secure: new URL(request.url).protocol === "https:",
+    // Derrière le proxy de production, la requête arrive en http : on se fie à l'environnement.
+    secure: process.env.NODE_ENV === "production",
     path: "/",
   });
-  return Response.redirect(new URL(`/${locale}/espace/${tenantId}`, request.url), 303);
+  // Adresse relative : request.url est l'adresse interne du serveur (localhost) derrière le proxy.
+  return new Response(null, { status: 303, headers: { Location: `/${locale}/espace/${tenantId}` } });
 }
