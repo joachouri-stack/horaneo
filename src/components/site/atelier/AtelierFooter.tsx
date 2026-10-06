@@ -199,13 +199,19 @@ export async function AtelierFooter({ site }: { site: Site }) {
             </address>
           </div>
 
-          <div>
+          {/* Sur téléphone, les horaires sur fond clair : le pied de page ne forme pas un seul long bloc foncé. */}
+          <div className="rounded-[1.5rem] bg-site-bg p-6 text-site-text sm:rounded-none sm:bg-transparent sm:p-0 sm:text-inherit">
             <h2 className="mb-4 font-site-display text-2xl">{t("hoursTitle")}</h2>
             <HoursSummary site={site} />
             {cta && (
-              <PillLink href={cta.href} variant="light" className="mt-6">
-                {tSite(ctaLabelKey(cta))}
-              </PillLink>
+              <>
+                <PillLink href={cta.href} className="mt-6 sm:hidden">
+                  {tSite(ctaLabelKey(cta))}
+                </PillLink>
+                <PillLink href={cta.href} variant="light" className="mt-6 max-sm:hidden">
+                  {tSite(ctaLabelKey(cta))}
+                </PillLink>
+              </>
             )}
           </div>
         </div>
