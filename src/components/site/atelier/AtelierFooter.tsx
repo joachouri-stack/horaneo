@@ -232,15 +232,26 @@ export async function AtelierFooter({ site }: { site: Site }) {
         </div>
         {credit && <p className="pb-4 text-right text-sm opacity-75">{credit}</p>}
       </div>
-      <p
-        aria-hidden="true"
-        // Taille calculée d'après la longueur du nom : il tient toujours en entier
-        // dans la largeur de l'écran, même long et sur téléphone.
-        style={{ fontSize: `min(10rem, ${(92 / (Math.max(tenant.name.length, 6) * 0.5)).toFixed(1)}vw)` }}
-        className="pointer-events-none -mb-[0.22em] select-none overflow-hidden whitespace-nowrap px-2 text-center font-site-display leading-none italic opacity-[0.07]"
-      >
-        {tenant.name}
-      </p>
+      {/* Signature : fine ligne ornée, puis le nom en grand, en dégradé qui se fond dans le fond. */}
+      <div aria-hidden="true" className="pointer-events-none relative select-none pt-10">
+        <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 sm:px-8">
+          <span className="h-px flex-1 bg-gradient-to-r from-transparent to-site-bg/25" />
+          <span className="h-2 w-2 rotate-45 bg-site-accent" />
+          <span className="h-px flex-1 bg-gradient-to-l from-transparent to-site-bg/25" />
+        </div>
+        <p
+          // Taille calculée d'après la longueur du nom : il tient toujours en entier
+          // dans la largeur de l'écran, même long et sur téléphone.
+          style={{
+            fontSize: `min(10rem, ${(92 / (Math.max(tenant.name.length, 6) * 0.5)).toFixed(1)}vw)`,
+            backgroundImage:
+              "linear-gradient(180deg, color-mix(in srgb, var(--site-bg) 38%, transparent) 10%, color-mix(in srgb, var(--site-bg) 0%, transparent) 92%)",
+          }}
+          className="-mb-[0.18em] mt-2 overflow-hidden whitespace-nowrap bg-clip-text px-2 pb-[0.06em] text-center font-site-display italic leading-none tracking-[-0.01em] text-transparent"
+        >
+          {tenant.name}
+        </p>
+      </div>
     </footer>
   );
 }
