@@ -81,17 +81,38 @@ export async function TrainingPage({ site, category }: { site: Site; category: S
           return (
             <article
               key={service.id}
-              className="rounded-[1.75rem] border border-site-border bg-site-card p-6 sm:p-8"
+              className="rounded-[1.75rem] border border-site-border bg-site-card p-5 sm:p-8"
             >
-              <h2 className="font-site-display text-3xl font-medium">{service.name}</h2>
+              {(() => {
+                // « Nom (formation, 1 journée) » : la précision entre parenthèses devient une étiquette.
+                const [, title, note] = service.name.match(/^(.+?)\s*\(([^()]+)\)\s*$/) ?? [
+                  ,
+                  service.name,
+                  "",
+                ];
+                return (
+                  <>
+                    {note && <Tag>{note}</Tag>}
+                    <h2
+                      className={`font-site-display text-[1.75rem] leading-tight font-medium sm:text-3xl ${note ? "mt-3" : ""}`}
+                    >
+                      {title}
+                    </h2>
+                  </>
+                );
+              })()}
               {service.description && <p className="mt-2 text-site-muted">{service.description}</p>}
-              <dl className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+              {/* Téléphone : une liste « libellé · valeur » ; plus large : des tuiles. */}
+              <dl className="mt-5 divide-y divide-site-border rounded-2xl bg-site-surface px-4 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-4 sm:divide-y-0 sm:bg-transparent sm:px-0 lg:grid-cols-4">
                 {facts.map((fact) => (
-                  <div key={fact.label} className="rounded-2xl bg-site-surface p-4">
-                    <dt className="text-xs font-semibold uppercase tracking-wide text-site-muted">
+                  <div
+                    key={fact.label}
+                    className="flex items-baseline justify-between gap-4 py-3 sm:block sm:rounded-2xl sm:bg-site-surface sm:p-4"
+                  >
+                    <dt className="shrink-0 text-xs font-semibold uppercase tracking-wide text-site-muted">
                       {fact.label}
                     </dt>
-                    <dd className="mt-1 font-semibold">{fact.value}</dd>
+                    <dd className="text-right font-semibold sm:mt-1 sm:text-left">{fact.value}</dd>
                   </div>
                 ))}
               </dl>
