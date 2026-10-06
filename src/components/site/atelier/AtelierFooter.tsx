@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { formatPhone } from "@/modules/phone";
 import type { SiteData } from "@/modules/site/data";
 import { visibleSections } from "@/modules/site/data";
-import { formatClock, summarizeHours, type HoursRow } from "@/modules/site/format";
+import { addressParts, directionsUrl, formatClock, summarizeHours, type HoursRow } from "@/modules/site/format";
 import { businessPath, SITE_PATHS } from "@/modules/site/paths";
 import { AtelierBrand } from "./AtelierHeader";
 import { FacebookIcon, InstagramIcon } from "./icons";
@@ -154,8 +154,15 @@ export async function AtelierFooter({ site }: { site: Site }) {
           <div>
             <h2 className="mb-4 font-site-display text-2xl">{t("findUs")}</h2>
             <address className="space-y-1 not-italic">
-              {tenant.address && <p>{tenant.address}</p>}
-              <p>{[tenant.postalCode, tenant.city].filter(Boolean).join(" ")}</p>
+              <a
+                href={directionsUrl(addressParts(tenant, site.locale))}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block py-1 underline decoration-current/40 underline-offset-4 hover:opacity-80"
+              >
+                {tenant.address && <span className="block">{tenant.address}</span>}
+                <span className="block">{[tenant.postalCode, tenant.city].filter(Boolean).join(" ")}</span>
+              </a>
               {access && <p className="whitespace-pre-line opacity-75">{access}</p>}
               <div className="pt-2">
                 {phones.length > 1

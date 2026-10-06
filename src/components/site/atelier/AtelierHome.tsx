@@ -354,8 +354,16 @@ export async function AtelierHome({ site }: { site: Site }) {
           <h2 className="mb-5 font-site-display text-3xl font-medium">{t("findUs")}</h2>
           <address className="space-y-1 not-italic">
             <p className="font-semibold uppercase tracking-wide">{site.tenant.name}</p>
-            {site.tenant.address && <p>{site.tenant.address}</p>}
-            <p>{[site.tenant.postalCode, site.tenant.city].filter(Boolean).join(" ")}</p>
+            {/* L'adresse elle-même ouvre l'itinéraire (tous les téléphones, pas seulement ceux qui la détectent). */}
+            <a
+              href={directionsUrl(addressParts(site.tenant, site.locale))}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block underline decoration-site-accent/50 underline-offset-4 hover:decoration-site-accent"
+            >
+              {site.tenant.address && <span className="block">{site.tenant.address}</span>}
+              <span className="block">{[site.tenant.postalCode, site.tenant.city].filter(Boolean).join(" ")}</span>
+            </a>
             {site.pages.practical?.texts.access && (
               <p className="whitespace-pre-line pt-2 text-sm text-site-muted">
                 {site.pages.practical.texts.access}

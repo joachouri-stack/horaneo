@@ -216,6 +216,7 @@ export async function updateBusinessProfileAction(_previous: Previous, data: For
         title: form.text(data, "title"),
         role: form.text(data, "role"),
         bio: form.text(data, "bio"),
+        quote: form.text(data, "quote"),
         availability: form.text(data, "availability"),
         photoAssetId: form.optional(data, "photoAssetId") ?? null,
       }),

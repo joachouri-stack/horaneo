@@ -55,6 +55,8 @@ export type BusinessProfile = {
   /** Métier affiché sous le nom (ex. « Esthéticienne, spécialiste du regard »). */
   role?: LocalizedText;
   bio?: LocalizedText;
+  /** Sa phrase, en citation sur l'accueil (ex. « Chaque cliente repart… »). */
+  quote?: LocalizedText;
   /** Disponibilités en clair (ex. « Du lundi au samedi »). */
   availability?: LocalizedText;
   photoAssetId?: string | null;

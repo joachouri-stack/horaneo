@@ -185,6 +185,14 @@ export default async function BusinessesPage({
                   rows={3}
                   defaultValue={pickLocalized(business.profile.bio, locale)}
                 />
+                <TextArea
+                  id={`quote-${business.id}`}
+                  name="quote"
+                  label={t("quote")}
+                  hint={t("quoteHint")}
+                  rows={3}
+                  defaultValue={pickLocalized(business.profile.quote, locale)}
+                />
                 <SelectField
                   id={`photo-${business.id}`}
                   name="photoAssetId"
