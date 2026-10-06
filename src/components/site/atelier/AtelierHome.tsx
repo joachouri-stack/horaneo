@@ -386,11 +386,20 @@ export async function AtelierHome({ site }: { site: Site }) {
             {tSite("practical.directions")} ↗
           </a>
         </div>
-        <div className="flex flex-col justify-center rounded-[1.75rem] bg-site-text p-8 text-site-bg">
-          <h2 className="font-site-display text-4xl font-medium leading-tight">{t("ctaTitle")}</h2>
-          <p className="mt-3 opacity-85">{t(cta?.kind === "book" ? "ctaText" : "ctaTextContact")}</p>
+        {/* Dans la couleur des boutons du site (et non foncé) : il ne se confond pas avec le pied de page. */}
+        <div className="relative flex flex-col justify-center overflow-hidden rounded-[1.75rem] bg-site-button p-8 text-site-on-button">
+          <span
+            aria-hidden="true"
+            className="absolute -right-12 -top-12 h-44 w-44 rounded-full border-[1.75rem] border-site-on-button/10"
+          />
+          <span
+            aria-hidden="true"
+            className="absolute -bottom-10 right-16 h-24 w-24 rounded-full bg-site-on-button/10"
+          />
+          <h2 className="relative font-site-display text-4xl font-medium leading-tight">{t("ctaTitle")}</h2>
+          <p className="relative mt-3 opacity-90">{t(cta?.kind === "book" ? "ctaText" : "ctaTextContact")}</p>
           {cta && (
-            <PillLink href={cta.href} variant="light" className="mt-6 self-start">
+            <PillLink href={cta.href} variant="light" className="relative mt-6 self-start">
               {tSite(ctaLabelKey(cta))}
             </PillLink>
           )}
