@@ -34,9 +34,11 @@ async function cropToBlob(source: string, area: Area): Promise<Blob> {
   const canvas = document.createElement("canvas");
   canvas.width = Math.round(area.width * scale);
   canvas.height = Math.round(area.height * scale);
-  canvas
-    .getContext("2d")!
-    .drawImage(image, area.x, area.y, area.width, area.height, 0, 0, canvas.width, canvas.height);
+  const context = canvas.getContext("2d")!;
+  // Fond blanc : une image transparente (logo PNG) ne devient pas noire en JPEG.
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(image, area.x, area.y, area.width, area.height, 0, 0, canvas.width, canvas.height);
   return new Promise((resolve, reject) =>
     canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("crop"))), "image/jpeg", 0.92),
   );
