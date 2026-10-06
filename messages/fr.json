@@ -156,6 +156,7 @@
       "free": "Gratuit",
       "freeForever": "sans limite de durée",
       "toggleLabel": "Type de pack",
+      "carouselDot": "Voir le pack {n}",
       "toggleBooking": "Site + réservation en ligne",
       "toggleSite": "Site vitrine seul",
       "toggleHintBooking": "Vous voulez seulement un site ? Choisissez « Site vitrine seul ».",

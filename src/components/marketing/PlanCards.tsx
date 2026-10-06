@@ -90,10 +90,10 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
     return (
       <article
         key={plan.id}
-        className={`group relative flex flex-col gap-[1.4rem] overflow-hidden rounded-[2rem] px-8 transition duration-200 hover:-translate-y-2.5 ${
+        className={`group relative flex flex-col gap-5 overflow-hidden rounded-[1.75rem] px-6 transition duration-200 hover:-translate-y-2 lg:rounded-[2rem] lg:px-7 ${
           featured
-            ? "border-2 border-coral bg-navy py-11 text-sand shadow-[0_30px_60px_rgba(27,42,74,.35)] hover:shadow-[0_34px_64px_rgba(27,42,74,.45)]"
-            : "border-2 border-line bg-white py-8 text-body hover:border-coral hover:shadow-[0_28px_56px_rgba(22,24,29,.16)]"
+            ? "border-2 border-coral bg-navy py-8 text-sand lg:py-10 shadow-[0_30px_60px_rgba(27,42,74,.35)] hover:shadow-[0_34px_64px_rgba(27,42,74,.45)]"
+            : "border-2 border-line bg-white py-7 text-body hover:border-coral hover:shadow-[0_28px_56px_rgba(22,24,29,.16)]"
         }`}
       >
         {featured && (
@@ -110,7 +110,7 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
         )}
         <div className="relative flex items-center gap-3.5">
           <span
-            className={`flex size-[3.2rem] flex-none items-center justify-center rounded-2xl ${
+            className={`flex size-11 flex-none items-center justify-center rounded-2xl lg:size-12 ${
               featured ? "bg-coral text-white" : index === 0 ? "bg-sand text-night" : "bg-blush text-brick"
             }`}
           >
@@ -118,7 +118,7 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
           </span>
           <div>
             <h3
-              className={`text-[1.45rem] font-semibold leading-tight ${featured ? "text-white" : "text-night"}`}
+              className={`text-[1.3rem] font-semibold leading-tight lg:text-[1.4rem] ${featured ? "text-white" : "text-night"}`}
             >
               {name}
             </h3>
@@ -129,7 +129,7 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
         </div>
         <div className="relative">
           <p
-            className={`font-display text-[3.6rem] font-bold leading-none tracking-[-0.03em] ${featured ? "text-white" : "text-night"}`}
+            className={`font-display text-[2.8rem] font-bold leading-none tracking-[-0.03em] lg:text-[3.2rem] ${featured ? "text-white" : "text-night"}`}
           >
             {money(plan.priceCents)}{" "}
             <span
@@ -168,7 +168,7 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
         </dl>
         <Link
           href={{ pathname: "/commander", query: { pack: plan.code } }}
-          className={`relative flex items-center justify-center gap-2 whitespace-nowrap rounded-full px-3 py-4 text-[1rem] font-semibold transition hover:-translate-y-0.5 ${
+          className={`relative flex min-h-12 items-center justify-center gap-2 whitespace-nowrap rounded-full px-3 py-3.5 text-[1rem] font-semibold transition hover:-translate-y-0.5 ${
             featured
               ? "bg-brick text-white hover:shadow-[0_12px_26px_rgba(212,64,47,.32)]"
               : "bg-blush text-rust hover:bg-brick hover:text-white"
@@ -178,7 +178,7 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
           <ArrowIcon className="size-[18px] shrink-0 transition-transform group-hover:translate-x-1.5" />
         </Link>
         <ul
-          className={`relative flex flex-col gap-3 border-t pt-[1.4rem] ${featured ? "border-[#3a4a6e]" : "border-line"}`}
+          className={`relative flex flex-col gap-2.5 border-t pt-5 text-[0.95rem] ${featured ? "border-[#3a4a6e]" : "border-line"}`}
         >
           {items.map((item, itemIndex) => {
             const missing = item.kind === "missing";
@@ -219,12 +219,20 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
     );
   };
 
+  // Téléphone et tablette : les packs défilent d'un geste (une carte et le bord de la suivante) ;
+  // ordinateur : trois colonnes.
+  const row =
+    "-mx-4 flex snap-x snap-mandatory items-start gap-4 overflow-x-auto scroll-px-4 px-4 py-3 [scrollbar-width:none] lg:mx-0 lg:grid lg:grid-cols-3 lg:items-center lg:gap-6 lg:overflow-visible lg:p-0 [&::-webkit-scrollbar]:hidden";
+  const cell = "w-[86%] max-w-[23rem] shrink-0 snap-center sm:w-[55%] lg:w-auto lg:max-w-none";
+
   // Aucun pack « site seul » proposé : une simple rangée de cartes.
   if (siteOnly.length === 0) {
     return (
-      <div className="grid items-center gap-6 lg:grid-cols-3">
+      <div className={row}>
         {booking.map((plan, index) => (
-          <div key={plan.id}>{card(booking, index)}</div>
+          <div key={plan.id} className={cell}>
+            {card(booking, index)}
+          </div>
         ))}
       </div>
     );
@@ -239,12 +247,13 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
         site: t("toggleSite"),
         hintBooking: t("toggleHintBooking"),
         hintSite: t("toggleHintSite"),
+        dot: t.raw("carouselDot") as string,
       }}
     >
-      <div className="grid items-center gap-6 lg:grid-cols-3">
+      <div data-carousel className={row}>
         {Array.from({ length: cells }, (_, index) => (
           // Une case, deux faces superposées : la case prend la hauteur de la plus grande.
-          <div key={index} className="[perspective:2200px]">
+          <div key={index} className={`${cell} [perspective:2200px]`}>
             <div className="grid items-center transition-transform duration-700 ease-in-out [transform-style:preserve-3d] group-data-[side=site]/plans:[transform:rotateY(180deg)] motion-reduce:transition-none">
               {/* La face cachée devient invisible à mi-retournement : ni lue, ni atteinte au clavier. */}
               <div className="visible [grid-area:1/1] [backface-visibility:hidden] transition-[visibility] delay-300 duration-0 group-data-[side=site]/plans:invisible motion-reduce:delay-0">

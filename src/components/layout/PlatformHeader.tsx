@@ -34,13 +34,13 @@ export async function PlatformHeader({ children }: { children?: React.ReactNode 
         <Link href="/" aria-label={t("common.homeLink", { product })}>
           <Logo productName={product} className="text-[1.8rem]" />
         </Link>
-        <nav className="flex flex-wrap items-center gap-x-7 font-medium text-night">
+        <nav className="flex flex-wrap items-center gap-x-6 font-medium text-night xl:gap-x-7">
           {!children &&
             NAV.map((item) => (
               <Link
                 key={item.hash}
                 href={{ pathname: "/", hash: item.hash }}
-                className={`${LINK} max-[680px]:hidden`}
+                className={`${LINK} max-lg:hidden`}
               >
                 {t(`home.nav.${item.key}`)}
               </Link>
