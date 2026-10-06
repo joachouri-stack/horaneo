@@ -452,7 +452,7 @@
       "from": "dès {price}",
       "seeCategory": "Voir : {category}",
       "seeServices": "Voir les soins",
-      "groupTitle": "Avec {name}",
+      "chooseProQuestion": "Avec qui souhaitez-vous réserver ?",
       "speciality": "Spécialité",
       "teamTitle": "{count, plural, =1 {Une professionnelle,} =2 {Deux professionnelles,} =3 {Trois professionnelles,} other {# professionnelles,}}",
       "teamTitleAccent": "à votre écoute.",

@@ -169,12 +169,12 @@ export async function AtelierHome({ site }: { site: Site }) {
             </div>
           </div>
           <CategoryGrid
-            labels={{ see: t("seeServices"), speciality: t("speciality") }}
+            labels={{ see: t("seeServices"), speciality: t("speciality"), choose: t("chooseProQuestion") }}
             groups={site.businesses
               .filter((business) => site.categories.some((category) => category.businessId === business.id))
               .map((business) => ({
                 id: business.id,
-                title: t("groupTitle", { name: business.name }),
+                name: business.name,
                 subtitle: business.title ?? "",
                 initial: business.name.charAt(0),
                 avatar: business.photo ? (

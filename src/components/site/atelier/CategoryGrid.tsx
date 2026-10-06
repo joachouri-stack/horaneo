@@ -23,8 +23,8 @@ export type CategoryCard = {
 
 export type CategoryGroup = {
   id: string;
-  /** « Avec Laïla ». */
-  title: string;
+  /** Prénom ou nom de la professionnelle. */
+  name: string;
   /** Spécialité affichée sous le titre (facultative). */
   subtitle: string;
   /** Photo ronde (rendue côté serveur) ; sinon l'initiale. */
@@ -35,8 +35,8 @@ export type CategoryGroup = {
 /**
  * Catégories de l'accueil, en cartes toutes de même taille (nom, nombre de
  * prestations, description, prix de départ). Sur un site à plusieurs
- * professionnelles, elles sont rangées par professionnelle, sous un petit
- * titre : tout reste visible, personne n'est caché derrière un filtre.
+ * professionnelles, deux (ou plus) grands boutons côte à côte permettent de
+ * choisir la professionnelle : seules ses cartes sont affichées.
  */
 export function CategoryGrid({
   cards,
@@ -45,8 +45,10 @@ export function CategoryGrid({
 }: {
   cards: CategoryCard[];
   groups: CategoryGroup[];
-  labels: { see: string; speciality: string };
+  labels: { see: string; speciality: string; choose: string };
 }) {
+  const withCards = groups.filter((group) => cards.some((card) => card.businessId === group.id));
+  const [selected, setSelected] = useState<string | null>(withCards[0]?.id ?? null);
   // Téléphone et tablette (pas de survol possible) : la carte qui passe au
   // milieu de l'écran pendant le défilement ressort, comme au survol sur ordinateur.
   const rootRef = useRef<HTMLDivElement>(null);
@@ -63,7 +65,7 @@ export function CategoryGrid({
     );
     root.querySelectorAll<HTMLElement>("[data-card]").forEach((item) => observer.observe(item));
     return () => observer.disconnect();
-  }, []);
+  }, [selected]);
 
   const grid = (list: CategoryCard[]) => (
     <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -125,33 +127,51 @@ export function CategoryGrid({
   );
 
   // Une seule professionnelle (ou aucune répartition) : une seule grille, sans titre.
-  if (groups.length < 2) return <div ref={rootRef}>{grid(cards)}</div>;
+  if (withCards.length < 2) return <div ref={rootRef}>{grid(cards)}</div>;
 
   return (
-    <div ref={rootRef} className="mt-8 space-y-12">
-      {groups.map((group) => {
-        const list = cards.filter((card) => card.businessId === group.id);
-        if (list.length === 0) return null;
-        return (
-          <section key={group.id} aria-labelledby={`pro-${group.id}`}>
-            <div className="flex items-center gap-4 border-b border-site-border pb-4">
-              <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-site-surface font-site-display text-2xl text-site-accent ring-2 ring-site-card">
+    <div ref={rootRef}>
+      <div
+        role="group"
+        aria-label={labels.choose}
+        className={`mt-8 grid gap-3 ${withCards.length === 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3"}`}
+      >
+        {withCards.map((group) => {
+          const active = selected === group.id;
+          return (
+            <button
+              key={group.id}
+              type="button"
+              aria-pressed={active}
+              onClick={() => setSelected(group.id)}
+              className={`flex min-w-0 items-center gap-3 rounded-[1.25rem] border p-2.5 text-left transition duration-300 active:scale-[0.98] sm:gap-4 sm:p-3 ${
+                active
+                  ? "border-site-text bg-site-text text-site-bg shadow-[0_14px_30px_-18px_rgba(0,0,0,0.55)]"
+                  : "border-site-border bg-site-card text-site-text hover:border-site-accent"
+              }`}
+            >
+              <span
+                className={`flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-site-surface font-site-display text-xl text-site-accent ring-2 sm:h-14 sm:w-14 ${active ? "ring-site-bg/40" : "ring-site-border"}`}
+              >
                 {group.avatar ?? group.initial}
               </span>
-              <div className="min-w-0">
-                <h3
-                  id={`pro-${group.id}`}
-                  className="font-site-display text-[1.75rem] font-medium leading-tight"
-                >
-                  {group.title}
-                </h3>
-                {group.subtitle && <p className="text-sm text-site-muted">{group.subtitle}</p>}
-              </div>
-            </div>
-            {grid(list)}
-          </section>
-        );
-      })}
+              <span className="min-w-0">
+                <span className="block truncate font-site-display text-[1.25rem] font-medium leading-tight sm:text-[1.5rem]">
+                  {group.name}
+                </span>
+                {group.subtitle && (
+                  <span
+                    className={`block truncate text-xs sm:text-sm ${active ? "opacity-80" : "text-site-muted"}`}
+                  >
+                    {group.subtitle}
+                  </span>
+                )}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      <div key={selected ?? "none"}>{grid(cards.filter((card) => card.businessId === selected))}</div>
     </div>
   );
 }
