@@ -36,6 +36,11 @@ export function categoryFields(data: FormData) {
     ...(data.has("icon") ? { icon: isCategoryIcon(icon) ? icon : null } : {}),
     ...(data.has("icon") ? { isFeatured: data.get("isFeatured") === "on" } : {}),
     ...(data.has("icon") ? { inMenu: data.get("inMenu") === "on" } : {}),
+    ...(data.has("icon") ? { isTraining: data.get("isTraining") === "on" } : {}),
+    // Cases « logos » : le marqueur dit que la liste était affichée (aucune case cochée = aucun logo).
+    ...(data.has("logoAssetIdsShown")
+      ? { logoAssetIds: data.getAll("logoAssetIds").map(String).filter(Boolean) }
+      : {}),
     ...(data.has("details") ? { details: text("details") } : {}),
   };
 }

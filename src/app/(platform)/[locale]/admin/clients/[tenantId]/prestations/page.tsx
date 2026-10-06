@@ -4,6 +4,8 @@ import { adminQuery } from "@/lib/admin/mutation";
 import { BusinessPicker } from "@/components/admin/BusinessPicker";
 import { loadAdminBusiness } from "@/lib/admin/business";
 import { listCategories, listServices } from "@/modules/catalog/services";
+import { listActiveAssets } from "@/modules/media/assets";
+import { pickLocalized } from "@/i18n/locales";
 import {
   deleteCategoryAction,
   deleteServiceAction,
@@ -20,10 +22,11 @@ export default async function ServicesPage({
   const query = await searchParams;
   const assistant = query.assistant === "1";
   const { overview, businesses, business } = await loadAdminBusiness(tenantId, query);
-  const { categories, services } = await adminQuery(
+  const { categories, services, photos } = await adminQuery(
     async (tx) => ({
       categories: await listCategories(tx, tenantId),
       services: await listServices(tx, tenantId),
+      photos: await listActiveAssets(tx, tenantId),
     }),
     business.id,
   );
@@ -42,6 +45,10 @@ export default async function ServicesPage({
         limit={overview.plan.limits.services}
         categories={categories}
         services={services}
+        logoOptions={photos.map((photo, index) => ({
+          value: photo.id,
+          label: pickLocalized(photo.alt, overview.tenant.defaultLocale as "fr") || `Photo ${index + 1}`,
+        }))}
         actions={{
           saveCategory: saveCategoryAction,
           deleteCategory: deleteCategoryAction,

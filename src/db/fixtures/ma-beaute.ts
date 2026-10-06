@@ -37,6 +37,8 @@ type Category = {
   details?: string;
   featured?: boolean;
   inMenu?: boolean;
+  /** Page « formation » dédiée. */
+  training?: boolean;
   items: Item[];
 };
 
@@ -69,6 +71,7 @@ const LAILA_CATALOG: Category[] = [
     name: "Formations",
     icon: "graduation",
     inMenu: true,
+    training: true,
     description: "Formations professionnelles certifiées Qualiopi.",
     details: [
       "Formations professionnelles assurées par Laïla, au sein de l'institut.",
@@ -202,6 +205,7 @@ export async function fillMaBeaute(tx: Transaction, tenantId: string, options: M
         icon: category.icon,
         isFeatured: category.featured ?? false,
         inMenu: category.inMenu ?? false,
+        isTraining: category.training ?? false,
       });
       for (const [name, minutes, price, online = true] of category.items) {
         const service = await saveService(tx, id, {

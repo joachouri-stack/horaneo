@@ -59,6 +59,10 @@ export type SiteCategory = {
   isFeatured: boolean;
   /** Lien direct dans le menu du site. */
   inMenu: boolean;
+  /** Présentée comme une formation : page dédiée, sans liste de tarifs. */
+  isTraining: boolean;
+  /** Logos de sa page formation (ex. organismes de financement). */
+  logos: SiteImage[];
   /** Prix le plus bas de la catégorie (« dès 45 € »). */
   minPriceCents: number;
   services: SiteService[];
@@ -224,6 +228,8 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
       icon: category.icon,
       isFeatured: category.isFeatured,
       inMenu: category.inMenu,
+      isTraining: category.isTraining,
+      logos: (category.logoAssetIds ?? []).map((assetId) => image(assetId)).filter((logo) => logo !== null),
       minPriceCents: Math.min(
         ...siteServices
           .filter((service) => service.categoryId === category.id)

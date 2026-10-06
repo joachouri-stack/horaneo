@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { PageTitle } from "@/components/site/blocks";
 import { ServiceList } from "@/components/site/ServiceList";
+import { TrainingPage } from "@/components/site/TrainingPage";
 import { requireSection } from "@/lib/site/guards";
 import { getSite } from "@/lib/site/load";
 import { categoryPath } from "@/modules/site/paths";
@@ -36,6 +37,7 @@ export default async function CategoryPage({ params }: PageProps<"/sites/[tenant
   const { site, category } = await load(params);
   requireSection(site, "services");
   if (!category) notFound();
+  if (category.isTraining) return <TrainingPage site={site} category={category} />;
   const t = await getTranslations("site.services");
   const others = site.categories.filter((item) => item.id !== category.id);
   const title = site.tenant.city

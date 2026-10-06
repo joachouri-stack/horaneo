@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import type { SiteData } from "@/modules/site/data";
 import { visibleSections } from "@/modules/site/data";
-import { businessPath, SITE_PATHS } from "@/modules/site/paths";
+import { businessPath, categoryPath, SITE_PATHS } from "@/modules/site/paths";
 import { AccountLink, accountMenuLink } from "../AccountLink";
 import { MobileMenu } from "../MobileMenu";
 import { SiteImage } from "../SiteImage";
@@ -29,7 +29,12 @@ export async function atelierLinks(site: Site) {
       .map((category) => {
         const slug = slugOf(category.businessId);
         return {
-          href: slug ? `${businessPath(slug)}#${category.slug}` : SITE_PATHS.services,
+          // Une formation a sa propre page ; sinon, la catégorie sur la page de la professionnelle.
+          href: category.isTraining
+            ? categoryPath(category.slug)
+            : slug
+              ? `${businessPath(slug)}#${category.slug}`
+              : SITE_PATHS.services,
           label: category.name,
         };
       }),

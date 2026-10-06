@@ -1,0 +1,2 @@
+ALTER TABLE "service_categories" ADD COLUMN "is_training" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+ALTER TABLE "service_categories" ADD COLUMN "logo_asset_ids" jsonb DEFAULT '[]'::jsonb NOT NULL;

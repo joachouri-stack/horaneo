@@ -5,7 +5,7 @@ import { formatPhone } from "@/modules/phone";
 import type { SiteData } from "@/modules/site/data";
 import { siteReviews, visibleSections } from "@/modules/site/data";
 import { addressParts, directionsUrl, openDaysSpan } from "@/modules/site/format";
-import { businessPath, SITE_PATHS } from "@/modules/site/paths";
+import { businessPath, categoryPath, SITE_PATHS } from "@/modules/site/paths";
 import { GoogleReviewCards, ReviewsSummary, Stars } from "../GoogleReviews";
 import { SiteImage } from "../SiteImage";
 import { CategoryGrid } from "./CategoryGrid";
@@ -200,7 +200,11 @@ export async function AtelierHome({ site }: { site: Site }) {
                 servicesLabel: t("servicesCount", { count: category.services.length }),
                 ariaLabel: t("seeCategory", { category: category.name }),
                 priceLabel: bookable ? t("from", { price: money(category.minPriceCents) }) : t("onRequest"),
-                href: slug ? `${businessPath(slug)}#${category.slug}` : `${SITE_PATHS.services}`,
+                href: category.isTraining
+                  ? categoryPath(category.slug)
+                  : slug
+                    ? `${businessPath(slug)}#${category.slug}`
+                    : `${SITE_PATHS.services}`,
               };
             })}
           />

@@ -134,6 +134,13 @@
       "when": 1791213971950,
       "tag": "0018_customer_space",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1791292879187,
+      "tag": "0019_category_training",
+      "breakpoints": true
     }
   ]
 }
