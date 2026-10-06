@@ -47,7 +47,9 @@
       "how": "Comment ça marche",
       "features": "Fonctions",
       "pricing": "Tarifs",
-      "questions": "Questions"
+      "questions": "Questions",
+      "menu": "Menu",
+      "closeMenu": "Fermer le menu"
     },
     "badge": "Pour les professionnels sur rendez-vous",
     "title": "Nous créons votre site.",
@@ -157,6 +159,8 @@
       "freeForever": "sans limite de durée",
       "toggleLabel": "Type de pack",
       "carouselDot": "Voir le pack {n}",
+      "moreItems": "{count, plural, one {Voir 1 autre avantage} other {Voir les # autres avantages}}",
+      "lessItems": "Masquer le détail",
       "toggleBooking": "Site + réservation en ligne",
       "toggleSite": "Site vitrine seul",
       "toggleHintBooking": "Vous voulez seulement un site ? Choisissez « Site vitrine seul ».",

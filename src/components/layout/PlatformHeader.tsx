@@ -4,6 +4,7 @@ import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { env } from "@/config/env";
 import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
+import { HeaderShell } from "./HeaderShell";
 
 const NAV = [
   { hash: "etapes", key: "how" },
@@ -30,35 +31,50 @@ export async function PlatformHeader({ children }: { children?: React.ReactNode 
       >
         {t("common.skipToContent")}
       </a>
-      <header className="mx-auto flex max-w-[75rem] flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
-        <Link href="/" aria-label={t("common.homeLink", { product })}>
-          <Logo productName={product} className="text-[1.8rem]" />
-        </Link>
-        <nav className="flex flex-wrap items-center gap-x-6 font-medium text-night xl:gap-x-7">
-          {!children &&
-            NAV.map((item) => (
-              <Link
-                key={item.hash}
-                href={{ pathname: "/", hash: item.hash }}
-                className={`${LINK} max-lg:hidden`}
-              >
-                {t(`home.nav.${item.key}`)}
+      <HeaderShell
+        menu={
+          children
+            ? undefined
+            : {
+                items: NAV.map((item) => ({ hash: item.hash, label: t(`home.nav.${item.key}`) })),
+                cta: t("home.cta"),
+                open: t("home.nav.menu"),
+                close: t("home.nav.closeMenu"),
+              }
+        }
+      >
+        <header
+          className={`mx-auto flex max-w-[75rem] flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:py-4 ${children ? "" : "max-lg:pr-16"}`}
+        >
+          <Link href="/" aria-label={t("common.homeLink", { product })}>
+            <Logo productName={product} className="text-[1.8rem]" />
+          </Link>
+          <nav className="flex flex-wrap items-center gap-x-6 font-medium text-night xl:gap-x-7">
+            {!children &&
+              NAV.map((item) => (
+                <Link
+                  key={item.hash}
+                  href={{ pathname: "/", hash: item.hash }}
+                  className={`${LINK} max-lg:hidden`}
+                >
+                  {t(`home.nav.${item.key}`)}
+                </Link>
+              ))}
+            {routing.locales.length > 1 ? (
+              <LanguageSwitcher />
+            ) : (
+              <span className="uppercase" title={t(`languages.${locale as "fr"}`)}>
+                {locale}
+              </span>
+            )}
+            {children ?? (
+              <Link href="/connexion" className={LINK}>
+                {t("common.login")}
               </Link>
-            ))}
-          {routing.locales.length > 1 ? (
-            <LanguageSwitcher />
-          ) : (
-            <span className="uppercase" title={t(`languages.${locale as "fr"}`)}>
-              {locale}
-            </span>
-          )}
-          {children ?? (
-            <Link href="/connexion" className={LINK}>
-              {t("common.login")}
-            </Link>
-          )}
-        </nav>
-      </header>
+            )}
+          </nav>
+        </header>
+      </HeaderShell>
     </>
   );
 }

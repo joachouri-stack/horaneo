@@ -156,6 +156,16 @@
   text-wrap: balance;
 }
 
+/* Site commercial : en-tête collant, donc les ancres s'arrêtent sous lui ; défilement doux. */
+html:has(body.saas) {
+  scroll-padding-top: 5rem;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:has(body.saas) {
+    scroll-behavior: smooth;
+  }
+}
+
 @keyframes hn-up {
   from {
     opacity: 0;
