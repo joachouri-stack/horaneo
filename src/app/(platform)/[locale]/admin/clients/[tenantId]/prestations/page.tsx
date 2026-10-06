@@ -8,6 +8,7 @@ import { listActiveAssets } from "@/modules/media/assets";
 import { storage } from "@/lib/storage";
 import { pickLocalized } from "@/i18n/locales";
 import {
+  addCategoryLogoAction,
   deleteCategoryAction,
   deleteServiceAction,
   saveCategoryAction,
@@ -53,6 +54,7 @@ export default async function ServicesPage({
         }))}
         actions={{
           saveCategory: saveCategoryAction,
+          addCategoryLogo: addCategoryLogoAction,
           deleteCategory: deleteCategoryAction,
           saveService: saveServiceAction,
           deleteService: deleteServiceAction,

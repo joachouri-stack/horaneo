@@ -33,7 +33,14 @@ export async function ServicesEditor({
   services: Awaited<ReturnType<typeof listServices>>;
   /** Photos du site proposées comme logos d'une page formation (espace admin). */
   logoOptions?: { value: string; label: string; src: string }[];
-  actions: { saveCategory: Action; deleteCategory: Action; saveService: Action; deleteService: Action };
+  actions: {
+    saveCategory: Action;
+    deleteCategory: Action;
+    saveService: Action;
+    deleteService: Action;
+    /** Envoi d'un logo depuis la catégorie (espace admin). */
+    addCategoryLogo?: Action;
+  };
 }) {
   const [t, tCommon] = await Promise.all([
     getTranslations("admin.tenant.services"),
@@ -121,6 +128,32 @@ export async function ServicesEditor({
                   />
                 </div>
               </ActionForm>
+              {actions.addCategoryLogo && category.isTraining && (
+                <ActionForm
+                  action={actions.addCategoryLogo}
+                  submitLabel={t("addLogo")}
+                  variant="secondary"
+                  resetOnSuccess
+                  className="grid w-full items-end gap-3 rounded-lg bg-navy/5 p-4 sm:grid-cols-2"
+                >
+                  <Hidden values={{ tenantId, businessId, id: category.id }} />
+                  <div>
+                    <label htmlFor={`logo-file-${category.id}`} className="font-semibold text-night">
+                      {t("addLogoFile")}
+                    </label>
+                    <input
+                      id={`logo-file-${category.id}`}
+                      name="file"
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,image/svg+xml,image/avif"
+                      required
+                      className="mt-1 block w-full text-sm"
+                    />
+                    <p className="mt-1 text-sm text-ink/60">{t("addLogoHint")}</p>
+                  </div>
+                  <TextField id={`logo-alt-${category.id}`} name="alt" label={t("addLogoName")} />
+                </ActionForm>
+              )}
               <ActionForm
                 action={actions.deleteCategory}
                 submitLabel={tCommon("delete")}
