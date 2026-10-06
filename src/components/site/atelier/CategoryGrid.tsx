@@ -159,7 +159,7 @@ export function CategoryGrid({
 
   return (
     <div ref={rootRef}>
-      <p className="mt-8 text-sm font-semibold uppercase tracking-[0.12em] text-site-muted">
+      <p className="mt-8 text-[0.8rem] font-semibold uppercase tracking-[0.08em] text-site-muted sm:text-sm sm:tracking-[0.12em]">
         {labels.choose}
       </p>
       <div
