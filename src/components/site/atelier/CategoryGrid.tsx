@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { ArrowIcon, CategoryIcon } from "./icons";
 
 export type CategoryCard = {
@@ -46,6 +46,23 @@ export function CategoryGrid({
 }) {
   const [filter, setFilter] = useState<string | null>(null);
   const visible = cards.filter((card) => !filter || card.businessId === filter);
+  // Téléphone et tablette (pas de survol possible) : la carte qui passe au
+  // milieu de l'écran pendant le défilement ressort, comme au survol sur ordinateur.
+  const listRef = useRef<HTMLUListElement>(null);
+  const [spotlight, setSpotlight] = useState<string | null>(null);
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list || !window.matchMedia("(hover: none)").matches) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const centered = entries.filter((entry) => entry.isIntersecting);
+        if (centered.length > 0) setSpotlight((centered[0].target as HTMLElement).dataset.card ?? null);
+      },
+      { rootMargin: "-45% 0px -45% 0px" },
+    );
+    list.querySelectorAll<HTMLElement>("[data-card]").forEach((item) => observer.observe(item));
+    return () => observer.disconnect();
+  }, [filter]);
   const options = [
     { id: null as string | null, label: labels.all, count: allCount, avatar: null },
     ...filters,
@@ -88,20 +105,27 @@ export function CategoryGrid({
           })}
         </div>
       )}
-      <ul key={filter ?? "all"} className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <ul ref={listRef} key={filter ?? "all"} className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {visible.map((card, index) => (
           <li
             key={card.id}
+            data-card={card.id}
             style={{ animationDelay: `${index * 50}ms` }}
             className="motion-safe:animate-[card-in_.45s_ease-out_both]"
           >
             <Link
               href={card.href}
               aria-label={card.ariaLabel}
-              className="group flex h-full flex-col rounded-[1.5rem] border border-site-border bg-site-card p-4 transition duration-300 hover:-translate-y-1 hover:border-site-accent hover:shadow-[0_18px_36px_-20px_rgba(0,0,0,0.35)] sm:p-6"
+              data-spotlight={spotlight === card.id}
+              className="group relative flex h-full flex-col overflow-hidden rounded-[1.5rem] border border-site-border bg-site-card p-5 shadow-[0_10px_30px_-22px_rgba(0,0,0,0.45)] transition duration-300 ease-out active:scale-[0.98] sm:p-6 hover:-translate-y-1 hover:border-site-accent hover:shadow-[0_22px_44px_-22px_rgba(0,0,0,0.45)] data-[spotlight=true]:-translate-y-1 data-[spotlight=true]:border-site-accent data-[spotlight=true]:shadow-[0_22px_44px_-22px_rgba(0,0,0,0.45)]"
             >
+              {/* Filet de couleur en haut de la carte, qui s'étire quand elle ressort. */}
+              <span
+                aria-hidden="true"
+                className="absolute inset-x-0 top-0 h-1 origin-left scale-x-[0.18] bg-site-accent transition-transform duration-500 ease-out group-hover:scale-x-100 group-data-[spotlight=true]:scale-x-100"
+              />
               <div className="flex items-start gap-4">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-site-surface text-site-accent sm:h-12 sm:w-12">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-site-surface text-site-accent ring-1 ring-site-border transition duration-300 group-hover:bg-site-button group-hover:text-site-on-button group-data-[spotlight=true]:bg-site-button group-data-[spotlight=true]:text-site-on-button">
                   <CategoryIcon icon={card.icon} />
                 </span>
                 <div className="min-w-0 flex-1">
@@ -123,10 +147,12 @@ export function CategoryGrid({
               )}
               <span aria-hidden="true" className="block min-h-4 flex-1 sm:min-h-5" />
               <div className="flex items-center justify-between gap-3 border-t border-site-border pt-3 sm:pt-4">
-                <span className="text-lg font-bold text-site-accent">{card.priceLabel}</span>
+                <span className="rounded-full bg-site-surface px-3 py-1 text-base font-bold text-site-accent">
+                  {card.priceLabel}
+                </span>
                 <span className="flex items-center gap-2 text-sm font-semibold">
                   <span className="max-sm:sr-only">{labels.see}</span>
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-site-surface text-site-accent transition group-hover:translate-x-1 group-hover:bg-site-button group-hover:text-site-on-button">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-site-surface text-site-accent transition duration-300 group-hover:translate-x-1 group-hover:bg-site-button group-hover:text-site-on-button group-data-[spotlight=true]:translate-x-1 group-data-[spotlight=true]:bg-site-button group-data-[spotlight=true]:text-site-on-button">
                     <ArrowIcon />
                   </span>
                 </span>
