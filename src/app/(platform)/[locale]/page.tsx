@@ -196,7 +196,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               <p className="max-w-sm text-[1.05rem] text-[#d7dce6]">{t("steps.intro")}</p>
             </div>
             {/* Téléphone : les trois cartes défilent d'un geste ; plus large : côte à côte. */}
-            <ol className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 pt-1 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-3 md:gap-5 md:overflow-visible md:p-0 lg:gap-6 [&::-webkit-scrollbar]:hidden">
+            <ol className="reveal -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 pt-1 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-3 md:gap-5 md:overflow-visible md:p-0 lg:gap-6 [&::-webkit-scrollbar]:hidden">
               {steps.map(({ key, Icon, accent }, index) => (
                 <li
                   key={key}
@@ -250,7 +250,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             </div>
             <p className="max-w-sm text-[1.05rem]">{t("features.intro")}</p>
           </div>
-          <ul className="grid gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+          <ul className="reveal grid gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
             {features.map(({ key, Icon, feature }) => {
               const tag = featureTag(feature);
               if (!tag) return null;
@@ -282,7 +282,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           aria-labelledby="titre-tarifs"
           className="mx-auto max-w-[75rem] scroll-mt-4 px-4 py-14 sm:px-6 lg:py-20"
         >
-          <div className="mb-8 text-center lg:mb-10">
+          <div className="reveal mb-8 text-center lg:mb-10">
             <p className={`${BADGE} mb-5`}>{t("plans.badge")}</p>
             <h2
               id="titre-tarifs"
@@ -331,7 +331,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 {t("faq.contact")}
               </a>
             </div>
-            <div className="flex flex-[2_1_26rem] flex-col gap-3">
+            <div className="reveal flex flex-[2_1_26rem] flex-col gap-3">
               {faq.map((item, index) => (
                 <details
                   key={item.q}
@@ -353,7 +353,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
 
         {/* Bandeau final */}
         <section className="px-3 pb-12 pt-4">
-          <div className="relative mx-auto max-w-[74rem] overflow-hidden rounded-[2rem] bg-brick px-6 py-12 text-center lg:rounded-[3rem] lg:px-8 lg:py-16">
+          <div className="reveal relative mx-auto max-w-[74rem] overflow-hidden rounded-[2rem] bg-brick px-6 py-12 text-center lg:rounded-[3rem] lg:px-8 lg:py-16">
             <div
               aria-hidden="true"
               className="absolute -left-20 -top-20 size-64 rounded-full border-[2.5rem] border-[#dd5646]"

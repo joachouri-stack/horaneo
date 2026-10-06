@@ -12,6 +12,9 @@ import {
 import { ArrowIcon, CheckIcon, DashIcon, PLAN_ICONS, SparkleIcon, StarIcon } from "./icons";
 import { PlanFlip } from "./PlanFlip";
 
+/** Fonctions affichées d'emblée sur chaque carte ; les suivantes se déplient. */
+const VISIBLE_ITEMS = 6;
+
 type Plan = {
   id: string;
   code: string;
@@ -90,7 +93,7 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
     return (
       <article
         key={plan.id}
-        className={`group relative flex flex-col gap-5 overflow-hidden rounded-[1.75rem] px-6 transition duration-200 hover:-translate-y-2 lg:rounded-[2rem] lg:px-7 ${
+        className={`group relative flex w-full flex-col gap-5 overflow-hidden rounded-[1.75rem] px-6 transition duration-200 hover:-translate-y-2 lg:rounded-[2rem] lg:px-7 ${
           featured
             ? "border-2 border-coral bg-navy py-8 text-sand lg:py-10 shadow-[0_30px_60px_rgba(27,42,74,.35)] hover:shadow-[0_34px_64px_rgba(27,42,74,.45)]"
             : "border-2 border-line bg-white py-7 text-body hover:border-coral hover:shadow-[0_28px_56px_rgba(22,24,29,.16)]"
@@ -177,10 +180,9 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
           {plan.priceCents > 0 ? t("choose", { plan: name }) : t("start")}
           <ArrowIcon className="size-[18px] shrink-0 transition-transform group-hover:translate-x-1.5" />
         </Link>
-        <ul
-          className={`relative flex flex-col gap-2.5 border-t pt-5 text-[0.95rem] ${featured ? "border-[#3a4a6e]" : "border-line"}`}
-        >
-          {items.map((item, itemIndex) => {
+        {(() => {
+          // Les fonctions principales d'abord ; le reste se déplie (cartes plus courtes, surtout sur téléphone).
+          const line = (item: ShowcaseItem, itemIndex: number) => {
             const missing = item.kind === "missing";
             const soon = item.kind === "soon";
             return (
@@ -205,8 +207,30 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
                 </span>
               </li>
             );
-          })}
-        </ul>
+          };
+          const shown = items.slice(0, VISIBLE_ITEMS);
+          const more = items.slice(VISIBLE_ITEMS);
+          const list = "relative flex flex-col gap-2.5 text-[0.95rem]";
+          return (
+            <div className={`border-t pt-5 ${featured ? "border-[#3a4a6e]" : "border-line"}`}>
+              <ul className={list}>{shown.map((item, index) => line(item, index))}</ul>
+              {more.length > 0 && (
+                <details className="group/more relative mt-2.5">
+                  <summary
+                    className={`flex min-h-11 cursor-pointer list-none items-center gap-1.5 text-[0.95rem] font-semibold [&::-webkit-details-marker]:hidden ${featured ? "text-salmon" : "text-brick"}`}
+                  >
+                    <span className="group-open/more:hidden">{t("moreItems", { count: more.length })}</span>
+                    <span className="hidden group-open/more:inline">{t("lessItems")}</span>
+                    <ArrowIcon className="size-4 rotate-90 transition-transform group-open/more:-rotate-90" />
+                  </summary>
+                  <ul className={`${list} pt-1`}>
+                    {more.map((item, index) => line(item, VISIBLE_ITEMS + index))}
+                  </ul>
+                </details>
+              )}
+            </div>
+          );
+        })()}
         {upgrade && (
           <p
             className={`relative -mt-2 flex gap-2.5 font-semibold ${featured ? "text-white" : "text-night"}`}
@@ -222,8 +246,8 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
   // Téléphone et tablette : les packs défilent d'un geste (une carte et le bord de la suivante) ;
   // ordinateur : trois colonnes.
   const row =
-    "-mx-4 flex snap-x snap-mandatory items-start gap-4 overflow-x-auto scroll-px-4 px-4 py-3 [scrollbar-width:none] lg:mx-0 lg:grid lg:grid-cols-3 lg:items-center lg:gap-6 lg:overflow-visible lg:p-0 [&::-webkit-scrollbar]:hidden";
-  const cell = "w-[86%] max-w-[23rem] shrink-0 snap-center sm:w-[55%] lg:w-auto lg:max-w-none";
+    "-mx-4 flex snap-x snap-mandatory items-stretch gap-4 overflow-x-auto scroll-px-4 px-4 py-3 [scrollbar-width:none] lg:mx-0 lg:grid lg:grid-cols-3 lg:items-center lg:gap-6 lg:overflow-visible lg:p-0 [&::-webkit-scrollbar]:hidden";
+  const cell = "flex w-[86%] max-w-[23rem] shrink-0 snap-center sm:w-[55%] lg:block lg:w-auto lg:max-w-none";
 
   // Aucun pack « site seul » proposé : une simple rangée de cartes.
   if (siteOnly.length === 0) {
@@ -254,12 +278,12 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
         {Array.from({ length: cells }, (_, index) => (
           // Une case, deux faces superposées : la case prend la hauteur de la plus grande.
           <div key={index} className={`${cell} [perspective:2200px]`}>
-            <div className="grid items-center transition-transform duration-700 ease-in-out [transform-style:preserve-3d] group-data-[side=site]/plans:[transform:rotateY(180deg)] motion-reduce:transition-none">
+            <div className="grid w-full items-stretch transition-transform duration-700 lg:items-center ease-in-out [transform-style:preserve-3d] group-data-[side=site]/plans:[transform:rotateY(180deg)] motion-reduce:transition-none">
               {/* La face cachée devient invisible à mi-retournement : ni lue, ni atteinte au clavier. */}
-              <div className="visible [grid-area:1/1] [backface-visibility:hidden] transition-[visibility] delay-300 duration-0 group-data-[side=site]/plans:invisible motion-reduce:delay-0">
+              <div className="visible flex [grid-area:1/1] [backface-visibility:hidden] lg:block transition-[visibility] delay-300 duration-0 group-data-[side=site]/plans:invisible motion-reduce:delay-0">
                 {booking[index] && card(booking, index)}
               </div>
-              <div className="invisible [grid-area:1/1] [backface-visibility:hidden] [transform:rotateY(180deg)] transition-[visibility] delay-300 duration-0 group-data-[side=site]/plans:visible motion-reduce:delay-0">
+              <div className="invisible flex [grid-area:1/1] [backface-visibility:hidden] lg:block [transform:rotateY(180deg)] transition-[visibility] delay-300 duration-0 group-data-[side=site]/plans:visible motion-reduce:delay-0">
                 {siteOnly[index] && card(siteOnly, index)}
               </div>
             </div>
