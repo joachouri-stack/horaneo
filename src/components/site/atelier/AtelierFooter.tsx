@@ -70,7 +70,8 @@ export async function AtelierFooter({ site }: { site: Site }) {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="relative mt-20 overflow-hidden rounded-t-[2.5rem] bg-site-text pb-28 text-site-bg sm:pb-0">
+    // Fond clair : le pied de page ne forme pas un bloc foncé uni en bas de page.
+    <footer className="relative mt-20 overflow-hidden rounded-t-[2.5rem] border-t border-site-border bg-site-surface pb-28 text-site-text sm:pb-0">
       <div className="relative z-10 mx-auto max-w-7xl px-4 pt-14 sm:px-8">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-4">
@@ -85,7 +86,7 @@ export async function AtelierFooter({ site }: { site: Site }) {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={t("instagram")}
-                      className="flex h-11 w-11 items-center justify-center rounded-full border border-current/30 hover:bg-white/10"
+                      className="flex h-11 w-11 items-center justify-center rounded-full border border-current/30 hover:bg-site-card"
                     >
                       <InstagramIcon className="h-5 w-5" />
                     </a>
@@ -98,7 +99,7 @@ export async function AtelierFooter({ site }: { site: Site }) {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={t("facebook")}
-                      className="flex h-11 w-11 items-center justify-center rounded-full border border-current/30 hover:bg-white/10"
+                      className="flex h-11 w-11 items-center justify-center rounded-full border border-current/30 hover:bg-site-card"
                     >
                       <FacebookIcon className="h-5 w-5" />
                     </a>
@@ -203,7 +204,7 @@ export async function AtelierFooter({ site }: { site: Site }) {
             <h2 className="mb-4 font-site-display text-2xl">{t("hoursTitle")}</h2>
             <HoursSummary site={site} />
             {cta && (
-              <PillLink href={cta.href} variant="light" className="mt-6">
+              <PillLink href={cta.href} className="mt-6">
                 {tSite(ctaLabelKey(cta))}
               </PillLink>
             )}
@@ -239,12 +240,12 @@ export async function AtelierFooter({ site }: { site: Site }) {
         </div>
         {credit && <p className="pb-4 text-right text-sm opacity-75">{credit}</p>}
       </div>
-      {/* Signature : fine ligne ornée, puis le nom en grand, en dégradé qui se fond dans le fond. */}
+      {/* Signature : fine ligne ornée, puis le nom en grand, en dégradé de la couleur du site qui se fond dans le fond. */}
       <div aria-hidden="true" className="pointer-events-none relative select-none pt-10">
         <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 sm:px-8">
-          <span className="h-px flex-1 bg-gradient-to-r from-transparent to-site-bg/25" />
+          <span className="h-px flex-1 bg-gradient-to-r from-transparent to-site-text/20" />
           <span className="h-2 w-2 rotate-45 bg-site-accent" />
-          <span className="h-px flex-1 bg-gradient-to-l from-transparent to-site-bg/25" />
+          <span className="h-px flex-1 bg-gradient-to-l from-transparent to-site-text/20" />
         </div>
         <p
           // Taille calculée d'après la longueur du nom : il tient toujours en entier
@@ -252,7 +253,7 @@ export async function AtelierFooter({ site }: { site: Site }) {
           style={{
             fontSize: `min(10rem, ${(92 / (Math.max(tenant.name.length, 6) * 0.5)).toFixed(1)}vw)`,
             backgroundImage:
-              "linear-gradient(180deg, color-mix(in srgb, var(--site-bg) 38%, transparent) 10%, color-mix(in srgb, var(--site-bg) 0%, transparent) 92%)",
+              "linear-gradient(180deg, color-mix(in srgb, var(--site-accent) 45%, transparent) 10%, color-mix(in srgb, var(--site-accent) 0%, transparent) 92%)",
           }}
           className="-mb-[0.18em] mt-2 overflow-hidden whitespace-nowrap bg-clip-text px-2 pb-[0.06em] text-center font-site-display italic leading-none tracking-[-0.01em] text-transparent"
         >
