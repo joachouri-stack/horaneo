@@ -59,7 +59,7 @@ export function AtelierBrand({ site, size = "md" }: { site: Site; size?: "md" | 
             alt=""
             sizes="80px"
             priority
-            className="h-full w-full object-contain p-0.5"
+            className="h-full w-full object-cover"
           />
         </span>
       )}
