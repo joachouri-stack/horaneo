@@ -4,6 +4,34 @@ import Link from "next/link";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { ArrowIcon, CategoryIcon, CheckIcon } from "./icons";
 
+let audio: AudioContext | null = null;
+
+/**
+ * Petit son doux au changement de professionnelle (deux notes brèves, volume bas),
+ * fabriqué par le navigateur : aucun fichier à charger. Joué seulement après un clic.
+ */
+function playSwitchSound() {
+  try {
+    audio ??= new AudioContext();
+    const start = audio.currentTime;
+    [880, 1320].forEach((frequency, index) => {
+      const oscillator = audio!.createOscillator();
+      const gain = audio!.createGain();
+      const at = start + index * 0.07;
+      oscillator.type = "sine";
+      oscillator.frequency.value = frequency;
+      gain.gain.setValueAtTime(0.0001, at);
+      gain.gain.exponentialRampToValueAtTime(0.05, at + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.22);
+      oscillator.connect(gain).connect(audio!.destination);
+      oscillator.start(at);
+      oscillator.stop(at + 0.25);
+    });
+  } catch {
+    // Son non disponible (ancien navigateur) : sans importance.
+  }
+}
+
 export type CategoryCard = {
   id: string;
   name: string;
@@ -146,7 +174,10 @@ export function CategoryGrid({
               key={group.id}
               type="button"
               aria-pressed={active}
-              onClick={() => setSelected(group.id)}
+              onClick={() => {
+                if (group.id !== selected) playSwitchSound();
+                setSelected(group.id);
+              }}
               className={`relative flex min-w-0 items-center gap-3 rounded-[1.25rem] border-2 p-2.5 pr-9 text-left transition duration-300 active:scale-[0.98] sm:gap-4 sm:p-3 sm:pr-11 ${
                 active
                   ? "border-site-text bg-site-text text-site-bg shadow-[0_14px_30px_-18px_rgba(0,0,0,0.55)]"
