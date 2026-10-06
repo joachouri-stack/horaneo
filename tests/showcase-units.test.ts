@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_PLANS } from "@/config/defaults";
-import { bookingOptional, planItems, planTiles, type ShowcaseItem } from "@/modules/billing/showcase";
+import { DEFAULT_PLANS, DEFAULT_SITE_ONLY_PLANS } from "@/config/defaults";
+import { planItems, planTiles, splitPlans, type ShowcaseItem } from "@/modules/billing/showcase";
 
 const label = (item: ShowcaseItem) =>
   item.kind === "everythingIn"
@@ -66,8 +66,25 @@ describe("présentation des packs sur le site commercial", () => {
     });
   });
 
-  it("annonce « avec ou sans réservation » seulement pour les packs avec un vrai site", () => {
-    expect(DEFAULT_PLANS.map(bookingOptional)).toEqual([false, true, true]);
+  it("sépare les packs avec réservation des packs « site seul », chacun dans son ordre", () => {
+    const { booking, siteOnly } = splitPlans([...DEFAULT_PLANS, ...DEFAULT_SITE_ONLY_PLANS]);
+    expect(booking.map((plan) => plan.code)).toEqual(["basic", "essentiel", "serenite"]);
+    expect(siteOnly.map((plan) => plan.code)).toEqual(["express", "vitrine", "signature"]);
+  });
+
+  it("présente un pack « site seul » par la taille du site, sans agenda ni rappels", () => {
+    expect(planTiles(DEFAULT_SITE_ONLY_PLANS[0])).toEqual([
+      { key: "pages", fullSite: false },
+      { key: "photos", count: 10 },
+      { key: "domain" },
+    ]);
+    expect(planTiles(DEFAULT_SITE_ONLY_PLANS[2])[1]).toEqual({ key: "photos", count: null });
+    const labels = DEFAULT_SITE_ONLY_PLANS.flatMap((_, index) =>
+      planItems(DEFAULT_SITE_ONLY_PLANS, index).map(label),
+    );
+    expect(labels).not.toContain("+agenda");
+    expect(labels).not.toContain("-smsReminders");
+    expect(planItems(DEFAULT_SITE_ONLY_PLANS, 1).map(label)[0]).toBe("tout:0");
   });
 
   it("suit les réglages de l'admin", () => {

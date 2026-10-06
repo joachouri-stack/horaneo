@@ -1,4 +1,5 @@
 import { and, asc, eq, gt, inArray, isNull, lt, or } from "drizzle-orm";
+import { planAllowsBooking } from "@/modules/billing/features";
 import { currentBusinessId } from "@/db/access";
 import type { Transaction } from "@/db/client";
 import {
@@ -76,7 +77,11 @@ export async function loadBookingContext(tx: Transaction, tenantId: string, busi
   return {
     tenant: row.tenant,
     business: row.business,
-    settings: row.settings,
+    // Pack « site seul » : la réservation en ligne est fermée, quel que soit le réglage de l'entreprise.
+    settings: {
+      ...row.settings,
+      onlineBookingEnabled: row.settings.onlineBookingEnabled && planAllowsBooking(features),
+    },
     features,
     limits: row.limits as PlanLimits,
     services: serviceRows.map((service) => {

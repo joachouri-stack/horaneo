@@ -26,6 +26,11 @@ export type PlanLimits = {
 
 /** Fonctions d'un pack. Une fonction absente est désactivée. */
 export type PlanFeatures = {
+  /**
+   * Réservation en ligne incluse. Seul `false` la coupe (packs « site seul ») :
+   * une valeur absente vaut « incluse », pour les packs créés avant ce réglage.
+   */
+  onlineBooking?: boolean;
   fullSite?: boolean;
   customDomain?: boolean;
   onlinePayment?: boolean;
@@ -63,6 +68,8 @@ export const plans = pgTable(
     currency: currency().notNull().default("EUR"),
     interval: billingIntervalEnum().notNull().default("month"),
     stripePriceId: text(),
+    /** Frais de création propres au pack, en centimes (null : réglage général « setup_fee_cents »). */
+    setupFeeCents: cents(),
     /** Produit Stripe du pack (un nouveau prix y est ajouté à chaque changement de tarif). */
     stripeProductId: text(),
     limits: jsonb().$type<PlanLimits>().notNull().default({}),

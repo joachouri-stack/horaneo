@@ -59,6 +59,14 @@ export default async function PlansPage({ params }: PageProps<"/[locale]/admin/p
                 defaultValue={centsToInput(plan.priceCents)}
                 required
               />
+              <TextField
+                id={`setupFee-${plan.id}`}
+                name="setupFee"
+                inputMode="decimal"
+                label={t("setupFee")}
+                hint={t("setupFeeHint")}
+                defaultValue={plan.setupFeeCents === null ? "" : centsToInput(plan.setupFeeCents)}
+              />
               {LIMITS.map((key) => (
                 <TextField
                   key={key}

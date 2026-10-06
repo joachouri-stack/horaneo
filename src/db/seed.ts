@@ -2,7 +2,7 @@ import "dotenv/config";
 import { eq, sql } from "drizzle-orm";
 import { createDb } from "./client";
 import { platformSettings, plans } from "./schema";
-import { DEFAULT_PLANS, DEFAULT_PLATFORM_SETTINGS } from "@/config/defaults";
+import { DEFAULT_PLANS, DEFAULT_PLATFORM_SETTINGS, DEFAULT_SITE_ONLY_PLANS } from "@/config/defaults";
 
 /**
  * Insère les valeurs de départ (packs et réglages) si elles n'existent pas.
@@ -23,10 +23,10 @@ export async function seed(url: string) {
       .onConflictDoNothing();
     await database
       .insert(plans)
-      .values(DEFAULT_PLANS.map((plan) => ({ ...plan, currency: "EUR" })))
+      .values([...DEFAULT_PLANS, ...DEFAULT_SITE_ONLY_PLANS].map((plan) => ({ ...plan, currency: "EUR" })))
       .onConflictDoNothing();
     // Packs déjà en base : on complète seulement ce qui manque (accroche, nouvelles fonctions).
-    for (const plan of DEFAULT_PLANS) {
+    for (const plan of [...DEFAULT_PLANS, ...DEFAULT_SITE_ONLY_PLANS]) {
       await database
         .update(plans)
         .set({

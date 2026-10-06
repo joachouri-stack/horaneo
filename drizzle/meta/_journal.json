@@ -141,6 +141,13 @@
       "when": 1791292879187,
       "tag": "0019_category_training",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1791300591096,
+      "tag": "0020_plan_setup_fee",
+      "breakpoints": true
     }
   ]
 }

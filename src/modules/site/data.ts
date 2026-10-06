@@ -1,4 +1,5 @@
 import { and, asc, desc, eq } from "drizzle-orm";
+import { planAllowsBooking } from "@/modules/billing/features";
 import type { Transaction } from "@/db/client";
 import {
   assets,
@@ -147,6 +148,11 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
       .where(eq(businessSettings.tenantId, tenantId)),
   ]);
   const planFeatures = row.features as PlanFeatures;
+  // Réservation en ligne : il faut que le pack l'inclue, puis que l'entreprise l'ait laissée ouverte.
+  const bookingAllowed = planAllowsBooking(planFeatures);
+  const bookingOpen = (businessId: string) =>
+    bookingAllowed &&
+    (settingsRows.find((item) => item.businessId === businessId)?.onlineBookingEnabled ?? true);
   const promoted = planFeatures.promotions
     ? await activePromotionPrices(tx, tenantId, { timezone: tenant.timezone, locale: lang })
     : new Map<string, ActivePromotion>();
@@ -201,9 +207,7 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
     priceFrom: service.priceFrom,
     isOnlineBookable: service.isOnlineBookable,
     // Bouton « Réserver » : seulement si l'entreprise prend aussi des rendez-vous en ligne.
-    bookOnline:
-      service.isOnlineBookable &&
-      (settingsRows.find((item) => item.businessId === service.businessId)?.onlineBookingEnabled ?? true),
+    bookOnline: service.isOnlineBookable && bookingOpen(service.businessId),
     promo: (() => {
       const promotion = promoted.get(service.id);
       return promotion
@@ -323,10 +327,11 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
         : [],
     /** Au moins une entreprise du site prend des rendez-vous en ligne. */
     bookingEnabled:
-      businessRows.length === 0 ||
-      settingsRows.some(
-        (item) => businessRows.some((b) => b.id === item.businessId) && item.onlineBookingEnabled,
-      ),
+      bookingAllowed &&
+      (businessRows.length === 0 ||
+        settingsRows.some(
+          (item) => businessRows.some((b) => b.id === item.businessId) && item.onlineBookingEnabled,
+        )),
     primaryHostname: domainRows[0]?.hostname ?? null,
     logo: image(tenant.brand.logoAssetId),
     pages,
@@ -355,8 +360,7 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
       availability: text(business.profile.availability),
       photo: image(business.profile.photoAssetId),
       /** Réservation en ligne ouverte pour cette entreprise (sinon : appeler, écrire). */
-      bookingEnabled:
-        settingsRows.find((item) => item.businessId === business.id)?.onlineBookingEnabled ?? true,
+      bookingEnabled: bookingOpen(business.id),
     })),
     staff: staffRows.map((member) => ({
       id: member.id,

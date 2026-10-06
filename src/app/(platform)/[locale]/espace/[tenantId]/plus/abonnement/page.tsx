@@ -1,4 +1,5 @@
 import { and, eq } from "drizzle-orm";
+import { splitPlans } from "@/modules/billing/showcase";
 import { getTranslations } from "next-intl/server";
 import { SubmitButton } from "@/components/ui/SubmitButton";
 import { ui } from "@/components/ui/styles";
@@ -189,72 +190,95 @@ export default async function SubscriptionPage({
       <section className="space-y-3">
         <h2 className="text-xl font-bold">{t("choose")}</h2>
         {!configured && canManage && <p className="text-ink/70">{t("unavailable")}</p>}
-        {data.plans.map((plan) => {
-          const isCurrent = plan.id === page.tenant.planId;
-          const upgrade = plan.priceCents > currentPrice;
-          const toFree = plan.priceCents <= 0;
-          const hint = isCurrent
-            ? null
-            : !live
-              ? plan.priceCents > 0
-                ? t("subscribeHint")
-                : null
-              : toFree
-                ? t("toFreeHint", { date: freeDate ? page.fmt.short(freeDate) : "" })
-                : upgrade
-                  ? t("upgradeHint")
-                  : t("downgradeHint", { date: periodEnd ? page.fmt.short(periodEnd) : "" });
-          // Pack gratuit : choisi directement quand le pack actuel est payant (abonnement ou attribué).
-          const canChoose = configured && !isCurrent && (live || plan.priceCents > 0 || currentPrice > 0);
-          return (
-            <article
-              key={plan.id}
-              className={`${ui.card} ${isCurrent ? "ring-2 ring-navy" : ""}`}
-              aria-current={isCurrent ? "true" : undefined}
-            >
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h3 className="text-lg font-bold text-night">{pickLocalized(plan.name, page.locale)}</h3>
-                <p className="font-semibold">{priceLabel(plan.priceCents)}</p>
-              </div>
-              {isCurrent && <p className="text-sm font-semibold text-success">{t("current")}</p>}
-              <ul className="mt-3 grid gap-1 text-sm text-ink/80 sm:grid-cols-2">
-                {planHighlights(plan).map((item) => (
-                  <li key={item.key}>
-                    ✓{" "}
-                    {item.kind === "limit"
-                      ? t(`limits.${item.key}`, { count: item.count })
-                      : t(`features.${item.key}`)}
-                  </li>
-                ))}
-              </ul>
-              {!live && plan.priceCents > 0 && !isCurrent && (
-                <p className="mt-3 text-sm text-ink/70">
-                  {data.commitmentMonths > 0 && `${t("commitmentInfo", { months: data.commitmentMonths })} `}
-                  {data.setupFeeCents > 0 && t("setupFee", { amount: page.fmt.money(data.setupFeeCents) })}
-                </p>
+        {/* Deux groupes : avec réservation en ligne, puis « site seul » (ajout de la réservation = changer de pack). */}
+        {[splitPlans(data.plans).booking, splitPlans(data.plans).siteOnly]
+          .filter((group) => group.length > 0)
+          .map((group, groupIndex) => (
+            <div key={groupIndex} className="space-y-3">
+              {splitPlans(data.plans).siteOnly.length > 0 && (
+                <h3 className="pt-2 text-sm font-semibold uppercase tracking-wide text-ink/60">
+                  {groupIndex === 0 ? t("groupBooking") : t("groupSiteOnly")}
+                </h3>
               )}
-              {canChoose && (
-                <form action={changeSubscriptionAction} className="mt-4 space-y-2">
-                  <input type="hidden" name="tenantId" value={page.tenantId} />
-                  <input type="hidden" name="planId" value={plan.id} />
-                  {hint && <p className="text-sm text-ink/70">{hint}</p>}
-                  <SubmitButton
-                    className={`${upgrade || !live ? ui.primaryButton : ui.secondaryButton} sm:w-auto`}
-                    confirm={
-                      live && upgrade
-                        ? t("upgradeConfirm")
-                        : live && toFree
-                          ? t("toFreeConfirm", { date: freeDate ? page.fmt.short(freeDate) : "" })
-                          : undefined
-                    }
+              {group.map((plan) => {
+                const isCurrent = plan.id === page.tenant.planId;
+                const upgrade = plan.priceCents > currentPrice;
+                const toFree = plan.priceCents <= 0;
+                const hint = isCurrent
+                  ? null
+                  : !live
+                    ? plan.priceCents > 0
+                      ? t("subscribeHint")
+                      : null
+                    : toFree
+                      ? t("toFreeHint", { date: freeDate ? page.fmt.short(freeDate) : "" })
+                      : upgrade
+                        ? t("upgradeHint")
+                        : t("downgradeHint", { date: periodEnd ? page.fmt.short(periodEnd) : "" });
+                // Pack gratuit : choisi directement quand le pack actuel est payant (abonnement ou attribué).
+                const canChoose =
+                  configured && !isCurrent && (live || plan.priceCents > 0 || currentPrice > 0);
+                return (
+                  <article
+                    key={plan.id}
+                    className={`${ui.card} ${isCurrent ? "ring-2 ring-navy" : ""}`}
+                    aria-current={isCurrent ? "true" : undefined}
                   >
-                    {!live ? t("subscribe") : toFree ? t("toFree") : upgrade ? t("upgrade") : t("downgrade")}
-                  </SubmitButton>
-                </form>
-              )}
-            </article>
-          );
-        })}
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <h3 className="text-lg font-bold text-night">
+                        {pickLocalized(plan.name, page.locale)}
+                      </h3>
+                      <p className="font-semibold">{priceLabel(plan.priceCents)}</p>
+                    </div>
+                    {isCurrent && <p className="text-sm font-semibold text-success">{t("current")}</p>}
+                    <ul className="mt-3 grid gap-1 text-sm text-ink/80 sm:grid-cols-2">
+                      {planHighlights(plan).map((item) => (
+                        <li key={item.key}>
+                          ✓{" "}
+                          {item.kind === "limit"
+                            ? t(`limits.${item.key}`, { count: item.count })
+                            : t(`features.${item.key}`)}
+                        </li>
+                      ))}
+                    </ul>
+                    {!live && plan.priceCents > 0 && !isCurrent && (
+                      <p className="mt-3 text-sm text-ink/70">
+                        {data.commitmentMonths > 0 &&
+                          `${t("commitmentInfo", { months: data.commitmentMonths })} `}
+                        {(plan.setupFeeCents ?? data.setupFeeCents) > 0 &&
+                          t("setupFee", { amount: page.fmt.money(plan.setupFeeCents ?? data.setupFeeCents) })}
+                      </p>
+                    )}
+                    {canChoose && (
+                      <form action={changeSubscriptionAction} className="mt-4 space-y-2">
+                        <input type="hidden" name="tenantId" value={page.tenantId} />
+                        <input type="hidden" name="planId" value={plan.id} />
+                        {hint && <p className="text-sm text-ink/70">{hint}</p>}
+                        <SubmitButton
+                          className={`${upgrade || !live ? ui.primaryButton : ui.secondaryButton} sm:w-auto`}
+                          confirm={
+                            live && upgrade
+                              ? t("upgradeConfirm")
+                              : live && toFree
+                                ? t("toFreeConfirm", { date: freeDate ? page.fmt.short(freeDate) : "" })
+                                : undefined
+                          }
+                        >
+                          {!live
+                            ? t("subscribe")
+                            : toFree
+                              ? t("toFree")
+                              : upgrade
+                                ? t("upgrade")
+                                : t("downgrade")}
+                        </SubmitButton>
+                      </form>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
+          ))}
       </section>
     </div>
   );

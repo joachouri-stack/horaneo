@@ -30,6 +30,7 @@ export async function savePlanAction(_previous: Previous, data: FormData) {
           photos: form.text(data, "photos"),
           services: form.text(data, "services"),
           smsPerMonth: form.text(data, "smsPerMonth"),
+          setupFee: form.text(data, "setupFee"),
           features: FEATURE_KEYS.filter((key) => form.bool(data, `feature_${key}`)),
           isPublic: form.bool(data, "isPublic"),
         },

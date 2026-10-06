@@ -1,4 +1,5 @@
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { setupFeeFor } from "@/modules/billing/plans";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
 import { getTranslator, resolveLocale } from "@/i18n/translator";
@@ -8,7 +9,6 @@ import { applySubscription, ensurePlanPrice, ensureTaxRate } from "@/modules/bil
 import { AppError } from "@/modules/errors";
 import { queueMessage } from "@/modules/messages/queue";
 import { normalizePhone } from "@/modules/phone";
-import { getPlatformSetting } from "@/modules/settings";
 
 /**
  * Commandes passées sur le site commercial (rôle plateforme).
@@ -106,7 +106,7 @@ export async function createOrder(
         .createCustomer({ email: user.email, name: input.businessName, metadata: { order_id: order.id } })
         .catch(providerError)
     ).id;
-  const setupFeeCents = Number(await getPlatformSetting(tx, "setup_fee_cents"));
+  const setupFeeCents = await setupFeeFor(tx, plan);
   const checkout = await gateway
     .createCheckout({
       customerId,

@@ -1,0 +1,1 @@
+ALTER TABLE "plans" ADD COLUMN "setup_fee_cents" integer;
