@@ -29,7 +29,6 @@ export async function AtelierHome({ site }: { site: Site }) {
   // Seconde photo de l'institut : une photo de la galerie différente de celle de la page.
   const aboutExtra = site.gallery.find((photo) => photo.key !== site.pages.about?.photo?.key) ?? null;
   const span = openDaysSpan(site.openingHours);
-  const businessName = (id: string) => site.businesses.find((business) => business.id === id)?.name ?? "";
   const pageOf = (businessId: string) => site.businesses.find((business) => business.id === businessId)?.slug;
   const presented = presentedBusinesses(site);
 
@@ -42,10 +41,6 @@ export async function AtelierHome({ site }: { site: Site }) {
   const giftCards = site.giftCardBusinessIds.length > 0;
   const tGift = await getTranslations("site.giftCard");
   const giftAmounts = [3000, 5000, 10000];
-
-  // Pastilles du choix de la professionnelle : nombre de cartes (catégories) affichées.
-  const categoryCount = (keep: (category: (typeof site.categories)[number]) => boolean) =>
-    site.categories.filter(keep).length;
 
   return (
     <main id="contenu" className="overflow-x-clip">
@@ -174,24 +169,19 @@ export async function AtelierHome({ site }: { site: Site }) {
             </div>
           </div>
           <CategoryGrid
-            allCount={categoryCount(() => true)}
-            labels={{
-              all: t("filterAll"),
-              filter: t("filterQuestion"),
-              see: t("seeServices"),
-              speciality: t("speciality"),
-            }}
-            filters={site.businesses
+            labels={{ see: t("seeServices"), speciality: t("speciality") }}
+            groups={site.businesses
               .filter((business) => site.categories.some((category) => category.businessId === business.id))
               .map((business) => ({
                 id: business.id,
-                label: business.name,
-                count: categoryCount((category) => category.businessId === business.id),
+                title: t("groupTitle", { name: business.name }),
+                subtitle: business.title ?? "",
+                initial: business.name.charAt(0),
                 avatar: business.photo ? (
                   <SiteImage
                     image={business.photo}
                     alt=""
-                    sizes="32px"
+                    sizes="56px"
                     className="h-full w-full object-cover"
                   />
                 ) : null,
@@ -206,8 +196,8 @@ export async function AtelierHome({ site }: { site: Site }) {
                 icon: category.icon,
                 featured: category.isFeatured,
                 businessId: category.businessId,
-                withLabel:
-                  site.businesses.length > 1 ? t("withPro", { name: businessName(category.businessId) }) : "",
+                // Les cartes sont déjà rangées sous le nom de la professionnelle.
+                withLabel: "",
                 servicesLabel: t("servicesCount", { count: category.services.length }),
                 ariaLabel: t("seeCategory", { category: category.name }),
                 priceLabel: bookable ? t("from", { price: money(category.minPriceCents) }) : t("onRequest"),
