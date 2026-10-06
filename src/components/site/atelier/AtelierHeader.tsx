@@ -46,7 +46,8 @@ export async function atelierLinks(site: Site) {
 
 /** Logo dans un médaillon rond, suivi du nom en lettres fines. */
 export function AtelierBrand({ site, size = "md" }: { site: Site; size?: "md" | "lg" }) {
-  const medal = size === "lg" ? "h-14 w-14" : "h-11 w-11 sm:h-14 sm:w-14";
+  // Rond assez grand pour un logo détaillé (illustration + texte) reste lisible.
+  const medal = size === "lg" ? "h-20 w-20" : "h-14 w-14 sm:h-[4.25rem] sm:w-[4.25rem]";
   return (
     <span className="flex min-w-0 items-center gap-3">
       {site.logo && (
@@ -56,9 +57,9 @@ export function AtelierBrand({ site, size = "md" }: { site: Site; size?: "md" | 
           <SiteImage
             image={site.logo}
             alt=""
-            sizes="56px"
+            sizes="80px"
             priority
-            className="h-full w-full object-contain p-1"
+            className="h-full w-full object-contain p-0.5"
           />
         </span>
       )}
