@@ -1452,7 +1452,13 @@
       "quick": "Actions rapides",
       "block": "Bloquer un créneau",
       "leave": "Poser un congé",
-      "closure": "Fermer une journée"
+      "closure": "Fermer une journée",
+      "pushReminder": {
+        "title": "Soyez prévenue sur votre téléphone",
+        "text": "Une alerte à chaque réservation, annulation ou report, même quand l'espace est fermé.",
+        "action": "Activer les notifications",
+        "later": "Plus tard"
+      }
     },
     "status": {
       "confirmed": "Confirmé",
