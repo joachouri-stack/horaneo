@@ -2,6 +2,7 @@ import { and, eq } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
 import { businesses, plans, tenants, type PlanFeatures } from "@/db/schema";
 import { AppError } from "@/modules/errors";
+import { queueMessage } from "@/modules/messages/queue";
 import { providerError } from "./deposits";
 import { statementDescriptor, type GatewayAccount, type PaymentGateway } from "./gateway";
 
@@ -103,4 +104,23 @@ export async function disconnectAccount(tx: Transaction, accountId: string) {
     .update(businesses)
     .set({ stripeChargesEnabled: false })
     .where(eq(businesses.stripeAccountId, accountId));
+}
+
+/**
+ * L'administratrice invite la gérante à relier son compte bancaire : un e-mail
+ * avec le lien direct vers la page Paiements de son espace. C'est la gérante
+ * qui ouvre le compte Stripe (identité, IBAN) : personne ne peut le faire à sa place.
+ */
+export async function queueStripeInvite(tx: Transaction, tenantId: string, input: { businessId: string }) {
+  const { business, features } = await loadBusiness(tx, tenantId, input.businessId);
+  const state = connectState(business, features);
+  if (state === "unavailable") throw new AppError("feature_unavailable", "onlinePayment");
+  if (state === "active") throw new AppError("stripe_already_active");
+  await queueMessage(tx, {
+    tenantId,
+    businessId: input.businessId,
+    template: "manager.stripe_invite",
+    data: { state },
+    dedupeKey: null,
+  });
 }

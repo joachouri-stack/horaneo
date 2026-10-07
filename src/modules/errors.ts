@@ -14,6 +14,7 @@ export class AppError extends Error {
 export type AppErrorCode =
   | "invalid"
   | "personal_setting"
+  | "stripe_already_active"
   | "not_found"
   | "slug_taken"
   | "slug_reserved"
