@@ -1,6 +1,7 @@
 import "server-only";
 import { env } from "@/config/env";
 import { sendEmail } from "@/lib/email/send";
+import { sendPush } from "@/lib/push/send";
 import type { MessageSenders, OutgoingSms } from "@/modules/messages/senders";
 
 /**
@@ -41,4 +42,5 @@ async function sendSms(sms: OutgoingSms): Promise<{ id: string | null }> {
 export const brevoSenders: MessageSenders = {
   email: (message) => sendEmail(message),
   sms: sendSms,
+  push: sendPush,
 };

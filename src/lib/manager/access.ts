@@ -137,6 +137,25 @@ export async function managerMutation<T>(
 }
 
 /**
+ * Réglage personnel de la gérante (ex. notifications sur son téléphone) :
+ * droits revérifiés, rôle plateforme. Refusé à l'administratrice qui regarde
+ * l'espace « comme le client » : ce sont les appareils de la gérante.
+ */
+export async function managerPersonalAction<T>(
+  tenantId: string,
+  fn: (tx: Transaction, context: { userId: string }) => Promise<T>,
+): Promise<ActionResult<T>> {
+  const access = await currentAccess(tenantId);
+  if (!access) throw new Error("Accès refusé");
+  try {
+    if (access.role === "admin") throw new AppError("personal_setting");
+    return { ok: true, data: await withPlatform((tx) => fn(tx, { userId: access.session.user.id })) };
+  } catch (error) {
+    return toActionError(error);
+  }
+}
+
+/**
  * Action de la gérante qui modifie la fiche de l'établissement (ex. compte
  * Stripe) : droits revérifiés, puis rôle plateforme, toujours journalisée.
  */

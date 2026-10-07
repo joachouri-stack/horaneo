@@ -44,6 +44,8 @@ const since = (now: Date) => new Date(now.getTime() - NOTIFICATION_DAYS * 24 * 3
 const baseFilter = (tenantId: string, now: Date) =>
   and(
     eq(messageLog.tenantId, tenantId),
+    // Une alerte = son e-mail ; sa jumelle « push » (téléphone) n'est pas comptée deux fois.
+    eq(messageLog.channel, "email"),
     inArray(messageLog.templateKey, [...NOTIFICATION_TEMPLATES]),
     ne(messageLog.status, "skipped"),
     gt(messageLog.createdAt, since(now)),

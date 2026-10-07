@@ -32,6 +32,7 @@ export const MESSAGE_TEMPLATES = [
   "manager.subscription_ended",
   "manager.gift_card_sold",
   "manager.data_request",
+  "manager.push_test",
   // Au professionnel avant que son site existe, et à l'administratrice
   "account.order_received",
   "account.order_rejected",
@@ -42,10 +43,23 @@ export const MESSAGE_TEMPLATES = [
 export type MessageTemplate = (typeof MESSAGE_TEMPLATES)[number];
 
 export function channelOf(template: MessageTemplate) {
+  if (template === "manager.push_test") return "push" as const;
   return template === "customer.reminder_sms" || template === "customer.login_code"
     ? ("sms" as const)
     : ("email" as const);
 }
+
+/**
+ * Alertes aux gérantes doublées d'une notification sur leurs téléphones
+ * (si elles l'ont activée) : mêmes événements que la page Notifications.
+ */
+export const PUSH_TEMPLATES: readonly MessageTemplate[] = [
+  "manager.new_booking",
+  "manager.cancelled",
+  "manager.rescheduled",
+  "manager.gift_card_sold",
+  "manager.data_request",
+];
 
 export async function queueMessage(
   tx: Transaction,
@@ -69,26 +83,31 @@ export async function queueMessage(
       : input.appointmentId
         ? `${input.template}:${input.appointmentId}`
         : null;
-  await tx
-    .insert(messageLog)
-    .values({
-      tenantId: input.tenantId,
-      ...(input.businessId !== undefined
-        ? { businessId: input.businessId }
-        : input.appointmentId
-          ? {
-              businessId: sql`(SELECT ${appointments.businessId} FROM ${appointments} WHERE ${appointments.id} = ${input.appointmentId})`,
-            }
-          : {}),
-      appointmentId: input.appointmentId ?? null,
-      channel: channelOf(input.template),
-      templateKey: input.template,
-      locale: input.locale ?? "fr",
-      data: input.data ?? {},
-      dedupeKey,
-      nextAttemptAt: input.sendAt ?? null,
-    })
-    .onConflictDoNothing({ target: messageLog.dedupeKey });
+  const insert = (channel: ReturnType<typeof channelOf>, key: string | null) =>
+    tx
+      .insert(messageLog)
+      .values({
+        tenantId: input.tenantId,
+        ...(input.businessId !== undefined
+          ? { businessId: input.businessId }
+          : input.appointmentId
+            ? {
+                businessId: sql`(SELECT ${appointments.businessId} FROM ${appointments} WHERE ${appointments.id} = ${input.appointmentId})`,
+              }
+            : {}),
+        appointmentId: input.appointmentId ?? null,
+        channel,
+        templateKey: input.template,
+        locale: input.locale ?? "fr",
+        data: input.data ?? {},
+        dedupeKey: key,
+        nextAttemptAt: input.sendAt ?? null,
+      })
+      .onConflictDoNothing({ target: messageLog.dedupeKey });
+  await insert(channelOf(input.template), dedupeKey);
+  if (PUSH_TEMPLATES.includes(input.template)) {
+    await insert("push", dedupeKey === null ? null : `push:${dedupeKey}`);
+  }
 }
 
 /** Messages d'une nouvelle réservation confirmée : confirmation à la cliente, alerte à la gérante. */

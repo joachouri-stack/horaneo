@@ -7,6 +7,7 @@ import {
   assets,
   businesses,
   messageLog,
+  pushSubscriptions,
   plans,
   businessSettings,
   usageCounters,
@@ -24,6 +25,7 @@ import {
   markNotificationsSeen,
   unseenNotificationCount,
 } from "@/modules/notifications/feed";
+import { saveDevice } from "@/modules/notifications/devices";
 import { queueEmailReminders, queueSmsReminders, queueSummaries } from "@/modules/messages/schedule";
 import { smsSenderName } from "@/modules/messages/senders";
 import { syncDeposit } from "@/modules/payments/deposits";
@@ -287,6 +289,50 @@ describe.skipIf(!hasTestDatabase)("messages automatiques", () => {
       ).toEqual(["new_booking"]);
     });
 
+    it("téléphone de la gérante : notification à l'annulation, appareil disparu oublié, rien sans appareil", async () => {
+      const s = await setup();
+      const [manager] = await owner
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.email, s.managerEmail));
+      const device = (name: string) => ({
+        endpoint: `https://push.example.com/${s.slug}/${name}`,
+        keys: {
+          p256dh: Buffer.alloc(65, 4).toString("base64url"),
+          auth: Buffer.alloc(16, 1).toString("base64url"),
+        },
+      });
+      // Sans appareil : le message « push » est simplement écarté.
+      const first = await book(s);
+      await dispatch(s.id);
+      const withoutDevice = (await logOf(s.id)).filter((row) => row.channel === "push");
+      expect(withoutDevice.map((row) => [row.templateKey, row.status, row.error])).toEqual([
+        ["manager.new_booking", "skipped", "no_device"],
+      ]);
+
+      await platform((tx) => saveDevice(tx, { userId: manager.id, device: device("telephone") }));
+      await platform((tx) => saveDevice(tx, { userId: manager.id, device: device("ancien") }));
+      fake.gone.add(device("ancien").endpoint);
+      fake.clear();
+      await asTenant(s.id, (tx) => cancelByCustomer(tx, s.id, first.manageToken, NOW, gateway.gateway));
+      await dispatch(s.id);
+      expect(fake.pushes).toHaveLength(1);
+      expect(fake.pushes[0]).toMatchObject({
+        title: `Belle Époque ${n}`,
+        body: "Annulation : Camille, mardi 6 octobre à 10:00",
+        tag: first.appointmentId,
+      });
+      expect(fake.pushes[0].url).toContain(`/espace/${s.id}/rendez-vous/${first.appointmentId}`);
+      const left = await owner
+        .select({ endpoint: pushSubscriptions.endpoint })
+        .from(pushSubscriptions)
+        .where(eq(pushSubscriptions.userId, manager.id));
+      expect(left.map((row) => row.endpoint)).toEqual([device("telephone").endpoint]);
+      // La page Notifications ne compte pas la notification en plus de l'e-mail.
+      const feed = await asTenant(s.id, (tx) => listNotifications(tx, s.id, { userId: manager.id }));
+      expect(feed.map((item) => item.kind)).toEqual(["cancelled", "new_booking"]);
+    });
+
     it("annulation par l'établissement et déplacement : la cliente est prévenue", async () => {
       const s = await setup();
       const first = await book(s, { start: at("10:00") });
@@ -486,7 +532,8 @@ describe.skipIf(!hasTestDatabase)("messages automatiques", () => {
         await dispatch(other.id, when);
       }
       fake.fail(0);
-      const rows = await logOf(other.id);
+      // Sans téléphone abonné, la notification jumelle est écartée : seuls les e-mails comptent ici.
+      const rows = (await logOf(other.id)).filter((row) => row.channel !== "push");
       expect(rows.every((row) => row.status === "failed")).toBe(true);
       expect(rows[0].attempts).toBe(5);
     });

@@ -1,5 +1,6 @@
 /**
- * Ce dont l'envoi des messages a besoin : un service d'e-mails et un service de SMS.
+ * Ce dont l'envoi des messages a besoin : un service d'e-mails, un service de SMS
+ * et l'envoi de notifications (Web Push).
  * Implémentation réelle (Brevo) : `src/lib/messages/brevo.ts` ; les tests en utilisent une fausse.
  */
 
@@ -22,9 +23,23 @@ export type OutgoingSms = {
   text: string;
 };
 
+/** Notification sur un téléphone ou un ordinateur (Web Push). */
+export type OutgoingPush = {
+  /** Abonnement fourni par le navigateur de la gérante. */
+  subscription: { endpoint: string; p256dh: string; auth: string };
+  title: string;
+  body: string;
+  /** Page ouverte quand on touche la notification. */
+  url: string;
+  /** Deux notifications de même étiquette se remplacent au lieu de s'empiler. */
+  tag: string;
+};
+
 export interface MessageSenders {
   email(message: OutgoingEmail): Promise<{ id: string | null }>;
   sms(message: OutgoingSms): Promise<{ id: string | null }>;
+  /** gone : l'abonnement n'existe plus (application désinstallée, notifications coupées). */
+  push(message: OutgoingPush): Promise<{ gone: boolean }>;
 }
 
 /**

@@ -5,12 +5,25 @@ import { ManagerTabs } from "@/components/manager/ManagerTabs";
 import { NotificationBell } from "@/components/manager/NotificationBell";
 import { Link } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/translator";
+import { env } from "@/config/env";
 import { withTenant } from "@/db/access";
 import { managedTenantIds, requireManager } from "@/lib/manager/access";
 import { getSubscription } from "@/modules/billing/subscriptions";
 import { unseenNotificationCount } from "@/modules/notifications/feed";
 
-export const metadata: Metadata = { robots: { index: false, follow: false } };
+/** Jamais référencé ; installable sur l'écran d'accueil (notifications sur iPhone). */
+export async function generateMetadata({
+  params,
+}: LayoutProps<"/[locale]/espace/[tenantId]">): Promise<Metadata> {
+  const locale = resolveLocale((await params).locale);
+  const product = env().PRODUCT_NAME;
+  return {
+    robots: { index: false, follow: false },
+    manifest: `/api/app/manifest?l=${locale}`,
+    appleWebApp: { capable: true, title: product, statusBarStyle: "default" },
+    icons: { apple: "/api/app/icon/180" },
+  };
+}
 
 /** Espace gérante d'un établissement : en-tête, bandeau « voir comme le client », onglets. */
 export default async function ManagerLayout({
