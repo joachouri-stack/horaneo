@@ -16,7 +16,11 @@ const ITEMS = [
 ] as const;
 
 /** Navigation principale de l'espace admin. */
-export function AdminNav() {
+export function AdminNav({
+  badges = {},
+}: {
+  badges?: Partial<Record<(typeof ITEMS)[number]["key"], number>>;
+}) {
   const t = useTranslations("admin.nav");
   const pathname = usePathname();
   const isActive = (item: (typeof ITEMS)[number]) =>
@@ -34,6 +38,12 @@ export function AdminNav() {
               className="inline-block whitespace-nowrap border-b-4 border-transparent px-3 py-3 font-semibold text-navy/70 hover:text-night aria-[current=page]:border-coral aria-[current=page]:text-night"
             >
               {t(item.key)}
+              {(badges[item.key] ?? 0) > 0 && (
+                <span className="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-coral px-1.5 text-xs font-bold leading-5 text-white">
+                  <span aria-hidden="true">{badges[item.key]}</span>
+                  <span className="sr-only">{t("waiting", { count: badges[item.key] ?? 0 })}</span>
+                </span>
+              )}
             </Link>
           </li>
         ))}

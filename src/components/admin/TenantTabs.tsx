@@ -14,6 +14,7 @@ export const TENANT_SECTIONS = [
   "pages",
   "photos",
   "temoignages",
+  "apercu",
 ] as const;
 export type TenantSection = (typeof TENANT_SECTIONS)[number];
 
