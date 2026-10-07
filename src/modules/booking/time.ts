@@ -105,6 +105,13 @@ export function addDays(date: string, days: number): string {
   return `${value.getUTCFullYear()}-${pad(value.getUTCMonth() + 1)}-${pad(value.getUTCDate())}`;
 }
 
+/** Calendrier pur : premier jour du mois de la date, décalé de n mois (AAAA-MM-01). */
+export function addMonths(date: string, months: number): string {
+  const [year, month] = date.split("-").map(Number);
+  const value = new Date(Date.UTC(year, month - 1 + months, 1));
+  return `${value.getUTCFullYear()}-${pad(value.getUTCMonth() + 1)}-01`;
+}
+
 /** Jour de la semaine d'une date (1 = lundi … 7 = dimanche). */
 export function isoWeekday(date: string): number {
   const [year, month, day] = date.split("-").map(Number);

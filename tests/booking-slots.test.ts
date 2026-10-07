@@ -7,7 +7,14 @@ import {
   type DaySlotsInput,
   type StaffInput,
 } from "@/modules/booking/slots";
-import { addDays, isoWeekday, localToUtc, offsetMinutes, utcToLocal } from "@/modules/booking/time";
+import {
+  addDays,
+  addMonths,
+  isoWeekday,
+  localToUtc,
+  offsetMinutes,
+  utcToLocal,
+} from "@/modules/booking/time";
 
 const TZ = "Europe/Paris";
 
@@ -40,6 +47,12 @@ describe("fuseaux horaires", () => {
     expect(addDays("2026-03-01", -1)).toBe("2026-02-28");
     expect(isoWeekday("2026-10-05")).toBe(1); // lundi
     expect(isoWeekday("2026-10-04")).toBe(7); // dimanche
+  });
+
+  it("calendrier : premier jour du mois, mois suivants et précédents", () => {
+    expect(addMonths("2026-10-17", 0)).toBe("2026-10-01");
+    expect(addMonths("2026-12-31", 1)).toBe("2027-01-01");
+    expect(addMonths("2026-01-31", -1)).toBe("2025-12-01");
   });
 });
 
