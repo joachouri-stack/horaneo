@@ -25,6 +25,13 @@
     "jobs:tick": "tsx src/jobs/tick.ts"
   },
   "dependencies": {
+    "@fontsource-variable/bricolage-grotesque": "^5.3.0",
+    "@fontsource-variable/cormorant-garamond": "^5.3.0",
+    "@fontsource-variable/fraunces": "^5.3.0",
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource-variable/jost": "^5.3.0",
+    "@fontsource-variable/outfit": "^5.3.0",
+    "@fontsource/comfortaa": "^5.3.0",
     "@stripe/react-stripe-js": "^7.0.0",
     "@stripe/stripe-js": "^10.0.0",
     "aws4fetch": "^1.0.20",

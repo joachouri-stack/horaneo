@@ -82,7 +82,11 @@ export async function loadBusinessSpace(
 
   const rows = customerIds.length
     ? await tx
-        .select({ appointment: appointments, staffName: staffMembers.name, staffActive: staffMembers.isActive })
+        .select({
+          appointment: appointments,
+          staffName: staffMembers.name,
+          staffActive: staffMembers.isActive,
+        })
         .from(appointments)
         .innerJoin(staffMembers, eq(staffMembers.id, appointments.staffId))
         .where(
@@ -158,7 +162,8 @@ export async function loadBusinessSpace(
       const first = own[0]?.serviceId ?? null;
       past.push({
         ...base,
-        rebook: first && bookable.has(first) ? { serviceId: first, staffId: staffActive ? a.staffId : null } : null,
+        rebook:
+          first && bookable.has(first) ? { serviceId: first, staffId: staffActive ? a.staffId : null } : null,
       });
     }
   }
@@ -209,7 +214,9 @@ export async function loadBusinessSpace(
     ? await tx
         .select({ kind: customerDataRequests.kind })
         .from(customerDataRequests)
-        .where(and(inArray(customerDataRequests.customerId, customerIds), eq(customerDataRequests.status, "new")))
+        .where(
+          and(inArray(customerDataRequests.customerId, customerIds), eq(customerDataRequests.status, "new")),
+        )
     : [];
   const contact = owners[0] ?? null;
 

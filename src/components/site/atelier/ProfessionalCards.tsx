@@ -57,7 +57,9 @@ export async function ProfessionalCards({
                   <blockquote className="font-site-display text-lg italic leading-snug text-site-text">
                     {business.quote}
                   </blockquote>
-                  <figcaption className="mt-3 text-sm font-semibold text-site-accent">— {business.name}</figcaption>
+                  <figcaption className="mt-3 text-sm font-semibold text-site-accent">
+                    — {business.name}
+                  </figcaption>
                 </figure>
               )}
               {reviews && <BusinessReviews reviews={reviews} locale={site.locale} />}

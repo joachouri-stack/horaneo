@@ -88,7 +88,11 @@ export async function ServicesEditor({
                 />
                 <CheckboxField name="isFeatured" label={t("featured")} defaultChecked={category.isFeatured} />
                 <CheckboxField name="inMenu" label={t("inMenu")} defaultChecked={category.inMenu} />
-                <CheckboxField name="isTraining" label={t("isTraining")} defaultChecked={category.isTraining} />
+                <CheckboxField
+                  name="isTraining"
+                  label={t("isTraining")}
+                  defaultChecked={category.isTraining}
+                />
                 {logoOptions && logoOptions.length > 0 && (
                   <fieldset className="sm:col-span-2">
                     <legend className="font-semibold text-night">{t("trainingLogos")}</legend>
@@ -96,7 +100,10 @@ export async function ServicesEditor({
                     <input type="hidden" name="logoAssetIdsShown" value="1" />
                     <div className="grid sm:grid-cols-2">
                       {logoOptions.map((option) => (
-                        <label key={option.value} className="flex min-h-14 cursor-pointer items-center gap-3 text-ink">
+                        <label
+                          key={option.value}
+                          className="flex min-h-14 cursor-pointer items-center gap-3 text-ink"
+                        >
                           <input
                             type="checkbox"
                             name="logoAssetIds"
