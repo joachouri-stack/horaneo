@@ -6,7 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { HeaderShell } from "./HeaderShell";
 
-const NAV = [
+export const NAV = [
   // Même ordre que l'accueil : les tarifs d'abord.
   { hash: "tarifs", key: "pricing" },
   { hash: "etapes", key: "how" },

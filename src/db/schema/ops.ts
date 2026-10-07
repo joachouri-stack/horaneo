@@ -7,6 +7,7 @@ import {
   jsonb,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   uniqueIndex,
   uuid,
@@ -146,6 +147,32 @@ export const auditLog = pgTable(
   (t) => [
     index("audit_log_created_idx").on(t.createdAt),
     index("audit_log_tenant_idx").on(t.tenantId, t.createdAt),
+  ],
+);
+
+/**
+ * Notifications de l'espace gérante : jusqu'où chaque gérante a regardé, par
+ * entreprise. Les notifications elles-mêmes sont les messages envoyés aux
+ * gérantes (message_log) : rien n'est écrit en double.
+ */
+export const managerNotificationReads = pgTable(
+  "manager_notification_reads",
+  {
+    tenantId: uuid()
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    businessId: uuid()
+      .notNull()
+      .default(sql`app_current_business()`),
+    userId: uuid()
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    seenAt: utc().notNull(),
+    ...timestamps(),
+  },
+  (t) => [
+    businessForeignKey("manager_notification_reads_business_fk", t, "cascade"),
+    primaryKey({ columns: [t.businessId, t.userId] }),
   ],
 );
 

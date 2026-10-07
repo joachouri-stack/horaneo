@@ -165,7 +165,7 @@
       "lessItems": "Masquer le détail",
       "toggleBooking": "Avec réservation",
       "toggleSite": "Sans réservation",
-      "toggleHintBooking": "Vos clients réservent en ligne, 24 h/24. Pas besoin\u00a0? Choisissez « Sans réservation ».",
+      "toggleHintBooking": "Vos clients réservent en ligne, 24 h/24. Pas besoin ? Choisissez « Sans réservation ».",
       "toggleHintSite": "Le même site, vos clients vous appellent ou vous écrivent. La réservation s'ajoute plus tard, sans tout refaire.",
       "setupFeeBadge": "+ {amount} de création sur mesure",
       "addBooking": "Ajoutez la réservation quand vous voulez : passez au pack {plan}, sans refaire votre site",
@@ -285,6 +285,10 @@
       "legal": "Mentions légales",
       "privacy": "Confidentialité",
       "terms": "Conditions",
+      "tagline": "Le site de votre activité, avec ou sans réservation en ligne. Nous le créons et le tenons à jour pour vous.",
+      "discover": "Découvrir",
+      "pro": "Espace pro",
+      "contact": "Nous écrire",
       "rights": "© {year} {product} · Tous droits réservés",
       "credit": "Design : Johane A."
     }
@@ -1937,6 +1941,21 @@
       "markRejected": "Refuser",
       "howExport": "Pour une copie : envoyez-lui par e-mail ses coordonnées et son historique (visibles sur sa fiche).",
       "howDeletion": "Pour une suppression : effacez ses coordonnées et notes sur sa fiche. Les rendez-vous passés restent dans votre comptabilité."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "bellUnseen": "{count, plural, one {Notifications : # nouvelle} other {Notifications : # nouvelles}}",
+      "intro": "Les réservations en ligne, annulations et reports de vos clientes, sur les {days} derniers jours.",
+      "empty": "Aucune notification pour le moment. Vous verrez ici les réservations, annulations et reports faits par vos clientes.",
+      "new": "Nouveau",
+      "newBooking": "Nouvelle réservation de {customer}",
+      "cancelled": "{customer} a annulé son rendez-vous",
+      "rescheduled": "{customer} a déplacé son rendez-vous",
+      "giftCardSold": "Carte cadeau achetée par {customer}",
+      "dataRequest": "Demande de {customer} sur ses données",
+      "dataExport": "Copie de ses données",
+      "dataDeletion": "Suppression de ses données",
+      "receivedAt": "Reçu le {date}"
     }
   },
   "notifications": {
