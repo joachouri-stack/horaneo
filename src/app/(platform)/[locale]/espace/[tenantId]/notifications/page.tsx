@@ -1,5 +1,7 @@
 import { getTranslations } from "next-intl/server";
+import { PushSettings } from "@/components/manager/PushSettings";
 import { ui } from "@/components/ui/styles";
+import { vapidPublicKey } from "@/lib/push/send";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
 import {
@@ -81,6 +83,31 @@ export default async function NotificationsPage({
         <h1 className="text-2xl font-extrabold">{t("title")}</h1>
         <p className="mt-1 text-sm text-ink/70">{t("intro", { days: NOTIFICATION_DAYS })}</p>
       </div>
+      {/* Réglage personnel de la gérante : pas proposé à l'administratrice qui regarde l'espace. */}
+      {page.role !== "admin" && (
+        <PushSettings
+          tenantId={page.tenantId}
+          publicKey={vapidPublicKey()}
+          labels={{
+            title: t("push.title"),
+            intro: t("push.intro"),
+            enable: t("push.enable"),
+            disable: t("push.disable"),
+            test: t("push.test"),
+            testSent: t("push.testSent"),
+            on: t("push.on"),
+            off: t("push.off"),
+            denied: t("push.denied"),
+            unsupported: t("push.unsupported"),
+            iosTitle: t("push.iosTitle"),
+            iosStep1: t("push.iosStep1"),
+            iosStep2: t("push.iosStep2"),
+            iosStep3: t("push.iosStep3"),
+            working: t("push.working"),
+            error: t("push.error"),
+          }}
+        />
+      )}
       {items.length === 0 ? (
         <p className={ui.card}>{t("empty")}</p>
       ) : (

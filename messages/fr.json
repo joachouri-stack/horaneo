@@ -1211,6 +1211,7 @@
   },
   "errors": {
     "invalid": "Certaines informations sont incomplètes ou invalides.",
+    "personal_setting": "Ce réglage est personnel : seule la gérante peut le changer, depuis son propre téléphone.",
     "not_found": "Élément introuvable. Il a peut-être été supprimé.",
     "slug_taken": "Cette adresse est déjà utilisée par un autre établissement.",
     "slug_reserved": "Cette adresse est réservée. Choisissez-en une autre.",
@@ -1969,7 +1970,28 @@
       "dataRequest": "Demande de {customer} sur ses données",
       "dataExport": "Copie de ses données",
       "dataDeletion": "Suppression de ses données",
-      "receivedAt": "Reçu le {date}"
+      "receivedAt": "Reçu le {date}",
+      "push": {
+        "title": "Sur votre téléphone",
+        "intro": "Recevez une alerte sur ce téléphone ou cet ordinateur à chaque réservation, annulation ou report, même quand l'espace est fermé.",
+        "enable": "Activer les notifications",
+        "disable": "Couper sur cet appareil",
+        "test": "Envoyer une notification d'essai",
+        "testSent": "Notification d'essai envoyée : elle arrive dans quelques secondes.",
+        "on": "Activées sur cet appareil.",
+        "off": "Pas encore activées sur cet appareil.",
+        "denied": "Les notifications sont bloquées pour ce site. Autorisez-les dans les réglages du navigateur (icône du cadenas à côté de l'adresse), puis revenez ici.",
+        "unsupported": "Ce navigateur ne permet pas les notifications. Essayez avec Chrome, Edge, Firefox ou Safari à jour.",
+        "iosTitle": "Sur iPhone, une étape avant :",
+        "iosStep1": "Dans Safari, touchez le bouton Partager (le carré avec une flèche vers le haut).",
+        "iosStep2": "Choisissez « Sur l'écran d'accueil », puis « Ajouter ».",
+        "iosStep3": "Ouvrez l'espace depuis la nouvelle icône sur l'écran d'accueil, revenez sur cette page et touchez « Activer les notifications ».",
+        "working": "Un instant…",
+        "error": "L'activation n'a pas abouti. Réessayez dans un instant."
+      }
+    },
+    "app": {
+      "name": "{product} · Espace pro"
     }
   },
   "notifications": {
@@ -2118,6 +2140,9 @@
         "title": "Nouvelle carte cadeau",
         "intro": "{name} vient d'acheter une carte cadeau de {amount} sur votre site. Le paiement est sur votre compte Stripe.",
         "open": "Voir les cartes cadeaux"
+      },
+      "push_test": {
+        "body": "Les notifications fonctionnent sur cet appareil."
       }
     },
     "account": {

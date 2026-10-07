@@ -329,6 +329,7 @@ Envoyés par **Brevo**. Les messages aux clientes partent **au nom de l'établis
 - La gérante voit sur la fiche d'un rendez-vous les messages envoyés à la cliente et leur état.
 - Heures et délais : réglages `sms_reminder_time`, `email_reminder_hours_before`, `daily_summary_time`, `monthly_summary_time`, `message_max_attempts`.
 - **Sans clé Brevo** en développement, e-mails et SMS s'affichent dans le terminal de `pnpm dev`.
+- **Notifications sur le téléphone de la gérante** (Web Push) : chaque alerte à la gérante (réservation en ligne, annulation, report, carte cadeau, demande de données) a une jumelle `push` dans la file, envoyée aux appareils activés depuis la page Notifications de l'espace (`push_subscriptions`). Les clés VAPID sont recalculées à partir de `BETTER_AUTH_SECRET` : rien à configurer (changer ce secret oblige à réactiver les notifications). Sur iPhone, l'espace doit d'abord être ajouté à l'écran d'accueil (iOS 16.4 ou plus).
 
 ### Tâche planifiée
 

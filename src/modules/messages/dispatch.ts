@@ -1,6 +1,6 @@
 import { and, asc, eq, inArray, isNull, lte, or, sql } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
-import { messageLog, plans, tenants, usageCounters, type PlanLimits } from "@/db/schema";
+import { messageLog, plans, pushSubscriptions, tenants, usageCounters, type PlanLimits } from "@/db/schema";
 import { getPlatformSetting } from "@/modules/settings";
 import { currentPeriod } from "@/modules/tenants/queries";
 import { renderMessage, type MessageRow, type RenderOptions } from "./render";
@@ -129,6 +129,41 @@ async function processOne(
     if (rendered.kind === "skip") {
       await finish(platform, row, { status: "skipped", error: rendered.reason, nextAttemptAt: null });
       result.skipped += 1;
+      return;
+    }
+    if (rendered.kind === "push") {
+      // Chaque appareil reçoit la notification ; ceux qui n'existent plus sont oubliés.
+      let delivered = 0;
+      const gone: string[] = [];
+      let lastError: unknown = null;
+      for (const device of rendered.devices) {
+        try {
+          const outcome = await senders.push({
+            subscription: device,
+            title: rendered.title,
+            body: rendered.body,
+            url: rendered.url,
+            tag: rendered.tag,
+          });
+          if (outcome.gone) gone.push(device.id);
+          else delivered += 1;
+        } catch (error) {
+          lastError = error;
+        }
+      }
+      if (gone.length > 0)
+        await platform((tx) => tx.delete(pushSubscriptions).where(inArray(pushSubscriptions.id, gone)));
+      // Aucun appareil joint à cause d'une panne : nouvel essai plus tard (une partie reçue suffit).
+      if (delivered === 0 && lastError) throw lastError;
+      await finish(platform, row, {
+        status: delivered > 0 ? "sent" : "skipped",
+        recipient: `${delivered}/${rendered.devices.length}`,
+        sentAt: delivered > 0 ? options.now : null,
+        error: delivered > 0 ? null : "no_device",
+        nextAttemptAt: null,
+      });
+      if (delivered > 0) result.sent += 1;
+      else result.skipped += 1;
       return;
     }
     if (rendered.kind === "sms") {

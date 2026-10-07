@@ -11,6 +11,7 @@ import {
   plans,
   staffMembers,
   tenantDomains,
+  pushSubscriptions,
   businessSettings,
   businesses,
   giftCards,
@@ -55,6 +56,14 @@ export type Rendered =
       replyTo: string | null;
     }
   | { kind: "sms"; to: string; sender: string; text: string }
+  | {
+      kind: "push";
+      devices: { id: string; endpoint: string; p256dh: string; auth: string }[];
+      title: string;
+      body: string;
+      url: string;
+      tag: string;
+    }
   | { kind: "skip"; reason: string };
 
 export type RenderOptions = { productName: string; appUrl: string; now: Date };
@@ -185,6 +194,25 @@ async function managerEmails(tx: Transaction, tenantId: string, row: MessageRow)
       ),
     );
   return [...new Set(rows.map((row) => row.email).filter(Boolean))];
+}
+
+/** Téléphones et ordinateurs abonnés des gérantes concernées (mêmes personnes que pour l'e-mail). */
+async function managerDevices(tx: Transaction, tenantId: string, row: MessageRow) {
+  return tx
+    .selectDistinct({
+      id: pushSubscriptions.id,
+      endpoint: pushSubscriptions.endpoint,
+      p256dh: pushSubscriptions.p256dh,
+      auth: pushSubscriptions.auth,
+    })
+    .from(pushSubscriptions)
+    .innerJoin(memberships, eq(memberships.userId, pushSubscriptions.userId))
+    .where(
+      and(
+        eq(memberships.tenantId, tenantId),
+        row.businessId ? eq(memberships.businessId, row.businessId) : undefined,
+      ),
+    );
 }
 
 export async function renderMessage(
@@ -681,6 +709,11 @@ async function renderManager(
       label: t("notifications.manager.data_request.open"),
       url: `${space}/plus/donnees-clientes`,
     };
+  } else if (template === "manager.push_test") {
+    subject = t("notifications.manager.push_test.body");
+    title = subject;
+    paragraphs = [];
+    action = { label: title, url: `${space}/notifications` };
   } else if (template === "manager.payment_failed") {
     subject = t("notifications.manager.payment_failed.subject");
     title = t("notifications.manager.payment_failed.title");
@@ -702,6 +735,20 @@ async function renderManager(
     action = { label: t("notifications.manager.subscription_ended.open"), url: `${space}/plus/abonnement` };
   } else {
     return { kind: "skip", reason: "unknown_template" };
+  }
+
+  // Notification sur les téléphones : le nom de l'établissement, l'objet de l'e-mail, la même page.
+  if (row.channel === "push") {
+    const devices = await managerDevices(tx, tenant.id, row);
+    if (devices.length === 0) return { kind: "skip", reason: "no_device" };
+    return {
+      kind: "push",
+      devices,
+      title: tenant.name,
+      body: subject,
+      url: action.url,
+      tag: row.appointmentId ?? row.id,
+    };
   }
 
   const { html, text } = renderEmail({

@@ -3,6 +3,7 @@
 import { categoryFields } from "@/modules/catalog/icons";
 import { redeemOnSite, updateGiftCardSettings } from "@/modules/giftcards/giftcards";
 import { deletePromotion, savePromotion } from "@/modules/promotions/promotions";
+import { headers } from "next/headers";
 import { redirect as redirectTo } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { publicAppUrl } from "@/config/env";
@@ -11,7 +12,13 @@ import { redirect } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/translator";
 import type { ActionResult } from "@/lib/actions/result";
 import { form } from "@/lib/admin/mutation";
-import { managerMutation, managerPlatformAction, managerQuery } from "@/lib/manager/access";
+import {
+  managerMutation,
+  managerPersonalAction,
+  managerPlatformAction,
+  managerQuery,
+} from "@/lib/manager/access";
+import { removeDevice, saveDevice, queuePushTest, type DeviceInput } from "@/modules/notifications/devices";
 import { paymentGateway } from "@/lib/payments/stripe";
 import { billingGateway } from "@/lib/payments/stripe-billing";
 import { openBillingPortal, requestPlanChange } from "@/modules/billing/subscriptions";
@@ -644,4 +651,24 @@ export async function resolveDataRequestAction(_previous: Previous, data: FormDa
   return managerMutation(tenantId, `customer_data.${status}`, (tx, { userId }) =>
     resolveDataRequest(tx, tenantId, idOf(data)!, status, userId),
   );
+}
+
+// ─── Notifications sur le téléphone de la gérante ───
+
+export async function enablePushAction(tenantId: string, device: DeviceInput) {
+  const userAgent = (await headers()).get("user-agent");
+  return managerPersonalAction(tenantId, (tx, { userId }) => saveDevice(tx, { userId, device, userAgent }));
+}
+
+export async function disablePushAction(tenantId: string, endpoint: string) {
+  return managerPersonalAction(tenantId, (tx, { userId }) =>
+    removeDevice(tx, { userId, endpoint: z.string().max(1000).parse(endpoint) }),
+  );
+}
+
+export async function testPushAction(tenantId: string) {
+  return managerMutation(tenantId, "push.test", (tx, { role, businessId }) => {
+    if (role === "admin") throw new AppError("personal_setting");
+    return queuePushTest(tx, tenantId, { businessId });
+  });
 }
