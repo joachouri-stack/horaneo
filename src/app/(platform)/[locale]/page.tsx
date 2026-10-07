@@ -117,6 +117,25 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
         })
       : t("features.tagFrom", { plan: pickLocalized(plan.name, locale) });
   };
+  // Données lues par Google : l'entreprise et les questions (mêmes textes que la page).
+  const structuredData = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: config.PRODUCT_NAME,
+      url: publicAppUrl(),
+      email: contact,
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faq.map((item) => ({
+        "@type": "Question",
+        name: item.q,
+        acceptedAnswer: { "@type": "Answer", text: answer(item.a) },
+      })),
+    },
+  ];
   const steps = [
     { key: "create", Icon: BrowserIcon, accent: false },
     { key: "book", Icon: CalendarCheckIcon, accent: true },
@@ -125,6 +144,11 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
 
   return (
     <div className="text-base leading-[1.6] text-body lg:text-[1.05rem]">
+      <script
+        type="application/ld+json"
+        // Le « < » est échappé : le texte ne peut pas fermer la balise.
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }}
+      />
       <PlatformHeader />
       <main id="contenu">
         {/* Accroche */}

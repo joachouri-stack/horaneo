@@ -165,7 +165,7 @@
       "lessItems": "Masquer le détail",
       "toggleBooking": "Avec réservation",
       "toggleSite": "Sans réservation",
-      "toggleHintBooking": "Vos clients réservent en ligne, 24 h/24. Pas besoin\u00a0? Choisissez « Sans réservation ».",
+      "toggleHintBooking": "Vos clients réservent en ligne, 24 h/24. Pas besoin ? Choisissez « Sans réservation ».",
       "toggleHintSite": "Le même site, vos clients vous appellent ou vous écrivent. La réservation s'ajoute plus tard, sans tout refaire.",
       "setupFeeBadge": "+ {amount} de création sur mesure",
       "addBooking": "Ajoutez la réservation quand vous voulez : passez au pack {plan}, sans refaire votre site",
@@ -285,6 +285,10 @@
       "legal": "Mentions légales",
       "privacy": "Confidentialité",
       "terms": "Conditions",
+      "tagline": "Le site de votre activité, avec ou sans réservation en ligne. Nous le créons et le tenons à jour pour vous.",
+      "discover": "Découvrir",
+      "pro": "Espace pro",
+      "contact": "Nous écrire",
       "rights": "© {year} {product} · Tous droits réservés",
       "credit": "Design : Johane A."
     }

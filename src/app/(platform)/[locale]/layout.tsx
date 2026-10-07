@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { env } from "@/config/env";
+import { env, publicAppUrl } from "@/config/env";
 import { routing } from "@/i18n/routing";
 import { resolveLocale } from "@/i18n/translator";
 // Polices fournies avec le projet : la construction ne dépend pas du réseau.
@@ -21,6 +21,7 @@ export async function generateMetadata({ params }: LayoutProps<"/[locale]">): Pr
   const t = await getTranslations({ locale, namespace: "metadata" });
   const product = env().PRODUCT_NAME;
   return {
+    metadataBase: new URL(publicAppUrl()),
     title: t("title", { product }),
     description: t("description"),
   };
