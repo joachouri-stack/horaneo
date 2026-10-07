@@ -6,12 +6,26 @@ import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
 import { dayRange, listAgenda, listTimeOff } from "@/modules/agenda/queries";
 import { loadBookingContext } from "@/modules/booking/availability";
-import { addDays, DATE_PATTERN, isoWeekday, timeToMinutes, utcToLocal } from "@/modules/booking/time";
+import {
+  addDays,
+  addMonths,
+  DATE_PATTERN,
+  isoWeekday,
+  timeToMinutes,
+  utcToLocal,
+} from "@/modules/booking/time";
 import { eq } from "drizzle-orm";
 
 const HOUR_HEIGHT = 64; // pixels par heure dans la vue jour
+const VIEW_PARAM = { day: "jour", week: "semaine", month: "mois" } as const;
+const MONTH_PREVIEW = 3; // rendez-vous écrits dans une case du mois (écran large)
 
-/** Agenda : vue jour (colonnes par membre) ou semaine, filtrable par membre. */
+/** Nombre de jours entre deux dates AAAA-MM-JJ. */
+function daysBetween(from: string, to: string) {
+  return Math.round((Date.parse(to) - Date.parse(from)) / 86_400_000);
+}
+
+/** Agenda : vue jour (colonnes par membre), semaine ou mois, filtrable par membre. */
 export default async function AgendaPage({
   params,
   searchParams,
@@ -22,12 +36,21 @@ export default async function AgendaPage({
   const tz = page.tenant.timezone;
   const today = utcToLocal(new Date(), tz).date;
   const date = typeof query.date === "string" && DATE_PATTERN.test(query.date) ? query.date : today;
-  const view = query.vue === "semaine" ? "week" : "day";
+  const view = query.vue === "semaine" ? "week" : query.vue === "mois" ? "month" : "day";
   const memberFilter =
     typeof query.membre === "string" && /^[0-9a-f-]{36}$/i.test(query.membre) ? query.membre : null;
-  // La semaine commence le lundi.
-  const start = view === "week" ? addDays(date, 1 - isoWeekday(date)) : date;
-  const days = view === "week" ? 7 : 1;
+  // La semaine commence le lundi. Le mois : semaines entières, du lundi avant le 1er au dimanche après le dernier jour.
+  const monthFirst = addMonths(date, 0);
+  const monthWeeks = Math.ceil(
+    (isoWeekday(monthFirst) - 1 + daysBetween(monthFirst, addMonths(date, 1))) / 7,
+  );
+  const start =
+    view === "week"
+      ? addDays(date, 1 - isoWeekday(date))
+      : view === "month"
+        ? addDays(monthFirst, 1 - isoWeekday(monthFirst))
+        : date;
+  const days = view === "week" ? 7 : view === "month" ? monthWeeks * 7 : 1;
   const range = dayRange(start, tz, days);
 
   const { appointments, timeOffList, staff, hours } = await page.db(async (tx) => ({
@@ -57,13 +80,15 @@ export default async function AgendaPage({
   const columns = memberFilter ? allColumns.filter((member) => member.id === memberFilter) : allColumns;
 
   const link = (changes: Record<string, string | null>) => {
-    const next = { date, vue: view === "week" ? "semaine" : "jour", membre: memberFilter, ...changes };
+    const next = { date, vue: VIEW_PARAM[view], membre: memberFilter, ...changes };
     const search = new URLSearchParams(
       Object.entries(next).filter((entry): entry is [string, string] => Boolean(entry[1])),
     );
     return `${page.base}/agenda?${search.toString()}`;
   };
   const step = view === "week" ? 7 : 1;
+  const shift = (direction: 1 | -1) =>
+    view === "month" ? addMonths(date, direction) : addDays(date, direction * step);
   const pill = "rounded-full px-4 py-2 text-sm font-semibold";
 
   const header = (
@@ -80,7 +105,7 @@ export default async function AgendaPage({
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <Link
-          href={link({ date: addDays(date, -step) })}
+          href={link({ date: shift(-1) })}
           aria-label={t("previous")}
           className={`${pill} border-2 border-navy/15 text-night`}
         >
@@ -90,7 +115,7 @@ export default async function AgendaPage({
           {t("today")}
         </Link>
         <Link
-          href={link({ date: addDays(date, step) })}
+          href={link({ date: shift(1) })}
           aria-label={t("next")}
           className={`${pill} border-2 border-navy/15 text-night`}
         >
@@ -110,6 +135,13 @@ export default async function AgendaPage({
             className={`${pill} text-night aria-[current=page]:bg-navy aria-[current=page]:text-white`}
           >
             {t("week")}
+          </Link>
+          <Link
+            href={link({ vue: "mois" })}
+            aria-current={view === "month" ? "page" : undefined}
+            className={`${pill} text-night aria-[current=page]:bg-navy aria-[current=page]:text-white`}
+          >
+            {t("month")}
           </Link>
         </div>
       </div>
@@ -137,6 +169,123 @@ export default async function AgendaPage({
     </div>
   );
 
+  const dayOffOf = (day: string) =>
+    timeOffList.filter(
+      (off) =>
+        utcToLocal(off.startsAt, tz).date <= day &&
+        utcToLocal(new Date(off.endsAt.getTime() - 1), tz).date >= day,
+    );
+
+  // ─── Mois : calendrier, une case par jour (le détail s'ouvre en vue jour) ──
+  if (view === "month") {
+    const gridDays = Array.from({ length: days }, (_, index) => addDays(start, index));
+    const month = monthFirst.slice(0, 7);
+    const openWeekdays = new Set(hours.map((range) => range.weekday));
+    const weekdayName = new Intl.DateTimeFormat(page.locale, { weekday: "short", timeZone: tz });
+    const monthName = new Intl.DateTimeFormat(page.locale, { month: "long", year: "numeric", timeZone: tz });
+    return (
+      <div className="space-y-4">
+        {header}
+        <h2 className="text-lg font-bold first-letter:uppercase">
+          {monthName.format(dayRange(monthFirst, tz).start)}
+        </h2>
+        <div className="overflow-hidden rounded-[var(--radius-card)] bg-white shadow-sm">
+          <div className="grid grid-cols-7 border-b border-navy/10 bg-ivory" aria-hidden="true">
+            {gridDays.slice(0, 7).map((day) => (
+              <p
+                key={day}
+                className="py-2 text-center text-xs font-semibold uppercase tracking-wide text-ink/60"
+              >
+                {weekdayName.format(dayRange(day, tz).start).replace(".", "")}
+              </p>
+            ))}
+          </div>
+          <ul className="grid grid-cols-7">
+            {gridDays.map((day) => {
+              const dayAppointments = appointments.filter(
+                (item) => utcToLocal(item.startsAt, tz).date === day,
+              );
+              const dayOff = dayOffOf(day);
+              const outside = day.slice(0, 7) !== month;
+              const closed =
+                dayAppointments.length === 0 &&
+                (!openWeekdays.has(isoWeekday(day)) ||
+                  dayOff.some((off) => off.staffId === null && off.kind === "closure"));
+              const label = `${page.fmt.day(dayRange(day, tz).start)} · ${t("dayCount", { count: dayAppointments.length })}`;
+              return (
+                <li key={day} className="border-b border-r border-navy/10 [&:nth-child(7n)]:border-r-0">
+                  <Link
+                    href={link({ date: day, vue: "jour" })}
+                    aria-label={label}
+                    className={`flex h-full min-h-16 flex-col gap-1 p-1 transition hover:bg-navy/5 sm:min-h-28 sm:p-2 ${
+                      closed ? "bg-ink/[0.04]" : ""
+                    } ${outside ? "opacity-40" : ""}`}
+                  >
+                    <span
+                      className={`flex h-7 w-7 items-center justify-center self-center rounded-full text-sm font-bold sm:self-start ${
+                        day === today ? "bg-coral text-white" : "text-night"
+                      }`}
+                    >
+                      {Number(day.slice(8))}
+                    </span>
+                    {/* Téléphone : une pastille par rendez-vous (couleur du membre). */}
+                    {dayAppointments.length > 0 && (
+                      <span className="flex flex-wrap justify-center gap-0.5 sm:hidden" aria-hidden="true">
+                        {dayAppointments.slice(0, 6).map((item) => (
+                          <span
+                            key={item.id}
+                            className="h-1.5 w-1.5 rounded-full"
+                            style={{ backgroundColor: item.staffColor ?? "#1b2a4a" }}
+                          />
+                        ))}
+                      </span>
+                    )}
+                    {dayAppointments.length > 6 && (
+                      <span
+                        className="text-center text-[10px] font-semibold text-ink/60 sm:hidden"
+                        aria-hidden="true"
+                      >
+                        {dayAppointments.length}
+                      </span>
+                    )}
+                    {/* Écran large : les premiers rendez-vous écrits, puis « +N autres ». */}
+                    <span className="hidden space-y-1 sm:block" aria-hidden="true">
+                      {dayOff.slice(0, 1).map((off) => (
+                        <span
+                          key={off.id}
+                          className="block truncate rounded bg-ink/5 px-1.5 py-0.5 text-[11px] text-ink/60"
+                        >
+                          {t(`timeOff.${off.kind}`)}
+                        </span>
+                      ))}
+                      {dayAppointments.slice(0, MONTH_PREVIEW).map((item) => (
+                        <span
+                          key={item.id}
+                          className={`block truncate rounded border-l-[3px] bg-navy/5 px-1.5 py-0.5 text-[11px] leading-tight text-night ${
+                            item.status === "no_show" ? "opacity-50" : ""
+                          }`}
+                          style={{ borderLeftColor: item.staffColor ?? "#1b2a4a" }}
+                        >
+                          <span className="font-semibold">{page.fmt.time(item.startsAt)}</span>{" "}
+                          {item.customerName}
+                        </span>
+                      ))}
+                      {dayAppointments.length > MONTH_PREVIEW && (
+                        <span className="block px-1.5 text-[11px] font-semibold text-ink/60">
+                          {t("more", { count: dayAppointments.length - MONTH_PREVIEW })}
+                        </span>
+                      )}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </div>
+    );
+  }
+
   // ─── Semaine : liste par jour (lisible sur téléphone) ──────────────────────
   if (view === "week") {
     return (
@@ -144,11 +293,7 @@ export default async function AgendaPage({
         {header}
         {Array.from({ length: 7 }, (_, index) => addDays(start, index)).map((day) => {
           const dayAppointments = appointments.filter((item) => utcToLocal(item.startsAt, tz).date === day);
-          const dayOff = timeOffList.filter(
-            (off) =>
-              utcToLocal(off.startsAt, tz).date <= day &&
-              utcToLocal(new Date(off.endsAt.getTime() - 1), tz).date >= day,
-          );
+          const dayOff = dayOffOf(day);
           const label = page.fmt.day(dayRange(day, tz).start);
           return (
             <section key={day} aria-label={label} className="space-y-2">
