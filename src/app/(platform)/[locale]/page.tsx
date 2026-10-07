@@ -149,6 +149,40 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           <HeroVisual />
         </section>
 
+        {/* Packs (tout de suite après l'accroche) */}
+        <section
+          id="tarifs"
+          aria-labelledby="titre-tarifs"
+          className="mx-auto max-w-[75rem] scroll-mt-20 px-4 pb-14 pt-4 sm:px-6 lg:pb-20 lg:pt-6"
+        >
+          {/* Juste après l'accroche : on voit les packs sans avoir à tout lire. */}
+          <div className="mb-6 text-center lg:mb-8">
+            <h2
+              id="titre-tarifs"
+              className={`${TITLE} mb-3 text-[clamp(1.9rem,3.6vw,2.75rem)] leading-[1.05]`}
+            >
+              {t("plans.title")} <span className="text-brick">{t("plans.titleAccent", { percent })}</span>
+            </h2>
+            <p className="mx-auto max-w-[34rem] text-[1.05rem]">{t("plans.subtitle")}</p>
+          </div>
+          <PlanCards plans={data.plans} locale={locale} />
+          <ul className="mt-8 flex flex-wrap justify-center gap-x-8 gap-y-2.5 text-[0.95rem] font-medium text-night lg:mt-10">
+            {[t("plans.trust.commission", { percent }), t("plans.trust.secure"), t("plans.trust.data")].map(
+              (text) => (
+                <li key={text} className="flex items-center gap-2">
+                  <CheckIcon className="size-5 text-brick" />
+                  {text}
+                </li>
+              ),
+            )}
+          </ul>
+          <p className="mx-auto mt-4 max-w-[40rem] text-center text-[0.9rem] text-stone">
+            {t("plans.pricesDisplay", { display: String(data.display) })}{" "}
+            {t("plans.commitment", { months: data.commitment })}{" "}
+            {data.setupFee > 0 ? t("plans.setupFee", { amount: money(data.setupFee) }) : t("plans.setupFree")}
+          </p>
+        </section>
+
         {/* Métiers */}
         <section aria-labelledby="titre-metiers" className="mx-auto max-w-[75rem] px-4 pb-12 sm:px-6">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-3 xl:flex-nowrap">
@@ -273,42 +307,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 </li>
               );
             })}
-          </ul>
-        </section>
-
-        {/* Packs */}
-        <section
-          id="tarifs"
-          aria-labelledby="titre-tarifs"
-          className="mx-auto max-w-[75rem] scroll-mt-4 px-4 py-14 sm:px-6 lg:py-20"
-        >
-          <div className="reveal mb-8 text-center lg:mb-10">
-            <p className={`${BADGE} mb-5`}>{t("plans.badge")}</p>
-            <h2
-              id="titre-tarifs"
-              className={`${TITLE} mb-3 text-[clamp(1.9rem,3.6vw,2.75rem)] leading-[1.05]`}
-            >
-              {t("plans.title")} <span className="text-brick">{t("plans.titleAccent", { percent })}</span>
-            </h2>
-            <p className="mx-auto max-w-[34rem] text-[1.05rem]">{t("plans.subtitle")}</p>
-            <p className="mx-auto mt-2 max-w-[34rem] text-[0.95rem] text-stone">
-              {t("plans.pricesDisplay", { display: String(data.display) })}{" "}
-              {t("plans.commitment", { months: data.commitment })}{" "}
-              {data.setupFee > 0
-                ? t("plans.setupFee", { amount: money(data.setupFee) })
-                : t("plans.setupFree")}
-            </p>
-          </div>
-          <PlanCards plans={data.plans} locale={locale} />
-          <ul className="mt-8 flex flex-wrap justify-center gap-x-8 gap-y-2.5 text-[0.95rem] font-medium text-night lg:mt-10">
-            {[t("plans.trust.commission", { percent }), t("plans.trust.secure"), t("plans.trust.data")].map(
-              (text) => (
-                <li key={text} className="flex items-center gap-2">
-                  <CheckIcon className="size-5 text-brick" />
-                  {text}
-                </li>
-              ),
-            )}
           </ul>
         </section>
 

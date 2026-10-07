@@ -23,7 +23,7 @@ export async function HeroVisual() {
     <div
       role="img"
       aria-label={t("label")}
-      className="hn-up-late relative flex min-w-0 flex-[1_1_20rem] justify-center pb-8 pt-16 sm:pt-2"
+      className="hn-up-late relative flex min-w-0 flex-[1_1_20rem] justify-center pb-8 pt-2 max-md:hidden"
     >
       <div
         aria-hidden="true"
