@@ -54,6 +54,14 @@ export type PlanFeatures = {
   customerSpace?: boolean;
   /** Programme de fidélité (compteur et bons) ; s'affiche aussi dans l'espace des clientes. */
   loyalty?: boolean;
+  /** Promesses des packs « site seul », présentées sur le site commercial. */
+  localSeo?: boolean;
+  contactButtons?: boolean;
+  mobileReady?: boolean;
+  /** Pages Prestations, Galerie, À propos, Infos pratiques (site complet). */
+  sitePages?: boolean;
+  /** Design créé sur mesure (avec frais de création). */
+  customDesign?: boolean;
   [feature: string]: boolean | undefined;
 };
 

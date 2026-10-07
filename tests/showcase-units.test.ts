@@ -87,6 +87,35 @@ describe("présentation des packs sur le site commercial", () => {
     expect(planItems(DEFAULT_SITE_ONLY_PLANS, 1).map(label)[0]).toBe("tout:0");
   });
 
+  it("présente les packs « site seul » du moins cher au plus complet", () => {
+    expect(
+      DEFAULT_SITE_ONLY_PLANS.map((_, index) => planItems(DEFAULT_SITE_ONLY_PLANS, index).map(label)),
+    ).toEqual([
+      [
+        "+onePage",
+        "+photosServices",
+        "+customDomain",
+        "+localSeo",
+        "+contactButtons",
+        "+mobileReady",
+        "-fullSite",
+        "-googleReviews",
+      ],
+      [
+        "tout:0",
+        "+fullSite",
+        "+sitePages",
+        "+googleReviews",
+        "+testimonials",
+        "+promotions",
+        "+monthlyUpdate",
+        "-whatsappSupport",
+        "-giftCards",
+      ],
+      ["tout:1", "+customDesign", "+giftCards", "+onDemandUpdates", "+whatsappSupport"],
+    ]);
+  });
+
   it("suit les réglages de l'admin", () => {
     const plans = structuredClone(DEFAULT_PLANS);
     plans[1].features.whatsappSupport = true;
