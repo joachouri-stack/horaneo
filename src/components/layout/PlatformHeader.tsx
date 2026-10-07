@@ -73,6 +73,15 @@ export async function PlatformHeader({ children }: { children?: React.ReactNode 
                 {t("common.login")}
               </Link>
             )}
+            {/* Ordinateur : l'action apparaît dès qu'on descend (en haut, celle de l'accroche suffit ; sur téléphone, elle est dans le menu). */}
+            {!children && (
+              <Link
+                href={{ pathname: "/", hash: "tarifs" }}
+                className="inline-flex min-h-11 items-center rounded-full bg-brick px-5 text-[0.95rem] font-semibold text-white transition-[opacity,visibility,transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_22px_rgba(212,64,47,.3)] group-data-[scrolled=false]/hdr:invisible group-data-[scrolled=false]/hdr:opacity-0 max-lg:hidden"
+              >
+                {t("home.cta")}
+              </Link>
+            )}
           </nav>
         </header>
       </HeaderShell>

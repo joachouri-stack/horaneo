@@ -19,10 +19,13 @@ export async function PlatformFooter() {
           <Logo productName={product} className="text-[1.8rem]" />
         </Link>
         <nav aria-label={t("legal")}>
-          <ul className="flex flex-wrap gap-x-6 gap-y-2 text-[0.95rem]">
+          <ul className="flex flex-wrap gap-x-6 text-[0.95rem]">
             {links.map((link) => (
               <li key={link.href}>
-                <Link href={link.href} className="text-night underline transition-colors hover:text-brick">
+                <Link
+                  href={link.href}
+                  className="inline-flex min-h-11 items-center text-night underline transition-colors hover:text-brick"
+                >
                   {link.label}
                 </Link>
               </li>

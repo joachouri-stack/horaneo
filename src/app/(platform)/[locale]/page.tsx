@@ -20,6 +20,7 @@ import {
   UserIcon,
 } from "@/components/marketing/icons";
 import { HeroVisual } from "@/components/marketing/HeroVisual";
+import { CarouselDots } from "@/components/marketing/CarouselDots";
 import { PlanCards } from "@/components/marketing/PlanCards";
 import { env, publicAppUrl } from "@/config/env";
 import { withPlatform } from "@/db/access";
@@ -56,7 +57,8 @@ const BADGE = "inline-block rounded-full bg-blush px-3.5 py-1.5 text-[0.9rem] fo
 /** Bouton principal : pilule corail foncé, flèche qui avance au survol. */
 const PRIMARY =
   "group inline-flex items-center gap-2.5 rounded-full bg-brick font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-[0_12px_26px_rgba(212,64,47,.32)]";
-const LINK = "font-medium text-night underline underline-offset-4 transition-colors hover:text-brick";
+const LINK =
+  "inline-flex min-h-11 items-center font-medium text-night underline underline-offset-4 transition-colors hover:text-brick";
 
 /**
  * Site commercial, d'après la maquette validée (docs : règles de design) :
@@ -93,17 +95,26 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     { key: "reminders", Icon: BellIcon, feature: null },
     { key: "deposit", Icon: CardIcon, feature: "onlinePayment" },
     { key: "customerSpace", Icon: UserIcon, feature: "customerSpace" },
-    { key: "giftCards", Icon: GiftIcon, feature: "giftCards" },
+    { key: "giftCards", Icon: GiftIcon, feature: "giftCards", siteToo: true },
     { key: "loyalty", Icon: HeartIcon, feature: "loyalty" },
-    { key: "reviews", Icon: ReviewIcon, feature: "googleReviews" },
+    { key: "reviews", Icon: ReviewIcon, feature: "googleReviews", siteToo: true },
   ] as const;
-  const featureTag = (feature: string | null) => {
-    // Fonctions de la réservation : on ne regarde que les packs qui la comprennent.
+  const featureTag = (feature: string | null, siteToo = false) => {
+    // Premier pack avec réservation qui comprend la fonction, et premier pack sans réservation s'il l'a aussi.
     const withBooking = data.plans.filter((item) => planAllowsBooking(item.features));
     const plan = feature ? withBooking.find((item) => item.features[feature]) : withBooking[0];
     if (!plan) return null;
-    return plan.priceCents <= 0
-      ? t("features.tagAll")
+    if (plan.priceCents <= 0) return t("features.tagAll");
+    // Fonctions qui n'ont pas besoin de la réservation : on cite aussi le premier pack sans réservation.
+    const sitePlan =
+      feature && siteToo
+        ? data.plans.find((item) => !planAllowsBooking(item.features) && item.features[feature])
+        : undefined;
+    return sitePlan
+      ? t("features.tagFromBoth", {
+          plan: pickLocalized(plan.name, locale),
+          sitePlan: pickLocalized(sitePlan.name, locale),
+        })
       : t("features.tagFrom", { plan: pickLocalized(plan.name, locale) });
   };
   const steps = [
@@ -133,8 +144,8 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 {t("cta")}
                 <ArrowIcon className="size-[18px] transition-transform group-hover:translate-x-1" />
               </a>
-              <a href="#tarifs" className={LINK}>
-                {t("seePlans")}
+              <a href="#etapes" className={LINK}>
+                {t("howItWorks")}
               </a>
             </div>
             <ul className="flex flex-wrap gap-x-6 gap-y-2.5 text-[0.98rem]">
@@ -199,7 +210,9 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               t("plans.note.commitment", { months: data.commitment }),
               data.setupFee > 0
                 ? t("plans.note.setupFee", { amount: money(data.setupFee) })
-                : t("plans.note.setupFree"),
+                : data.plans.some((item) => (item.setupFeeCents ?? 0) > 0)
+                  ? t("plans.note.setupFreeExceptCustom")
+                  : t("plans.note.setupFree"),
             ].map((text, index) => (
               <li key={text} className="flex items-center gap-3">
                 {index > 0 && <span aria-hidden="true" className="size-1 rounded-full bg-blush-strong" />}
@@ -256,7 +269,10 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               <p className="max-w-sm text-[1.05rem] text-[#d7dce6]">{t("steps.intro")}</p>
             </div>
             {/* Téléphone : les trois cartes défilent d'un geste ; plus large : côte à côte. */}
-            <ol className="reveal -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 pt-1 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-3 md:gap-5 md:overflow-visible md:p-0 lg:gap-6 [&::-webkit-scrollbar]:hidden">
+            <ol
+              id="etapes-liste"
+              className="reveal -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 pt-1 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-3 md:gap-5 md:overflow-visible md:p-0 lg:gap-6 [&::-webkit-scrollbar]:hidden"
+            >
               {steps.map(({ key, Icon, accent }, index) => (
                 <li
                   key={key}
@@ -289,6 +305,12 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 </li>
               ))}
             </ol>
+            <CarouselDots
+              targetId="etapes-liste"
+              count={steps.length}
+              label={t.raw("steps.dot") as string}
+              className="mt-2 md:hidden"
+            />
           </div>
         </section>
 
@@ -311,8 +333,9 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             <p className="max-w-sm text-[1.05rem]">{t("features.intro")}</p>
           </div>
           <ul className="reveal grid gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
-            {features.map(({ key, Icon, feature }) => {
-              const tag = featureTag(feature);
+            {features.map((item) => {
+              const { key, Icon, feature } = item;
+              const tag = featureTag(feature, "siteToo" in item && item.siteToo);
               if (!tag) return null;
               return (
                 <li
