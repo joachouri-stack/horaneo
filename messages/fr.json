@@ -291,6 +291,12 @@
       "contact": "Nous écrire",
       "rights": "© {year} {product} · Tous droits réservés",
       "credit": "Design : Johane A."
+    },
+    "showcase": {
+      "badge": "Ils nous font confiance",
+      "title": "Des professionnels",
+      "titleAccent": "comme vous.",
+      "visit": "Voir le site de {name}"
     }
   },
   "site": {
@@ -1151,7 +1157,23 @@
       "daily_summary_time": "Heure du résumé du lendemain",
       "monthly_summary_time": "Heure du bilan mensuel (le 1er)",
       "legal": "Mentions légales",
-      "legal_infrastructure": "Hébergeur (affiché dans les mentions légales des sites)"
+      "legal_infrastructure": "Hébergeur (affiché dans les mentions légales des sites)",
+      "showcase": {
+        "title": "Ils nous font confiance (accueil)",
+        "intro": "Témoignages de vos clients affichés sur la page d'accueil, {max} au maximum. Le bloc reste caché tant qu'il n'y en a aucun. N'ajoutez que de vrais témoignages, avec l'accord de la personne.",
+        "name": "Nom de l'établissement",
+        "activity": "Métier et ville",
+        "activityHint": "Exemple : Institut de beauté, Avignon",
+        "author": "Qui témoigne",
+        "authorHint": "Exemple : Laïla, gérante",
+        "url": "Site du client (facultatif)",
+        "urlHint": "Exemple : https://mabeauteinstitut.fr",
+        "quote": "Témoignage",
+        "quoteHint": "La phrase telle que la personne l'a dite, en 300 caractères au plus.",
+        "add": "Ajouter le témoignage",
+        "remove": "Retirer",
+        "removeConfirm": "Retirer le témoignage de {name} de l'accueil ?"
+      }
     },
     "billing": {
       "title": "Paiements des abonnements",

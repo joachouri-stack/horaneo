@@ -30,6 +30,7 @@ import { pickLocalized } from "@/i18n/locales";
 import { listPublicPlans } from "@/modules/billing/plans";
 import { planAllowsBooking } from "@/modules/billing/features";
 import { getPlatformSetting } from "@/modules/settings";
+import { listShowcase } from "@/modules/showcase/showcase";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]">): Promise<Metadata> {
   const locale = resolveLocale((await params).locale);
@@ -77,6 +78,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     commission: Number(await getPlatformSetting(tx, "deposit_commission_percent")),
     commitment: Number(await getPlatformSetting(tx, "commitment_months")),
     setupFee: Number(await getPlatformSetting(tx, "setup_fee_cents")),
+    showcase: await listShowcase(tx),
   }));
   const percent = data.commission;
   const money = (cents: number) =>
@@ -382,6 +384,51 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             })}
           </ul>
         </section>
+
+        {/* Ils nous font confiance : vrais témoignages saisis dans l'admin (bloc caché s'il n'y en a pas). */}
+        {data.showcase.length > 0 && (
+          <section
+            id="confiance"
+            aria-labelledby="titre-confiance"
+            className="mx-auto max-w-[75rem] scroll-mt-4 px-4 pt-14 sm:px-6 lg:pt-20"
+          >
+            <p className={`${BADGE} mb-4`}>{t("showcase.badge")}</p>
+            <h2
+              id="titre-confiance"
+              className={`${TITLE} mb-8 text-[clamp(1.9rem,3.6vw,2.75rem)] leading-[1.05] lg:mb-10`}
+            >
+              {t("showcase.title")} <span className="text-brick">{t("showcase.titleAccent")}</span>
+            </h2>
+            <ul className="reveal grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+              {data.showcase.map((entry) => (
+                <li key={entry.id}>
+                  <figure className="flex h-full flex-col rounded-[1.5rem] border-2 border-line bg-white p-6 lg:rounded-[1.75rem] lg:p-7">
+                    <span aria-hidden="true" className="font-display text-[3rem] leading-[0.6] text-coral">
+                      “
+                    </span>
+                    <blockquote className="mt-3 flex-1 text-[1.05rem] text-night">{entry.quote}</blockquote>
+                    <figcaption className="mt-5 border-t border-line pt-4">
+                      <p className="font-semibold text-night">{entry.author}</p>
+                      <p className="text-[0.95rem] text-stone">
+                        {entry.name} · {entry.activity}
+                      </p>
+                      {entry.url && (
+                        <a
+                          href={entry.url}
+                          target="_blank"
+                          rel="noopener"
+                          className={`${LINK} mt-1 text-[0.95rem]`}
+                        >
+                          {t("showcase.visit", { name: entry.name })} ↗
+                        </a>
+                      )}
+                    </figcaption>
+                  </figure>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         {/* Questions */}
         <section
