@@ -477,6 +477,8 @@
         "practical": "Infos pratiques"
       },
       "bookMoment": "Réserver un moment",
+      "zoomPhoto": "Voir la photo en grand",
+      "closePhoto": "Fermer la photo",
       "seeAllServices": "Voir tous les soins",
       "byAppointment": "Sur rendez-vous",
       "daysSpan": "Du {from} au {to}",
