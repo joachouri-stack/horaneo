@@ -54,9 +54,10 @@
     "badge": "Pour les professionnels sur rendez-vous",
     "title": "Nous créons votre site.",
     "titleAccent": "Vos clients réservent.",
-    "subtitle": "Un site à votre nom, la réservation en ligne et l'acompte contre les absences. Nous faisons tout, de la création aux mises à jour.",
+    "subtitle": "Un site à votre nom, avec la réservation en ligne et l'acompte contre les absences, ou simplement un beau site. Nous faisons tout, de la création aux mises à jour.",
     "cta": "Je veux mon site",
     "seePlans": "Voir les tarifs",
+    "howItWorks": "Comment ça marche",
     "promises": {
       "commission": "{percent, plural, =0 {Sans commission} other {Commission de # %}}",
       "domain": "Votre nom de domaine",
@@ -98,6 +99,7 @@
       "title": "Vous n'avez",
       "titleAccent": "rien à faire.",
       "intro": "Trois étapes, et c'est nous qui nous chargeons de la première.",
+      "dot": "Voir l'étape {n}",
       "create": {
         "title": "Nous créons votre site",
         "text": "Logo, photos, prestations, horaires : nous récupérons tout et nous le mettons en ligne à votre adresse.",
@@ -121,6 +123,7 @@
       "intro": "Les outils dont vous avez besoin au quotidien, déjà prêts sur votre site.",
       "tagAll": "Tous les packs",
       "tagFrom": "Dès le pack {plan}",
+      "tagFromBoth": "Dès {plan} ou {sitePlan}",
       "items": {
         "reminders": {
           "title": "Rappels automatiques",
@@ -224,9 +227,19 @@
         "aiMessaging": "Bientôt : messagerie IA"
       },
       "trust": {
-        "commission": "{percent, plural, =0 {Aucune commission (hors frais Stripe)} other {Commission de # % seulement (hors frais Stripe)}}",
+        "commission": "{percent, plural, =0 {0 % de commission} other {# % de commission seulement}}",
+        "commissionText": "Seuls les frais bancaires de Stripe s'appliquent.",
         "secure": "Paiements sécurisés",
-        "data": "Vos données vous appartiennent, remises sur simple demande"
+        "secureText": "Cartes traitées par Stripe, jamais par nous.",
+        "data": "Vos données sont à vous",
+        "dataText": "Clientes, rendez-vous, photos : remis sur simple demande."
+      },
+      "note": {
+        "display": "Prix {display}",
+        "commitment": "{months, plural, =0 {Sans engagement} one {Engagement # mois} other {Engagement # mois}}",
+        "setupFree": "Création du site offerte",
+        "setupFreeExceptCustom": "Création offerte (hors design sur mesure)",
+        "setupFee": "Création : {amount}"
       },
       "pricesDisplay": "Prix {display}."
     },
