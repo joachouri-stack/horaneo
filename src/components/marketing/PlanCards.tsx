@@ -90,152 +90,167 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
     const setupFee = plan.setupFeeCents ?? 0;
     // Au dos : le pack avec réservation du même rang, pour l'ajouter plus tard.
     const upgrade = group === siteOnly ? booking[index] : undefined;
+    const muted = featured ? "text-[#c9d0de]" : "text-stone";
+    const strong = featured ? "text-white" : "text-night";
+    const accent = featured ? "text-salmon" : "text-brick";
+
+    const line = (item: ShowcaseItem, itemIndex: number) => {
+      const missing = item.kind === "missing";
+      const soon = item.kind === "soon";
+      return (
+        <li key={itemIndex} className={`flex items-start gap-3 ${missing || soon ? muted : ""}`}>
+          <span
+            className={`mt-[3px] flex size-[1.15rem] flex-none items-center justify-center rounded-full ${
+              missing
+                ? featured
+                  ? "bg-[#2c3b5e] text-[#8f9bb5]"
+                  : "bg-sand text-[#b5afa4]"
+                : featured
+                  ? "bg-[#33456b] text-salmon"
+                  : "bg-blush text-brick"
+            }`}
+          >
+            {missing ? (
+              <DashIcon className="size-3" />
+            ) : soon ? (
+              <SparkleIcon className="size-3" />
+            ) : (
+              <CheckIcon className="size-3" />
+            )}
+          </span>
+          <span className={soon ? "italic" : ""}>
+            {!soon && <span className="sr-only">{missing ? t("missing") : t("included")} </span>}
+            {itemText(group, item)}
+          </span>
+        </li>
+      );
+    };
+    const shown = items.slice(0, VISIBLE_ITEMS);
+    const more = items.slice(VISIBLE_ITEMS);
+    const list = "relative flex flex-col gap-3 text-[0.93rem] leading-snug";
+
     return (
       <article
         key={plan.id}
-        className={`group relative flex w-full flex-col gap-5 overflow-hidden rounded-[1.75rem] px-6 transition duration-200 hover:-translate-y-2 lg:rounded-[2rem] lg:px-7 ${
+        className={`group/card relative flex w-full flex-col overflow-hidden rounded-[1.75rem] border-2 p-6 transition duration-300 ease-out hover:-translate-y-2 motion-reduce:transition-none motion-reduce:hover:translate-y-0 lg:p-7 ${
           featured
-            ? "border-2 border-coral bg-navy py-8 text-sand lg:py-10 shadow-[0_30px_60px_rgba(27,42,74,.35)] hover:shadow-[0_34px_64px_rgba(27,42,74,.45)]"
-            : "border-2 border-line bg-white py-7 text-body hover:border-coral hover:shadow-[0_28px_56px_rgba(22,24,29,.16)]"
+            ? "border-coral bg-navy text-sand shadow-[0_24px_50px_-12px_rgba(27,42,74,.45)] hover:shadow-[0_34px_64px_-12px_rgba(27,42,74,.55)] lg:py-9"
+            : "border-line bg-white text-body shadow-[0_1px_0_rgba(22,24,29,.04)] hover:border-coral hover:shadow-[0_28px_56px_-16px_rgba(22,24,29,.22)]"
         }`}
       >
-        {featured && (
-          <>
-            <div
-              aria-hidden="true"
-              className="absolute -right-14 -top-14 size-44 rounded-full bg-navy-light"
-            />
-            <p className="relative -mb-1.5 inline-flex items-center gap-1.5 self-start rounded-full bg-coral px-4 py-1 text-sm font-semibold text-[#2a0f0a]">
-              <StarIcon className="size-3.5" />
-              {t("recommended")}
-            </p>
-          </>
-        )}
-        <div className="relative flex items-center gap-3.5">
+        {/* Décor : un anneau et un disque en partie hors cadre, qui bougent au survol. */}
+        <span
+          aria-hidden="true"
+          className={`pointer-events-none absolute -right-16 -top-16 size-36 rounded-full border-[1.1rem] transition duration-500 ease-out group-hover/card:-translate-x-3 group-hover/card:translate-y-3 motion-reduce:transition-none ${
+            featured ? "border-navy-light" : "border-blush/70"
+          }`}
+        />
+        <span
+          aria-hidden="true"
+          className={`pointer-events-none absolute right-5 top-5 size-2.5 rounded-full transition duration-500 ease-out group-hover/card:-translate-x-3 group-hover/card:translate-y-3 motion-reduce:transition-none ${
+            featured ? "bg-coral" : "bg-blush-strong"
+          }`}
+        />
+
+        {/* En-tête : icône, nom, accroche */}
+        <div className="relative flex items-start gap-3">
           <span
-            className={`flex size-11 flex-none items-center justify-center rounded-2xl lg:size-12 ${
+            className={`flex size-10 flex-none items-center justify-center rounded-xl transition duration-300 group-hover/card:-rotate-6 group-hover/card:scale-105 motion-reduce:transition-none ${
               featured ? "bg-coral text-white" : index === 0 ? "bg-sand text-night" : "bg-blush text-brick"
             }`}
           >
-            <Icon className="size-6" />
+            <Icon className="size-5" />
           </span>
-          <div>
-            <h3
-              className={`text-[1.3rem] font-semibold leading-tight lg:text-[1.4rem] ${featured ? "text-white" : "text-night"}`}
-            >
-              {name}
-            </h3>
-            {description && (
-              <p className={`text-[0.95rem] ${featured ? "text-[#c9d0de]" : "text-stone"}`}>{description}</p>
-            )}
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <h3
+                className={`font-display text-[1.25rem] font-bold leading-tight tracking-[-0.02em] ${strong}`}
+              >
+                {name}
+              </h3>
+              {featured && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-coral px-2.5 py-0.5 text-[0.72rem] font-semibold uppercase tracking-[0.06em] text-[#2a0f0a]">
+                  <StarIcon className="size-3" />
+                  {t("recommended")}
+                </span>
+              )}
+            </div>
+            {description && <p className={`mt-0.5 text-[0.9rem] leading-snug ${muted}`}>{description}</p>}
           </div>
         </div>
-        <div className="relative">
-          <p
-            className={`font-display text-[2.8rem] font-bold leading-none tracking-[-0.03em] lg:text-[3.2rem] ${featured ? "text-white" : "text-night"}`}
-          >
-            {money(plan.priceCents)}{" "}
+
+        {/* Prix */}
+        <div className="relative mt-6">
+          <p className="flex items-baseline gap-1.5">
             <span
-              className={`whitespace-nowrap font-sans text-base font-normal tracking-normal ${featured ? "text-[#c9d0de]" : "text-stone"}`}
+              className={`font-display text-[2.15rem] font-bold leading-none tracking-[-0.03em] lg:text-[2.4rem] ${strong}`}
             >
+              {money(plan.priceCents)}
+            </span>
+            <span className={`text-[0.9rem] ${muted}`}>
               {plan.priceCents > 0 ? t("perMonthShort") : t("freeForever")}
             </span>
           </p>
           {setupFee > 0 && (
-            <p
-              className={`mt-2.5 inline-block rounded-full px-3 py-1 text-[0.85rem] font-semibold ${featured ? "bg-navy-light text-salmon" : "bg-blush text-rust"}`}
-            >
+            <p className={`mt-1.5 text-[0.82rem] font-medium ${accent}`}>
               {t("setupFeeBadge", { amount: money(setupFee) })}
             </p>
           )}
         </div>
-        <dl className="relative grid grid-cols-3 gap-2">
+
+        {/* Chiffres clés : une bande fine, trois colonnes */}
+        <dl
+          className={`relative mt-5 grid grid-cols-3 divide-x rounded-2xl border ${
+            featured ? "divide-[#34466b] border-[#34466b]" : "divide-line border-line"
+          }`}
+        >
           {planTiles(plan).map((item) => {
             const { value, label } = tile(item);
             return (
-              <div
-                key={item.key}
-                className={`flex flex-col-reverse rounded-2xl px-2 py-3 text-center transition-transform group-hover:-translate-y-0.5 ${
-                  featured ? "bg-navy-light" : "bg-ivory"
-                }`}
-              >
-                <dt className={`text-xs leading-tight ${featured ? "text-[#c9d0de]" : "text-stone"}`}>
-                  {label}
-                </dt>
-                <dd className={`text-[1.05rem] font-semibold ${featured ? "text-white" : "text-night"}`}>
-                  {value}
-                </dd>
+              <div key={item.key} className="flex flex-col-reverse items-center px-1.5 py-2.5 text-center">
+                <dt className={`text-[0.7rem] leading-tight ${muted}`}>{label}</dt>
+                <dd className={`text-[0.95rem] font-semibold leading-tight ${strong}`}>{value}</dd>
               </div>
             );
           })}
         </dl>
+
         <Link
           href={{ pathname: "/commander", query: { pack: plan.code } }}
-          className={`relative flex min-h-12 items-center justify-center gap-2 whitespace-nowrap rounded-full px-3 py-3.5 text-[1rem] font-semibold transition hover:-translate-y-0.5 ${
+          className={`group/cta relative mt-5 flex min-h-12 items-center justify-center gap-2 whitespace-nowrap rounded-full px-4 py-3 text-[0.98rem] font-semibold transition duration-200 hover:-translate-y-0.5 motion-reduce:transition-none ${
             featured
-              ? "bg-brick text-white hover:shadow-[0_12px_26px_rgba(212,64,47,.32)]"
-              : "bg-blush text-rust hover:bg-brick hover:text-white"
+              ? "bg-brick text-white hover:shadow-[0_12px_26px_rgba(212,64,47,.38)]"
+              : "bg-blush text-rust hover:bg-brick hover:text-white hover:shadow-[0_12px_26px_rgba(212,64,47,.25)]"
           }`}
         >
           {plan.priceCents > 0 ? t("choose", { plan: name }) : t("start")}
-          <ArrowIcon className="size-[18px] shrink-0 transition-transform group-hover:translate-x-1.5" />
+          <ArrowIcon className="size-[18px] shrink-0 transition-transform group-hover/cta:translate-x-1" />
         </Link>
-        {(() => {
-          // Les fonctions principales d'abord ; le reste se déplie (cartes plus courtes, surtout sur téléphone).
-          const line = (item: ShowcaseItem, itemIndex: number) => {
-            const missing = item.kind === "missing";
-            const soon = item.kind === "soon";
-            return (
-              <li
-                key={itemIndex}
-                className={`flex gap-2.5 ${missing || soon ? (featured ? "text-[#c9d0de]" : "text-stone") : ""} ${soon ? "italic" : ""}`}
+
+        {/* Ce qui est inclus : les principales d'abord, le reste se déplie. */}
+        <div className={`relative mt-6 border-t pt-5 ${featured ? "border-[#34466b]" : "border-line"}`}>
+          <ul className={list}>{shown.map((item, itemIndex) => line(item, itemIndex))}</ul>
+          {more.length > 0 && (
+            <details className="group/more relative mt-1">
+              <summary
+                className={`flex min-h-11 cursor-pointer list-none items-center gap-1.5 text-[0.9rem] font-semibold [&::-webkit-details-marker]:hidden ${accent}`}
               >
-                {missing ? (
-                  <DashIcon className="mt-[3px] size-5 flex-none text-[#b5afa4]" />
-                ) : soon ? (
-                  <SparkleIcon
-                    className={`mt-[3px] size-5 flex-none ${featured ? "text-salmon" : "text-brick"}`}
-                  />
-                ) : (
-                  <CheckIcon
-                    className={`mt-[3px] size-5 flex-none ${featured ? "text-salmon" : "text-brick"}`}
-                  />
-                )}
-                <span>
-                  {!soon && <span className="sr-only">{missing ? t("missing") : t("included")} </span>}
-                  {itemText(group, item)}
-                </span>
-              </li>
-            );
-          };
-          const shown = items.slice(0, VISIBLE_ITEMS);
-          const more = items.slice(VISIBLE_ITEMS);
-          const list = "relative flex flex-col gap-2.5 text-[0.95rem]";
-          return (
-            <div className={`border-t pt-5 ${featured ? "border-[#3a4a6e]" : "border-line"}`}>
-              <ul className={list}>{shown.map((item, index) => line(item, index))}</ul>
-              {more.length > 0 && (
-                <details className="group/more relative mt-2.5">
-                  <summary
-                    className={`flex min-h-11 cursor-pointer list-none items-center gap-1.5 text-[0.95rem] font-semibold [&::-webkit-details-marker]:hidden ${featured ? "text-salmon" : "text-brick"}`}
-                  >
-                    <span className="group-open/more:hidden">{t("moreItems", { count: more.length })}</span>
-                    <span className="hidden group-open/more:inline">{t("lessItems")}</span>
-                    <ArrowIcon className="size-4 rotate-90 transition-transform group-open/more:-rotate-90" />
-                  </summary>
-                  <ul className={`${list} pt-1`}>
-                    {more.map((item, index) => line(item, VISIBLE_ITEMS + index))}
-                  </ul>
-                </details>
-              )}
-            </div>
-          );
-        })()}
+                <span className="group-open/more:hidden">{t("moreItems", { count: more.length })}</span>
+                <span className="hidden group-open/more:inline">{t("lessItems")}</span>
+                <ArrowIcon className="size-4 rotate-90 transition-transform group-open/more:-rotate-90" />
+              </summary>
+              <ul className={`${list} pb-1`}>{more.map((item, i) => line(item, VISIBLE_ITEMS + i))}</ul>
+            </details>
+          )}
+        </div>
+
         {upgrade && (
           <p
-            className={`relative -mt-2 flex gap-2.5 font-semibold ${featured ? "text-white" : "text-night"}`}
+            className={`relative mt-auto flex gap-2.5 rounded-2xl px-4 py-3 text-[0.85rem] font-medium leading-snug ${
+              featured ? "bg-navy-light text-white" : "bg-ivory text-night"
+            }`}
           >
-            <ArrowIcon className={`mt-[3px] size-5 flex-none ${featured ? "text-salmon" : "text-brick"}`} />
+            <ArrowIcon className={`mt-[2px] size-4 flex-none ${accent}`} />
             {t("addBooking", { plan: pickLocalized(upgrade.name, locale) })}
           </p>
         )}
@@ -246,7 +261,7 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
   // Téléphone et tablette : les packs défilent d'un geste (une carte et le bord de la suivante) ;
   // ordinateur : trois colonnes.
   const row =
-    "-mx-4 flex snap-x snap-mandatory items-stretch gap-4 overflow-x-auto scroll-px-4 px-4 py-3 [scrollbar-width:none] lg:mx-0 lg:grid lg:grid-cols-3 lg:items-center lg:gap-6 lg:overflow-visible lg:p-0 [&::-webkit-scrollbar]:hidden";
+    "-mx-4 flex snap-x snap-mandatory items-start gap-4 overflow-x-auto scroll-px-4 px-4 py-3 [scrollbar-width:none] lg:mx-0 lg:grid lg:grid-cols-3 lg:items-center lg:gap-5 lg:overflow-visible lg:p-0 xl:gap-6 [&::-webkit-scrollbar]:hidden";
   const cell = "flex w-[86%] max-w-[23rem] shrink-0 snap-center sm:w-[55%] lg:block lg:w-auto lg:max-w-none";
 
   // Aucun pack « site seul » proposé : une simple rangée de cartes.
@@ -278,7 +293,7 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
         {Array.from({ length: cells }, (_, index) => (
           // Une case, deux faces superposées : la case prend la hauteur de la plus grande.
           <div key={index} className={`${cell} [perspective:2200px]`}>
-            <div className="grid w-full items-stretch transition-transform duration-700 lg:items-center ease-in-out [transform-style:preserve-3d] group-data-[side=site]/plans:[transform:rotateY(180deg)] motion-reduce:transition-none">
+            <div className="grid w-full items-start transition-transform duration-700 lg:items-center ease-in-out [transform-style:preserve-3d] group-data-[side=site]/plans:[transform:rotateY(180deg)] motion-reduce:transition-none">
               {/* La face cachée devient invisible à mi-retournement : ni lue, ni atteinte au clavier. */}
               <div className="visible flex [grid-area:1/1] [backface-visibility:hidden] lg:block transition-[visibility] delay-300 duration-0 group-data-[side=site]/plans:invisible motion-reduce:delay-0">
                 {booking[index] && card(booking, index)}

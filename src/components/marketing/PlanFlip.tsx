@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
+import { BrowserIcon, CalendarCheckIcon } from "./icons";
 
 type Side = "booking" | "site";
 
@@ -54,30 +55,36 @@ export function PlanFlip({
     if (row && item)
       row.scrollTo({ left: item.offsetLeft - (row.clientWidth - item.offsetWidth) / 2, behavior: "smooth" });
   };
-  const option = (value: Side, text: string) => (
+  const option = (value: Side, text: string, Icon: typeof BrowserIcon) => (
     <button
       type="button"
       aria-pressed={side === value}
       onClick={() => setSide(value)}
-      className={`min-h-11 whitespace-nowrap rounded-full px-3.5 py-2.5 text-[0.85rem] font-semibold transition sm:px-6 sm:text-[0.95rem] ${
-        side === value
-          ? "bg-night text-white shadow-[0_8px_18px_rgba(22,24,29,.18)]"
-          : "text-stone hover:text-night"
+      className={`relative z-10 flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-full px-4 py-2.5 text-[0.9rem] font-semibold transition-colors duration-300 sm:px-6 sm:text-[0.95rem] ${
+        side === value ? "text-white" : "text-stone hover:text-night"
       }`}
     >
+      <Icon className="size-[18px] flex-none" />
       {text}
     </button>
   );
   return (
     <div ref={rootRef} data-side={side} className="group/plans">
       <div className="mb-6 flex flex-col items-center gap-2.5 lg:mb-10">
+        {/* Deux options de même largeur ; une pastille bleu nuit glisse sous l'option choisie. */}
         <div
           role="group"
           aria-label={labels.group}
-          className="inline-flex gap-1 rounded-full border-2 border-line bg-white p-1"
+          className="relative grid grid-cols-2 rounded-full border-2 border-line bg-white p-1 shadow-[0_10px_30px_-14px_rgba(22,24,29,.25)]"
         >
-          {option("booking", labels.booking)}
-          {option("site", labels.site)}
+          <span
+            aria-hidden="true"
+            className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-navy shadow-[0_8px_18px_rgba(27,42,74,.3)] transition-transform duration-300 ease-out motion-reduce:transition-none ${
+              side === "site" ? "translate-x-full" : ""
+            }`}
+          />
+          {option("booking", labels.booking, CalendarCheckIcon)}
+          {option("site", labels.site, BrowserIcon)}
         </div>
         <p className="text-center text-sm text-stone" aria-live="polite">
           {side === "booking" ? labels.hintBooking : labels.hintSite}
