@@ -191,10 +191,16 @@
       "missing": "Non inclus :",
       "items": {
         "basePage": "Une fiche en ligne à votre nom",
+        "onePage": "Une belle page vitrine à votre nom",
         "agenda": "Agenda sur votre téléphone",
         "photosServices": "{photos, plural, one {# photo} other {# photos}} et {services, plural, one {# prestation} other {# prestations}}",
         "everythingIn": "Tout le pack {plan}",
+        "customDesign": "Design 100 % sur mesure, rien que pour vous",
         "fullSite": "Site complet, créé par nos soins",
+        "sitePages": "Pages Prestations, Galerie, À propos et Infos pratiques",
+        "localSeo": "Visible sur Google près de chez vous",
+        "contactButtons": "Boutons Appeler, Itinéraire et Nous écrire",
+        "mobileReady": "Parfait sur téléphone, hébergement et sécurité inclus",
         "customDomain": "Votre propre nom de domaine",
         "onlinePayment": "Paiement et acompte en ligne",
         "promoCodes": "Codes promo",
@@ -1082,7 +1088,12 @@
         "onDemandUpdates": "Mises à jour du site à la demande",
         "aiMessaging": "Messagerie IA (annoncée « bientôt »)",
         "customerSpace": "Espace des clientes (mes rendez-vous)",
-        "loyalty": "Programme de fidélité"
+        "loyalty": "Programme de fidélité",
+        "localSeo": "Référencement local (Google)",
+        "contactButtons": "Boutons Appeler, Itinéraire, Nous écrire",
+        "mobileReady": "Adapté au téléphone, hébergement et sécurité",
+        "sitePages": "Pages Prestations, Galerie, À propos, Infos pratiques",
+        "customDesign": "Design sur mesure"
       },
       "description": "Accroche",
       "descriptionHint": "Affichée sous le nom du pack sur le site commercial."

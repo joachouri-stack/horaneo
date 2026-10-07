@@ -27,7 +27,14 @@ export type ShowcaseItem =
   | { kind: "soon"; key: (typeof SOON_KEYS)[number] };
 
 export type ShowcaseKey =
-  (typeof ROW_KEYS)[number] | "basePage" | "agenda" | "photosServices" | "statsSummary" | "smsReminders";
+  | (typeof ROW_KEYS)[number]
+  | (typeof SITE_ROW_KEYS)[number]
+  | "basePage"
+  | "onePage"
+  | "agenda"
+  | "photosServices"
+  | "statsSummary"
+  | "smsReminders";
 
 /** Fonctions présentées, dans l'ordre d'affichage. */
 const ROW_KEYS = [
@@ -50,11 +57,41 @@ const ROW_KEYS = [
   "googleReviews",
 ] as const;
 
+/**
+ * Packs « site seul » : ce qui compte pour un site vitrine, le plus parlant
+ * d'abord (les photos sont déjà dans les chiffres clés de la carte).
+ */
+const SITE_ROW_KEYS = [
+  "customDesign",
+  "fullSite",
+  "sitePages",
+  "googleReviews",
+  "customDomain",
+  "localSeo",
+  "contactButtons",
+  "mobileReady",
+  "testimonials",
+  "promotions",
+  "giftCards",
+  "monthlyUpdate",
+  "onDemandUpdates",
+  "whatsappSupport",
+] as const;
+
 /** Fonctions pas encore disponibles, annoncées en fin de liste. */
 const SOON_KEYS = ["aiMessaging"] as const;
 
 /** Ce qui manque au pack, par rapport au suivant (deux au plus). */
-const MISSING_KEYS = ["customDomain", "onlinePayment", "stats", "whatsappSupport"] as const;
+const MISSING_KEYS = [
+  "customDomain",
+  "onlinePayment",
+  "stats",
+  "whatsappSupport",
+  // Packs « site seul » : ce que le pack suivant ajoute de plus visible.
+  "fullSite",
+  "googleReviews",
+  "giftCards",
+] as const;
 const MAX_MISSING = 2;
 
 /** Fonctions liées aux rendez-vous : jamais annoncées sur un pack « site seul ». */
@@ -98,7 +135,10 @@ export function planItems(plans: ShowcasePlan[], index: number): ShowcaseItem[] 
 
   if (base) items.push({ kind: "everythingIn", planIndex: index - 1 });
   if (!previous) {
-    if (!plan.features.fullSite) items.push({ kind: "included", key: "basePage" });
+    if (!plan.features.fullSite) {
+      // Site seul : une vraie page vitrine ; avec réservation : la fiche du pack gratuit.
+      items.push({ kind: "included", key: planAllowsBooking(plan.features) ? "basePage" : "onePage" });
+    }
     if (planAllowsBooking(plan.features)) items.push({ kind: "included", key: "agenda" });
     const { photos, services } = plan.limits;
     if (!unlimited(photos) && !unlimited(services)) {
@@ -109,7 +149,8 @@ export function planItems(plans: ShowcasePlan[], index: number): ShowcaseItem[] 
       });
     }
   }
-  for (const key of ROW_KEYS) {
+  const rows: readonly ShowcaseKey[] = planAllowsBooking(plan.features) ? ROW_KEYS : SITE_ROW_KEYS;
+  for (const key of rows) {
     if (key === "photosLimit") {
       // Limite de photos plus haute que le pack précédent, mais pas illimitée : annoncée.
       const photos = plan.limits.photos;

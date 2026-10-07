@@ -36,6 +36,11 @@ export const FEATURE_KEYS = [
   "aiMessaging",
   "customerSpace",
   "loyalty",
+  "localSeo",
+  "contactButtons",
+  "mobileReady",
+  "sitePages",
+  "customDesign",
 ] as const;
 
 export const planInput = z.object({
