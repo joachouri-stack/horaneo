@@ -6,6 +6,7 @@ import type { SiteData } from "@/modules/site/data";
 import { visibleSections } from "@/modules/site/data";
 import { addressParts, directionsUrl, formatClock, summarizeHours, type HoursRow } from "@/modules/site/format";
 import { businessPath, SITE_PATHS } from "@/modules/site/paths";
+import { SiteImage } from "../SiteImage";
 import { AtelierBrand } from "./AtelierHeader";
 import { FacebookIcon, InstagramIcon } from "./icons";
 import { PillLink } from "./ui";
@@ -245,8 +246,16 @@ export async function AtelierFooter({ site }: { site: Site }) {
         </div>
         {credit && <p className="pb-4 text-right text-sm opacity-75">{credit}</p>}
       </div>
-      {/* Signature : fine ligne ornée, puis le nom en grand, en dégradé qui se fond dans le fond. */}
+      {/* Signature : le logo, une fine ligne ornée, puis le nom en grand, en dégradé qui se fond dans le fond. */}
       <div aria-hidden="true" className="pointer-events-none relative select-none pt-10">
+        {/* Le logo en grand, centré au-dessus du trait orné et du nom. */}
+        {site.logo && (
+          <div className="mb-6 flex justify-center px-4">
+            <span className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full bg-white shadow-[0_14px_34px_rgba(0,0,0,.3)] ring-4 ring-site-bg/15 sm:h-40 sm:w-40">
+              <SiteImage image={site.logo} alt="" sizes="160px" className="h-full w-full object-cover" />
+            </span>
+          </div>
+        )}
         <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 sm:px-8">
           <span className="h-px flex-1 bg-gradient-to-r from-transparent to-site-bg/25" />
           <span className="h-2 w-2 rotate-45 bg-site-accent" />
