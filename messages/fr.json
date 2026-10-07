@@ -705,7 +705,8 @@
       "billing": "Paiements",
       "orders": "Commandes",
       "documents": "Documents légaux",
-      "label": "Navigation de l'administration"
+      "label": "Navigation de l'administration",
+      "waiting": "{count, plural, one {# commande en attente} other {# commandes en attente}}"
     },
     "dashboard": {
       "activeClients": "Clients en ligne",
@@ -756,6 +757,7 @@
         "logo": "Logo et couleurs",
         "prestations": "Prestations",
         "horaires": "Horaires",
+        "apercu": "Aperçu du site",
         "domaine": "Domaine"
       }
     },
@@ -771,7 +773,8 @@
         "horaires": "Horaires",
         "pages": "Textes",
         "photos": "Photos",
-        "temoignages": "Témoignages"
+        "temoignages": "Témoignages",
+        "apercu": "Aperçu"
       },
       "viewSite": "Voir le site",
       "backToList": "Tous les clients",
@@ -999,7 +1002,6 @@
         "published": "Publié",
         "empty": "Aucun témoignage pour le moment."
       },
-      "preview": "Aperçu du site (1 h)",
       "viewAsClient": "Voir comme le client",
       "businessPicker": {
         "label": "Entreprise",
@@ -1050,7 +1052,19 @@
         "saveProfile": "Enregistrer sa page",
         "googlePlaceId": "Fiche Google (identifiant « place »)",
         "googlePlaceIdHint": "Pour afficher ses avis Google. L'identifiant commence souvent par « ChIJ » : cherchez l'établissement sur la page « Place ID Finder » de Google, puis copiez-le ici. Les avis apparaissent dans les 24 h."
-      }
+      },
+      "previewPage": {
+        "title": "Aperçu du site",
+        "introDraft": "Le site n'est pas encore en ligne : vous seule pouvez le voir. Vérifiez les textes, les photos et les prestations avant de passer à l'adresse du site.",
+        "introLive": "Le site est en ligne : voici ce que voient les visiteurs.",
+        "phone": "Téléphone",
+        "desktop": "Ordinateur",
+        "device": "Taille d'écran",
+        "open": "Ouvrir dans un nouvel onglet",
+        "frameTitle": "Aperçu du site {name}",
+        "noDomain": "Le site n'a pas encore d'adresse : ajoutez-en une pour voir l'aperçu."
+      },
+      "preview": "Aperçu du site (1 h)"
     },
     "requests": {
       "title": "Demandes de mise à jour",

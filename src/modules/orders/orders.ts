@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { setupFeeFor } from "@/modules/billing/plans";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
@@ -219,6 +219,15 @@ export async function listPendingOrders(tx: Transaction) {
     .innerJoin(users, eq(users.id, orders.userId))
     .where(inArray(orders.status, ["awaiting_review", "paid", "in_creation"]))
     .orderBy(asc(orders.createdAt));
+}
+
+/** Commandes qui attendent l'administratrice (vérification ou création du site à lancer). */
+export async function countWaitingOrders(tx: Transaction) {
+  const [row] = await tx
+    .select({ count: sql<number>`count(*)::int` })
+    .from(orders)
+    .where(inArray(orders.status, ["awaiting_review", "paid"]));
+  return row?.count ?? 0;
 }
 
 export async function getOrder(tx: Transaction, orderId: string) {

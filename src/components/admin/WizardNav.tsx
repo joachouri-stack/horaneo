@@ -2,7 +2,15 @@ import { getTranslations } from "next-intl/server";
 import { ui } from "@/components/ui/styles";
 import { Link } from "@/i18n/navigation";
 
-export const WIZARD_STEPS = ["coordonnees", "modele", "logo", "prestations", "horaires", "domaine"] as const;
+export const WIZARD_STEPS = [
+  "coordonnees",
+  "modele",
+  "logo",
+  "prestations",
+  "horaires",
+  "apercu",
+  "domaine",
+] as const;
 type WizardStep = (typeof WIZARD_STEPS)[number];
 
 /**
