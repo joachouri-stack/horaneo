@@ -436,6 +436,26 @@ export function isAtelier(site: NonNullable<SiteData>) {
   return site.tenant.templateKey === "atelier" && site.features.fullSite;
 }
 
+/** Petite photo du haut de l'accueil Atelier : celle de la page L'établissement, sinon la première de la galerie. */
+export function heroSecondPhoto(site: NonNullable<SiteData>) {
+  return site.pages.about?.photo ?? site.gallery[0] ?? null;
+}
+
+/**
+ * Photos de « L'institut » (accueil et page L'établissement) : les deux dernières de la galerie
+ * qui ne sont pas déjà en haut de l'accueil ni sur les cartes des professionnelles.
+ * À défaut, la photo de la page L'établissement.
+ */
+export function institutePhotos(site: NonNullable<SiteData>): SiteImage[] {
+  const shown = new Set(
+    [site.pages.home?.photo, heroSecondPhoto(site), ...site.businesses.map((business) => business.photo)].map(
+      (photo) => photo?.key,
+    ),
+  );
+  const fresh = [...site.gallery].reverse().filter((photo) => !shown.has(photo.key));
+  return (fresh.length > 0 ? fresh : [site.pages.about?.photo]).filter((photo) => photo != null).slice(0, 2);
+}
+
 /** Avis Google affichés pour tout le site : ceux de l'entreprise principale, sinon de la première fiche. */
 export function siteReviews(site: NonNullable<SiteData>) {
   const primary = site.businesses.find((business) => business.isPrimary);

@@ -3,9 +3,10 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { PageTitle, Prose, TeamGrid } from "@/components/site/blocks";
 import { presentedBusinesses, ProfessionalCards } from "@/components/site/atelier/ProfessionalCards";
+import { InstitutePhotos } from "@/components/site/atelier/InstitutePhotos";
 import { PillLink, SectionTitle } from "@/components/site/atelier/ui";
 import { SiteImage } from "@/components/site/SiteImage";
-import { isAtelier } from "@/modules/site/data";
+import { institutePhotos, isAtelier } from "@/modules/site/data";
 import { requireSection } from "@/lib/site/guards";
 import { getSite } from "@/lib/site/load";
 import { SITE_PATHS } from "@/modules/site/paths";
@@ -36,7 +37,6 @@ export default async function AboutPage({ params }: PageProps<"/sites/[tenantId]
     const tSite = await getTranslations("site");
     const cta = siteCta(site);
     const presented = presentedBusinesses(site);
-    const extra = site.gallery.find((photo) => photo.key !== page?.photo?.key) ?? null;
     return (
       <main id="contenu">
         <section className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-14 sm:px-8 lg:grid-cols-2">
@@ -53,23 +53,7 @@ export default async function AboutPage({ params }: PageProps<"/sites/[tenantId]
               </PillLink>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            {page?.photo && (
-              <SiteImage
-                image={page.photo}
-                sizes="(min-width: 1024px) 25vw, 50vw"
-                priority
-                className="aspect-[3/4] w-full rounded-[1.5rem] object-cover"
-              />
-            )}
-            {extra && (
-              <SiteImage
-                image={extra}
-                sizes="(min-width: 1024px) 25vw, 50vw"
-                className="mt-10 aspect-[3/4] w-full rounded-[1.5rem] object-cover"
-              />
-            )}
-          </div>
+          <InstitutePhotos photos={institutePhotos(site)} priority />
         </section>
         {presented.length > 0 && (
           <section aria-labelledby="equipe" className="rounded-[2.5rem] bg-site-card py-16">
