@@ -25,8 +25,17 @@ export async function AtelierHome({ site }: { site: Site }) {
   const sections = visibleSections(site);
   const money = (cents: number) => formatMoney(cents, site.tenant.currency, site.locale);
   const secondPhoto = site.pages.about?.photo ?? site.gallery[0] ?? null;
-  // Seconde photo de l'institut : une photo de la galerie différente de celle de la page.
-  const aboutExtra = site.gallery.find((photo) => photo.key !== site.pages.about?.photo?.key) ?? null;
+  // Photos du bloc « L'institut » : les deux dernières de la galerie qui ne sont pas déjà
+  // sur l'accueil (haut de page, cartes des professionnelles). À défaut, la photo de la page.
+  const shownKeys = new Set(
+    [home?.photo, secondPhoto, ...site.businesses.map((business) => business.photo)].map(
+      (photo) => photo?.key,
+    ),
+  );
+  const fresh = [...site.gallery].reverse().filter((photo) => !shownKeys.has(photo.key));
+  const institutePhotos = (fresh.length > 0 ? fresh : [site.pages.about?.photo])
+    .filter((photo) => photo != null)
+    .slice(0, 2);
   const span = openDaysSpan(site.openingHours);
   const pageOf = (businessId: string) => site.businesses.find((business) => business.id === businessId)?.slug;
   const presented = presentedBusinesses(site);
@@ -231,22 +240,15 @@ export async function AtelierHome({ site }: { site: Site }) {
         <section aria-labelledby="titre-institut" className="reveal bg-site-bg py-20">
           <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-8 lg:grid-cols-2">
             <div className="grid grid-cols-2 gap-4">
-              {site.pages.about.photo && (
+              {institutePhotos.map((photo, index) => (
                 <SiteImage
-                  image={site.pages.about.photo}
-                  alt={site.pages.about.photo.alt}
+                  key={photo.key}
+                  image={photo}
+                  alt={photo.alt}
                   sizes="(min-width: 1024px) 25vw, 50vw"
-                  className="aspect-[3/4] w-full rounded-[1.5rem] object-cover"
+                  className={`aspect-[3/4] w-full rounded-[1.5rem] object-cover ${index === 1 ? "mt-10" : ""}`}
                 />
-              )}
-              {aboutExtra && (
-                <SiteImage
-                  image={aboutExtra}
-                  alt={aboutExtra.alt}
-                  sizes="(min-width: 1024px) 25vw, 50vw"
-                  className="mt-10 aspect-[3/4] w-full rounded-[1.5rem] object-cover"
-                />
-              )}
+              ))}
             </div>
             <div className="relative">
               {/* Empreinte du logo, très légère, derrière le texte. */}
