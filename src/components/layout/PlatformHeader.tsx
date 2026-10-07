@@ -7,9 +7,10 @@ import { routing } from "@/i18n/routing";
 import { HeaderShell } from "./HeaderShell";
 
 const NAV = [
+  // Même ordre que l'accueil : les tarifs d'abord.
+  { hash: "tarifs", key: "pricing" },
   { hash: "etapes", key: "how" },
   { hash: "fonctions", key: "features" },
-  { hash: "tarifs", key: "pricing" },
   { hash: "questions", key: "questions" },
 ] as const;
 

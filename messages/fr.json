@@ -149,7 +149,6 @@
       }
     },
     "plans": {
-      "badge": "Tarifs",
       "title": "Un prix clair,",
       "titleAccent": "{percent, plural, =0 {sans commission.} other {commission de # %.}}",
       "subtitle": "Votre site avec la réservation en ligne, ou simplement un beau site : choisissez, puis évoluez quand vous voulez.",
