@@ -170,7 +170,8 @@ export async function fillMaBeaute(tx: Transaction, tenantId: string, options: M
     title: "Esthétique",
     role: "Esthéticienne, spécialiste du regard",
     bio: "Formée aux techniques les plus récentes, Laïla prend soin de votre regard, de votre visage et de votre peau.",
-    quote: "Je prends le temps de comprendre ce que vous souhaitez, pour que chaque soin vous ressemble et que vous repartiez sereine.",
+    quote:
+      "Je prends le temps de comprendre ce que vous souhaitez, pour que chaque soin vous ressemble et que vous repartiez sereine.",
     availability: "Du lundi au samedi",
     photoAssetId: options.photos?.laila ?? null,
   });
@@ -184,7 +185,8 @@ export async function fillMaBeaute(tx: Transaction, tenantId: string, options: M
     title: "Massages",
     role: "Praticienne en massage et soins du corps",
     bio: "Natacha prend le temps de vous écouter pour adapter chaque massage à vos besoins du moment.",
-    quote: "Mon métier, c'est vous offrir une vraie pause : un massage pensé pour vous, dans le calme et sans rien presser.",
+    quote:
+      "Mon métier, c'est vous offrir une vraie pause : un massage pensé pour vous, dans le calme et sans rien presser.",
     availability: "Sur rendez-vous",
     photoAssetId: options.photos?.natacha ?? null,
   });

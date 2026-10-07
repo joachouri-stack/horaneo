@@ -4,7 +4,13 @@ import { getTranslations } from "next-intl/server";
 import { formatPhone } from "@/modules/phone";
 import type { SiteData } from "@/modules/site/data";
 import { visibleSections } from "@/modules/site/data";
-import { addressParts, directionsUrl, formatClock, summarizeHours, type HoursRow } from "@/modules/site/format";
+import {
+  addressParts,
+  directionsUrl,
+  formatClock,
+  summarizeHours,
+  type HoursRow,
+} from "@/modules/site/format";
 import { businessPath, SITE_PATHS } from "@/modules/site/paths";
 import { SiteImage } from "../SiteImage";
 import { AtelierBrand } from "./AtelierHeader";

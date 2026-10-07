@@ -235,9 +235,7 @@ describe.skipIf(!hasTestDatabase)("abonnements", () => {
       features: [],
       isPublic: basic.isPublic,
     };
-    expect(await errorCode(platform((tx) => savePlan(tx, basic.id, input, null)))).toBe(
-      "last_free_plan",
-    );
+    expect(await errorCode(platform((tx) => savePlan(tx, basic.id, input, null)))).toBe("last_free_plan");
     expect((await owner.select().from(plans).where(eq(plans.id, basic.id)))[0].priceCents).toBe(0);
   });
 

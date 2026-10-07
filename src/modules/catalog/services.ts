@@ -112,7 +112,12 @@ export async function saveCategory(
 }
 
 /** Ajoute un logo (photo du site) à la page formation d'une catégorie, sans retirer les autres. */
-export async function addCategoryLogo(tx: Transaction, tenantId: string, categoryId: string, assetId: string) {
+export async function addCategoryLogo(
+  tx: Transaction,
+  tenantId: string,
+  categoryId: string,
+  assetId: string,
+) {
   await assertOwnAssets(tx, tenantId, [assetId]);
   const [existing] = await tx
     .select()

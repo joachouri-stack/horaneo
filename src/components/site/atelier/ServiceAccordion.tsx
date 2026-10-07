@@ -147,8 +147,12 @@ export async function ServiceAccordion({
           className="group flex scroll-mt-28 items-center gap-4 rounded-[1.5rem] border border-site-border bg-site-card px-5 py-4 transition-shadow hover:shadow-[0_10px_30px_-12px_rgba(0,0,0,0.15)] sm:px-6"
         >
           <span className="min-w-0 flex-1">
-            <span className="block font-site-display text-2xl font-medium sm:text-[1.7rem]">{category.name}</span>
-            {category.description && <span className="block text-sm text-site-muted">{category.description}</span>}
+            <span className="block font-site-display text-2xl font-medium sm:text-[1.7rem]">
+              {category.name}
+            </span>
+            {category.description && (
+              <span className="block text-sm text-site-muted">{category.description}</span>
+            )}
           </span>
           <span className="hidden text-sm font-semibold text-site-accent sm:inline">{t("seeTraining")}</span>
           <span

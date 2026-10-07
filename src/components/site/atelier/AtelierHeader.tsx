@@ -54,13 +54,7 @@ export function AtelierBrand({ site, size = "md" }: { site: Site; size?: "md" | 
         <span
           className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-white shadow-sm ${medal}`}
         >
-          <SiteImage
-            image={site.logo}
-            alt=""
-            sizes="80px"
-            priority
-            className="h-full w-full object-cover"
-          />
+          <SiteImage image={site.logo} alt="" sizes="80px" priority className="h-full w-full object-cover" />
         </span>
       )}
       <span
