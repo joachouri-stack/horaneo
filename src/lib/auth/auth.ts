@@ -10,9 +10,11 @@ import { authAccounts, authSessions, authVerifications, users } from "@/db/schem
 import { getTranslator, resolveLocale } from "@/i18n/translator";
 import { renderActionEmail } from "@/lib/email/layout";
 import { sendEmail } from "@/lib/email/send";
+import { createLinkToken, loginCodeFor } from "./login-code";
 
 /**
- * Connexion sans mot de passe : Google, Apple (quand configuré) et lien magique.
+ * Connexion sans mot de passe : Google, Apple (quand configuré) et lien magique
+ * (avec, dans le même e-mail, un code à 6 chiffres : voir login-code.ts).
  *
  * Better Auth utilise la connexion de l'application avec le seul rôle hérité
  * app_auth : il n'accède qu'aux tables de connexion et ne peut pas donner le
@@ -27,7 +29,7 @@ function localeFromRequest(request: Request | undefined) {
   return resolveLocale(/(?:^|;\s*)NEXT_LOCALE=([a-z]{2})/.exec(cookie)?.[1]);
 }
 
-export async function sendMagicLinkEmail(email: string, url: string, request?: Request) {
+export async function sendMagicLinkEmail(email: string, url: string, token: string, request?: Request) {
   const locale = localeFromRequest(request);
   const t = await getTranslator(locale);
   const product = env().PRODUCT_NAME;
@@ -40,6 +42,7 @@ export async function sendMagicLinkEmail(email: string, url: string, request?: R
       t("emails.magicLink.expiry", { minutes: MAGIC_LINK_TTL_SECONDS / 60 }),
     ],
     action: { label: t("emails.magicLink.button"), url },
+    code: { label: t("emails.magicLink.codeLabel"), value: loginCodeFor(token) },
     footer: t("emails.magicLink.ignore"),
   });
   await sendEmail({ to: email, subject: t("emails.magicLink.subject", { product }), ...content });
@@ -113,7 +116,10 @@ export function createAuth(database: Database) {
       magicLink({
         expiresIn: MAGIC_LINK_TTL_SECONDS,
         storeToken: "hashed",
-        sendMagicLink: async ({ email, url }, ctx) => sendMagicLinkEmail(email, url, ctx?.request),
+        // Jeton recalculable : l'e-mail contient aussi un code qui ouvre le même lien.
+        generateToken: (email) => createLinkToken(email, MAGIC_LINK_TTL_SECONDS, database),
+        sendMagicLink: async ({ email, url, token }, ctx) =>
+          sendMagicLinkEmail(email, url, token, ctx?.request),
       }),
       nextCookies(),
     ],
