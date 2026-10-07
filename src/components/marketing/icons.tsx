@@ -145,3 +145,17 @@ export const SparkleIcon = ({ className }: IconProps) => (
     />
   </Icon>
 );
+
+export const LockIcon = ({ className }: IconProps) => (
+  <Icon className={className}>
+    <rect x="5" y="11" width="14" height="9" rx="2.5" strokeWidth="2.2" />
+    <path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3" strokeWidth="2.2" />
+  </Icon>
+);
+
+export const ShieldIcon = ({ className }: IconProps) => (
+  <Icon className={className}>
+    <path d="M12 3l7 3v5.5c0 4.3-3 7.9-7 9.5-4-1.6-7-5.2-7-9.5V6z" strokeWidth="2.2" />
+    <path d="M9 12l2.2 2.2L15.5 10" strokeWidth="2.2" />
+  </Icon>
+);

@@ -224,9 +224,18 @@
         "aiMessaging": "Bientôt : messagerie IA"
       },
       "trust": {
-        "commission": "{percent, plural, =0 {Aucune commission (hors frais Stripe)} other {Commission de # % seulement (hors frais Stripe)}}",
+        "commission": "{percent, plural, =0 {0 % de commission} other {# % de commission seulement}}",
+        "commissionText": "Seuls les frais bancaires de Stripe s'appliquent.",
         "secure": "Paiements sécurisés",
-        "data": "Vos données vous appartiennent, remises sur simple demande"
+        "secureText": "Cartes traitées par Stripe, jamais par nous.",
+        "data": "Vos données sont à vous",
+        "dataText": "Clientes, rendez-vous, photos : remis sur simple demande."
+      },
+      "note": {
+        "display": "Prix {display}",
+        "commitment": "{months, plural, =0 {Sans engagement} one {Engagement # mois} other {Engagement # mois}}",
+        "setupFree": "Création du site offerte",
+        "setupFee": "Création : {amount}"
       },
       "pricesDisplay": "Prix {display}."
     },

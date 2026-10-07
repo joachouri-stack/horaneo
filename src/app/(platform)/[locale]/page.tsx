@@ -13,8 +13,10 @@ import {
   EuroIcon,
   GiftIcon,
   HeartIcon,
+  LockIcon,
   PlusIcon,
   ReviewIcon,
+  ShieldIcon,
   UserIcon,
 } from "@/components/marketing/icons";
 import { HeroVisual } from "@/components/marketing/HeroVisual";
@@ -166,21 +168,45 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             <p className="mx-auto max-w-[34rem] text-[1.05rem]">{t("plans.subtitle")}</p>
           </div>
           <PlanCards plans={data.plans} locale={locale} />
-          <ul className="mt-8 flex flex-wrap justify-center gap-x-8 gap-y-2.5 text-[0.95rem] font-medium text-night lg:mt-10">
-            {[t("plans.trust.commission", { percent }), t("plans.trust.secure"), t("plans.trust.data")].map(
-              (text) => (
-                <li key={text} className="flex items-center gap-2">
-                  <CheckIcon className="size-5 text-brick" />
-                  {text}
-                </li>
-              ),
-            )}
+          {/* Garanties : trois engagements clairs, puis les conditions en une ligne. */}
+          <ul className="mx-auto mt-10 grid max-w-[62rem] gap-3 sm:grid-cols-3 lg:mt-12 lg:gap-4">
+            {[
+              {
+                Icon: EuroIcon,
+                title: t("plans.trust.commission", { percent }),
+                text: t("plans.trust.commissionText"),
+              },
+              { Icon: LockIcon, title: t("plans.trust.secure"), text: t("plans.trust.secureText") },
+              { Icon: ShieldIcon, title: t("plans.trust.data"), text: t("plans.trust.dataText") },
+            ].map(({ Icon, title, text }) => (
+              <li
+                key={title}
+                className="group flex items-start gap-3.5 rounded-[1.25rem] border-2 border-line bg-white p-4 transition duration-300 hover:-translate-y-1 hover:border-coral hover:shadow-[0_18px_36px_-18px_rgba(22,24,29,.25)] motion-reduce:transition-none lg:p-5"
+              >
+                <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-blush text-brick transition duration-300 group-hover:-rotate-6 motion-reduce:transition-none">
+                  <Icon className="size-5" />
+                </span>
+                <div>
+                  <p className="font-semibold leading-snug text-night">{title}</p>
+                  <p className="mt-0.5 text-[0.88rem] leading-snug text-stone">{text}</p>
+                </div>
+              </li>
+            ))}
           </ul>
-          <p className="mx-auto mt-4 max-w-[40rem] text-center text-[0.9rem] text-stone">
-            {t("plans.pricesDisplay", { display: String(data.display) })}{" "}
-            {t("plans.commitment", { months: data.commitment })}{" "}
-            {data.setupFee > 0 ? t("plans.setupFee", { amount: money(data.setupFee) }) : t("plans.setupFree")}
-          </p>
+          <ul className="mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-[0.85rem] text-stone">
+            {[
+              t("plans.note.display", { display: String(data.display) }),
+              t("plans.note.commitment", { months: data.commitment }),
+              data.setupFee > 0
+                ? t("plans.note.setupFee", { amount: money(data.setupFee) })
+                : t("plans.note.setupFree"),
+            ].map((text, index) => (
+              <li key={text} className="flex items-center gap-3">
+                {index > 0 && <span aria-hidden="true" className="size-1 rounded-full bg-blush-strong" />}
+                {text}
+              </li>
+            ))}
+          </ul>
         </section>
 
         {/* Métiers */}
