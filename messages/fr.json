@@ -593,6 +593,7 @@
       "intro": "Cliquez sur le bouton ci-dessous pour vous connecter. Aucun mot de passe n'est nécessaire.",
       "expiry": "Ce lien est valable {minutes} minutes et ne fonctionne qu'une seule fois.",
       "button": "Me connecter",
+      "codeLabel": "Vous lisez cet e-mail sur un autre appareil ? Saisissez ce code sur la page de connexion :",
       "ignore": "Si vous n'avez pas demandé ce lien, ignorez simplement cet e-mail : personne ne pourra se connecter à votre place."
     }
   },
@@ -611,13 +612,19 @@
     "sendLink": "Recevoir un lien de connexion",
     "sending": "Envoi…",
     "sentTitle": "Vérifiez votre boîte de réception",
-    "sentBody": "Un lien de connexion vient d'être envoyé à {email}. Il est valable 15 minutes.",
+    "sentBody": "Un e-mail vient d'être envoyé à {email}, avec un bouton et un code de connexion. Ils sont valables 15 minutes.",
+    "codeLabel": "Code reçu par e-mail",
+    "codeHint": "Vous lisez vos e-mails sur un autre appareil ? Saisissez ici le code à 6 chiffres.",
+    "codeSubmit": "Me connecter avec le code",
+    "checking": "Vérification…",
     "sentHint": "Rien reçu ? Regardez dans les courriers indésirables, ou réessayez.",
     "useAnotherEmail": "Utiliser une autre adresse",
     "errors": {
       "invalidEmail": "Cette adresse e-mail ne semble pas valide.",
       "tooManyAttempts": "Trop de tentatives. Merci de patienter quelques minutes avant de réessayer.",
       "linkExpired": "Ce lien de connexion a expiré ou a déjà été utilisé. Demandez-en un nouveau.",
+      "codeInvalid": "Ce code est incorrect ou a expiré. Vérifiez-le, ou demandez un nouvel e-mail.",
+      "codeLocked": "Trop d'essais avec ce code. Demandez un nouvel e-mail de connexion.",
       "social": "La connexion n'a pas abouti. Merci de réessayer.",
       "generic": "Une erreur est survenue. Merci de réessayer."
     },

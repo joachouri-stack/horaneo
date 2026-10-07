@@ -14,6 +14,8 @@ type ActionEmail = {
   title: string;
   paragraphs: string[];
   action: { label: string; url: string };
+  /** Code à recopier, sous le bouton (connexion depuis un autre appareil). */
+  code?: { label: string; value: string };
   footer: string;
 };
 
@@ -21,7 +23,15 @@ type ActionEmail = {
  * Mise en page simple d'un e-mail du SaaS avec un bouton d'action.
  * Les e-mails envoyés au nom d'un établissement utilisent `src/modules/messages/layout.ts`.
  */
-export function renderActionEmail({ locale, brandName, title, paragraphs, action, footer }: ActionEmail) {
+export function renderActionEmail({
+  locale,
+  brandName,
+  title,
+  paragraphs,
+  action,
+  code,
+  footer,
+}: ActionEmail) {
   const html = `<!doctype html>
 <html lang="${escapeHtml(locale)}">
 <body style="margin:0;background:#FAF7F2;font-family:Arial,Helvetica,sans-serif;color:#2B2B2B">
@@ -34,12 +44,27 @@ export function renderActionEmail({ locale, brandName, title, paragraphs, action
         <tr><td style="padding:16px 0 24px">
           <a href="${escapeHtml(action.url)}" style="display:inline-block;background:#E8503F;color:#ffffff;font-weight:bold;font-size:18px;text-decoration:none;padding:14px 24px;border-radius:10px">${escapeHtml(action.label)}</a>
         </td></tr>
+        ${
+          code
+            ? `<tr><td style="font-size:15px;line-height:1.5;padding-bottom:8px">${escapeHtml(code.label)}</td></tr>
+        <tr><td style="padding-bottom:24px"><span style="display:inline-block;background:#FAF7F2;border-radius:10px;padding:12px 20px;font-size:30px;font-weight:bold;letter-spacing:8px;color:#1B2A4A;font-family:'Courier New',monospace">${escapeHtml(code.value)}</span></td></tr>`
+            : ""
+        }
         <tr><td style="font-size:13px;color:#6b6b6b;line-height:1.5">${escapeHtml(footer)}</td></tr>
       </table>
     </td></tr>
   </table>
 </body>
 </html>`;
-  const text = [title, "", ...paragraphs, "", `${action.label} : ${action.url}`, "", footer].join("\n");
+  const text = [
+    title,
+    "",
+    ...paragraphs,
+    "",
+    `${action.label} : ${action.url}`,
+    ...(code ? ["", `${code.label} ${code.value}`] : []),
+    "",
+    footer,
+  ].join("\n");
   return { html, text };
 }

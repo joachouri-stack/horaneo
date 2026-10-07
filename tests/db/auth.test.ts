@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { setPlatformAdmin } from "@/db/admin-role";
 import { adminTwoFactors, auditLog, authSessions, users } from "@/db/schema";
 import { createAuth, type Auth } from "@/lib/auth/auth";
+import { checkLoginCode, LOGIN_CODE_MAX_ATTEMPTS } from "@/lib/auth/login-code";
 import { totpCodeAt } from "@/lib/auth/totp";
 import {
   beginTwoFactorSetup,
@@ -125,6 +126,60 @@ describe.skipIf(!hasTestDatabase)("connexion", () => {
 
     it("refuse un jeton inventé", async () => {
       expect((await openMagicLink("jeton-invente")).cookie).toBeNull();
+    });
+  });
+
+  describe("code à 6 chiffres", () => {
+    /** Code écrit dans le dernier e-mail envoyé. */
+    const lastCode = () => / (\d{6})$/m.exec(testOutbox.at(-1)!.text)![1];
+
+    it("l'e-mail contient aussi un code, qui ouvre le même lien", async () => {
+      const email = uniqueEmail("code");
+      const token = await requestMagicLink(email);
+      const code = lastCode();
+      expect(testOutbox.at(-1)!.html).toContain(code);
+      const result = await checkLoginCode(email.toUpperCase(), code.replace(/(\d{3})/, "$1 "), app);
+      expect(result).toEqual({ ok: true, token });
+      expect((await openMagicLink(token)).cookie).toBeTruthy();
+    });
+
+    it("un code ne sert qu'une fois", async () => {
+      const email = uniqueEmail("code-unique");
+      await requestMagicLink(email);
+      const code = lastCode();
+      expect((await checkLoginCode(email, code, app)).ok).toBe(true);
+      expect(await checkLoginCode(email, code, app)).toEqual({ ok: false, reason: "invalid" });
+    });
+
+    it("le code d'une autre adresse ne marche pas", async () => {
+      await requestMagicLink(uniqueEmail("code-a"));
+      const code = lastCode();
+      const other = uniqueEmail("code-b");
+      await requestMagicLink(other);
+      const otherCode = lastCode();
+      if (code !== otherCode) expect((await checkLoginCode(other, code, app)).ok).toBe(false);
+    });
+
+    it("bloqué après trop d'essais, même avec le bon code ensuite", async () => {
+      const email = uniqueEmail("code-essais");
+      await requestMagicLink(email);
+      const code = lastCode();
+      const wrong = code === "000000" ? "111111" : "000000";
+      for (let i = 1; i < LOGIN_CODE_MAX_ATTEMPTS; i++) {
+        expect(await checkLoginCode(email, wrong, app)).toEqual({ ok: false, reason: "invalid" });
+      }
+      expect(await checkLoginCode(email, wrong, app)).toEqual({ ok: false, reason: "locked" });
+      expect((await checkLoginCode(email, code, app)).ok).toBe(false);
+    });
+
+    it("une nouvelle demande remplace l'ancien code", async () => {
+      const email = uniqueEmail("code-nouveau");
+      await requestMagicLink(email);
+      const first = lastCode();
+      await requestMagicLink(email);
+      const second = lastCode();
+      if (first !== second) expect((await checkLoginCode(email, first, app)).ok).toBe(false);
+      expect((await checkLoginCode(email, second, app)).ok).toBe(true);
     });
   });
 
