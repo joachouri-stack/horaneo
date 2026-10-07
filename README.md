@@ -408,6 +408,21 @@ Le déploiement complet (image Docker, sauvegardes horaires vers R2, alertes, pr
 2. Créer une application reliée au dépôt GitHub (branche `main`). Renseigner les variables de `.env.example`, avec l'adresse interne de la base dans `DATABASE_URL` (propriétaire) et `APP_DATABASE_URL` (rôle `app_runtime`, avec un long mot de passe aléatoire), ainsi que `BETTER_AUTH_SECRET` (`openssl rand -base64 32`), `BREVO_API_KEY` et les variables `R2_*` du stockage des photos.
 3. Commande de construction : `pnpm install --frozen-lockfile && pnpm build`. Démarrage : `pnpm start`. Il applique d'abord tout seul les migrations en attente et les valeurs de départ (`pnpm db:deploy` = `db:migrate` puis `db:seed`, relançables sans risque), puis lance le site : plus rien à taper après un Redeploy. Si une migration échoue, le site ne démarre pas (rien n'est appliqué à moitié) : le message d'erreur est dans les journaux (Logs) de l'application. `pnpm db:roles` ne sert qu'à la première installation, ou si le mot de passe de `APP_DATABASE_URL` change.
 4. Pointer `horaneo.com` et `horaneo.fr` vers l'application. `horaneo.fr` redirige automatiquement vers `horaneo.com/fr`.
+   **Sous-domaines des clients** (`<client>.horaneo.com`), à faire une seule fois :
+   - Cloudflare, zone `horaneo.com` → DNS : enregistrement `A`, nom `*`, même adresse IP que `horaneo.com`, **nuage orange** (Proxied). SSL/TLS en mode **Full** : Cloudflare fournit le certificat de tous les sous-domaines.
+   - Coolify → Servers → serveur → Proxy → Dynamic Configurations → fichier `horaneo-clients.yaml` (`service` = nom du service `https-0-<uuid>` lu dans les Container Labels de l'application, suivi de `@docker`) :
+     ```yaml
+     http:
+       routers:
+         horaneo-clients:
+           rule: 'HostRegexp(`^[a-z0-9-]+\.horaneo\.com$`)'
+           entryPoints:
+             - https
+           service: https-0-<uuid>@docker
+           priority: 1
+           tls: {}
+     ```
+     Rien à ajouter ensuite pour chaque nouveau client. Si l'application est supprimée puis recréée dans Coolify, mettre à jour `service`.
 5. Se donner le statut d'administratrice depuis le terminal Coolify : `pnpm admin:grant votre@email.fr`.
 6. **Tâche planifiée** : dans Coolify, onglet « Scheduled Tasks » de l'application, ajouter une tâche toutes les 5 minutes (`*/5 * * * *`) avec la commande :
    `curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/tick`
