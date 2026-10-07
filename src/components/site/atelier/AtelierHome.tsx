@@ -3,14 +3,13 @@ import { getTranslations } from "next-intl/server";
 import { formatMoney } from "@/lib/format";
 import { formatPhone } from "@/modules/phone";
 import type { SiteData } from "@/modules/site/data";
-import { siteReviews, visibleSections } from "@/modules/site/data";
+import { heroSecondPhoto, institutePhotos, siteReviews, visibleSections } from "@/modules/site/data";
 import { addressParts, directionsUrl, openDaysSpan } from "@/modules/site/format";
-import { storage } from "@/lib/storage";
 import { businessPath, categoryPath, SITE_PATHS } from "@/modules/site/paths";
 import { GoogleReviewCards, ReviewsSummary, Stars } from "../GoogleReviews";
-import { PhotoZoom } from "../PhotoZoom";
 import { SiteImage } from "../SiteImage";
 import { CategoryGrid } from "./CategoryGrid";
+import { InstitutePhotos } from "./InstitutePhotos";
 import { presentedBusinesses, ProfessionalCards } from "./ProfessionalCards";
 import { HoursSummary } from "./AtelierFooter";
 import { PillLink, SectionTitle } from "./ui";
@@ -26,18 +25,7 @@ export async function AtelierHome({ site }: { site: Site }) {
   const texts = home?.texts ?? {};
   const sections = visibleSections(site);
   const money = (cents: number) => formatMoney(cents, site.tenant.currency, site.locale);
-  const secondPhoto = site.pages.about?.photo ?? site.gallery[0] ?? null;
-  // Photos du bloc « L'institut » : les deux dernières de la galerie qui ne sont pas déjà
-  // sur l'accueil (haut de page, cartes des professionnelles). À défaut, la photo de la page.
-  const shownKeys = new Set(
-    [home?.photo, secondPhoto, ...site.businesses.map((business) => business.photo)].map(
-      (photo) => photo?.key,
-    ),
-  );
-  const fresh = [...site.gallery].reverse().filter((photo) => !shownKeys.has(photo.key));
-  const institutePhotos = (fresh.length > 0 ? fresh : [site.pages.about?.photo])
-    .filter((photo) => photo != null)
-    .slice(0, 2);
+  const secondPhoto = heroSecondPhoto(site);
   const span = openDaysSpan(site.openingHours);
   const pageOf = (businessId: string) => site.businesses.find((business) => business.id === businessId)?.slug;
   const presented = presentedBusinesses(site);
@@ -241,27 +229,7 @@ export async function AtelierHome({ site }: { site: Site }) {
       {sections.about && site.pages.about?.texts.body && (
         <section aria-labelledby="titre-institut" className="reveal bg-site-bg py-20">
           <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-8 lg:grid-cols-2">
-            <div className="grid grid-cols-2 gap-4">
-              {institutePhotos.map((photo, index) => (
-                <PhotoZoom
-                  key={photo.key}
-                  src={storage().publicUrl(photo.key)}
-                  width={photo.width ?? 1200}
-                  height={photo.height ?? 1600}
-                  alt={photo.alt}
-                  openLabel={t("zoomPhoto")}
-                  closeLabel={t("closePhoto")}
-                  className={`rounded-[1.5rem] ${index === 1 ? "mt-10" : ""}`}
-                >
-                  <SiteImage
-                    image={photo}
-                    alt={photo.alt}
-                    sizes="(min-width: 1024px) 25vw, 50vw"
-                    className="aspect-[3/4] w-full object-cover"
-                  />
-                </PhotoZoom>
-              ))}
-            </div>
+            <InstitutePhotos photos={institutePhotos(site)} />
             <div className="relative">
               {/* Empreinte du logo, très légère, derrière le texte. */}
               {site.logo && (
