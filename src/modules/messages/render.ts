@@ -709,6 +709,21 @@ async function renderManager(
       label: t("notifications.manager.data_request.open"),
       url: `${space}/plus/donnees-clientes`,
     };
+  } else if (template === "manager.stripe_invite") {
+    const resume = (row.data as { state?: string }).state === "incomplete";
+    subject = t("notifications.manager.stripe_invite.subject");
+    title = t("notifications.manager.stripe_invite.title");
+    paragraphs = [
+      t(
+        resume
+          ? "notifications.manager.stripe_invite.introResume"
+          : "notifications.manager.stripe_invite.intro",
+      ),
+      t("notifications.manager.stripe_invite.steps"),
+      t("notifications.manager.stripe_invite.money"),
+      t("notifications.manager.stripe_invite.login"),
+    ];
+    action = { label: t("notifications.manager.stripe_invite.open"), url: `${space}/plus/paiements` };
   } else if (template === "manager.push_test") {
     subject = t("notifications.manager.push_test.body");
     title = subject;

@@ -12,7 +12,13 @@ import { getSubscription } from "@/modules/billing/subscriptions";
 import { connectState } from "@/modules/payments/connect";
 import { formatPhone } from "@/modules/phone";
 import { listPlans } from "@/modules/tenants/queries";
-import { addDomainAction, changePlanAction, changeStatusAction, domainAction } from "../actions";
+import {
+  addDomainAction,
+  changePlanAction,
+  changeStatusAction,
+  domainAction,
+  sendStripeInviteAction,
+} from "../actions";
 
 /** Fiche d'un client : pack, statut, utilisation du mois, gérante, adresses du site. */
 export default async function TenantOverviewPage({
@@ -150,16 +156,30 @@ export default async function TenantOverviewPage({
 
         <Section title={t("businesses")}>
           <ul className="space-y-3">
-            {overview.businesses.map((business) => (
-              <li key={business.id}>
-                <p className="font-semibold">{business.name}</p>
-                <p className="text-sm text-ink/70">
-                  {[business.siret, t(`stripeState.${connectState(business, plan.features)}`)]
-                    .filter(Boolean)
-                    .join(" · ")}
-                </p>
-              </li>
-            ))}
+            {overview.businesses.map((business) => {
+              const stripe = connectState(business, plan.features);
+              return (
+                <li key={business.id} className="space-y-2">
+                  <div>
+                    <p className="font-semibold">{business.name}</p>
+                    <p className="text-sm text-ink/70">
+                      {[business.siret, t(`stripeState.${stripe}`)].filter(Boolean).join(" · ")}
+                    </p>
+                  </div>
+                  {/* Compte à ouvrir ou à terminer : c'est la gérante qui le fait, on lui envoie le lien. */}
+                  {(stripe === "not_started" || stripe === "incomplete") && (
+                    <ActionForm
+                      action={sendStripeInviteAction}
+                      submitLabel={t("stripeInvite")}
+                      variant="secondary"
+                    >
+                      <Hidden values={{ tenantId, businessId: business.id }} />
+                      <p className="text-sm text-ink/70">{t("stripeInviteHint")}</p>
+                    </ActionForm>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </Section>
 

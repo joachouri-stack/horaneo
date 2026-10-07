@@ -26,6 +26,7 @@ import {
   unseenNotificationCount,
 } from "@/modules/notifications/feed";
 import { saveDevice } from "@/modules/notifications/devices";
+import { queueStripeInvite } from "@/modules/payments/connect";
 import { queueEmailReminders, queueSmsReminders, queueSummaries } from "@/modules/messages/schedule";
 import { smsSenderName } from "@/modules/messages/senders";
 import { syncDeposit } from "@/modules/payments/deposits";
@@ -331,6 +332,27 @@ describe.skipIf(!hasTestDatabase)("messages automatiques", () => {
       // La page Notifications ne compte pas la notification en plus de l'e-mail.
       const feed = await asTenant(s.id, (tx) => listNotifications(tx, s.id, { userId: manager.id }));
       expect(feed.map((item) => item.kind)).toEqual(["cancelled", "new_booking"]);
+    });
+
+    it("lien Stripe envoyé par l'administratrice : e-mail à la gérante vers sa page Paiements", async () => {
+      const s = await setup();
+      const [business] = await owner.select().from(businesses).where(eq(businesses.tenantId, s.id));
+      fake.clear();
+      await platform((tx) => queueStripeInvite(tx, s.id, { businessId: business.id }));
+      await dispatch(s.id);
+      const [mail] = emailsTo(s.managerEmail);
+      expect(mail.subject).toBe("Activez les acomptes en ligne sur votre site");
+      expect(mail.text).toContain(`/espace/${s.id}/plus/paiements`);
+      // Compte déjà actif : rien à envoyer.
+      await owner
+        .update(businesses)
+        .set({ stripeAccountId: "acct_test", stripeChargesEnabled: true })
+        .where(eq(businesses.id, business.id));
+      await expect(
+        platform((tx) => queueStripeInvite(tx, s.id, { businessId: business.id })),
+      ).rejects.toMatchObject({
+        code: "stripe_already_active",
+      });
     });
 
     it("annulation par l'établissement et déplacement : la cliente est prévenue", async () => {

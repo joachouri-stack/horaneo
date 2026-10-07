@@ -33,6 +33,7 @@ export const MESSAGE_TEMPLATES = [
   "manager.gift_card_sold",
   "manager.data_request",
   "manager.push_test",
+  "manager.stripe_invite",
   // Au professionnel avant que son site existe, et à l'administratrice
   "account.order_received",
   "account.order_rejected",

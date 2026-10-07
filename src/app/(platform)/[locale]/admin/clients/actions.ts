@@ -1,5 +1,7 @@
 "use server";
 
+import { queueStripeInvite } from "@/modules/payments/connect";
+
 import { setOnlineBooking } from "@/modules/booking/settings";
 import { categoryFields } from "@/modules/catalog/icons";
 import { billingGateway } from "@/lib/payments/stripe-billing";
@@ -282,6 +284,20 @@ export async function addBusinessManagerAction(_previous: Previous, data: FormDa
   if (result.ok) {
     const t = await getTranslations("admin.tenant.businesses");
     return { ...result, message: t("managerAdded") };
+  }
+  return result;
+}
+
+export async function sendStripeInviteAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const businessId = businessIdOf(data);
+  const result = await adminMutation(
+    { action: "business.stripe_invite", tenantId, targetType: "business", targetId: businessId, businessId },
+    (tx) => queueStripeInvite(tx, tenantId, { businessId }),
+  );
+  if (result.ok) {
+    const t = await getTranslations("admin.tenant.overview");
+    return { ...result, message: t("stripeInviteSent") };
   }
   return result;
 }

@@ -826,7 +826,10 @@
         },
         "subscription": "Abonnement",
         "subscriptionNone": "Aucun abonnement Stripe (pack attribué à la main).",
-        "businesses": "Entreprises"
+        "businesses": "Entreprises",
+        "stripeInvite": "Envoyer le lien Stripe au client",
+        "stripeInviteHint": "La gérante reçoit un e-mail avec le lien direct vers la page Paiements de son espace. C'est elle qui renseigne son identité et son IBAN.",
+        "stripeInviteSent": "E-mail envoyé à la gérante."
       },
       "identity": {
         "title": "Coordonnées",
@@ -1212,6 +1215,7 @@
   "errors": {
     "invalid": "Certaines informations sont incomplètes ou invalides.",
     "personal_setting": "Ce réglage est personnel : seule la gérante peut le changer, depuis son propre téléphone.",
+    "stripe_already_active": "Le compte de paiement de cette entreprise est déjà actif : rien à envoyer.",
     "not_found": "Élément introuvable. Il a peut-être été supprimé.",
     "slug_taken": "Cette adresse est déjà utilisée par un autre établissement.",
     "slug_reserved": "Cette adresse est réservée. Choisissez-en une autre.",
@@ -2149,6 +2153,16 @@
       },
       "push_test": {
         "body": "Les notifications fonctionnent sur cet appareil."
+      },
+      "stripe_invite": {
+        "subject": "Activez les acomptes en ligne sur votre site",
+        "title": "Reliez votre compte bancaire",
+        "intro": "Pour que vos clientes puissent payer un acompte en réservant, il reste à relier votre compte bancaire. Cela prend environ 10 minutes, depuis votre téléphone ou votre ordinateur.",
+        "introResume": "L'ouverture de votre compte de paiement n'est pas terminée. Reprenez là où vous vous étiez arrêtée : cela ne prend que quelques minutes.",
+        "steps": "Touchez le bouton ci-dessous, puis suivez les étapes de Stripe, notre partenaire de paiement : votre identité, votre activité (SIRET) et l'IBAN du compte qui recevra les acomptes.",
+        "money": "Les acomptes arrivent directement sur votre compte bancaire : ils ne passent jamais par nous.",
+        "login": "Si l'espace vous le demande, connectez-vous avec cette adresse e-mail : vous recevrez un code.",
+        "open": "Relier mon compte bancaire"
       }
     },
     "account": {
