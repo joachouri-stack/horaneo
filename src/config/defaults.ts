@@ -37,7 +37,23 @@ export const DEFAULT_PLATFORM_SETTINGS = {
   stripe_tax_rate: null as null | { id: string; percent: number; inclusive: boolean },
   /** Hébergeur de l'infrastructure, affiché dans les mentions légales des sites (à vérifier). */
   legal_infrastructure: "Hostinger International Ltd, 61 Lordou Vironos Street, 6023 Larnaca, Chypre",
+  /** Bloc « Ils nous font confiance » de l'accueil (vide = bloc caché), rempli depuis l'admin. */
+  showcase: [] as ShowcaseEntry[],
 } as const;
+
+/** Témoignage d'un professionnel client, affiché sur l'accueil du site commercial. */
+export type ShowcaseEntry = {
+  id: string;
+  /** Nom de l'établissement. */
+  name: string;
+  /** Métier et ville (ex. « Institut de beauté, Avignon »). */
+  activity: string;
+  /** Adresse du site du client (facultative). */
+  url: string | null;
+  quote: string;
+  /** Prénom (et rôle) de la personne qui témoigne. */
+  author: string;
+};
 
 export type PlatformSettingKey = keyof typeof DEFAULT_PLATFORM_SETTINGS;
 

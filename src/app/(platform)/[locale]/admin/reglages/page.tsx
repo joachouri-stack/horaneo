@@ -1,12 +1,14 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
-import { Section, SelectField, TextField } from "@/components/admin/fields";
+import { Hidden, Section, SelectField, TextArea, TextField } from "@/components/admin/fields";
 import { resolveLocale } from "@/i18n/translator";
 import { adminQuery } from "@/lib/admin/mutation";
 import { requireAdmin } from "@/lib/auth/session";
 import { centsToInput } from "@/lib/format";
 import { getPlatformSetting } from "@/modules/settings";
+import { listShowcase, SHOWCASE_MAX } from "@/modules/showcase/showcase";
 import { saveSettingsAction } from "../packs/actions";
+import { addShowcaseAction, removeShowcaseAction } from "./actions";
 
 /** Réglages généraux : affichage des prix, engagement, frais, délais, messages. */
 export default async function SettingsPage({ params }: PageProps<"/[locale]/admin/reglages">) {
@@ -34,6 +36,7 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
       await Promise.all(keys.map(async (key) => [key, await getPlatformSetting(tx, key)])),
     ) as Record<(typeof keys)[number], string | number>;
   });
+  const showcase = await adminQuery((tx) => listShowcase(tx));
   const field = (name: Exclude<keyof typeof s, "setup_fee_cents">, type = "number", hint?: string) => (
     <TextField name={name} type={type} label={t(name)} defaultValue={s[name]} hint={hint} required />
   );
@@ -81,6 +84,68 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
         </Section>
         <Section title={t("legal")}>{field("legal_infrastructure", "text")}</Section>
       </ActionForm>
+
+      {/* Bloc « Ils nous font confiance » de l'accueil : caché tant qu'il est vide. */}
+      <Section title={t("showcase.title")}>
+        <p className="mb-4 text-sm text-ink/70">{t("showcase.intro", { max: SHOWCASE_MAX })}</p>
+        {showcase.length > 0 && (
+          <ul className="mb-6 space-y-3">
+            {showcase.map((entry) => (
+              <li key={entry.id} className="rounded-[var(--radius-card)] border-2 border-line bg-white p-4">
+                <p className="text-ink">« {entry.quote} »</p>
+                <p className="mt-2 text-sm font-semibold text-night">
+                  {entry.author} · {entry.name}
+                </p>
+                <p className="text-sm text-ink/70">
+                  {[entry.activity, entry.url].filter(Boolean).join(" · ")}
+                </p>
+                <ActionForm
+                  action={removeShowcaseAction}
+                  submitLabel={t("showcase.remove")}
+                  variant="danger"
+                  confirm={t("showcase.removeConfirm", { name: entry.name })}
+                  className="mt-2 space-y-2"
+                >
+                  <Hidden values={{ id: entry.id }} />
+                </ActionForm>
+              </li>
+            ))}
+          </ul>
+        )}
+        {showcase.length < SHOWCASE_MAX && (
+          <ActionForm action={addShowcaseAction} submitLabel={t("showcase.add")} resetOnSuccess>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <TextField name="name" label={t("showcase.name")} required />
+              <TextField
+                name="activity"
+                label={t("showcase.activity")}
+                hint={t("showcase.activityHint")}
+                required
+              />
+              <TextField
+                name="author"
+                label={t("showcase.author")}
+                hint={t("showcase.authorHint")}
+                required
+              />
+              <TextField
+                name="url"
+                type="url"
+                inputMode="url"
+                label={t("showcase.url")}
+                hint={t("showcase.urlHint")}
+              />
+            </div>
+            <TextArea
+              name="quote"
+              label={t("showcase.quote")}
+              hint={t("showcase.quoteHint")}
+              rows={3}
+              required
+            />
+          </ActionForm>
+        )}
+      </Section>
     </main>
   );
 }
