@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { AppointmentCard } from "@/components/manager/AppointmentCard";
+import { PushReminder } from "@/components/manager/PushReminder";
 import { ui } from "@/components/ui/styles";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
@@ -23,6 +24,19 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
           +
         </Link>
       </div>
+
+      {/* Rappel tant que les notifications ne sont pas activées sur cet appareil (gérante seulement). */}
+      {page.role !== "admin" && (
+        <PushReminder
+          href={`${page.base}/notifications`}
+          labels={{
+            title: t("pushReminder.title"),
+            text: t("pushReminder.text"),
+            action: t("pushReminder.action"),
+            later: t("pushReminder.later"),
+          }}
+        />
+      )}
 
       <dl className="grid grid-cols-3 gap-3">
         {[
