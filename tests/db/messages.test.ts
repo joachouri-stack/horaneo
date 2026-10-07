@@ -10,6 +10,7 @@ import {
   plans,
   businessSettings,
   usageCounters,
+  users,
 } from "@/db/schema";
 import { cancelByManager, createManualAppointment, moveAppointment } from "@/modules/agenda/actions";
 import { createBooking, manageTokenFor, type BookingInput } from "@/modules/booking/create";
@@ -18,6 +19,11 @@ import { localToUtc } from "@/modules/booking/time";
 import { saveService } from "@/modules/catalog/services";
 import { purgeReplacedAssets } from "@/modules/media/purge";
 import { dispatchMessages } from "@/modules/messages/dispatch";
+import {
+  listNotifications,
+  markNotificationsSeen,
+  unseenNotificationCount,
+} from "@/modules/notifications/feed";
 import { queueEmailReminders, queueSmsReminders, queueSummaries } from "@/modules/messages/schedule";
 import { smsSenderName } from "@/modules/messages/senders";
 import { syncDeposit } from "@/modules/payments/deposits";
@@ -250,6 +256,35 @@ describe.skipIf(!hasTestDatabase)("messages automatiques", () => {
       expect(mail.subject).toBe("Votre rendez-vous du mardi 6 octobre est annulé");
       expect(mail.text).toContain("est bien annulé");
       expect(emailsTo(s.managerEmail)[0].subject).toBe("Annulation : Camille, mardi 6 octobre à 10:00");
+    });
+
+    it("espace gérante : l'annulation et la réservation apparaissent dans les notifications, jusqu'à ce qu'elle les ouvre", async () => {
+      const s = await setup();
+      const other = await setup();
+      const [manager] = await owner
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.email, s.managerEmail));
+      const input = { userId: manager.id };
+      const result = await book(s);
+      await book(other);
+      await asTenant(s.id, (tx) => cancelByCustomer(tx, s.id, result.manageToken, NOW, gateway.gateway));
+      const list = await asTenant(s.id, (tx) => listNotifications(tx, s.id, input));
+      expect(list.map((item) => [item.kind, item.customer, item.unseen])).toEqual([
+        ["cancelled", "Camille", true],
+        ["new_booking", "Camille", true],
+      ]);
+      expect(list[0].appointmentId).toBe(result.appointmentId);
+      expect(await asTenant(s.id, (tx) => unseenNotificationCount(tx, s.id, input))).toBe(2);
+      await asTenant(s.id, (tx) => markNotificationsSeen(tx, s.id, input));
+      expect(await asTenant(s.id, (tx) => unseenNotificationCount(tx, s.id, input))).toBe(0);
+      expect(
+        (await asTenant(s.id, (tx) => listNotifications(tx, s.id, input))).every((item) => !item.unseen),
+      ).toBe(true);
+      // Un autre établissement ne voit rien de celui-ci.
+      expect(
+        (await asTenant(other.id, (tx) => listNotifications(tx, other.id, input))).map((item) => item.kind),
+      ).toEqual(["new_booking"]);
     });
 
     it("annulation par l'établissement et déplacement : la cliente est prévenue", async () => {

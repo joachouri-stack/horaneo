@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { ManagerTabs } from "@/components/manager/ManagerTabs";
+import { NotificationBell } from "@/components/manager/NotificationBell";
 import { Link } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/translator";
 import { withTenant } from "@/db/access";
 import { managedTenantIds, requireManager } from "@/lib/manager/access";
 import { getSubscription } from "@/modules/billing/subscriptions";
+import { unseenNotificationCount } from "@/modules/notifications/feed";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
@@ -18,10 +20,16 @@ export default async function ManagerLayout({
   const { locale: rawLocale, tenantId } = await params;
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
-  const { tenant, business, multiBusiness, role, userId } = await requireManager(locale, tenantId);
+  const { tenant, business, businessId, multiBusiness, role, userId } = await requireManager(
+    locale,
+    tenantId,
+  );
   const t = await getTranslations("manager");
   const several = role === "owner" && (await managedTenantIds(userId)).length > 1;
-  const subscription = await withTenant(tenantId, (tx) => getSubscription(tx, tenantId));
+  const [subscription, unseen] = await Promise.all([
+    withTenant(tenantId, (tx) => getSubscription(tx, tenantId)),
+    withTenant(tenantId, (tx) => unseenNotificationCount(tx, tenantId, { userId }), undefined, businessId),
+  ]);
 
   return (
     <>
@@ -56,11 +64,18 @@ export default async function ManagerLayout({
             {tenant.name}
             {multiBusiness && <span className="font-semibold text-ink/70"> · {business.name}</span>}
           </p>
-          {several && (
-            <Link href="/espace" className="shrink-0 text-sm font-semibold text-night underline">
-              {t("switchTenant")}
-            </Link>
-          )}
+          <div className="flex shrink-0 items-center gap-3">
+            {several && (
+              <Link href="/espace" className="text-sm font-semibold text-night underline">
+                {t("switchTenant")}
+              </Link>
+            )}
+            <NotificationBell
+              href={`/espace/${tenantId}/notifications`}
+              count={unseen}
+              label={unseen > 0 ? t("notifications.bellUnseen", { count: unseen }) : t("notifications.title")}
+            />
+          </div>
         </div>
       </div>
       <div className="mx-auto max-w-3xl px-4">
