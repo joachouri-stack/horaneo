@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Fraunces, Inter, Jost } from "next/font/google";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
@@ -15,21 +14,12 @@ import { absoluteImageUrl, siteBaseUrl } from "@/lib/site/urls";
 import { siteCta } from "@/modules/site/cta";
 import { homeDescription, localBusinessJsonLd, serializeJsonLd } from "@/modules/site/seo";
 import { buildTheme, themeCssVariables } from "@/modules/site/theme";
+// Polices fournies avec le projet : la construction ne dépend pas du réseau.
+import "@fontsource-variable/inter/wght.css";
+import "@fontsource-variable/cormorant-garamond/wght.css";
+import "@fontsource-variable/fraunces/wght.css";
+import "@fontsource-variable/jost/wght.css";
 import "../../../globals.css";
-
-const inter = Inter({
-  subsets: ["latin", "latin-ext", "cyrillic"],
-  variable: "--font-inter",
-  display: "swap",
-});
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin", "latin-ext", "cyrillic"],
-  weight: ["500", "600", "700"],
-  variable: "--font-cormorant",
-  display: "swap",
-});
-const fraunces = Fraunces({ subsets: ["latin", "latin-ext"], variable: "--font-fraunces", display: "swap" });
-const jost = Jost({ subsets: ["latin", "latin-ext", "cyrillic"], variable: "--font-jost", display: "swap" });
 
 /**
  * Mise en page du site d'un client (modèle bien-être). On n'arrive ici que par
@@ -91,10 +81,7 @@ export default async function TenantLayout({ children, params }: LayoutProps<"/s
   );
 
   return (
-    <html
-      lang={locale}
-      className={`${inter.variable} ${cormorant.variable} ${fraunces.variable} ${jost.variable}`}
-    >
+    <html lang={locale}>
       <body style={style} className="min-h-dvh bg-site-bg font-site-body text-site-text antialiased">
         <NextIntlClientProvider timeZone={site.tenant.timezone} messages={clientMessages}>
           {preview && (

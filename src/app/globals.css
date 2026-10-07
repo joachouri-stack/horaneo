@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+/* Noms des polices fournies avec le projet (paquets @fontsource, importés par les layouts). */
+:root {
+  --font-bricolage: "Bricolage Grotesque Variable";
+  --font-outfit: "Outfit Variable";
+  --font-comfortaa: "Comfortaa";
+  --font-inter: "Inter Variable";
+  --font-cormorant: "Cormorant Garamond Variable";
+  --font-fraunces: "Fraunces Variable";
+  --font-jost: "Jost Variable";
+}
+
 /*
  * Identité visuelle du SaaS (site commercial, espace admin, espace gérante).
  * Les sites des clients n'utilisent PAS cette palette : ils ont leurs propres couleurs.
