@@ -3,17 +3,20 @@ import { splitPlans } from "@/modules/billing/showcase";
 import { getTranslations } from "next-intl/server";
 import { SubmitButton } from "@/components/ui/SubmitButton";
 import { ui } from "@/components/ui/styles";
+import { withPlatform } from "@/db/access";
 import { usageCounters } from "@/db/schema";
 import { pickLocalized } from "@/i18n/locales";
 import { managerPage } from "@/lib/manager/page";
 import { billingGateway } from "@/lib/payments/stripe-billing";
 import { listPublicPlans, planHighlights } from "@/modules/billing/plans";
+import { canBuySmsPacks, listSmsPacks, smsPackOffer, syncSmsPackPayment } from "@/modules/billing/sms-packs";
+import { smsUsage } from "@/modules/messages/sms-usage";
 import { getSubscription, isLive } from "@/modules/billing/subscriptions";
 import type { AppErrorCode } from "@/modules/errors";
 import { countUsage } from "@/modules/quotas";
 import { getPlatformSetting } from "@/modules/settings";
 import { currentPeriod } from "@/modules/tenants/queries";
-import { changeSubscriptionAction, openBillingPortalAction } from "../../actions";
+import { buySmsPackAction, changeSubscriptionAction, openBillingPortalAction } from "../../actions";
 
 const RESULTS = ["upgraded", "downgraded", "downgrade_scheduled", "cancel_scheduled", "kept"] as const;
 
@@ -28,6 +31,11 @@ export default async function SubscriptionPage({
     getTranslations("manager.subscription"),
     getTranslations("errors"),
   ]);
+  // Retour de la page de paiement d'un pack de SMS : crédité tout de suite (sans attendre Stripe).
+  const smsCheckout = typeof query.paiement === "string" ? query.paiement : null;
+  if (query.sms === "ok" && smsCheckout) {
+    await withPlatform((tx) => syncSmsPackPayment(tx, page.tenantId, smsCheckout, billingGateway()));
+  }
   const data = await page.db(async (tx) => {
     const [counter] = await tx
       .select()
@@ -41,7 +49,6 @@ export default async function SubscriptionPage({
     return {
       usage: {
         onlineBookings: counter?.onlineBookings ?? 0,
-        sms: counter?.smsSent ?? 0,
         members: await countUsage(tx, page.tenantId, "members"),
         photos: await countUsage(tx, page.tenantId, "photos"),
         services: await countUsage(tx, page.tenantId, "services"),
@@ -51,9 +58,15 @@ export default async function SubscriptionPage({
       display: await getPlatformSetting(tx, "prices_display"),
       setupFeeCents: Number(await getPlatformSetting(tx, "setup_fee_cents")),
       commitmentMonths: Number(await getPlatformSetting(tx, "commitment_months")),
+      noCommitmentFeeCents: Number(await getPlatformSetting(tx, "no_commitment_setup_fee_cents")),
+      sms: await smsUsage(tx, page.tenantId),
+      smsPacks: await listSmsPacks(tx, page.tenantId),
+      smsOffer: await smsPackOffer(tx),
+      canBuySms: await canBuySmsPacks(tx, page.tenantId),
+      warningPercent: Number(await getPlatformSetting(tx, "sms_warning_percent")),
     };
   });
-  const { usage, subscription, display } = data;
+  const { usage, subscription, display, sms } = data;
   const limits = page.tenant.limits;
   const current = data.plans.find((plan) => plan.id === page.tenant.planId);
   const currentPrice = current?.priceCents ?? 0;
@@ -73,7 +86,6 @@ export default async function SubscriptionPage({
 
   const rows = [
     { label: t("onlineBookings"), used: usage.onlineBookings, limit: limits.onlineBookingsPerMonth },
-    { label: t("sms"), used: usage.sms, limit: limits.smsPerMonth },
     { label: t("members"), used: usage.members, limit: limits.members },
     { label: t("photos"), used: usage.photos, limit: limits.photos },
     { label: t("services"), used: usage.services, limit: limits.services },
@@ -141,6 +153,7 @@ export default async function SubscriptionPage({
           {live?.commitmentEndsAt && live.commitmentEndsAt > new Date() && (
             <p>{t("status.commitment", { date: page.fmt.short(live.commitmentEndsAt) })}</p>
           )}
+          {live && live.withCommitment === false && <p>{t("status.noCommitment")}</p>}
         </div>
         {scheduled && periodEnd && (
           <div className="mt-4 rounded-[var(--radius-card)] bg-ivory p-4">
@@ -186,6 +199,98 @@ export default async function SubscriptionPage({
           })}
         </ul>
       </section>
+
+      {sms && (
+        <section id="sms" className={`${ui.card} scroll-mt-24`} aria-labelledby="titre-sms">
+          <h2 id="titre-sms" className="text-xl font-bold">
+            {t("smsTitle")}
+          </h2>
+          {query.sms === "ok" && (
+            <p role="status" className={`${ui.success} mt-3`}>
+              {t("smsBought")}
+            </p>
+          )}
+          {query.sms === "annule" && (
+            <p role="status" className={`${ui.error} mt-3`}>
+              {t("smsCancelled")}
+            </p>
+          )}
+          {sms.limit === 0 ? (
+            <p className="mt-2 text-ink/80">{t("smsNone")}</p>
+          ) : (
+            <>
+              {sms.limit !== null && sms.used >= sms.limit && (
+                <p role="alert" className={`${ui.error} mt-3`}>
+                  {sms.packsRemaining > 0 ? t("smsQuotaReachedPacks") : t("smsQuotaReached")}
+                </p>
+              )}
+              {sms.limit !== null &&
+                sms.used < sms.limit &&
+                sms.used >= Math.ceil((sms.limit * data.warningPercent) / 100) && (
+                  <p role="status" className={`${ui.card} mt-3 border-coral/40 bg-blush`}>
+                    {t("smsQuotaAlmost", { used: sms.used, limit: sms.limit })}
+                  </p>
+                )}
+              <dl className="mt-3 divide-y divide-navy/10">
+                {[
+                  {
+                    label: t("smsUsed"),
+                    value:
+                      sms.limit === null ? String(sms.used) : t("of", { used: sms.used, limit: sms.limit }),
+                  },
+                  {
+                    label: t("smsRemaining"),
+                    value: sms.remaining === null ? t("unlimited") : String(sms.remaining),
+                  },
+                  { label: t("smsReset"), value: page.fmt.short(new Date(`${sms.resetsOn}T12:00:00Z`)) },
+                  { label: t("smsExtra"), value: String(sms.packsRemaining) },
+                ].map((row) => (
+                  <div key={row.label} className="flex justify-between gap-3 py-3">
+                    <dt>{row.label}</dt>
+                    <dd className="text-right font-semibold">{row.value}</dd>
+                  </div>
+                ))}
+              </dl>
+              <p className="mt-3 text-sm text-ink/70">{t("smsRules")}</p>
+              {data.canBuySms && configured && data.smsOffer.priceCents > 0 && (
+                <form action={buySmsPackAction} className="mt-4">
+                  <input type="hidden" name="tenantId" value={page.tenantId} />
+                  <SubmitButton className={`${ui.primaryButton} sm:w-auto`}>
+                    {t("smsBuy", {
+                      count: data.smsOffer.size,
+                      amount: page.fmt.money(data.smsOffer.priceCents),
+                    })}
+                  </SubmitButton>
+                  <p className="mt-2 text-sm text-ink/70">{t("smsBuyHint")}</p>
+                </form>
+              )}
+              {data.smsPacks.length > 0 && (
+                <>
+                  <h3 className="mt-6 font-semibold">{t("smsPacks")}</h3>
+                  <ul className="mt-2 divide-y divide-navy/10 text-sm">
+                    {data.smsPacks.map((pack) => (
+                      <li key={pack.id} className="flex flex-wrap justify-between gap-2 py-2">
+                        <span>
+                          {t("smsPackLine", {
+                            date: pack.paidAt ? page.fmt.short(pack.paidAt) : "",
+                            count: pack.quantity,
+                            amount: page.fmt.money(pack.priceCents),
+                          })}
+                        </span>
+                        <span className="text-ink/70">
+                          {pack.status === "expired"
+                            ? t("smsPackExpired")
+                            : t("smsPackRemaining", { count: pack.remaining })}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </>
+          )}
+        </section>
+      )}
 
       <section className="space-y-3">
         <h2 className="text-xl font-bold">{t("choose")}</h2>
@@ -241,18 +346,58 @@ export default async function SubscriptionPage({
                         </li>
                       ))}
                     </ul>
-                    {!live && plan.priceCents > 0 && !isCurrent && (
-                      <p className="mt-3 text-sm text-ink/70">
-                        {data.commitmentMonths > 0 &&
-                          `${t("commitmentInfo", { months: data.commitmentMonths })} `}
-                        {(plan.setupFeeCents ?? data.setupFeeCents) > 0 &&
-                          t("setupFee", { amount: page.fmt.money(plan.setupFeeCents ?? data.setupFeeCents) })}
-                      </p>
-                    )}
+                    {!live &&
+                      plan.priceCents > 0 &&
+                      !isCurrent &&
+                      data.commitmentMonths === 0 &&
+                      (plan.setupFeeCents ?? data.setupFeeCents) > 0 && (
+                        <p className="mt-3 text-sm text-ink/70">
+                          {t("setupFee", {
+                            amount: page.fmt.money(plan.setupFeeCents ?? data.setupFeeCents),
+                          })}
+                        </p>
+                      )}
                     {canChoose && (
                       <form action={changeSubscriptionAction} className="mt-4 space-y-2">
                         <input type="hidden" name="tenantId" value={page.tenantId} />
                         <input type="hidden" name="planId" value={plan.id} />
+                        {/* Souscription : avec engagement (création offerte) ou sans (frais de création). */}
+                        {!live && plan.priceCents > 0 && data.commitmentMonths > 0 && (
+                          <fieldset className="space-y-2">
+                            <legend className="text-sm font-semibold">{t("formula")}</legend>
+                            {[
+                              {
+                                value: "yes",
+                                label: t("withCommitment", {
+                                  months: data.commitmentMonths,
+                                  fee:
+                                    (plan.setupFeeCents ?? data.setupFeeCents) > 0
+                                      ? page.fmt.money(plan.setupFeeCents ?? data.setupFeeCents)
+                                      : "none",
+                                }),
+                              },
+                              {
+                                value: "no",
+                                label: t("withoutCommitment", {
+                                  fee: page.fmt.money(
+                                    (plan.setupFeeCents ?? data.setupFeeCents) + data.noCommitmentFeeCents,
+                                  ),
+                                }),
+                              },
+                            ].map((option) => (
+                              <label key={option.value} className="flex items-start gap-3 text-sm">
+                                <input
+                                  type="radio"
+                                  name="commitment"
+                                  value={option.value}
+                                  defaultChecked={option.value === "yes"}
+                                  className="mt-0.5 h-5 w-5 shrink-0 accent-navy"
+                                />
+                                <span>{option.label}</span>
+                              </label>
+                            ))}
+                          </fieldset>
+                        )}
                         {hint && <p className="text-sm text-ink/70">{hint}</p>}
                         <SubmitButton
                           className={`${upgrade || !live ? ui.primaryButton : ui.secondaryButton} sm:w-auto`}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderEmail } from "@/modules/messages/layout";
-import { smsSenderName, toGsm7 } from "@/modules/messages/senders";
+import { fitSingleSms, smsSegments, smsSenderName, toGsm7 } from "@/modules/messages/senders";
 
 describe("expéditeur des SMS", () => {
   it("nom de l'établissement sans accent, 11 caractères au plus", () => {
@@ -40,5 +40,35 @@ describe("mise en page des e-mails", () => {
     expect(html).not.toContain("background:#ffff00");
     expect(text).toContain("Date : mardi");
     expect(text).toContain("Voir : https://exemple.test/?a=1&b=2");
+  });
+});
+
+describe("nombre de SMS d'un message", () => {
+  it("160 caractères standard en un SMS, puis 153 par SMS ; hors alphabet standard : 70, puis 67", () => {
+    expect(smsSegments("a".repeat(160))).toBe(1);
+    expect(smsSegments("a".repeat(161))).toBe(2);
+    expect(smsSegments("a".repeat(306))).toBe(2);
+    expect(smsSegments("a".repeat(307))).toBe(3);
+    // « € » compte double dans l'alphabet standard.
+    expect(smsSegments(`${"a".repeat(158)}€`)).toBe(1);
+    expect(smsSegments(`${"a".repeat(159)}€`)).toBe(2);
+    expect(smsSegments(`${"a".repeat(69)}ê`)).toBe(1);
+    expect(smsSegments(`${"a".repeat(70)}ê`)).toBe(2);
+    expect(smsSegments(`${"a".repeat(134)}ê`)).toBe(3);
+  });
+
+  it("le rappel tient toujours en un seul SMS, même avec un nom d'établissement très long", () => {
+    const build = (name: string) =>
+      `Rappel : rendez-vous demain à 10:00 chez ${name}. Pour annuler ou déplacer : +33 4 72 00 00 00`;
+    const short = fitSingleSms(build, "Ma Beauté Institut");
+    expect(short).toBe(build("Ma Beauté Institut"));
+    const long = fitSingleSms(
+      build,
+      "Institut de beauté et de bien-être « Le Jardin des Délices » d'Avignon-Montfavet",
+    );
+    expect(long.length).toBeLessThanOrEqual(160);
+    expect(smsSegments(long)).toBe(1);
+    expect(long).toContain("Institut de beauté et de bien-etre");
+    expect(long).toContain("Pour annuler ou déplacer : +33 4 72 00 00 00");
   });
 });

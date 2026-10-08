@@ -24,6 +24,11 @@ export function createFakeBilling() {
       subscriptionId?: string;
     }
   >();
+  /** Paiements uniques (packs de SMS). */
+  const payments = new Map<
+    string,
+    Parameters<BillingGateway["createPaymentCheckout"]>[0] & { paid: boolean }
+  >();
   const taxRates: { id: string; percent: number; inclusive: boolean }[] = [];
   const calls: string[] = [];
 
@@ -72,13 +77,30 @@ export function createFakeBilling() {
     async retrieveSubscription(id) {
       return snapshot(id);
     },
+    async createPaymentCheckout(input) {
+      const id = next("cs");
+      payments.set(id, { ...input, paid: false });
+      return { id, url: `https://checkout.stripe.test/${id}` };
+    },
     async retrieveCheckout(id) {
+      const payment = payments.get(id);
+      if (payment) {
+        return {
+          status: payment.paid ? "complete" : "open",
+          paymentStatus: payment.paid ? "paid" : "unpaid",
+          subscriptionId: null,
+          customerId: payment.customerId,
+          metadata: { ...payment.metadata },
+        };
+      }
       const checkout = checkouts.get(id);
       if (!checkout) throw new Error("Paiement inconnu");
       return {
         status: checkout.subscriptionId ? "complete" : "open",
+        paymentStatus: checkout.subscriptionId ? "paid" : "unpaid",
         subscriptionId: checkout.subscriptionId ?? null,
         customerId: checkout.customerId,
+        metadata: { ...checkout.metadata },
       };
     },
     async cancelNow(id) {
@@ -126,6 +148,11 @@ export function createFakeBilling() {
     prices,
     subscriptions,
     checkouts,
+    payments,
+    /** Le professionnel paie un achat unique (pack de SMS) sur la page Stripe. */
+    completePayment(checkoutId: string) {
+      payments.get(checkoutId)!.paid = true;
+    },
     taxRates,
     calls,
     /** La gérante paie sur la page Stripe : l'abonnement est créé. */

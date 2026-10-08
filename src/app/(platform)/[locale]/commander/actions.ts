@@ -40,6 +40,8 @@ export async function submitOrderAction(
           activity: form.text(data, "activity"),
           phone: form.text(data, "phone"),
           currentWebsite: form.optional(data, "currentWebsite"),
+          // Formule des packs payants (avec engagement par défaut).
+          withCommitment: data.get("commitment") !== "no",
           locale,
         },
         billingGateway(),

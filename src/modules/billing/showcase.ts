@@ -34,7 +34,8 @@ export type ShowcaseKey =
   | "agenda"
   | "photosServices"
   | "statsSummary"
-  | "smsReminders";
+  | "smsReminders"
+  | "emailReminders";
 
 /** Fonctions présentées, dans l'ordre d'affichage. */
 const ROW_KEYS = [
@@ -149,6 +150,8 @@ export function planItems(plans: ShowcasePlan[], index: number): ShowcaseItem[] 
       });
     }
   }
+  // Rappels par e-mail illimités : sur chaque pack avec réservation, même ceux qui reprennent le précédent.
+  if (planAllowsBooking(plan.features)) items.push({ kind: "included", key: "emailReminders" });
   const rows: readonly ShowcaseKey[] = planAllowsBooking(plan.features) ? ROW_KEYS : SITE_ROW_KEYS;
   for (const key of rows) {
     if (key === "photosLimit") {

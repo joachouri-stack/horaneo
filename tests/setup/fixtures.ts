@@ -247,6 +247,9 @@ export async function createTenantWithData(db: TestDb, label: string) {
     .insert(s.customerDataRequests)
     .values({ businessId, tenantId, customerId: customer.id, kind: "export" });
   await db.insert(s.managerNotificationReads).values({ businessId, tenantId, userId: user.id, seenAt: soon });
+  await db
+    .insert(s.smsPacks)
+    .values({ tenantId, quantity: 100, remaining: 100, priceCents: 800, status: "paid" });
 
   return { tenant, business, user, domain, service, staff, customer, appointment };
 }

@@ -35,7 +35,7 @@ import { writeReviewUrl } from "@/modules/reviews/google";
 import { SITE_PATHS } from "@/modules/site/paths";
 import { renderEmail } from "./layout";
 import type { MessageTemplate } from "./queue";
-import { smsSenderName, toGsm7 } from "./senders";
+import { fitSingleSms, smsSenderName, toGsm7 } from "./senders";
 import { dailyAgenda } from "./summaries";
 
 /**
@@ -180,8 +180,11 @@ function customerName(customer: AppointmentInfo["customer"]) {
  * principale ; sinon (quota du site), toutes les gérantes du site.
  */
 async function managerEmails(tx: Transaction, tenantId: string, row: MessageRow) {
+  // Abonnement et SMS (achetés par l'entreprise principale) : ses gérantes.
   const subscription =
-    row.templateKey === "manager.payment_failed" || row.templateKey === "manager.subscription_ended";
+    row.templateKey === "manager.payment_failed" ||
+    row.templateKey === "manager.subscription_ended" ||
+    row.templateKey === "manager.sms_quota";
   const rows = await tx
     .select({ email: users.email })
     .from(memberships)
@@ -424,8 +427,8 @@ async function renderCustomer(
 
   if (template === "customer.reminder_sms") {
     if (!info.customer.phone) return { kind: "skip", reason: "no_phone" };
-    const text =
-      t("notifications.customer.reminder_sms.text", { time: fmt.time(a.startsAt), business }) +
+    const build = (name: string) =>
+      t("notifications.customer.reminder_sms.text", { time: fmt.time(a.startsAt), business: name }) +
       (tenant.phone
         ? t("notifications.customer.reminder_sms.phone", { phone: formatPhone(tenant.phone) })
         : "");
@@ -433,8 +436,9 @@ async function renderCustomer(
       kind: "sms",
       to: info.customer.phone,
       sender: smsSenderName(business, options.productName),
-      // Alphabet SMS standard : un seul caractère hors alphabet (ê, ç…) doublerait le prix du SMS.
-      text: toGsm7(text),
+      // Un seul SMS par rappel : alphabet standard (un « ê » doublerait le prix) et 160 caractères au plus
+      // (un nom d'établissement très long est raccourci).
+      text: fitSingleSms(build, business),
     };
   }
 
@@ -753,6 +757,26 @@ async function renderManager(
     title = subject;
     paragraphs = [];
     action = { label: title, url: `${space}/notifications` };
+  } else if (template === "manager.sms_quota") {
+    const data = row.data as { level?: number; used?: number; limit?: number; resetsOn?: string };
+    const reached = (data.level ?? 0) >= 100;
+    const resetsOn = data.resetsOn ? fmt.date(new Date(`${data.resetsOn}T12:00:00Z`)) : "";
+    subject = reached
+      ? t("notifications.manager.sms_quota.subjectReached")
+      : t("notifications.manager.sms_quota.subjectAlmost", { percent: data.level ?? 0 });
+    title = subject;
+    paragraphs = [
+      reached
+        ? t("notifications.manager.sms_quota.reached", { limit: data.limit ?? 0, date: resetsOn })
+        : t("notifications.manager.sms_quota.almost", {
+            used: data.used ?? 0,
+            limit: data.limit ?? 0,
+            date: resetsOn,
+          }),
+      t("notifications.manager.sms_quota.email"),
+      t("notifications.manager.sms_quota.packs"),
+    ];
+    action = { label: t("notifications.manager.sms_quota.open"), url: `${space}/plus/abonnement` };
   } else if (template === "manager.payment_failed") {
     subject = t("notifications.manager.payment_failed.subject");
     title = t("notifications.manager.payment_failed.title");

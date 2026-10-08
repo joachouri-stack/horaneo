@@ -35,11 +35,12 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
   // Déjà cliente : le changement de pack se fait depuis son espace.
   if ((await getManagedTenants(session.user.id)).length > 0) redirect({ href: "/espace", locale });
   const [t, tHome] = await Promise.all([getTranslations("order"), getTranslations("home.plans")]);
-  const { plans, display, commitment, setupFee } = await withPlatform(async (tx) => ({
+  const { plans, display, commitment, setupFee, noCommitmentFee } = await withPlatform(async (tx) => ({
     plans: await listPublicPlans(tx),
     display: await getPlatformSetting(tx, "prices_display"),
     commitment: Number(await getPlatformSetting(tx, "commitment_months")),
     setupFee: Number(await getPlatformSetting(tx, "setup_fee_cents")),
+    noCommitmentFee: Number(await getPlatformSetting(tx, "no_commitment_setup_fee_cents")),
   }));
   const selected =
     plans.find((plan) => plan.code === pack) ?? plans.find((plan) => plan.priceCents > 0) ?? plans[0];
@@ -104,6 +105,47 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
                   ))}
               </div>
             </fieldset>
+            {/* Formule des packs payants : avec engagement (création offerte) ou sans (frais de création). */}
+            {commitment > 0 && (
+              <fieldset>
+                <legend className={ui.label}>{t("formula")}</legend>
+                <p className="mb-2 text-sm text-ink/70">{t("formulaHint")}</p>
+                <div className="space-y-2">
+                  {[
+                    {
+                      value: "yes",
+                      title: t("withCommitment", { months: commitment }),
+                      text:
+                        setupFee > 0
+                          ? t("withCommitmentFee", { fee: money(setupFee) })
+                          : t("withCommitmentFree"),
+                    },
+                    {
+                      value: "no",
+                      title: t("withoutCommitment"),
+                      text: t("withoutCommitmentFee", { fee: money(setupFee + noCommitmentFee) }),
+                    },
+                  ].map((option) => (
+                    <label
+                      key={option.value}
+                      className="flex cursor-pointer items-start gap-3 rounded-[var(--radius-card)] border-2 border-navy/15 p-4 has-[:checked]:border-navy"
+                    >
+                      <input
+                        type="radio"
+                        name="commitment"
+                        value={option.value}
+                        defaultChecked={option.value === "yes"}
+                        className="mt-0.5 h-5 w-5 shrink-0 accent-navy"
+                      />
+                      <span>
+                        <span className="block font-bold text-night">{option.title}</span>
+                        <span className="block text-sm text-ink/70">{option.text}</span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            )}
             <TextField name="businessName" label={t("businessName")} required />
             <TextField name="activity" label={t("activity")} hint={t("activityHint")} required />
             <TextField name="phone" type="tel" inputMode="tel" label={t("phone")} required />
@@ -113,9 +155,10 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
               label={t("currentWebsite")}
               placeholder={t("currentWebsitePlaceholder")}
             />
-            {/* Rappel avant le paiement : engagement et frais de création des packs payants. */}
+            {/* Rappel avant le paiement : la formule ne concerne que les packs payants. */}
             <p className="text-sm text-ink/70">
-              {t("paidRecap", { months: commitment, fee: setupFee > 0 ? money(setupFee) : "none" })}{" "}
+              {commitment === 0 &&
+                `${t("paidRecap", { months: 0, fee: setupFee > 0 ? money(setupFee) : "none" })} `}
               {t("paidHint")} {t("freeHint")}
             </p>
             <label className="flex items-start gap-3 text-sm">

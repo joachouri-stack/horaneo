@@ -31,6 +31,9 @@ function translate(event: Stripe.Event): BillingEvent {
         ...base,
         kind: "checkout_completed",
         subscriptionId: typeof subscription === "string" ? subscription : (subscription?.id ?? null),
+        checkoutId: session.id,
+        paymentStatus: session.payment_status,
+        metadata: { ...(session.metadata ?? {}) },
       };
     }
     case "invoice.paid":

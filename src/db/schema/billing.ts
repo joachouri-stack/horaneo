@@ -129,6 +129,8 @@ export const subscriptions = pgTable(
     cancelAt: utc(),
     cancelRequestedAt: utc(),
     commitmentEndsAt: utc(),
+    /** Formule choisie à la souscription : avec engagement (création offerte) ou sans (frais de création). null : abonnement antérieur à ce choix. */
+    withCommitment: boolean(),
     /** Pack inférieur choisi, appliqué à la fin de la période en cours. */
     scheduledPlanId: uuid().references(() => plans.id, { onDelete: "set null" }),
     /** Dernier échec de prélèvement (effacé quand un paiement réussit). */
@@ -168,6 +170,8 @@ export const orders = pgTable(
     activity: text().notNull(),
     phone: text().notNull(),
     currentWebsite: text(),
+    /** Formule choisie : avec engagement (création offerte) ou sans (frais de création payés à la commande). */
+    withCommitment: boolean().notNull().default(true),
     locale: text().notNull().default("fr"),
     status: orderStatusEnum().notNull(),
     stripeCheckoutSessionId: text(),
@@ -300,5 +304,42 @@ export const giftCardTransactions = pgTable(
     }).onDelete("restrict"),
     index("gift_card_transactions_card_idx").on(t.giftCardId, t.createdAt),
     index("gift_card_transactions_appointment_idx").on(t.appointmentId),
+  ],
+);
+
+// ─── SMS supplémentaires ──────────────────────────────────────────────────────
+
+export const smsPackStatusEnum = pgEnum("sms_pack_status", ["pending_payment", "paid", "expired"]);
+
+/**
+ * Packs de SMS achetés par la gérante (paiement sur le compte de la plateforme).
+ * Ils ne servent qu'une fois le quota du mois épuisé, les plus anciens d'abord,
+ * et restent disponibles tant que l'abonnement est actif (« expired » ensuite).
+ */
+export const smsPacks = pgTable(
+  "sms_packs",
+  {
+    id: id(),
+    tenantId: uuid()
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    status: smsPackStatusEnum().notNull().default("pending_payment"),
+    quantity: integer().notNull(),
+    /** SMS encore disponibles dans ce pack. */
+    remaining: integer().notNull(),
+    priceCents: cents().notNull(),
+    currency: currency().notNull().default("EUR"),
+    stripeCheckoutSessionId: text(),
+    purchasedByUserId: uuid().references(() => users.id, { onDelete: "set null" }),
+    paidAt: utc(),
+    ...timestamps(),
+  },
+  (t) => [
+    uniqueIndex("sms_packs_checkout_session_key").on(t.stripeCheckoutSessionId),
+    index("sms_packs_tenant_idx").on(t.tenantId, t.status, t.paidAt),
+    check(
+      "sms_packs_quantities",
+      sql`${t.quantity} > 0 and ${t.remaining} >= 0 and ${t.remaining} <= ${t.quantity} and ${t.priceCents} >= 0`,
+    ),
   ],
 );

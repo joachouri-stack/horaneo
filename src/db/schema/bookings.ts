@@ -256,7 +256,10 @@ export const usageCounters = pgTable(
     /** Mois concerné, au format AAAA-MM, dans le fuseau du tenant. */
     period: char({ length: 7 }).notNull(),
     onlineBookings: integer().notNull().default(0),
+    /** SMS pris sur le quota du mois du pack (un message long compte pour chacun de ses SMS). */
     smsSent: integer().notNull().default(0),
+    /** SMS pris sur les packs achetés, une fois le quota du mois épuisé. */
+    smsFromPacks: integer().notNull().default(0),
     emailsSent: integer().notNull().default(0),
     ...timestamps(),
   },

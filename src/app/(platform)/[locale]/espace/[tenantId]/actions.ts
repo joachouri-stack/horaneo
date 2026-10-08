@@ -21,6 +21,7 @@ import {
 import { removeDevice, saveDevice, queuePushTest, type DeviceInput } from "@/modules/notifications/devices";
 import { paymentGateway } from "@/lib/payments/stripe";
 import { billingGateway } from "@/lib/payments/stripe-billing";
+import { startSmsPackPurchase } from "@/modules/billing/sms-packs";
 import { openBillingPortal, requestPlanChange } from "@/modules/billing/subscriptions";
 import { assertPrimaryBusiness } from "@/modules/businesses/businesses";
 import { storage } from "@/lib/storage";
@@ -581,6 +582,8 @@ export async function changeSubscriptionAction(data: FormData) {
         return requestPlanChange(tx, tenantId, planId, billingGateway(), {
           successUrl: `${page}?retour=ok`,
           cancelUrl: `${page}?retour=annule`,
+          // Formule choisie à la souscription (avec engagement par défaut).
+          withCommitment: data.get("commitment") !== "no",
         });
       },
     );
@@ -588,6 +591,38 @@ export async function changeSubscriptionAction(data: FormData) {
   } catch (error) {
     if (!(error instanceof AppError)) throw error;
     target = `${page}?erreur=${error.code}`;
+  }
+  redirectTo(target);
+}
+
+/** Pack de SMS supplémentaires : page de paiement Stripe (rien n'est facturé sans ce geste). */
+export async function buySmsPackAction(data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const locale = resolveLocale(await getLocale());
+  const page = subscriptionPage(locale, tenantId);
+  let target: string;
+  try {
+    target = await managerPlatformAction(
+      tenantId,
+      "sms.pack_purchase",
+      async (tx, { businessId, userId }) => {
+        await assertPrimaryBusiness(tx, tenantId, businessId);
+        return startSmsPackPurchase(
+          tx,
+          tenantId,
+          {
+            userId,
+            // Stripe remplace {CHECKOUT_SESSION_ID} : le pack est crédité dès le retour.
+            successUrl: `${page}?sms=ok&paiement={CHECKOUT_SESSION_ID}#sms`,
+            cancelUrl: `${page}?sms=annule#sms`,
+          },
+          billingGateway(),
+        );
+      },
+    );
+  } catch (error) {
+    if (!(error instanceof AppError)) throw error;
+    target = `${page}?erreur=${error.code}#sms`;
   }
   redirectTo(target);
 }

@@ -7,8 +7,10 @@ import { pickLocalized } from "@/i18n/locales";
 import { resolveLocale } from "@/i18n/translator";
 import { adminQuery } from "@/lib/admin/mutation";
 import { loadTenantOverview } from "@/lib/admin/tenant";
-import { formatDate, formatDateTime } from "@/lib/format";
+import { formatDate, formatDateTime, formatMoney } from "@/lib/format";
+import { listSmsPacks } from "@/modules/billing/sms-packs";
 import { getSubscription } from "@/modules/billing/subscriptions";
+import { smsUsage } from "@/modules/messages/sms-usage";
 import { connectState } from "@/modules/payments/connect";
 import { formatPhone } from "@/modules/phone";
 import { listPlans } from "@/modules/tenants/queries";
@@ -34,9 +36,13 @@ export default async function TenantOverviewPage({
     loadTenantOverview(tenantId),
     adminQuery((tx) => listPlans(tx)),
   ]);
-  const [subscription, tBilling] = await Promise.all([
+  const [subscription, tBilling, sms] = await Promise.all([
     adminQuery((tx) => getSubscription(tx, tenantId)),
     getTranslations("admin.billing"),
+    adminQuery(async (tx) => ({
+      usage: await smsUsage(tx, tenantId),
+      packs: await listSmsPacks(tx, tenantId),
+    })),
   ]);
   const { tenant, plan, domains, managers, usage, counts } = overview;
   const limits = plan.limits;
@@ -121,6 +127,7 @@ export default async function TenantOverviewPage({
                   ` · ${tBilling("next")} : ${formatDate(subscription.currentPeriodEnd, locale)}`}
                 {subscription.commitmentEndsAt &&
                   ` · ${tBilling("commitment", { date: formatDate(subscription.commitmentEndsAt, locale) })}`}
+                {subscription.withCommitment === false && ` · ${tBilling("noCommitment")}`}
                 {subscription.cancelAt &&
                   ` · ${tBilling("cancelAt", { date: formatDate(subscription.cancelAt, locale) })}`}
               </p>
@@ -145,6 +152,9 @@ export default async function TenantOverviewPage({
               { label: t("services"), value: usageLine(counts.services, limits.services) },
               { label: t("members"), value: usageLine(counts.members, limits.members) },
               { label: t("photos"), value: usageLine(counts.photos, limits.photos) },
+              { label: t("smsQuota"), value: usageLine(sms.usage?.used ?? 0, limits.smsPerMonth) },
+              { label: t("smsFromPacks"), value: String(sms.usage?.fromPacks ?? 0) },
+              { label: t("smsPacksRemaining"), value: String(sms.usage?.packsRemaining ?? 0) },
             ].map((item) => (
               <div key={item.label}>
                 <dt className="text-sm text-ink/70">{item.label}</dt>
@@ -152,6 +162,24 @@ export default async function TenantOverviewPage({
               </div>
             ))}
           </dl>
+          {sms.packs.length > 0 && (
+            <div className="mt-4 border-t border-navy/10 pt-4 text-sm">
+              <p className="font-semibold">{t("smsPacks")}</p>
+              <ul className="mt-1 space-y-1 text-ink/80">
+                {sms.packs.map((pack) => (
+                  <li key={pack.id}>
+                    {t("smsPackLine", {
+                      date: pack.paidAt ? formatDate(pack.paidAt, locale) : "",
+                      count: pack.quantity,
+                      amount: formatMoney(pack.priceCents, pack.currency, locale),
+                      remaining: pack.remaining,
+                      status: pack.status,
+                    })}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </Section>
 
         <Section title={t("businesses")}>

@@ -2,7 +2,15 @@ import { and, asc, desc, eq, ne, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
-import { plans, subscriptions, tenants, type PlanFeatures, type PlanLimits } from "@/db/schema";
+import {
+  plans,
+  smsPacks,
+  subscriptions,
+  tenants,
+  usageCounters,
+  type PlanFeatures,
+  type PlanLimits,
+} from "@/db/schema";
 import { AppError } from "@/modules/errors";
 import { setPlatformSetting } from "@/modules/settings";
 import type { BillingGateway } from "./gateway";
@@ -128,6 +136,18 @@ export const settingsInput = z.object({
     .string()
     .trim()
     .regex(/^\d{1,5}([.,]\d{1,2})?$/),
+  /** Frais de création de la formule sans engagement, en euros. */
+  no_commitment_setup_fee: z
+    .string()
+    .trim()
+    .regex(/^\d{1,5}([.,]\d{1,2})?$/),
+  sms_pack_size: z.coerce.number().int().min(1).max(10000),
+  /** Prix du pack de SMS, en euros. */
+  sms_pack_price: z
+    .string()
+    .trim()
+    .regex(/^\d{1,5}([.,]\d{1,2})?$/),
+  sms_warning_percent: z.coerce.number().int().min(1).max(99),
   go_live_delay_days: z.coerce.number().int().min(0).max(60),
   deposit_commission_percent: z.coerce.number().min(0).max(20),
   retention_days_after_cancel: z.coerce.number().int().min(0).max(365),
@@ -141,11 +161,14 @@ export const settingsInput = z.object({
 
 export async function updatePlatformSettings(tx: Transaction, raw: z.input<typeof settingsInput>) {
   const input = settingsInput.parse(raw);
-  const { setup_fee, ...rest } = input;
+  const { setup_fee, no_commitment_setup_fee, sms_pack_price, ...rest } = input;
   for (const [key, value] of Object.entries(rest)) {
     await setPlatformSetting(tx, key as keyof typeof rest, value as never);
   }
-  await setPlatformSetting(tx, "setup_fee_cents", Math.round(Number(setup_fee.replace(",", ".")) * 100));
+  const toCents = (euros: string) => Math.round(Number(euros.replace(",", ".")) * 100);
+  await setPlatformSetting(tx, "setup_fee_cents", toCents(setup_fee));
+  await setPlatformSetting(tx, "no_commitment_setup_fee_cents", toCents(no_commitment_setup_fee));
+  await setPlatformSetting(tx, "sms_pack_price_cents", toCents(sms_pack_price));
   return input;
 }
 
@@ -181,4 +204,37 @@ export async function liveRevenue(tx: Transaction) {
     paying: live.length,
     pastDue: rows.filter((row) => row.subscription.paymentFailedAt && row.live).length,
   };
+}
+
+/**
+ * SMS envoyés par tous les clients, mois par mois (pour suivre le coût chez le
+ * fournisseur), avec les packs de SMS vendus le même mois.
+ */
+export async function smsMonthlyTotals(tx: Transaction, months = 12) {
+  const sent = await tx
+    .select({
+      period: usageCounters.period,
+      fromQuota: sql<number>`sum(${usageCounters.smsSent})::int`,
+      fromPacks: sql<number>`sum(${usageCounters.smsFromPacks})::int`,
+    })
+    .from(usageCounters)
+    .groupBy(usageCounters.period)
+    .orderBy(desc(usageCounters.period))
+    .limit(months);
+  const sold = await tx
+    .select({
+      period: sql<string>`to_char(${smsPacks.paidAt} AT TIME ZONE 'Europe/Paris', 'YYYY-MM')`,
+      packs: sql<number>`count(*)::int`,
+      revenueCents: sql<number>`sum(${smsPacks.priceCents})::int`,
+    })
+    .from(smsPacks)
+    .where(sql`${smsPacks.paidAt} is not null`)
+    .groupBy(sql`1`);
+  const soldOf = new Map(sold.map((row) => [row.period, row]));
+  return sent.map((row) => ({
+    ...row,
+    total: row.fromQuota + row.fromPacks,
+    packsSold: soldOf.get(row.period)?.packs ?? 0,
+    packsRevenueCents: soldOf.get(row.period)?.revenueCents ?? 0,
+  }));
 }

@@ -85,3 +85,41 @@ export function toGsm7(text: string): string {
     })
     .join("");
 }
+
+/** Caractères de l'alphabet SMS standard qui comptent double (table d'extension GSM 03.38). */
+const GSM7_EXTENDED = "^{}\\[~]|€\f";
+
+/**
+ * Nombre de SMS facturés pour un texte : 160 caractères en un seul SMS, 153 par
+ * SMS au-delà (en-tête de découpage) ; hors alphabet standard, 70 puis 67.
+ */
+export function smsSegments(text: string): number {
+  let septets = 0;
+  let gsm = true;
+  for (const char of text) {
+    if (GSM7_BASIC.test(char) || GSM7_ACCENTS.includes(char)) septets += 1;
+    else if (GSM7_EXTENDED.includes(char)) septets += 2;
+    else {
+      gsm = false;
+      break;
+    }
+  }
+  if (text.length === 0) return 1;
+  if (gsm) return septets <= 160 ? 1 : Math.ceil(septets / 153);
+  const units = text.length;
+  return units <= 70 ? 1 : Math.ceil(units / 67);
+}
+
+/**
+ * Texte d'un SMS ramené à un seul SMS : le nom variable (établissement) est
+ * raccourci au besoin, le reste du modèle est gardé tel quel.
+ */
+export function fitSingleSms(build: (name: string) => string, name: string): string {
+  let text = toGsm7(build(name));
+  let length = name.length;
+  while (smsSegments(text) > 1 && length > 3) {
+    length -= 1;
+    text = toGsm7(build(`${name.slice(0, length).trimEnd()}...`));
+  }
+  return text;
+}

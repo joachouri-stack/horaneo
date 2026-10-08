@@ -324,7 +324,9 @@ Envoyés par **Brevo**. Les messages aux clientes partent **au nom de l'établis
 
 - **File d'envoi** : chaque message est enregistré dans la même transaction que l'action qui le déclenche (réservation, annulation…), puis envoyé dans les secondes qui suivent. Son contenu est préparé au moment de l'envoi avec les données à jour : un rappel n'est pas envoyé pour un rendez-vous annulé entre-temps. En cas d'échec, nouvel essai après 2, 8, 18, 32 minutes, puis abandon (5 essais).
 - **Jamais en double** : chaque message a une clé unique (ex. un seul rappel SMS par rendez-vous, un seul résumé par jour).
-- **SMS** : comptés par établissement et par mois ; au-delà du quota du pack, l'envoi est bloqué (visible sur la fiche du rendez-vous). L'expéditeur est le nom de l'établissement (11 caractères sans accent).
+- **SMS** : comptés par site et par mois (`usage_counters`), remis à zéro chaque mois sans report. Un message long compte pour chacun de ses SMS (160 caractères, puis 153 ; 70 puis 67 hors alphabet standard) ; le rappel est ramené à un seul SMS (nom d'établissement raccourci au besoin). Quota du pack d'abord, puis les **packs de SMS achetés** (`sms_packs`, les plus anciens d'abord). Sans quota ni pack, le SMS n'est pas envoyé (visible sur la fiche du rendez-vous) ; le rappel par e-mail part de son côté. L'expéditeur est le nom de l'établissement (11 caractères sans accent).
+- **Alertes SMS** : e-mail aux gérantes de l'entreprise principale et bandeau dans l'espace à `sms_warning_percent` % du quota, puis à 100 % (une fois par mois et par seuil).
+- **Packs de SMS** (`sms_pack_size` SMS pour `sms_pack_price_cents`, packs qui comprennent des SMS) : achetés depuis Plus → Abonnement, payés sur la page Stripe (compte de la plateforme), crédités quand Stripe confirme le paiement (événement `checkout.session.completed` ou retour de la gérante). Ils restent disponibles tant que l'abonnement est actif. Rien n'est jamais acheté automatiquement.
 - **Lien « gérer mon rendez-vous »** : calculé à partir de l'identifiant du rendez-vous et de la clé secrète du serveur ; il peut ainsi figurer dans chaque message sans être stocké en clair. Changer `BETTER_AUTH_SECRET` rend les anciens liens inutilisables.
 - La gérante voit sur la fiche d'un rendez-vous les messages envoyés à la cliente et leur état.
 - Heures et délais : réglages `sms_reminder_time`, `email_reminder_hours_before`, `daily_summary_time`, `monthly_summary_time`, `message_max_attempts`.
@@ -345,6 +347,8 @@ Chaque étape peut être rejouée sans risque. En local : `pnpm jobs:tick` (le s
 ## Packs et abonnements (Stripe Billing)
 
 Les packs (prix, limites, fonctions) et les réglages commerciaux se modifient dans l'admin : **Admin → Packs** et **Admin → Réglages** (prix HT ou TTC, TVA, engagement, frais de création, délais, heures des messages). Rien n'est écrit dans le code. Une limite vide signifie « illimité », sauf pour les SMS (jamais illimités).
+
+**Deux formules pour les packs payants**, choisies à la commande ou à la souscription depuis l'espace : avec engagement de `commitment_months` mois (frais de création du pack, offerts par défaut), ou sans engagement (frais de création + `no_commitment_setup_fee_cents`, payés à la commande). La formule voyage dans les informations de l'abonnement Stripe (`commitment`) et fixe la date de fin d'engagement (`subscriptions.with_commitment`, `commitment_ends_at`). `commitment_months` à 0 : une seule formule, sans engagement ni frais en plus.
 
 | Situation           | Ce qui se passe                                                                                                                         |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |

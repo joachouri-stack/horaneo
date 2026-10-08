@@ -28,6 +28,21 @@ export function toBillingSubscription(subscription: Stripe.Subscription): Billin
   };
 }
 
+/** État d'une page de paiement Stripe, tel que les modules l'attendent. */
+export function checkoutState(session: Stripe.Checkout.Session) {
+  const sub = session.subscription;
+  const customer = session.customer;
+  return {
+    status: (session.status ?? "open") as "open" | "complete" | "expired",
+    paymentStatus: (["paid", "no_payment_required"].includes(session.payment_status)
+      ? session.payment_status
+      : "unpaid") as "paid" | "unpaid" | "no_payment_required",
+    subscriptionId: typeof sub === "string" ? sub : (sub?.id ?? null),
+    customerId: typeof customer === "string" ? customer : (customer?.id ?? null),
+    metadata: { ...(session.metadata ?? {}) },
+  };
+}
+
 export function createStripeBilling(secretKey: string): BillingGateway {
   const stripe = new Stripe(secretKey, { maxNetworkRetries: 2, timeout: 20_000 });
 
@@ -98,15 +113,34 @@ export function createStripeBilling(secretKey: string): BillingGateway {
       return { id: session.id, url: session.url };
     },
 
+    async createPaymentCheckout(input) {
+      const session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        customer: input.customerId,
+        line_items: [
+          {
+            quantity: 1,
+            tax_rates: input.taxRateId ? [input.taxRateId] : undefined,
+            price_data: {
+              currency: input.currency.toLowerCase(),
+              unit_amount: input.amountCents,
+              product_data: { name: input.label },
+            },
+          },
+        ],
+        invoice_creation: { enabled: true, invoice_data: { metadata: input.metadata } },
+        payment_intent_data: { metadata: input.metadata },
+        metadata: input.metadata,
+        success_url: input.successUrl,
+        cancel_url: input.cancelUrl,
+      });
+      if (!session.url) throw new Error("Stripe n'a pas renvoyé d'adresse de paiement");
+      return { id: session.id, url: session.url };
+    },
+
     async retrieveCheckout(checkoutId) {
       const session = await stripe.checkout.sessions.retrieve(checkoutId);
-      const sub = session.subscription;
-      const customer = session.customer;
-      return {
-        status: (session.status ?? "open") as "open" | "complete" | "expired",
-        subscriptionId: typeof sub === "string" ? sub : (sub?.id ?? null),
-        customerId: typeof customer === "string" ? customer : (customer?.id ?? null),
-      };
+      return checkoutState(session);
     },
 
     async cancelNow(subscriptionId) {

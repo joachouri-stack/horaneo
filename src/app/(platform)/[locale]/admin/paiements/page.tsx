@@ -6,16 +6,20 @@ import { resolveLocale } from "@/i18n/translator";
 import { adminQuery } from "@/lib/admin/mutation";
 import { requireAdmin } from "@/lib/auth/session";
 import { formatDate, formatMoney } from "@/lib/format";
-import { listSubscriptions, liveRevenue } from "@/modules/billing/admin";
+import { listSubscriptions, liveRevenue, smsMonthlyTotals } from "@/modules/billing/admin";
 
 /** Abonnements des clients : revenu, échéances, échecs de prélèvement. */
 export default async function BillingAdminPage({ params }: PageProps<"/[locale]/admin/paiements">) {
   const locale = resolveLocale((await params).locale);
   setRequestLocale(locale);
   await requireAdmin(locale);
-  const [t, { rows, revenue }] = await Promise.all([
+  const [t, { rows, revenue, sms }] = await Promise.all([
     getTranslations("admin.billing"),
-    adminQuery(async (tx) => ({ rows: await listSubscriptions(tx), revenue: await liveRevenue(tx) })),
+    adminQuery(async (tx) => ({
+      rows: await listSubscriptions(tx),
+      revenue: await liveRevenue(tx),
+      sms: await smsMonthlyTotals(tx),
+    })),
   ]);
   const statusLabel = (status: string) =>
     t.has(`statuses.${status}` as "statuses.active") ? t(`statuses.${status}` as "statuses.active") : status;
@@ -79,6 +83,57 @@ export default async function BillingAdminPage({ params }: PageProps<"/[locale]/
           ))}
         </ul>
       )}
+
+      {/* SMS de tous les clients, mois par mois : coût chez le fournisseur et packs vendus. */}
+      <section aria-labelledby="titre-sms" className={ui.card}>
+        <h2 id="titre-sms" className="text-xl font-bold">
+          {t("sms.title")}
+        </h2>
+        {sms.length === 0 ? (
+          <p className="mt-2 text-ink/70">{t("sms.empty")}</p>
+        ) : (
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full min-w-[32rem] text-left text-sm">
+              <thead className="text-ink/70">
+                <tr>
+                  <th scope="col" className="py-2 pr-3 font-semibold">
+                    {t("sms.period")}
+                  </th>
+                  <th scope="col" className="py-2 pr-3 text-right font-semibold">
+                    {t("sms.total")}
+                  </th>
+                  <th scope="col" className="py-2 pr-3 text-right font-semibold">
+                    {t("sms.fromQuota")}
+                  </th>
+                  <th scope="col" className="py-2 pr-3 text-right font-semibold">
+                    {t("sms.fromPacks")}
+                  </th>
+                  <th scope="col" className="py-2 text-right font-semibold">
+                    {t("sms.packsSold")}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-navy/10">
+                {sms.map((row) => (
+                  <tr key={row.period}>
+                    <th scope="row" className="py-2 pr-3 font-semibold">
+                      {row.period}
+                    </th>
+                    <td className="py-2 pr-3 text-right font-bold text-night">{row.total}</td>
+                    <td className="py-2 pr-3 text-right">{row.fromQuota}</td>
+                    <td className="py-2 pr-3 text-right">{row.fromPacks}</td>
+                    <td className="py-2 text-right">
+                      {row.packsSold > 0
+                        ? `${row.packsSold} · ${formatMoney(row.packsRevenueCents, "EUR", locale)}`
+                        : "0"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
     </main>
   );
 }

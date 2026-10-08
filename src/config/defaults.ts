@@ -13,6 +13,13 @@ export const DEFAULT_PLATFORM_SETTINGS = {
   commitment_months: 12,
   /** Frais de création en centimes (0 = création offerte). */
   setup_fee_cents: 0,
+  /** Frais de création ajoutés quand le client choisit la formule sans engagement, en centimes. */
+  no_commitment_setup_fee_cents: 14900,
+  /** Pack de SMS supplémentaires : nombre de SMS et prix TTC en centimes. */
+  sms_pack_size: 100,
+  sms_pack_price_cents: 800,
+  /** Alerte à la gérante quand ce pourcentage du quota de SMS du mois est atteint (puis à 100 %). */
+  sms_warning_percent: 80,
   /** Délai de mise en ligne annoncé après une commande, en jours ouvrés. */
   go_live_delay_days: 5,
   /** Commission prélevée sur les acomptes, en pourcentage (0 = aucune). */
@@ -116,7 +123,7 @@ export const DEFAULT_PLANS: PlanSeed[] = [
     description: { fr: "Un vrai site à vos couleurs" },
     priceCents: 3999,
     sortOrder: 2,
-    limits: { onlineBookingsPerMonth: null, members: 3, photos: 20, services: null, smsPerMonth: 30 },
+    limits: { onlineBookingsPerMonth: null, members: 3, photos: 20, services: null, smsPerMonth: 100 },
     features: {
       onlineBooking: true,
       fullSite: true,
@@ -145,7 +152,7 @@ export const DEFAULT_PLANS: PlanSeed[] = [
     description: { fr: "Ne vous occupez plus de rien" },
     priceCents: 6900,
     sortOrder: 3,
-    limits: { onlineBookingsPerMonth: null, members: null, photos: null, services: null, smsPerMonth: 150 },
+    limits: { onlineBookingsPerMonth: null, members: null, photos: null, services: null, smsPerMonth: 300 },
     features: {
       onlineBooking: true,
       fullSite: true,

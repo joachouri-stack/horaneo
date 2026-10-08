@@ -1,10 +1,11 @@
 import { and, asc, eq } from "drizzle-orm";
-import { setupFeeFor } from "./plans";
+import { setupFeeForFormula } from "./plans";
 import type { Transaction } from "@/db/client";
 import { getTranslator, resolveLocale } from "@/i18n/translator";
 import { businesses, plans, subscriptions, tenants } from "@/db/schema";
 import { AppError } from "@/modules/errors";
 import { queueMessage } from "@/modules/messages/queue";
+import { expireSmsPacks } from "@/modules/messages/sms-usage";
 import { getPlatformSetting, setPlatformSetting } from "@/modules/settings";
 import { changePlan } from "@/modules/tenants/update";
 import type { BillingGateway, BillingSubscription } from "./gateway";
@@ -110,7 +111,7 @@ export async function ensureTaxRate(tx: Transaction, gateway: BillingGateway) {
   return rate.id;
 }
 
-async function ensureCustomer(tx: Transaction, tenantId: string, gateway: BillingGateway) {
+export async function ensureCustomer(tx: Transaction, tenantId: string, gateway: BillingGateway) {
   const { tenant, plan } = await loadTenant(tx, tenantId);
   const existing = await getSubscription(tx, tenantId);
   if (existing?.stripeCustomerId) return existing;
@@ -150,7 +151,7 @@ export async function requestPlanChange(
   tenantId: string,
   targetPlanId: string,
   gateway: BillingGateway | null,
-  urls: { successUrl: string; cancelUrl: string },
+  urls: { successUrl: string; cancelUrl: string; withCommitment?: boolean },
   now = new Date(),
 ): Promise<PlanChangeResult> {
   if (!gateway) throw new AppError("payments_unavailable");
@@ -170,7 +171,9 @@ export async function requestPlanChange(
     }
     const row = await ensureCustomer(tx, tenantId, gateway);
     const priceId = await ensurePlanPrice(tx, target.id, gateway);
-    const setupFeeCents = await setupFeeFor(tx, target);
+    // Formule choisie : avec engagement (frais du pack), ou sans (frais de création en plus).
+    const withCommitment = urls.withCommitment ?? true;
+    const setupFeeCents = await setupFeeForFormula(tx, target, withCommitment);
     const checkout = await gateway
       .createCheckout({
         customerId: row.stripeCustomerId!,
@@ -186,7 +189,7 @@ export async function requestPlanChange(
         taxRateId: await ensureTaxRate(tx, gateway),
         successUrl: urls.successUrl,
         cancelUrl: urls.cancelUrl,
-        metadata: { tenant_id: tenantId, plan_id: target.id },
+        metadata: { tenant_id: tenantId, plan_id: target.id, commitment: withCommitment ? "yes" : "no" },
       })
       .catch(billingError);
     return { kind: "redirect", url: checkout.url };
@@ -308,8 +311,11 @@ export async function applySubscription(tx: Transaction, sub: BillingSubscriptio
         cancelRequestedAt: null,
         currentPeriodEnd: null,
         commitmentEndsAt: null,
+        withCommitment: null,
       })
       .where(eq(subscriptions.id, row.id));
+    // Les SMS achetés ne restent disponibles que tant que l'abonnement est actif.
+    await expireSmsPacks(tx, row.tenantId, now);
     const { tenant } = await loadTenant(tx, row.tenantId);
     if (tenant.planId !== basic.id) {
       await changePlan(tx, row.tenantId, basic.code);
@@ -327,9 +333,12 @@ export async function applySubscription(tx: Transaction, sub: BillingSubscriptio
   const [plan] = await tx.select().from(plans).where(eq(plans.id, planId));
   const firstActivation = !row.stripeSubscriptionId || row.stripeSubscriptionId !== sub.id;
   let commitmentEndsAt = row.commitmentEndsAt;
+  let withCommitment = row.withCommitment;
   if (firstActivation && isLive(sub.status)) {
+    // Formule choisie à la souscription (« no » : sans engagement, frais de création déjà payés).
     const months = Number(await getPlatformSetting(tx, "commitment_months"));
-    commitmentEndsAt = months > 0 ? addMonths(sub.currentPeriodStart ?? now, months) : null;
+    withCommitment = months > 0 && sub.metadata.commitment !== "no";
+    commitmentEndsAt = withCommitment ? addMonths(sub.currentPeriodStart ?? now, months) : null;
   }
   await tx
     .update(subscriptions)
@@ -341,6 +350,7 @@ export async function applySubscription(tx: Transaction, sub: BillingSubscriptio
       currentPeriodEnd: sub.currentPeriodEnd,
       cancelAt: sub.cancelAt,
       commitmentEndsAt,
+      withCommitment,
       // Le pack inférieur programmé est désormais en place.
       scheduledPlanId: row.scheduledPlanId === planId ? null : row.scheduledPlanId,
     })
