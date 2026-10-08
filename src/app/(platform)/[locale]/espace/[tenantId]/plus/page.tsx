@@ -6,6 +6,8 @@ import { managerPage } from "@/lib/manager/page";
 const ICONS = {
   stats: "M3 3v18h18M7 15l4-4 3 3 5-6",
   team: "M16 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1M9 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 19v-1a4 4 0 0 0-3-3.87M16 2.13a4 4 0 0 1 0 7.75",
+  calendar:
+    "M8 3v4M16 3v4M3 10h18M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01",
   unavailability:
     "M8 3v4M16 3v4M3 10h18M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2M10 14l4 4M14 14l-4 4",
   promotions: "M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8M7.5 7.5h.01",
@@ -32,6 +34,7 @@ const GROUPS: { key: "activity" | "sell" | "account" | "support"; items: { key: 
       { key: "stats", href: "/plus/statistiques" },
       { key: "team", href: "/plus/equipe" },
       { key: "unavailability", href: "/indisponibilites" },
+      { key: "calendar", href: "/plus/agenda-telephone" },
     ],
   },
   {

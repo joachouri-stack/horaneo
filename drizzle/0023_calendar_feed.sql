@@ -1,0 +1,1 @@
+ALTER TABLE "business_settings" ADD COLUMN "calendar_feed_version" integer DEFAULT 0 NOT NULL;
