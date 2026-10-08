@@ -57,6 +57,7 @@ const EXPECTED_TENANT_GRANTS: Record<string, string[]> = {
   loyalty_rewards: ["INSERT", "SELECT", "UPDATE"],
   customer_data_requests: ["INSERT", "SELECT", "UPDATE"],
   manager_notification_reads: ["INSERT", "SELECT", "UPDATE"],
+  sms_packs: ["SELECT"],
 };
 
 describe.skipIf(!hasTestDatabase)("isolation des données entre tenants", () => {

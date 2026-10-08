@@ -125,6 +125,7 @@ describe.skipIf(!hasTestDatabase)("commandes", () => {
     expect(billing.checkouts.get(order.stripeCheckoutSessionId!)?.metadata).toEqual({
       order_id: order.id,
       plan_id: serenite.id,
+      commitment: "yes",
     });
 
     const subscription = billing.completeCheckout(order.stripeCheckoutSessionId!, START);

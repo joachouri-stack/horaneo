@@ -117,7 +117,7 @@ describe.skipIf(!hasTestDatabase)("abonnements", () => {
     expect(redirect.kind).toBe("redirect");
     const checkoutId = (redirect as { url: string }).url.split("/").at(-1)!;
     const checkout = billing.checkouts.get(checkoutId)!;
-    expect(checkout.metadata).toEqual({ tenant_id: tenantId, plan_id: essentiel });
+    expect(checkout.metadata).toEqual({ tenant_id: tenantId, plan_id: essentiel, commitment: "yes" });
     expect(checkout.setupFee).toBeNull();
     // TVA à 20 %, comprise dans le prix affiché (TTC).
     expect(billing.taxRates.find((rate) => rate.id === checkout.taxRateId)).toMatchObject({

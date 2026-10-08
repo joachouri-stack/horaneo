@@ -33,7 +33,16 @@ type Plan = {
  * Les packs « site seul » sont au dos des packs avec réservation : un
  * interrupteur retourne toutes les cartes.
  */
-export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Locale }) {
+export async function PlanCards({
+  plans,
+  locale,
+  smsPack,
+}: {
+  plans: Plan[];
+  locale: Locale;
+  /** Pack de SMS supplémentaires (réglages), annoncé sur les cartes qui comprennent des SMS. */
+  smsPack: { size: number; priceCents: number };
+}) {
   const t = await getTranslations("home.plans");
   const money = (cents: number) =>
     new Intl.NumberFormat(locale, {
@@ -212,6 +221,12 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
             );
           })}
         </dl>
+
+        {(plan.limits.smsPerMonth ?? 0) > 0 && smsPack.priceCents > 0 && (
+          <p className={`relative mt-2 text-center text-[0.8rem] ${muted}`}>
+            {t("smsExtra", { amount: money(smsPack.priceCents), count: smsPack.size })}
+          </p>
+        )}
 
         <Link
           href={{ pathname: "/commander", query: { pack: plan.code } }}

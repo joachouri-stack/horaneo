@@ -12,7 +12,8 @@
     "backHome": "Retour à l'accueil"
   },
   "billing": {
-    "setupFeeLabel": "Frais de création du site"
+    "setupFeeLabel": "Frais de création du site",
+    "smsPackLabel": "{count} SMS supplémentaires"
   },
   "common": {
     "skipToContent": "Aller au contenu",
@@ -221,7 +222,8 @@
         "whatsappSupport": "Assistance prioritaire par WhatsApp",
         "giftCards": "Cartes cadeaux en ligne",
         "loyalty": "Carte de fidélité",
-        "smsReminders": "SMS de rappel"
+        "smsReminders": "SMS de rappel",
+        "emailReminders": "Rappels par e-mail illimités"
       },
       "soon": {
         "aiMessaging": "Bientôt : messagerie IA"
@@ -238,10 +240,12 @@
         "display": "Prix {display}",
         "commitment": "{months, plural, =0 {Sans engagement} one {Engagement # mois} other {Engagement # mois}}",
         "setupFree": "Création du site offerte",
-        "setupFreeExceptCustom": "Création offerte (hors design sur mesure)",
-        "setupFee": "Création : {amount}"
+        "setupFee": "Création : {amount}",
+        "formulas": "Avec engagement {months} mois : {fee, select, none {création offerte} other {création {fee}}}. Sans engagement : {noCommitmentFee} de création.",
+        "customDesignFee": "Design sur mesure : création en supplément"
       },
-      "pricesDisplay": "Prix {display}."
+      "pricesDisplay": "Prix {display}.",
+      "smsExtra": "SMS en plus : {amount} les {count}"
     },
     "faq": {
       "title": "Les questions qu'on nous pose",
@@ -272,6 +276,16 @@
         {
           "q": "Si j'arrête, qu'est-ce que je garde ?",
           "a": "Vos photos, vos textes et votre fichier clients (remis sur simple demande), ainsi que votre nom de domaine si vous en avez un."
+        },
+        {
+          "q": "Que se passe-t-il si je dépasse mes SMS ?",
+          "a": "Vos clients reçoivent toujours leur rappel par e-mail. Vous pouvez ajouter {smsPackSize} SMS pour {smsPackPrice} depuis votre espace. Rien n'est facturé sans votre accord.",
+          "if": "smsPack"
+        },
+        {
+          "q": "Suis-je engagé ?",
+          "a": "Vous choisissez. Avec un engagement de {commitmentMonths} mois, la création du site est offerte. Sans engagement, elle coûte {noCommitmentFee}.",
+          "if": "commitment"
         }
       ]
     },
@@ -845,7 +859,12 @@
         "businesses": "Entreprises",
         "stripeInvite": "Envoyer le lien Stripe au client",
         "stripeInviteHint": "La gérante reçoit un e-mail avec le lien direct vers la page Paiements de son espace. C'est elle qui renseigne son identité et son IBAN.",
-        "stripeInviteSent": "E-mail envoyé à la gérante."
+        "stripeInviteSent": "E-mail envoyé à la gérante.",
+        "smsQuota": "SMS du mois (quota du pack)",
+        "smsFromPacks": "SMS pris sur les packs ce mois-ci",
+        "smsPacksRemaining": "SMS achetés encore disponibles",
+        "smsPacks": "Packs de SMS achetés",
+        "smsPackLine": "{date} · {count} SMS · {amount} · {status, select, expired {plus disponible} other {{remaining} restants}}"
       },
       "identity": {
         "title": "Coordonnées",
@@ -1165,8 +1184,8 @@
       "prices_display": "Affichage des prix",
       "vat_rate_percent": "Taux de TVA (%)",
       "vatHint": "À valider avec votre comptable. Appliqué aux factures des abonnements.",
-      "commitment_months": "Engagement (mois, 0 = sans engagement)",
-      "setup_fee": "Frais de création (€, 0 = offerts)",
+      "commitment_months": "Durée de l'engagement (mois, 0 = pas de formule avec engagement)",
+      "setup_fee": "Frais de création avec engagement (€, 0 = offerts)",
       "go_live_delay_days": "Délai de mise en ligne annoncé (jours ouvrés)",
       "payments": "Paiements et données",
       "deposit_commission_percent": "Commission sur les acomptes (%)",
@@ -1194,7 +1213,13 @@
         "add": "Ajouter le témoignage",
         "remove": "Retirer",
         "removeConfirm": "Retirer le témoignage de {name} de l'accueil ?"
-      }
+      },
+      "no_commitment_setup_fee": "Frais de création sans engagement (€)",
+      "noCommitmentHint": "Ajoutés aux frais de création du pack quand le client choisit la formule sans engagement.",
+      "sms_pack_size": "Pack de SMS supplémentaires : nombre de SMS",
+      "sms_pack_price": "Pack de SMS supplémentaires : prix (€)",
+      "sms_warning_percent": "Alerte SMS à la gérante (% du quota du mois)",
+      "smsWarningHint": "Une seconde alerte part quand le quota est épuisé."
     },
     "billing": {
       "title": "Paiements des abonnements",
@@ -1221,7 +1246,17 @@
         "none": "Pas encore souscrit",
         "paused": "En pause"
       },
-      "openClient": "Fiche"
+      "openClient": "Fiche",
+      "noCommitment": "sans engagement",
+      "sms": {
+        "title": "SMS envoyés par tous les clients",
+        "empty": "Aucun SMS envoyé pour le moment.",
+        "period": "Mois",
+        "total": "SMS envoyés",
+        "fromQuota": "Sur les quotas",
+        "fromPacks": "Sur les packs achetés",
+        "packsSold": "Packs vendus"
+      }
     },
     "orders": {
       "title": "Commandes à traiter",
@@ -1505,7 +1540,10 @@
         "text": "Une alerte à chaque réservation, annulation ou report, même quand l'espace est fermé.",
         "action": "Activer les notifications",
         "later": "Plus tard"
-      }
+      },
+      "smsAlmost": "Vous avez utilisé {used} des {limit} SMS de votre pack ce mois-ci.",
+      "smsReached": "Vos SMS du mois sont épuisés : vos clientes reçoivent leur rappel par e-mail.",
+      "smsOpen": "Voir mes SMS"
     },
     "status": {
       "confirmed": "Confirmé",
@@ -1738,7 +1776,8 @@
         "cancelAt": "Votre pack payant se termine le {date}. Votre site passera ensuite au pack gratuit.",
         "keep": "Garder mon pack actuel",
         "free": "Pack gratuit, sans prélèvement.",
-        "assigned": "Pack mis en place par notre équipe : aucun prélèvement automatique pour le moment."
+        "assigned": "Pack mis en place par notre équipe : aucun prélèvement automatique pour le moment.",
+        "noCommitment": "Formule sans engagement : vous pouvez arrêter à la fin de chaque mois."
       },
       "pastDue": "Votre dernier prélèvement n'a pas abouti. Mettez à jour votre carte pour garder votre pack.",
       "pastDueBanner": "Prélèvement refusé : mettez à jour votre carte.",
@@ -1758,7 +1797,6 @@
       "subscribe": "Choisir ce pack",
       "subscribeHint": "Paiement par carte sur la page sécurisée de Stripe.",
       "setupFee": "Frais de création : {amount} (une seule fois).",
-      "commitmentInfo": "Engagement de {months} mois.",
       "unavailable": "Le changement de pack en ligne n'est pas encore disponible. Contactez-nous.",
       "returnOk": "Merci ! Votre paiement est enregistré : votre nouveau pack s'active dans quelques instants.",
       "returnCancel": "Paiement annulé : votre pack n'a pas changé.",
@@ -1793,7 +1831,28 @@
         "whatsappSupport": "Assistance prioritaire par WhatsApp"
       },
       "overLimit": "Au-delà de votre pack : rien n'est supprimé, mais vous ne pouvez plus en ajouter.",
-      "primaryOnly": "L'abonnement est commun à tout le site : il est géré par l'entreprise principale. Vous voyez ici le pack en cours et l'utilisation du site."
+      "primaryOnly": "L'abonnement est commun à tout le site : il est géré par l'entreprise principale. Vous voyez ici le pack en cours et l'utilisation du site.",
+      "smsTitle": "SMS de rappel",
+      "smsBought": "Merci, vos SMS sont ajoutés. Ils serviront une fois ceux du mois épuisés.",
+      "smsCancelled": "Paiement annulé : aucun SMS n'a été ajouté et rien n'a été facturé.",
+      "smsNone": "Votre pack ne comprend pas de SMS. Vos clientes reçoivent leurs rappels par e-mail.",
+      "smsQuotaReached": "Les SMS du mois sont épuisés. Vos clientes reçoivent toujours leur rappel par e-mail. Pour continuer les rappels par SMS, ajoutez des SMS ci-dessous.",
+      "smsQuotaReachedPacks": "Les SMS du mois sont épuisés : vos SMS supplémentaires prennent le relais.",
+      "smsQuotaAlmost": "Vous avez utilisé {used} des {limit} SMS de votre pack ce mois-ci.",
+      "smsUsed": "Utilisés ce mois-ci",
+      "smsRemaining": "Restants ce mois-ci",
+      "smsReset": "Remise à zéro le",
+      "smsExtra": "SMS supplémentaires disponibles",
+      "smsRules": "Un rappel par SMS part la veille de chaque rendez-vous. Le compteur repart à zéro chaque mois, sans report des SMS non utilisés. Les SMS supplémentaires ne servent qu'une fois ceux du mois épuisés, et restent disponibles tant que votre abonnement est actif.",
+      "smsBuy": "Ajouter {count} SMS pour {amount}",
+      "smsBuyHint": "Vous payez par carte sur la page sécurisée de Stripe. Rien n'est facturé sans votre accord.",
+      "smsPacks": "SMS achetés",
+      "smsPackLine": "{date} · {count} SMS · {amount}",
+      "smsPackRemaining": "{count, plural, =0 {épuisé} one {# restant} other {# restants}}",
+      "smsPackExpired": "plus disponible (abonnement terminé)",
+      "formula": "Formule",
+      "withCommitment": "Avec engagement {months} mois : {fee, select, none {création offerte} other {frais de création de {fee}}}",
+      "withoutCommitment": "Sans engagement : frais de création de {fee}, payés maintenant"
     },
     "settings": {
       "title": "Réglages",
@@ -2256,6 +2315,15 @@
         "money": "Les acomptes arrivent directement sur votre compte bancaire : ils ne passent jamais par nous.",
         "login": "Si l'espace vous le demande, connectez-vous avec cette adresse e-mail : vous recevrez un code.",
         "open": "Relier mon compte bancaire"
+      },
+      "sms_quota": {
+        "subjectAlmost": "{percent} % de vos SMS du mois sont utilisés",
+        "subjectReached": "Vos SMS du mois sont épuisés",
+        "almost": "Vous avez utilisé {used} des {limit} SMS compris dans votre pack ce mois-ci. Le compteur repart à zéro le {date}.",
+        "reached": "Les {limit} SMS compris dans votre pack ce mois-ci sont utilisés. Le compteur repart à zéro le {date}.",
+        "email": "Vos clientes reçoivent toujours leur rappel par e-mail : aucune n'est oubliée.",
+        "packs": "Pour continuer à envoyer des rappels par SMS d'ici là, vous pouvez ajouter des SMS depuis votre espace. Rien n'est jamais facturé sans votre accord.",
+        "open": "Voir mes SMS"
       }
     },
     "account": {
@@ -2365,6 +2433,13 @@
       "resume": "Reprendre ma commande",
       "eta": "Mise en ligne prévue sous {days, plural, one {# jour ouvré} other {# jours ouvrés}} environ."
     },
-    "submit": "Continuer"
+    "submit": "Continuer",
+    "formula": "Formule (packs payants)",
+    "formulaHint": "Vous choisissez : votre abonnement mensuel est le même dans les deux cas.",
+    "withCommitment": "Avec engagement {months} mois",
+    "withCommitmentFree": "Création du site offerte.",
+    "withCommitmentFee": "Frais de création : {fee}.",
+    "withoutCommitment": "Sans engagement",
+    "withoutCommitmentFee": "Frais de création de {fee}, payés à la commande. Vous arrêtez quand vous voulez."
   }
 }

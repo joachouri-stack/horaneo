@@ -1,5 +1,5 @@
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
-import { setupFeeFor } from "@/modules/billing/plans";
+import { setupFeeForFormula } from "@/modules/billing/plans";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
 import { getTranslator, resolveLocale } from "@/i18n/translator";
@@ -9,6 +9,7 @@ import { applySubscription, ensurePlanPrice, ensureTaxRate } from "@/modules/bil
 import { AppError } from "@/modules/errors";
 import { queueMessage } from "@/modules/messages/queue";
 import { normalizePhone } from "@/modules/phone";
+import { getPlatformSetting } from "@/modules/settings";
 
 /**
  * Commandes passées sur le site commercial (rôle plateforme).
@@ -30,6 +31,8 @@ export const orderInput = z.object({
     .transform((value) => (value ? (/^https?:\/\//i.test(value) ? value : `https://${value}`) : undefined))
     .pipe(z.url().optional()),
   locale: z.string().min(2).max(5).default("fr"),
+  /** Formule des packs payants : avec engagement (création offerte) ou sans (frais de création). */
+  withCommitment: z.boolean().default(true),
 });
 
 export type OrderInput = z.input<typeof orderInput>;
@@ -72,8 +75,11 @@ export async function createOrder(
   );
   if (open && open.order.status !== "awaiting_payment") throw new AppError("order_in_progress");
 
+  const months = Number(await getPlatformSetting(tx, "commitment_months"));
   const values = {
     planId: plan.id,
+    // Pack gratuit, ou aucune formule avec engagement proposée : sans engagement.
+    withCommitment: plan.priceCents > 0 && months > 0 && input.withCommitment,
     businessName: input.businessName,
     activity: input.activity,
     phone: phone ?? input.phone,
@@ -106,7 +112,7 @@ export async function createOrder(
         .createCustomer({ email: user.email, name: input.businessName, metadata: { order_id: order.id } })
         .catch(providerError)
     ).id;
-  const setupFeeCents = await setupFeeFor(tx, plan);
+  const setupFeeCents = await setupFeeForFormula(tx, plan, order.withCommitment);
   const checkout = await gateway
     .createCheckout({
       customerId,
@@ -121,7 +127,7 @@ export async function createOrder(
           : null,
       taxRateId: await ensureTaxRate(tx, gateway),
       ...urls(order.id),
-      metadata: { order_id: order.id, plan_id: plan.id },
+      metadata: { order_id: order.id, plan_id: plan.id, commitment: order.withCommitment ? "yes" : "no" },
     })
     .catch(providerError);
   await tx

@@ -19,6 +19,29 @@ export async function setupFeeFor(tx: Transaction, plan: { setupFeeCents: number
   return plan.setupFeeCents ?? Number(await getPlatformSetting(tx, "setup_fee_cents"));
 }
 
+/** Formules des packs payants : durée de l'engagement et frais de création ajoutés sans engagement. */
+export async function commitmentTerms(tx: Transaction) {
+  return {
+    /** 0 : aucune formule avec engagement (tout est sans engagement, sans frais en plus). */
+    months: Number(await getPlatformSetting(tx, "commitment_months")),
+    noCommitmentFeeCents: Number(await getPlatformSetting(tx, "no_commitment_setup_fee_cents")),
+  };
+}
+
+/**
+ * Frais de création selon la formule choisie : ceux du pack avec engagement
+ * (souvent offerts), plus les frais de la formule sans engagement sinon.
+ */
+export async function setupFeeForFormula(
+  tx: Transaction,
+  plan: { setupFeeCents: number | null },
+  withCommitment: boolean,
+) {
+  const base = await setupFeeFor(tx, plan);
+  const terms = await commitmentTerms(tx);
+  return withCommitment || terms.months <= 0 ? base : base + terms.noCommitmentFeeCents;
+}
+
 /**
  * Nom du premier pack proposé qui comprend une fonction (« à partir du pack … ») :
  * jamais écrit en dur, il suit la configuration des packs. null si aucun.

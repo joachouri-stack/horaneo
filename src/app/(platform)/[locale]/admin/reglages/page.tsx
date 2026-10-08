@@ -22,6 +22,10 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
       "vat_rate_percent",
       "commitment_months",
       "setup_fee_cents",
+      "no_commitment_setup_fee_cents",
+      "sms_pack_size",
+      "sms_pack_price_cents",
+      "sms_warning_percent",
       "go_live_delay_days",
       "deposit_commission_percent",
       "retention_days_after_cancel",
@@ -37,9 +41,14 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
     ) as Record<(typeof keys)[number], string | number>;
   });
   const showcase = await adminQuery((tx) => listShowcase(tx));
-  const field = (name: Exclude<keyof typeof s, "setup_fee_cents">, type = "number", hint?: string) => (
-    <TextField name={name} type={type} label={t(name)} defaultValue={s[name]} hint={hint} required />
-  );
+  const field = (
+    name: Exclude<
+      keyof typeof s,
+      "setup_fee_cents" | "no_commitment_setup_fee_cents" | "sms_pack_price_cents"
+    >,
+    type = "number",
+    hint?: string,
+  ) => <TextField name={name} type={type} label={t(name)} defaultValue={s[name]} hint={hint} required />;
   return (
     <main id="contenu" className="mx-auto max-w-3xl space-y-6 px-4 py-8">
       <h1 className="text-3xl font-extrabold">{t("title")}</h1>
@@ -64,6 +73,14 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
               defaultValue={centsToInput(Number(s.setup_fee_cents))}
               required
             />
+            <TextField
+              name="no_commitment_setup_fee"
+              inputMode="decimal"
+              label={t("no_commitment_setup_fee")}
+              hint={t("noCommitmentHint")}
+              defaultValue={centsToInput(Number(s.no_commitment_setup_fee_cents))}
+              required
+            />
             {field("go_live_delay_days")}
           </div>
         </Section>
@@ -76,6 +93,15 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
         </Section>
         <Section title={t("messages")}>
           <div className="grid gap-4 sm:grid-cols-2">
+            {field("sms_pack_size")}
+            <TextField
+              name="sms_pack_price"
+              inputMode="decimal"
+              label={t("sms_pack_price")}
+              defaultValue={centsToInput(Number(s.sms_pack_price_cents))}
+              required
+            />
+            {field("sms_warning_percent", "number", t("smsWarningHint"))}
             {field("sms_reminder_time", "time")}
             {field("email_reminder_hours_before")}
             {field("daily_summary_time", "time")}

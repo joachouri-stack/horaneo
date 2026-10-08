@@ -29,6 +29,7 @@ export const MESSAGE_TEMPLATES = [
   "manager.daily_summary",
   "manager.monthly_summary",
   "manager.basic_quota",
+  "manager.sms_quota",
   "manager.payment_failed",
   "manager.subscription_ended",
   "manager.gift_card_sold",

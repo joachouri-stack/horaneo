@@ -5,12 +5,30 @@ import { ui } from "@/components/ui/styles";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
 import { todaySummary } from "@/modules/agenda/queries";
+import { smsUsage } from "@/modules/messages/sms-usage";
+import { getPlatformSetting } from "@/modules/settings";
 
 /** Écran « Aujourd'hui » : trois chiffres, les rendez-vous du jour, ajout rapide. */
 export default async function TodayPage({ params }: PageProps<"/[locale]/espace/[tenantId]">) {
   const page = await managerPage(params);
   const t = await getTranslations("manager.today");
-  const summary = await page.db((tx) => todaySummary(tx, page.tenantId, page.tenant.timezone, page.locale));
+  const [summary, sms, warningPercent] = await page.db(
+    async (tx) =>
+      [
+        await todaySummary(tx, page.tenantId, page.tenant.timezone, page.locale),
+        await smsUsage(tx, page.tenantId),
+        await getPlatformSetting(tx, "sms_warning_percent"),
+      ] as const,
+  );
+  // Alerte SMS : à partir du seuil du quota du mois, sauf si des SMS achetés prennent le relais.
+  const smsAlert =
+    sms && sms.limit !== null && sms.limit > 0 && sms.packsRemaining === 0
+      ? sms.used >= sms.limit
+        ? t("smsReached")
+        : sms.used >= Math.ceil((sms.limit * Number(warningPercent)) / 100)
+          ? t("smsAlmost", { used: sms.used, limit: sms.limit })
+          : null
+      : null;
 
   return (
     <div className="space-y-6">
@@ -24,6 +42,15 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
           +
         </Link>
       </div>
+
+      {smsAlert && (
+        <p role="status" className={`${ui.card} border-coral/40 bg-blush`}>
+          {smsAlert}{" "}
+          <Link href={`${page.base}/plus/abonnement#sms`} className="font-semibold underline">
+            {t("smsOpen")}
+          </Link>
+        </p>
+      )}
 
       {/* Rappel tant que les notifications ne sont pas activées sur cet appareil (gérante seulement). */}
       {page.role !== "admin" && (

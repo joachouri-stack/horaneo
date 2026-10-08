@@ -1,10 +1,11 @@
 import { and, asc, eq, inArray, isNull, lte, or, sql } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
-import { messageLog, plans, pushSubscriptions, tenants, usageCounters, type PlanLimits } from "@/db/schema";
+import { messageLog, pushSubscriptions, tenants, usageCounters } from "@/db/schema";
 import { getPlatformSetting } from "@/modules/settings";
 import { currentPeriod } from "@/modules/tenants/queries";
 import { renderMessage, type MessageRow, type RenderOptions } from "./render";
-import type { MessageSenders } from "./senders";
+import { smsSegments, type MessageSenders } from "./senders";
+import { releaseSms, reserveSms, type SmsReservation } from "./sms-usage";
 
 /**
  * Envoi des messages en attente (rôle plateforme). Chaque message est d'abord
@@ -60,39 +61,6 @@ async function claim(platform: PlatformRunner, now: Date, limit: number, ids?: s
   });
 }
 
-/**
- * Réserve un SMS dans le quota mensuel du pack, de façon atomique.
- * Renvoie false si le pack n'inclut pas de SMS ou si le quota du mois est atteint.
- */
-export async function reserveSms(tx: Transaction, tenantId: string, now: Date) {
-  const [row] = await tx
-    .select({ timezone: tenants.timezone, limits: plans.limits })
-    .from(tenants)
-    .innerJoin(plans, eq(plans.id, tenants.planId))
-    .where(eq(tenants.id, tenantId));
-  if (!row) return null;
-  const limit = (row.limits as PlanLimits).smsPerMonth;
-  if (limit !== null && limit !== undefined && limit <= 0) return null;
-  const period = currentPeriod(row.timezone, now);
-  const updated = await tx
-    .insert(usageCounters)
-    .values({ tenantId, period, smsSent: 1 })
-    .onConflictDoUpdate({
-      target: [usageCounters.tenantId, usageCounters.period],
-      set: { smsSent: sql`${usageCounters.smsSent} + 1`, updatedAt: now },
-      setWhere: limit === null || limit === undefined ? undefined : sql`${usageCounters.smsSent} < ${limit}`,
-    })
-    .returning({ period: usageCounters.period });
-  return updated.length > 0 ? period : null;
-}
-
-async function releaseSms(tx: Transaction, tenantId: string, period: string) {
-  await tx
-    .update(usageCounters)
-    .set({ smsSent: sql`greatest(${usageCounters.smsSent} - 1, 0)` })
-    .where(and(eq(usageCounters.tenantId, tenantId), eq(usageCounters.period, period)));
-}
-
 async function countEmail(tx: Transaction, tenantId: string, now: Date) {
   const [tenant] = await tx
     .select({ timezone: tenants.timezone })
@@ -123,7 +91,7 @@ async function processOne(
   options: RenderOptions & { maxAttempts: number },
   result: DispatchResult,
 ) {
-  let smsPeriod: string | null = null;
+  let sms: SmsReservation | null = null;
   try {
     const rendered = await platform((tx) => renderMessage(tx, row, options));
     if (rendered.kind === "skip") {
@@ -167,8 +135,12 @@ async function processOne(
       return;
     }
     if (rendered.kind === "sms") {
-      smsPeriod = row.tenantId ? await platform((tx) => reserveSms(tx, row.tenantId!, options.now)) : null;
-      if (!smsPeriod) {
+      // Un message long compte pour chacun des SMS qu'il occupe.
+      const segments = smsSegments(rendered.text);
+      sms = row.tenantId
+        ? await platform((tx) => reserveSms(tx, row.tenantId!, options.now, segments))
+        : null;
+      if (!sms) {
         await finish(platform, row, { status: "blocked_quota", recipient: rendered.to, nextAttemptAt: null });
         result.blocked += 1;
         return;
@@ -208,7 +180,7 @@ async function processOne(
     }
     result.sent += 1;
   } catch (error) {
-    if (smsPeriod && row.tenantId) await platform((tx) => releaseSms(tx, row.tenantId!, smsPeriod!));
+    if (sms && row.tenantId) await platform((tx) => releaseSms(tx, row.tenantId!, sms!));
     const message = (error instanceof Error ? error.message : String(error)).slice(0, 1000);
     console.error("[messages]", row.templateKey, row.id, message);
     if (row.attempts >= options.maxAttempts) {

@@ -41,11 +41,25 @@ export interface BillingGateway {
     cancelUrl: string;
     metadata: Record<string, string>;
   }): Promise<{ id: string; url: string }>;
+  /** Paiement unique sur la page Stripe (ex. pack de SMS), avec la carte du professionnel. */
+  createPaymentCheckout(input: {
+    customerId: string;
+    amountCents: number;
+    currency: string;
+    label: string;
+    taxRateId: string | null;
+    successUrl: string;
+    cancelUrl: string;
+    metadata: Record<string, string>;
+  }): Promise<{ id: string; url: string }>;
   /** État d'une page de paiement (retour du professionnel après le paiement). */
   retrieveCheckout(checkoutId: string): Promise<{
     status: "open" | "complete" | "expired";
+    /** Paiement unique : « paid » une fois l'argent reçu. */
+    paymentStatus: "paid" | "unpaid" | "no_payment_required";
     subscriptionId: string | null;
     customerId: string | null;
+    metadata: Record<string, string>;
   }>;
   retrieveSubscription(subscriptionId: string): Promise<BillingSubscription>;
   /** Fin immédiate (commande refusée). */

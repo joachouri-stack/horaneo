@@ -14,12 +14,12 @@ describe("présentation des packs sur le site commercial", () => {
       [
         { key: "bookings", count: null },
         { key: "members", count: 3 },
-        { key: "sms", count: 30 },
+        { key: "sms", count: 100 },
       ],
       [
         { key: "bookings", count: null },
         { key: "members", count: null },
-        { key: "sms", count: 150 },
+        { key: "sms", count: 300 },
       ],
     ]);
   });
@@ -29,12 +29,14 @@ describe("présentation des packs sur le site commercial", () => {
       "+basePage",
       "+agenda",
       "+photosServices",
+      "+emailReminders",
       "-customDomain",
       "-onlinePayment",
       "-smsReminders",
     ]);
     expect(planItems(DEFAULT_PLANS, 0)[2]).toMatchObject({ values: { photos: 5, services: 10 } });
     expect(planItems(DEFAULT_PLANS, 1).map(label)).toEqual([
+      "+emailReminders",
       "+fullSite",
       "+customDomain",
       "+onlinePayment",
@@ -49,6 +51,7 @@ describe("présentation des packs sur le site commercial", () => {
     ]);
     expect(planItems(DEFAULT_PLANS, 2).map(label)).toEqual([
       "tout:1",
+      "+emailReminders",
       "+onDemandUpdates",
       "+unlimitedPhotos",
       "+statsSummary",

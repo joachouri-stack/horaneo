@@ -22,6 +22,8 @@ import {
 import { HeroVisual } from "@/components/marketing/HeroVisual";
 import { CarouselDots } from "@/components/marketing/CarouselDots";
 import { PlanCards } from "@/components/marketing/PlanCards";
+import { formatMoney } from "@/lib/format";
+import { smsPackOffer } from "@/modules/billing/sms-packs";
 import { env, publicAppUrl } from "@/config/env";
 import { withPlatform } from "@/db/access";
 import { ENABLED_LOCALES } from "@/i18n/enabled";
@@ -51,7 +53,8 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">): Prom
   };
 }
 
-type Faq = { q: string; a: string };
+/** Question de la FAQ ; « if » : affichée seulement si le réglage concerné s’applique. */
+type Faq = { q: string; a: string; if?: "commitment" | "smsPack" };
 
 const TITLE = "font-display font-bold tracking-[-0.03em] text-night";
 const BADGE = "inline-block rounded-full bg-blush px-3.5 py-1.5 text-[0.9rem] font-medium text-rust";
@@ -78,18 +81,30 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     commission: Number(await getPlatformSetting(tx, "deposit_commission_percent")),
     commitment: Number(await getPlatformSetting(tx, "commitment_months")),
     setupFee: Number(await getPlatformSetting(tx, "setup_fee_cents")),
+    noCommitmentFee: Number(await getPlatformSetting(tx, "no_commitment_setup_fee_cents")),
+    smsPack: await smsPackOffer(tx),
     showcase: await listShowcase(tx),
   }));
   const percent = data.commission;
-  const money = (cents: number) =>
-    new Intl.NumberFormat(locale, { style: "currency", currency: "EUR" }).format(cents / 100);
-  const faq = t.raw("faq.items") as Faq[];
+  // « 149 € » plutôt que « 149,00 € » ; les centimes ne s'affichent que s'il y en a.
+  const money = (cents: number) => formatMoney(cents, "EUR", locale);
+  // Une question qui dépend d'un réglage (ex. « Suis-je engagé ? ») n'apparaît que s'il s'applique.
+  const faq = (t.raw("faq.items") as Faq[]).filter(
+    (item) =>
+      (item.if !== "commitment" || data.commitment > 0) &&
+      (item.if !== "smsPack" ||
+        (data.smsPack.priceCents > 0 && data.plans.some((plan) => (plan.limits.smsPerMonth ?? 0) > 0))),
+  );
   // « {plan:fonction} » dans la FAQ : nom du premier pack qui la comprend (suit la configuration).
   const planWith = (feature: string) =>
     pickLocalized(data.plans.find((plan) => plan.features[feature])?.name ?? data.plans.at(-1)!.name, locale);
   const answer = (text: string) =>
     text
       .replace("{commission}", t("faq.commission", { percent }))
+      .replace("{smsPackSize}", String(data.smsPack.size))
+      .replace("{smsPackPrice}", money(data.smsPack.priceCents))
+      .replace("{commitmentMonths}", String(data.commitment))
+      .replace("{noCommitmentFee}", money(data.setupFee + data.noCommitmentFee))
       .replace(/\{plan:(\w+)\}/g, (_, feature: string) => planWith(feature));
   const contact = config.SUPPORT_EMAIL ?? `support@${config.MAIN_DOMAIN}`;
   // Fonctions présentées : l'étiquette dit à partir de quel pack (lu dans la configuration).
@@ -204,7 +219,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             </h2>
             <p className="mx-auto max-w-[34rem] text-[1.05rem]">{t("plans.subtitle")}</p>
           </div>
-          <PlanCards plans={data.plans} locale={locale} />
+          <PlanCards plans={data.plans} locale={locale} smsPack={data.smsPack} />
           {/* Garanties : trois engagements clairs, puis les conditions en une ligne. */}
           <ul className="mx-auto mt-10 grid max-w-[62rem] gap-3 sm:grid-cols-3 lg:mt-12 lg:gap-4">
             {[
@@ -233,12 +248,24 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           <ul className="mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-[0.85rem] text-stone">
             {[
               t("plans.note.display", { display: String(data.display) }),
-              t("plans.note.commitment", { months: data.commitment }),
-              data.setupFee > 0
-                ? t("plans.note.setupFee", { amount: money(data.setupFee) })
-                : data.plans.some((item) => (item.setupFeeCents ?? 0) > 0)
-                  ? t("plans.note.setupFreeExceptCustom")
-                  : t("plans.note.setupFree"),
+              // Deux formules : avec engagement (création offerte) ou sans (frais de création).
+              data.commitment > 0
+                ? t("plans.note.formulas", {
+                    months: data.commitment,
+                    fee: data.setupFee > 0 ? money(data.setupFee) : "none",
+                    noCommitmentFee: money(data.setupFee + data.noCommitmentFee),
+                  })
+                : t("plans.note.commitment", { months: 0 }),
+              ...(data.commitment > 0 && data.plans.some((item) => (item.setupFeeCents ?? 0) > 0)
+                ? [t("plans.note.customDesignFee")]
+                : []),
+              ...(data.commitment === 0
+                ? [
+                    data.setupFee > 0
+                      ? t("plans.note.setupFee", { amount: money(data.setupFee) })
+                      : t("plans.note.setupFree"),
+                  ]
+                : []),
             ].map((text, index) => (
               <li key={text} className="flex items-center gap-3">
                 {index > 0 && <span aria-hidden="true" className="size-1 rounded-full bg-blush-strong" />}

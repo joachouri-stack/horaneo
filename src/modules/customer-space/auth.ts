@@ -2,6 +2,7 @@ import { createHash, createHmac, hkdfSync, randomBytes, randomUUID, timingSafeEq
 import { and, desc, eq, gt, isNull, sql } from "drizzle-orm";
 import { authSecret } from "@/config/env";
 import type { Transaction } from "@/db/client";
+import { packsRemaining } from "@/modules/messages/sms-usage";
 import { customerLoginCodes, customerSessions, plans, tenants, usageCounters } from "@/db/schema";
 import type { PlanLimits } from "@/db/schema";
 import { AppError } from "@/modules/errors";
@@ -62,7 +63,7 @@ function secretHash(codeId: string, channel: CustomerChannel, secret: string) {
   return channel === "email" ? sha256(secret) : sha256(`${codeId}:${secret}`);
 }
 
-/** Le pack inclut des SMS et le quota du mois n'est pas atteint. */
+/** Le pack inclut des SMS, et il en reste ce mois-ci (quota ou packs achetés). */
 export async function smsLoginAvailable(tx: Transaction, tenantId: string, period: string) {
   const [row] = await tx
     .select({ limits: plans.limits, sent: usageCounters.smsSent })
@@ -72,8 +73,10 @@ export async function smsLoginAvailable(tx: Transaction, tenantId: string, perio
     .where(eq(tenants.id, tenantId));
   if (!row) return false;
   const limit = (row.limits as PlanLimits).smsPerMonth;
-  if (limit === 0) return false;
-  return limit === null || limit === undefined || (row.sent ?? 0) < limit;
+  if (limit !== null && limit !== undefined && limit <= 0) return false;
+  if (limit === null || limit === undefined || (row.sent ?? 0) < limit) return true;
+  // Quota du mois épuisé : les SMS achetés en plus prennent le relais.
+  return (await packsRemaining(tx, tenantId)) > 0;
 }
 
 /** Entreprises du site où l'adresse ou le numéro est connu (fonction sûre de la base). */

@@ -2,6 +2,7 @@ import type { Transaction } from "@/db/client";
 import { processEventOnce, type EventOutcome } from "@/modules/payments/webhooks";
 import { markOrderPaid } from "@/modules/orders/orders";
 import type { BillingGateway, BillingSubscription } from "./gateway";
+import { confirmSmsPack } from "./sms-packs";
 import { applyInvoicePaid, applyPaymentFailed, applySubscription } from "./subscriptions";
 
 /** Événements Stripe Billing, déjà traduits par la route qui les reçoit. */
@@ -11,7 +12,14 @@ export type BillingEvent = {
   raw: unknown;
 } & (
   | { kind: "subscription"; subscription: BillingSubscription }
-  | { kind: "checkout_completed"; subscriptionId: string | null }
+  | {
+      kind: "checkout_completed";
+      subscriptionId: string | null;
+      /** Paiement unique (pack de SMS) : identifiant de la page de paiement, état et informations. */
+      checkoutId?: string;
+      paymentStatus?: string;
+      metadata?: Record<string, string>;
+    }
   | { kind: "invoice_paid"; subscriptionId: string | null }
   | {
       kind: "invoice_failed";
@@ -33,6 +41,13 @@ export async function handleBillingEvent(
       case "subscription":
         return (await applySubscription(tx, event.subscription)).outcome;
       case "checkout_completed": {
+        // Pack de SMS : crédité seulement quand l'argent est reçu.
+        if (event.metadata?.kind === "sms_pack") {
+          if (event.paymentStatus !== "paid" || !event.checkoutId) return "not_paid";
+          return (
+            await confirmSmsPack(tx, { checkoutId: event.checkoutId, smsPackId: event.metadata.sms_pack_id })
+          ).outcome;
+        }
         // L'abonnement créé par le paiement est relu chez Stripe (état complet et à jour).
         if (!event.subscriptionId || !gateway) return "no_subscription";
         const subscription = await gateway.retrieveSubscription(event.subscriptionId);

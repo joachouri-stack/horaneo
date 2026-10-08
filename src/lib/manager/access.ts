@@ -162,13 +162,13 @@ export async function managerPersonalAction<T>(
 export async function managerPlatformAction<T>(
   tenantId: string,
   action: string,
-  fn: (tx: Transaction, context: { businessId: string }) => Promise<T>,
+  fn: (tx: Transaction, context: { businessId: string; userId: string }) => Promise<T>,
 ): Promise<T> {
   const access = await currentAccess(tenantId);
   if (!access) throw new AppError("not_found");
   const { session, role, businessId } = access;
   return withPlatform(async (tx) => {
-    const result = await fn(tx, { businessId });
+    const result = await fn(tx, { businessId, userId: session.user.id });
     await recordAudit(tx, {
       actorUserId: session.user.id,
       action: role === "admin" ? `impersonation.${action}` : action,
