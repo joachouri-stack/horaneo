@@ -31,7 +31,7 @@ export default async function CustomerLinkPage({
       ) : (
         <Link
           href={SITE_PATHS.account}
-          className="font-semibold text-site-accent underline underline-offset-4"
+          className="inline-flex min-h-11 items-center font-semibold text-site-accent underline underline-offset-4"
         >
           {t("askAgain")}
         </Link>

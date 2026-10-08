@@ -81,7 +81,7 @@ export async function AddressBlock({
             href={directionsUrl(addressParts(tenant, site.locale))}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-2 inline-block font-semibold text-site-accent underline"
+            className="mt-1 inline-flex min-h-11 items-center font-semibold text-site-accent underline"
           >
             {t("directions")} ↗
           </a>
@@ -95,7 +95,7 @@ export async function AddressBlock({
               {item.name && <span className="text-site-text">{item.name} : </span>}
               <a
                 href={`tel:${item.phone}`}
-                className="text-site-accent underline"
+                className="inline-flex min-h-11 items-center text-site-accent underline"
                 aria-label={tSite("callNumber", { phone: formatPhone(item.phone, tenant.country) })}
               >
                 {formatPhone(item.phone, tenant.country)}
@@ -103,7 +103,10 @@ export async function AddressBlock({
             </p>
           ))}
           {tenant.email && (
-            <a href={`mailto:${tenant.email}`} className="mt-1 block break-all text-site-accent underline">
+            <a
+              href={`mailto:${tenant.email}`}
+              className="flex min-h-11 items-center break-all text-site-accent underline"
+            >
               {tenant.email}
             </a>
           )}

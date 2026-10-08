@@ -122,7 +122,7 @@ export async function AtelierFooter({ site }: { site: Site }) {
                 <li key={business.id}>
                   <Link
                     href={businessPath(business.slug!)}
-                    className="inline-block py-2 underline underline-offset-4 hover:opacity-80"
+                    className="inline-flex min-h-11 items-center underline underline-offset-4 hover:opacity-80"
                   >
                     {t("businessLink", { title: business.title, name: business.name })}
                   </Link>
@@ -130,7 +130,10 @@ export async function AtelierFooter({ site }: { site: Site }) {
               ))}
               {pages.length === 0 && sections.services && (
                 <li>
-                  <Link href={SITE_PATHS.services} className="inline-block py-2 underline underline-offset-4">
+                  <Link
+                    href={SITE_PATHS.services}
+                    className="inline-flex min-h-11 items-center underline underline-offset-4"
+                  >
                     {tSite("nav.services")}
                   </Link>
                 </li>
@@ -139,7 +142,7 @@ export async function AtelierFooter({ site }: { site: Site }) {
                 <li>
                   <Link
                     href={SITE_PATHS.giftCard}
-                    className="inline-block py-2 underline underline-offset-4 hover:opacity-80"
+                    className="inline-flex min-h-11 items-center underline underline-offset-4 hover:opacity-80"
                   >
                     {tGift("navLabel")}
                   </Link>
@@ -149,7 +152,7 @@ export async function AtelierFooter({ site }: { site: Site }) {
                 <li>
                   <Link
                     href={SITE_PATHS.testimonials}
-                    className="inline-block py-2 underline underline-offset-4 hover:opacity-80"
+                    className="inline-flex min-h-11 items-center underline underline-offset-4 hover:opacity-80"
                   >
                     {t("nav.testimonials")}
                   </Link>
@@ -178,7 +181,7 @@ export async function AtelierFooter({ site }: { site: Site }) {
                         {t("phoneOf", { name: business.name })}{" "}
                         <a
                           href={`tel:${business.phone}`}
-                          className="inline-block py-2 font-semibold underline underline-offset-4"
+                          className="inline-flex min-h-11 items-center font-semibold underline underline-offset-4"
                         >
                           {formatPhone(business.phone, site.tenant.country)}
                         </a>
@@ -187,7 +190,7 @@ export async function AtelierFooter({ site }: { site: Site }) {
                   : (phones[0]?.phone ?? tenant.phone) && (
                       <a
                         href={`tel:${phones[0]?.phone ?? tenant.phone}`}
-                        className="inline-block py-2 font-semibold underline underline-offset-4"
+                        className="inline-flex min-h-11 items-center font-semibold underline underline-offset-4"
                       >
                         {formatPhone(phones[0]?.phone ?? tenant.phone, site.tenant.country)}
                       </a>
@@ -196,7 +199,7 @@ export async function AtelierFooter({ site }: { site: Site }) {
                   <p>
                     <a
                       href={`mailto:${tenant.email}`}
-                      className="inline-block py-2 underline underline-offset-4"
+                      className="inline-flex min-h-11 items-center underline underline-offset-4"
                     >
                       {tenant.email}
                     </a>
@@ -225,25 +228,37 @@ export async function AtelierFooter({ site }: { site: Site }) {
 
         <div className="mt-12 flex flex-col gap-4 border-t border-current/15 py-6 text-sm sm:flex-row sm:items-center sm:justify-between">
           <p className="uppercase tracking-wide opacity-90">{t("rights", { year, name: tenant.name })}</p>
-          <ul className="flex flex-wrap gap-x-6">
+          <ul className="flex flex-wrap gap-x-6 gap-y-1">
             <li>
-              <Link href={SITE_PATHS.legal} className="inline-block py-2 underline underline-offset-4">
+              <Link
+                href={SITE_PATHS.legal}
+                className="inline-flex min-h-11 items-center underline underline-offset-4"
+              >
                 {tFooter("legal")}
               </Link>
             </li>
             <li>
-              <Link href={SITE_PATHS.privacy} className="inline-block py-2 underline underline-offset-4">
+              <Link
+                href={SITE_PATHS.privacy}
+                className="inline-flex min-h-11 items-center underline underline-offset-4"
+              >
                 {tFooter("privacy")}
               </Link>
             </li>
             <li>
-              <Link href={SITE_PATHS.cancellation} className="inline-block py-2 underline underline-offset-4">
+              <Link
+                href={SITE_PATHS.cancellation}
+                className="inline-flex min-h-11 items-center underline underline-offset-4"
+              >
                 {tFooter("cancellation")}
               </Link>
             </li>
             {site.features.customerSpace && (
               <li>
-                <Link href={SITE_PATHS.account} className="inline-block py-2 underline underline-offset-4">
+                <Link
+                  href={SITE_PATHS.account}
+                  className="inline-flex min-h-11 items-center underline underline-offset-4"
+                >
                   {tAccount("navLink")}
                 </Link>
               </li>
