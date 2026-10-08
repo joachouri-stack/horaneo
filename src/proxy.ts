@@ -32,6 +32,9 @@ const INTERNAL_PATHS: Record<string, string> = {
   "/robots.txt": "/seo/robots",
 };
 
+/** Adresses indépendantes du domaine (la tâche planifiée est protégée par son secret). */
+const MACHINE_PATHS = ["/api/health", "/api/cron"];
+
 function hasPrefix(pathname: string, prefix: string) {
   return pathname === prefix || pathname.startsWith(`${prefix}/`);
 }
@@ -49,9 +52,9 @@ function platformOrigin(request: NextRequest): string {
 
 export async function proxy(request: NextRequest) {
   const url = request.nextUrl;
-  // Tâche planifiée : Coolify l'appelle sur http://localhost, qui n'est le domaine de personne.
-  // La route vérifie elle-même CRON_SECRET.
-  if (hasPrefix(url.pathname, "/api/cron")) return NextResponse.next();
+  // Appels internes du serveur (tâche planifiée, vérification de santé) : Coolify les fait
+  // sur http://localhost, qui n'est le domaine de personne. La tâche vérifie CRON_SECRET.
+  if (MACHINE_PATHS.some((path) => hasPrefix(url.pathname, path))) return NextResponse.next();
   const host = classifyHost(request.headers.get("host"), url, hostConfig);
 
   switch (host.kind) {
