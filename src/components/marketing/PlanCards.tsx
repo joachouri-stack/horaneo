@@ -147,16 +147,14 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
         />
         <span
           aria-hidden="true"
-          className={`pointer-events-none absolute right-5 top-5 size-2.5 rounded-full transition duration-500 ease-out group-hover/card:-translate-x-3 group-hover/card:translate-y-3 motion-reduce:transition-none ${
-            featured ? "bg-coral" : "bg-mist-strong"
-          }`}
+          className="pointer-events-none absolute right-5 top-5 size-2.5 rounded-full bg-coral transition duration-500 ease-out group-hover/card:-translate-x-3 group-hover/card:translate-y-3 motion-reduce:transition-none"
         />
 
         {/* En-tête : icône, nom, accroche */}
         <div className="relative flex items-start gap-3">
           <span
             className={`flex size-10 flex-none items-center justify-center rounded-xl transition duration-300 group-hover/card:-rotate-6 group-hover/card:scale-105 motion-reduce:transition-none ${
-              featured ? "bg-coral text-white" : index === 0 ? "bg-sand text-night" : "bg-mist text-navy"
+              featured ? "bg-coral text-white" : "bg-mist text-coral"
             }`}
           >
             <Icon className="size-5" />
@@ -224,7 +222,11 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
           }`}
         >
           {plan.priceCents > 0 ? t("choose", { plan: name }) : t("start")}
-          <ArrowIcon className="size-[18px] shrink-0 transition-transform group-hover/cta:translate-x-1" />
+          <ArrowIcon
+            className={`size-[18px] shrink-0 transition-transform group-hover/cta:translate-x-1 ${
+              featured ? "" : "text-coral group-hover/cta:text-white"
+            }`}
+          />
         </Link>
 
         {/* Ce qui est inclus : les principales d'abord, le reste se déplie. */}
