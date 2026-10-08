@@ -34,6 +34,8 @@
   --color-body: #3a3833; /* texte de la page d'accueil */
   --color-stone: #6b665e; /* texte secondaire */
   --color-navy-light: #26375c;
+  --color-mist: #e6eaf2; /* bleu très pâle : packs Basic et Essentiel */
+  --color-mist-strong: #c9d2e3;
 
   --font-display: var(--font-bricolage), var(--font-outfit), system-ui, sans-serif;
   --font-sans: var(--font-outfit), system-ui, sans-serif;
