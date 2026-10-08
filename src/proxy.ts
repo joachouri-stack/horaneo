@@ -52,8 +52,8 @@ function platformOrigin(request: NextRequest): string {
 
 export async function proxy(request: NextRequest) {
   const url = request.nextUrl;
-  // Appels internes du serveur (vérification de santé, tâche planifiée) : ils arrivent
-  // sur http://localhost:3000, qui n'est ni le domaine principal ni celui d'un client.
+  // Appels internes du serveur (tâche planifiée, vérification de santé) : Coolify les fait
+  // sur http://localhost, qui n'est le domaine de personne. La tâche vérifie CRON_SECRET.
   if (MACHINE_PATHS.some((path) => hasPrefix(url.pathname, path))) return NextResponse.next();
   const host = classifyHost(request.headers.get("host"), url, hostConfig);
 
