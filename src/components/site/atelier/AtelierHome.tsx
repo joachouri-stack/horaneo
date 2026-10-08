@@ -1,17 +1,15 @@
 import { ctaLabelKey, siteCta } from "@/modules/site/cta";
 import { getTranslations } from "next-intl/server";
 import { formatMoney } from "@/lib/format";
-import { formatPhone } from "@/modules/phone";
 import type { SiteData } from "@/modules/site/data";
 import { heroSecondPhoto, institutePhotos, siteReviews, visibleSections } from "@/modules/site/data";
-import { addressParts, directionsUrl, openDaysSpan } from "@/modules/site/format";
+import { openDaysSpan } from "@/modules/site/format";
 import { businessPath, categoryPath, SITE_PATHS } from "@/modules/site/paths";
 import { GoogleReviewCards, ReviewsSummary, Stars } from "../GoogleReviews";
 import { SiteImage } from "../SiteImage";
 import { CategoryGrid } from "./CategoryGrid";
 import { InstitutePhotos } from "./InstitutePhotos";
 import { presentedBusinesses, ProfessionalCards } from "./ProfessionalCards";
-import { HoursSummary } from "./AtelierFooter";
 import { PillLink, SectionTitle } from "./ui";
 
 type Site = NonNullable<SiteData>;
@@ -337,64 +335,10 @@ export async function AtelierHome({ site }: { site: Site }) {
         </section>
       )}
 
-      {/* ─── Horaires, adresse, réservation ─── */}
-      <section
-        aria-label={t("findUs")}
-        className="mx-auto grid max-w-7xl gap-5 px-4 py-20 sm:px-8 lg:grid-cols-3"
-      >
-        <div className="rounded-[1.75rem] bg-site-card p-7">
-          <h2 className="mb-5 font-site-display text-3xl font-medium">{t("hoursTitle")}</h2>
-          <HoursSummary site={site} detailed />
-          <p className="mt-4 text-xs text-site-muted">{t("byAppointment")}</p>
-        </div>
-        <div className="rounded-[1.75rem] bg-site-card p-7">
-          <h2 className="mb-5 font-site-display text-3xl font-medium">{t("findUs")}</h2>
-          <address className="space-y-1 not-italic">
-            <p className="font-semibold uppercase tracking-wide">{site.tenant.name}</p>
-            {/* L'adresse elle-même ouvre l'itinéraire (tous les téléphones, pas seulement ceux qui la détectent). */}
-            <a
-              href={directionsUrl(addressParts(site.tenant, site.locale))}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block underline decoration-site-accent/50 underline-offset-4 hover:decoration-site-accent"
-            >
-              {site.tenant.address && <span className="block">{site.tenant.address}</span>}
-              <span className="block">
-                {[site.tenant.postalCode, site.tenant.city].filter(Boolean).join(" ")}
-              </span>
-            </a>
-            {site.pages.practical?.texts.access && (
-              <p className="whitespace-pre-line pt-2 text-sm text-site-muted">
-                {site.pages.practical.texts.access}
-              </p>
-            )}
-            {site.tenant.phone && (
-              <p className="pt-3">
-                <a href={`tel:${site.tenant.phone}`} className="font-semibold underline underline-offset-4">
-                  {formatPhone(site.tenant.phone, site.tenant.country)}
-                </a>
-              </p>
-            )}
-            {site.tenant.email && (
-              <p>
-                <a href={`mailto:${site.tenant.email}`} className="underline underline-offset-4">
-                  {site.tenant.email}
-                </a>
-              </p>
-            )}
-          </address>
-          {/* Itinéraire direct vers l'adresse (navigation sur téléphone). */}
-          <a
-            href={directionsUrl(addressParts(site.tenant, site.locale))}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-5 inline-flex min-h-11 items-center font-semibold text-site-accent underline underline-offset-4"
-          >
-            {tSite("practical.directions")} ↗
-          </a>
-        </div>
+      {/* ─── Réservation (horaires et adresse : dans le pied de page) ─── */}
+      <section aria-labelledby="titre-reserver" className="mx-auto max-w-7xl px-4 py-20 sm:px-8">
         {/* Dans la couleur des boutons du site (et non foncé) : il ne se confond pas avec le pied de page. */}
-        <div className="relative flex flex-col justify-center overflow-hidden rounded-[1.75rem] bg-site-button p-8 text-site-on-button">
+        <div className="relative flex flex-col justify-center overflow-hidden rounded-[1.75rem] bg-site-button p-8 text-site-on-button sm:p-12">
           {site.logo ? (
             // Le logo en filigrane, sous le texte (le blanc du logo se fond dans la couleur du bloc).
             <SiteImage
@@ -415,7 +359,9 @@ export async function AtelierHome({ site }: { site: Site }) {
               />
             </>
           )}
-          <h2 className="relative font-site-display text-4xl font-medium leading-tight">{t("ctaTitle")}</h2>
+          <h2 id="titre-reserver" className="relative font-site-display text-4xl font-medium leading-tight">
+            {t("ctaTitle")}
+          </h2>
           <p className="relative mt-3 opacity-90">{t(cta?.kind === "book" ? "ctaText" : "ctaTextContact")}</p>
           {cta && (
             <PillLink href={cta.href} variant="light" className="relative mt-6 self-start">

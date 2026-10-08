@@ -4,13 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { formatPhone } from "@/modules/phone";
 import type { SiteData } from "@/modules/site/data";
 import { visibleSections } from "@/modules/site/data";
-import {
-  addressParts,
-  directionsUrl,
-  formatClock,
-  summarizeHours,
-  type HoursRow,
-} from "@/modules/site/format";
+import { addressParts, directionsUrl, formatClock, summarizeHours } from "@/modules/site/format";
 import { businessPath, SITE_PATHS } from "@/modules/site/paths";
 import { SiteImage } from "../SiteImage";
 import { AtelierBrand } from "./AtelierHeader";
@@ -19,20 +13,13 @@ import { PillLink } from "./ui";
 
 type Site = NonNullable<SiteData>;
 
-/** Horaires résumés (« Lundi au vendredi · 9 h à 19 h »), partagés par le pied de page et l'accueil. */
-export async function HoursSummary({ site, detailed = false }: { site: Site; detailed?: boolean }) {
+/** Horaires résumés (« Lundi au vendredi · 9 h à 19 h »), affichés dans le pied de page. */
+async function HoursSummary({ site }: { site: Site }) {
   const t = await getTranslations("site.atelier");
   const tDays = await getTranslations("weekdays");
   const day = (n: number) => tDays(String(n) as "1");
   const time = (value: string) => formatClock(value, site.locale);
-  const rows: HoursRow[] = detailed
-    ? [1, 2, 3, 4, 5, 6, 7].map((n) => {
-        const ranges = site.openingHours.filter((range) => range.weekday === n);
-        return ranges.length
-          ? { from: n, to: n, kind: "ranges", ranges }
-          : { from: n, to: n, kind: "closed" };
-      })
-    : summarizeHours(site.openingHours);
+  const rows = summarizeHours(site.openingHours);
   return (
     <dl className="space-y-2">
       {rows.map((row) => (
