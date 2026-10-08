@@ -92,7 +92,7 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
     const upgrade = group === siteOnly ? booking[index] : undefined;
     const muted = featured ? "text-[#c9d0de]" : "text-stone";
     const strong = featured ? "text-white" : "text-night";
-    const accent = featured ? "text-salmon" : "text-brick";
+    const accent = featured ? "text-salmon" : "text-navy";
 
     const line = (item: ShowcaseItem, itemIndex: number) => {
       const missing = item.kind === "missing";
@@ -107,7 +107,7 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
                   : "bg-sand text-[#b5afa4]"
                 : featured
                   ? "bg-[#33456b] text-salmon"
-                  : "bg-blush text-brick"
+                  : "bg-mist text-navy"
             }`}
           >
             {missing ? (
@@ -135,20 +135,20 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
         className={`group/card relative flex w-full flex-col overflow-hidden rounded-[1.75rem] border-2 p-6 transition duration-300 ease-out hover:-translate-y-2 motion-reduce:transition-none motion-reduce:hover:translate-y-0 lg:p-7 ${
           featured
             ? "border-coral bg-navy text-sand shadow-[0_24px_50px_-12px_rgba(27,42,74,.45)] hover:shadow-[0_34px_64px_-12px_rgba(27,42,74,.55)] lg:py-9"
-            : "border-line bg-white text-body shadow-[0_1px_0_rgba(22,24,29,.04)] hover:border-coral hover:shadow-[0_28px_56px_-16px_rgba(22,24,29,.22)]"
+            : "border-line bg-white text-body shadow-[0_1px_0_rgba(22,24,29,.04)] hover:border-navy hover:shadow-[0_28px_56px_-16px_rgba(22,24,29,.22)]"
         }`}
       >
         {/* Décor : un anneau et un disque en partie hors cadre, qui bougent au survol. */}
         <span
           aria-hidden="true"
           className={`pointer-events-none absolute -right-16 -top-16 size-36 rounded-full border-[1.1rem] transition duration-500 ease-out group-hover/card:-translate-x-3 group-hover/card:translate-y-3 motion-reduce:transition-none ${
-            featured ? "border-navy-light" : "border-blush/70"
+            featured ? "border-navy-light" : "border-mist"
           }`}
         />
         <span
           aria-hidden="true"
           className={`pointer-events-none absolute right-5 top-5 size-2.5 rounded-full transition duration-500 ease-out group-hover/card:-translate-x-3 group-hover/card:translate-y-3 motion-reduce:transition-none ${
-            featured ? "bg-coral" : "bg-blush-strong"
+            featured ? "bg-coral" : "bg-mist-strong"
           }`}
         />
 
@@ -156,7 +156,7 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
         <div className="relative flex items-start gap-3">
           <span
             className={`flex size-10 flex-none items-center justify-center rounded-xl transition duration-300 group-hover/card:-rotate-6 group-hover/card:scale-105 motion-reduce:transition-none ${
-              featured ? "bg-coral text-white" : index === 0 ? "bg-sand text-night" : "bg-blush text-brick"
+              featured ? "bg-coral text-white" : index === 0 ? "bg-sand text-night" : "bg-mist text-navy"
             }`}
           >
             <Icon className="size-5" />
@@ -220,7 +220,7 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
           className={`group/cta relative mt-5 flex min-h-12 items-center justify-center gap-2 whitespace-nowrap rounded-full px-4 py-3 text-[0.98rem] font-semibold transition duration-200 hover:-translate-y-0.5 motion-reduce:transition-none ${
             featured
               ? "bg-brick text-white hover:shadow-[0_12px_26px_rgba(212,64,47,.38)]"
-              : "bg-blush text-rust hover:bg-brick hover:text-white hover:shadow-[0_12px_26px_rgba(212,64,47,.25)]"
+              : "bg-mist text-navy hover:bg-navy hover:text-white hover:shadow-[0_12px_26px_rgba(27,42,74,.25)]"
           }`}
         >
           {plan.priceCents > 0 ? t("choose", { plan: name }) : t("start")}

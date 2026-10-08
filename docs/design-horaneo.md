@@ -37,11 +37,13 @@ Moderne, chaleureux, généreux en espace. Un site qui donne confiance à une g�
 | Formes décoratives claires | Rose `#F6C9C1` |
 | Bordures | `#ECE6DA` |
 | Bleu nuit | `#1B2A4A` |
+| Bleu très pâle (packs Basic et Essentiel) | Fond `#E6EAF2`, formes `#C9D2E3` |
 | Confirmations | Vert `#2E9E6B` |
 
 Règles d'usage :
 
 - Le bleu nuit sert de surface : logo, pack recommandé, bandeau des étapes. Il n'est jamais la couleur du texte courant ni des titres sur fond clair.
+- Exception : sur les packs Basic et Essentiel, le bleu nuit colore les coches, les icônes, le texte des boutons et les petits liens, sur fond bleu très pâle. Ces cartes s'accordent ainsi au pack recommandé sans lui voler le corail.
 - Le corail est réservé à l'action et à l'accent. S'il est partout, plus rien ne ressort.
 - Sur un fond sombre, les éléments posés dessus sont clairs ou corail, jamais dans la même famille de couleur que le fond.
 - Aucun dégradé.
@@ -109,6 +111,7 @@ Titre centré "Un prix clair, sans commission." Trois cartes, chacune avec une i
 
 - Basic : "Commencer gratuitement".
 - Essentiel : "Choisir Essentiel".
+- Basic et Essentiel : cartes blanches, accents bleus (coches et icônes bleu nuit sur bleu très pâle, bouton bleu très pâle qui passe bleu nuit au survol, contour bleu nuit au survol). Aucun corail : il est réservé au pack recommandé.
 - Sérénité : carte plus haute, fond bleu nuit, contour corail, étiquette "Recommandé", bouton corail "Choisir Sérénité".
 
 Sous les cartes : Aucune commission, Paiements sécurisés, Vos données vous appartiennent.
