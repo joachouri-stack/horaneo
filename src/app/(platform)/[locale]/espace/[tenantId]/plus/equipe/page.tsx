@@ -30,6 +30,7 @@ export default async function ManagerTeamPage({
         staff={staff}
         services={services}
         actions={{ save: saveStaffAction, remove: deleteStaffAction }}
+        headingLevel={1}
         memberHref={(staffId) => `${page.base}/plus/equipe/${staffId}`}
       />
     </>

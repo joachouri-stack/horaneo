@@ -12,7 +12,7 @@ export default async function ManagerHoursPage({
   const t = await getTranslations("admin.tenant.hours");
   const hours = await page.db((tx) => listOpeningHours(tx, page.tenantId));
   return (
-    <Section title={t("title")}>
+    <Section title={t("title")} level={1}>
       <OpeningHoursEditor
         action={saveHoursAction}
         tenantId={page.tenantId}

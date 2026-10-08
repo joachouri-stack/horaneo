@@ -34,10 +34,26 @@ export default async function CustomersPage({
           type="search"
           defaultValue={q}
           placeholder={t("search")}
-          className={ui.input}
+          className={`${ui.input} min-w-0 flex-1`}
         />
-        <button type="submit" className={`${ui.primaryButton} w-auto`}>
-          {tCommon("search")}
+        {/* Bouton loupe compact : le champ garde la place pour le texte. */}
+        <button
+          type="submit"
+          aria-label={tCommon("search")}
+          className="inline-flex min-h-12 w-14 shrink-0 items-center justify-center rounded-full bg-brick text-white transition hover:shadow-md"
+        >
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            className="size-5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+          >
+            <circle cx="11" cy="11" r="6.5" />
+            <path d="m20 20-4.2-4.2" />
+          </svg>
         </button>
       </form>
       {list.length === 0 ? (

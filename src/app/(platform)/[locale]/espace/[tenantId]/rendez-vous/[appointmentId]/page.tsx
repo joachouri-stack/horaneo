@@ -19,6 +19,15 @@ import {
 } from "../../actions";
 
 /** Un rendez-vous : contacter la cliente, venue/absente, déplacer, annuler. */
+/** Couleur de l'étiquette de statut en haut de la fiche. */
+const STATUS_BADGE: Record<string, string> = {
+  confirmed: "bg-navy/10 text-night",
+  pending_payment: "bg-coral/15 text-coral-dark",
+  attended: "bg-success/15 text-[#1e6b48]",
+  no_show: "bg-ink/10 text-ink/80",
+  cancelled: "bg-coral-dark text-white",
+};
+
 export default async function AppointmentPage({
   params,
 }: PageProps<"/[locale]/espace/[tenantId]/rendez-vous/[appointmentId]">) {
@@ -42,8 +51,12 @@ export default async function AppointmentPage({
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-semibold uppercase text-ink/60">
-          {t(`status.${item.status}`)} · {t(`source.${item.source}`)}
+        <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-ink/60">
+          {/* Statut bien visible : un rendez-vous annulé ne doit pas passer inaperçu. */}
+          <span className={`rounded-full px-3 py-1 ${STATUS_BADGE[item.status] ?? "bg-navy/10 text-night"}`}>
+            {t(`status.${item.status}`)}
+          </span>
+          <span className="uppercase">{t(`source.${item.source}`)}</span>
         </p>
         <h1 className="mt-1 text-2xl font-extrabold first-letter:uppercase">
           {t("appointment.when", {

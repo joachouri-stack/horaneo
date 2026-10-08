@@ -27,7 +27,7 @@ export default async function StaffSchedulePage({
   }));
   if (!member) notFound();
   return (
-    <Section title={`${t("schedule")} · ${member.name}`}>
+    <Section title={`${t("schedule")} · ${member.name}`} level={1}>
       <p className="mb-4 text-sm text-ink/70">{t("scheduleHint")}</p>
       <OpeningHoursEditor
         action={saveStaffScheduleAction}

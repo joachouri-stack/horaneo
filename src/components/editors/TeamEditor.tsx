@@ -27,6 +27,7 @@ export async function TeamEditor({
   services,
   actions,
   memberHref,
+  headingLevel,
 }: {
   tenantId: string;
   /** Entreprise modifiée (espace admin, site à plusieurs entreprises). */
@@ -38,6 +39,8 @@ export async function TeamEditor({
   actions: { save: Action; remove: Action };
   /** Lien vers la page des horaires d'un membre (espace gérante). */
   memberHref?: (staffId: string) => string;
+  /** Niveau du titre principal : 1 quand l'éditeur forme toute la page (espace gérante). */
+  headingLevel?: 1 | 2;
 }) {
   const [t, tCommon, tManager] = await Promise.all([
     getTranslations("admin.tenant.team"),
@@ -81,6 +84,7 @@ export async function TeamEditor({
   return (
     <Section
       title={t("title")}
+      level={headingLevel}
       aside={
         limit !== null && limit !== undefined ? (
           <span className="text-sm text-ink/70">

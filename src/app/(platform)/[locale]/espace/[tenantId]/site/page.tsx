@@ -42,7 +42,7 @@ export default async function MySitePage({ params }: PageProps<"/[locale]/espace
           href={tenantSiteUrl(primary.hostname)}
           target="_blank"
           rel="noreferrer"
-          className="inline-block font-semibold text-night underline"
+          className="inline-flex min-h-11 items-center font-semibold text-night underline"
         >
           {t("view")} ↗
         </a>

@@ -31,14 +31,13 @@ export async function AppointmentCard({
     >
       <div className="w-16 shrink-0 font-display text-lg font-extrabold text-night">{time}</div>
       <div className="min-w-0 flex-1">
-        <p className="truncate font-semibold text-ink">
-          {item.customerName}
-          {highlight && (
-            <span className="ml-2 rounded-full bg-coral px-2 py-0.5 text-xs font-bold text-white">
-              {t("today.next")}
-            </span>
-          )}
-        </p>
+        {/* Étiquette au-dessus du nom : jamais coupée, même avec un nom long. */}
+        {highlight && (
+          <span className="mb-1 inline-block rounded-full bg-coral px-2 py-0.5 text-xs font-bold text-white">
+            {t("today.next")}
+          </span>
+        )}
+        <p className="truncate font-semibold text-ink">{item.customerName}</p>
         <p className="truncate text-sm text-ink/70">{item.services.join(" + ")}</p>
         <p className="text-sm text-ink/60">{item.staffName}</p>
       </div>

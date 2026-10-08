@@ -14,6 +14,7 @@ export default async function ManagerTestimonialsPage({
       contentLocale={page.tenant.defaultLocale}
       available={Boolean(page.tenant.features.testimonials)}
       items={items}
+      headingLevel={1}
       actions={{ save: saveTestimonialAction, remove: deleteTestimonialAction }}
     />
   );

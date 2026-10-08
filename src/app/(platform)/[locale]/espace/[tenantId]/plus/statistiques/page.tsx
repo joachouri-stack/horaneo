@@ -49,7 +49,7 @@ export default async function StatsPage({
       <div className="flex items-center justify-between">
         <Link
           href={`${page.base}/plus/statistiques?mois=${shift(period, -1)}`}
-          className="font-semibold text-night underline"
+          className="inline-flex min-h-11 items-center font-semibold text-night underline"
         >
           ← {t("previous")}
         </Link>
@@ -57,7 +57,7 @@ export default async function StatsPage({
         {period < current ? (
           <Link
             href={`${page.base}/plus/statistiques?mois=${shift(period, 1)}`}
-            className="font-semibold text-night underline"
+            className="inline-flex min-h-11 items-center font-semibold text-night underline"
           >
             {t("next")} →
           </Link>
