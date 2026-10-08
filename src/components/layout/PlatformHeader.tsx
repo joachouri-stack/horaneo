@@ -45,12 +45,13 @@ export async function PlatformHeader({ children }: { children?: React.ReactNode 
         }
       >
         <header
-          className={`mx-auto flex max-w-[75rem] flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:py-4 ${children ? "" : "max-lg:pr-16"}`}
+          className={`mx-auto flex max-w-[75rem] flex-wrap items-center justify-between gap-3 px-4 py-3 min-[400px]:gap-4 sm:px-6 lg:py-4 ${children ? "" : "max-lg:pr-16"}`}
         >
           <Link href="/" aria-label={t("common.homeLink", { product })}>
-            <Logo productName={product} className="text-[1.8rem]" />
+            {/* Un peu plus petit sur les très petits téléphones : logo et boutons tiennent sur une ligne. */}
+            <Logo productName={product} className="text-[1.5rem] min-[400px]:text-[1.8rem]" />
           </Link>
-          <nav className="flex flex-wrap items-center gap-x-6 font-medium text-night xl:gap-x-7">
+          <nav className="flex flex-wrap items-center gap-x-3 font-medium text-night min-[400px]:gap-x-6 xl:gap-x-7">
             {!children &&
               NAV.map((item) => (
                 <Link

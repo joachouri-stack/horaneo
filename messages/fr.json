@@ -1730,7 +1730,8 @@
         "sell": "Faire revenir les clientes",
         "account": "Paiements et compte",
         "support": "Demandes et aide"
-      }
+      },
+      "calendar": "Agenda sur mon téléphone"
     },
     "stats": {
       "title": "Statistiques",
@@ -2114,6 +2115,37 @@
     },
     "app": {
       "name": "{product} · Espace pro"
+    },
+    "calendarFeed": {
+      "title": "Agenda sur mon téléphone",
+      "intro": "Vos rendez-vous apparaissent dans l'agenda de votre téléphone (Calendrier de l'iPhone, Google Agenda…), et se mettent à jour tout seuls : nouvelles réservations, reports, annulations.",
+      "offTitle": "Relier mon téléphone",
+      "offText": "Un lien personnel et secret va être créé pour votre agenda. Vous l'ajoutez une seule fois sur votre téléphone, ensuite tout est automatique.",
+      "enable": "Créer mon lien d'agenda",
+      "iphoneTitle": "Sur iPhone",
+      "iphoneText": "Ouvrez cette page sur votre iPhone et touchez le bouton, puis « S'abonner ».",
+      "iphoneButton": "Ajouter au Calendrier de l'iPhone",
+      "googleTitle": "Sur Android (Google Agenda)",
+      "googleStep1": "Sur un ordinateur, connectez-vous à Google Agenda avec le compte Google de votre téléphone.",
+      "googleStep2": "Touchez le bouton ci-dessous, ou copiez le lien puis, dans Google Agenda : « Autres agendas » → « + » → « À partir de l'URL ».",
+      "googleStep3": "Sur votre téléphone, dans l'application Google Agenda, vérifiez que l'agenda est coché dans le menu.",
+      "googleButton": "Ajouter à Google Agenda",
+      "googleDelay": "Google relit le lien à son rythme : un changement peut mettre quelques heures à apparaître. Sur iPhone, c'est en général bien plus rapide.",
+      "link": "Votre lien d'agenda",
+      "copy": "Copier",
+      "copied": "Copié ✓",
+      "privacyTitle": "Lien privé",
+      "privacyText": "Ce lien affiche les noms et téléphones de vos clientes : ne le partagez pas. Si vous l'avez envoyé par erreur, créez un nouveau lien : l'ancien cessera aussitôt de fonctionner (il faudra rajouter le nouveau sur votre téléphone).",
+      "renew": "Créer un nouveau lien",
+      "renewConfirm": "L'ancien lien cessera de fonctionner. Il faudra ajouter le nouveau sur votre téléphone. Continuer ?",
+      "disable": "Arrêter le partage",
+      "disableConfirm": "Votre agenda n'apparaîtra plus sur votre téléphone. Continuer ?",
+      "ics": {
+        "name": "{business} · {product}",
+        "with": "Avec {name}",
+        "pending": "paiement en attente",
+        "noShow": "absente"
+      }
     }
   },
   "notifications": {

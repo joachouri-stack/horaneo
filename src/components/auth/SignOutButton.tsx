@@ -19,7 +19,7 @@ export function SignOutButton() {
         router.replace("/");
         router.refresh();
       }}
-      className="inline-flex min-h-11 items-center font-semibold text-night hover:underline disabled:opacity-60"
+      className="inline-flex min-h-11 items-center text-sm font-semibold text-night hover:underline disabled:opacity-60 min-[400px]:text-base"
     >
       {t("logout")}
     </button>

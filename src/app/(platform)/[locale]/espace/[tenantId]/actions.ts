@@ -34,6 +34,7 @@ import {
 } from "@/modules/agenda/actions";
 import { getSlotsForRange, loadBookingContext } from "@/modules/booking/availability";
 import { setOnlineBooking, updateBookingSettings } from "@/modules/booking/settings";
+import { disableCalendarFeed, renewCalendarFeed } from "@/modules/agenda/calendar-feed";
 import { DATE_PATTERN, localToUtc } from "@/modules/booking/time";
 import { deleteCategory, deleteService, saveCategory, saveService } from "@/modules/catalog/services";
 import { deleteTestimonial, saveTestimonial } from "@/modules/content/testimonials";
@@ -707,4 +708,14 @@ export async function testPushAction(tenantId: string) {
     if (role === "admin") throw new AppError("personal_setting");
     return queuePushTest(tx, tenantId, { businessId });
   });
+}
+
+export async function renewCalendarFeedAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "calendar_feed.renewed", (tx) => renewCalendarFeed(tx, tenantId));
+}
+
+export async function disableCalendarFeedAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "calendar_feed.disabled", (tx) => disableCalendarFeed(tx, tenantId));
 }

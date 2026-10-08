@@ -1,5 +1,5 @@
 {
-  "id": "8e413eb4-64e9-4ffe-830d-14d949c6e14f",
+  "id": "e3605213-5a67-4303-86ef-64f62555573d",
   "prevId": "60ef51b9-1abf-419b-b18d-a7bbd723628b",
   "version": "7",
   "dialect": "postgresql",
@@ -1012,6 +1012,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": false
+        },
+        "calendar_feed_version": {
+          "name": "calendar_feed_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
         },
         "gift_cards_enabled": {
           "name": "gift_cards_enabled",
@@ -4534,13 +4541,6 @@
           "notNull": true,
           "default": 0
         },
-        "sms_from_packs": {
-          "name": "sms_from_packs",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
         "emails_sent": {
           "name": "emails_sent",
           "type": "integer",
@@ -5086,13 +5086,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "with_commitment": {
-          "name": "with_commitment",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": true
-        },
         "locale": {
           "name": "locale",
           "type": "text",
@@ -5597,172 +5590,6 @@
       },
       "isRLSEnabled": false
     },
-    "public.sms_packs": {
-      "name": "sms_packs",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "uuid_generate_v7()"
-        },
-        "tenant_id": {
-          "name": "tenant_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "status": {
-          "name": "status",
-          "type": "sms_pack_status",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'pending_payment'"
-        },
-        "quantity": {
-          "name": "quantity",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "remaining": {
-          "name": "remaining",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "price_cents": {
-          "name": "price_cents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "currency": {
-          "name": "currency",
-          "type": "char(3)",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'EUR'"
-        },
-        "stripe_checkout_session_id": {
-          "name": "stripe_checkout_session_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "purchased_by_user_id": {
-          "name": "purchased_by_user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "paid_at": {
-          "name": "paid_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "sms_packs_checkout_session_key": {
-          "name": "sms_packs_checkout_session_key",
-          "columns": [
-            {
-              "expression": "stripe_checkout_session_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "sms_packs_tenant_idx": {
-          "name": "sms_packs_tenant_idx",
-          "columns": [
-            {
-              "expression": "tenant_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "status",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "paid_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "sms_packs_tenant_id_tenants_id_fk": {
-          "name": "sms_packs_tenant_id_tenants_id_fk",
-          "tableFrom": "sms_packs",
-          "tableTo": "tenants",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "sms_packs_purchased_by_user_id_users_id_fk": {
-          "name": "sms_packs_purchased_by_user_id_users_id_fk",
-          "tableFrom": "sms_packs",
-          "tableTo": "users",
-          "columnsFrom": [
-            "purchased_by_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {
-        "sms_packs_quantities": {
-          "name": "sms_packs_quantities",
-          "value": "\"sms_packs\".\"quantity\" > 0 and \"sms_packs\".\"remaining\" >= 0 and \"sms_packs\".\"remaining\" <= \"sms_packs\".\"quantity\" and \"sms_packs\".\"price_cents\" >= 0"
-        }
-      },
-      "isRLSEnabled": false
-    },
     "public.stripe_events": {
       "name": "stripe_events",
       "schema": "",
@@ -5881,12 +5708,6 @@
         "commitment_ends_at": {
           "name": "commitment_ends_at",
           "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "with_commitment": {
-          "name": "with_commitment",
-          "type": "boolean",
           "primaryKey": false,
           "notNull": false
         },
@@ -8246,15 +8067,6 @@
         "succeeded",
         "failed",
         "canceled"
-      ]
-    },
-    "public.sms_pack_status": {
-      "name": "sms_pack_status",
-      "schema": "public",
-      "values": [
-        "pending_payment",
-        "paid",
-        "expired"
       ]
     },
     "public.backup_status": {
