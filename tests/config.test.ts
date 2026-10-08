@@ -39,15 +39,20 @@ describe("valeurs de départ des packs", () => {
   it("reprend les prix du brief", () => {
     expect(byCode.basic.priceCents).toBe(0);
     expect(byCode.essentiel.priceCents).toBe(3999);
-    expect(byCode.serenite.priceCents).toBe(6900);
+    expect(byCode.serenite.priceCents).toBe(7900);
   });
 
-  it("propose trois packs « site seul », sans réservation, Signature avec frais de création", () => {
+  it("propose trois packs « site seul », sans réservation, avec leurs frais de création sans engagement", () => {
     const site = Object.fromEntries(DEFAULT_SITE_ONLY_PLANS.map((plan) => [plan.code, plan]));
     expect([site.express.priceCents, site.vitrine.priceCents, site.signature.priceCents]).toEqual([
-      900, 2200, 3900,
+      900, 2200, 4900,
     ]);
-    expect(site.signature.setupFeeCents).toBe(29000);
+    expect([site.express, site.vitrine, site.signature].map((plan) => plan.noCommitmentFeeCents)).toEqual([
+      4900, 14900, 24900,
+    ]);
+    expect([byCode.essentiel, byCode.serenite].map((plan) => plan.noCommitmentFeeCents)).toEqual([
+      14900, 24900,
+    ]);
     for (const plan of DEFAULT_SITE_ONLY_PLANS) expect(plan.features.onlineBooking).toBe(false);
     for (const plan of DEFAULT_PLANS) expect(plan.features.onlineBooking).toBe(true);
   });
@@ -68,7 +73,8 @@ describe("valeurs de départ des packs", () => {
     expect(DEFAULT_PLATFORM_SETTINGS).toMatchObject({
       prices_display: "TTC",
       commitment_months: 12,
-      setup_fee_cents: 0,
+      price_change_notice_days: 30,
+      site_buyout_enabled: false,
       deposit_commission_percent: 0,
     });
   });

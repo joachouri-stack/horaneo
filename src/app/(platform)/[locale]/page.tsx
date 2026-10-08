@@ -27,10 +27,12 @@ import { smsPackOffer } from "@/modules/billing/sms-packs";
 import { env, publicAppUrl } from "@/config/env";
 import { withPlatform } from "@/db/access";
 import { ENABLED_LOCALES } from "@/i18n/enabled";
+import { Link } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/translator";
 import { pickLocalized } from "@/i18n/locales";
 import { listPublicPlans } from "@/modules/billing/plans";
 import { planAllowsBooking } from "@/modules/billing/features";
+import { salesOpen } from "@/modules/legal/documents";
 import { getPlatformSetting } from "@/modules/settings";
 import { listShowcase } from "@/modules/showcase/showcase";
 
@@ -66,8 +68,9 @@ const LINK =
 
 /**
  * Site commercial, d'après la maquette validée (docs : règles de design) :
- * accroche avec téléphone dessiné, métiers, trois étapes, packs (lus dans la
- * base), questions, bandeau final. Pensé d'abord pour le téléphone.
+ * accroche avec téléphone dessiné, métiers, trois étapes, fonctions,
+ * témoignages, packs (lus dans la base), questions, bandeau final. Pensé
+ * d'abord pour le téléphone.
  */
 export default async function HomePage({ params }: PageProps<"/[locale]">) {
   await connection();
@@ -80,12 +83,18 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     display: await getPlatformSetting(tx, "prices_display"),
     commission: Number(await getPlatformSetting(tx, "deposit_commission_percent")),
     commitment: Number(await getPlatformSetting(tx, "commitment_months")),
-    setupFee: Number(await getPlatformSetting(tx, "setup_fee_cents")),
-    noCommitmentFee: Number(await getPlatformSetting(tx, "no_commitment_setup_fee_cents")),
+    soon: await getPlatformSetting(tx, "features_soon"),
+    salesOpen: await salesOpen(tx),
     smsPack: await smsPackOffer(tx),
     showcase: await listShowcase(tx),
   }));
   const percent = data.commission;
+  // Frais de création sans engagement : propres à chaque pack, annoncés « à partir de » le plus bas.
+  const fees = data.plans
+    .filter((plan) => plan.priceCents > 0)
+    .map((plan) => plan.noCommitmentFeeCents ?? 0)
+    .filter((fee) => fee > 0);
+  const minFee = fees.length > 0 ? Math.min(...fees) : 0;
   // « 149 € » plutôt que « 149,00 € » ; les centimes ne s'affichent que s'il y en a.
   const money = (cents: number) => formatMoney(cents, "EUR", locale);
   // Une question qui dépend d'un réglage (ex. « Suis-je engagé ? ») n'apparaît que s'il s'applique.
@@ -104,7 +113,8 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
       .replace("{smsPackSize}", String(data.smsPack.size))
       .replace("{smsPackPrice}", money(data.smsPack.priceCents))
       .replace("{commitmentMonths}", String(data.commitment))
-      .replace("{noCommitmentFee}", money(data.setupFee + data.noCommitmentFee))
+      .replace("{noCommitmentFee}", money(minFee))
+      .replace("{product}", config.PRODUCT_NAME)
       .replace(/\{plan:(\w+)\}/g, (_, feature: string) => planWith(feature));
   const contact = config.SUPPORT_EMAIL ?? `support@${config.MAIN_DOMAIN}`;
   // Fonctions présentées : l'étiquette dit à partir de quel pack (lu dans la configuration).
@@ -201,78 +211,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             </ul>
           </div>
           <HeroVisual />
-        </section>
-
-        {/* Packs (tout de suite après l'accroche) */}
-        <section
-          id="tarifs"
-          aria-labelledby="titre-tarifs"
-          className="mx-auto max-w-[75rem] scroll-mt-20 px-4 pb-14 pt-4 sm:px-6 lg:pb-20 lg:pt-6"
-        >
-          {/* Juste après l'accroche : on voit les packs sans avoir à tout lire. */}
-          <div className="mb-6 text-center lg:mb-8">
-            <h2
-              id="titre-tarifs"
-              className={`${TITLE} mb-3 text-[clamp(1.9rem,3.6vw,2.75rem)] leading-[1.05]`}
-            >
-              {t("plans.title")} <span className="text-brick">{t("plans.titleAccent", { percent })}</span>
-            </h2>
-            <p className="mx-auto max-w-[34rem] text-[1.05rem]">{t("plans.subtitle")}</p>
-          </div>
-          <PlanCards plans={data.plans} locale={locale} smsPack={data.smsPack} />
-          {/* Garanties : trois engagements clairs, puis les conditions en une ligne. */}
-          <ul className="mx-auto mt-10 grid max-w-[62rem] gap-3 sm:grid-cols-3 lg:mt-12 lg:gap-4">
-            {[
-              {
-                Icon: EuroIcon,
-                title: t("plans.trust.commission", { percent }),
-                text: t("plans.trust.commissionText"),
-              },
-              { Icon: LockIcon, title: t("plans.trust.secure"), text: t("plans.trust.secureText") },
-              { Icon: ShieldIcon, title: t("plans.trust.data"), text: t("plans.trust.dataText") },
-            ].map(({ Icon, title, text }) => (
-              <li
-                key={title}
-                className="group flex items-start gap-3.5 rounded-[1.25rem] border-2 border-line bg-white p-4 transition duration-300 hover:-translate-y-1 hover:border-coral hover:shadow-[0_18px_36px_-18px_rgba(22,24,29,.25)] motion-reduce:transition-none lg:p-5"
-              >
-                <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-blush text-brick transition duration-300 group-hover:-rotate-6 motion-reduce:transition-none">
-                  <Icon className="size-5" />
-                </span>
-                <div>
-                  <p className="font-semibold leading-snug text-night">{title}</p>
-                  <p className="mt-0.5 text-[0.88rem] leading-snug text-stone">{text}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
-          <ul className="mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-[0.85rem] text-stone">
-            {[
-              t("plans.note.display", { display: String(data.display) }),
-              // Deux formules : avec engagement (création offerte) ou sans (frais de création).
-              data.commitment > 0
-                ? t("plans.note.formulas", {
-                    months: data.commitment,
-                    fee: data.setupFee > 0 ? money(data.setupFee) : "none",
-                    noCommitmentFee: money(data.setupFee + data.noCommitmentFee),
-                  })
-                : t("plans.note.commitment", { months: 0 }),
-              ...(data.commitment > 0 && data.plans.some((item) => (item.setupFeeCents ?? 0) > 0)
-                ? [t("plans.note.customDesignFee")]
-                : []),
-              ...(data.commitment === 0
-                ? [
-                    data.setupFee > 0
-                      ? t("plans.note.setupFee", { amount: money(data.setupFee) })
-                      : t("plans.note.setupFree"),
-                  ]
-                : []),
-            ].map((text, index) => (
-              <li key={text} className="flex items-center gap-3">
-                {index > 0 && <span aria-hidden="true" className="size-1 rounded-full bg-blush-strong" />}
-                {text}
-              </li>
-            ))}
-          </ul>
         </section>
 
         {/* Métiers */}
@@ -456,6 +394,85 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             </ul>
           </section>
         )}
+
+        {/* Packs */}
+        <section
+          id="tarifs"
+          aria-labelledby="titre-tarifs"
+          className="mx-auto max-w-[75rem] scroll-mt-20 px-4 pt-14 sm:px-6 lg:pt-20"
+        >
+          <div className="mb-6 text-center lg:mb-8">
+            <h2
+              id="titre-tarifs"
+              className={`${TITLE} mb-3 text-[clamp(1.9rem,3.6vw,2.75rem)] leading-[1.05]`}
+            >
+              {t("plans.title")} <span className="text-brick">{t("plans.titleAccent", { percent })}</span>
+            </h2>
+            <p className="mx-auto max-w-[34rem] text-[1.05rem]">{t("plans.subtitle")}</p>
+          </div>
+          <PlanCards
+            plans={data.plans}
+            locale={locale}
+            smsPack={data.smsPack}
+            soon={data.soon}
+            salesOpen={data.salesOpen}
+          />
+          <p className="mt-6 text-center">
+            <Link href="/comparatif" className={`${LINK} gap-1.5 font-semibold`}>
+              {t("plans.compare")}
+              <ArrowIcon className="size-4" />
+            </Link>
+          </p>
+          {/* Garanties : trois engagements clairs, puis les conditions en une ligne. */}
+          <ul className="mx-auto mt-10 grid max-w-[62rem] gap-3 sm:grid-cols-3 lg:mt-12 lg:gap-4">
+            {[
+              {
+                Icon: EuroIcon,
+                title: t("plans.trust.commission", { percent }),
+                text: t("plans.trust.commissionText"),
+              },
+              { Icon: LockIcon, title: t("plans.trust.secure"), text: t("plans.trust.secureText") },
+              { Icon: ShieldIcon, title: t("plans.trust.data"), text: t("plans.trust.dataText") },
+            ].map(({ Icon, title, text }) => (
+              <li
+                key={title}
+                className="group flex items-start gap-3.5 rounded-[1.25rem] border-2 border-line bg-white p-4 transition duration-300 hover:-translate-y-1 hover:border-coral hover:shadow-[0_18px_36px_-18px_rgba(22,24,29,.25)] motion-reduce:transition-none lg:p-5"
+              >
+                <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-blush text-brick transition duration-300 group-hover:-rotate-6 motion-reduce:transition-none">
+                  <Icon className="size-5" />
+                </span>
+                <div>
+                  <p className="font-semibold leading-snug text-night">{title}</p>
+                  <p className="mt-0.5 text-[0.88rem] leading-snug text-stone">{text}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <ul className="mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-[0.85rem] text-stone">
+            {[
+              t("plans.note.display", { display: String(data.display) }),
+              // Deux formules : avec engagement (création offerte) ou sans (frais de création).
+              data.commitment > 0
+                ? t("plans.note.formulas", {
+                    months: data.commitment,
+                    fee: minFee > 0 ? money(minFee) : "none",
+                  })
+                : t("plans.note.commitment", { months: 0 }),
+              ...(data.commitment === 0
+                ? [
+                    minFee > 0
+                      ? t("plans.note.setupFee", { amount: money(minFee) })
+                      : t("plans.note.setupFree"),
+                  ]
+                : []),
+            ].map((text, index) => (
+              <li key={text} className="flex items-center gap-3">
+                {index > 0 && <span aria-hidden="true" className="size-1 rounded-full bg-blush-strong" />}
+                {text}
+              </li>
+            ))}
+          </ul>
+        </section>
 
         {/* Questions */}
         <section

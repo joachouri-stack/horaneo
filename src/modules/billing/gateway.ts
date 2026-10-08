@@ -66,6 +66,8 @@ export interface BillingGateway {
   cancelNow(subscriptionId: string): Promise<BillingSubscription>;
   /** Pack supérieur : changement immédiat, différence facturée au prorata tout de suite. */
   changePriceNow(input: { subscriptionId: string; priceId: string }): Promise<BillingSubscription>;
+  /** Nouveau prix du même pack : facturé à partir de la prochaine échéance, sans prorata. */
+  repriceAtRenewal(input: { subscriptionId: string; priceId: string }): Promise<BillingSubscription>;
   /** Pack inférieur : appliqué à la fin de la période en cours. */
   schedulePriceChange(input: { subscriptionId: string; priceId: string }): Promise<{ scheduleId: string }>;
   releaseSchedule(scheduleId: string): Promise<void>;

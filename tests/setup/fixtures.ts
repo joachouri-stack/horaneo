@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import * as s from "@/db/schema";
+import { DEFAULT_LOCALE } from "@/i18n/locales";
+import { LEGAL_KEYS } from "@/modules/legal/documents";
 import type { TestDb } from "./db";
 
 let sequence = 0;
@@ -252,4 +254,31 @@ export async function createTenantWithData(db: TestDb, label: string) {
     .values({ tenantId, quantity: 100, remaining: 100, priceCents: 800, status: "paid" });
 
   return { tenant, business, user, domain, service, staff, customer, appointment };
+}
+
+/**
+ * Ouvre la commande en ligne des packs payants : publie les trois pages
+ * légales (texte de test). Renvoie de quoi les retirer après les tests.
+ */
+export async function openSales(db: TestDb) {
+  const rows = await db
+    .insert(s.legalDocuments)
+    .values(
+      LEGAL_KEYS.map((key) => ({
+        key,
+        locale: DEFAULT_LOCALE,
+        version: 1000 + Math.floor(Math.random() * 1_000_000),
+        title: key,
+        content: "Texte de test.",
+        publishedAt: new Date(),
+      })),
+    )
+    .returning({ id: s.legalDocuments.id });
+  return () =>
+    db.delete(s.legalDocuments).where(
+      inArray(
+        s.legalDocuments.id,
+        rows.map((row) => row.id),
+      ),
+    );
 }

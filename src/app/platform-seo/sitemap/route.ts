@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 /** Plan du site commercial (accueil et documents légaux, dans chaque langue activée). */
 export function GET() {
   const base = publicAppUrl();
-  const paths = ["", "/mentions-legales", "/confidentialite", "/conditions"];
+  const paths = ["", "/comparatif", "/mentions-legales", "/confidentialite", "/conditions"];
   const urls = ENABLED_LOCALES.flatMap((locale) =>
     paths.map((path) => `  <url><loc>${base}/${locale}${path}</loc></url>`),
   );

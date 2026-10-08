@@ -57,14 +57,14 @@ Les tables sont rangées en 8 familles.
 ### Famille A : plateforme et configuration (hors tenant)
 
 **`platform_settings`** : réglages généraux, modifiables depuis l'admin, sous forme clé → valeur.
-Exemples : `product_name = "Horaneo"`, `main_domain = "horaneo.com"`, `prices_display = "TTC"`, `commitment_months = 12`, `setup_fee_cents = 0`, `go_live_delay_days = 5`, `deposit_commission_rate = 0`, `retention_days_after_cancel = 30`.
+Exemples : `product_name = "Horaneo"`, `main_domain = "horaneo.com"`, `prices_display = "TTC"`, `commitment_months = 12`, `price_change_notice_days = 30`, `go_live_delay_days = 5`, `deposit_commission_rate = 0`, `retention_days_after_cancel = 30`.
 
 **`plans`** : les packs.
 | Colonne | Exemple |
 |---|---|
 | `code` | `basic`, `essentiel`, `serenite` |
 | `name` (traduisible) | `{"fr": "Sérénité"}` |
-| `price_cents`, `currency`, `interval` | `6900`, `EUR`, `month` |
+| `price_cents`, `currency`, `interval` | `7900`, `EUR`, `month` |
 | `stripe_price_id` | lien avec Stripe Billing |
 | `limits` (JSON) | `{"online_bookings_per_month": 5, "members": 1, "photos": 5, "services": 10, "sms_per_month": 0}` (vide = illimité) |
 | `features` (JSON) | `{"full_site": false, "custom_domain": false, "online_payment": false, "promo_codes": false, "stats": false, "branding_footer": true}` |

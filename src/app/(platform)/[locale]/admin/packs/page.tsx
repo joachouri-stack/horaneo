@@ -1,6 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
-import { CheckboxField, Hidden, TextField } from "@/components/admin/fields";
+import { CheckboxField, Hidden, SelectField, TextField } from "@/components/admin/fields";
 import { ui } from "@/components/ui/styles";
 import { pickLocalized } from "@/i18n/locales";
 import { resolveLocale } from "@/i18n/translator";
@@ -8,6 +8,8 @@ import { adminQuery } from "@/lib/admin/mutation";
 import { requireAdmin } from "@/lib/auth/session";
 import { centsToInput } from "@/lib/format";
 import { FEATURE_KEYS } from "@/modules/billing/admin";
+import { planAllowsBooking } from "@/modules/billing/features";
+import { EVERYTHING_IN, HIGHLIGHT_KEYS, MAX_HIGHLIGHTS } from "@/modules/billing/showcase";
 import { listPlans } from "@/modules/tenants/queries";
 import { savePlanAction } from "./actions";
 
@@ -60,13 +62,31 @@ export default async function PlansPage({ params }: PageProps<"/[locale]/admin/p
                 required
               />
               <TextField
-                id={`setupFee-${plan.id}`}
-                name="setupFee"
+                id={`noCommitmentFee-${plan.id}`}
+                name="noCommitmentFee"
                 inputMode="decimal"
-                label={t("setupFee")}
-                hint={t("setupFeeHint")}
-                defaultValue={plan.setupFeeCents === null ? "" : centsToInput(plan.setupFeeCents)}
+                label={t("noCommitmentFee")}
+                hint={t("noCommitmentFeeHint")}
+                defaultValue={
+                  plan.noCommitmentFeeCents === null ? "" : centsToInput(plan.noCommitmentFeeCents)
+                }
               />
+              {/* Pack « site seul » : le pack avec réservation qui le reprend entièrement. */}
+              {!planAllowsBooking(plan.features) && (
+                <SelectField
+                  id={`twin-${plan.id}`}
+                  name="bookingTwinCode"
+                  label={t("bookingTwin")}
+                  hint={t("bookingTwinHint")}
+                  defaultValue={plan.bookingTwinCode ?? ""}
+                  options={[
+                    { value: "", label: t("none") },
+                    ...plans
+                      .filter((item) => planAllowsBooking(item.features))
+                      .map((item) => ({ value: item.code, label: pickLocalized(item.name, locale) })),
+                  ]}
+                />
+              )}
               {LIMITS.map((key) => (
                 <TextField
                   key={key}
@@ -98,6 +118,35 @@ export default async function PlansPage({ params }: PageProps<"/[locale]/admin/p
                     name={`feature_${key}`}
                     label={t(`featureLabels.${key}`)}
                     defaultChecked={Boolean(plan.features[key])}
+                  />
+                ))}
+              </div>
+            </fieldset>
+            {/* Lignes visibles sur la carte du pack (site commercial) ; le reste se déplie. */}
+            <fieldset>
+              <legend className={ui.label}>{t("highlights")}</legend>
+              <p className="mb-2 text-sm text-ink/70">{t("highlightsHint", { max: MAX_HIGHLIGHTS })}</p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {Array.from({ length: MAX_HIGHLIGHTS }, (_, index) => (
+                  <SelectField
+                    key={index}
+                    id={`highlight-${plan.id}-${index}`}
+                    name={`highlight_${index}`}
+                    label={t("highlightLine", { n: index + 1 })}
+                    defaultValue={plan.highlights[index] ?? ""}
+                    options={[
+                      { value: "", label: t("none") },
+                      ...plans
+                        .filter((item) => item.id !== plan.id)
+                        .map((item) => ({
+                          value: `${EVERYTHING_IN}${item.code}`,
+                          label: t("everythingIn", { plan: pickLocalized(item.name, locale) }),
+                        })),
+                      ...HIGHLIGHT_KEYS.map((key) => ({
+                        value: key,
+                        label: t(`highlightLabels.${key}` as "highlightLabels.basePage"),
+                      })),
+                    ]}
                   />
                 ))}
               </div>

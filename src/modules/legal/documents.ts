@@ -2,7 +2,9 @@ import { and, desc, eq, isNotNull } from "drizzle-orm";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
 import { legalDocuments } from "@/db/schema";
+import type { LegalIdentity } from "@/config/defaults";
 import { DEFAULT_LOCALE } from "@/i18n/locales";
+import { setPlatformSetting } from "@/modules/settings";
 
 /**
  * Documents légaux du site commercial (mentions légales, confidentialité,
@@ -57,3 +59,40 @@ export async function publishLegalDocument(
     .returning();
   return created;
 }
+
+/**
+ * Commande en ligne des packs payants : ouverte seulement quand les trois pages
+ * légales (mentions, confidentialité, conditions) sont publiées. Sinon, les
+ * packs payants mènent au formulaire « Être rappelé ».
+ */
+export async function salesOpen(tx: Transaction) {
+  for (const key of LEGAL_KEYS) {
+    if (!(await getLegalDocument(tx, key, DEFAULT_LOCALE))) return false;
+  }
+  return true;
+}
+
+/** Identité légale du SaaS : saisie par l'administratrice, jamais inventée. */
+export const legalIdentityInput = z.object({
+  companyName: z.string().trim().max(200).default(""),
+  legalForm: z.string().trim().max(200).default(""),
+  siret: z.string().trim().max(40).default(""),
+  address: z.string().trim().max(500).default(""),
+  publicationDirector: z.string().trim().max(200).default(""),
+  host: z.string().trim().max(500).default(""),
+  vatRegime: z.string().trim().max(300).default(""),
+  consumerMediator: z.string().trim().max(500).default(""),
+});
+
+export async function saveLegalIdentity(tx: Transaction, raw: z.input<typeof legalIdentityInput>) {
+  const input = legalIdentityInput.parse(raw);
+  await setPlatformSetting(tx, "legal_identity", input);
+  return input;
+}
+
+/** Champs de l'identité affichés sur chaque page légale (seuls ceux qui sont remplis). */
+export const LEGAL_IDENTITY_FIELDS: Record<LegalKey, (keyof LegalIdentity)[]> = {
+  legal_notice: ["companyName", "legalForm", "siret", "address", "publicationDirector", "vatRegime", "host"],
+  terms: ["companyName", "legalForm", "siret", "address", "vatRegime", "consumerMediator"],
+  privacy: ["companyName", "address"],
+};

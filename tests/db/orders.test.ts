@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { withPlatform } from "@/db/access";
 import type { Transaction } from "@/db/client";
@@ -14,9 +14,12 @@ import {
   rejectOrder,
   syncOrderPayment,
 } from "@/modules/orders/orders";
+import { salesOpen } from "@/modules/legal/documents";
+import { requestCallback } from "@/modules/orders/callback";
 import { createTenant } from "@/modules/tenants/create";
 import { createFakeBilling } from "../setup/fake-billing";
 import { createFakeSenders } from "../setup/fake-senders";
+import { openSales } from "../setup/fixtures";
 import { hasTestDatabase, openAppDb, openTestDb, type TestDb } from "../setup/db";
 
 /** Commandes du site commercial : demande Basic, paiement d'un pack, création du site, refus. */
@@ -33,9 +36,13 @@ describe.skipIf(!hasTestDatabase)("commandes", () => {
   const billing = createFakeBilling();
   const fake = createFakeSenders();
 
+  let closeSales: (() => Promise<unknown>) | undefined;
+
   beforeAll(async () => {
     owner = await openTestDb();
     app = openAppDb();
+    // Pages légales publiées : la commande en ligne des packs payants est ouverte.
+    closeSales = await openSales(owner);
     await owner
       .insert(users)
       .values({ email: "admin-commandes@example.com", isPlatformAdmin: true })
@@ -43,6 +50,7 @@ describe.skipIf(!hasTestDatabase)("commandes", () => {
   });
 
   afterAll(async () => {
+    await closeSales?.();
     await app?.$client.end();
     await owner?.$client.end();
   });
@@ -232,5 +240,53 @@ describe.skipIf(!hasTestDatabase)("commandes", () => {
     expect(await errorCode(platform((tx) => createOrder(tx, user.id, form("essentiel"), null, urls)))).toBe(
       "payments_unavailable",
     );
+  });
+
+  it("pages légales pas encore publiées : packs payants fermés, Basic ouvert, demande de rappel", async () => {
+    await closeSales?.();
+    closeSales = undefined;
+    try {
+      expect(await platform((tx) => salesOpen(tx))).toBe(false);
+      const user = await newUser();
+      expect(
+        await errorCode(platform((tx) => createOrder(tx, user.id, form("essentiel"), billing.gateway, urls))),
+      ).toBe("sales_paused");
+      const basic = await platform((tx) => createOrder(tx, user.id, form("basic"), billing.gateway, urls));
+      expect(basic.kind).toBe("submitted");
+
+      await platform((tx) =>
+        requestCallback(tx, {
+          name: "Nora Benali",
+          businessName: "Institut Nora",
+          phone: "06 12 34 56 78",
+          planCode: "signature",
+          message: "Plutôt le matin",
+        }),
+      );
+      const [row] = await owner
+        .select()
+        .from(messageLog)
+        .where(eq(messageLog.templateKey, "admin.callback_request"))
+        .orderBy(desc(messageLog.createdAt))
+        .limit(1);
+      expect(row.data).toMatchObject({ name: "Nora Benali", phone: "+33612345678", planCode: "signature" });
+      await dispatchMessages(platform, fake.senders, {
+        productName: "Horaneo",
+        appUrl: "https://app.test",
+        now: START,
+        ids: [row.id],
+      });
+      const mail = fake.emails.find(
+        (email) => email.to.includes("admin-commandes@example.com") && email.text.includes("Nora Benali"),
+      )!;
+      expect(mail.text).toContain("Signature");
+      expect(mail.text).toContain("Plutôt le matin");
+      // Numéro invalide : refusé.
+      await expect(
+        platform((tx) => requestCallback(tx, { name: "Nora", phone: "12 34 56" })),
+      ).rejects.toMatchObject({ code: "phone_invalid" });
+    } finally {
+      closeSales = await openSales(owner);
+    }
   });
 });

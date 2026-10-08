@@ -162,6 +162,16 @@ export function createStripeBilling(secretKey: string): BillingGateway {
       return toBillingSubscription(updated);
     },
 
+    async repriceAtRenewal(input) {
+      const current = await stripe.subscriptions.retrieve(input.subscriptionId);
+      const updated = await stripe.subscriptions.update(input.subscriptionId, {
+        items: [{ id: current.items.data[0].id, price: input.priceId }],
+        // Même pack, nouveau prix : rien n'est facturé maintenant, la prochaine facture suit le nouveau prix.
+        proration_behavior: "none",
+      });
+      return toBillingSubscription(updated);
+    },
+
     async schedulePriceChange(input) {
       const current = await stripe.subscriptions.retrieve(input.subscriptionId);
       const existing = current.schedule;

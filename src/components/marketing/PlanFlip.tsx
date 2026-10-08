@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useState } from "react";
 import { BrowserIcon, CalendarCheckIcon } from "./icons";
 
 type Side = "booking" | "site";
@@ -19,42 +19,10 @@ export function PlanFlip({
     site: string;
     hintBooking: string;
     hintSite: string;
-    dot: string;
   };
   children: ReactNode;
 }) {
   const [side, setSide] = useState<Side>("booking");
-  // Points sous le carrousel (téléphone, tablette) : quelle carte est au centre.
-  const rootRef = useRef<HTMLDivElement>(null);
-  const [count, setCount] = useState(0);
-  const [active, setActive] = useState(0);
-  useEffect(() => {
-    const row = rootRef.current?.querySelector<HTMLElement>("[data-carousel]");
-    if (!row) return;
-    setCount(row.children.length);
-    const update = () => {
-      const center = row.scrollLeft + row.clientWidth / 2;
-      const items = [...row.children] as HTMLElement[];
-      const index = items.reduce(
-        (best, item, i) =>
-          Math.abs(item.offsetLeft + item.offsetWidth / 2 - center) <
-          Math.abs(items[best].offsetLeft + items[best].offsetWidth / 2 - center)
-            ? i
-            : best,
-        0,
-      );
-      setActive(index);
-    };
-    update();
-    row.addEventListener("scroll", update, { passive: true });
-    return () => row.removeEventListener("scroll", update);
-  }, []);
-  const goTo = (index: number) => {
-    const row = rootRef.current?.querySelector<HTMLElement>("[data-carousel]");
-    const item = row?.children[index] as HTMLElement | undefined;
-    if (row && item)
-      row.scrollTo({ left: item.offsetLeft - (row.clientWidth - item.offsetWidth) / 2, behavior: "smooth" });
-  };
   const option = (value: Side, text: string, Icon: typeof BrowserIcon) => (
     <button
       type="button"
@@ -69,7 +37,7 @@ export function PlanFlip({
     </button>
   );
   return (
-    <div ref={rootRef} data-side={side} className="group/plans">
+    <div data-side={side} className="group/plans">
       <div className="mb-6 flex flex-col items-center gap-2.5 lg:mb-10">
         {/* Deux options de même largeur ; une pastille bleu nuit glisse sous l'option choisie. */}
         <div
@@ -91,24 +59,6 @@ export function PlanFlip({
         </p>
       </div>
       {children}
-      {count > 1 && (
-        <div className="mt-3 flex justify-center gap-2 lg:hidden">
-          {Array.from({ length: count }, (_, index) => (
-            <button
-              key={index}
-              type="button"
-              aria-label={labels.dot.replace("{n}", String(index + 1))}
-              aria-current={index === active ? "true" : undefined}
-              onClick={() => goTo(index)}
-              className="flex size-11 items-center justify-center"
-            >
-              <span
-                className={`block h-2 rounded-full transition-all ${index === active ? "w-6 bg-brick" : "w-2 bg-line"}`}
-              />
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

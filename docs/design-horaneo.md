@@ -103,11 +103,14 @@ Logo à gauche. À droite : Comment ça marche, Tarifs, Questions, choix de la l
 Grand bandeau bleu nuit aux coins très arrondis. Titre "Vous n'avez rien à faire.", avec "rien à faire" en corail. Trois cartes : blanche, corail, blanche. Chacune a une icône, un grand numéro plein, un titre, un texte et une étiquette.
 
 1. "Nous créons votre site" : étiquette "C'est nous qui le faisons".
-2. "Vos clientes réservent" : étiquette "Sans rien installer".
+2. "Vos clients réservent" : étiquette "Sans rien installer".
 3. "Vous encaissez" : acompte, paiement complet ou règlement sur place, au choix. Étiquette "Sans commission".
 
 **Les packs**
-Titre centré "Un prix clair, sans commission." Trois cartes, chacune avec une icône, un nom, une phrase qui dit à qui elle s'adresse, un prix en très gros, trois tuiles de chiffres clés (réservations, membres, SMS), un bouton, puis la liste des fonctions. Les fonctions non incluses apparaissent en gris avec un tiret.
+Placés après les fonctions et les témoignages, avant les questions. Titre centré "Un prix clair, sans commission." Un interrupteur "Avec réservation" / "Sans réservation" retourne les trois cartes (Basic, Essentiel, Sérénité / Express, Vitrine, Signature). Chaque carte : une icône, un nom, une phrase qui dit à qui elle s'adresse, un prix en très gros, trois tuiles de chiffres clés, un bouton, puis 6 lignes au plus (choisies dans l'admin). Le bouton "Voir tout ce qui est inclus" déplie la liste complète (six groupes titrés pour Signature et Sérénité) ; ce qui manque par rapport au pack suivant apparaît en gris avec un tiret, à la fin. Étiquette "Bientôt" sur les fonctions pas encore livrées.
+
+- Ordinateur : trois colonnes alignées en haut ; une carte dépliée s'allonge sans déplacer ses voisines. Téléphone : cartes l'une sous l'autre, pack recommandé en premier, seule la face choisie occupe la place.
+- Sous les cartes, le lien "Comparer tous les packs en détail" mène au tableau comparatif (`/comparatif`), une table par famille, première colonne fixe sur téléphone.
 
 - Basic : "Commencer gratuitement".
 - Essentiel : "Choisir Essentiel".

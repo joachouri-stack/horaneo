@@ -14,6 +14,7 @@ import {
 import { AppError } from "@/modules/errors";
 import { setPlatformSetting } from "@/modules/settings";
 import type { BillingGateway } from "./gateway";
+import { EVERYTHING_IN, HIGHLIGHT_KEYS, MAX_HIGHLIGHTS, twinRuleViolations } from "./showcase";
 import { ensurePlanPrice, isLive } from "./subscriptions";
 
 /** Réglages des packs et des abonnements, depuis l'espace admin (rôle plateforme). */
@@ -27,28 +28,39 @@ const optionalLimit = z
 export const FEATURE_KEYS = [
   "onlineBooking",
   "fullSite",
+  "sitePages",
   "customDomain",
-  "onlinePayment",
-  "promoCodes",
-  "testimonials",
-  "stats",
-  "monthlySummary",
-  "brandingFooter",
-  "emailSupport",
-  "whatsappSupport",
-  "promotions",
-  "googleReviews",
-  "giftCards",
-  "monthlyUpdate",
-  "onDemandUpdates",
-  "aiMessaging",
-  "customerSpace",
-  "loyalty",
   "localSeo",
   "contactButtons",
   "mobileReady",
-  "sitePages",
-  "customDesign",
+  "contactForm",
+  "onlinePayment",
+  "paymentLinks",
+  "promoCodes",
+  "promotions",
+  "testimonials",
+  "giftCards",
+  "googleReviews",
+  "customerSpace",
+  "loyalty",
+  "kickoffCall",
+  "copywriting",
+  "photoRetouch",
+  "businessSections",
+  "seoPages",
+  "searchConsole",
+  "googleBusiness",
+  "visibilityReport",
+  "multilingual",
+  "qrPoster",
+  "stats",
+  "monthlySummary",
+  "monthlyUpdate",
+  "onDemandUpdates",
+  "emailSupport",
+  "whatsappSupport",
+  "brandingFooter",
+  "aiMessaging",
 ] as const;
 
 export const planInput = z.object({
@@ -66,12 +78,19 @@ export const planInput = z.object({
   services: optionalLimit,
   /** Jamais de SMS illimités : un nombre est obligatoire (0 = aucun SMS). */
   smsPerMonth: z.coerce.number().int().min(0).max(100_000),
-  /** Frais de création propres au pack, en euros ; vide : réglage général. */
-  setupFee: z
+  /** Frais de création de la formule sans engagement, en euros (vide : aucun). */
+  noCommitmentFee: z
     .string()
     .trim()
     .regex(/^(\d{1,5}([.,]\d{1,2})?)?$/)
     .default(""),
+  /** Lignes visibles sur la carte, dans l'ordre (6 au plus). */
+  highlights: z
+    .array(z.string().regex(/^(everythingIn:[a-z0-9-]+|[A-Za-z]+)$/))
+    .max(MAX_HIGHLIGHTS)
+    .default([]),
+  /** Pack « site seul » : code du pack avec réservation qui le reprend. */
+  bookingTwinCode: z.string().trim().max(40).default(""),
   features: z.array(z.enum(FEATURE_KEYS)),
   isPublic: z.boolean(),
 });
@@ -119,10 +138,19 @@ export async function savePlan(
       limits,
       features,
       isPublic: input.isPublic,
-      setupFeeCents: input.setupFee ? Math.round(Number(input.setupFee.replace(",", ".")) * 100) : null,
+      noCommitmentFeeCents: input.noCommitmentFee
+        ? Math.round(Number(input.noCommitmentFee.replace(",", ".")) * 100)
+        : null,
+      highlights: input.highlights.filter(
+        (key) => key.startsWith(EVERYTHING_IN) || HIGHLIGHT_KEYS.includes(key),
+      ),
+      bookingTwinCode: input.bookingTwinCode || null,
       ...(priceChanged ? { stripePriceId: null } : {}),
     })
     .where(eq(plans.id, plan.id));
+  // Règle des jumeaux : un pack « site seul » ne peut pas comprendre plus que son jumeau avec réservation.
+  const problems = twinRuleViolations(await tx.select().from(plans));
+  if (problems.length > 0) throw new AppError("twin_rule", problems[0]);
   if (priceChanged && priceCents > 0 && gateway) await ensurePlanPrice(tx, plan.id, gateway);
   return { priceChanged, before: plan.priceCents, after: priceCents };
 }
@@ -131,16 +159,6 @@ export const settingsInput = z.object({
   prices_display: z.enum(["TTC", "HT"]),
   vat_rate_percent: z.coerce.number().min(0).max(50),
   commitment_months: z.coerce.number().int().min(0).max(36),
-  /** Frais de création en euros. */
-  setup_fee: z
-    .string()
-    .trim()
-    .regex(/^\d{1,5}([.,]\d{1,2})?$/),
-  /** Frais de création de la formule sans engagement, en euros. */
-  no_commitment_setup_fee: z
-    .string()
-    .trim()
-    .regex(/^\d{1,5}([.,]\d{1,2})?$/),
   sms_pack_size: z.coerce.number().int().min(1).max(10000),
   /** Prix du pack de SMS, en euros. */
   sms_pack_price: z
@@ -148,6 +166,15 @@ export const settingsInput = z.object({
     .trim()
     .regex(/^\d{1,5}([.,]\d{1,2})?$/),
   sms_warning_percent: z.coerce.number().int().min(1).max(99),
+  price_change_notice_days: z.coerce.number().int().min(0).max(180),
+  /** Rachat du site à la sortie : activé ou non, et son prix en euros. */
+  site_buyout_enabled: z.boolean(),
+  site_buyout_price: z
+    .string()
+    .trim()
+    .regex(/^\d{1,6}([.,]\d{1,2})?$/),
+  /** Fonctions annoncées « Bientôt » (pas encore livrées). */
+  features_soon: z.array(z.enum(FEATURE_KEYS)),
   go_live_delay_days: z.coerce.number().int().min(0).max(60),
   deposit_commission_percent: z.coerce.number().min(0).max(20),
   retention_days_after_cancel: z.coerce.number().int().min(0).max(365),
@@ -161,14 +188,13 @@ export const settingsInput = z.object({
 
 export async function updatePlatformSettings(tx: Transaction, raw: z.input<typeof settingsInput>) {
   const input = settingsInput.parse(raw);
-  const { setup_fee, no_commitment_setup_fee, sms_pack_price, ...rest } = input;
+  const { sms_pack_price, site_buyout_price, ...rest } = input;
   for (const [key, value] of Object.entries(rest)) {
     await setPlatformSetting(tx, key as keyof typeof rest, value as never);
   }
   const toCents = (euros: string) => Math.round(Number(euros.replace(",", ".")) * 100);
-  await setPlatformSetting(tx, "setup_fee_cents", toCents(setup_fee));
-  await setPlatformSetting(tx, "no_commitment_setup_fee_cents", toCents(no_commitment_setup_fee));
   await setPlatformSetting(tx, "sms_pack_price_cents", toCents(sms_pack_price));
+  await setPlatformSetting(tx, "site_buyout_price_cents", toCents(site_buyout_price));
   return input;
 }
 

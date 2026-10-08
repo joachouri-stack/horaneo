@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
 import { authSecret, env } from "@/config/env";
+import { platformLocaleRedirect } from "@/i18n/redirects";
 import { routing } from "@/i18n/routing";
 import { classifyHost } from "@/lib/tenancy/hosts";
 import { buildHostConfig, lookup } from "@/lib/tenancy/runtime";
@@ -72,6 +73,10 @@ export async function proxy(request: NextRequest) {
         );
       }
       if (hasPrefix(url.pathname, "/platform-seo")) return notFound();
+      {
+        const localeRedirect = platformLocaleRedirect(url);
+        if (localeRedirect) return NextResponse.redirect(localeRedirect.url, localeRedirect.status);
+      }
       return intl(request);
     case "tenant": {
       // La connexion n'existe que sur le domaine principal.

@@ -161,21 +161,14 @@
       "free": "Gratuit",
       "freeForever": "sans limite de durée",
       "toggleLabel": "Type de pack",
-      "carouselDot": "Voir le pack {n}",
-      "moreItems": "{count, plural, one {Voir 1 autre avantage} other {Voir les # autres avantages}}",
-      "lessItems": "Masquer le détail",
       "toggleBooking": "Avec réservation",
       "toggleSite": "Sans réservation",
       "toggleHintBooking": "Vos clients réservent en ligne, 24 h/24. Pas besoin ? Choisissez « Sans réservation ».",
       "toggleHintSite": "Le même site, vos clients vous appellent ou vous écrivent. La réservation s'ajoute plus tard, sans tout refaire.",
-      "setupFeeBadge": "+ {amount} de création sur mesure",
       "addBooking": "Ajoutez la réservation quand vous voulez : passez au pack {plan}, sans refaire votre site",
       "recommended": "Recommandé",
       "start": "Commencer gratuitement",
       "choose": "Choisir {plan}",
-      "commitment": "{months, plural, =0 {Sans engagement.} one {Engagement de # mois.} other {Engagement de # mois.}}",
-      "setupFree": "Création du site offerte.",
-      "setupFee": "Frais de création : {amount}.",
       "tiles": {
         "unlimited": "Illimité",
         "bookings": "{unlimited, select, yes {réservations} other {réservations par mois}}",
@@ -193,59 +186,116 @@
       },
       "included": "Inclus :",
       "missing": "Non inclus :",
-      "items": {
-        "basePage": "Une fiche en ligne à votre nom",
-        "onePage": "Une belle page vitrine à votre nom",
-        "agenda": "Agenda sur votre téléphone",
-        "photosServices": "{photos, plural, one {# photo} other {# photos}} et {services, plural, one {# prestation} other {# prestations}}",
-        "everythingIn": "Tout le pack {plan}",
-        "customDesign": "Design 100 % sur mesure, rien que pour vous",
-        "fullSite": "Site complet, créé par nos soins",
-        "sitePages": "Pages Prestations, Galerie, À propos et Infos pratiques",
-        "localSeo": "Visible sur Google près de chez vous",
-        "contactButtons": "Boutons Appeler, Itinéraire et Nous écrire",
-        "mobileReady": "Parfait sur téléphone, hébergement et sécurité inclus",
-        "customDomain": "Votre propre nom de domaine",
-        "onlinePayment": "Paiement et acompte en ligne",
-        "promoCodes": "Codes promo",
-        "promotions": "Promotions datées et prix barrés",
-        "testimonials": "Témoignages de vos clientes",
-        "customerSpace": "Espace client : rendez-vous et historique",
-        "monthlyUpdate": "Une mise à jour par mois, faite pour vous",
-        "onDemandUpdates": "Mises à jour à la demande",
-        "unlimitedPhotos": "Photos illimitées",
-        "photosLimit": "Jusqu'à {photos} photos",
-        "stats": "Statistiques détaillées",
-        "statsSummary": "Statistiques détaillées et résumé mensuel",
-        "monthlySummary": "Résumé mensuel",
-        "googleReviews": "Avis Google affichés sur votre site",
-        "whatsappSupport": "Assistance prioritaire par WhatsApp",
-        "giftCards": "Cartes cadeaux en ligne",
-        "loyalty": "Carte de fidélité",
-        "smsReminders": "SMS de rappel",
-        "emailReminders": "Rappels par e-mail illimités"
-      },
-      "soon": {
-        "aiMessaging": "Bientôt : messagerie IA"
-      },
       "trust": {
         "commission": "{percent, plural, =0 {0 % de commission} other {# % de commission seulement}}",
         "commissionText": "Seuls les frais bancaires de Stripe s'appliquent.",
         "secure": "Paiements sécurisés",
         "secureText": "Cartes traitées par Stripe, jamais par nous.",
         "data": "Vos données sont à vous",
-        "dataText": "Clientes, rendez-vous, photos : remis sur simple demande."
+        "dataText": "Clients, rendez-vous, photos : remis sur simple demande."
       },
       "note": {
         "display": "Prix {display}",
         "commitment": "{months, plural, =0 {Sans engagement} one {Engagement # mois} other {Engagement # mois}}",
         "setupFree": "Création du site offerte",
-        "setupFee": "Création : {amount}",
-        "formulas": "Avec engagement {months} mois : {fee, select, none {création offerte} other {création {fee}}}. Sans engagement : {noCommitmentFee} de création.",
-        "customDesignFee": "Design sur mesure : création en supplément"
+        "setupFee": "Frais de création à partir de {amount}",
+        "formulas": "Avec engagement {months} mois : création offerte. Sans engagement : {fee, select, none {création offerte} other {frais de création à partir de {fee}}}."
       },
-      "pricesDisplay": "Prix {display}.",
-      "smsExtra": "SMS en plus : {amount} les {count}"
+      "smsExtra": "SMS en plus : {amount} les {count}",
+      "seeAll": "Voir tout ce qui est inclus",
+      "collapse": "Réduire la liste",
+      "soonTag": "Bientôt",
+      "compare": "Comparer tous les packs en détail",
+      "groups": {
+        "style": "Un site pensé avec vous",
+        "google": "Être trouvé sur Google",
+        "requests": "Recevoir des demandes et des paiements",
+        "languages": "Un site en plusieurs langues",
+        "tech": "La technique, sans y penser",
+        "care": "Nous nous occupons de tout"
+      },
+      "highlights": {
+        "everythingIn": "Tout le pack {plan}",
+        "basePage": "Une fiche en ligne à votre nom",
+        "onePage": "Une page vitrine à votre nom",
+        "fullSite": "Site complet, plusieurs pages",
+        "customDomain": "Votre nom de domaine",
+        "contactButtons": "Boutons Appeler, Itinéraire et Nous écrire",
+        "photosServices": "{photos, plural, one {# photo} other {# photos}} et {services, plural, one {# prestation} other {# prestations}}",
+        "photos": "{count, plural, one {# photo} other {# photos}}",
+        "photosUnlimited": "Photos illimitées",
+        "monthlyUpdate": "Une mise à jour par mois",
+        "hosting": "Hébergement et sécurité inclus",
+        "contactForm": "Formulaire de contact et de devis",
+        "promotionsTestimonials": "Promotions et témoignages",
+        "withYou": "Un site pensé avec vous, textes rédigés",
+        "google": "Optimisé pour Google, avec votre fiche Google",
+        "cardPayment": "Paiement en ligne par carte",
+        "multilingual": "Site en plusieurs langues",
+        "careUpdates": "Mises à jour à la demande et WhatsApp",
+        "bookings": "{count, plural, one {# réservation par mois} other {# réservations par mois}}",
+        "bookingsUnlimited": "Réservation en ligne illimitée",
+        "agenda": "Agenda sur votre téléphone",
+        "emailReminders": "Rappels par e-mail illimités",
+        "onlinePayment": "Paiement et acompte en ligne",
+        "sms": "{count} SMS de rappel par mois",
+        "customerSpace": "Espace client",
+        "members": "{count, plural, one {# membre} other {# membres}}",
+        "membersUnlimited": "Membres illimités",
+        "loyalty": "Carte de fidélité",
+        "stats": "Statistiques détaillées",
+        "giftCards": "Cartes cadeaux en ligne",
+        "googleReviews": "Avis Google affichés"
+      },
+      "lines": {
+        "kickoffCall": "Un échange avec nous pour définir votre style",
+        "yourStyle": "Vos couleurs, votre ambiance, vos photos : vous choisissez, nous réalisons",
+        "copywriting": "Vos textes rédigés pour vous",
+        "photoRetouch": "Photos retouchées et mises en valeur",
+        "businessSections": "Des rubriques adaptées à votre métier : avant et après, équipe, zone d'intervention, actualités",
+        "basePage": "Une fiche en ligne à votre nom",
+        "onePage": "Une page vitrine à votre nom",
+        "fullSite": "Site complet, plusieurs pages, créé par nos soins",
+        "sitePages": "Pages Prestations, Galerie, À propos et Infos pratiques",
+        "photos": "{count, plural, one {# photo} other {# photos}}",
+        "photosUnlimited": "Photos illimitées",
+        "services": "{count, plural, one {# prestation} other {# prestations}}",
+        "servicesUnlimited": "Prestations illimitées",
+        "localSeo": "Optimisé pour Google : titres, descriptions, vitesse, plan du site, données d'entreprise locale",
+        "seoPages": "Une page par prestation, et jusqu'à 10 pages « métier + ville »",
+        "searchConsole": "Déclaration du site à Google (Search Console)",
+        "googleBusiness": "Fiche Google Business créée ou optimisée, et reliée au site",
+        "googleReviews": "Avis Google affichés sur le site",
+        "visibilityReport": "Rapport mensuel de visibilité par e-mail : visites, appels, clics, demandes",
+        "bookings": "{count, plural, one {# réservation en ligne par mois} other {# réservations en ligne par mois}}",
+        "bookingsUnlimited": "Réservation en ligne illimitée",
+        "agenda": "Agenda sur votre téléphone",
+        "emailReminders": "Rappels par e-mail illimités",
+        "sms": "{count} SMS de rappel par mois",
+        "onlinePayment": "Paiement et acompte en ligne",
+        "promoCodes": "Codes promo",
+        "customerSpace": "Espace client : rendez-vous, historique, reprendre un soin",
+        "contactForm": "Formulaire de contact et de devis, avec envoi de photos",
+        "contactButtons": "Boutons Appeler, Itinéraire et Nous écrire, plan et réseaux sociaux",
+        "paymentLinks": "Paiement en ligne par carte : lien de paiement, acompte sur devis, sans commission",
+        "giftCards": "Cartes cadeaux en ligne",
+        "promotions": "Promotions datées et prix barrés",
+        "testimonials": "Témoignages de vos clients",
+        "multilingual": "Site en français, anglais, espagnol et russe, traduit et relu par nos soins",
+        "customDomain": "Votre propre nom de domaine",
+        "mobileReady": "Parfait sur téléphone, hébergement et certificat de sécurité inclus",
+        "backups": "Sauvegarde toutes les heures",
+        "legalPages": "Mentions légales et Confidentialité préparées avec vos informations, à vérifier par vous",
+        "monthlyUpdate": "Une mise à jour par mois, faite pour vous",
+        "onDemandUpdates": "Mises à jour à la demande",
+        "whatsappSupport": "Assistance prioritaire par WhatsApp",
+        "members": "{count, plural, one {# membre de l'équipe} other {# membres de l'équipe}}",
+        "membersUnlimited": "Membres de l'équipe illimités",
+        "stats": "Statistiques détaillées",
+        "monthlySummary": "Résumé mensuel par e-mail",
+        "loyalty": "Carte de fidélité",
+        "qrPoster": "Affichette avec QR code pour le comptoir, vers vos avis Google"
+      }
     },
     "faq": {
       "title": "Les questions qu'on nous pose",
@@ -259,7 +309,7 @@
         },
         {
           "q": "Et en cas d'annulation ?",
-          "a": "Vous fixez vos conditions. Avec un acompte, il est remboursé si la cliente annule dans les délais ; sinon, il vous reste acquis."
+          "a": "Vous fixez vos conditions. Avec un acompte, il est remboursé si le client annule dans les délais ; sinon, il vous reste acquis."
         },
         {
           "q": "Je n'y connais rien en informatique, est-ce un problème ?",
@@ -275,7 +325,7 @@
         },
         {
           "q": "Si j'arrête, qu'est-ce que je garde ?",
-          "a": "Vos photos, vos textes et votre fichier clients (remis sur simple demande), ainsi que votre nom de domaine si vous en avez un."
+          "a": "Le site lui-même reste la propriété de {product}. Vous gardez votre nom de domaine, les fichiers que vous nous avez fournis (logo, photos, textes) et vos données, dont votre fichier clients, remis sur simple demande."
         },
         {
           "q": "Que se passe-t-il si je dépasse mes SMS ?",
@@ -284,7 +334,7 @@
         },
         {
           "q": "Suis-je engagé ?",
-          "a": "Vous choisissez. Avec un engagement de {commitmentMonths} mois, la création du site est offerte. Sans engagement, elle coûte {noCommitmentFee}.",
+          "a": "Vous choisissez. Avec un engagement de {commitmentMonths} mois, la création du site est offerte. Sans engagement, des frais de création s'appliquent selon le pack, à partir de {noCommitmentFee}.",
           "if": "commitment"
         }
       ]
@@ -311,6 +361,28 @@
       "title": "Des professionnels",
       "titleAccent": "comme vous.",
       "visit": "Voir le site de {name}"
+    },
+    "compare": {
+      "metaTitle": "Comparer les packs",
+      "title": "Tous les packs,",
+      "titleAccent": "en détail.",
+      "intro": "Ce que comprend chaque pack, ligne par ligne. Les fonctions marquées « Bientôt » arrivent prochainement.",
+      "back": "Retour aux tarifs",
+      "feature": "Inclus",
+      "price": "Prix par mois",
+      "creationFee": "Création sans engagement",
+      "creationFree": "Offerte",
+      "withCommitment": "Avec engagement {months} mois : création offerte.",
+      "included": "Inclus",
+      "notIncluded": "Non inclus",
+      "unlimited": "Illimité",
+      "rows": {
+        "photos": "Photos",
+        "services": "Prestations",
+        "bookings": "Réservations en ligne par mois",
+        "sms": "SMS de rappel par mois",
+        "members": "Membres de l'équipe"
+      }
     }
   },
   "site": {
@@ -1137,8 +1209,6 @@
       "name": "Nom (français)",
       "price": "Prix mensuel (€)",
       "priceHint": "Un nouveau prix s'applique aux prochaines souscriptions ; les abonnements en cours gardent leur prix.",
-      "setupFee": "Frais de création de ce pack (€)",
-      "setupFeeHint": "Vide : les frais de création généraux (Réglages). 0 : création offerte pour ce pack.",
       "onlineBookingsPerMonth": "Réservations en ligne par mois",
       "members": "Membres",
       "photos": "Photos",
@@ -1166,17 +1236,66 @@
         "giftCards": "Cartes cadeaux",
         "monthlyUpdate": "Une mise à jour du site par mois",
         "onDemandUpdates": "Mises à jour du site à la demande",
-        "aiMessaging": "Messagerie IA (annoncée « bientôt »)",
-        "customerSpace": "Espace des clientes (mes rendez-vous)",
+        "aiMessaging": "Messagerie IA",
+        "customerSpace": "Espace client (mes rendez-vous)",
         "loyalty": "Programme de fidélité",
         "localSeo": "Référencement local (Google)",
         "contactButtons": "Boutons Appeler, Itinéraire, Nous écrire",
         "mobileReady": "Adapté au téléphone, hébergement et sécurité",
         "sitePages": "Pages Prestations, Galerie, À propos, Infos pratiques",
-        "customDesign": "Design sur mesure"
+        "contactForm": "Formulaire de contact et de devis",
+        "kickoffCall": "Échange de départ pour définir le style",
+        "copywriting": "Textes rédigés pour le client",
+        "photoRetouch": "Photos retouchées et mises en valeur",
+        "businessSections": "Rubriques métier (avant/après, zone, actualités)",
+        "seoPages": "Pages par prestation et « métier + ville »",
+        "searchConsole": "Déclaration à Google (Search Console)",
+        "googleBusiness": "Fiche Google Business créée ou optimisée",
+        "visibilityReport": "Rapport mensuel de visibilité",
+        "paymentLinks": "Paiement par carte : lien de paiement, acompte sur devis",
+        "multilingual": "Site en plusieurs langues",
+        "qrPoster": "Affichette avec QR code"
       },
       "description": "Accroche",
-      "descriptionHint": "Affichée sous le nom du pack sur le site commercial."
+      "descriptionHint": "Affichée sous le nom du pack sur le site commercial.",
+      "noCommitmentFee": "Frais de création sans engagement (€)",
+      "noCommitmentFeeHint": "Payés à la commande par le client qui choisit la formule sans engagement. Avec engagement, la création est offerte. Vide : aucuns frais.",
+      "bookingTwin": "Pack avec réservation qui le reprend",
+      "bookingTwinHint": "« Pour ajouter la réservation » mène à ce pack. Il doit comprendre tout ce que comprend ce pack (règle vérifiée à l'enregistrement).",
+      "none": "Aucun",
+      "highlights": "Lignes visibles sur la carte du pack",
+      "highlightsHint": "{max} lignes au plus, dans l'ordre ; le reste de la liste se déplie. Une ligne que le pack ne comprend pas n'est pas affichée.",
+      "highlightLine": "Ligne {n}",
+      "everythingIn": "Tout le pack {plan}",
+      "highlightLabels": {
+        "basePage": "Une fiche en ligne à votre nom",
+        "onePage": "Une page vitrine à votre nom",
+        "fullSite": "Site complet, plusieurs pages",
+        "customDomain": "Votre nom de domaine",
+        "contactButtons": "Boutons Appeler, Itinéraire et Nous écrire",
+        "photosServices": "Photos et prestations (nombres du pack)",
+        "photos": "Photos (nombre du pack)",
+        "monthlyUpdate": "Une mise à jour par mois",
+        "hosting": "Hébergement et sécurité inclus",
+        "contactForm": "Formulaire de contact et de devis",
+        "promotionsTestimonials": "Promotions et témoignages",
+        "withYou": "Un site pensé avec vous, textes rédigés",
+        "google": "Optimisé pour Google, avec votre fiche Google",
+        "cardPayment": "Paiement en ligne par carte",
+        "multilingual": "Site en plusieurs langues",
+        "careUpdates": "Mises à jour à la demande et WhatsApp",
+        "bookings": "Réservations en ligne (nombre du pack)",
+        "agenda": "Agenda sur votre téléphone",
+        "emailReminders": "Rappels par e-mail illimités",
+        "onlinePayment": "Paiement et acompte en ligne",
+        "sms": "SMS de rappel par mois (nombre du pack)",
+        "customerSpace": "Espace client",
+        "members": "Membres (nombre du pack)",
+        "loyalty": "Carte de fidélité",
+        "stats": "Statistiques détaillées",
+        "giftCards": "Cartes cadeaux en ligne",
+        "googleReviews": "Avis Google affichés"
+      }
     },
     "settings": {
       "title": "Réglages",
@@ -1185,7 +1304,6 @@
       "vat_rate_percent": "Taux de TVA (%)",
       "vatHint": "À valider avec votre comptable. Appliqué aux factures des abonnements.",
       "commitment_months": "Durée de l'engagement (mois, 0 = pas de formule avec engagement)",
-      "setup_fee": "Frais de création avec engagement (€, 0 = offerts)",
       "go_live_delay_days": "Délai de mise en ligne annoncé (jours ouvrés)",
       "payments": "Paiements et données",
       "deposit_commission_percent": "Commission sur les acomptes (%)",
@@ -1214,12 +1332,18 @@
         "remove": "Retirer",
         "removeConfirm": "Retirer le témoignage de {name} de l'accueil ?"
       },
-      "no_commitment_setup_fee": "Frais de création sans engagement (€)",
-      "noCommitmentHint": "Ajoutés aux frais de création du pack quand le client choisit la formule sans engagement.",
       "sms_pack_size": "Pack de SMS supplémentaires : nombre de SMS",
       "sms_pack_price": "Pack de SMS supplémentaires : prix (€)",
       "sms_warning_percent": "Alerte SMS à la gérante (% du quota du mois)",
-      "smsWarningHint": "Une seconde alerte part quand le quota est épuisé."
+      "smsWarningHint": "Une seconde alerte part quand le quota est épuisé.",
+      "price_change_notice_days": "Préavis avant un nouveau prix (jours)",
+      "priceChangeHint": "Un abonné garde son prix jusqu'à la fin de son engagement ; il est prévenu ce nombre de jours avant le nouveau prix.",
+      "buyout": "Rachat du site à la sortie",
+      "buyoutHint": "Le site reste notre propriété. Activé, un client qui part peut le racheter à ce prix fixe (à préciser dans vos conditions de vente).",
+      "site_buyout_enabled": "Proposer le rachat du site",
+      "site_buyout_price": "Prix du rachat (€)",
+      "soon": "Fonctions annoncées « Bientôt »",
+      "soonHint": "Cochées : pas encore livrées. Elles portent l'étiquette « Bientôt » sur le site commercial au lieu d'être promises. Décochez une fonction dès qu'elle est prête."
     },
     "billing": {
       "title": "Paiements des abonnements",
@@ -1287,7 +1411,14 @@
       "contentHint": "Séparez les paragraphes par une ligne vide.",
       "publish": "Publier cette version",
       "current": "Version {version} publiée le {date}",
-      "none": "Pas encore publié : la page affiche un message d'attente."
+      "none": "Pas encore publié : la page affiche un message d'attente.",
+      "identity": {
+        "title": "Identité de l'entreprise",
+        "intro": "Informations affichées en tête des pages légales (seules celles qui sont remplies apparaissent). Saisissez-les telles qu'elles figurent sur vos documents officiels.",
+        "save": "Enregistrer l'identité",
+        "salesClosed": "Commande en ligne fermée : tant que les trois documents ne sont pas publiés, les packs payants mènent au formulaire « Être rappelé ».",
+        "salesOpen": "Commande en ligne ouverte : les trois documents sont publiés."
+      }
     }
   },
   "errors": {
@@ -1343,7 +1474,9 @@
     "reward_unavailable": "Ce bon a déjà été utilisé ou a expiré.",
     "login_invalid": "Ce lien ou ce code n'est plus valable. Demandez-en un nouveau.",
     "sms_unavailable": "La connexion par SMS n'est pas disponible. Saisissez votre adresse e-mail.",
-    "customer_space_unavailable": "Cet espace n'est pas disponible sur ce site."
+    "customer_space_unavailable": "Cet espace n'est pas disponible sur ce site.",
+    "twin_rule": "Règle des jumeaux : un pack « site seul » ne peut pas comprendre plus que son pack avec réservation. Ajoutez la fonction au pack avec réservation, ou retirez-la du pack « site seul ».",
+    "sales_paused": "Les commandes en ligne reprennent dès que nos pages légales sont publiées. Laissez-nous votre numéro : nous vous rappelons."
   },
   "status": {
     "draft": "En création",
@@ -2324,6 +2457,14 @@
         "email": "Vos clientes reçoivent toujours leur rappel par e-mail : aucune n'est oubliée.",
         "packs": "Pour continuer à envoyer des rappels par SMS d'ici là, vous pouvez ajouter des SMS depuis votre espace. Rien n'est jamais facturé sans votre accord.",
         "open": "Voir mes SMS"
+      },
+      "price_change": {
+        "subject": "Le prix de votre pack évolue",
+        "title": "Le prix de votre pack évolue",
+        "intro": "Le prix du pack {plan} passe à {price} par mois. Ce nouveau prix s'appliquera à votre abonnement à partir du {date}.",
+        "until": "D'ici là, vous gardez votre prix actuel.",
+        "choice": "Vous pouvez changer de pack depuis votre espace si vous le souhaitez.",
+        "open": "Voir mon abonnement"
       }
     },
     "account": {
@@ -2363,6 +2504,17 @@
         "website": "Site actuel",
         "email": "E-mail",
         "open": "Voir les commandes"
+      },
+      "callback_request": {
+        "subject": "À rappeler : {name}",
+        "title": "Demande de rappel",
+        "intro": "Un professionnel souhaite être rappelé (la commande en ligne est fermée tant que les pages légales ne sont pas publiées).",
+        "name": "Nom",
+        "phone": "Téléphone",
+        "business": "Établissement",
+        "email": "E-mail",
+        "plan": "Pack qui l'intéresse",
+        "message": "Message"
       }
     },
     "giftCard": {
@@ -2393,7 +2545,20 @@
       "privacy": "Politique de confidentialité",
       "terms": "Conditions générales de vente et d'utilisation"
     },
-    "placeholder": "Ce document sera publié prochainement. Pour toute question : {email}."
+    "placeholder": "Ce document sera publié prochainement. Pour toute question : {email}.",
+    "identity": {
+      "title": "Identité de l'éditeur",
+      "fields": {
+        "companyName": "Raison sociale",
+        "legalForm": "Forme juridique",
+        "siret": "SIRET",
+        "address": "Adresse du siège",
+        "publicationDirector": "Directeur de la publication",
+        "host": "Hébergeur",
+        "vatRegime": "Régime de TVA",
+        "consumerMediator": "Médiateur de la consommation"
+      }
+    }
   },
   "order": {
     "metaTitle": "Commander",
@@ -2406,7 +2571,6 @@
     "phone": "Téléphone",
     "currentWebsite": "Site actuel (facultatif)",
     "currentWebsitePlaceholder": "www.exemple.fr",
-    "paidRecap": "Packs payants : {months, plural, =0 {sans engagement} other {engagement de # mois}}{fee, select, none {} other {, frais de création de {fee}}}.",
     "terms": "J'ai lu et j'accepte les <link>conditions générales de vente</link>.",
     "paidHint": "Paiement par carte sur la page sécurisée de Stripe. Votre site est ensuite créé par notre équipe.",
     "freeHint": "Les demandes de fiche gratuite sont validées à la main par notre équipe.",
@@ -2437,9 +2601,23 @@
     "formula": "Formule (packs payants)",
     "formulaHint": "Vous choisissez : votre abonnement mensuel est le même dans les deux cas.",
     "withCommitment": "Avec engagement {months} mois",
-    "withCommitmentFree": "Création du site offerte.",
-    "withCommitmentFee": "Frais de création : {fee}.",
+    "withCommitmentFree": "Création du site offerte. Le premier mois est payé à la commande.",
     "withoutCommitment": "Sans engagement",
-    "withoutCommitmentFee": "Frais de création de {fee}, payés à la commande. Vous arrêtez quand vous voulez."
+    "creationFee": "{withCommitment, select, yes {Sans engagement : {fee} de création} other {Création : {fee}}}",
+    "withoutCommitmentPlanFee": "Les frais de création du pack choisi (indiqués à côté de son prix), payés à la commande. Vous arrêtez quand vous voulez."
+  },
+  "callback": {
+    "metaTitle": "Être rappelé",
+    "title": "Être rappelé",
+    "intro": "Laissez-nous vos coordonnées : nous vous rappelons pour parler de votre projet et choisir le pack qui vous convient.",
+    "introPlan": "Le pack {plan} vous intéresse ? Laissez-nous vos coordonnées : nous vous rappelons pour en parler et le mettre en place avec vous.",
+    "name": "Votre nom",
+    "businessName": "Nom de votre entreprise",
+    "phone": "Téléphone",
+    "email": "E-mail",
+    "emailHint": "Facultatif",
+    "message": "Votre message (facultatif)",
+    "submit": "Être rappelé",
+    "sent": "Merci ! Votre demande est bien envoyée : nous vous rappelons très vite."
   }
 }

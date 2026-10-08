@@ -4,7 +4,7 @@ import { z } from "zod";
 import type { ActionResult } from "@/lib/actions/result";
 import { adminMutation, form } from "@/lib/admin/mutation";
 import { billingGateway } from "@/lib/payments/stripe-billing";
-import { publishLegalDocument } from "@/modules/legal/documents";
+import { legalIdentityInput, publishLegalDocument, saveLegalIdentity } from "@/modules/legal/documents";
 import { rejectOrder } from "@/modules/orders/orders";
 
 type Previous = ActionResult<unknown> | null;
@@ -31,5 +31,14 @@ export async function publishLegalAction(_previous: Previous, data: FormData) {
         title: form.text(data, "title"),
         content: form.text(data, "content"),
       }),
+  );
+}
+
+export async function saveLegalIdentityAction(_previous: Previous, data: FormData) {
+  const raw = Object.fromEntries(
+    Object.keys(legalIdentityInput.shape).map((key) => [key, form.text(data, key)]),
+  );
+  return adminMutation({ action: "legal.identity_saved", targetType: "platform_setting" }, (tx) =>
+    saveLegalIdentity(tx, raw),
   );
 }
