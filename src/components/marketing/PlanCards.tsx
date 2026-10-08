@@ -107,7 +107,7 @@ export async function PlanCards({ plans, locale }: { plans: Plan[]; locale: Loca
                   : "bg-sand text-[#b5afa4]"
                 : featured
                   ? "bg-[#33456b] text-salmon"
-                  : "bg-mist text-navy"
+                  : "bg-mist text-coral"
             }`}
           >
             {missing ? (
