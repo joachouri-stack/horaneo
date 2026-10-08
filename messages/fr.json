@@ -612,6 +612,14 @@
       "unavailable": "Les cartes cadeaux ne sont pas proposées en ligne pour le moment. Contactez directement l'établissement.",
       "metaTitle": "Carte cadeau",
       "thanksPending": "Dès que votre banque confirme le paiement, la carte est envoyée et vous recevez un reçu par e-mail."
+    },
+    "install": {
+      "title": "L'application {name}",
+      "text": "Réservez et retrouvez vos rendez-vous en un geste, depuis l'écran d'accueil de votre téléphone.",
+      "install": "Installer",
+      "later": "Plus tard",
+      "iosHowTo": "Touchez le bouton Partager (le carré avec une flèche vers le haut, en bas de Safari), puis « Sur l'écran d'accueil » et « Ajouter ».",
+      "close": "Fermer"
     }
   },
   "emails": {

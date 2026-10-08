@@ -22,6 +22,12 @@ export const SITE_PATHS = {
 
 export type SitePathKey = keyof typeof SITE_PATHS;
 
+/** Fiche d'application et icônes : le site s'installe sur l'écran d'accueil (hors plan du site). */
+export const APP_PATHS = {
+  manifest: "/app-manifest",
+  icon: (size: number) => `/app-icon/${size}`,
+} as const;
+
 export const categoryPath = (slug: string) => `${SITE_PATHS.services}/${slug}`;
 
 /** Page d'une professionnelle (entreprise) : /avec/laila. */
