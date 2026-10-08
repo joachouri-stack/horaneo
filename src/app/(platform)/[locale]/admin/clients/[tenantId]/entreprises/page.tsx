@@ -15,6 +15,9 @@ import {
   updateBusinessProfileAction,
 } from "../../actions";
 import { onlineBookingByBusiness } from "@/modules/booking/settings";
+import { formatDateTime } from "@/lib/format";
+import { googlePlacesProvider } from "@/lib/reviews/google-places";
+import { reviewsCacheByBusiness, reviewsStatus, type ReviewsStatus } from "@/modules/reviews/google";
 
 /** Entreprises d'un site : identité légale, gérante, compte Stripe ; ajout d'une entreprise. */
 export default async function BusinessesPage({
@@ -27,11 +30,13 @@ export default async function BusinessesPage({
     getTranslations("common"),
     loadTenantOverview(tenantId),
   ]);
-  const [photos, booking] = await Promise.all([
+  const [photos, booking, reviewsCache] = await Promise.all([
     adminQuery((tx) => listActiveAssets(tx, tenantId)),
     adminQuery((tx) => onlineBookingByBusiness(tx, tenantId)),
+    adminQuery((tx) => reviewsCacheByBusiness(tx, tenantId)),
   ]);
   const locale = overview.tenant.defaultLocale as "fr";
+  const keyConfigured = googlePlacesProvider() !== null;
   const photoOptions = [
     { value: "", label: t("noPhoto") },
     ...photos
@@ -97,6 +102,17 @@ export default async function BusinessesPage({
                   state: tOverview(`stripeState.${connectState(business, overview.plan.features)}`),
                 })}
               </p>
+              <GoogleReviewsStatus
+                status={reviewsStatus({
+                  placeId: business.googlePlaceId,
+                  inPlan: Boolean(overview.plan.features.googleReviews),
+                  keyConfigured,
+                  siteActive: overview.tenant.status === "active",
+                  cache: reviewsCache.get(business.id),
+                })}
+                locale={overview.tenant.defaultLocale}
+                timeZone={overview.tenant.timezone}
+              />
             </div>
             {managers.length === 0 && (
               <div className="mb-6 rounded-xl bg-navy/5 p-4">
@@ -220,6 +236,49 @@ export default async function BusinessesPage({
           <TextField name="managerName" label={t("managerName")} />
         </ActionForm>
       </Section>
+    </>
+  );
+}
+
+/** Pourquoi les avis Google d'une entreprise s'affichent ou non sur le site. */
+async function GoogleReviewsStatus({
+  status,
+  locale,
+  timeZone,
+}: {
+  status: ReviewsStatus | null;
+  locale: string;
+  timeZone: string;
+}) {
+  if (!status) return null;
+  const t = await getTranslations("admin.tenant.businesses.reviews");
+  const date = (value: Date) => formatDateTime(value, locale, timeZone);
+  const error =
+    "error" in status && status.error
+      ? t("error", { date: date(status.errorAt), error: status.error })
+      : null;
+  let summary: string;
+  if (status.state === "shown") {
+    summary =
+      status.rating === null
+        ? t("shownNoRating", { date: date(status.fetchedAt) })
+        : t("shown", {
+            rating: new Intl.NumberFormat(locale, {
+              minimumFractionDigits: 1,
+              maximumFractionDigits: 1,
+            }).format(status.rating),
+            count: status.total,
+            date: date(status.fetchedAt),
+          });
+  } else if (status.state === "stale") {
+    summary = t("stale", { date: date(status.fetchedAt) });
+  } else {
+    summary = t(status.state);
+  }
+  return (
+    <>
+      <p className={status.state === "shown" ? undefined : "font-semibold text-night"}>{summary}</p>
+      {error && <p className="text-coral-dark">{error}</p>}
     </>
   );
 }

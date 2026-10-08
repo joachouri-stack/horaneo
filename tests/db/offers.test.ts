@@ -32,7 +32,7 @@ import { refreshAccount, startOnboarding } from "@/modules/payments/connect";
 import { handleEvent } from "@/modules/payments/webhooks";
 import { savePromoCode } from "@/modules/promo/codes";
 import { savePromotion } from "@/modules/promotions/promotions";
-import { refreshGoogleReviews, type ReviewsProvider } from "@/modules/reviews/google";
+import { refreshGoogleReviews, reviewsCacheByBusiness, type ReviewsProvider } from "@/modules/reviews/google";
 import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
 import { loadSiteData } from "@/modules/site/data";
 import { saveStaff } from "@/modules/team/staff";
@@ -528,6 +528,12 @@ describe.skipIf(!hasTestDatabase)("promotions, cartes cadeaux et avis Google", (
         .from(googleReviews)
         .where(eq(googleReviews.businessId, s.businessId));
       expect(cache.lastError).toContain("indisponible");
+      const forAdmin = await platform((tx) => reviewsCacheByBusiness(tx, s.id));
+      expect(forAdmin.get(s.businessId)).toMatchObject({
+        rating: 4.9,
+        total: 88,
+        lastError: cache.lastError,
+      });
       const still = await asTenant(s.id, (tx) => loadSiteData(tx, s.id), null);
       expect(still?.reviews[0].rating).toBe(4.9);
 

@@ -120,3 +120,71 @@ export async function refreshGoogleReviews(
   }
   return { refreshed, failed };
 }
+
+export type ReviewsCache = Pick<
+  typeof googleReviews.$inferSelect,
+  "businessId" | "placeId" | "rating" | "total" | "fetchedAt" | "lastError" | "updatedAt"
+>;
+
+/** Copies des avis des entreprises d'un site (pour l'espace admin). */
+export async function reviewsCacheByBusiness(tx: Transaction, tenantId: string) {
+  const rows = await tx
+    .select({
+      businessId: googleReviews.businessId,
+      placeId: googleReviews.placeId,
+      rating: googleReviews.rating,
+      total: googleReviews.total,
+      fetchedAt: googleReviews.fetchedAt,
+      lastError: googleReviews.lastError,
+      updatedAt: googleReviews.updatedAt,
+    })
+    .from(googleReviews)
+    .where(eq(googleReviews.tenantId, tenantId));
+  return new Map(rows.map((row) => [row.businessId, row]));
+}
+
+export type ReviewsStatus =
+  | { state: "notInPlan" | "noKey" | "siteOffline" | "pending" }
+  | { state: "failing"; error: string; errorAt: Date }
+  | {
+      state: "shown" | "stale";
+      rating: number | null;
+      total: number;
+      fetchedAt: Date;
+      error: string | null;
+      errorAt: Date;
+    };
+
+/**
+ * Pourquoi les avis d'une fiche s'affichent ou non sur le site, de la cause la
+ * plus générale à la plus précise. `null` : aucune fiche Google renseignée.
+ */
+export function reviewsStatus(input: {
+  placeId: string | null;
+  inPlan: boolean;
+  keyConfigured: boolean;
+  siteActive: boolean;
+  cache: ReviewsCache | undefined;
+  now?: Date;
+}): ReviewsStatus | null {
+  if (!input.placeId) return null;
+  if (!input.inPlan) return { state: "notInPlan" };
+  if (!input.keyConfigured) return { state: "noKey" };
+  if (!input.siteActive) return { state: "siteOffline" };
+  // Une copie d'une autre fiche (identifiant changé) ne compte plus.
+  const cache = input.cache?.placeId === input.placeId ? input.cache : undefined;
+  if (!cache) return { state: "pending" };
+  if (!cache.fetchedAt) {
+    return cache.lastError
+      ? { state: "failing", error: cache.lastError, errorAt: cache.updatedAt }
+      : { state: "pending" };
+  }
+  return {
+    state: isDisplayable(cache.fetchedAt, input.now) ? "shown" : "stale",
+    rating: cache.rating,
+    total: cache.total,
+    fetchedAt: cache.fetchedAt,
+    error: cache.lastError,
+    errorAt: cache.updatedAt,
+  };
+}
