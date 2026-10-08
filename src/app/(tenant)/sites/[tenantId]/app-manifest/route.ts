@@ -14,6 +14,8 @@ export async function GET(_request: Request, { params }: RouteContext<"/sites/[t
   const startUrl = siteCta(site)?.kind === "book" ? SITE_PATHS.booking : SITE_PATHS.home;
   return Response.json(
     {
+      // Identité fixe : une réinstallation remplace l'application au lieu d'en ajouter une autre.
+      id: "/",
       name,
       short_name: name,
       start_url: startUrl,
@@ -28,6 +30,6 @@ export async function GET(_request: Request, { params }: RouteContext<"/sites/[t
         { src: APP_PATHS.maskableIcon(512), sizes: "512x512", type: "image/png", purpose: "maskable" },
       ],
     },
-    { headers: { "content-type": "application/manifest+json", "cache-control": "public, max-age=3600" } },
+    { headers: { "content-type": "application/manifest+json", "cache-control": "no-cache" } },
   );
 }
