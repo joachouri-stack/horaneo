@@ -906,11 +906,11 @@
         "minutes": "{count} min",
         "disabled": "désactivée",
         "deactivatedInstead": "Prestation déjà réservée : elle a été désactivée au lieu d'être supprimée.",
-        "icon": "Pictogramme (modèle Atelier)",
+        "icon": "Petit dessin affiché à côté du nom",
         "noIcon": "Aucun",
-        "featured": "Mettre en avant (« Spécialité »)",
+        "featured": "Mettre en avant comme « Spécialité »",
         "inMenu": "Afficher dans le menu du site",
-        "isTraining": "Page formation (programme, durée, financement, contact ; sans liste de tarifs)",
+        "isTraining": "C'est une formation (la page montre le programme et le financement, sans tarifs)",
         "trainingLogos": "Logos de la page formation",
         "trainingLogosHint": "Ex. Mon Compte Formation, opérateur de compétences. Ajoutez d'abord les logos dans « Photos » (type « Autre »).",
         "addLogo": "Ajouter ce logo",
@@ -1666,14 +1666,20 @@
       "unavailability": "Indisponibilités",
       "subscription": "Abonnement",
       "settings": "Réglages",
-      "requests": "Demandes de modification",
+      "requests": "Demander une modification du site",
       "help": "Aide",
       "payments": "Paiements en ligne",
       "promo": "Codes promo",
       "promotions": "Promotions",
       "giftCards": "Cartes cadeaux",
       "loyalty": "Fidélité",
-      "customerData": "Demandes des clientes (données)"
+      "customerData": "Demandes des clientes sur leurs données",
+      "groups": {
+        "activity": "Mon activité",
+        "sell": "Faire revenir les clientes",
+        "account": "Paiements et compte",
+        "support": "Demandes et aide"
+      }
     },
     "stats": {
       "title": "Statistiques",
