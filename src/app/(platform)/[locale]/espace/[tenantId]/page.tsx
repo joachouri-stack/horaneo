@@ -44,8 +44,13 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
           { label: t("revenue"), value: page.fmt.money(summary.revenueCents) },
           { label: t("newBookings"), value: String(summary.newBookings) },
         ].map((stat) => (
-          <div key={stat.label} className="rounded-[var(--radius-card)] bg-white p-3 text-center shadow-sm">
-            <dd className="font-display text-xl font-extrabold text-night sm:text-2xl">{stat.value}</dd>
+          <div
+            key={stat.label}
+            className="min-w-0 rounded-[var(--radius-card)] bg-white px-1.5 py-3 text-center shadow-sm min-[400px]:p-3"
+          >
+            <dd className="font-display text-lg font-extrabold whitespace-nowrap text-night tabular-nums min-[400px]:text-xl sm:text-2xl">
+              {stat.value}
+            </dd>
             <dt className="mt-1 text-xs leading-tight text-ink/70">{stat.label}</dt>
           </div>
         ))}
