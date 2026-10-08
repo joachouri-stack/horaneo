@@ -49,6 +49,9 @@ function platformOrigin(request: NextRequest): string {
 
 export async function proxy(request: NextRequest) {
   const url = request.nextUrl;
+  // Tâche planifiée : Coolify l'appelle sur http://localhost, qui n'est le domaine de personne.
+  // La route vérifie elle-même CRON_SECRET.
+  if (hasPrefix(url.pathname, "/api/cron")) return NextResponse.next();
   const host = classifyHost(request.headers.get("host"), url, hostConfig);
 
   switch (host.kind) {
