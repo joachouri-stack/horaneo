@@ -4,6 +4,8 @@ import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { AtelierFooter } from "@/components/site/atelier/AtelierFooter";
 import { AtelierHeader } from "@/components/site/atelier/AtelierHeader";
+import { HideOnPaths } from "@/components/site/HideOnPaths";
+import { InstallAppBanner } from "@/components/site/InstallAppBanner";
 import { MobileBookBar } from "@/components/site/MobileBookBar";
 import { OfferBanner } from "@/components/site/OfferBanner";
 import { SiteFooter } from "@/components/site/SiteFooter";
@@ -12,6 +14,7 @@ import { routing } from "@/i18n/routing";
 import { getSite, isPreview } from "@/lib/site/load";
 import { absoluteImageUrl, siteBaseUrl } from "@/lib/site/urls";
 import { siteCta } from "@/modules/site/cta";
+import { APP_PATHS, SITE_PATHS } from "@/modules/site/paths";
 import { homeDescription, localBusinessJsonLd, serializeJsonLd } from "@/modules/site/seo";
 import { buildTheme, themeCssVariables } from "@/modules/site/theme";
 // Polices fournies avec le projet : la construction ne dépend pas du réseau.
@@ -42,7 +45,10 @@ export async function generateMetadata({ params }: LayoutProps<"/sites/[tenantId
     },
     description: homeDescription(home),
     robots: noindex ? { index: false, follow: false } : undefined,
-    icons: logoUrl ? { icon: logoUrl } : undefined,
+    icons: { ...(logoUrl ? { icon: logoUrl } : {}), apple: APP_PATHS.icon(180) },
+    // Installable sur l'écran d'accueil de la cliente, comme une application.
+    manifest: APP_PATHS.manifest,
+    appleWebApp: { capable: true, title: site.tenant.name, statusBarStyle: "default" },
     openGraph: { siteName: site.tenant.name, type: "website", locale: site.locale },
   };
 }
@@ -104,6 +110,22 @@ export default async function TenantLayout({ children, params }: LayoutProps<"/s
           <Footer site={site} />
           {site.tenant.status !== "suspended" && (
             <MobileBookBar phone={site.tenant.phone} cta={siteCta(site)} />
+          )}
+          {site.tenant.status === "active" && (
+            // Pas pendant une réservation ou un paiement : la cliente reste concentrée.
+            <HideOnPaths prefixes={[SITE_PATHS.booking, SITE_PATHS.appointment, SITE_PATHS.giftCard]}>
+              <InstallAppBanner
+                iconUrl={APP_PATHS.icon(192)}
+                labels={{
+                  title: t("install.title", { name: site.tenant.name }),
+                  text: t("install.text"),
+                  install: t("install.install"),
+                  later: t("install.later"),
+                  iosHowTo: t("install.iosHowTo"),
+                  close: t("install.close"),
+                }}
+              />
+            </HideOnPaths>
           )}
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />
         </NextIntlClientProvider>
