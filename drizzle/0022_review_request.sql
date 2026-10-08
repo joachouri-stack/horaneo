@@ -1,0 +1,1 @@
+ALTER TABLE "business_settings" ADD COLUMN "review_request_enabled" boolean DEFAULT false NOT NULL;

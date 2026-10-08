@@ -229,6 +229,8 @@ export const businessSettings = pgTable(
     holdMinutes: smallint().notNull().default(10),
     dailySummaryEnabled: boolean().notNull().default(true),
     monthlySummaryEnabled: boolean().notNull().default(true),
+    /** Demande d'avis Google envoyée à la cliente après un rendez-vous marqué « venue ». */
+    reviewRequestEnabled: boolean().notNull().default(false),
     // Cartes cadeaux (pack qui les inclut) : réglages de l'entreprise.
     giftCardsEnabled: boolean().notNull().default(false),
     giftCardValidityMonths: smallint().notNull().default(12),

@@ -29,6 +29,12 @@ export const DEFAULT_PLATFORM_SETTINGS = {
   daily_summary_time: "19:00",
   /** Heure locale du résumé mensuel, le 1er du mois. */
   monthly_summary_time: "08:00",
+  /** Demande d'avis Google : heures après la fin du rendez-vous. */
+  review_request_delay_hours: 3,
+  /** Pas de demande si le rendez-vous est marqué « venue » plus de ce nombre de jours après. */
+  review_request_max_age_days: 7,
+  /** Une seule demande par cliente sur cette durée, en jours. */
+  review_request_cooldown_days: 180,
   /** Nombre d'essais d'envoi d'un message avant abandon. */
   message_max_attempts: 5,
   /** Taux de TVA appliqué aux abonnements, en pourcentage (à valider avec le comptable). */

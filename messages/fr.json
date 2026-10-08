@@ -1822,7 +1822,11 @@
       "monthly": "Bilan du mois, le 1er vers 8 h",
       "depositNeedsStripe": "L'acompte ne sera demandé qu'une fois votre compte Stripe actif.",
       "depositStripeLink": "Ouvrir mon compte Stripe",
-      "depositRefundRule": "Remboursé automatiquement si la cliente annule dans le délai ; conservé sinon ou en cas d'absence."
+      "depositRefundRule": "Remboursé automatiquement si la cliente annule dans le délai ; conservé sinon ou en cas d'absence.",
+      "reviewsTitle": "Avis Google",
+      "reviewRequest": "Demander un avis Google après chaque rendez-vous",
+      "reviewRequestHelp": "Quelques heures après un rendez-vous marqué « Venue », la cliente reçoit un e-mail de remerciement avec un lien direct pour laisser un avis sur votre fiche Google. Une seule demande par cliente tous les {months} mois.",
+      "reviewRequestNoPlace": "Votre fiche Google n'est pas encore reliée à votre site : aucune demande ne partira tant qu'elle ne l'est pas. Écrivez-nous depuis « Demander une modification du site »."
     },
     "requests": {
       "title": "Demandes de modification",
@@ -2123,6 +2127,14 @@
         "subject": "Votre acompte vous est remboursé",
         "title": "Ce créneau n'est plus disponible",
         "intro": "Votre paiement chez {business} est arrivé après la fin du délai de réservation, et le créneau a été pris entre-temps. Toutes nos excuses."
+      },
+      "review_request": {
+        "subject": "Merci pour votre visite chez {business}",
+        "title": "Merci pour votre visite",
+        "intro": "Merci pour votre visite chez {business} ! Nous espérons que votre rendez-vous vous a plu.",
+        "ask": "Si c'est le cas, un petit avis sur Google nous aiderait beaucoup : il ne prend qu'une minute et permet à d'autres clientes de nous découvrir.",
+        "action": "Laisser un avis",
+        "once": "Vous ne recevrez ce message qu'une seule fois."
       }
     },
     "manager": {

@@ -12,6 +12,7 @@ import { queueBookingConfirmed, queueMessage } from "@/modules/messages/queue";
 import type { PaymentGateway } from "@/modules/payments/gateway";
 import { refundDeposit } from "@/modules/payments/refunds";
 import { normalizePhone } from "@/modules/phone";
+import { queueReviewRequest } from "@/modules/reviews/request";
 
 /**
  * Actions de la gérante sur les rendez-vous. Contrairement à la réservation en
@@ -41,6 +42,7 @@ export async function setAttendance(
   tenantId: string,
   appointmentId: string,
   status: "attended" | "no_show" | "confirmed",
+  now = new Date(),
 ) {
   // Verrouillé : deux changements de statut simultanés ne comptent pas deux fois le point.
   const appointment = await loadAppointment(tx, tenantId, appointmentId, true);
@@ -49,6 +51,9 @@ export async function setAttendance(
   await tx.update(appointments).set({ status }).where(eq(appointments.id, appointment.id));
   // Fidélité : un point par rendez-vous honoré (retiré si la gérante corrige).
   await trackAttendance(tx, tenantId, appointment, appointment.status, status);
+  // Demande d'avis Google, si l'entreprise l'a activée (une seule fois par rendez-vous).
+  if (status === "attended" && appointment.status !== "attended")
+    await queueReviewRequest(tx, tenantId, appointment, now);
   return { before: appointment.status, after: status };
 }
 

@@ -13,7 +13,12 @@ import {
   usageCounters,
   users,
 } from "@/db/schema";
-import { cancelByManager, createManualAppointment, moveAppointment } from "@/modules/agenda/actions";
+import {
+  cancelByManager,
+  createManualAppointment,
+  moveAppointment,
+  setAttendance,
+} from "@/modules/agenda/actions";
 import { createBooking, manageTokenFor, type BookingInput } from "@/modules/booking/create";
 import { cancelByCustomer, findByManageToken, rescheduleByCustomer } from "@/modules/booking/manage";
 import { localToUtc } from "@/modules/booking/time";
@@ -610,6 +615,89 @@ describe.skipIf(!hasTestDatabase)("messages automatiques", () => {
         .from(assets)
         .where(inArray(assets.id, [old.id, used.id]));
       expect(left.map((row) => row.id)).toEqual([used.id]);
+    });
+  });
+
+  describe("demande d'avis Google", () => {
+    const PLACE = "ChIJ-test-place";
+
+    async function withReviews(planCode = "serenite", enabled = true) {
+      const s = await setup(planCode);
+      await owner.update(businesses).set({ googlePlaceId: PLACE }).where(eq(businesses.tenantId, s.id));
+      await owner
+        .update(businessSettings)
+        .set({ reviewRequestEnabled: enabled })
+        .where(eq(businessSettings.tenantId, s.id));
+      return s;
+    }
+    const attend = (
+      s: Setup,
+      appointmentId: string,
+      now: Date,
+      status: "attended" | "no_show" = "attended",
+    ) => asTenant(s.id, (tx) => setAttendance(tx, s.id, appointmentId, status, now));
+    const reviewRows = async (tenantId: string) =>
+      (await logOf(tenantId)).filter((row) => row.templateKey === "customer.review_request");
+
+    it("part 3 h après la fin du rendez-vous, avec le lien direct vers la fiche Google", async () => {
+      const s = await withReviews();
+      const { appointmentId } = await book(s);
+      await dispatch(s.id);
+      // Rendez-vous de 10 h à 11 h, marqué « venue » à midi : envoi prévu à 14 h.
+      await attend(s, appointmentId, at("12:00"));
+      const [row] = await reviewRows(s.id);
+      expect(row.nextAttemptAt?.toISOString()).toBe(at("14:00").toISOString());
+      expect(await dispatch(s.id, at("13:00"))).toMatchObject({ sent: 0 });
+      expect(await dispatch(s.id, at("14:05"))).toMatchObject({ sent: 1 });
+      const [email] = emailsTo(`camille-${n}@example.com`).filter((e) => e.subject.startsWith("Merci"));
+      expect(email.subject).toBe(`Merci pour votre visite chez Belle Époque ${n}`);
+      expect(email.text).toContain(`https://search.google.com/local/writereview?placeid=${PLACE}`);
+      // Marqué de nouveau « venue » : pas de deuxième demande.
+      await attend(s, appointmentId, at("15:00"), "no_show");
+      await attend(s, appointmentId, at("15:01"));
+      expect(await reviewRows(s.id)).toHaveLength(1);
+    });
+
+    it("une seule demande par cliente sur la durée réglée", async () => {
+      const s = await withReviews();
+      const email = `fidele-${n}@example.com`;
+      const first = await book(s, { customer: { firstName: "Inès", email, phone: "06 11 22 33 44" } });
+      const second = await book(s, {
+        start: at("15:00"),
+        customer: { firstName: "Inès", email, phone: "06 11 22 33 44" },
+      });
+      await attend(s, first.appointmentId, at("12:00"));
+      await attend(s, second.appointmentId, at("17:00"));
+      expect(await reviewRows(s.id)).toHaveLength(1);
+    });
+
+    it("rien si la gérante ne l'a pas activée, si la fiche n'est pas reliée ou si le pack n'a pas les avis", async () => {
+      const off = await withReviews("serenite", false);
+      await attend(off, (await book(off)).appointmentId, at("12:00"));
+      expect(await reviewRows(off.id)).toHaveLength(0);
+
+      const noPlace = await withReviews();
+      await owner.update(businesses).set({ googlePlaceId: null }).where(eq(businesses.tenantId, noPlace.id));
+      await attend(noPlace, (await book(noPlace)).appointmentId, at("12:00"));
+      expect(await reviewRows(noPlace.id)).toHaveLength(0);
+
+      const essentiel = await withReviews("essentiel");
+      await attend(essentiel, (await book(essentiel)).appointmentId, at("12:00"));
+      expect(await reviewRows(essentiel.id)).toHaveLength(0);
+    });
+
+    it("rien si le rendez-vous est marqué venu plus d'une semaine après, ni si la gérante corrige avant l'envoi", async () => {
+      const late = await withReviews();
+      await attend(late, (await book(late)).appointmentId, at("12:00", "2026-10-20"));
+      expect(await reviewRows(late.id)).toHaveLength(0);
+
+      const fixed = await withReviews();
+      const { appointmentId } = await book(fixed);
+      await attend(fixed, appointmentId, at("12:00"));
+      await attend(fixed, appointmentId, at("12:30"), "no_show");
+      await dispatch(fixed.id, at("14:05"));
+      const [row] = await reviewRows(fixed.id);
+      expect(row.status).toBe("skipped");
     });
   });
 });
