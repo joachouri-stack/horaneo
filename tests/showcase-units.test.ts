@@ -197,15 +197,18 @@ describe("cartes des packs", () => {
   it("mènent au formulaire « Être rappelé » tant que la vente en ligne est fermée", () => {
     const signature = cards.find((plan) => plan.code === "signature")!;
     const basic = cards.find((plan) => plan.code === "basic")!;
-    expect(planCardContent(signature, cards, { ...options, salesOpen: false }).cta.href.pathname).toBe(
-      "/rappel",
-    );
-    expect(planCardContent(signature, cards, { ...options, salesOpen: true }).cta.href.pathname).toBe(
-      "/commander",
-    );
-    expect(planCardContent(basic, cards, { ...options, salesOpen: false }).cta.href.pathname).toBe(
-      "/commander",
-    );
+    expect(planCardContent(signature, cards, { ...options, salesOpen: false }).cta).toMatchObject({
+      label: "Être rappelé",
+      href: { pathname: "/rappel" },
+    });
+    expect(planCardContent(signature, cards, { ...options, salesOpen: true }).cta).toMatchObject({
+      label: "Choisir Signature",
+      href: { pathname: "/commander" },
+    });
+    expect(planCardContent(basic, cards, { ...options, salesOpen: false }).cta).toMatchObject({
+      label: "Commencer gratuitement",
+      href: { pathname: "/commander" },
+    });
   });
 
   it("proposent d'ajouter la réservation en passant au jumeau", () => {

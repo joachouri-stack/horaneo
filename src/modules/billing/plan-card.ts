@@ -71,6 +71,8 @@ export function planCardContent(
   const full = planFullList(plan, plans, soon);
   const twin = planAllowsBooking(plan.features) ? null : bookingTwinOf(plan, plans);
   const paid = plan.priceCents > 0;
+  // Vente en ligne fermée (pages légales pas encore publiées) : le bouton annonce le rappel.
+  const callback = paid && !options.salesOpen;
   return {
     code: plan.code,
     name,
@@ -83,9 +85,9 @@ export function planCardContent(
         ? t("smsExtra", { amount: money(options.smsPack.priceCents), count: options.smsPack.size })
         : null,
     cta: {
-      label: paid ? t("choose", { plan: name }) : t("start"),
+      label: callback ? t("callback") : paid ? t("choose", { plan: name }) : t("start"),
       href: {
-        pathname: paid && !options.salesOpen ? "/rappel" : "/commander",
+        pathname: callback ? "/rappel" : "/commander",
         query: { pack: plan.code },
       },
     },

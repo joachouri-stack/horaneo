@@ -169,6 +169,7 @@
       "recommended": "Recommandé",
       "start": "Commencer gratuitement",
       "choose": "Choisir {plan}",
+      "callback": "Être rappelé",
       "tiles": {
         "unlimited": "Illimité",
         "bookings": "{unlimited, select, yes {réservations} other {réservations par mois}}",
