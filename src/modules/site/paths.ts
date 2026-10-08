@@ -22,12 +22,18 @@ export const SITE_PATHS = {
 
 export type SitePathKey = keyof typeof SITE_PATHS;
 
+/**
+ * Version de la fiche d'application et des icônes : l'augmenter quand leur dessin
+ * change. Les adresses changent alors, et les téléphones ne gardent pas l'ancienne
+ * version en mémoire.
+ */
+const APP_VERSION = 3;
+
 /** Fiche d'application et icônes : le site s'installe sur l'écran d'accueil (hors plan du site). */
 export const APP_PATHS = {
-  manifest: "/app-manifest",
-  // « v » : changer le numéro quand le dessin des icônes change, pour que les téléphones les rechargent.
-  icon: (size: number) => `/app-icon/${size}?v=2`,
-  maskableIcon: (size: number) => `/app-icon/${size}?v=2&maskable=1`,
+  manifest: `/app-manifest?v=${APP_VERSION}`,
+  icon: (size: number) => `/app-icon/${size}?v=${APP_VERSION}`,
+  maskableIcon: (size: number) => `/app-icon/${size}?v=${APP_VERSION}&maskable=1`,
 } as const;
 
 export const categoryPath = (slug: string) => `${SITE_PATHS.services}/${slug}`;
