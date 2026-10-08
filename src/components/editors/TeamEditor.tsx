@@ -98,12 +98,15 @@ export async function TeamEditor({
         {staff.map((member) => (
           <li key={member.id}>
             <details className="rounded-lg border border-navy/10 p-4">
-              <summary className="flex cursor-pointer items-center gap-3 font-semibold text-night">
+              <summary className="flex cursor-pointer list-none items-center gap-3 font-semibold text-night [&::-webkit-details-marker]:hidden">
                 <span
-                  className="inline-block h-4 w-4 rounded-full"
+                  className="inline-block h-4 w-4 shrink-0 rounded-full"
                   style={{ background: member.color ?? "#6b8f71" }}
                 />
-                {member.name}
+                <span className="min-w-0 truncate">{member.name}</span>
+                <span className="ml-auto shrink-0 text-sm font-semibold text-coral-dark underline">
+                  {tCommon("edit")}
+                </span>
               </summary>
               {memberHref && (
                 <Link
@@ -132,14 +135,17 @@ export async function TeamEditor({
           </li>
         ))}
       </ul>
-      <div className="mt-6 border-t border-navy/10 pt-6">
-        <h3 className="mb-2 text-lg font-bold">{t("newMember")}</h3>
-        <p className="mb-4 text-sm text-ink/70">{t("hoursHint")}</p>
+      {/* Formulaire replié : la liste de l'équipe reste visible d'un coup d'œil. */}
+      <details className="mt-6 border-t border-navy/10 pt-4">
+        <summary className="flex min-h-12 cursor-pointer list-none items-center text-lg font-bold text-night [&::-webkit-details-marker]:hidden">
+          + {t("newMember")}
+        </summary>
+        <p className="mt-2 mb-4 text-sm text-ink/70">{t("hoursHint")}</p>
         <ActionForm action={actions.save} submitLabel={tCommon("add")} resetOnSuccess>
           <Hidden values={{ tenantId, businessId }} />
           {fields({ name: "", bio: "", color: null, isActive: true, serviceIds: [] }, "new")}
         </ActionForm>
-      </div>
+      </details>
     </Section>
   );
 }
