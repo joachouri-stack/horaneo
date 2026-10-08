@@ -8,6 +8,7 @@ import { onlinePaymentReady } from "@/modules/payments/deposits";
 import { getBookingSettings, SLOT_INTERVALS } from "@/modules/booking/settings";
 import { planAllowsBooking } from "@/modules/billing/features";
 import { centsToInput } from "@/lib/format";
+import { getPlatformSetting } from "@/modules/settings";
 import { setOnlineBookingAction, updateSettingsAction } from "../../actions";
 
 /** Réglages de la réservation en ligne, de l'acompte et des résumés. */
@@ -16,7 +17,12 @@ export default async function SettingsPage({
 }: PageProps<"/[locale]/espace/[tenantId]/plus/reglages">) {
   const page = await managerPage(params);
   const [t, tCommon] = await Promise.all([getTranslations("manager.settings"), getTranslations("common")]);
-  const settings = await page.db((tx) => getBookingSettings(tx, page.tenantId));
+  const [settings, reviewCooldownDays] = await page.db((tx) =>
+    Promise.all([
+      getBookingSettings(tx, page.tenantId),
+      getPlatformSetting(tx, "review_request_cooldown_days"),
+    ]),
+  );
   const paymentAvailable = Boolean(page.tenant.features.onlinePayment);
   const stripeReady = onlinePaymentReady(page.business, page.tenant.features, paymentGateway());
   return (
@@ -161,6 +167,22 @@ export default async function SettingsPage({
             defaultChecked={settings.monthlySummaryEnabled}
           />
         </Section>
+        {/* Demande d'avis Google : seulement si le pack inclut les avis Google. */}
+        {page.tenant.features.googleReviews && (
+          <Section title={t("reviewsTitle")}>
+            <CheckboxField
+              name="reviewRequestEnabled"
+              label={t("reviewRequest")}
+              defaultChecked={settings.reviewRequestEnabled}
+            />
+            <p className="text-sm text-ink/70">
+              {t("reviewRequestHelp", { months: Math.max(1, Math.round(reviewCooldownDays / 30)) })}
+            </p>
+            {!page.business.googlePlaceId && (
+              <p className="mt-2 text-sm font-semibold text-coral-dark">{t("reviewRequestNoPlace")}</p>
+            )}
+          </Section>
+        )}
       </ActionForm>
     </div>
   );

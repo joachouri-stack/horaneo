@@ -34,6 +34,11 @@ export function placeReviewsUrl(placeId: string) {
   return `https://search.google.com/local/reviews?placeid=${encodeURIComponent(placeId)}`;
 }
 
+/** Lien qui ouvre directement le formulaire « Donner un avis » de la fiche. */
+export function writeReviewUrl(placeId: string) {
+  return `https://search.google.com/local/writereview?placeid=${encodeURIComponent(placeId)}`;
+}
+
 /**
  * Relit les fiches dont la copie a plus de 24 h (ou dont la fiche a changé),
  * pour les sites en ligne dont le pack inclut les avis. Rôle plateforme.

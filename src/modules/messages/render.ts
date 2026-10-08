@@ -31,6 +31,7 @@ import { depositSummary } from "@/modules/payments/refunds";
 import { formatPhone } from "@/modules/phone";
 import { getPlatformSetting } from "@/modules/settings";
 import { monthStats } from "@/modules/stats/month";
+import { writeReviewUrl } from "@/modules/reviews/google";
 import { SITE_PATHS } from "@/modules/site/paths";
 import { renderEmail } from "./layout";
 import type { MessageTemplate } from "./queue";
@@ -500,6 +501,29 @@ async function renderCustomer(
       title = t(`notifications.customer.${key}.title`);
       paragraphs = [greeting, t(`notifications.customer.${key}.intro`, { business, previous })];
       after = [await manageHint(tx, t, fmt, info, tenant, options.now)];
+      break;
+    }
+    case "customer.review_request": {
+      // La gérante a corrigé (absente, à venir) avant l'envoi : plus de demande.
+      if (a.status !== "attended") return { kind: "skip", reason: "not_attended" };
+      const [listing] = await tx
+        .select({ placeId: businesses.googlePlaceId })
+        .from(businesses)
+        .where(and(eq(businesses.tenantId, tenant.id), eq(businesses.id, a.businessId)));
+      if (!listing?.placeId) return { kind: "skip", reason: "no_place" };
+      subject = t("notifications.customer.review_request.subject", { business });
+      title = t("notifications.customer.review_request.title");
+      paragraphs = [
+        greeting,
+        t("notifications.customer.review_request.intro", { business }),
+        t("notifications.customer.review_request.ask"),
+      ];
+      details = undefined;
+      action = {
+        label: t("notifications.customer.review_request.action"),
+        url: writeReviewUrl(listing.placeId),
+      };
+      after = [t("notifications.customer.review_request.once")];
       break;
     }
     case "customer.payment_refunded":

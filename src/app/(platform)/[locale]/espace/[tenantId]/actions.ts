@@ -413,6 +413,7 @@ export async function updateSettingsAction(_previous: Previous, data: FormData) 
       depositValue: form.text(data, "depositValue"),
       dailySummaryEnabled: form.bool(data, "dailySummaryEnabled"),
       monthlySummaryEnabled: form.bool(data, "monthlySummaryEnabled"),
+      reviewRequestEnabled: form.bool(data, "reviewRequestEnabled"),
     } as never),
   );
 }

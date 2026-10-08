@@ -28,6 +28,8 @@ export const bookingSettingsInput = z.object({
     .regex(/^\d{1,5}([.,]\d{1,2})?$/),
   dailySummaryEnabled: z.boolean(),
   monthlySummaryEnabled: z.boolean(),
+  /** Demande d'avis Google après un rendez-vous (pack avec les avis Google). */
+  reviewRequestEnabled: z.boolean().default(false),
 });
 
 /** Réglages de l'entreprise donnée, ou de celle déclarée pour la transaction. */
@@ -62,6 +64,8 @@ export async function updateBookingSettings(
     throw new AppError("invalid", "depositValue");
   if (input.depositEnabled && !features.onlinePayment)
     throw new AppError("feature_unavailable", "depositEnabled");
+  if (input.reviewRequestEnabled && !features.googleReviews)
+    throw new AppError("feature_unavailable", "reviewRequestEnabled");
   const [updated] = await tx
     .update(businessSettings)
     .set({
@@ -75,6 +79,7 @@ export async function updateBookingSettings(
       depositValue,
       dailySummaryEnabled: input.dailySummaryEnabled,
       monthlySummaryEnabled: input.monthlySummaryEnabled,
+      reviewRequestEnabled: input.reviewRequestEnabled,
     })
     .where(and(eq(businessSettings.tenantId, tenantId), eq(businessSettings.businessId, id)))
     .returning();

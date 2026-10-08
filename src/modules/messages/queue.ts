@@ -21,6 +21,7 @@ export const MESSAGE_TEMPLATES = [
   "customer.gift_card_receipt",
   "customer.login_link",
   "customer.login_code",
+  "customer.review_request",
   // À la gérante
   "manager.new_booking",
   "manager.cancelled",
