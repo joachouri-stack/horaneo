@@ -1068,7 +1068,18 @@
         "noPhoto": "Aucune photo",
         "saveProfile": "Enregistrer sa page",
         "googlePlaceId": "Fiche Google (identifiant « place »)",
-        "googlePlaceIdHint": "Pour afficher ses avis Google. L'identifiant commence souvent par « ChIJ » : cherchez l'établissement sur la page « Place ID Finder » de Google, puis copiez-le ici. Les avis apparaissent dans les 24 h."
+        "googlePlaceIdHint": "Pour afficher ses avis Google. L'identifiant commence souvent par « ChIJ » : cherchez l'établissement sur la page « Place ID Finder » de Google, puis copiez-le ici. Les avis apparaissent dans les 24 h.",
+        "reviews": {
+          "notInPlan": "Avis Google : non inclus dans le pack de ce site.",
+          "noKey": "Avis Google : clé Google absente sur le serveur (variable GOOGLE_PLACES_API_KEY), aucun avis n'est relu.",
+          "siteOffline": "Avis Google : relus une fois le site en ligne.",
+          "pending": "Avis Google : en attente de la première lecture (quelques minutes si la tâche planifiée tourne).",
+          "failing": "Avis Google : jamais lus, Google refuse la demande.",
+          "shown": "Avis Google affichés : {rating} sur 5 · {count, plural, one {# avis} other {# avis}}, relus le {date}.",
+          "shownNoRating": "Avis Google relus le {date} : la fiche n'a pas encore de note.",
+          "stale": "Avis Google plus affichés : dernière lecture réussie le {date} (plus de 30 jours).",
+          "error": "Dernière erreur de Google ({date}) : {error}"
+        }
       },
       "previewPage": {
         "title": "Aperçu du site",

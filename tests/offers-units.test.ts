@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { giftCardState, normalizeGiftCardCode } from "@/modules/giftcards/giftcards";
 import { parseMoney } from "@/modules/money";
 import { discountedPrice, referencePrice } from "@/modules/promotions/promotions";
+import { reviewsStatus } from "@/modules/reviews/google";
 
 const d = (iso: string) => new Date(`${iso}T10:00:00Z`);
 
@@ -50,5 +51,46 @@ describe("cartes cadeaux", () => {
     expect(parseMoney("42,50")).toBe(4250);
     expect(Number.isNaN(parseMoney("abc"))).toBe(true);
     expect(Number.isNaN(parseMoney("-5"))).toBe(true);
+  });
+});
+
+describe("état des avis Google (espace admin)", () => {
+  const now = new Date("2026-10-08T10:00:00Z");
+  const base = { placeId: "ChIJ-a", inPlan: true, keyConfigured: true, siteActive: true, now };
+  const cache = {
+    businessId: "b",
+    placeId: "ChIJ-a",
+    rating: 4.9,
+    total: 88,
+    fetchedAt: new Date("2026-10-07T10:00:00Z"),
+    lastError: null,
+    updatedAt: new Date("2026-10-07T10:00:00Z"),
+  };
+
+  it("de la cause la plus générale à la plus précise", () => {
+    expect(reviewsStatus({ ...base, placeId: null, cache })).toBeNull();
+    expect(reviewsStatus({ ...base, inPlan: false, cache })?.state).toBe("notInPlan");
+    expect(reviewsStatus({ ...base, keyConfigured: false, cache })?.state).toBe("noKey");
+    expect(reviewsStatus({ ...base, siteActive: false, cache })?.state).toBe("siteOffline");
+    expect(reviewsStatus({ ...base, cache: undefined })?.state).toBe("pending");
+  });
+
+  it("copie affichée, trop ancienne, ou d'une autre fiche", () => {
+    expect(reviewsStatus({ ...base, cache })).toMatchObject({ state: "shown", rating: 4.9, total: 88 });
+    const old = { ...cache, fetchedAt: new Date("2026-09-01T10:00:00Z") };
+    expect(reviewsStatus({ ...base, cache: old })?.state).toBe("stale");
+    expect(reviewsStatus({ ...base, cache: { ...cache, placeId: "ChIJ-b" } })?.state).toBe("pending");
+  });
+
+  it("erreur de Google : jamais lus, ou dernière copie gardée", () => {
+    const failing = { ...cache, fetchedAt: null, rating: null, total: 0, lastError: "Google Places : 403" };
+    expect(reviewsStatus({ ...base, cache: failing })).toMatchObject({
+      state: "failing",
+      error: "Google Places : 403",
+    });
+    expect(reviewsStatus({ ...base, cache: { ...cache, lastError: "Google Places : 500" } })).toMatchObject({
+      state: "shown",
+      error: "Google Places : 500",
+    });
   });
 });
