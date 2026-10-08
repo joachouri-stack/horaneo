@@ -33,6 +33,8 @@ export async function AtelierHome({ site }: { site: Site }) {
   const ctaLabel = (bookLabel: string) =>
     cta?.kind === "book" ? bookLabel : cta ? tSite(ctaLabelKey(cta)) : "";
   const reviews = siteReviews(site);
+  const showReviews =
+    sections.testimonials && (site.testimonials.length > 0 || (reviews?.reviews.length ?? 0) > 0);
   const tReviews = await getTranslations("site.reviews");
   const giftCards = site.giftCardBusinessIds.length > 0;
   const tGift = await getTranslations("site.giftCard");
@@ -292,8 +294,8 @@ export async function AtelierHome({ site }: { site: Site }) {
         </section>
       )}
 
-      {/* ─── Avis ─── */}
-      {(sections.testimonials || (reviews && reviews.rating !== null)) && (
+      {/* ─── Avis : seulement s'il y a des avis à lire (la note seule est déjà en haut de page) ─── */}
+      {showReviews && (
         <section aria-labelledby="titre-avis" className="reveal bg-site-surface py-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-8">
             <h2 id="titre-avis" className="text-center font-site-display text-4xl font-medium sm:text-5xl">
