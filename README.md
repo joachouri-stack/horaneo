@@ -428,6 +428,11 @@ Le déploiement complet (image Docker, sauvegardes horaires vers R2, alertes, pr
    `curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/tick`
    (`CRON_SECRET` : `openssl rand -base64 32`, à mettre aussi dans les variables de l'application.)
 7. **Brevo** : vérifier le domaine d'envoi (enregistrements DNS SPF et DKIM fournis par Brevo, dans Cloudflare), puis acheter des crédits SMS.
-8. **Sauvegardes** (compartiment Cloudflare R2 `horaneo-sauvegardes`, clé R2 « Object Read & Write » limitée à ce compartiment) :
+8. **Santé et alertes** :
+   - Page de santé : `/api/health` répond `{"status":"ok"}` (200) si le site et la base répondent, sinon `{"status":"down"}` (503).
+   - Coolify → application → Configuration → **Healthcheck** : activé, méthode `GET`, schéma `http`, hôte `localhost`, port `3000`, chemin `/api/health`, code `200`, intervalle `30` s, délai de démarrage `60` s (migrations au démarrage). Coolify redémarre le site s'il reste bloqué.
+   - Coolify → **Notifications** → **Email** : adresse de réception, puis cocher déploiement échoué, sauvegarde échouée, conteneur arrêté et tâche planifiée échouée.
+   - Surveillance extérieure (ex. UptimeRobot, gratuit) : `https://horaneo.com/api/health` toutes les 5 minutes, plus l'accueil de chaque site client. Elle prévient même si le serveur entier est en panne.
+9. **Sauvegardes** (compartiment Cloudflare R2 `horaneo-sauvegardes`, clé R2 « Object Read & Write » limitée à ce compartiment) :
    - **Base de données** : Coolify → Storages S3 → ajouter le compartiment (région `auto`). Puis base PostgreSQL → onglet **Backups** → **+ Add**, fréquence `0 * * * *`, « S3 » coché. Restauration : base PostgreSQL → Configuration → **Import Backup** → « Restore from S3 » (remplace toutes les données).
    - **Logos et photos** (dossier `/app/storage`, volume persistant) : variables `BACKUP_S3_*` de `.env.example` dans l'application, puis Scheduled Task chaque nuit (`17 3 * * *`) avec la commande `pnpm files:backup`. Seuls les fichiers nouveaux ou modifiés partent, dans `fichiers/` ; rien n'est supprimé de la sauvegarde. Restauration : recopier `fichiers/` dans `/app/storage`.
