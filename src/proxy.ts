@@ -32,6 +32,9 @@ const INTERNAL_PATHS: Record<string, string> = {
   "/robots.txt": "/seo/robots",
 };
 
+/** Adresses indépendantes du domaine (la tâche planifiée est protégée par son secret). */
+const MACHINE_PATHS = ["/api/health", "/api/cron"];
+
 function hasPrefix(pathname: string, prefix: string) {
   return pathname === prefix || pathname.startsWith(`${prefix}/`);
 }
@@ -49,6 +52,9 @@ function platformOrigin(request: NextRequest): string {
 
 export async function proxy(request: NextRequest) {
   const url = request.nextUrl;
+  // Appels internes du serveur (vérification de santé, tâche planifiée) : ils arrivent
+  // sur http://localhost:3000, qui n'est ni le domaine principal ni celui d'un client.
+  if (MACHINE_PATHS.some((path) => hasPrefix(url.pathname, path))) return NextResponse.next();
   const host = classifyHost(request.headers.get("host"), url, hostConfig);
 
   switch (host.kind) {
