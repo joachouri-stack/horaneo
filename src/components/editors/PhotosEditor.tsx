@@ -21,6 +21,7 @@ export async function PhotosEditor({
   retired,
   photoAction,
   uploader,
+  headingLevel,
 }: {
   tenantId: string;
   locale: string;
@@ -30,6 +31,8 @@ export async function PhotosEditor({
   retired: Assets;
   photoAction: Action;
   uploader: React.ReactNode;
+  /** Niveau du titre principal : 1 quand l'éditeur forme toute la page (espace gérante). */
+  headingLevel?: 1 | 2;
 }) {
   const t = await getTranslations("admin.tenant.photos");
   const photos = active.filter((asset) => asset.kind !== "logo");
@@ -38,6 +41,7 @@ export async function PhotosEditor({
     <>
       <Section
         title={t("title")}
+        level={headingLevel}
         aside={
           limit !== null && limit !== undefined ? (
             <span className="text-sm text-ink/70">{t("quota", { used: photos.length, limit })}</span>

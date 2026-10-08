@@ -63,7 +63,7 @@ export async function ServicesEditor({
                 action={actions.saveCategory}
                 submitLabel={tCommon("save")}
                 variant="link"
-                className="grid flex-1 items-end gap-3 sm:grid-cols-2"
+                className="grid w-full items-end gap-3 sm:grid-cols-2"
               >
                 <Hidden values={{ tenantId, businessId, id: category.id }} />
                 <TextField

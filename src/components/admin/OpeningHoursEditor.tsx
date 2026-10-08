@@ -101,7 +101,7 @@ export function OpeningHoursEditor({
                     }
                     setNextKey(nextKey + 1);
                   }}
-                  className="text-sm font-semibold text-night underline"
+                  className="inline-flex min-h-11 items-center text-sm font-semibold text-night underline"
                 >
                   + {t("addRange")}
                 </button>

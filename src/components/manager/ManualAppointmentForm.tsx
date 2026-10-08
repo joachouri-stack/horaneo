@@ -82,7 +82,9 @@ export function ManualAppointmentForm({ tenantId, services, staff, defaults }: P
                 className="sr-only"
               />
               <span className="font-semibold">{service.name}</span>
-              <span className="text-sm opacity-80">{service.durationMinutes} min</span>
+              <span className="shrink-0 whitespace-nowrap text-sm opacity-80">
+                {service.durationMinutes} min
+              </span>
             </label>
           ))}
         </div>
@@ -108,7 +110,7 @@ export function ManualAppointmentForm({ tenantId, services, staff, defaults }: P
         </select>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid gap-3 min-[400px]:grid-cols-2">
         <div>
           <label htmlFor="m-date" className={ui.label}>
             {t("date")}

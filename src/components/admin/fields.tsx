@@ -111,7 +111,7 @@ export function CheckboxField({
         name={name}
         value={value}
         defaultChecked={defaultChecked}
-        className="h-6 w-6 accent-navy"
+        className="h-6 w-6 shrink-0 accent-navy"
       />
       <span>{label}</span>
     </label>
@@ -122,15 +122,19 @@ export function Section({
   title,
   children,
   aside,
+  level = 2,
 }: {
   title: string;
   children: React.ReactNode;
   aside?: React.ReactNode;
+  /** 1 quand la section porte le titre de la page (espace gérante). */
+  level?: 1 | 2;
 }) {
+  const Heading = level === 1 ? "h1" : "h2";
   return (
     <section className={ui.card}>
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-xl font-bold">{title}</h2>
+        <Heading className="text-xl font-bold">{title}</Heading>
         {aside}
       </div>
       {children}

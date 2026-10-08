@@ -361,7 +361,8 @@ export default async function AgendaPage({
       <h2 className="text-lg font-bold first-letter:uppercase">{page.fmt.day(range.start)}</h2>
       {dayHours.length === 0 && appointments.length === 0 && <p className={ui.card}>{t("closed")}</p>}
       <div className="-mx-4 overflow-x-auto px-4">
-        <div className="flex min-w-fit">
+        {/* Une seule colonne (une personne) : elle prend toute la largeur ; plusieurs : défilement. */}
+        <div className={`flex ${columns.length === 1 ? "w-full" : "min-w-fit"}`}>
           <div
             className="sticky left-0 z-10 w-12 shrink-0 bg-ivory pt-10"
             style={{ height: height + 40 }}
@@ -374,7 +375,10 @@ export default async function AgendaPage({
             ))}
           </div>
           {columns.map((member) => (
-            <div key={member.id} className="w-44 shrink-0 border-l border-navy/10 sm:w-56">
+            <div
+              key={member.id}
+              className={`border-l border-navy/10 ${columns.length === 1 ? "min-w-0 flex-1" : "w-44 shrink-0 sm:w-56"}`}
+            >
               {member.inactive ? (
                 <p className="flex h-10 items-center justify-center gap-1 truncate font-semibold text-ink/60">
                   {member.name} <span className="text-xs font-normal">({t("inactiveStaff")})</span>
@@ -420,7 +424,7 @@ export default async function AgendaPage({
                       <Link
                         key={item.id}
                         href={`${page.base}/rendez-vous/${item.id}`}
-                        className={`absolute inset-x-1 overflow-hidden rounded-md border-l-4 bg-navy/5 p-1 text-xs leading-tight hover:bg-navy/10 ${item.status === "no_show" ? "opacity-50" : ""}`}
+                        className={`absolute inset-x-1 z-10 overflow-hidden rounded-md border-l-4 bg-[#eef0f4] p-1 text-xs leading-tight shadow-sm hover:bg-[#e3e6ee] ${item.status === "no_show" ? "opacity-50" : ""}`}
                         style={{ top: from, height: size, borderLeftColor: item.staffColor ?? "#1b2a4a" }}
                       >
                         <span className="block font-bold text-night">

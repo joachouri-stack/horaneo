@@ -14,12 +14,15 @@ export async function TestimonialsEditor({
   available,
   items,
   actions,
+  headingLevel,
 }: {
   tenantId: string;
   contentLocale: string;
   available: boolean;
   items: Awaited<ReturnType<typeof listTestimonials>>;
   actions: { save: Action; remove: Action };
+  /** Niveau du titre principal : 1 quand l'éditeur forme toute la page (espace gérante). */
+  headingLevel?: 1 | 2;
 }) {
   const [t, tCommon, tErrors] = await Promise.all([
     getTranslations("admin.tenant.testimonials"),
@@ -29,7 +32,7 @@ export async function TestimonialsEditor({
   const locale = contentLocale as "fr";
   if (!available) {
     return (
-      <Section title={t("title")}>
+      <Section title={t("title")} level={headingLevel}>
         <p>{tErrors("feature_unavailable")}</p>
       </Section>
     );
@@ -63,7 +66,7 @@ export async function TestimonialsEditor({
   );
 
   return (
-    <Section title={t("title")}>
+    <Section title={t("title")} level={headingLevel}>
       {items.length === 0 && <p className="text-ink/70">{t("empty")}</p>}
       <ul className="space-y-3">
         {items.map((item) => (

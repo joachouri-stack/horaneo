@@ -119,7 +119,9 @@ export default async function CustomerPage({
           )}
           {loyalty.config.included && (
             <details>
-              <summary className="cursor-pointer font-semibold text-night">{tLoyalty("adjust")}</summary>
+              <summary className="flex min-h-11 cursor-pointer items-center font-semibold text-night">
+                {tLoyalty("adjust")}
+              </summary>
               <ActionForm
                 action={adjustLoyaltyAction}
                 submitLabel={tLoyalty("adjustSubmit")}
