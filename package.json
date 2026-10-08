@@ -21,6 +21,7 @@
     "db:seed-demo": "tsx src/db/seed-demo.ts",
     "admin:grant": "tsx src/db/admin-role.ts grant",
     "admin:revoke": "tsx src/db/admin-role.ts revoke",
+    "files:backup": "tsx src/ops/files-backup.ts",
     "import:ma-beaute": "tsx src/db/import-ma-beaute.ts",
     "jobs:tick": "tsx src/jobs/tick.ts"
   },
