@@ -1,5 +1,5 @@
 import { and, asc, eq } from "drizzle-orm";
-import { setupFeeForFormula } from "./plans";
+import { creationFeeFor } from "./plans";
 import type { Transaction } from "@/db/client";
 import { getTranslator, resolveLocale } from "@/i18n/translator";
 import { businesses, plans, subscriptions, tenants } from "@/db/schema";
@@ -173,7 +173,7 @@ export async function requestPlanChange(
     const priceId = await ensurePlanPrice(tx, target.id, gateway);
     // Formule choisie : avec engagement (frais du pack), ou sans (frais de création en plus).
     const withCommitment = urls.withCommitment ?? true;
-    const setupFeeCents = await setupFeeForFormula(tx, target, withCommitment);
+    const setupFeeCents = await creationFeeFor(tx, target, withCommitment);
     const checkout = await gateway
       .createCheckout({
         customerId: row.stripeCustomerId!,
@@ -347,6 +347,8 @@ export async function applySubscription(tx: Transaction, sub: BillingSubscriptio
       stripeCustomerId: sub.customerId,
       status: sub.status,
       planId,
+      // Prix réellement facturé (l'ancien prix, tant qu'il est maintenu).
+      stripePriceId: sub.priceId ?? row.stripePriceId,
       currentPeriodEnd: sub.currentPeriodEnd,
       cancelAt: sub.cancelAt,
       commitmentEndsAt,

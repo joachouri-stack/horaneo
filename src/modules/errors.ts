@@ -24,6 +24,8 @@ export type AppErrorCode =
   | "feature_unavailable"
   | "quota_reached"
   | "last_free_plan"
+  | "twin_rule"
+  | "sales_paused"
   | "terms_required"
   | "hours_overlap"
   | "hours_invalid"

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { adminMutation, form } from "@/lib/admin/mutation";
 import { billingGateway } from "@/lib/payments/stripe-billing";
 import { FEATURE_KEYS, savePlan, settingsInput, updatePlatformSettings } from "@/modules/billing/admin";
+import { MAX_HIGHLIGHTS } from "@/modules/billing/showcase";
 import type { ActionResult } from "@/lib/actions/result";
 
 type Previous = ActionResult<unknown> | null;
@@ -30,7 +31,12 @@ export async function savePlanAction(_previous: Previous, data: FormData) {
           photos: form.text(data, "photos"),
           services: form.text(data, "services"),
           smsPerMonth: form.text(data, "smsPerMonth"),
-          setupFee: form.text(data, "setupFee"),
+          noCommitmentFee: form.text(data, "noCommitmentFee"),
+          // Lignes visibles de la carte : six listes déroulantes, les vides sont ignorées.
+          highlights: Array.from({ length: MAX_HIGHLIGHTS }, (_, index) =>
+            form.text(data, `highlight_${index}`),
+          ).filter(Boolean),
+          bookingTwinCode: form.text(data, "bookingTwinCode"),
           features: FEATURE_KEYS.filter((key) => form.bool(data, `feature_${key}`)),
           isPublic: form.bool(data, "isPublic"),
         },
@@ -40,6 +46,11 @@ export async function savePlanAction(_previous: Previous, data: FormData) {
 }
 
 export async function saveSettingsAction(_previous: Previous, data: FormData) {
-  const raw = Object.fromEntries(Object.keys(settingsInput.shape).map((key) => [key, form.text(data, key)]));
+  const raw: Record<string, unknown> = Object.fromEntries(
+    Object.keys(settingsInput.shape).map((key) => [key, form.text(data, key)]),
+  );
+  // Case à cocher et liste de fonctions « Bientôt ».
+  raw.site_buyout_enabled = form.bool(data, "site_buyout_enabled");
+  raw.features_soon = FEATURE_KEYS.filter((key) => form.bool(data, `soon_${key}`));
   return adminMutation({ action: "settings.updated" }, (tx) => updatePlatformSettings(tx, raw as never));
 }

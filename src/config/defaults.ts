@@ -11,10 +11,35 @@ export const DEFAULT_PLATFORM_SETTINGS = {
   prices_display: "TTC",
   /** Durée d'engagement en mois (0 = sans engagement). */
   commitment_months: 12,
-  /** Frais de création en centimes (0 = création offerte). */
-  setup_fee_cents: 0,
-  /** Frais de création ajoutés quand le client choisit la formule sans engagement, en centimes. */
-  no_commitment_setup_fee_cents: 14900,
+  /** Préavis avant d'appliquer le nouveau prix d'un pack à un abonné (après la fin de son engagement), en jours. */
+  price_change_notice_days: 30,
+  /**
+   * Fonctions annoncées « Bientôt » sur le site commercial : pas encore livrées,
+   * elles portent l'étiquette au lieu d'être promises. Retirer une clé quand la fonction est prête.
+   */
+  features_soon: [
+    "contactForm",
+    "businessSections",
+    "seoPages",
+    "visibilityReport",
+    "paymentLinks",
+    "multilingual",
+    "qrPoster",
+  ] as string[],
+  /** Rachat du site par le client quand il part (désactivé par défaut) et son prix TTC en centimes. */
+  site_buyout_enabled: false as boolean,
+  site_buyout_price_cents: 0,
+  /** Identité légale du SaaS (pages Mentions légales, Conditions, Confidentialité), remplie depuis l'admin. */
+  legal_identity: {
+    companyName: "",
+    legalForm: "",
+    siret: "",
+    address: "",
+    publicationDirector: "",
+    host: "",
+    vatRegime: "",
+    consumerMediator: "",
+  } as LegalIdentity,
   /** Pack de SMS supplémentaires : nombre de SMS et prix TTC en centimes. */
   sms_pack_size: 100,
   sms_pack_price_cents: 800,
@@ -54,6 +79,19 @@ export const DEFAULT_PLATFORM_SETTINGS = {
   showcase: [] as ShowcaseEntry[],
 } as const;
 
+/** Identité légale du SaaS : jamais inventée, saisie par l'administratrice. */
+export type LegalIdentity = {
+  companyName: string;
+  legalForm: string;
+  siret: string;
+  address: string;
+  publicationDirector: string;
+  /** Hébergeur du site : nom, adresse, téléphone. */
+  host: string;
+  vatRegime: string;
+  consumerMediator: string;
+};
+
 /** Témoignage d'un professionnel client, affiché sur l'accueil du site commercial. */
 export type ShowcaseEntry = {
   id: string;
@@ -76,16 +114,114 @@ type PlanSeed = {
   /** Accroche affichée sous le nom du pack. */
   description: LocalizedText;
   priceCents: number;
-  /** Frais de création propres au pack (sinon : réglage général). */
-  setupFeeCents?: number | null;
+  /** Frais de création de la formule sans engagement (avec engagement : création offerte). */
+  noCommitmentFeeCents: number | null;
+  /** Pack « site seul » : le pack avec réservation qui le reprend entièrement (« Pour ajouter la réservation »). */
+  bookingTwinCode?: string | null;
+  /** Lignes visibles sur la carte du pack (6 au plus), dans l'ordre ; le reste se déplie. */
+  highlights: string[];
   sortOrder: number;
   limits: PlanLimits;
   features: PlanFeatures;
 };
 
+/** Fonctions qu'aucun pack ne promet par défaut (chaque pack les active). */
+const NONE = {
+  onlineBooking: false,
+  fullSite: false,
+  customDomain: false,
+  onlinePayment: false,
+  promoCodes: false,
+  testimonials: false,
+  stats: false,
+  monthlySummary: false,
+  brandingFooter: false,
+  emailSupport: false,
+  whatsappSupport: false,
+  promotions: false,
+  googleReviews: false,
+  giftCards: false,
+  monthlyUpdate: false,
+  onDemandUpdates: false,
+  aiMessaging: false,
+  customerSpace: false,
+  loyalty: false,
+  localSeo: false,
+  contactButtons: false,
+  mobileReady: false,
+  sitePages: false,
+  contactForm: false,
+  kickoffCall: false,
+  copywriting: false,
+  photoRetouch: false,
+  businessSections: false,
+  seoPages: false,
+  searchConsole: false,
+  googleBusiness: false,
+  visibilityReport: false,
+  paymentLinks: false,
+  multilingual: false,
+  qrPoster: false,
+} satisfies PlanFeatures;
+
+/** Site vitrine (Express) : une page, son nom de domaine, les boutons de contact. */
+const EXPRESS = {
+  ...NONE,
+  customDomain: true,
+  localSeo: true,
+  contactButtons: true,
+  mobileReady: true,
+  emailSupport: true,
+  monthlyUpdate: true,
+} satisfies PlanFeatures;
+
+/** Site complet (Vitrine) : tout Express, plusieurs pages, formulaire, promotions et témoignages. */
+const VITRINE = {
+  ...EXPRESS,
+  fullSite: true,
+  sitePages: true,
+  contactForm: true,
+  promotions: true,
+  testimonials: true,
+} satisfies PlanFeatures;
+
+/** Accompagnement complet (Signature) : tout Vitrine, et nous nous occupons de tout. */
+const SIGNATURE = {
+  ...VITRINE,
+  kickoffCall: true,
+  copywriting: true,
+  photoRetouch: true,
+  businessSections: true,
+  seoPages: true,
+  searchConsole: true,
+  googleBusiness: true,
+  googleReviews: true,
+  visibilityReport: true,
+  // Paiement par carte : liens de paiement, acomptes sur devis, cartes cadeaux.
+  onlinePayment: true,
+  paymentLinks: true,
+  giftCards: true,
+  multilingual: true,
+  qrPoster: true,
+  stats: true,
+  monthlyUpdate: false,
+  onDemandUpdates: true,
+  whatsappSupport: true,
+} satisfies PlanFeatures;
+
+/** Réservation en ligne, ajoutée par les packs Essentiel et Sérénité. */
+const BOOKING = {
+  onlineBooking: true,
+  onlinePayment: true,
+  promoCodes: true,
+  customerSpace: true,
+} satisfies PlanFeatures;
+
 /**
- * Les packs de départ. null = illimité. Trois packs avec réservation en ligne,
- * puis trois packs « site seul » du même niveau (même ordre), affichés au dos.
+ * Les packs de départ. null = illimité. Deux familles : avec réservation
+ * (Basic, Essentiel, Sérénité) et « site seul » (Express, Vitrine, Signature).
+ * Règle des jumeaux : un pack avec réservation comprend tout son pack « site
+ * seul » (Vitrine → Essentiel, Signature → Sérénité ; Express → Essentiel).
  */
 export const DEFAULT_PLANS: PlanSeed[] = [
   {
@@ -93,188 +229,79 @@ export const DEFAULT_PLANS: PlanSeed[] = [
     name: { fr: "Basic", en: "Basic", es: "Basic", ru: "Basic" },
     description: { fr: "Pour essayer sans rien payer" },
     priceCents: 0,
+    noCommitmentFeeCents: null,
+    highlights: ["basePage", "bookings", "agenda", "emailReminders", "photosServices"],
     sortOrder: 1,
     limits: { onlineBookingsPerMonth: 5, members: 1, photos: 5, services: 10, smsPerMonth: 0 },
-    features: {
-      onlineBooking: true,
-      fullSite: false,
-      customDomain: false,
-      onlinePayment: false,
-      promoCodes: false,
-      testimonials: false,
-      stats: false,
-      monthlySummary: false,
-      brandingFooter: true,
-      emailSupport: false,
-      whatsappSupport: false,
-      promotions: false,
-      googleReviews: false,
-      giftCards: false,
-      monthlyUpdate: false,
-      onDemandUpdates: false,
-      aiMessaging: false,
-      customerSpace: false,
-      loyalty: false,
-    },
+    features: { ...NONE, onlineBooking: true, brandingFooter: true },
   },
   {
     code: "essentiel",
     name: { fr: "Essentiel", en: "Essential", es: "Esencial", ru: "Основной" },
-    description: { fr: "Un vrai site à vos couleurs" },
+    description: { fr: "Un vrai site à vos couleurs, avec la réservation" },
     priceCents: 3999,
+    noCommitmentFeeCents: 14900,
+    highlights: ["everythingIn:vitrine", "bookings", "onlinePayment", "sms", "customerSpace", "members"],
     sortOrder: 2,
     limits: { onlineBookingsPerMonth: null, members: 3, photos: 20, services: null, smsPerMonth: 100 },
-    features: {
-      onlineBooking: true,
-      fullSite: true,
-      customDomain: true,
-      onlinePayment: true,
-      promoCodes: true,
-      testimonials: true,
-      stats: false,
-      monthlySummary: false,
-      brandingFooter: false,
-      emailSupport: true,
-      whatsappSupport: false,
-      promotions: true,
-      googleReviews: false,
-      giftCards: false,
-      monthlyUpdate: true,
-      onDemandUpdates: false,
-      aiMessaging: false,
-      customerSpace: true,
-      loyalty: false,
-    },
+    features: { ...VITRINE, ...BOOKING },
   },
   {
     code: "serenite",
     name: { fr: "Sérénité", en: "Serenity", es: "Serenidad", ru: "Безмятежность" },
     description: { fr: "Ne vous occupez plus de rien" },
-    priceCents: 6900,
+    priceCents: 7900,
+    noCommitmentFeeCents: 24900,
+    highlights: ["everythingIn:signature", "bookings", "sms", "loyalty", "stats", "members"],
     sortOrder: 3,
     limits: { onlineBookingsPerMonth: null, members: null, photos: null, services: null, smsPerMonth: 300 },
-    features: {
-      onlineBooking: true,
-      fullSite: true,
-      customDomain: true,
-      onlinePayment: true,
-      promoCodes: true,
-      testimonials: true,
-      stats: true,
-      monthlySummary: true,
-      brandingFooter: false,
-      emailSupport: true,
-      whatsappSupport: true,
-      promotions: true,
-      googleReviews: true,
-      giftCards: true,
-      monthlyUpdate: false,
-      onDemandUpdates: true,
-      aiMessaging: true,
-      customerSpace: true,
-      loyalty: true,
-    },
+    features: { ...SIGNATURE, ...BOOKING, monthlySummary: true, loyalty: true, aiMessaging: true },
   },
 ];
 
-const NO_BOOKING = {
-  onlineBooking: false,
-  onlinePayment: false,
-  promoCodes: false,
-  monthlySummary: false,
-  customerSpace: false,
-  loyalty: false,
-  aiMessaging: false,
-} as const;
-
-/** Packs « site seul » : un site, sans réservation en ligne (ajoutée en changeant de pack). */
+/** Packs « site seul » : un site, sans réservation en ligne (ajoutée en passant à leur jumeau). */
 export const DEFAULT_SITE_ONLY_PLANS: PlanSeed[] = [
   {
     code: "express",
     name: { fr: "Express", en: "Express", es: "Express", ru: "Экспресс" },
     description: { fr: "Votre vitrine en une page" },
     priceCents: 900,
+    noCommitmentFeeCents: 4900,
+    bookingTwinCode: "essentiel",
+    highlights: ["onePage", "customDomain", "contactButtons", "photosServices", "monthlyUpdate", "hosting"],
     sortOrder: 4,
     limits: { onlineBookingsPerMonth: 0, members: 1, photos: 10, services: 20, smsPerMonth: 0 },
-    features: {
-      ...NO_BOOKING,
-      fullSite: false,
-      customDomain: true,
-      // Promesses d'un site vitrine, présentées sur le site commercial.
-      localSeo: true,
-      contactButtons: true,
-      mobileReady: true,
-      sitePages: false,
-      customDesign: false,
-      testimonials: false,
-      stats: false,
-      brandingFooter: false,
-      emailSupport: true,
-      whatsappSupport: false,
-      promotions: false,
-      googleReviews: false,
-      giftCards: false,
-      monthlyUpdate: false,
-      onDemandUpdates: false,
-    },
+    features: EXPRESS,
   },
   {
     code: "vitrine",
     name: { fr: "Vitrine", en: "Showcase", es: "Escaparate", ru: "Витрина" },
     description: { fr: "Un vrai site à vos couleurs" },
     priceCents: 2200,
+    noCommitmentFeeCents: 14900,
+    bookingTwinCode: "essentiel",
+    highlights: [
+      "everythingIn:express",
+      "fullSite",
+      "contactForm",
+      "promotionsTestimonials",
+      "photos",
+      "monthlyUpdate",
+    ],
     sortOrder: 5,
     limits: { onlineBookingsPerMonth: 0, members: 3, photos: 20, services: null, smsPerMonth: 0 },
-    features: {
-      ...NO_BOOKING,
-      fullSite: true,
-      customDomain: true,
-      localSeo: true,
-      contactButtons: true,
-      mobileReady: true,
-      sitePages: true,
-      customDesign: false,
-      testimonials: true,
-      stats: false,
-      brandingFooter: false,
-      emailSupport: true,
-      whatsappSupport: false,
-      promotions: true,
-      googleReviews: true,
-      giftCards: false,
-      monthlyUpdate: true,
-      onDemandUpdates: false,
-    },
+    features: VITRINE,
   },
   {
     code: "signature",
     name: { fr: "Signature", en: "Signature", es: "Firma", ru: "Подпись" },
-    description: { fr: "Un site sur mesure, unique" },
-    priceCents: 3900,
-    setupFeeCents: 29000,
+    description: { fr: "Un site à votre image" },
+    priceCents: 4900,
+    noCommitmentFeeCents: 24900,
+    bookingTwinCode: "serenite",
+    highlights: ["everythingIn:vitrine", "withYou", "google", "cardPayment", "multilingual", "careUpdates"],
     sortOrder: 6,
     limits: { onlineBookingsPerMonth: 0, members: null, photos: null, services: null, smsPerMonth: 0 },
-    features: {
-      ...NO_BOOKING,
-      fullSite: true,
-      customDomain: true,
-      localSeo: true,
-      contactButtons: true,
-      mobileReady: true,
-      sitePages: true,
-      customDesign: true,
-      testimonials: true,
-      stats: false,
-      brandingFooter: false,
-      emailSupport: true,
-      whatsappSupport: true,
-      promotions: true,
-      googleReviews: true,
-      // Les cartes cadeaux se paient en ligne, même sans réservation.
-      giftCards: true,
-      onlinePayment: true,
-      monthlyUpdate: false,
-      onDemandUpdates: true,
-    },
+    features: SIGNATURE,
   },
 ];

@@ -60,8 +60,26 @@ export type PlanFeatures = {
   mobileReady?: boolean;
   /** Pages Prestations, Galerie, À propos, Infos pratiques (site complet). */
   sitePages?: boolean;
-  /** Design créé sur mesure (avec frais de création). */
-  customDesign?: boolean;
+  /** Formulaire de contact et de devis, avec envoi de photos. */
+  contactForm?: boolean;
+  /** Accompagnement : échange de départ pour définir le style, textes rédigés, photos retouchées. */
+  kickoffCall?: boolean;
+  copywriting?: boolean;
+  photoRetouch?: boolean;
+  /** Rubriques adaptées au métier : avant et après, zone d'intervention, actualités. */
+  businessSections?: boolean;
+  /** Référencement : une page par prestation, pages « métier + ville », Search Console, fiche Google Business. */
+  seoPages?: boolean;
+  searchConsole?: boolean;
+  googleBusiness?: boolean;
+  /** Rapport mensuel de visibilité par e-mail. */
+  visibilityReport?: boolean;
+  /** Paiement par carte hors réservation : lien de paiement, acompte sur devis, bouton « Payer en ligne ». */
+  paymentLinks?: boolean;
+  /** Site en plusieurs langues, traduit par nos soins. */
+  multilingual?: boolean;
+  /** Affichette avec QR code vers la page d'avis Google. */
+  qrPoster?: boolean;
   [feature: string]: boolean | undefined;
 };
 
@@ -76,8 +94,12 @@ export const plans = pgTable(
     currency: currency().notNull().default("EUR"),
     interval: billingIntervalEnum().notNull().default("month"),
     stripePriceId: text(),
-    /** Frais de création propres au pack, en centimes (null : réglage général « setup_fee_cents »). */
-    setupFeeCents: cents(),
+    /** Frais de création de la formule sans engagement, en centimes (avec engagement : création offerte). */
+    noCommitmentFeeCents: cents(),
+    /** Pack « site seul » : code du pack avec réservation qui le reprend (« Pour ajouter la réservation »). */
+    bookingTwinCode: text(),
+    /** Lignes visibles sur la carte du pack (6 au plus), dans l'ordre ; le reste se déplie. */
+    highlights: jsonb().$type<string[]>().notNull().default([]),
     /** Produit Stripe du pack (un nouveau prix y est ajouté à chaque changement de tarif). */
     stripeProductId: text(),
     limits: jsonb().$type<PlanLimits>().notNull().default({}),

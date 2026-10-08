@@ -184,6 +184,7 @@ async function managerEmails(tx: Transaction, tenantId: string, row: MessageRow)
   const subscription =
     row.templateKey === "manager.payment_failed" ||
     row.templateKey === "manager.subscription_ended" ||
+    row.templateKey === "manager.price_change" ||
     row.templateKey === "manager.sms_quota";
   const rows = await tx
     .select({ email: users.email })
@@ -225,6 +226,7 @@ export async function renderMessage(
   options: RenderOptions,
 ): Promise<Rendered> {
   const template = row.templateKey as MessageTemplate;
+  if (template === "admin.callback_request") return renderCallback(tx, row, options);
   if (template.startsWith("account.") || template.startsWith("admin."))
     return renderAccount(tx, row, template, options);
   if (!row.tenantId) return { kind: "skip", reason: "no_tenant" };
@@ -785,6 +787,22 @@ async function renderManager(
       t("notifications.manager.payment_failed.action"),
     ];
     action = { label: t("notifications.manager.payment_failed.open"), url: `${space}/plus/abonnement` };
+  } else if (template === "manager.price_change") {
+    // Nouveau prix du pack : annoncé à l'avance, appliqué à la date prévue (fin d'engagement).
+    const data = row.data as { planId?: string; priceCents?: number; changeAt?: string };
+    const [plan] = data.planId ? await tx.select().from(plans).where(eq(plans.id, data.planId)) : [];
+    subject = t("notifications.manager.price_change.subject");
+    title = t("notifications.manager.price_change.title");
+    paragraphs = [
+      t("notifications.manager.price_change.intro", {
+        plan: plan ? pickLocalized(plan.name, locale) : "",
+        price: fmt.money(data.priceCents ?? 0, "EUR"),
+        date: data.changeAt ? fmt.date(new Date(data.changeAt)) : "",
+      }),
+      t("notifications.manager.price_change.until"),
+      t("notifications.manager.price_change.choice"),
+    ];
+    action = { label: t("notifications.manager.price_change.open"), url: `${space}/plus/abonnement` };
   } else if (template === "manager.subscription_ended") {
     const reason = (row.data as { reason?: string }).reason;
     subject = t("notifications.manager.subscription_ended.subject");
@@ -825,6 +843,58 @@ async function renderManager(
     footer: [tenant.name, ...footer],
   });
   return { kind: "email", to, subject, html, text, fromName: options.productName, replyTo: null };
+}
+
+// ─── Demande « Être rappelé » (commande en ligne fermée) ─────────────────────
+
+async function renderCallback(tx: Transaction, row: MessageRow, options: RenderOptions): Promise<Rendered> {
+  const admins = await tx.select({ email: users.email }).from(users).where(eq(users.isPlatformAdmin, true));
+  if (admins.length === 0) return { kind: "skip", reason: "no_admin" };
+  const data = row.data as {
+    name?: string;
+    businessName?: string;
+    phone?: string;
+    email?: string;
+    planCode?: string;
+    message?: string;
+  };
+  const locale = resolveLocale("fr");
+  const t = await getTranslator(locale);
+  const [plan] = data.planCode ? await tx.select().from(plans).where(eq(plans.code, data.planCode)) : [];
+  const details = [
+    { label: t("notifications.admin.callback_request.name"), value: data.name ?? "" },
+    {
+      label: t("notifications.admin.callback_request.phone"),
+      value: formatPhone(data.phone) || data.phone || "",
+    },
+    ...(data.businessName
+      ? [{ label: t("notifications.admin.callback_request.business"), value: data.businessName }]
+      : []),
+    ...(data.email ? [{ label: t("notifications.admin.callback_request.email"), value: data.email }] : []),
+    ...(plan
+      ? [{ label: t("notifications.admin.callback_request.plan"), value: pickLocalized(plan.name, locale) }]
+      : []),
+    ...(data.message
+      ? [{ label: t("notifications.admin.callback_request.message"), value: data.message }]
+      : []),
+  ];
+  const { html, text } = renderEmail({
+    locale,
+    brandName: options.productName,
+    title: t("notifications.admin.callback_request.title"),
+    paragraphs: [t("notifications.admin.callback_request.intro")],
+    details,
+    footer: [options.productName],
+  });
+  return {
+    kind: "email",
+    to: admins.map((admin) => admin.email),
+    subject: t("notifications.admin.callback_request.subject", { name: data.name ?? "" }),
+    html,
+    text,
+    fromName: options.productName,
+    replyTo: data.email || null,
+  };
 }
 
 // ─── Commandes : au professionnel (avant son site) et à l'administratrice ────

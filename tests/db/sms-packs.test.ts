@@ -15,6 +15,7 @@ import {
 } from "@/db/schema";
 import { handleBillingEvent, type BillingEvent } from "@/modules/billing/events";
 import { startSmsPackPurchase, syncSmsPackPayment } from "@/modules/billing/sms-packs";
+import { applyPriceChanges } from "@/modules/billing/price-change";
 import { applySubscription, requestPlanChange } from "@/modules/billing/subscriptions";
 import { createBooking, type BookingInput } from "@/modules/booking/create";
 import { localToUtc } from "@/modules/booking/time";
@@ -31,6 +32,7 @@ import { changeStatus } from "@/modules/tenants/update";
 import { createFakeBilling } from "../setup/fake-billing";
 import { createFakeGateway } from "../setup/fake-gateway";
 import { createFakeSenders } from "../setup/fake-senders";
+import { openSales } from "../setup/fixtures";
 import { hasTestDatabase, openAppDb, openTestDb, type TestDb } from "../setup/db";
 
 /**
@@ -51,12 +53,17 @@ describe.skipIf(!hasTestDatabase)("SMS et engagement", () => {
   const payments = createFakeGateway();
   const billing = createFakeBilling();
 
+  let closeSales: (() => Promise<unknown>) | undefined;
+
   beforeAll(async () => {
     owner = await openTestDb();
     app = openAppDb();
+    // Pages légales publiées : la commande en ligne des packs payants est ouverte.
+    closeSales = await openSales(owner);
   });
 
   afterAll(async () => {
+    await closeSales?.();
     // Taux de TVA créé dans ce faux Stripe : un autre fichier de test (autre faux Stripe) ne doit pas le reprendre.
     await owner?.delete(platformSettings).where(eq(platformSettings.key, "stripe_tax_rate"));
     await app?.$client.end();
@@ -364,6 +371,107 @@ describe.skipIf(!hasTestDatabase)("SMS et engagement", () => {
       const [pack] = await owner.select().from(smsPacks).where(eq(smsPacks.tenantId, s.id));
       expect(pack.status).toBe("expired");
       expect(await asTenant(s.id, (tx) => smsUsage(tx, s.id, NOW))).toMatchObject({ packsRemaining: 0 });
+    });
+  });
+
+  describe("nouveau prix d'un pack", () => {
+    const DAY = 24 * 60 * 60 * 1000;
+
+    async function subscribe(planCode: string, withCommitment: boolean) {
+      const s = await setup("basic");
+      const plan = await planOf(planCode);
+      const redirect = await platform((tx) =>
+        requestPlanChange(tx, s.id, plan.id, billing.gateway, { ...urls, withCommitment }),
+      );
+      const checkoutId = (redirect as { url: string }).url.split("/").at(-1)!;
+      await platform((tx) => applySubscription(tx, billing.completeCheckout(checkoutId, NOW), NOW));
+      const [row] = await owner.select().from(subscriptions).where(eq(subscriptions.tenantId, s.id));
+      return { s, plan, row };
+    }
+
+    /** Change le prix d'un pack le temps d'un test (comme l'admin), puis le remet. */
+    async function withNewPrice(planCode: string, priceCents: number, fn: () => Promise<void>) {
+      const before = await planOf(planCode);
+      await owner.update(plans).set({ priceCents, stripePriceId: null }).where(eq(plans.id, before.id));
+      try {
+        await fn();
+      } finally {
+        await owner
+          .update(plans)
+          .set({ priceCents: before.priceCents, stripePriceId: before.stripePriceId })
+          .where(eq(plans.id, before.id));
+      }
+    }
+
+    const priceMessages = (tenantId: string) =>
+      owner
+        .select()
+        .from(messageLog)
+        .where(and(eq(messageLog.tenantId, tenantId), eq(messageLog.templateKey, "manager.price_change")));
+
+    it("avec engagement : prix gardé jusqu'à la fin de l'engagement, préavis, puis nouveau prix sans prorata", async () => {
+      const { s, row } = await subscribe("serenite", true);
+      expect(row.stripePriceId).toBeTruthy();
+      const oldPrice = row.stripePriceId;
+      await withNewPrice("serenite", 8900, async () => {
+        await platform((tx) => applyPriceChanges(tx, billing.gateway, NOW));
+        let [current] = await owner.select().from(subscriptions).where(eq(subscriptions.id, row.id));
+        expect(current.priceChangeAt?.toISOString()).toBe(row.commitmentEndsAt?.toISOString());
+        expect(current.stripePriceId).toBe(oldPrice);
+        expect(await priceMessages(s.id)).toHaveLength(0);
+
+        // 30 jours avant la fin de l'engagement : la gérante est prévenue, une seule fois.
+        const notice = new Date(row.commitmentEndsAt!.getTime() - 29 * DAY);
+        await platform((tx) => applyPriceChanges(tx, billing.gateway, notice));
+        await platform((tx) => applyPriceChanges(tx, billing.gateway, notice));
+        expect(await priceMessages(s.id)).toHaveLength(1);
+        [current] = await owner.select().from(subscriptions).where(eq(subscriptions.id, row.id));
+        expect(current.stripePriceId).toBe(oldPrice);
+
+        // À la fin de l'engagement : nouveau prix chez Stripe, sans facture immédiate.
+        const after = new Date(row.commitmentEndsAt!.getTime() + DAY);
+        await platform((tx) => applyPriceChanges(tx, billing.gateway, after));
+        [current] = await owner.select().from(subscriptions).where(eq(subscriptions.id, row.id));
+        const plan = await planOf("serenite");
+        expect(current.stripePriceId).toBe(plan.stripePriceId);
+        expect(current).toMatchObject({ priceChangeAt: null, priceChangeNotifiedAt: null });
+        expect(billing.calls).toContain("repriceAtRenewal");
+        expect((await billing.gateway.retrieveSubscription(row.stripeSubscriptionId!)).priceId).toBe(
+          plan.stripePriceId,
+        );
+      });
+    });
+
+    it("sans engagement : préavis tout de suite, nouveau prix 30 jours plus tard", async () => {
+      const { s, row } = await subscribe("essentiel", false);
+      await withNewPrice("essentiel", 4999, async () => {
+        await platform((tx) => applyPriceChanges(tx, billing.gateway, NOW));
+        let [current] = await owner.select().from(subscriptions).where(eq(subscriptions.id, row.id));
+        expect(current.priceChangeAt?.getTime()).toBe(NOW.getTime() + 30 * DAY);
+        expect(await priceMessages(s.id)).toHaveLength(1);
+        await platform((tx) => applyPriceChanges(tx, billing.gateway, new Date(NOW.getTime() + 10 * DAY)));
+        [current] = await owner.select().from(subscriptions).where(eq(subscriptions.id, row.id));
+        expect(current.stripePriceId).toBe(row.stripePriceId);
+        await platform((tx) => applyPriceChanges(tx, billing.gateway, new Date(NOW.getTime() + 31 * DAY)));
+        [current] = await owner.select().from(subscriptions).where(eq(subscriptions.id, row.id));
+        expect(current.stripePriceId).toBe((await planOf("essentiel")).stripePriceId);
+      });
+    });
+
+    it("prix revenu à l'ancien montant avant l'échéance : plus rien n'est prévu", async () => {
+      const { row } = await subscribe("essentiel", true);
+      const before = await planOf("essentiel");
+      await withNewPrice("essentiel", 4999, async () => {
+        await platform((tx) => applyPriceChanges(tx, billing.gateway, NOW));
+        // L'admin remet l'ancien prix (même prix Stripe).
+        await owner
+          .update(plans)
+          .set({ priceCents: before.priceCents, stripePriceId: row.stripePriceId })
+          .where(eq(plans.id, before.id));
+        await platform((tx) => applyPriceChanges(tx, billing.gateway, NOW));
+        const [current] = await owner.select().from(subscriptions).where(eq(subscriptions.id, row.id));
+        expect(current.priceChangeAt).toBeNull();
+      });
     });
   });
 

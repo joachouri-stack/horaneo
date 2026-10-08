@@ -1,5 +1,5 @@
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
-import { setupFeeForFormula } from "@/modules/billing/plans";
+import { creationFeeFor } from "@/modules/billing/plans";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
 import { getTranslator, resolveLocale } from "@/i18n/translator";
@@ -8,6 +8,7 @@ import type { BillingGateway } from "@/modules/billing/gateway";
 import { applySubscription, ensurePlanPrice, ensureTaxRate } from "@/modules/billing/subscriptions";
 import { AppError } from "@/modules/errors";
 import { queueMessage } from "@/modules/messages/queue";
+import { salesOpen } from "@/modules/legal/documents";
 import { normalizePhone } from "@/modules/phone";
 import { getPlatformSetting } from "@/modules/settings";
 
@@ -65,6 +66,8 @@ export async function createOrder(
   if (!user) throw new AppError("not_found");
   const [plan] = await tx.select().from(plans).where(eq(plans.code, input.planCode));
   if (!plan || !plan.isPublic) throw new AppError("invalid", "planCode");
+  // Pages légales pas encore publiées : pas de paiement en ligne (formulaire « Être rappelé »).
+  if (plan.priceCents > 0 && !(await salesOpen(tx))) throw new AppError("sales_paused");
   // Déjà cliente : le changement de pack se fait depuis son espace.
   const [membership] = await tx.select().from(memberships).where(eq(memberships.userId, userId)).limit(1);
   if (membership) throw new AppError("already_customer");
@@ -112,7 +115,7 @@ export async function createOrder(
         .createCustomer({ email: user.email, name: input.businessName, metadata: { order_id: order.id } })
         .catch(providerError)
     ).id;
-  const setupFeeCents = await setupFeeForFormula(tx, plan, order.withCommitment);
+  const setupFeeCents = await creationFeeFor(tx, plan, order.withCommitment);
   const checkout = await gateway
     .createCheckout({
       customerId,

@@ -176,6 +176,13 @@
       "when": 1791470679369,
       "tag": "0024_sms_packs_commitment",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1791472280027,
+      "tag": "0025_six_plans",
+      "breakpoints": true
     }
   ]
 }

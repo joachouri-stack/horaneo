@@ -115,6 +115,12 @@ export function createFakeBilling() {
       sub.planId = planOfPrice(priceId);
       return snapshot(subscriptionId);
     },
+    async repriceAtRenewal({ subscriptionId, priceId }) {
+      calls.push("repriceAtRenewal");
+      const sub = subscriptions.get(subscriptionId)!;
+      sub.priceId = priceId;
+      return snapshot(subscriptionId);
+    },
     async schedulePriceChange({ subscriptionId, priceId }) {
       calls.push("schedulePriceChange");
       const sub = subscriptions.get(subscriptionId)!;

@@ -129,6 +129,11 @@ export const subscriptions = pgTable(
     cancelAt: utc(),
     cancelRequestedAt: utc(),
     commitmentEndsAt: utc(),
+    /** Prix Stripe facturé aujourd'hui (peut être un ancien prix du pack, gardé jusqu'à la fin de l'engagement). */
+    stripePriceId: text(),
+    /** Passage au prix actuel du pack : date annoncée au client (préavis), puis appliquée à cette date. */
+    priceChangeAt: utc(),
+    priceChangeNotifiedAt: utc(),
     /** Formule choisie à la souscription : avec engagement (création offerte) ou sans (frais de création). null : abonnement antérieur à ce choix. */
     withCommitment: boolean(),
     /** Pack inférieur choisi, appliqué à la fin de la période en cours. */

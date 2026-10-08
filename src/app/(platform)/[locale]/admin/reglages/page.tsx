@@ -1,6 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
-import { Hidden, Section, SelectField, TextArea, TextField } from "@/components/admin/fields";
+import { CheckboxField, Hidden, Section, SelectField, TextArea, TextField } from "@/components/admin/fields";
+import { FEATURE_KEYS } from "@/modules/billing/admin";
 import { resolveLocale } from "@/i18n/translator";
 import { adminQuery } from "@/lib/admin/mutation";
 import { requireAdmin } from "@/lib/auth/session";
@@ -15,14 +16,18 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
   const locale = resolveLocale((await params).locale);
   setRequestLocale(locale);
   await requireAdmin(locale);
-  const [t, tCommon] = await Promise.all([getTranslations("admin.settings"), getTranslations("common")]);
+  const [t, tCommon, tPlans] = await Promise.all([
+    getTranslations("admin.settings"),
+    getTranslations("common"),
+    getTranslations("admin.plans"),
+  ]);
   const s = await adminQuery(async (tx) => {
     const keys = [
       "prices_display",
       "vat_rate_percent",
       "commitment_months",
-      "setup_fee_cents",
-      "no_commitment_setup_fee_cents",
+      "price_change_notice_days",
+      "site_buyout_price_cents",
       "sms_pack_size",
       "sms_pack_price_cents",
       "sms_warning_percent",
@@ -40,12 +45,16 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
       await Promise.all(keys.map(async (key) => [key, await getPlatformSetting(tx, key)])),
     ) as Record<(typeof keys)[number], string | number>;
   });
-  const showcase = await adminQuery((tx) => listShowcase(tx));
+  const [showcase, soon, buyoutEnabled] = await adminQuery(
+    async (tx) =>
+      [
+        await listShowcase(tx),
+        new Set(await getPlatformSetting(tx, "features_soon")),
+        await getPlatformSetting(tx, "site_buyout_enabled"),
+      ] as const,
+  );
   const field = (
-    name: Exclude<
-      keyof typeof s,
-      "setup_fee_cents" | "no_commitment_setup_fee_cents" | "sms_pack_price_cents"
-    >,
+    name: Exclude<keyof typeof s, "site_buyout_price_cents" | "sms_pack_price_cents">,
     type = "number",
     hint?: string,
   ) => <TextField name={name} type={type} label={t(name)} defaultValue={s[name]} hint={hint} required />;
@@ -66,22 +75,40 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
             />
             {field("vat_rate_percent", "number", t("vatHint"))}
             {field("commitment_months")}
-            <TextField
-              name="setup_fee"
-              inputMode="decimal"
-              label={t("setup_fee")}
-              defaultValue={centsToInput(Number(s.setup_fee_cents))}
-              required
-            />
-            <TextField
-              name="no_commitment_setup_fee"
-              inputMode="decimal"
-              label={t("no_commitment_setup_fee")}
-              hint={t("noCommitmentHint")}
-              defaultValue={centsToInput(Number(s.no_commitment_setup_fee_cents))}
-              required
-            />
+            {field("price_change_notice_days", "number", t("priceChangeHint"))}
             {field("go_live_delay_days")}
+          </div>
+        </Section>
+        {/* Rachat du site par le client à sa sortie : désactivé par défaut, prix fixe. */}
+        <Section title={t("buyout")}>
+          <p className="mb-3 text-sm text-ink/70">{t("buyoutHint")}</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <CheckboxField
+              name="site_buyout_enabled"
+              label={t("site_buyout_enabled")}
+              defaultChecked={buyoutEnabled}
+            />
+            <TextField
+              name="site_buyout_price"
+              inputMode="decimal"
+              label={t("site_buyout_price")}
+              defaultValue={centsToInput(Number(s.site_buyout_price_cents))}
+              required
+            />
+          </div>
+        </Section>
+        {/* Fonctions pas encore livrées : étiquette « Bientôt » sur le site commercial. */}
+        <Section title={t("soon")}>
+          <p className="mb-3 text-sm text-ink/70">{t("soonHint")}</p>
+          <div className="grid sm:grid-cols-2">
+            {FEATURE_KEYS.map((key) => (
+              <CheckboxField
+                key={key}
+                name={`soon_${key}`}
+                label={tPlans(`featureLabels.${key}`)}
+                defaultChecked={soon.has(key)}
+              />
+            ))}
           </div>
         </Section>
         <Section title={t("payments")}>

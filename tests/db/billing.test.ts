@@ -5,7 +5,10 @@ import type { Transaction } from "@/db/client";
 import { messageLog, plans, subscriptions, tenants } from "@/db/schema";
 import { handleBillingEvent, type BillingEvent } from "@/modules/billing/events";
 import type { BillingSubscription } from "@/modules/billing/gateway";
-import { savePlan } from "@/modules/billing/admin";
+import { FEATURE_KEYS, savePlan } from "@/modules/billing/admin";
+import { listPublicPlans } from "@/modules/billing/plans";
+import { twinRuleViolations } from "@/modules/billing/showcase";
+import { DEFAULT_PLANS, DEFAULT_SITE_ONLY_PLANS } from "@/config/defaults";
 import { ensurePlanPrice, openBillingPortal, requestPlanChange } from "@/modules/billing/subscriptions";
 import { AppError } from "@/modules/errors";
 import { createTenant } from "@/modules/tenants/create";
@@ -219,6 +222,41 @@ describe.skipIf(!hasTestDatabase)("abonnements", () => {
       ).kind,
     ).toBe("downgraded");
     expect(await tenantPlan(tenantId)).toBe("basic");
+  });
+
+  it("packs en base : la grille des six packs respecte la règle des jumeaux", async () => {
+    const list = await platform((tx) => listPublicPlans(tx));
+    expect(twinRuleViolations(list)).toEqual([]);
+    for (const seed of [...DEFAULT_PLANS, ...DEFAULT_SITE_ONLY_PLANS]) {
+      const plan = list.find((item) => item.code === seed.code)!;
+      expect(plan.highlights).toEqual(seed.highlights);
+      expect(plan.noCommitmentFeeCents).toBe(seed.noCommitmentFeeCents);
+      expect(plan.bookingTwinCode ?? null).toBe(seed.bookingTwinCode ?? null);
+    }
+  });
+
+  it("l'admin ne peut pas enregistrer un pack « site seul » qui sort de son jumeau", async () => {
+    const [vitrine] = await owner.select().from(plans).where(eq(plans.code, "vitrine"));
+    const features = FEATURE_KEYS.filter((key) => vitrine.features[key]);
+    const input = {
+      name: vitrine.name.fr ?? "Vitrine",
+      description: vitrine.description?.fr ?? "",
+      price: String(vitrine.priceCents / 100),
+      noCommitmentFee: String((vitrine.noCommitmentFeeCents ?? 0) / 100),
+      onlineBookingsPerMonth: String(vitrine.limits.onlineBookingsPerMonth ?? ""),
+      members: String(vitrine.limits.members ?? ""),
+      photos: "500",
+      services: String(vitrine.limits.services ?? ""),
+      smsPerMonth: vitrine.limits.smsPerMonth ?? 0,
+      features,
+      highlights: vitrine.highlights,
+      bookingTwinCode: vitrine.bookingTwinCode ?? "",
+      isPublic: vitrine.isPublic,
+    };
+    expect(await errorCode(platform((tx) => savePlan(tx, vitrine.id, input, null)))).toBe("twin_rule");
+    expect((await owner.select().from(plans).where(eq(plans.id, vitrine.id)))[0].limits.photos).toBe(
+      vitrine.limits.photos,
+    );
   });
 
   it("le seul pack gratuit ne peut pas devenir payant", async () => {

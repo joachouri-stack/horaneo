@@ -1,4 +1,4 @@
-import { getLocale, getTranslations } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 import { Logo } from "@/components/brand/Logo";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { env } from "@/config/env";
@@ -22,7 +22,7 @@ const LINK = "inline-flex min-h-11 items-center transition-colors hover:text-bri
  * et la connexion. Un contenu fourni à droite remplace la connexion.
  */
 export async function PlatformHeader({ children }: { children?: React.ReactNode }) {
-  const [t, locale] = await Promise.all([getTranslations(), getLocale()]);
+  const t = await getTranslations();
   const product = env().PRODUCT_NAME;
   return (
     <>
@@ -62,13 +62,8 @@ export async function PlatformHeader({ children }: { children?: React.ReactNode 
                   {t(`home.nav.${item.key}`)}
                 </Link>
               ))}
-            {routing.locales.length > 1 ? (
-              <LanguageSwitcher />
-            ) : (
-              <span className="uppercase" title={t(`languages.${locale as "fr"}`)}>
-                {locale}
-              </span>
-            )}
+            {/* Une seule langue ouverte : pas de choix de langue à proposer. */}
+            {routing.locales.length > 1 && <LanguageSwitcher />}
             {children ?? (
               <Link href="/connexion" className={LINK}>
                 {t("common.login")}

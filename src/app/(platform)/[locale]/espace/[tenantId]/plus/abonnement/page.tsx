@@ -56,9 +56,7 @@ export default async function SubscriptionPage({
       subscription: await getSubscription(tx, page.tenantId),
       plans: await listPublicPlans(tx),
       display: await getPlatformSetting(tx, "prices_display"),
-      setupFeeCents: Number(await getPlatformSetting(tx, "setup_fee_cents")),
       commitmentMonths: Number(await getPlatformSetting(tx, "commitment_months")),
-      noCommitmentFeeCents: Number(await getPlatformSetting(tx, "no_commitment_setup_fee_cents")),
       sms: await smsUsage(tx, page.tenantId),
       smsPacks: await listSmsPacks(tx, page.tenantId),
       smsOffer: await smsPackOffer(tx),
@@ -350,11 +348,9 @@ export default async function SubscriptionPage({
                       plan.priceCents > 0 &&
                       !isCurrent &&
                       data.commitmentMonths === 0 &&
-                      (plan.setupFeeCents ?? data.setupFeeCents) > 0 && (
+                      (plan.noCommitmentFeeCents ?? 0) > 0 && (
                         <p className="mt-3 text-sm text-ink/70">
-                          {t("setupFee", {
-                            amount: page.fmt.money(plan.setupFeeCents ?? data.setupFeeCents),
-                          })}
+                          {t("setupFee", { amount: page.fmt.money(plan.noCommitmentFeeCents!) })}
                         </p>
                       )}
                     {canChoose && (
@@ -368,20 +364,12 @@ export default async function SubscriptionPage({
                             {[
                               {
                                 value: "yes",
-                                label: t("withCommitment", {
-                                  months: data.commitmentMonths,
-                                  fee:
-                                    (plan.setupFeeCents ?? data.setupFeeCents) > 0
-                                      ? page.fmt.money(plan.setupFeeCents ?? data.setupFeeCents)
-                                      : "none",
-                                }),
+                                label: t("withCommitment", { months: data.commitmentMonths, fee: "none" }),
                               },
                               {
                                 value: "no",
                                 label: t("withoutCommitment", {
-                                  fee: page.fmt.money(
-                                    (plan.setupFeeCents ?? data.setupFeeCents) + data.noCommitmentFeeCents,
-                                  ),
+                                  fee: page.fmt.money(plan.noCommitmentFeeCents ?? 0),
                                 }),
                               },
                             ].map((option) => (

@@ -14,32 +14,23 @@ export async function listPublicPlans(tx: Transaction) {
     .orderBy(asc(plans.sortOrder), asc(plans.priceCents));
 }
 
-/** Frais de création d'un pack : les siens s'ils sont fixés, sinon le réglage général. */
-export async function setupFeeFor(tx: Transaction, plan: { setupFeeCents: number | null }) {
-  return plan.setupFeeCents ?? Number(await getPlatformSetting(tx, "setup_fee_cents"));
-}
-
-/** Formules des packs payants : durée de l'engagement et frais de création ajoutés sans engagement. */
-export async function commitmentTerms(tx: Transaction) {
-  return {
-    /** 0 : aucune formule avec engagement (tout est sans engagement, sans frais en plus). */
-    months: Number(await getPlatformSetting(tx, "commitment_months")),
-    noCommitmentFeeCents: Number(await getPlatformSetting(tx, "no_commitment_setup_fee_cents")),
-  };
+/** Durée de la formule avec engagement, en mois (0 : aucune formule avec engagement). */
+export async function commitmentMonths(tx: Transaction) {
+  return Number(await getPlatformSetting(tx, "commitment_months"));
 }
 
 /**
- * Frais de création selon la formule choisie : ceux du pack avec engagement
- * (souvent offerts), plus les frais de la formule sans engagement sinon.
+ * Frais de création selon la formule : offerts avec engagement, sinon les frais
+ * du pack (réglage de chaque pack, payés à la commande). Sans formule avec
+ * engagement proposée, tout le monde est sans engagement.
  */
-export async function setupFeeForFormula(
+export async function creationFeeFor(
   tx: Transaction,
-  plan: { setupFeeCents: number | null },
+  plan: { noCommitmentFeeCents: number | null },
   withCommitment: boolean,
 ) {
-  const base = await setupFeeFor(tx, plan);
-  const terms = await commitmentTerms(tx);
-  return withCommitment || terms.months <= 0 ? base : base + terms.noCommitmentFeeCents;
+  if (withCommitment && (await commitmentMonths(tx)) > 0) return 0;
+  return plan.noCommitmentFeeCents ?? 0;
 }
 
 /**

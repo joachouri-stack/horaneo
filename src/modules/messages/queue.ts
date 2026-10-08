@@ -32,6 +32,7 @@ export const MESSAGE_TEMPLATES = [
   "manager.sms_quota",
   "manager.payment_failed",
   "manager.subscription_ended",
+  "manager.price_change",
   "manager.gift_card_sold",
   "manager.data_request",
   "manager.push_test",
@@ -41,6 +42,7 @@ export const MESSAGE_TEMPLATES = [
   "account.order_rejected",
   "account.site_live",
   "admin.new_order",
+  "admin.callback_request",
 ] as const;
 
 export type MessageTemplate = (typeof MESSAGE_TEMPLATES)[number];

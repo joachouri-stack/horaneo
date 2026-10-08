@@ -2,6 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { parseEnabledLocales } from "@/i18n/enabled";
+import { platformLocaleRedirect } from "@/i18n/redirects";
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES, pickLocalized } from "@/i18n/locales";
 import { withFallback, type Messages } from "@/i18n/messages";
 
@@ -70,5 +71,27 @@ describe("outils de traduction", () => {
     expect(parseEnabledLocales(undefined)).toEqual(["fr"]);
     expect(parseEnabledLocales("en,es")).toEqual(["fr", "en", "es"]);
     expect(parseEnabledLocales("fr,xx,ru")).toEqual(["fr", "ru"]);
+  });
+});
+
+describe("adresses des langues du site commercial", () => {
+  const go = (path: string) => platformLocaleRedirect(new URL(`https://horaneo.test${path}`), ["fr"]);
+
+  it("mène la racine à la langue par défaut, pour de bon", () => {
+    expect(go("/")).toMatchObject({ status: 308 });
+    expect(go("/")?.url.pathname).toBe("/fr");
+  });
+
+  it("mène une langue pas encore ouverte vers la même page en français", () => {
+    expect(go("/en")?.url.pathname).toBe("/fr");
+    expect(go("/es/comparatif?x=1")?.url.href).toBe("https://horaneo.test/fr/comparatif?x=1");
+    expect(go("/ru/")?.url.pathname).toBe("/fr");
+    expect(go("/en")?.status).toBe(307);
+  });
+
+  it("laisse passer les langues ouvertes et les autres adresses", () => {
+    expect(go("/fr/comparatif")).toBeNull();
+    expect(go("/connexion")).toBeNull();
+    expect(platformLocaleRedirect(new URL("https://horaneo.test/en"), ["fr", "en"])).toBeNull();
   });
 });

@@ -11,6 +11,8 @@ import { Link, redirect } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/translator";
 import { getManagedTenants, requireSession } from "@/lib/auth/session";
 import { listPublicPlans } from "@/modules/billing/plans";
+import { formatMoney } from "@/lib/format";
+import { salesOpen } from "@/modules/legal/documents";
 import { getPlatformSetting } from "@/modules/settings";
 import { submitOrderAction } from "./actions";
 
@@ -28,6 +30,14 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
   setRequestLocale(locale);
   const query = await searchParams;
   const pack = typeof query.pack === "string" ? query.pack : "";
+  // Pages légales pas encore publiées : les packs payants passent par « Être rappelé ».
+  const { open, free } = await withPlatform(async (tx) => ({
+    open: await salesOpen(tx),
+    free: (await listPublicPlans(tx)).filter((plan) => plan.priceCents <= 0).map((plan) => plan.code),
+  }));
+  if (!open && !free.includes(pack)) {
+    redirect({ href: { pathname: "/rappel", query: pack ? { pack } : {} }, locale });
+  }
   const session = await requireSession(
     locale,
     pack ? `/commander?pack=${encodeURIComponent(pack)}` : "/commander",
@@ -35,18 +45,19 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
   // Déjà cliente : le changement de pack se fait depuis son espace.
   if ((await getManagedTenants(session.user.id)).length > 0) redirect({ href: "/espace", locale });
   const [t, tHome] = await Promise.all([getTranslations("order"), getTranslations("home.plans")]);
-  const { plans, display, commitment, setupFee, noCommitmentFee } = await withPlatform(async (tx) => ({
+  const { plans, display, commitment } = await withPlatform(async (tx) => ({
     plans: await listPublicPlans(tx),
     display: await getPlatformSetting(tx, "prices_display"),
     commitment: Number(await getPlatformSetting(tx, "commitment_months")),
-    setupFee: Number(await getPlatformSetting(tx, "setup_fee_cents")),
-    noCommitmentFee: Number(await getPlatformSetting(tx, "no_commitment_setup_fee_cents")),
   }));
+  // Vente fermée : seuls les packs gratuits se commandent en ligne.
+  const orderable = open ? plans : plans.filter((plan) => plan.priceCents <= 0);
   const selected =
-    plans.find((plan) => plan.code === pack) ?? plans.find((plan) => plan.priceCents > 0) ?? plans[0];
-  const groups = splitPlans(plans);
-  const money = (cents: number) =>
-    new Intl.NumberFormat(locale, { style: "currency", currency: "EUR" }).format(cents / 100);
+    orderable.find((plan) => plan.code === pack) ??
+    orderable.find((plan) => plan.priceCents > 0) ??
+    orderable[0];
+  const groups = splitPlans(orderable);
+  const money = (cents: number) => formatMoney(cents, "EUR", locale);
 
   return (
     <>
@@ -93,9 +104,13 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
                             {plan.priceCents > 0
                               ? `${money(plan.priceCents)} ${tHome("perMonth", { display })}`
                               : tHome("free")}
-                            {plan.setupFeeCents !== null && plan.setupFeeCents > 0 && (
+                            {/* Frais de création propres au pack, payés seulement sans engagement. */}
+                            {(plan.noCommitmentFeeCents ?? 0) > 0 && (
                               <span className="block text-sm text-ink/70">
-                                {tHome("setupFeeBadge", { amount: money(plan.setupFeeCents) })}
+                                {t("creationFee", {
+                                  fee: money(plan.noCommitmentFeeCents!),
+                                  withCommitment: commitment > 0 ? "yes" : "no",
+                                })}
                               </span>
                             )}
                           </span>
@@ -106,7 +121,7 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
               </div>
             </fieldset>
             {/* Formule des packs payants : avec engagement (création offerte) ou sans (frais de création). */}
-            {commitment > 0 && (
+            {commitment > 0 && orderable.some((plan) => plan.priceCents > 0) && (
               <fieldset>
                 <legend className={ui.label}>{t("formula")}</legend>
                 <p className="mb-2 text-sm text-ink/70">{t("formulaHint")}</p>
@@ -115,15 +130,12 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
                     {
                       value: "yes",
                       title: t("withCommitment", { months: commitment }),
-                      text:
-                        setupFee > 0
-                          ? t("withCommitmentFee", { fee: money(setupFee) })
-                          : t("withCommitmentFree"),
+                      text: t("withCommitmentFree"),
                     },
                     {
                       value: "no",
                       title: t("withoutCommitment"),
-                      text: t("withoutCommitmentFee", { fee: money(setupFee + noCommitmentFee) }),
+                      text: t("withoutCommitmentPlanFee"),
                     },
                   ].map((option) => (
                     <label
@@ -157,8 +169,6 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
             />
             {/* Rappel avant le paiement : la formule ne concerne que les packs payants. */}
             <p className="text-sm text-ink/70">
-              {commitment === 0 &&
-                `${t("paidRecap", { months: 0, fee: setupFee > 0 ? money(setupFee) : "none" })} `}
               {t("paidHint")} {t("freeHint")}
             </p>
             <label className="flex items-start gap-3 text-sm">
