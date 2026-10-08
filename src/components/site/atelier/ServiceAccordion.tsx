@@ -119,9 +119,12 @@ export async function ServiceAccordion({
                     <Link
                       href={`${SITE_PATHS.booking}?prestation=${service.id}`}
                       aria-label={t("bookService", { service: service.name })}
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-site-surface text-site-accent transition hover:bg-site-button hover:text-site-on-button"
+                      className="group -my-1 flex size-11 shrink-0 items-center justify-center"
                     >
-                      <ArrowIcon />
+                      {/* Rond de 36 px, zone tactile de 44 px. */}
+                      <span className="flex size-9 items-center justify-center rounded-full bg-site-surface text-site-accent transition group-hover:bg-site-button group-hover:text-site-on-button">
+                        <ArrowIcon />
+                      </span>
                     </Link>
                   ) : service.isOnlineBookable ? null : (
                     <span className="w-16 shrink-0 text-right text-xs text-site-muted">{t("onRequest")}</span>
