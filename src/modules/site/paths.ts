@@ -25,7 +25,9 @@ export type SitePathKey = keyof typeof SITE_PATHS;
 /** Fiche d'application et icônes : le site s'installe sur l'écran d'accueil (hors plan du site). */
 export const APP_PATHS = {
   manifest: "/app-manifest",
-  icon: (size: number) => `/app-icon/${size}`,
+  // « v » : changer le numéro quand le dessin des icônes change, pour que les téléphones les rechargent.
+  icon: (size: number) => `/app-icon/${size}?v=2`,
+  maskableIcon: (size: number) => `/app-icon/${size}?v=2&maskable=1`,
 } as const;
 
 export const categoryPath = (slug: string) => `${SITE_PATHS.services}/${slug}`;

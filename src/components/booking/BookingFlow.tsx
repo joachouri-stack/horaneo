@@ -62,6 +62,8 @@ type Props = {
   /** Adresse de l'établissement, rappelée sur la confirmation. */
   address?: string;
   siteName?: string;
+  /** Proposition d'installer l'application, montrée après une réservation confirmée. */
+  afterBooking?: React.ReactNode;
 };
 
 type Step = "services" | "slot" | "details" | "done";
@@ -335,6 +337,7 @@ export function BookingFlow(props: Props) {
             {t("confirmation.manageLink")}
           </Link>
         </div>
+        {!pendingPayment && props.afterBooking}
       </section>
     );
   }
