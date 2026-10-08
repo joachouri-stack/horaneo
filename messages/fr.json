@@ -619,7 +619,9 @@
       "install": "Installer",
       "later": "Plus tard",
       "iosHowTo": "Touchez le bouton Partager (le carré avec une flèche vers le haut, en bas de Safari), puis « Sur l'écran d'accueil » et « Ajouter ».",
-      "close": "Fermer"
+      "close": "Fermer",
+      "afterBookingTitle": "Retrouvez votre rendez-vous en un geste",
+      "afterBookingText": "Installez notre application sur votre téléphone : votre rendez-vous, les rappels et la prochaine réservation à portée de doigt."
     }
   },
   "emails": {

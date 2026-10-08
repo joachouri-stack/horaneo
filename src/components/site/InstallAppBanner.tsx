@@ -13,12 +13,16 @@ const SHOW_AFTER_MS = 4000;
  * d'installer le site comme une application (icône sur l'écran d'accueil).
  * Android : installation en un geste ; iPhone : la marche à suivre (Partager →
  * « Sur l'écran d'accueil »). Caché si déjà installé ou refusé (30 jours).
+ * Variante « inline » (après une réservation) : un encadré dans la page,
+ * affiché tout de suite, même si le bandeau a été refusé.
  */
 export function InstallAppBanner({
   iconUrl,
   labels,
+  inline = false,
 }: {
   iconUrl: string;
+  inline?: boolean;
   labels: { title: string; text: string; install: string; later: string; iosHowTo: string; close: string };
 }) {
   const [mode, setMode] = useState<"hidden" | "android" | "ios">("hidden");
@@ -36,20 +40,21 @@ export function InstallAppBanner({
     } catch {
       // Stockage indisponible (navigation privée) : on propose quand même.
     }
-    if (installed || !phone || dismissed) return;
+    if (installed || !phone || (dismissed && !inline)) return;
+    const delay = inline ? 0 : SHOW_AFTER_MS;
     const ios =
       /iPad|iPhone|iPod/.test(navigator.userAgent) ||
       (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
     let timer: ReturnType<typeof setTimeout> | undefined;
     if (ios) {
-      timer = setTimeout(() => setMode("ios"), SHOW_AFTER_MS);
+      timer = setTimeout(() => setMode("ios"), delay);
       return () => clearTimeout(timer);
     }
     // Android (Chrome, Edge, Samsung…) : le navigateur signale que l'installation est possible.
     const onPrompt = (event: Event) => {
       event.preventDefault();
       setPrompt(event as InstallPrompt);
-      timer = setTimeout(() => setMode("android"), SHOW_AFTER_MS);
+      timer = setTimeout(() => setMode("android"), delay);
     };
     const onInstalled = () => setMode("hidden");
     window.addEventListener("beforeinstallprompt", onPrompt);
@@ -59,11 +64,16 @@ export function InstallAppBanner({
       window.removeEventListener("beforeinstallprompt", onPrompt);
       window.removeEventListener("appinstalled", onInstalled);
     };
-  }, []);
+  }, [inline]);
 
   if (mode === "hidden") return null;
+  const headingId = inline ? "installer-application-rdv" : "installer-application";
 
   const later = () => {
+    if (inline) {
+      setMode("hidden");
+      return;
+    }
     try {
       localStorage.setItem(DISMISS_KEY, String(Date.now() + DISMISS_DAYS * 24 * 3600 * 1000));
     } catch {
@@ -87,14 +97,18 @@ export function InstallAppBanner({
 
   return (
     <aside
-      aria-labelledby="installer-application"
-      className="fixed inset-x-3 bottom-[5.75rem] z-40 rounded-site border border-site-border bg-site-card p-4 text-site-text shadow-xl sm:hidden"
+      aria-labelledby={headingId}
+      className={
+        inline
+          ? "mt-6 rounded-site border border-site-border bg-site-card p-4 text-site-text sm:hidden"
+          : "fixed inset-x-3 bottom-[5.75rem] z-40 rounded-site border border-site-border bg-site-card p-4 text-site-text shadow-xl sm:hidden"
+      }
     >
       <div className="flex items-start gap-3">
         {/* eslint-disable-next-line @next/next/no-img-element -- icône générée, déjà à la bonne taille */}
         <img src={iconUrl} alt="" width={48} height={48} className="size-12 shrink-0 rounded-[0.8rem]" />
         <div className="min-w-0 flex-1">
-          <h2 id="installer-application" className="font-semibold">
+          <h2 id={headingId} className="font-semibold">
             {labels.title}
           </h2>
           <p className="mt-0.5 text-sm text-site-muted">{labels.text}</p>

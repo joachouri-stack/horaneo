@@ -15,7 +15,8 @@ import { onlinePaymentReady } from "@/modules/payments/deposits";
 import { formatPhone } from "@/modules/phone";
 import { hasUsableGiftCards } from "@/modules/giftcards/giftcards";
 import { hasActivePromoCodes } from "@/modules/promo/codes";
-import { SITE_PATHS } from "@/modules/site/paths";
+import { InstallAppBanner } from "@/components/site/InstallAppBanner";
+import { APP_PATHS, SITE_PATHS } from "@/modules/site/paths";
 
 export async function generateMetadata({
   params,
@@ -33,6 +34,7 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
   const { tenantId } = await params;
   const site = await getSite(tenantId);
   const t = await getTranslations("booking");
+  const tSite = await getTranslations("site");
   const query = await searchParams;
 
   // Site à plusieurs entreprises : la cliente choisit d'abord avec qui elle réserve
@@ -228,6 +230,22 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
         stepOffset={multi ? 1 : 0}
         previousHref={multi ? SITE_PATHS.booking : undefined}
         payeeName={multi ? business.name : site.tenant.name}
+        afterBooking={
+          site.tenant.status === "active" ? (
+            <InstallAppBanner
+              inline
+              iconUrl={APP_PATHS.icon(192)}
+              labels={{
+                title: tSite("install.afterBookingTitle"),
+                text: tSite("install.afterBookingText"),
+                install: tSite("install.install"),
+                later: tSite("install.later"),
+                iosHowTo: tSite("install.iosHowTo"),
+                close: tSite("install.close"),
+              }}
+            />
+          ) : undefined
+        }
         siteName={site.tenant.name}
         address={[site.tenant.address, [site.tenant.postalCode, site.tenant.city].filter(Boolean).join(" ")]
           .filter(Boolean)

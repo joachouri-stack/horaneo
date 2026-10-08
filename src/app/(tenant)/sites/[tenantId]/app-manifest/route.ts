@@ -25,7 +25,7 @@ export async function GET(_request: Request, { params }: RouteContext<"/sites/[t
       icons: [
         { src: APP_PATHS.icon(192), sizes: "192x192", type: "image/png" },
         { src: APP_PATHS.icon(512), sizes: "512x512", type: "image/png" },
-        { src: APP_PATHS.icon(512), sizes: "512x512", type: "image/png", purpose: "maskable" },
+        { src: APP_PATHS.maskableIcon(512), sizes: "512x512", type: "image/png", purpose: "maskable" },
       ],
     },
     { headers: { "content-type": "application/manifest+json", "cache-control": "public, max-age=3600" } },
