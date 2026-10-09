@@ -69,7 +69,11 @@ const envSchema = z.object({
     .optional(),
 
   // Paiements des acomptes (Stripe Connect, comptes Standard). Sans ces trois clés, le paiement en ligne est désactivé.
-  STRIPE_SECRET_KEY: z.string().startsWith("sk_").optional(),
+  /** Clé secrète (sk_…) ou clé limitée (rk_…, celle que crée désormais le tableau de bord Stripe). */
+  STRIPE_SECRET_KEY: z
+    .string()
+    .regex(/^(sk|rk)_/)
+    .optional(),
   STRIPE_PUBLISHABLE_KEY: z.string().startsWith("pk_").optional(),
   /** Secret du point de réception « Connect » (événements des comptes des professionnels). */
   STRIPE_CONNECT_WEBHOOK_SECRET: z.string().startsWith("whsec_").optional(),
