@@ -1,7 +1,7 @@
 import { ctaLabelKey, siteCta } from "@/modules/site/cta";
 import { getTranslations } from "next-intl/server";
 import { formatMoney } from "@/lib/format";
-import type { SiteData } from "@/modules/site/data";
+import type { SiteData, SiteImage as SiteImageData } from "@/modules/site/data";
 import { heroSecondPhoto, institutePhotos, siteReviews, visibleSections } from "@/modules/site/data";
 import { openDaysSpan } from "@/modules/site/format";
 import { businessPath, categoryPath, SITE_PATHS } from "@/modules/site/paths";
@@ -40,6 +40,21 @@ export async function AtelierHome({ site }: { site: Site }) {
   const tGift = await getTranslations("site.giftCard");
   const giftAmounts = [3000, 5000, 10000];
 
+  // « Sur rendez-vous », et les jours d'ouverture : posé sur les photos de l'accroche.
+  const appointmentNote = (
+    <>
+      <strong className="block">{t("byAppointment")}</strong>
+      {span && (
+        <span className="text-site-muted">
+          {t("daysSpan", {
+            from: tDays(String(span.from) as "1").toLowerCase(),
+            to: tDays(String(span.to) as "1").toLowerCase(),
+          })}
+        </span>
+      )}
+    </>
+  );
+
   return (
     <main id="contenu" className="overflow-x-clip">
       {/* ─── Accroche ─── */}
@@ -60,14 +75,28 @@ export async function AtelierHome({ site }: { site: Site }) {
               </>
             )}
           </h1>
+          {/* Téléphone et tablette : les photos juste sous le titre, visibles dès l'arrivée. */}
+          {home?.photo && (
+            <HeroPhotos
+              photo={home.photo}
+              second={secondPhoto}
+              note={appointmentNote}
+              className="mt-6 max-w-[22rem] pb-6 pl-5 lg:hidden"
+              noteClassName="bottom-10 right-2 text-xs"
+              aspect="aspect-[4/3]"
+              // Même valeur que sur ordinateur : une seule image téléchargée, quelle que soit la version affichée.
+              sizes="(min-width: 1024px) 40vw, 90vw"
+            />
+          )}
           {texts.intro && (
             <p className="mt-6 max-w-xl whitespace-pre-line text-lg leading-relaxed text-site-muted">
               {texts.intro}
             </p>
           )}
           <div className="mt-8 flex flex-wrap gap-3">
+            {/* Téléphone : la barre fixe du bas propose déjà « Réserver » ; pas de doublon ici. */}
             {cta && (
-              <PillLink href={cta.href} size="lg">
+              <PillLink href={cta.href} size="lg" className="max-sm:hidden">
                 {ctaLabel(t("bookMoment"))}
               </PillLink>
             )}
@@ -96,42 +125,15 @@ export async function AtelierHome({ site }: { site: Site }) {
         </div>
 
         {home?.photo && (
-          <div className="relative mx-auto w-full max-w-xl pb-10 pl-6 sm:pl-10">
-            <div
-              className="absolute right-0 top-0 h-[92%] w-[94%] rounded-t-full bg-site-surface"
-              aria-hidden="true"
-            />
-            <div className="relative ml-auto w-[92%] overflow-hidden rounded-t-full rounded-b-[2rem] shadow-xl">
-              <SiteImage
-                image={home.photo}
-                alt={home.photo.alt}
-                sizes="(min-width: 1024px) 40vw, 90vw"
-                priority
-                className="aspect-[4/5] w-full object-cover"
-              />
-            </div>
-            {secondPhoto && (
-              <div className="absolute bottom-0 left-0 w-[38%] overflow-hidden rounded-[1.5rem] border-4 border-site-bg shadow-xl">
-                <SiteImage
-                  image={secondPhoto}
-                  alt={secondPhoto.alt}
-                  sizes="(min-width: 640px) 220px, 40vw"
-                  className="aspect-[4/5] w-full object-cover"
-                />
-              </div>
-            )}
-            <p className="absolute bottom-16 right-2 rounded-2xl bg-site-card/95 px-4 py-3 text-sm shadow-lg sm:right-4">
-              <strong className="block">{t("byAppointment")}</strong>
-              {span && (
-                <span className="text-site-muted">
-                  {t("daysSpan", {
-                    from: tDays(String(span.from) as "1").toLowerCase(),
-                    to: tDays(String(span.to) as "1").toLowerCase(),
-                  })}
-                </span>
-              )}
-            </p>
-          </div>
+          <HeroPhotos
+            photo={home.photo}
+            second={secondPhoto}
+            note={appointmentNote}
+            className="max-w-xl pb-10 pl-6 max-lg:hidden sm:pl-10"
+            noteClassName="bottom-16 right-2 text-sm sm:right-4"
+            aspect="aspect-[4/5]"
+            sizes="(min-width: 1024px) 40vw, 90vw"
+          />
         )}
       </section>
 
@@ -376,5 +378,57 @@ export async function AtelierHome({ site }: { site: Site }) {
         </div>
       </section>
     </main>
+  );
+}
+
+/**
+ * Photos de l'accroche : la photo de couverture en arche, la deuxième photo
+ * en médaillon et la pastille « Sur rendez-vous ». Même composition sur
+ * ordinateur (à droite du texte) et sur téléphone (sous le titre, en plus compact).
+ */
+function HeroPhotos({
+  photo,
+  second,
+  note,
+  className,
+  noteClassName,
+  aspect,
+  sizes,
+}: {
+  photo: SiteImageData;
+  second: SiteImageData | null;
+  note: React.ReactNode;
+  className: string;
+  noteClassName: string;
+  aspect: string;
+  sizes: string;
+}) {
+  return (
+    <div className={`relative mx-auto w-full ${className}`}>
+      <div
+        className="absolute right-0 top-0 h-[92%] w-[94%] rounded-t-full bg-site-surface"
+        aria-hidden="true"
+      />
+      <div className="relative ml-auto w-[92%] overflow-hidden rounded-t-full rounded-b-[2rem] shadow-xl">
+        <SiteImage
+          image={photo}
+          alt={photo.alt}
+          sizes={sizes}
+          priority
+          className={`w-full object-cover ${aspect}`}
+        />
+      </div>
+      {second && (
+        <div className="absolute bottom-0 left-0 w-[38%] overflow-hidden rounded-[1.5rem] border-4 border-site-bg shadow-xl">
+          <SiteImage
+            image={second}
+            alt={second.alt}
+            sizes="(min-width: 640px) 220px, 40vw"
+            className="aspect-[4/5] w-full object-cover"
+          />
+        </div>
+      )}
+      <p className={`absolute rounded-2xl bg-site-card/95 px-4 py-3 shadow-lg ${noteClassName}`}>{note}</p>
+    </div>
   );
 }
