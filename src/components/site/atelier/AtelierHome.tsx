@@ -158,7 +158,7 @@ export async function AtelierHome({ site }: { site: Site }) {
         <section
           id="soins"
           aria-labelledby="titre-soins"
-          className="mx-auto max-w-7xl scroll-mt-24 px-4 py-20 sm:px-8"
+          className="mx-auto max-w-7xl scroll-mt-24 px-4 pb-10 pt-16 sm:px-8 lg:pb-12 lg:pt-20"
         >
           <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
@@ -212,7 +212,10 @@ export async function AtelierHome({ site }: { site: Site }) {
 
       {/* ─── Les professionnelles ─── */}
       {presented.length > 0 && (
-        <section aria-labelledby="titre-equipe" className="reveal rounded-[2.5rem] bg-site-card py-20">
+        <section
+          aria-labelledby="titre-equipe"
+          className="reveal rounded-[2.5rem] bg-site-card py-12 lg:py-16"
+        >
           <div className="mx-auto max-w-7xl px-4 sm:px-8">
             <SectionTitle
               id="titre-equipe"
@@ -227,8 +230,8 @@ export async function AtelierHome({ site }: { site: Site }) {
 
       {/* ─── L'institut ─── */}
       {sections.about && site.pages.about?.texts.body && (
-        <section aria-labelledby="titre-institut" className="reveal bg-site-bg py-20">
-          <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-8 lg:grid-cols-2">
+        <section aria-labelledby="titre-institut" className="reveal bg-site-bg py-12 lg:py-16">
+          <div className="mx-auto grid max-w-7xl items-center gap-8 px-4 sm:px-8 lg:grid-cols-2 lg:gap-12">
             <InstitutePhotos photos={institutePhotos(site)} />
             <div className="relative">
               {/* Empreinte du logo, très légère, derrière le texte. */}
