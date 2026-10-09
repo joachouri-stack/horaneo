@@ -16,6 +16,12 @@ describe("configuration", () => {
     expect(env.MAIN_DOMAIN).toBe("autre.test");
   });
 
+  it("accepte la clé secrète Stripe classique (sk_) ou limitée (rk_), refuse le reste", () => {
+    expect(parseEnv({ STRIPE_SECRET_KEY: "sk_live_abc" }).STRIPE_SECRET_KEY).toBe("sk_live_abc");
+    expect(parseEnv({ STRIPE_SECRET_KEY: "rk_live_abc" }).STRIPE_SECRET_KEY).toBe("rk_live_abc");
+    expect(() => parseEnv({ STRIPE_SECRET_KEY: "pk_live_abc" })).toThrow(/Configuration invalide/);
+  });
+
   it("lit la liste des langues activées", () => {
     expect(parseEnv({ ENABLED_LOCALES: "fr, en,es" }).ENABLED_LOCALES).toEqual(["fr", "en", "es"]);
   });
