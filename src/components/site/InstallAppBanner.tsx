@@ -6,13 +6,15 @@ type InstallPrompt = Event & { prompt: () => Promise<void>; userChoice: Promise<
 
 const DISMISS_KEY = "install-app-dismissed-until";
 const DISMISS_DAYS = 30;
-const SHOW_AFTER_MS = 4000;
+/** Jamais dès l'arrivée : laisse le temps de découvrir le site. */
+const SHOW_AFTER_MS = 30_000;
 
 /**
  * Bandeau du site d'un établissement, sur téléphone seulement : propose
  * d'installer le site comme une application (icône sur l'écran d'accueil).
- * Android : installation en un geste ; iPhone : la marche à suivre (Partager →
- * « Sur l'écran d'accueil »). Caché si déjà installé ou refusé (30 jours).
+ * Il apparaît 30 secondes après l'arrivée. Android : installation en un
+ * geste ; iPhone : la marche à suivre (Partager → « Sur l'écran d'accueil »).
+ * Caché si déjà installé ou refusé (30 jours).
  * Variante « inline » (après une réservation) : un encadré dans la page,
  * affiché tout de suite, même si le bandeau a été refusé.
  */
