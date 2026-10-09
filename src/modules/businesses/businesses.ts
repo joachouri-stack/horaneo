@@ -165,6 +165,32 @@ export async function addBusinessManager(
   return { business, managerId };
 }
 
+/**
+ * Remplace la gérante d'une entreprise : l'ancienne perd aussitôt l'accès à son
+ * espace (son compte est conservé), la nouvelle se connecte avec son e-mail.
+ */
+export async function replaceBusinessManager(
+  tx: Transaction,
+  tenantId: string,
+  input: { businessId: string; email: string; name?: string | null },
+) {
+  const email = z.email().safeParse(input.email.trim());
+  if (!email.success) throw new AppError("invalid", "managerEmail");
+  const business = await getBusiness(tx, tenantId, input.businessId);
+  const removed = await tx
+    .delete(memberships)
+    .where(
+      and(
+        eq(memberships.tenantId, tenantId),
+        eq(memberships.businessId, business.id),
+        eq(memberships.role, "owner"),
+      ),
+    )
+    .returning({ userId: memberships.userId });
+  const managerId = await linkManager(tx, tenantId, business.id, email.data, input.name?.trim() || null);
+  return { business, managerId, removedIds: removed.map((row) => row.userId) };
+}
+
 /** Identité légale et coordonnées d'une entreprise. */
 export async function updateBusiness(
   tx: Transaction,

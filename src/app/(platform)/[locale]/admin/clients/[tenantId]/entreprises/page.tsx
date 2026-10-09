@@ -10,6 +10,7 @@ import { connectState } from "@/modules/payments/connect";
 import {
   addBusinessManagerAction,
   createBusinessAction,
+  replaceBusinessManagerAction,
   setOnlineBookingAdminAction,
   updateBusinessAction,
   updateBusinessProfileAction,
@@ -114,28 +115,30 @@ export default async function BusinessesPage({
                 timeZone={overview.tenant.timezone}
               />
             </div>
-            {managers.length === 0 && (
-              <div className="mb-6 rounded-xl bg-navy/5 p-4">
-                <h3 className="font-bold">{t("addManager")}</h3>
-                <p className="mb-3 text-sm text-ink/70">{t("addManagerHint")}</p>
-                <ActionForm
-                  action={addBusinessManagerAction}
-                  submitLabel={t("addManagerSubmit")}
-                  resetOnSuccess
-                  className="grid gap-4 sm:grid-cols-2"
-                >
-                  <Hidden values={{ tenantId, businessId: business.id }} />
-                  <TextField
-                    id={`manager-email-${business.id}`}
-                    name="managerEmail"
-                    type="email"
-                    label={t("managerEmail")}
-                    required
-                  />
-                  <TextField id={`manager-name-${business.id}`} name="managerName" label={t("managerName")} />
-                </ActionForm>
-              </div>
-            )}
+            {/* Sans gérante : on donne l'accès ; avec gérante : on la remplace (l'ancienne perd l'accès). */}
+            <div className="mb-6 rounded-xl bg-navy/5 p-4">
+              <h3 className="font-bold">{t(managers.length === 0 ? "addManager" : "replaceManager")}</h3>
+              <p className="mb-3 text-sm text-ink/70">
+                {t(managers.length === 0 ? "addManagerHint" : "replaceManagerHint")}
+              </p>
+              <ActionForm
+                action={managers.length === 0 ? addBusinessManagerAction : replaceBusinessManagerAction}
+                submitLabel={t(managers.length === 0 ? "addManagerSubmit" : "replaceManagerSubmit")}
+                confirm={managers.length === 0 ? undefined : t("replaceManagerConfirm")}
+                resetOnSuccess
+                className="grid gap-4 sm:grid-cols-2"
+              >
+                <Hidden values={{ tenantId, businessId: business.id }} />
+                <TextField
+                  id={`manager-email-${business.id}`}
+                  name="managerEmail"
+                  type="email"
+                  label={t("managerEmail")}
+                  required
+                />
+                <TextField id={`manager-name-${business.id}`} name="managerName" label={t("managerName")} />
+              </ActionForm>
+            </div>
             <ActionForm
               action={updateBusinessAction}
               submitLabel={tCommon("save")}

@@ -27,6 +27,7 @@ import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
 import { deleteStaff, saveStaff } from "@/modules/team/staff";
 import {
   addBusinessManager,
+  replaceBusinessManager,
   createBusiness,
   updateBusiness,
   updateBusinessProfile,
@@ -284,6 +285,30 @@ export async function addBusinessManagerAction(_previous: Previous, data: FormDa
   if (result.ok) {
     const t = await getTranslations("admin.tenant.businesses");
     return { ...result, message: t("managerAdded") };
+  }
+  return result;
+}
+
+export async function replaceBusinessManagerAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const result = await adminMutation(
+    ({ business, managerId, removedIds }: Awaited<ReturnType<typeof replaceBusinessManager>>) => ({
+      action: "business.manager_replaced",
+      tenantId,
+      targetType: "business",
+      targetId: business.id,
+      details: { managerId, removedIds },
+    }),
+    (tx) =>
+      replaceBusinessManager(tx, tenantId, {
+        businessId: form.text(data, "businessId"),
+        email: form.text(data, "managerEmail"),
+        name: form.optional(data, "managerName") ?? null,
+      }),
+  );
+  if (result.ok) {
+    const t = await getTranslations("admin.tenant.businesses");
+    return { ...result, message: t("managerReplaced") };
   }
   return result;
 }

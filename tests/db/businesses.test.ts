@@ -11,6 +11,7 @@ import {
   addBusinessManager,
   businessOfServices,
   createBusiness,
+  replaceBusinessManager,
   updateBusinessProfile,
 } from "@/modules/businesses/businesses";
 import { loadSiteData } from "@/modules/site/data";
@@ -354,5 +355,29 @@ describe.skipIf(!hasTestDatabase)("plusieurs entreprises sur un même site", () 
         ),
       ),
     ).toBe("invalid");
+  });
+
+  it("l'admin remplace la gérante d'une entreprise : l'ancienne perd l'accès", async () => {
+    const { business } = await platform((tx) => createBusiness(tx, site.tenantId, { name: "Relais" }));
+    const { managerId: before } = await platform((tx) =>
+      addBusinessManager(tx, site.tenantId, { businessId: business.id, email: "avant@exemple.fr" }),
+    );
+    const { managerId: after, removedIds } = await platform((tx) =>
+      replaceBusinessManager(tx, site.tenantId, { businessId: business.id, email: "apres@exemple.fr" }),
+    );
+    expect(removedIds).toEqual([before]);
+    const access = (userId: string) =>
+      resolveManagerAccess({ user: { id: userId }, session: {} }, site.tenantId, business.id, app);
+    expect(await access(after)).toEqual({ role: "owner", businessId: business.id });
+    expect(await access(before)).toBeNull();
+    // Une gérante d'une autre entreprise du site ne peut pas être reprise ici.
+    const [laila] = await owner.select().from(users).where(eq(users.id, site.laila.managerId));
+    expect(
+      await errorCode(
+        platform((tx) =>
+          replaceBusinessManager(tx, site.tenantId, { businessId: business.id, email: laila.email }),
+        ),
+      ),
+    ).toBe("manager_already_linked");
   });
 });
