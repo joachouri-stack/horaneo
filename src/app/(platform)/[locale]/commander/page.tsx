@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { splitPlans } from "@/modules/billing/showcase";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
 import { TextField } from "@/components/admin/fields";
+import { OrderChoices } from "@/components/marketing/OrderChoices";
 import { PlatformHeader } from "@/components/layout/PlatformHeader";
 import { ui } from "@/components/ui/styles";
 import { withPlatform } from "@/db/access";
@@ -10,6 +10,7 @@ import { pickLocalized } from "@/i18n/locales";
 import { Link, redirect } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/translator";
 import { getManagedTenants, requireSession } from "@/lib/auth/session";
+import { listPlanOptions, pricedOption } from "@/modules/billing/options";
 import { listPublicPlans } from "@/modules/billing/plans";
 import { formatMoney } from "@/lib/format";
 import { salesOpen } from "@/modules/legal/documents";
@@ -45,18 +46,21 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
   // Déjà cliente : le changement de pack se fait depuis son espace.
   if ((await getManagedTenants(session.user.id)).length > 0) redirect({ href: "/espace", locale });
   const [t, tHome] = await Promise.all([getTranslations("order"), getTranslations("home.plans")]);
-  const { plans, display, commitment } = await withPlatform(async (tx) => ({
+  const { plans, options, display, commitment, noCommitment } = await withPlatform(async (tx) => ({
     plans: await listPublicPlans(tx),
-    display: await getPlatformSetting(tx, "prices_display"),
+    options: await listPlanOptions(tx),
+    display: String(await getPlatformSetting(tx, "prices_display")),
     commitment: Number(await getPlatformSetting(tx, "commitment_months")),
+    noCommitment: Boolean(await getPlatformSetting(tx, "offer_no_commitment")),
   }));
+  // Options choisies sur l'accueil (?options=booking,online-payment), reprises dans le formulaire.
+  const initialOptions = typeof query.options === "string" ? query.options.split(",").slice(0, 20) : [];
   // Vente fermée : seuls les packs gratuits se commandent en ligne.
   const orderable = open ? plans : plans.filter((plan) => plan.priceCents <= 0);
   const selected =
     orderable.find((plan) => plan.code === pack) ??
     orderable.find((plan) => plan.priceCents > 0) ??
     orderable[0];
-  const groups = splitPlans(orderable);
   const money = (cents: number) => formatMoney(cents, "EUR", locale);
 
   return (
@@ -69,59 +73,40 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
         </div>
         <div className={ui.card}>
           <ActionForm action={submitOrderAction} submitLabel={t("submit")} className="space-y-5">
-            <fieldset>
-              <legend className={ui.label}>{t("plan")}</legend>
-              {/* Deux groupes : avec réservation en ligne, puis « site seul ». */}
-              <div className="space-y-5">
-                {[
-                  { key: "booking", title: tHome("toggleBooking"), items: groups.booking },
-                  { key: "site", title: tHome("toggleSite"), items: groups.siteOnly },
-                ]
-                  .filter((group) => group.items.length > 0)
-                  .map((group) => (
-                    <div key={group.key} className="space-y-2">
-                      {groups.siteOnly.length > 0 && (
-                        <p className="text-sm font-semibold uppercase tracking-wide text-ink/60">
-                          {group.title}
-                        </p>
-                      )}
-                      {group.items.map((plan) => (
-                        <label
-                          key={plan.id}
-                          className="flex cursor-pointer items-center justify-between gap-3 rounded-[var(--radius-card)] border-2 border-navy/15 p-4 has-[:checked]:border-navy"
-                        >
-                          <span className="flex items-center gap-3">
-                            <input
-                              type="radio"
-                              name="planCode"
-                              value={plan.code}
-                              defaultChecked={plan.id === selected?.id}
-                              className="h-5 w-5 accent-navy"
-                            />
-                            <span className="font-bold text-night">{pickLocalized(plan.name, locale)}</span>
-                          </span>
-                          <span className="text-right">
-                            {plan.priceCents > 0
-                              ? `${money(plan.priceCents)} ${tHome("perMonth", { display })}`
-                              : tHome("free")}
-                            {/* Frais de création propres au pack, payés seulement sans engagement. */}
-                            {(plan.noCommitmentFeeCents ?? 0) > 0 && (
-                              <span className="block text-sm text-ink/70">
-                                {t("creationFee", {
-                                  fee: money(plan.noCommitmentFeeCents!),
-                                  withCommitment: commitment > 0 ? "yes" : "no",
-                                })}
-                              </span>
-                            )}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  ))}
-              </div>
-            </fieldset>
+            <OrderChoices
+              plans={orderable.map((plan) => ({
+                code: plan.code,
+                name: pickLocalized(plan.name, locale),
+                priceCents: plan.priceCents,
+                // Frais de création propres au pack, payés seulement sans engagement (si cette formule est proposée).
+                note:
+                  noCommitment && (plan.noCommitmentFeeCents ?? 0) > 0
+                    ? t("creationFee", {
+                        fee: money(plan.noCommitmentFeeCents!),
+                        withCommitment: commitment > 0 ? "yes" : "no",
+                      })
+                    : null,
+              }))}
+              options={options.map((option) => ({
+                ...pricedOption(option),
+                name: pickLocalized(option.name, locale),
+                description: pickLocalized(option.description, locale),
+                icon: option.icon,
+                available: option.isAvailable,
+              }))}
+              initialPlan={selected?.code ?? ""}
+              initialOptions={initialOptions}
+              display={display}
+              labels={{
+                plan: t("plan"),
+                options: t("options"),
+                optionsHint: t("optionsHint"),
+                total: t("total"),
+                perMonth: tHome("perMonth", { display }),
+              }}
+            />
             {/* Formule des packs payants : avec engagement (création offerte) ou sans (frais de création). */}
-            {commitment > 0 && orderable.some((plan) => plan.priceCents > 0) && (
+            {commitment > 0 && noCommitment && orderable.some((plan) => plan.priceCents > 0) && (
               <fieldset>
                 <legend className={ui.label}>{t("formula")}</legend>
                 <p className="mb-2 text-sm text-ink/70">{t("formulaHint")}</p>
@@ -169,7 +154,9 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
             />
             {/* Rappel avant le paiement : la formule ne concerne que les packs payants. */}
             <p className="text-sm text-ink/70">
-              {t("paidHint")} {t("freeHint")}
+              {noCommitment || commitment === 0
+                ? `${t("paidHint")} ${t("freeHint")}`
+                : t("commitmentHint", { months: commitment })}
             </p>
             <label className="flex items-start gap-3 text-sm">
               <input

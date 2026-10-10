@@ -9,6 +9,7 @@ import { expireSmsPacks } from "@/modules/messages/sms-usage";
 import { getPlatformSetting, setPlatformSetting } from "@/modules/settings";
 import { changePlan } from "@/modules/tenants/update";
 import type { BillingGateway, BillingSubscription } from "./gateway";
+import { syncTenantOptions } from "./options";
 
 /**
  * Abonnements des professionnels (Stripe Billing, rôle plateforme).
@@ -178,6 +179,7 @@ export async function requestPlanChange(
       .createCheckout({
         customerId: row.stripeCustomerId!,
         priceId,
+        optionPriceIds: [],
         setupFee:
           setupFeeCents > 0
             ? {
@@ -314,8 +316,9 @@ export async function applySubscription(tx: Transaction, sub: BillingSubscriptio
         withCommitment: null,
       })
       .where(eq(subscriptions.id, row.id));
-    // Les SMS achetés ne restent disponibles que tant que l'abonnement est actif.
+    // Les SMS achetés ne restent disponibles que tant que l'abonnement est actif ; les options aussi.
     await expireSmsPacks(tx, row.tenantId, now);
+    await syncTenantOptions(tx, row.tenantId, []);
     const { tenant } = await loadTenant(tx, row.tenantId);
     if (tenant.planId !== basic.id) {
       await changePlan(tx, row.tenantId, basic.code);
@@ -362,6 +365,8 @@ export async function applySubscription(tx: Transaction, sub: BillingSubscriptio
     const { tenant } = await loadTenant(tx, row.tenantId);
     if (tenant.planId !== plan.id) await changePlan(tx, row.tenantId, plan.code);
   }
+  // Options facturées : celles des lignes de l'abonnement.
+  if (isLive(sub.status)) await syncTenantOptions(tx, row.tenantId, sub.optionItems ?? []);
   return { outcome: firstActivation ? ("activated" as const) : ("updated" as const) };
 }
 

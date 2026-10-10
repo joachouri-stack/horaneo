@@ -17,7 +17,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { cents, currency, id, timestamps, utc } from "./_helpers";
 import { appointments } from "./bookings";
-import { plans } from "./platform";
+import { planOptions, plans } from "./platform";
 import { tenants } from "./tenants";
 import { users } from "./users";
 
@@ -150,6 +150,28 @@ export const subscriptions = pgTable(
   ],
 );
 
+/**
+ * Options actives d'un site. Avec un abonnement Stripe en cours, elles suivent
+ * les lignes de l'abonnement (une ligne par option) ; sinon l'administratrice
+ * les active à la main. Seul le rôle plateforme les modifie.
+ */
+export const tenantOptions = pgTable(
+  "tenant_options",
+  {
+    id: id(),
+    tenantId: uuid()
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    optionId: uuid()
+      .notNull()
+      .references(() => planOptions.id, { onDelete: "restrict" }),
+    /** Ligne de l'abonnement Stripe qui facture l'option (null : activée à la main). */
+    stripeSubscriptionItemId: text(),
+    ...timestamps(),
+  },
+  (t) => [uniqueIndex("tenant_options_tenant_option_key").on(t.tenantId, t.optionId)],
+);
+
 export const orderStatusEnum = pgEnum("order_status", [
   "awaiting_payment",
   "awaiting_review",
@@ -177,6 +199,8 @@ export const orders = pgTable(
     currentWebsite: text(),
     /** Formule choisie : avec engagement (création offerte) ou sans (frais de création payés à la commande). */
     withCommitment: boolean().notNull().default(true),
+    /** Options choisies à la commande (codes), facturées avec le pack. */
+    optionCodes: jsonb().$type<string[]>().notNull().default([]),
     locale: text().notNull().default("fr"),
     status: orderStatusEnum().notNull(),
     stripeCheckoutSessionId: text(),

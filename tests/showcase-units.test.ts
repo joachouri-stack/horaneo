@@ -138,10 +138,12 @@ describe("règle des jumeaux", () => {
     expect(problems.some((problem) => problem.includes("express") && problem.includes("photos"))).toBe(true);
   });
 
-  it("refuse un pack « site seul » sans jumeau", () => {
+  it("refuse un jumeau qui n'existe pas ; un pack sans jumeau (pack à options) n'est pas concerné", () => {
     const plans = structuredClone(ALL);
-    plans.find((plan) => plan.code === "signature")!.bookingTwinCode = null;
+    plans.find((plan) => plan.code === "signature")!.bookingTwinCode = "inconnu";
     expect(twinRuleViolations(plans)).toHaveLength(1);
+    plans.find((plan) => plan.code === "signature")!.bookingTwinCode = null;
+    expect(twinRuleViolations(plans)).toEqual([]);
   });
 });
 

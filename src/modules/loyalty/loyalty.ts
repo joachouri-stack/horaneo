@@ -1,3 +1,4 @@
+import { tenantFeatures } from "@/modules/billing/entitlements";
 import { and, desc, eq, gt, inArray, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { currentBusinessId } from "@/db/access";
@@ -46,7 +47,7 @@ async function businessOf(tx: Transaction, businessId?: string) {
 export async function loyaltyConfig(tx: Transaction, tenantId: string, businessId?: string) {
   const id = await businessOf(tx, businessId);
   const [row] = await tx
-    .select({ settings: businessSettings, features: plans.features })
+    .select({ settings: businessSettings, features: tenantFeatures })
     .from(businessSettings)
     .innerJoin(tenants, eq(tenants.id, businessSettings.tenantId))
     .innerJoin(plans, eq(plans.id, tenants.planId))

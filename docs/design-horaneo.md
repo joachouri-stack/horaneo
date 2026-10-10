@@ -39,11 +39,15 @@ Moderne, chaleureux, généreux en espace. Un site qui donne confiance à une g�
 | Bleu nuit | `#1B2A4A` |
 | Bleu très pâle (packs Basic et Essentiel) | Fond `#E6EAF2`, formes `#C9D2E3` |
 | Confirmations | Vert `#2E9E6B` |
+| Cuivre (petits textes, coches, étiquettes des packs) | `#9A5A24` |
+| Or (contour et étiquette du pack recommandé, accents sur bleu nuit) | `#D4A75A` |
+| Crème (fond des pastilles cuivrées) | `#F7F0E3` |
 
 Règles d'usage :
 
 - Le bleu nuit sert de surface : logo, pack recommandé, bandeau des étapes. Il n'est jamais la couleur du texte courant ni des titres sur fond clair.
 - Exception : sur les packs Basic et Essentiel, le bleu nuit colore le texte des boutons et les petits liens, sur fond bleu très pâle. Ces cartes s'accordent ainsi au pack recommandé ; le corail n'y apparaît qu'en petites touches.
+- Le cuivre et l'or habillent les packs, les options, le tableau de bord et les conditions (étiquettes, pictogrammes, filets, offre recommandée). Le corail reste la couleur des boutons d'action.
 - Le corail est réservé à l'action et à l'accent. S'il est partout, plus rien ne ressort.
 - Sur un fond sombre, les éléments posés dessus sont clairs ou corail, jamais dans la même famille de couleur que le fond.
 - Aucun dégradé.
@@ -88,41 +92,46 @@ Tailles de référence sur ordinateur : titre principal 3,4rem au maximum (1,85r
 Logo à gauche. À droite : Comment ça marche, Tarifs, Questions, choix de la langue, Connexion.
 
 **Haut de page**
-- Étiquette : "Pour les professionnels sur rendez-vous".
-- Titre : "Nous créons votre site." puis, en corail et souligné d'un trait rose épais, "Vos clients réservent."
-- Texte : "Un site à votre nom, la réservation en ligne et l'acompte contre les absences. Nous faisons tout, de la création aux mises à jour."
+- Étiquette : "Pour tous les professionnels".
+- Titre : "Nous créons votre site." puis, en corail et souligné d'un trait rose épais, "Vous développez votre activité."
+- Texte : "Un site professionnel à votre nom, créé, hébergé et maintenu par nos soins, dès {prix} par mois. Vous le gérez depuis votre tableau de bord et ajoutez les options utiles à votre métier."
 - Un seul bouton : "Je veux mon site". À côté, le lien texte "Voir les tarifs".
-- Trois points avec une coche : Sans commission, Votre nom de domaine, Rien à installer.
+- Trois points avec une coche : Création offerte, Votre nom de domaine, Hébergement inclus.
 - À droite, pas de photo : un téléphone droit, dessiné en HTML et CSS, qui affiche le site d'un client à l'étape du créneau (prestation, durée, prix, jour, heure, acompte, bouton "Payer l'acompte"). Derrière lui, un simple disque rose clair. Deux petites cartes droites, non inclinées : "Nouvelle réservation" en haut à droite, "Acompte reçu" en bas à gauche. Aucune ne doit cacher le contenu du téléphone.
 - Sur ordinateur, tout le haut de page tient dans un écran de 1366 x 768. Sur téléphone, les liens du menu sont masqués et le haut du téléphone dessiné est visible dès le premier écran.
 
 **Bande des métiers**
-"Pensé pour" suivi de pilules : Instituts de beauté, Salons de coiffure, Barbiers, Bien-être, Tatoueurs, Coachs, Garages, Artisans.
+"Pensé pour" suivi de pilules, tous secteurs : Artisans, Commerces, Restaurants, Instituts de beauté, Garages, Consultants, Coachs sportifs, Événementiel, Immobilier.
 
 **Les trois étapes**
 Grand bandeau bleu nuit aux coins très arrondis. Titre "Vous n'avez rien à faire.", avec "rien à faire" en corail. Trois cartes : blanche, corail, blanche. Chacune a une icône, un grand numéro plein, un titre, un texte et une étiquette.
 
-1. "Nous créons votre site" : étiquette "C'est nous qui le faisons".
-2. "Vos clients réservent" : étiquette "Sans rien installer".
-3. "Vous encaissez" : acompte, paiement complet ou règlement sur place, au choix. Étiquette "Sans commission".
+1. "Nous créons votre site" : étiquette "Création offerte".
+2. "Vous le gérez simplement" : depuis le tableau de bord. Étiquette "Sans rien installer".
+3. "Vous développez votre activité" : options à activer quand on veut. Étiquette "Options à la carte".
 
-**Les packs**
-Placés après les fonctions et les témoignages, avant les questions. Titre centré "Un prix clair, sans commission." Un interrupteur "Avec réservation" / "Sans réservation" retourne les trois cartes (Basic, Essentiel, Sérénité / Express, Vitrine, Signature). Chaque carte : une icône, un nom, une phrase qui dit à qui elle s'adresse, un prix en très gros, trois tuiles de chiffres clés, un bouton, puis 6 lignes au plus (choisies dans l'admin). Le bouton "Voir tout ce qui est inclus" déplie la liste complète (six groupes titrés pour Signature et Sérénité) ; ce qui manque par rapport au pack suivant apparaît en gris avec un tiret, à la fin. Étiquette "Bientôt" sur les fonctions pas encore livrées.
+**Les packs** (refonte d'octobre 2026 : trois packs, options à la carte)
+Placés après les témoignages. Étiquette dorée "Dès 19,90 € par mois", titre centré "Un prix clair, trois packs." Trois cartes : Essentiel, Business (recommandé), Premium. Chaque carte a deux faces :
 
-- Ordinateur : trois colonnes alignées en haut ; une carte dépliée s'allonge sans déplacer ses voisines. Téléphone : cartes l'une sous l'autre, pack recommandé en premier, seule la face choisie occupe la place.
-- Sous les cartes, le lien "Comparer tous les packs en détail" mène au tableau comparatif (`/comparatif`), une table par famille, première colonne fixe sur téléphone.
+- Recto : pictogramme, nom en capitales, phrase de cible, aperçu de site dessiné en HTML/CSS (navigateur ; + téléphone pour Business ; + tablette et téléphone pour Premium), prix en très gros, trois tuiles (pages, photos, nom de domaine), 6 avantages au plus (choisis dans l'admin), bouton "Choisir ce pack", puis le lien "Découvrir les détails" avec l'icône de retournement.
+- Verso : "Le pack … en détail", rubriques courtes (Votre site, Personnalisation, Gestion, Référencement, Hébergement et maintenance, Support) ; pour Business et Premium, seulement ce qui s'ajoute au pack précédent ("Tout le pack Essentiel, et en plus :"). Puis les options disponibles, les conditions de l'abonnement, le bouton "Choisir ce pack" et le lien "Revenir à la présentation".
+- Retournement au clic sur un vrai bouton (jamais au survol), carte par carte. Ordinateur : rotation 3D, les deux faces partagent la même case, les trois cartes restent alignées. Téléphone : seule la face choisie occupe la place et apparaît en pivotant légèrement. Face cachée inerte, focus déplacé sur le bouton de la face visible. Animations coupées si moins de mouvement est demandé.
+- Essentiel et Premium : cartes blanches, touches cuivrées (pictogramme, coches, étiquettes "Bientôt"), bouton bleu très pâle qui passe bleu nuit au survol. Business : fond bleu nuit, contour doré, étiquette dorée "Recommandé", bouton corail. Sur téléphone, Business passe en premier.
+- Sous les cartes : lien "Comparer tous les packs en détail" (`/comparatif`, avec le tableau des options), puis Prix TTC · Engagement · Création offerte · Hébergement inclus.
 
-- Basic : "Commencer gratuitement".
-- Essentiel : "Choisir Essentiel".
-- Basic et Essentiel : cartes blanches, accents bleus (bouton bleu très pâle qui passe bleu nuit au survol, contour bleu nuit au survol), avec des touches de corail sur bleu très pâle : les coches, le pictogramme du pack, le point du décor et la flèche du bouton. Fonds, contour et bouton plein en corail restent réservés au pack recommandé.
-- Sérénité : carte plus haute, fond bleu nuit, contour corail, étiquette "Recommandé", bouton corail "Choisir Sérénité".
+**Options à la carte** ("Personnalisez votre site selon votre activité.")
+Cartes blanches à cocher (pictogramme, nom, utilité, tarif ou "Tarif sur demande", dépendances). À droite (en dessous sur téléphone), un récapitulatif bleu nuit au contour doré : choix du pack, lignes des options, total mensuel, bouton corail "Commander". Une option qui en demande une autre l'ajoute ; une option pas livrée porte "Bientôt" et ne se coche pas.
 
-Sous les cartes : Aucune commission, Paiements sécurisés, Vos données vous appartiennent.
+**Tableau de bord** ("Votre site, entre vos mains.")
+Ordinateur et téléphone dessinés en HTML/CSS (données d'exemple dans les traductions), puis les possibilités, chacune avec son étiquette : "Inclus", "Option …", "Dès le pack …" ou "Bientôt".
 
-Les prix, quotas et fonctions affichés viennent des réglages des packs, jamais de texte écrit dans la page.
+**Conditions** ("Des conditions claires, sans surprise.")
+Bloc blanc aux coins très arrondis, huit cartes : création offerte, engagement, hébergement et maintenance, contenus modifiables, solution hébergée (le code n'est pas transféré), nom de domaine, contenus, export des données.
+
+Les prix, pages, options, tarifs et durées affichés viennent des réglages (packs, options, réglages généraux), jamais de texte écrit dans la page.
 
 **Questions fréquentes**
-À gauche, le titre "Les questions qu'on nous pose" et le lien "Nous écrire". À droite, six questions en menu déroulant, la première ouverte. À l'ouverture, le contour passe en corail et le "+" tourne.
+À gauche, le titre "Les questions qu'on nous pose" et le lien "Nous écrire". À droite, dix questions en menu déroulant (frais, domaine, hébergement, modifications, réservation, changement de pack, résiliation, propriété, délai, paiements), la première ouverte. À l'ouverture, le contour passe en corail et le "+" tourne.
 
 **Bandeau final**
 Fond corail foncé, coins très arrondis, formes décoratives. Titre "Votre site en ligne en quelques jours." et bouton blanc "Je veux mon site".

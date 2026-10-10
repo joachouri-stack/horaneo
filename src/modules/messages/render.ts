@@ -1,3 +1,4 @@
+import { tenantFeatures, tenantLimits } from "@/modules/billing/entitlements";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { declareBusiness } from "@/db/access";
 import type { Transaction } from "@/db/client";
@@ -73,7 +74,7 @@ type Translator = Awaited<ReturnType<typeof getTranslator>>;
 
 async function loadTenant(tx: Transaction, tenantId: string) {
   const [row] = await tx
-    .select({ tenant: tenants, features: plans.features, limits: plans.limits })
+    .select({ tenant: tenants, features: tenantFeatures, limits: tenantLimits })
     .from(tenants)
     .innerJoin(plans, eq(plans.id, tenants.planId))
     .where(eq(tenants.id, tenantId));

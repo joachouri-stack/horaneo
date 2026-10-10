@@ -1,3 +1,4 @@
+import { tenantFeatures } from "@/modules/billing/entitlements";
 import { and, eq, isNotNull, sql } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
 import { businesses, googleReviews, plans, tenants, type CachedReview, type PlanFeatures } from "@/db/schema";
@@ -56,7 +57,7 @@ export async function refreshGoogleReviews(
       tenantId: businesses.tenantId,
       placeId: businesses.googlePlaceId,
       locale: tenants.defaultLocale,
-      features: plans.features,
+      features: tenantFeatures,
     })
     .from(businesses)
     .innerJoin(tenants, eq(tenants.id, businesses.tenantId))

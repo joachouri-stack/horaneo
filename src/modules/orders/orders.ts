@@ -5,6 +5,8 @@ import type { Transaction } from "@/db/client";
 import { getTranslator, resolveLocale } from "@/i18n/translator";
 import { memberships, orders, plans, subscriptions, users } from "@/db/schema";
 import type { BillingGateway } from "@/modules/billing/gateway";
+import { resolveOptions } from "@/modules/billing/option-total";
+import { ensureOptionPrice, listPlanOptions, pricedOption } from "@/modules/billing/options";
 import { applySubscription, ensurePlanPrice, ensureTaxRate } from "@/modules/billing/subscriptions";
 import { AppError } from "@/modules/errors";
 import { queueMessage } from "@/modules/messages/queue";
@@ -34,6 +36,8 @@ export const orderInput = z.object({
   locale: z.string().min(2).max(5).default("fr"),
   /** Formule des packs payants : avec engagement (création offerte) ou sans (frais de création). */
   withCommitment: z.boolean().default(true),
+  /** Options choisies (codes) ; leurs dépendances sont ajoutées automatiquement. */
+  optionCodes: z.array(z.string().max(40)).max(20).default([]),
 });
 
 export type OrderInput = z.input<typeof orderInput>;
@@ -79,10 +83,19 @@ export async function createOrder(
   if (open && open.order.status !== "awaiting_payment") throw new AppError("order_in_progress");
 
   const months = Number(await getPlatformSetting(tx, "commitment_months"));
+  // Formule sans engagement proposée ou non (sinon : engagement obligatoire, création offerte).
+  const noCommitmentOffered = Boolean(await getPlatformSetting(tx, "offer_no_commitment"));
+  // Options : seules les options commandables (tarif fixé, livrées) et leurs dépendances.
+  const catalog = await listPlanOptions(tx);
+  const optionCodes = resolveOptions(input.optionCodes, catalog.map(pricedOption));
+  if (input.optionCodes.some((code) => !optionCodes.includes(code)))
+    throw new AppError("option_unavailable", "optionCodes");
+  if (optionCodes.length > 0 && plan.priceCents <= 0) throw new AppError("invalid", "optionCodes");
   const values = {
     planId: plan.id,
+    optionCodes,
     // Pack gratuit, ou aucune formule avec engagement proposée : sans engagement.
-    withCommitment: plan.priceCents > 0 && months > 0 && input.withCommitment,
+    withCommitment: plan.priceCents > 0 && months > 0 && (input.withCommitment || !noCommitmentOffered),
     businessName: input.businessName,
     activity: input.activity,
     phone: phone ?? input.phone,
@@ -116,10 +129,15 @@ export async function createOrder(
         .catch(providerError)
     ).id;
   const setupFeeCents = await creationFeeFor(tx, plan, order.withCommitment);
+  const optionPriceIds: string[] = [];
+  for (const option of catalog.filter((item) => optionCodes.includes(item.code))) {
+    optionPriceIds.push(await ensureOptionPrice(tx, option.id, gateway).catch(providerError));
+  }
   const checkout = await gateway
     .createCheckout({
       customerId,
       priceId: await ensurePlanPrice(tx, plan.id, gateway),
+      optionPriceIds,
       setupFee:
         setupFeeCents > 0
           ? {

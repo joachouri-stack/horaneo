@@ -66,4 +66,8 @@ export type AppErrorCode =
   | "reward_unavailable"
   | "login_invalid"
   | "sms_unavailable"
-  | "customer_space_unavailable";
+  | "customer_space_unavailable"
+  | "option_requires"
+  | "option_required_by"
+  | "option_price_missing"
+  | "option_unavailable";

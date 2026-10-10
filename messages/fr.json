@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "title": "{product} : votre site avec réservation en ligne",
-    "description": "Un site web à votre image, avec prise de rendez-vous et acomptes en ligne, pour les professionnels qui travaillent sur rendez-vous."
+    "title": "{product} : votre site professionnel par abonnement",
+    "description": "Un site internet professionnel créé, hébergé et maintenu pour vous, avec un tableau de bord pour le gérer. Pour tous les métiers, des options à la carte : réservation, paiement en ligne, rappels."
   },
   "platformErrors": {
     "notFoundTitle": "Page introuvable",
@@ -46,23 +46,23 @@
   "home": {
     "nav": {
       "how": "Comment ça marche",
-      "features": "Fonctions",
+      "features": "Options",
       "pricing": "Tarifs",
       "questions": "Questions",
       "menu": "Menu",
       "closeMenu": "Fermer le menu"
     },
-    "badge": "Pour les professionnels sur rendez-vous",
+    "badge": "Pour tous les professionnels",
     "title": "Nous créons votre site.",
-    "titleAccent": "Vos clients réservent.",
-    "subtitle": "Un site à votre nom, avec la réservation en ligne et l'acompte contre les absences, ou simplement un beau site. Nous faisons tout, de la création aux mises à jour.",
+    "titleAccent": "Vous développez votre activité.",
+    "subtitle": "Un site professionnel à votre nom, créé, hébergé et maintenu par nos soins, dès {price} par mois. Vous le gérez depuis votre tableau de bord et ajoutez les options utiles à votre métier.",
     "cta": "Je veux mon site",
     "seePlans": "Voir les tarifs",
     "howItWorks": "Comment ça marche",
     "promises": {
-      "commission": "{percent, plural, =0 {Sans commission} other {Commission de # %}}",
+      "creation": "Création offerte",
       "domain": "Votre nom de domaine",
-      "install": "Rien à installer"
+      "hosting": "Hébergement inclus"
     },
     "demo": {
       "label": "Exemple : le site d'un établissement sur téléphone, à l'étape du choix du créneau, avec l'acompte à payer.",
@@ -86,14 +86,15 @@
     "madeFor": {
       "title": "Pensé pour",
       "items": [
+        "Artisans",
+        "Commerces",
+        "Restaurants",
         "Instituts de beauté",
-        "Salons de coiffure",
-        "Barbiers",
-        "Bien-être",
-        "Tatoueurs",
-        "Coachs",
         "Garages",
-        "Artisans"
+        "Consultants",
+        "Coachs sportifs",
+        "Événementiel",
+        "Immobilier"
       ]
     },
     "steps": {
@@ -103,64 +104,28 @@
       "dot": "Voir l'étape {n}",
       "create": {
         "title": "Nous créons votre site",
-        "text": "Logo, photos, prestations, horaires : nous récupérons tout et nous le mettons en ligne à votre adresse.",
-        "tag": "C'est nous qui le faisons"
+        "text": "Logo, photos, textes, services : nous récupérons tout et nous le mettons en ligne à votre adresse.",
+        "tag": "Création offerte"
       },
       "book": {
-        "title": "Vos clients réservent",
-        "text": "Jour et nuit, en quelques gestes, sans créer de compte. Un e-mail vous prévient à chaque réservation.",
+        "title": "Vous le gérez simplement",
+        "text": "Textes, photos, services, horaires : vous les modifiez vous-même depuis votre tableau de bord, sur ordinateur ou téléphone.",
         "tag": "Sans rien installer"
       },
       "cash": {
-        "title": "Vous encaissez",
-        "text": "Acompte, paiement complet ou règlement sur place : vous choisissez. L'argent arrive directement sur votre compte.",
-        "tag": "{percent, plural, =0 {Sans commission} other {Commission de # %}}"
-      }
-    },
-    "features": {
-      "badge": "Fonctions",
-      "title": "Tout est inclus,",
-      "titleAccent": "rien à brancher.",
-      "intro": "Les outils dont vous avez besoin au quotidien, déjà prêts sur votre site.",
-      "tagAll": "Tous les packs",
-      "tagFrom": "Dès le pack {plan}",
-      "tagFromBoth": "Dès {plan} ou {sitePlan}",
-      "items": {
-        "reminders": {
-          "title": "Rappels automatiques",
-          "text": "Vos clients reçoivent un rappel la veille : moins d'oublis, moins de rendez-vous manqués."
-        },
-        "deposit": {
-          "title": "Acompte en ligne",
-          "text": "Un acompte à la réservation, versé directement sur votre compte. Fini les absences sans prévenir."
-        },
-        "customerSpace": {
-          "title": "Espace client",
-          "text": "Vos clients retrouvent leurs rendez-vous et reprennent la même prestation en un clic, sans mot de passe."
-        },
-        "giftCards": {
-          "title": "Cartes cadeaux",
-          "text": "Vendues en ligne, envoyées par e-mail, utilisables en plusieurs fois."
-        },
-        "loyalty": {
-          "title": "Carte de fidélité",
-          "text": "Un avantage offert au bout de quelques visites : vos clients reviennent plus souvent."
-        },
-        "reviews": {
-          "title": "Avis Google",
-          "text": "Vos meilleurs avis Google affichés sur votre site, mis à jour automatiquement."
-        }
+        "title": "Vous développez votre activité",
+        "text": "Réservation, paiement en ligne, rappels, cartes cadeaux : activez les options utiles à votre métier, quand vous voulez.",
+        "tag": "Options à la carte"
       }
     },
     "plans": {
       "title": "Un prix clair,",
-      "titleAccent": "{percent, plural, =0 {sans commission.} other {commission de # %.}}",
-      "subtitle": "Votre site avec la réservation en ligne, ou simplement un beau site : choisissez, puis évoluez quand vous voulez.",
+      "titleAccent": "trois packs.",
+      "subtitle": "Votre site professionnel, hébergé et maintenu par nos soins. Choisissez votre pack, puis ajoutez les options utiles à votre activité.",
       "perMonth": "par mois {display}",
       "perMonthShort": "par mois",
       "free": "Gratuit",
       "freeForever": "sans limite de durée",
-      "toggleLabel": "Type de pack",
       "toggleBooking": "Avec réservation",
       "toggleSite": "Sans réservation",
       "toggleHintBooking": "Vos clients réservent en ligne, 24 h/24. Pas besoin ? Choisissez « Sans réservation ».",
@@ -183,25 +148,11 @@
         "fullSiteLabel": "site, plusieurs pages",
         "photos": "photos",
         "domainValue": "✓",
-        "domainLabel": "votre nom de domaine"
+        "domainLabel": "votre nom de domaine",
+        "pageCount": "{count, plural, one {page} other {pages}}"
       },
       "included": "Inclus :",
       "missing": "Non inclus :",
-      "trust": {
-        "commission": "{percent, plural, =0 {0 % de commission} other {# % de commission seulement}}",
-        "commissionText": "Seuls les frais bancaires de Stripe s'appliquent.",
-        "secure": "Paiements sécurisés",
-        "secureText": "Cartes traitées par Stripe, jamais par nous.",
-        "data": "Vos données sont à vous",
-        "dataText": "Clients, rendez-vous, photos : remis sur simple demande."
-      },
-      "note": {
-        "display": "Prix {display}",
-        "commitment": "{months, plural, =0 {Sans engagement} one {Engagement # mois} other {Engagement # mois}}",
-        "setupFree": "Création du site offerte",
-        "setupFee": "Frais de création à partir de {amount}",
-        "formulas": "Avec engagement {months} mois : création offerte. Sans engagement : {fee, select, none {création offerte} other {frais de création à partir de {fee}}}."
-      },
       "smsExtra": "SMS en plus : {amount} les {count}",
       "seeAll": "Voir tout ce qui est inclus",
       "collapse": "Réduire la liste",
@@ -226,8 +177,8 @@
         "photos": "{count, plural, one {# photo} other {# photos}}",
         "photosUnlimited": "Photos illimitées",
         "monthlyUpdate": "Une mise à jour par mois",
-        "hosting": "Hébergement et sécurité inclus",
-        "contactForm": "Formulaire de contact et de devis",
+        "hosting": "Hébergement et certificat SSL inclus",
+        "contactForm": "Formulaire de contact",
         "promotionsTestimonials": "Promotions et témoignages",
         "withYou": "Un site pensé avec vous, textes rédigés",
         "google": "Optimisé pour Google, avec votre fiche Google",
@@ -246,7 +197,19 @@
         "loyalty": "Carte de fidélité",
         "stats": "Statistiques détaillées",
         "giftCards": "Cartes cadeaux en ligne",
-        "googleReviews": "Avis Google affichés"
+        "googleReviews": "Avis Google affichés",
+        "pages": "Jusqu'à {count} pages",
+        "gallery": "Galerie photos",
+        "selfEditing": "Contenus modifiables par vous",
+        "localSeo": "Référencement (SEO) de base",
+        "advancedBranding": "Personnalisation graphique avancée",
+        "premiumBranding": "Personnalisation premium",
+        "advancedStats": "Statistiques avancées",
+        "advancedSeo": "Référencement (SEO) avancé",
+        "richContent": "Gestion enrichie des contenus",
+        "advancedPresentation": "Présentations avancées",
+        "prioritySupport": "Support prioritaire",
+        "dedicatedSupport": "Accompagnement renforcé"
       },
       "lines": {
         "kickoffCall": "Un échange avec nous pour définir votre style",
@@ -296,49 +259,118 @@
         "monthlySummary": "Résumé mensuel par e-mail",
         "loyalty": "Carte de fidélité",
         "qrPoster": "Affichette avec QR code pour le comptoir, vers vos avis Google"
-      }
+      },
+      "chooseThis": "Choisir ce pack",
+      "details": "Découvrir les détails",
+      "detailsOf": "Découvrir les détails du pack {plan}",
+      "back": "Revenir à la présentation",
+      "backOf": "Revenir à la présentation du pack {plan}",
+      "detailsTitle": "Le pack {plan} en détail",
+      "optionsTitle": "Options disponibles",
+      "optionsLink": "Voir les options et leurs tarifs",
+      "subscriptionTitle": "Votre abonnement",
+      "subscription": {
+        "commitment": "{months, plural, =0 {Sans engagement} other {Engagement # mois}}",
+        "creationFree": "Création du site offerte",
+        "display": "Prix {display}, facturé chaque mois",
+        "upgrade": "Changement de pack possible à tout moment"
+      },
+      "preview": "Aperçu d'un site du pack {plan}",
+      "previewMore": "+{count}",
+      "sheet": {
+        "sections": {
+          "site": "Votre site",
+          "branding": "Personnalisation",
+          "management": "Gestion",
+          "visibility": "Référencement",
+          "hosting": "Hébergement et maintenance",
+          "support": "Support"
+        },
+        "lines": {
+          "pages": "Jusqu'à {count} pages",
+          "pagesUnlimited": "Pages illimitées",
+          "responsive": "Design responsive (ordinateur, tablette, smartphone)",
+          "gallery": "Galerie photos",
+          "photos": "{count, plural, one {# photo} other {# photos}}",
+          "photosUnlimited": "Photos illimitées",
+          "contactForm": "Formulaire de contact",
+          "brandingBase": "Vos couleurs, votre logo, vos photos",
+          "advancedBranding": "Personnalisation graphique avancée",
+          "premiumBranding": "Personnalisation premium, sur mesure",
+          "advancedPresentation": "Fonctionnalités de présentation avancées",
+          "selfEditing": "Textes, photos et services modifiables par vous",
+          "richContent": "Gestion enrichie : promotions, témoignages",
+          "stats": "Statistiques d'activité détaillées (avec la réservation)",
+          "advancedStats": "Statistiques avancées",
+          "localSeo": "SEO de base (titres, descriptions, plan du site)",
+          "advancedSeo": "SEO avancé",
+          "hosting": "Hébergement, SSL et sauvegardes inclus",
+          "maintenance": "Site maintenu et mis à jour par nos soins",
+          "customDomain": "Votre propre nom de domaine",
+          "standardSupport": "Support standard par e-mail",
+          "prioritySupport": "Support prioritaire",
+          "dedicatedSupport": "Accompagnement renforcé (échange de départ, textes rédigés, photos retouchées)"
+        }
+      },
+      "note": {
+        "display": "Prix {display}",
+        "commitment": "{months, plural, =0 {Sans engagement} other {Engagement # mois}}",
+        "setupFree": "Création du site offerte",
+        "hosting": "Hébergement et maintenance inclus"
+      },
+      "badge": "Dès {price} par mois",
+      "trust": {
+        "commission": "{percent, plural, =0 {0 % de commission sur vos paiements} other {# % de commission seulement}}",
+        "secure": "Paiements sécurisés par Stripe"
+      },
+      "sheetEverythingIn": "Tout le pack {plan}, et en plus :"
     },
     "faq": {
       "title": "Les questions qu'on nous pose",
       "intro": "Une autre question ? Nous répondons sous 24 heures.",
       "contact": "Nous écrire",
-      "commission": "{percent, plural, =0 {nous ne prenons aucune commission} other {nous prenons seulement # % de commission sur les acomptes}} : seuls les frais bancaires de Stripe s'appliquent, prélevés directement par Stripe",
-      "items": [
-        {
-          "q": "Comment je reçois mes paiements ?",
-          "a": "Avec le paiement en ligne (à partir du pack {plan:onlinePayment}), les acomptes arrivent directement sur votre compte bancaire. L'argent ne passe jamais par nous, et {commission}."
+      "items": {
+        "fees": {
+          "q": "Y a-t-il des frais de création ?",
+          "a": "Non. La création de votre site est comprise dans l'abonnement : vous ne payez que votre pack, et les options que vous choisissez."
         },
-        {
-          "q": "Et en cas d'annulation ?",
-          "a": "Vous fixez vos conditions. Avec un acompte, il est remboursé si le client annule dans les délais ; sinon, il vous reste acquis."
+        "domain": {
+          "q": "Puis-je utiliser mon propre nom de domaine ?",
+          "a": "Oui, avec tous les packs. Vous en gardez la propriété : s'il est déjà à votre nom, nous le relions simplement à votre nouveau site."
         },
-        {
-          "q": "Je n'y connais rien en informatique, est-ce un problème ?",
-          "a": "Non. Avec un site complet (à partir du pack {plan:fullSite}), nous créons le site et nous le mettons en ligne. Dans tous les cas, nous vous montrons comment suivre vos rendez-vous sur votre téléphone."
+        "hosting": {
+          "q": "L'hébergement est-il inclus ?",
+          "a": "Oui. Hébergement, certificat SSL, sauvegardes et maintenance technique sont compris dans chaque pack."
         },
-        {
-          "q": "J'ai déjà un site, que devient-il ?",
-          "a": "À partir du pack {plan:customDomain}, nous le remplaçons par le nouveau, à la même adresse : vous gardez votre nom de domaine."
+        "editing": {
+          "q": "Puis-je modifier mon site moi-même ?",
+          "a": "Oui. Depuis votre tableau de bord, vous modifiez vos textes, photos, services et horaires. Pour une modification plus importante, nous la faisons pour vous."
         },
-        {
-          "q": "En combien de temps mon site est-il en ligne ?",
-          "a": "Comptez quelques jours après réception de votre logo, de vos photos et de vos tarifs. Vous validez le site avant sa mise en ligne."
+        "booking": {
+          "q": "Puis-je ajouter une réservation plus tard ?",
+          "a": "Oui. La réservation en ligne est une option : vous l'ajoutez quand vous voulez, sans refaire votre site, et elle s'ajoute à votre abonnement."
         },
-        {
-          "q": "Si j'arrête, qu'est-ce que je garde ?",
-          "a": "Le site lui-même reste la propriété de {product}. Vous gardez votre nom de domaine, les fichiers que vous nous avez fournis (logo, photos, textes) et vos données, dont votre fichier clients, remis sur simple demande."
+        "change": {
+          "q": "Puis-je changer de pack ?",
+          "a": "Oui. Le passage à un pack supérieur est immédiat, la différence est facturée au prorata. Un pack inférieur s'applique à la prochaine échéance."
         },
-        {
-          "q": "Que se passe-t-il si je dépasse mes SMS ?",
-          "a": "Vos clients reçoivent toujours leur rappel par e-mail. Vous pouvez ajouter {smsPackSize} SMS pour {smsPackPrice} depuis votre espace. Rien n'est facturé sans votre accord.",
-          "if": "smsPack"
+        "cancel": {
+          "q": "Que se passe-t-il si je résilie ?",
+          "a": "{months, plural, =0 {Vous pouvez arrêter à tout moment.} other {La résiliation prend effet au plus tôt à la fin des # mois d'engagement.}} Votre site reste en ligne {days, plural, =0 {jusqu'à la fin de l'abonnement} one {# jour après la fin de l'abonnement} other {# jours après la fin de l'abonnement}}, puis il est retiré. Vous gardez votre nom de domaine, vos contenus et vos données."
         },
-        {
-          "q": "Suis-je engagé ?",
-          "a": "Vous choisissez. Avec un engagement de {commitmentMonths} mois, la création du site est offerte. Sans engagement, des frais de création s'appliquent selon le pack, à partir de {noCommitmentFee}.",
-          "if": "commitment"
+        "ownership": {
+          "q": "Suis-je propriétaire de mon site ?",
+          "a": "Vous êtes propriétaire de votre nom de domaine, de vos contenus (textes, logo, photos) et de vos données. Le site lui-même, son design et son code, sont fournis par {product} dans le cadre de l'abonnement et ne sont pas transférés à la résiliation."
+        },
+        "delay": {
+          "q": "Combien de temps faut-il pour créer mon site ?",
+          "a": "{days, plural, =0 {Comptez quelques jours} one {Comptez # jour ouvré} other {Comptez # jours ouvrés}} après réception de votre logo, de vos photos et de vos textes. Vous validez le site avant sa mise en ligne."
+        },
+        "payments": {
+          "q": "Les paiements en ligne sont-ils inclus ?",
+          "a": "Le paiement en ligne est une option, à ajouter avec la réservation. L'argent arrive directement sur votre compte bancaire : {percent, plural, =0 {nous ne prenons aucune commission} other {nous prenons # % de commission}}, seuls les frais bancaires de Stripe s'appliquent."
         }
-      ]
+      }
     },
     "final": {
       "title": "Votre site en ligne",
@@ -367,7 +399,7 @@
       "metaTitle": "Comparer les packs",
       "title": "Tous les packs,",
       "titleAccent": "en détail.",
-      "intro": "Ce que comprend chaque pack, ligne par ligne. Les fonctions marquées « Bientôt » arrivent prochainement.",
+      "intro": "Ce que comprend chaque pack, ligne par ligne, puis les options à ajouter. Les fonctions marquées « Bientôt » arrivent prochainement.",
       "back": "Retour aux tarifs",
       "feature": "Inclus",
       "price": "Prix par mois",
@@ -382,8 +414,145 @@
         "services": "Prestations",
         "bookings": "Réservations en ligne par mois",
         "sms": "SMS de rappel par mois",
-        "members": "Membres de l'équipe"
+        "members": "Membres de l'équipe",
+        "pages": "Pages du site"
+      },
+      "packsTitle": "Les packs",
+      "optionsTitle": "Les options à la carte",
+      "optionsIntro": "Elles s'ajoutent à n'importe quel pack, à la commande ou plus tard, et sont facturées chaque mois avec votre abonnement.",
+      "option": "Option",
+      "optionPrice": "Tarif mensuel {display}",
+      "optionRequires": "Nécessite",
+      "onRequest": "Sur demande",
+      "perMonthAmount": "{amount} par mois"
+    },
+    "options": {
+      "badge": "Options à la carte",
+      "title": "Personnalisez votre site",
+      "titleAccent": "selon votre activité.",
+      "intro": "Chaque option s'ajoute à n'importe quel pack, quand vous voulez. Cochez celles qui vous intéressent : le total se calcule tout seul.",
+      "summary": "Votre abonnement",
+      "pack": "Pack",
+      "packPrice": "Pack {plan}",
+      "total": "Total",
+      "perMonth": "par mois {display}",
+      "none": "Aucune option choisie",
+      "price": "+ {amount} / mois",
+      "onRequest": "Tarif sur demande",
+      "soon": "Bientôt",
+      "requires": "Nécessite : {names}",
+      "addedWith": "Ajoutée avec {names}",
+      "select": "Ajouter {name}",
+      "cta": "Commander",
+      "ctaCallback": "Être rappelé",
+      "note": "Les options marquées « Tarif sur demande » ne sont pas comptées : nous vous indiquons leur prix avant toute souscription.",
+      "noneOrderable": "Les tarifs des options sont communiqués sur demande. Écrivez-nous ou demandez à être rappelé."
+    },
+    "dashboard": {
+      "badge": "Votre tableau de bord",
+      "title": "Votre site,",
+      "titleAccent": "entre vos mains.",
+      "intro": "Chaque client dispose de son propre espace de gestion, sur ordinateur comme sur téléphone. Ce que vous y trouvez dépend de votre pack et des options activées.",
+      "label": "Aperçu du tableau de bord sur ordinateur et sur téléphone",
+      "tags": {
+        "included": "Inclus",
+        "from": "Dès le pack {plan}",
+        "option": "Option {name}",
+        "soon": "Bientôt"
+      },
+      "items": {
+        "content": {
+          "title": "Modifier les textes et les photos",
+          "text": "Mettez votre site à jour en quelques secondes."
+        },
+        "pages": {
+          "title": "Gérer les pages et services",
+          "text": "Vos services, tarifs et horaires toujours exacts."
+        },
+        "requests": {
+          "title": "Consulter les demandes clients",
+          "text": "Les messages reçus depuis votre site, au même endroit."
+        },
+        "bookings": {
+          "title": "Gérer les réservations",
+          "text": "Votre agenda, vos rendez-vous et leurs rappels."
+        },
+        "payments": {
+          "title": "Consulter les paiements",
+          "text": "Acomptes et paiements reçus, et leurs remboursements."
+        },
+        "stats": {
+          "title": "Suivre les statistiques",
+          "text": "Rendez-vous, chiffre d'affaires et services les plus demandés, mois après mois."
+        },
+        "options": {
+          "title": "Suivre vos options",
+          "text": "Votre pack, vos options actives et vos factures."
+        }
+      },
+      "mock": {
+        "site": "Mon site",
+        "today": "Aujourd'hui",
+        "visits": "Rendez-vous",
+        "requests": "Demandes",
+        "bookings": "Réservations",
+        "edit": "Modifier",
+        "pages": "Pages",
+        "home": "Accueil",
+        "services": "Services",
+        "gallery": "Galerie",
+        "contact": "Contact",
+        "published": "En ligne",
+        "hello": "Bonjour !",
+        "phoneTitle": "Cette semaine",
+        "times": ["09:00", "10:30", "14:00"],
+        "values": {
+          "visits": "12",
+          "requests": "4",
+          "bookings": "9"
+        }
       }
+    },
+    "conditions": {
+      "badge": "Conditions",
+      "title": "Des conditions",
+      "titleAccent": "claires, sans surprise.",
+      "intro": "Votre site est fourni dans le cadre d'un abonnement : nous le créons, l'hébergeons et le maintenons pour vous.",
+      "items": {
+        "creation": {
+          "title": "Aucuns frais de création",
+          "text": "La création de votre site est comprise dans l'abonnement."
+        },
+        "commitment": {
+          "title": "{months, plural, =0 {Sans engagement} other {Engagement de # mois}}",
+          "text": "{months, plural, =0 {Vous arrêtez quand vous voulez.} other {L'abonnement est souscrit pour # mois, puis se poursuit de mois en mois.}}"
+        },
+        "hosting": {
+          "title": "Hébergé et maintenu par nous",
+          "text": "Hébergement, certificat SSL, sauvegardes et mises à jour techniques sont inclus."
+        },
+        "editing": {
+          "title": "Vous gardez la main",
+          "text": "Vous modifiez vous-même les contenus autorisés depuis votre tableau de bord."
+        },
+        "provided": {
+          "title": "Une solution hébergée",
+          "text": "Le site et son code restent ceux de {product} : ils ne sont pas transférés à la fin de l'abonnement."
+        },
+        "domain": {
+          "title": "Votre nom de domaine vous appartient",
+          "text": "Il reste le vôtre : vous le gardez si vous partez."
+        },
+        "content": {
+          "title": "Vos contenus restent à vous",
+          "text": "Textes, logo et photos que vous nous confiez restent votre propriété."
+        },
+        "export": {
+          "title": "Vos données exportables",
+          "text": "Fichier clients, rendez-vous et contenus vous sont remis sur simple demande."
+        }
+      },
+      "buyout": "Rachat du site possible à la fin de l'abonnement : {amount}."
     }
   },
   "site": {
@@ -809,7 +978,8 @@
       "orders": "Commandes",
       "documents": "Documents légaux",
       "label": "Navigation de l'administration",
-      "waiting": "{count, plural, one {# commande en attente} other {# commandes en attente}}"
+      "waiting": "{count, plural, one {# commande en attente} other {# commandes en attente}}",
+      "options": "Options"
     },
     "dashboard": {
       "activeClients": "Clients en ligne",
@@ -937,7 +1107,16 @@
         "smsFromPacks": "SMS pris sur les packs ce mois-ci",
         "smsPacksRemaining": "SMS achetés encore disponibles",
         "smsPacks": "Packs de SMS achetés",
-        "smsPackLine": "{date} · {count} SMS · {amount} · {status, select, expired {plus disponible} other {{remaining} restants}}"
+        "smsPackLine": "{date} · {count} SMS · {amount} · {status, select, expired {plus disponible} other {{remaining} restants}}",
+        "options": "Options",
+        "optionsHint": "Avec un abonnement Stripe en cours, l'option est ajoutée à l'abonnement et facturée au prorata. Sans abonnement, elle est activée sans facturation (client offert, essai).",
+        "optionOn": "Activer",
+        "optionOff": "Couper",
+        "optionActive": "Active",
+        "optionBilled": "facturée",
+        "optionPrice": "{amount} par mois",
+        "optionNoPrice": "Tarif à définir",
+        "optionOffConfirm": "Couper l'option {name} pour {tenant} ?"
       },
       "identity": {
         "title": "Coordonnées",
@@ -1260,7 +1439,17 @@
         "visibilityReport": "Rapport mensuel de visibilité",
         "paymentLinks": "Paiement par carte : lien de paiement, acompte sur devis",
         "multilingual": "Site en plusieurs langues",
-        "qrPoster": "Affichette avec QR code"
+        "qrPoster": "Affichette avec QR code",
+        "gallery": "Galerie photos",
+        "selfEditing": "Contenus modifiables depuis le tableau de bord",
+        "advancedBranding": "Personnalisation graphique avancée",
+        "premiumBranding": "Personnalisation premium",
+        "advancedStats": "Statistiques avancées",
+        "advancedSeo": "Référencement (SEO) avancé",
+        "richContent": "Gestion enrichie des contenus",
+        "advancedPresentation": "Fonctionnalités de présentation avancées",
+        "prioritySupport": "Support prioritaire",
+        "dedicatedSupport": "Accompagnement renforcé"
       },
       "description": "Accroche",
       "descriptionHint": "Affichée sous le nom du pack sur le site commercial.",
@@ -1300,8 +1489,21 @@
         "loyalty": "Carte de fidélité",
         "stats": "Statistiques détaillées",
         "giftCards": "Cartes cadeaux en ligne",
-        "googleReviews": "Avis Google affichés"
-      }
+        "googleReviews": "Avis Google affichés",
+        "pages": "Nombre de pages (du pack)",
+        "gallery": "Galerie photos",
+        "selfEditing": "Contenus modifiables par vous",
+        "localSeo": "Référencement de base",
+        "advancedBranding": "Personnalisation graphique avancée",
+        "premiumBranding": "Personnalisation premium",
+        "advancedStats": "Statistiques avancées",
+        "advancedSeo": "SEO avancé",
+        "richContent": "Gestion enrichie des contenus",
+        "advancedPresentation": "Présentations avancées",
+        "prioritySupport": "Support prioritaire",
+        "dedicatedSupport": "Accompagnement renforcé"
+      },
+      "pages": "Pages du site"
     },
     "settings": {
       "title": "Réglages",
@@ -1349,7 +1551,8 @@
       "site_buyout_enabled": "Proposer le rachat du site",
       "site_buyout_price": "Prix du rachat (€)",
       "soon": "Fonctions annoncées « Bientôt »",
-      "soonHint": "Cochées : pas encore livrées. Elles portent l'étiquette « Bientôt » sur le site commercial au lieu d'être promises. Décochez une fonction dès qu'elle est prête."
+      "soonHint": "Cochées : pas encore livrées. Elles portent l'étiquette « Bientôt » sur le site commercial au lieu d'être promises. Décochez une fonction dès qu'elle est prête.",
+      "offer_no_commitment": "Proposer aussi la formule sans engagement (avec frais de création du pack)"
     },
     "billing": {
       "title": "Paiements des abonnements",
@@ -1425,6 +1628,19 @@
         "salesClosed": "Commande en ligne fermée : tant que les trois documents ne sont pas publiés, les packs payants mènent au formulaire « Être rappelé ».",
         "salesOpen": "Commande en ligne ouverte : les trois documents sont publiés."
       }
+    },
+    "options": {
+      "title": "Options à la carte",
+      "intro": "Tarif mensuel et disponibilité de chaque option. Une option sans tarif s'affiche « Tarif sur demande » et ne se commande pas en ligne. Un nouveau tarif s'applique aux prochaines souscriptions ; les abonnés gardent le leur.",
+      "name": "Nom (français)",
+      "description": "Description (site commercial)",
+      "price": "Tarif mensuel (€)",
+      "priceHint": "Vide : tarif à définir (non commandable en ligne).",
+      "isActive": "Proposée sur le site commercial",
+      "isAvailable": "Livrée (décochée : « Bientôt »)",
+      "requires": "Nécessite : {names}",
+      "stripe": "Prix Stripe : {id}",
+      "noStripe": "Prix Stripe : créé à la première souscription"
     }
   },
   "errors": {
@@ -1482,7 +1698,11 @@
     "sms_unavailable": "La connexion par SMS n'est pas disponible. Saisissez votre adresse e-mail.",
     "customer_space_unavailable": "Cet espace n'est pas disponible sur ce site.",
     "twin_rule": "Règle des jumeaux : un pack « site seul » ne peut pas comprendre plus que son pack avec réservation. Ajoutez la fonction au pack avec réservation, ou retirez-la du pack « site seul ».",
-    "sales_paused": "Les commandes en ligne reprennent dès que nos pages légales sont publiées. Laissez-nous votre numéro : nous vous rappelons."
+    "sales_paused": "Les commandes en ligne reprennent dès que nos pages légales sont publiées. Laissez-nous votre numéro : nous vous rappelons.",
+    "option_requires": "Cette option a besoin d'une autre option active : activez-la d'abord.",
+    "option_required_by": "Une autre option active a besoin de celle-ci : coupez-la d'abord.",
+    "option_price_missing": "Fixez d'abord le tarif de cette option dans l'espace admin (Options).",
+    "option_unavailable": "Cette option n'est pas encore disponible à la commande."
   },
   "status": {
     "draft": "En création",
@@ -1991,7 +2211,10 @@
       "smsPackExpired": "plus disponible (abonnement terminé)",
       "formula": "Formule",
       "withCommitment": "Avec engagement {months} mois : {fee, select, none {création offerte} other {frais de création de {fee}}}",
-      "withoutCommitment": "Sans engagement : frais de création de {fee}, payés maintenant"
+      "withoutCommitment": "Sans engagement : frais de création de {fee}, payés maintenant",
+      "options": "Vos options",
+      "optionsNone": "Aucune option active pour le moment.",
+      "optionsHint": "Réservation, paiement en ligne, rappels par SMS… Pour ajouter ou retirer une option, écrivez-nous depuis « Demandes » : nous l'activons et elle s'ajoute à votre abonnement."
     },
     "settings": {
       "title": "Réglages",
@@ -2610,7 +2833,11 @@
     "withCommitmentFree": "Création du site offerte. Le premier mois est payé à la commande.",
     "withoutCommitment": "Sans engagement",
     "creationFee": "{withCommitment, select, yes {Sans engagement : {fee} de création} other {Création : {fee}}}",
-    "withoutCommitmentPlanFee": "Les frais de création du pack choisi (indiqués à côté de son prix), payés à la commande. Vous arrêtez quand vous voulez."
+    "withoutCommitmentPlanFee": "Les frais de création du pack choisi (indiqués à côté de son prix), payés à la commande. Vous arrêtez quand vous voulez.",
+    "options": "Options",
+    "optionsHint": "Facultatives, ajoutées à votre abonnement. Vous pourrez aussi les ajouter plus tard.",
+    "total": "Total de votre abonnement",
+    "commitmentHint": "Abonnement avec engagement de {months} mois, création du site offerte. Vous réglez le premier mois à la commande, sur la page de paiement sécurisée."
   },
   "callback": {
     "metaTitle": "Être rappelé",

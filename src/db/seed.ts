@@ -1,8 +1,16 @@
 import "dotenv/config";
 import { eq, sql } from "drizzle-orm";
 import { createDb } from "./client";
-import { platformSettings, plans } from "./schema";
-import { DEFAULT_PLANS, DEFAULT_PLATFORM_SETTINGS, DEFAULT_SITE_ONLY_PLANS } from "@/config/defaults";
+import { planOptions, platformSettings, plans } from "./schema";
+import {
+  DEFAULT_OFFER_PLANS,
+  DEFAULT_PLAN_OPTIONS,
+  DEFAULT_PLANS,
+  DEFAULT_PLATFORM_SETTINGS,
+  DEFAULT_SITE_ONLY_PLANS,
+} from "@/config/defaults";
+
+const ALL_PLANS = [...DEFAULT_OFFER_PLANS, ...DEFAULT_PLANS, ...DEFAULT_SITE_ONLY_PLANS];
 
 /**
  * Insère les valeurs de départ (packs et réglages) si elles n'existent pas.
@@ -23,10 +31,15 @@ export async function seed(url: string) {
       .onConflictDoNothing();
     await database
       .insert(plans)
-      .values([...DEFAULT_PLANS, ...DEFAULT_SITE_ONLY_PLANS].map((plan) => ({ ...plan, currency: "EUR" })))
+      .values(ALL_PLANS.map((plan) => ({ ...plan, currency: "EUR" })))
+      .onConflictDoNothing();
+    // Options à la carte : ajoutées si absentes, jamais modifiées ensuite (tarifs fixés dans l'admin).
+    await database
+      .insert(planOptions)
+      .values(DEFAULT_PLAN_OPTIONS.map((option) => ({ ...option, currency: "EUR" })))
       .onConflictDoNothing();
     // Packs déjà en base : on complète seulement ce qui manque (accroche, nouvelles fonctions).
-    for (const plan of [...DEFAULT_PLANS, ...DEFAULT_SITE_ONLY_PLANS]) {
+    for (const plan of ALL_PLANS) {
       await database
         .update(plans)
         .set({

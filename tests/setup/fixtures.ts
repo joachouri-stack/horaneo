@@ -252,6 +252,8 @@ export async function createTenantWithData(db: TestDb, label: string) {
   await db
     .insert(s.smsPacks)
     .values({ tenantId, quantity: 100, remaining: 100, priceCents: 800, status: "paid" });
+  const [option] = await db.select().from(s.planOptions).where(eq(s.planOptions.code, "google-reviews"));
+  await db.insert(s.tenantOptions).values({ tenantId, optionId: option.id });
 
   return { tenant, business, user, domain, service, staff, customer, appointment };
 }

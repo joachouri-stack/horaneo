@@ -1,10 +1,12 @@
-import { and, asc, desc, eq, ne, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, ne, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
 import {
+  planOptions,
   plans,
   smsPacks,
+  tenantOptions,
   subscriptions,
   tenants,
   usageCounters,
@@ -61,6 +63,16 @@ export const FEATURE_KEYS = [
   "whatsappSupport",
   "brandingFooter",
   "aiMessaging",
+  "gallery",
+  "selfEditing",
+  "advancedBranding",
+  "premiumBranding",
+  "advancedStats",
+  "advancedSeo",
+  "richContent",
+  "advancedPresentation",
+  "prioritySupport",
+  "dedicatedSupport",
 ] as const;
 
 export const planInput = z.object({
@@ -78,6 +90,8 @@ export const planInput = z.object({
   services: optionalLimit,
   /** Jamais de SMS illimités : un nombre est obligatoire (0 = aucun SMS). */
   smsPerMonth: z.coerce.number().int().min(0).max(100_000),
+  /** Nombre de pages annoncé (vide : sans limite). */
+  pages: z.string().default("").pipe(optionalLimit),
   /** Frais de création de la formule sans engagement, en euros (vide : aucun). */
   noCommitmentFee: z
     .string()
@@ -115,6 +129,7 @@ export async function savePlan(
     photos: input.photos,
     services: input.services,
     smsPerMonth: input.smsPerMonth,
+    pages: input.pages,
   };
   const features: PlanFeatures = Object.fromEntries(
     FEATURE_KEYS.map((key) => [key, input.features.includes(key)]),
@@ -175,6 +190,8 @@ export const settingsInput = z.object({
     .regex(/^\d{1,6}([.,]\d{1,2})?$/),
   /** Fonctions annoncées « Bientôt » (pas encore livrées). */
   features_soon: z.array(z.enum(FEATURE_KEYS)),
+  /** Formule sans engagement proposée à la commande (avec les frais de création du pack). */
+  offer_no_commitment: z.boolean().default(false),
   go_live_delay_days: z.coerce.number().int().min(0).max(60),
   deposit_commission_percent: z.coerce.number().min(0).max(20),
   retention_days_after_cancel: z.coerce.number().int().min(0).max(365),
@@ -221,12 +238,25 @@ export async function listSubscriptions(tx: Transaction) {
   return rows.map((row) => ({ ...row, live: isLive(row.subscription.status) }));
 }
 
-/** Revenu mensuel réel : abonnements Stripe en cours. */
+/** Revenu mensuel réel : abonnements Stripe en cours (packs et options facturées). */
 export async function liveRevenue(tx: Transaction) {
   const rows = await listSubscriptions(tx);
   const live = rows.filter((row) => row.live && row.subscription.stripeSubscriptionId);
+  const liveTenants = live.map((row) => row.subscription.tenantId);
+  const [options] = liveTenants.length
+    ? await tx
+        .select({ cents: sql<number>`coalesce(sum(${planOptions.priceCents}), 0)::int` })
+        .from(tenantOptions)
+        .innerJoin(planOptions, eq(planOptions.id, tenantOptions.optionId))
+        .where(
+          and(
+            inArray(tenantOptions.tenantId, liveTenants),
+            isNotNull(tenantOptions.stripeSubscriptionItemId),
+          ),
+        )
+    : [{ cents: 0 }];
   return {
-    monthlyRevenueCents: live.reduce((sum, row) => sum + row.priceCents, 0),
+    monthlyRevenueCents: live.reduce((sum, row) => sum + row.priceCents, 0) + options.cents,
     paying: live.length,
     pastDue: rows.filter((row) => row.subscription.paymentFailedAt && row.live).length,
   };

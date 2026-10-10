@@ -1,3 +1,4 @@
+import { tenantFeatures, tenantLimits } from "@/modules/billing/entitlements";
 import { and, count, eq, ne, sql } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
 import { assets, plans, tenants, type PlanFeatures, type PlanLimits } from "@/db/schema";
@@ -8,7 +9,7 @@ export type QuotaKey = "services" | "members" | "photos";
 
 export async function getTenantPlan(tx: Transaction, tenantId: string) {
   const [row] = await tx
-    .select({ limits: plans.limits, features: plans.features, code: plans.code })
+    .select({ limits: tenantLimits, features: tenantFeatures, code: plans.code })
     .from(tenants)
     .innerJoin(plans, eq(plans.id, tenants.planId))
     .where(eq(tenants.id, tenantId));

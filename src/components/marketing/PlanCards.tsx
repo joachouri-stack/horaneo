@@ -1,278 +1,282 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import type { Locale } from "@/i18n/locales";
+import { pickLocalized, type Locale, type LocalizedText } from "@/i18n/locales";
 import {
   planCardContent,
   type CardLine,
   type CardPlan,
   type PlansTranslator,
 } from "@/modules/billing/plan-card";
-import { splitPlans } from "@/modules/billing/showcase";
-import { ArrowIcon, CheckIcon, DashIcon, PLAN_ICONS, StarIcon } from "./icons";
-import { PlanDetails } from "./PlanDetails";
-import { PlanFlip } from "./PlanFlip";
+import { planSheet } from "@/modules/billing/plan-sheet";
+import { FlipCard } from "./FlipCard";
+import { ArrowIcon, CheckIcon, PLAN_ICONS, StarIcon } from "./icons";
+import { SitePreview } from "./SitePreview";
+
+type CardOption = { code: string; name: LocalizedText; isAvailable: boolean };
 
 /**
- * Cartes des packs : prix, trois chiffres clés, bouton, puis les lignes
- * visibles (6 au plus) et un bouton qui déplie tout ce qui est inclus. Tout
- * vient de la base (voir planCardContent) ; le dernier pack de chaque famille
- * est mis en avant. Les packs « site seul » sont au dos des packs avec
- * réservation : un interrupteur retourne toutes les cartes.
+ * Cartes des packs, chacune à deux faces (FlipCard) :
+ * - recto : nom, prix, cible, aperçu de site, chiffres clés, 6 avantages au plus
+ *   (choisis dans l'admin), bouton « Choisir ce pack » ;
+ * - verso : rubriques détaillées (pages, personnalisation, gestion,
+ *   référencement, hébergement, support), options disponibles, conditions.
+ * Tout vient des réglages des packs et des options. Le pack du milieu (Business)
+ * est mis en avant. Ordinateur : trois colonnes alignées ; téléphone : l'une
+ * sous l'autre, le pack recommandé en premier.
  */
 export async function PlanCards({
   plans,
+  options,
   locale,
   smsPack,
   soon,
   salesOpen,
+  conditions,
 }: {
   plans: CardPlan[];
+  /** Options du catalogue, présentées au verso. */
+  options: CardOption[];
   locale: Locale;
-  /** Pack de SMS supplémentaires (réglages), annoncé sur les cartes qui comprennent des SMS. */
   smsPack: { size: number; priceCents: number };
   /** Fonctions pas encore livrées : étiquette « Bientôt ». */
   soon: string[];
   /** Commande en ligne ouverte ; sinon les packs payants mènent au formulaire « Être rappelé ». */
   salesOpen: boolean;
+  conditions: { commitmentMonths: number; display: string };
 }) {
   const t = await getTranslations("home.plans");
   const translate = t as unknown as PlansTranslator;
   const soonSet = new Set(soon);
-  const { booking, siteOnly } = splitPlans(plans);
+  // Pack recommandé : celui du milieu (le dernier s'il n'y en a que deux).
+  const featuredIndex = plans.length >= 3 ? Math.floor(plans.length / 2) : plans.length - 1;
 
-  const card = (group: CardPlan[], index: number) => {
-    const plan = group[index];
-    const featured = group.length > 1 && index === group.length - 1;
+  const card = (plan: CardPlan, index: number) => {
+    const featured = plans.length > 1 && index === featuredIndex;
     const Icon = PLAN_ICONS[Math.min(index, PLAN_ICONS.length - 1)];
-    const content = planCardContent(plan, plans, {
-      t: translate,
-      locale,
-      soon: soonSet,
-      smsPack,
-      salesOpen,
-    });
-    const muted = featured ? "text-[#c9d0de]" : "text-stone";
+    const content = planCardContent(plan, plans, { t: translate, locale, soon: soonSet, smsPack, salesOpen });
+    // Verso : les différences avec le pack précédent (« Tout le pack Essentiel, plus : »).
+    const previous = index > 0 ? plans[index - 1] : undefined;
+    const sheet = planSheet(plan, soonSet, previous);
     const strong = featured ? "text-white" : "text-night";
-    const accent = featured ? "text-salmon" : "text-navy";
-    const list = "relative flex flex-col gap-3 text-[0.93rem] leading-snug";
+    const muted = featured ? "text-[#c9d0de]" : "text-stone";
+    const accent = featured ? "text-gold" : "text-copper";
+    const rule = featured ? "border-[#34466b]" : "border-line";
+    const ctaLabel = content.cta.label === t("callback") ? content.cta.label : t("chooseThis");
+    const href = content.cta.href as { pathname: "/commander"; query: Record<string, string> };
 
-    const line = (item: CardLine, key: string, missing = false) => (
-      <li key={key} className={`flex items-start gap-3 ${missing ? muted : ""}`}>
+    const soonTag = (
+      <span
+        className={`ml-2 inline-block rounded-full px-2 py-px align-middle text-[0.68rem] font-semibold uppercase tracking-[0.05em] ${
+          featured ? "bg-navy-light text-gold" : "bg-cream text-copper"
+        }`}
+      >
+        {t("soonTag")}
+      </span>
+    );
+    const line = (item: CardLine, key: string) => (
+      <li key={key} className="flex items-start gap-2.5">
         <span
-          className={`mt-[3px] flex size-[1.15rem] flex-none items-center justify-center rounded-full ${
-            missing
-              ? featured
-                ? "bg-[#2c3b5e] text-[#8f9bb5]"
-                : "bg-sand text-[#b5afa4]"
-              : featured
-                ? "bg-[#33456b] text-salmon"
-                : "bg-mist text-coral"
+          className={`mt-[3px] flex size-[1.1rem] flex-none items-center justify-center rounded-full ${
+            featured ? "bg-[#33456b] text-gold" : "bg-cream text-copper"
           }`}
         >
-          {missing ? <DashIcon className="size-3" /> : <CheckIcon className="size-3" />}
+          <CheckIcon className="size-3" />
         </span>
         <span>
-          <span className="sr-only">{missing ? t("missing") : t("included")} </span>
           {item.text}
-          {item.soon && (
-            <span
-              className={`ml-2 inline-block rounded-full px-2 py-px align-middle text-[0.7rem] font-semibold uppercase tracking-[0.05em] ${
-                featured ? "bg-navy-light text-salmon" : "bg-blush text-rust"
-              }`}
-            >
-              {t("soonTag")}
-            </span>
-          )}
+          {item.soon && soonTag}
         </span>
       </li>
     );
-    const summary = <ul className={list}>{content.highlights.map((item, i) => line(item, `h${i}`))}</ul>;
-    const full = (
-      <div className="flex flex-col gap-4">
-        {content.full.groups.map((group, groupIndex) => (
-          <div key={groupIndex}>
-            {group.title && (
-              <p className={`mb-2 text-[0.78rem] font-semibold uppercase tracking-[0.06em] ${accent}`}>
-                {group.title}
-              </p>
-            )}
-            <ul className={list}>{group.lines.map((item, i) => line(item, `f${groupIndex}-${i}`))}</ul>
-          </div>
-        ))}
-        {content.full.missing.length > 0 && (
-          <ul className={list}>{content.full.missing.map((item, i) => line(item, `m${i}`, true))}</ul>
-        )}
+    const cta = (
+      <Link
+        href={href}
+        aria-label={`${ctaLabel} : ${content.name}`}
+        className={`group/cta relative mt-6 flex min-h-12 items-center justify-center gap-2 rounded-full px-4 py-3 text-[0.98rem] font-semibold transition duration-200 hover:-translate-y-0.5 motion-reduce:transition-none ${
+          featured
+            ? "bg-brick text-white hover:shadow-[0_12px_26px_rgba(212,64,47,.38)]"
+            : "bg-mist text-navy hover:bg-navy hover:text-white hover:shadow-[0_12px_26px_rgba(27,42,74,.25)]"
+        }`}
+      >
+        {ctaLabel}
+        <ArrowIcon
+          className={`size-[18px] shrink-0 transition-transform group-hover/cta:translate-x-1 ${
+            featured ? "" : "text-copper group-hover/cta:text-white"
+          }`}
+        />
+      </Link>
+    );
+    const header = (
+      <div className="relative flex items-start gap-3">
+        <span
+          className={`flex size-11 flex-none items-center justify-center rounded-2xl ${
+            featured ? "bg-gold text-navy" : "bg-cream text-copper"
+          }`}
+        >
+          <Icon className="size-[22px]" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h3
+            className={`font-display text-[1.4rem] font-bold uppercase leading-tight tracking-[0.02em] ${strong}`}
+          >
+            {content.name}
+          </h3>
+          {content.description && (
+            <p className={`mt-0.5 text-[0.92rem] leading-snug ${muted}`}>{content.description}</p>
+          )}
+        </div>
       </div>
     );
 
-    return (
-      <article
-        key={plan.id}
-        data-plan={content.code}
-        className={`group/card relative flex w-full flex-col overflow-hidden rounded-[1.75rem] border-2 p-6 transition duration-300 ease-out hover:-translate-y-2 motion-reduce:transition-none motion-reduce:hover:translate-y-0 lg:p-7 ${
-          featured
-            ? "border-coral bg-navy text-sand shadow-[0_24px_50px_-12px_rgba(27,42,74,.45)] hover:shadow-[0_34px_64px_-12px_rgba(27,42,74,.55)] lg:py-9"
-            : "border-line bg-white text-body shadow-[0_1px_0_rgba(22,24,29,.04)] hover:border-navy hover:shadow-[0_28px_56px_-16px_rgba(22,24,29,.22)]"
-        }`}
-      >
-        {/* Décor : un anneau et un disque en partie hors cadre, qui bougent au survol. */}
-        <span
-          aria-hidden="true"
-          className={`pointer-events-none absolute -right-16 -top-16 size-36 rounded-full border-[1.1rem] transition duration-500 ease-out group-hover/card:-translate-x-3 group-hover/card:translate-y-3 motion-reduce:transition-none ${
-            featured ? "border-navy-light" : "border-mist"
-          }`}
-        />
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute right-5 top-5 size-2.5 rounded-full bg-coral transition duration-500 ease-out group-hover/card:-translate-x-3 group-hover/card:translate-y-3 motion-reduce:transition-none"
-        />
-
-        {/* En-tête : icône, nom, accroche */}
-        <div className="relative flex items-start gap-3">
-          <span
-            className={`flex size-10 flex-none items-center justify-center rounded-xl transition duration-300 group-hover/card:-rotate-6 group-hover/card:scale-105 motion-reduce:transition-none ${
-              featured ? "bg-coral text-white" : "bg-mist text-coral"
-            }`}
-          >
-            <Icon className="size-5" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <h3
-                className={`font-display text-[1.25rem] font-bold leading-tight tracking-[-0.02em] ${strong}`}
-              >
-                {content.name}
-              </h3>
-              {featured && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-coral px-2.5 py-0.5 text-[0.72rem] font-semibold uppercase tracking-[0.06em] text-[#2a0f0a]">
-                  <StarIcon className="size-3" />
-                  {t("recommended")}
-                </span>
-              )}
-            </div>
-            {content.description && (
-              <p className={`mt-0.5 text-[0.9rem] leading-snug ${muted}`}>{content.description}</p>
-            )}
-          </div>
-        </div>
-
-        {/* Prix */}
-        <div className="relative mt-6">
-          <p className="flex items-baseline gap-1.5">
-            <span
-              className={`font-display text-[2.15rem] font-bold leading-none tracking-[-0.03em] lg:text-[2.4rem] ${strong}`}
-            >
-              {content.price}
-            </span>
-            <span className={`text-[0.9rem] ${muted}`}>{content.priceSuffix}</span>
+    const front = (
+      <>
+        {featured && (
+          <p className="absolute left-1/2 top-0 inline-flex -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 whitespace-nowrap rounded-full bg-gold px-3.5 py-1 text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-navy shadow-[0_8px_20px_-6px_rgba(212,167,90,.6)]">
+            <StarIcon className="size-3.5" />
+            {t("recommended")}
           </p>
-        </div>
-
-        {/* Chiffres clés : une bande fine, trois colonnes */}
+        )}
+        {header}
+        <SitePreview
+          tier={index}
+          pages={plan.limits.pages ?? null}
+          tone={featured ? "dark" : "light"}
+          label={t("preview", { plan: content.name })}
+          more={(count) => t("previewMore", { count })}
+        />
+        <p className="relative mt-5 flex flex-wrap items-baseline gap-x-1.5">
+          <span
+            className={`font-display text-[2.4rem] font-bold leading-none tracking-[-0.03em] lg:text-[2.6rem] ${strong}`}
+          >
+            {content.price}
+          </span>
+          <span className={`text-[0.92rem] ${muted}`}>
+            {content.priceSuffix} {conditions.display}
+          </span>
+        </p>
         <dl
-          className={`relative mt-5 grid grid-cols-3 divide-x rounded-2xl border ${
-            featured ? "divide-[#34466b] border-[#34466b]" : "divide-line border-line"
-          }`}
+          className={`relative mt-4 grid grid-cols-3 divide-x rounded-2xl border ${rule} ${featured ? "divide-[#34466b]" : "divide-line"}`}
         >
           {content.tiles.map((item) => (
             <div key={item.key} className="flex flex-col-reverse items-center px-1.5 py-2.5 text-center">
               <dt className={`text-[0.7rem] leading-tight ${muted}`}>{item.label}</dt>
-              <dd className={`text-[0.95rem] font-semibold leading-tight ${strong}`}>{item.value}</dd>
+              <dd className={`text-[0.98rem] font-semibold leading-tight ${strong}`}>{item.value}</dd>
             </div>
           ))}
         </dl>
+        <ul className="relative mt-5 flex flex-col gap-2.5 text-[0.94rem] leading-snug">
+          {content.highlights.map((item, i) => line(item, `h${i}`))}
+        </ul>
+        <div className="mt-auto">{cta}</div>
+      </>
+    );
 
-        {content.smsExtra && (
-          <p className={`relative mt-2 text-center text-[0.8rem] ${muted}`}>{content.smsExtra}</p>
-        )}
-
-        <Link
-          href={content.cta.href as { pathname: "/commander"; query: Record<string, string> }}
-          className={`group/cta relative mt-5 flex min-h-12 items-center justify-center gap-2 whitespace-nowrap rounded-full px-4 py-3 text-[0.98rem] font-semibold transition duration-200 hover:-translate-y-0.5 motion-reduce:transition-none ${
-            featured
-              ? "bg-brick text-white hover:shadow-[0_12px_26px_rgba(212,64,47,.38)]"
-              : "bg-mist text-navy hover:bg-navy hover:text-white hover:shadow-[0_12px_26px_rgba(27,42,74,.25)]"
-          }`}
-        >
-          {content.cta.label}
-          <ArrowIcon
-            className={`size-[18px] shrink-0 transition-transform group-hover/cta:translate-x-1 ${
-              featured ? "" : "text-coral group-hover/cta:text-white"
-            }`}
-          />
-        </Link>
-
-        {/* Ce qui est inclus : 6 lignes au plus, puis un bouton qui déplie toute la liste. */}
-        <div className={`relative mt-6 border-t pt-5 ${featured ? "border-[#34466b]" : "border-line"}`}>
-          <PlanDetails
-            summary={summary}
-            full={full}
-            labels={{ more: t("seeAll"), less: t("collapse") }}
-            className={accent}
-          />
+    const back = (
+      <>
+        <div className="flex items-baseline justify-between gap-3">
+          <h3 className={`font-display text-[1.15rem] font-bold leading-tight ${strong}`}>
+            {t("detailsTitle", { plan: content.name })}
+          </h3>
+          <p className={`whitespace-nowrap text-[0.9rem] font-semibold ${accent}`}>
+            {content.price} <span className="font-normal">{content.priceSuffix}</span>
+          </p>
         </div>
-
-        {content.addBooking && (
-          <p
-            className={`relative mt-auto flex gap-2.5 rounded-2xl px-4 py-3 text-[0.85rem] font-medium leading-snug ${
-              featured ? "bg-navy-light text-white" : "bg-ivory text-night"
-            }`}
-          >
-            <ArrowIcon className={`mt-[2px] size-4 flex-none ${accent}`} />
-            {content.addBooking}
+        {previous && (
+          <p className={`mt-3 text-[0.9rem] font-semibold ${strong}`}>
+            {t("sheetEverythingIn", { plan: pickLocalized(previous.name, locale) })}
           </p>
         )}
-      </article>
+        {/* Rubriques compactes : une ligne de titre, puis les éléments à la suite. */}
+        <dl className="mt-4 flex flex-col gap-2 text-[0.84rem] leading-snug">
+          {sheet.map((group) => (
+            <div key={group.section}>
+              <dt className={`text-[0.68rem] font-semibold uppercase tracking-[0.08em] ${accent}`}>
+                {t(`sheet.sections.${group.section}`)}
+              </dt>
+              <dd>
+                {group.lines.map((item, i) => (
+                  <span key={item.key}>
+                    {i > 0 && (
+                      <span aria-hidden="true" className={`mx-1.5 ${accent}`}>
+                        ·
+                      </span>
+                    )}
+                    {translate(`sheet.lines.${item.key}`, item.values)}
+                    {item.soon && soonTag}
+                  </span>
+                ))}
+              </dd>
+            </div>
+          ))}
+        </dl>
+        {options.length > 0 && (
+          <div className={`mt-3.5 border-t pt-3 ${rule}`}>
+            <p className={`text-[0.68rem] font-semibold uppercase tracking-[0.08em] ${accent}`}>
+              {t("optionsTitle")}
+            </p>
+            <p className="text-[0.85rem] leading-snug">
+              {options
+                .filter((option) => option.isAvailable)
+                .map((option) => pickLocalized(option.name, locale))
+                .join(" · ")}
+            </p>
+            <a
+              href="#options"
+              className={`inline-flex min-h-11 items-center gap-1 text-[0.85rem] font-semibold underline underline-offset-4 ${accent}`}
+            >
+              {t("optionsLink")}
+            </a>
+          </div>
+        )}
+        <div className={`border-t pt-3 ${rule}`}>
+          <p className={`text-[0.68rem] font-semibold uppercase tracking-[0.08em] ${accent}`}>
+            {t("subscriptionTitle")}
+          </p>
+          <p className={`text-[0.84rem] leading-snug ${muted}`}>
+            {[
+              t("subscription.commitment", { months: conditions.commitmentMonths }),
+              t("subscription.creationFree"),
+              t("subscription.display", { display: conditions.display }),
+              t("subscription.upgrade"),
+            ].join(" · ")}
+          </p>
+        </div>
+        <div className="mt-auto">{cta}</div>
+      </>
+    );
+
+    const surface = `relative rounded-[1.75rem] border-2 p-6 lg:p-7 ${
+      featured
+        ? "border-gold bg-navy text-sand shadow-[0_28px_60px_-14px_rgba(27,42,74,.5)]"
+        : "border-line bg-white text-body shadow-[0_1px_0_rgba(22,24,29,.04)]"
+    }`;
+    return (
+      <div
+        key={plan.id}
+        data-plan={content.code}
+        className={`flex transition duration-300 ease-out hover:-translate-y-2 motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${
+          featured ? "max-lg:order-first" : ""
+        }`}
+      >
+        <FlipCard
+          front={front}
+          back={back}
+          surface={surface}
+          tone={featured ? "dark" : "light"}
+          labels={{
+            details: t("details"),
+            detailsLabel: t("detailsOf", { plan: content.name }),
+            back: t("back"),
+            backLabel: t("backOf", { plan: content.name }),
+          }}
+        />
+      </div>
     );
   };
 
-  // Téléphone : les cartes l'une sous l'autre, le pack recommandé en premier ; ordinateur : trois colonnes
-  // alignées en haut (une carte dépliée s'allonge vers le bas sans déplacer ses voisines).
-  const row = "flex flex-col gap-5 lg:grid lg:grid-cols-3 lg:items-start xl:gap-6";
-  const cell = (index: number, count: number) =>
-    `flex w-full lg:block ${index === count - 1 && count > 1 ? "max-lg:order-first" : ""}`;
-
-  // Aucun pack « site seul » proposé : une simple rangée de cartes.
-  if (siteOnly.length === 0) {
-    return (
-      <div className={row}>
-        {booking.map((plan, index) => (
-          <div key={plan.id} className={cell(index, booking.length)}>
-            {card(booking, index)}
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  const cells = Math.max(booking.length, siteOnly.length);
   return (
-    <PlanFlip
-      labels={{
-        group: t("toggleLabel"),
-        booking: t("toggleBooking"),
-        site: t("toggleSite"),
-        hintBooking: t("toggleHintBooking"),
-        hintSite: t("toggleHintSite"),
-      }}
-    >
-      <div className={row}>
-        {Array.from({ length: cells }, (_, index) => (
-          // Une case, deux faces superposées : la case prend la hauteur de la plus grande. Téléphone :
-          // seule la face choisie occupe la place (les cartes empilées ne laissent pas de trou).
-          <div key={index} className={`${cell(index, cells)} [perspective:2200px]`}>
-            <div className="grid w-full items-start transition-transform duration-700 ease-in-out [transform-style:preserve-3d] lg:group-data-[side=site]/plans:[transform:rotateY(180deg)] motion-reduce:transition-none">
-              {/* La face cachée devient invisible à mi-retournement : ni lue, ni atteinte au clavier. */}
-              <div className="visible flex [grid-area:1/1] [backface-visibility:hidden] lg:block transition-[visibility] delay-300 duration-0 group-data-[side=site]/plans:invisible group-data-[side=site]/plans:max-lg:hidden motion-reduce:delay-0">
-                {booking[index] && card(booking, index)}
-              </div>
-              <div className="invisible flex [grid-area:1/1] [backface-visibility:hidden] max-lg:hidden lg:block lg:[transform:rotateY(180deg)] transition-[visibility] delay-300 duration-0 group-data-[side=site]/plans:visible group-data-[side=site]/plans:max-lg:flex motion-reduce:delay-0">
-                {siteOnly[index] && card(siteOnly, index)}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </PlanFlip>
+    <div className="flex flex-col gap-8 pt-3 lg:grid lg:grid-cols-3 lg:items-stretch lg:gap-6">
+      {plans.map((plan, index) => card(plan, index))}
+    </div>
   );
 }

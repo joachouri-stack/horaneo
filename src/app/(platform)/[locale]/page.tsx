@@ -5,24 +5,27 @@ import { PlatformFooter } from "@/components/layout/PlatformFooter";
 import { PlatformHeader } from "@/components/layout/PlatformHeader";
 import {
   ArrowIcon,
-  BellIcon,
   BrowserIcon,
-  CalendarCheckIcon,
-  CardIcon,
   CheckIcon,
+  DocumentIcon,
   EuroIcon,
-  GiftIcon,
-  HeartIcon,
+  GlobeIcon,
   LockIcon,
+  PencilIcon,
   PlusIcon,
-  ReviewIcon,
+  ServerIcon,
   ShieldIcon,
-  UserIcon,
+  SparkleIcon,
+  CalendarCheckIcon,
+  HeartIcon,
 } from "@/components/marketing/icons";
 import { HeroVisual } from "@/components/marketing/HeroVisual";
 import { CarouselDots } from "@/components/marketing/CarouselDots";
+import { DashboardShowcase, type DashboardItem } from "@/components/marketing/DashboardShowcase";
+import { OptionsConfigurator } from "@/components/marketing/OptionsConfigurator";
 import { PlanCards } from "@/components/marketing/PlanCards";
 import { formatMoney } from "@/lib/format";
+import { listPlanOptions, pricedOption } from "@/modules/billing/options";
 import { smsPackOffer } from "@/modules/billing/sms-packs";
 import { env, publicAppUrl } from "@/config/env";
 import { withPlatform } from "@/db/access";
@@ -31,7 +34,6 @@ import { Link } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/translator";
 import { pickLocalized } from "@/i18n/locales";
 import { listPublicPlans } from "@/modules/billing/plans";
-import { planAllowsBooking } from "@/modules/billing/features";
 import { salesOpen } from "@/modules/legal/documents";
 import { getPlatformSetting } from "@/modules/settings";
 import { listShowcase } from "@/modules/showcase/showcase";
@@ -55,14 +57,27 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">): Prom
   };
 }
 
-/** Question de la FAQ ; « if » : affichée seulement si le réglage concerné s’applique. */
-type Faq = { q: string; a: string; if?: "commitment" | "smsPack" };
+/** Questions fréquentes, dans l'ordre (textes : home.faq.items.<clé>). */
+const FAQ = [
+  "fees",
+  "domain",
+  "hosting",
+  "editing",
+  "booking",
+  "change",
+  "cancel",
+  "ownership",
+  "delay",
+  "payments",
+] as const;
 
 const TITLE = "font-display font-bold tracking-[-0.03em] text-night";
 const BADGE = "inline-block rounded-full bg-blush px-3.5 py-1.5 text-[0.9rem] font-medium text-rust";
 /** Bouton principal : pilule corail foncé, flèche qui avance au survol. */
 const PRIMARY =
   "group inline-flex items-center gap-2.5 rounded-full bg-brick font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-[0_12px_26px_rgba(212,64,47,.32)]";
+/** Étiquette dorée des sections tarifs, options, tableau de bord et conditions. */
+const GOLD_BADGE = "inline-block rounded-full bg-cream px-3.5 py-1.5 text-[0.9rem] font-medium text-copper";
 const LINK =
   "inline-flex min-h-11 items-center font-medium text-night underline underline-offset-4 transition-colors hover:text-brick";
 
@@ -80,71 +95,87 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
   const config = env();
   const data = await withPlatform(async (tx) => ({
     plans: await listPublicPlans(tx),
-    display: await getPlatformSetting(tx, "prices_display"),
+    options: await listPlanOptions(tx),
+    display: String(await getPlatformSetting(tx, "prices_display")),
     commission: Number(await getPlatformSetting(tx, "deposit_commission_percent")),
     commitment: Number(await getPlatformSetting(tx, "commitment_months")),
+    goLiveDays: Number(await getPlatformSetting(tx, "go_live_delay_days")),
+    retentionDays: Number(await getPlatformSetting(tx, "retention_days_after_cancel")),
+    buyout: (await getPlatformSetting(tx, "site_buyout_enabled"))
+      ? Number(await getPlatformSetting(tx, "site_buyout_price_cents"))
+      : null,
     soon: await getPlatformSetting(tx, "features_soon"),
     salesOpen: await salesOpen(tx),
     smsPack: await smsPackOffer(tx),
     showcase: await listShowcase(tx),
   }));
   const percent = data.commission;
-  // Frais de création sans engagement : propres à chaque pack, annoncés « à partir de » le plus bas.
-  const fees = data.plans
-    .filter((plan) => plan.priceCents > 0)
-    .map((plan) => plan.noCommitmentFeeCents ?? 0)
-    .filter((fee) => fee > 0);
-  const minFee = fees.length > 0 ? Math.min(...fees) : 0;
-  // « 149 € » plutôt que « 149,00 € » ; les centimes ne s'affichent que s'il y en a.
+  const soon = new Set<string>(data.soon);
   const money = (cents: number) => formatMoney(cents, "EUR", locale);
-  // Une question qui dépend d'un réglage (ex. « Suis-je engagé ? ») n'apparaît que s'il s'applique.
-  const faq = (t.raw("faq.items") as Faq[]).filter(
-    (item) =>
-      (item.if !== "commitment" || data.commitment > 0) &&
-      (item.if !== "smsPack" ||
-        (data.smsPack.priceCents > 0 && data.plans.some((plan) => (plan.limits.smsPerMonth ?? 0) > 0))),
-  );
-  // « {plan:fonction} » dans la FAQ : nom du premier pack qui la comprend (suit la configuration).
-  const planWith = (feature: string) =>
-    pickLocalized(data.plans.find((plan) => plan.features[feature])?.name ?? data.plans.at(-1)!.name, locale);
-  const answer = (text: string) =>
-    text
-      .replace("{commission}", t("faq.commission", { percent }))
-      .replace("{smsPackSize}", String(data.smsPack.size))
-      .replace("{smsPackPrice}", money(data.smsPack.priceCents))
-      .replace("{commitmentMonths}", String(data.commitment))
-      .replace("{noCommitmentFee}", money(minFee))
-      .replace("{product}", config.PRODUCT_NAME)
-      .replace(/\{plan:(\w+)\}/g, (_, feature: string) => planWith(feature));
+  const nameOf = (value: Parameters<typeof pickLocalized>[0]) => pickLocalized(value, locale);
+  const paid = data.plans.filter((plan) => plan.priceCents > 0);
+  // « Dès 19,90 € » : le pack le moins cher proposé (lu dans les réglages).
+  const startPrice = paid.length > 0 ? money(Math.min(...paid.map((plan) => plan.priceCents))) : null;
+  const featured =
+    data.plans[data.plans.length >= 3 ? Math.floor(data.plans.length / 2) : data.plans.length - 1];
   const contact = config.SUPPORT_EMAIL ?? `support@${config.MAIN_DOMAIN}`;
-  // Fonctions présentées : l'étiquette dit à partir de quel pack (lu dans la configuration).
-  const features = [
-    { key: "reminders", Icon: BellIcon, feature: null },
-    { key: "deposit", Icon: CardIcon, feature: "onlinePayment" },
-    { key: "customerSpace", Icon: UserIcon, feature: "customerSpace" },
-    { key: "giftCards", Icon: GiftIcon, feature: "giftCards", siteToo: true },
-    { key: "loyalty", Icon: HeartIcon, feature: "loyalty" },
-    { key: "reviews", Icon: ReviewIcon, feature: "googleReviews", siteToo: true },
-  ] as const;
-  const featureTag = (feature: string | null, siteToo = false) => {
-    // Premier pack avec réservation qui comprend la fonction, et premier pack sans réservation s'il l'a aussi.
-    const withBooking = data.plans.filter((item) => planAllowsBooking(item.features));
-    const plan = feature ? withBooking.find((item) => item.features[feature]) : withBooking[0];
-    if (!plan) return null;
-    if (plan.priceCents <= 0) return t("features.tagAll");
-    // Fonctions qui n'ont pas besoin de la réservation : on cite aussi le premier pack sans réservation.
-    const sitePlan =
-      feature && siteToo
-        ? data.plans.find((item) => !planAllowsBooking(item.features) && item.features[feature])
-        : undefined;
-    return sitePlan
-      ? t("features.tagFromBoth", {
-          plan: pickLocalized(plan.name, locale),
-          sitePlan: pickLocalized(sitePlan.name, locale),
-        })
-      : t("features.tagFrom", { plan: pickLocalized(plan.name, locale) });
+
+  // Questions : réponses calculées avec les réglages (engagement, délais, commission).
+  const faqValues = {
+    months: data.commitment,
+    days: data.goLiveDays,
+    percent,
+    product: config.PRODUCT_NAME,
   };
-  // Données lues par Google : l'entreprise et les questions (mêmes textes que la page).
+  const faq = FAQ.map((key) => ({
+    key,
+    q: t(`faq.items.${key}.q`),
+    a: t(`faq.items.${key}.a`, key === "cancel" ? { ...faqValues, days: data.retentionDays } : faqValues),
+  }));
+
+  // Tableau de bord : chaque possibilité dit si elle est incluse, liée à une option, ou à venir.
+  const optionName = (code: string) => {
+    const option = data.options.find((item) => item.code === code);
+    return option ? nameOf(option.name) : null;
+  };
+  const tagFor = (rule: { feature?: string; option?: string }): { tag: string; included: boolean } | null => {
+    if (rule.feature && soon.has(rule.feature)) return { tag: t("dashboard.tags.soon"), included: false };
+    if (rule.option) {
+      const name = optionName(rule.option);
+      return name ? { tag: t("dashboard.tags.option", { name }), included: false } : null;
+    }
+    if (!rule.feature || data.plans.every((plan) => plan.features[rule.feature!]))
+      return { tag: t("dashboard.tags.included"), included: true };
+    const first = data.plans.find((plan) => plan.features[rule.feature!]);
+    return first ? { tag: t("dashboard.tags.from", { plan: nameOf(first.name) }), included: false } : null;
+  };
+  const dashboard = (
+    [
+      { key: "content", rule: { feature: "selfEditing" } },
+      { key: "pages", rule: { feature: "selfEditing" } },
+      { key: "requests", rule: { feature: "contactForm" } },
+      { key: "bookings", rule: { option: "booking" } },
+      { key: "payments", rule: { option: "online-payment" } },
+      { key: "stats", rule: { option: "booking" } },
+      { key: "options", rule: {} },
+    ] as const
+  ).flatMap((item): DashboardItem[] => {
+    const tag = tagFor(item.rule);
+    return tag ? [{ key: item.key, ...tag }] : [];
+  });
+
+  const conditions = [
+    { key: "creation", Icon: EuroIcon },
+    { key: "commitment", Icon: CalendarCheckIcon },
+    { key: "hosting", Icon: ServerIcon },
+    { key: "editing", Icon: PencilIcon },
+    { key: "provided", Icon: LockIcon },
+    { key: "domain", Icon: GlobeIcon },
+    { key: "content", Icon: HeartIcon },
+    { key: "export", Icon: DocumentIcon },
+  ] as const;
+
+  // Données lues par Google : l'entreprise, les offres et les questions (mêmes textes que la page).
   const structuredData = [
     {
       "@context": "https://schema.org",
@@ -159,14 +190,14 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
       mainEntity: faq.map((item) => ({
         "@type": "Question",
         name: item.q,
-        acceptedAnswer: { "@type": "Answer", text: answer(item.a) },
+        acceptedAnswer: { "@type": "Answer", text: item.a },
       })),
     },
   ];
   const steps = [
     { key: "create", Icon: BrowserIcon, accent: false },
-    { key: "book", Icon: CalendarCheckIcon, accent: true },
-    { key: "cash", Icon: EuroIcon, accent: false },
+    { key: "book", Icon: PencilIcon, accent: true },
+    { key: "cash", Icon: SparkleIcon, accent: false },
   ] as const;
 
   return (
@@ -189,7 +220,9 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 {t("titleAccent")}
               </span>
             </h1>
-            <p className="mb-7 max-w-[30rem] text-[1.05rem] lg:text-[1.125rem]">{t("subtitle")}</p>
+            <p className="mb-7 max-w-[30rem] text-[1.05rem] lg:text-[1.125rem]">
+              {t("subtitle", { price: startPrice ?? "" })}
+            </p>
             <div className="mb-8 flex flex-wrap items-center gap-6">
               <a href="#tarifs" className={`${PRIMARY} min-h-11 px-6 py-3 text-base`}>
                 {t("cta")}
@@ -200,14 +233,12 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               </a>
             </div>
             <ul className="flex flex-wrap gap-x-6 gap-y-2.5 text-[0.98rem]">
-              {[t("promises.commission", { percent }), t("promises.domain"), t("promises.install")].map(
-                (text) => (
-                  <li key={text} className="flex items-center gap-2">
-                    <CheckIcon className="size-[18px] text-brick" />
-                    {text}
-                  </li>
-                ),
-              )}
+              {[t("promises.creation"), t("promises.domain"), t("promises.hosting")].map((text) => (
+                <li key={text} className="flex items-center gap-2">
+                  <CheckIcon className="size-[18px] text-brick" />
+                  {text}
+                </li>
+              ))}
             </ul>
           </div>
           <HeroVisual />
@@ -291,7 +322,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   <p
                     className={`self-start rounded-full px-3.5 py-1.5 text-[0.88rem] font-semibold text-rust ${accent ? "bg-white" : "bg-blush"}`}
                   >
-                    {t(`steps.${key}.tag`, { percent })}
+                    {t(`steps.${key}.tag`)}
                   </p>
                 </li>
               ))}
@@ -303,51 +334,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               className="mt-2 md:hidden"
             />
           </div>
-        </section>
-
-        {/* Fonctions incluses */}
-        <section
-          id="fonctions"
-          aria-labelledby="titre-fonctions"
-          className="mx-auto max-w-[75rem] scroll-mt-4 px-4 pt-14 sm:px-6 lg:pt-20"
-        >
-          <div className="mb-8 flex flex-wrap items-end justify-between gap-4 lg:mb-10 lg:gap-6">
-            <div>
-              <p className={`${BADGE} mb-4`}>{t("features.badge")}</p>
-              <h2
-                id="titre-fonctions"
-                className={`${TITLE} text-[clamp(1.9rem,3.6vw,2.75rem)] leading-[1.05]`}
-              >
-                {t("features.title")} <span className="text-brick">{t("features.titleAccent")}</span>
-              </h2>
-            </div>
-            <p className="max-w-sm text-[1.05rem]">{t("features.intro")}</p>
-          </div>
-          <ul className="reveal grid gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
-            {features.map((item) => {
-              const { key, Icon, feature } = item;
-              const tag = featureTag(feature, "siteToo" in item && item.siteToo);
-              if (!tag) return null;
-              return (
-                <li
-                  key={key}
-                  className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 rounded-[1.5rem] border-2 border-line bg-white p-5 transition duration-200 sm:flex sm:flex-col sm:gap-3 sm:p-6 lg:rounded-[1.75rem] lg:p-7 hover:-translate-y-2 hover:border-coral hover:shadow-[0_22px_44px_rgba(22,24,29,.08)]"
-                >
-                  {/* Téléphone : icône à gauche, texte à droite (ligne compacte). */}
-                  <span className="row-span-3 flex size-11 items-center justify-center rounded-[0.9rem] bg-blush text-brick sm:size-[3.2rem] sm:rounded-[1rem]">
-                    <Icon className="size-[22px] sm:size-[26px]" />
-                  </span>
-                  <h3 className="font-sans text-[1.1rem] font-semibold text-night sm:mt-1 lg:text-[1.25rem]">
-                    {t(`features.items.${key}.title`)}
-                  </h3>
-                  <p className="flex-1 text-[0.95rem] lg:text-base">{t(`features.items.${key}.text`)}</p>
-                  <p className="self-start rounded-full bg-sand px-3 py-1 text-[0.85rem] font-semibold text-stone">
-                    {tag}
-                  </p>
-                </li>
-              );
-            })}
-          </ul>
         </section>
 
         {/* Ils nous font confiance : vrais témoignages saisis dans l'admin (bloc caché s'il n'y en a pas). */}
@@ -395,83 +381,171 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           </section>
         )}
 
-        {/* Packs */}
+        {/* Packs : trois cartes recto/verso */}
         <section
           id="tarifs"
           aria-labelledby="titre-tarifs"
           className="mx-auto max-w-[75rem] scroll-mt-20 px-4 pt-14 sm:px-6 lg:pt-20"
         >
-          <div className="mb-6 text-center lg:mb-8">
+          <div className="mb-8 text-center lg:mb-12">
+            <p className={`${GOLD_BADGE} mb-4`}>{t("plans.badge", { price: startPrice ?? "" })}</p>
             <h2
               id="titre-tarifs"
               className={`${TITLE} mb-3 text-[clamp(1.9rem,3.6vw,2.75rem)] leading-[1.05]`}
             >
-              {t("plans.title")} <span className="text-brick">{t("plans.titleAccent", { percent })}</span>
+              {t("plans.title")} <span className="text-copper">{t("plans.titleAccent")}</span>
             </h2>
-            <p className="mx-auto max-w-[34rem] text-[1.05rem]">{t("plans.subtitle")}</p>
+            <p className="mx-auto max-w-[36rem] text-[1.05rem]">{t("plans.subtitle")}</p>
           </div>
           <PlanCards
             plans={data.plans}
+            options={data.options.map((option) => ({
+              code: option.code,
+              name: option.name,
+              isAvailable: option.isAvailable,
+            }))}
             locale={locale}
             smsPack={data.smsPack}
             soon={data.soon}
             salesOpen={data.salesOpen}
+            conditions={{ commitmentMonths: data.commitment, display: data.display }}
           />
-          <p className="mt-6 text-center">
+          <p className="mt-8 text-center">
             <Link href="/comparatif" className={`${LINK} gap-1.5 font-semibold`}>
               {t("plans.compare")}
               <ArrowIcon className="size-4" />
             </Link>
           </p>
-          {/* Garanties : trois engagements clairs, puis les conditions en une ligne. */}
-          <ul className="mx-auto mt-10 grid max-w-[62rem] gap-3 sm:grid-cols-3 lg:mt-12 lg:gap-4">
+          <ul className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-[0.85rem] text-stone">
             {[
-              {
-                Icon: EuroIcon,
-                title: t("plans.trust.commission", { percent }),
-                text: t("plans.trust.commissionText"),
-              },
-              { Icon: LockIcon, title: t("plans.trust.secure"), text: t("plans.trust.secureText") },
-              { Icon: ShieldIcon, title: t("plans.trust.data"), text: t("plans.trust.dataText") },
-            ].map(({ Icon, title, text }) => (
-              <li
-                key={title}
-                className="group flex items-start gap-3.5 rounded-[1.25rem] border-2 border-line bg-white p-4 transition duration-300 hover:-translate-y-1 hover:border-coral hover:shadow-[0_18px_36px_-18px_rgba(22,24,29,.25)] motion-reduce:transition-none lg:p-5"
-              >
-                <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-blush text-brick transition duration-300 group-hover:-rotate-6 motion-reduce:transition-none">
-                  <Icon className="size-5" />
-                </span>
-                <div>
-                  <p className="font-semibold leading-snug text-night">{title}</p>
-                  <p className="mt-0.5 text-[0.88rem] leading-snug text-stone">{text}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
-          <ul className="mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-[0.85rem] text-stone">
-            {[
-              t("plans.note.display", { display: String(data.display) }),
-              // Deux formules : avec engagement (création offerte) ou sans (frais de création).
-              data.commitment > 0
-                ? t("plans.note.formulas", {
-                    months: data.commitment,
-                    fee: minFee > 0 ? money(minFee) : "none",
-                  })
-                : t("plans.note.commitment", { months: 0 }),
-              ...(data.commitment === 0
-                ? [
-                    minFee > 0
-                      ? t("plans.note.setupFee", { amount: money(minFee) })
-                      : t("plans.note.setupFree"),
-                  ]
-                : []),
+              t("plans.note.display", { display: data.display }),
+              t("plans.note.commitment", { months: data.commitment }),
+              t("plans.note.setupFree"),
+              t("plans.note.hosting"),
             ].map((text, index) => (
               <li key={text} className="flex items-center gap-3">
-                {index > 0 && <span aria-hidden="true" className="size-1 rounded-full bg-blush-strong" />}
+                {index > 0 && <span aria-hidden="true" className="size-1 rounded-full bg-gold" />}
                 {text}
               </li>
             ))}
           </ul>
+        </section>
+
+        {/* Options à la carte, avec le total de l'abonnement */}
+        {data.options.length > 0 && (
+          <section
+            id="options"
+            aria-labelledby="titre-options"
+            className="mx-auto max-w-[75rem] scroll-mt-20 px-4 pt-16 sm:px-6 lg:pt-24"
+          >
+            <div className="mb-8 flex flex-wrap items-end justify-between gap-4 lg:mb-10 lg:gap-6">
+              <div>
+                <p className={`${GOLD_BADGE} mb-4`}>{t("options.badge")}</p>
+                <h2
+                  id="titre-options"
+                  className={`${TITLE} text-[clamp(1.9rem,3.6vw,2.75rem)] leading-[1.05]`}
+                >
+                  {t("options.title")} <span className="text-copper">{t("options.titleAccent")}</span>
+                </h2>
+              </div>
+              <p className="max-w-md text-[1.05rem]">{t("options.intro")}</p>
+            </div>
+            <OptionsConfigurator
+              plans={data.plans.map((plan) => ({
+                code: plan.code,
+                name: nameOf(plan.name),
+                priceCents: plan.priceCents,
+              }))}
+              options={data.options.map((option) => ({
+                ...pricedOption(option),
+                name: nameOf(option.name),
+                description: nameOf(option.description),
+                icon: option.icon,
+                available: option.isAvailable,
+              }))}
+              defaultPlan={featured?.code ?? ""}
+              display={data.display}
+              salesOpen={data.salesOpen}
+            />
+          </section>
+        )}
+
+        {/* Tableau de bord */}
+        <section
+          id="tableau-de-bord"
+          aria-labelledby="titre-tableau"
+          className="mx-auto max-w-[75rem] scroll-mt-20 px-4 pt-16 sm:px-6 lg:pt-24"
+        >
+          <div className="mb-10 max-w-2xl lg:mb-12">
+            <p className={`${GOLD_BADGE} mb-4`}>{t("dashboard.badge")}</p>
+            <h2
+              id="titre-tableau"
+              className={`${TITLE} mb-3 text-[clamp(1.9rem,3.6vw,2.75rem)] leading-[1.05]`}
+            >
+              {t("dashboard.title")} <span className="text-copper">{t("dashboard.titleAccent")}</span>
+            </h2>
+            <p className="text-[1.05rem]">{t("dashboard.intro")}</p>
+          </div>
+          <DashboardShowcase items={dashboard} />
+        </section>
+
+        {/* Conditions commerciales */}
+        <section
+          id="conditions"
+          aria-labelledby="titre-conditions"
+          className="mx-3 mt-16 scroll-mt-20 rounded-[2rem] bg-white px-4 py-14 sm:px-6 lg:mt-24 lg:rounded-[3rem] lg:py-20"
+        >
+          <div className="mx-auto max-w-[75rem]">
+            <div className="mb-8 flex flex-wrap items-end justify-between gap-4 lg:mb-10 lg:gap-6">
+              <div>
+                <p className={`${GOLD_BADGE} mb-4`}>{t("conditions.badge")}</p>
+                <h2
+                  id="titre-conditions"
+                  className={`${TITLE} text-[clamp(1.9rem,3.6vw,2.75rem)] leading-[1.05]`}
+                >
+                  {t("conditions.title")} <span className="text-copper">{t("conditions.titleAccent")}</span>
+                </h2>
+              </div>
+              <p className="max-w-md text-[1.05rem]">{t("conditions.intro")}</p>
+            </div>
+            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
+              {conditions.map(({ key, Icon }) => (
+                <li
+                  key={key}
+                  className="group flex flex-col gap-2.5 rounded-[1.5rem] border-2 border-line bg-ivory p-5 transition duration-300 hover:-translate-y-1 hover:border-gold motion-reduce:transition-none"
+                >
+                  <span className="flex size-10 items-center justify-center rounded-xl bg-navy text-gold">
+                    <Icon className="size-5" />
+                  </span>
+                  <p className="font-semibold leading-snug text-night">
+                    {t(`conditions.items.${key}.title`, { months: data.commitment })}
+                  </p>
+                  <p className="text-[0.9rem] leading-snug text-stone">
+                    {t(`conditions.items.${key}.text`, {
+                      months: data.commitment,
+                      product: config.PRODUCT_NAME,
+                    })}
+                  </p>
+                </li>
+              ))}
+            </ul>
+            {data.buyout !== null && (
+              <p className="mt-5 text-center text-[0.9rem] text-stone">
+                {t("conditions.buyout", { amount: money(data.buyout) })}
+              </p>
+            )}
+            <ul className="mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2 text-[0.9rem] text-night">
+              {[
+                { Icon: ShieldIcon, text: t("plans.trust.secure") },
+                { Icon: CheckIcon, text: t("plans.trust.commission", { percent }) },
+              ].map(({ Icon, text }) => (
+                <li key={text} className="flex items-center gap-2">
+                  <Icon className="size-[18px] text-copper" />
+                  {text}
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
 
         {/* Questions */}
@@ -496,7 +570,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             <div className="reveal flex flex-[2_1_26rem] flex-col gap-3">
               {faq.map((item, index) => (
                 <details
-                  key={item.q}
+                  key={item.key}
                   open={index === 0}
                   className="group rounded-[1.25rem] border-[1.5px] border-line bg-ivory transition-colors open:border-coral open:bg-white"
                 >
@@ -506,7 +580,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                       <PlusIcon className="size-4" />
                     </span>
                   </summary>
-                  <p className="px-5 pb-5 text-[0.95rem] lg:px-6 lg:text-base">{answer(item.a)}</p>
+                  <p className="px-5 pb-5 text-[0.95rem] lg:px-6 lg:text-base">{item.a}</p>
                 </details>
               ))}
             </div>

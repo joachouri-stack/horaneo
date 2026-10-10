@@ -1,3 +1,4 @@
+import { tenantFeatures } from "@/modules/billing/entitlements";
 import { and, asc, desc, eq } from "drizzle-orm";
 import { planAllowsBooking } from "@/modules/billing/features";
 import type { Transaction } from "@/db/client";
@@ -73,7 +74,7 @@ export type SiteData = Awaited<ReturnType<typeof loadSiteData>>;
 
 export async function loadSiteData(tx: Transaction, tenantId: string, locale?: Locale) {
   const [row] = await tx
-    .select({ tenant: tenants, features: plans.features })
+    .select({ tenant: tenants, features: tenantFeatures })
     .from(tenants)
     .innerJoin(plans, eq(plans.id, tenants.planId))
     .where(eq(tenants.id, tenantId));

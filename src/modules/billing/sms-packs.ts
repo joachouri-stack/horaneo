@@ -1,3 +1,4 @@
+import { tenantLimits } from "@/modules/billing/entitlements";
 import { and, desc, eq, sql } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
 import { getTranslator, resolveLocale } from "@/i18n/translator";
@@ -33,7 +34,7 @@ export async function listSmsPacks(tx: Transaction, tenantId: string) {
 /** Seuls les packs qui comprennent des SMS peuvent en ajouter (pas le Basic). */
 export async function canBuySmsPacks(tx: Transaction, tenantId: string) {
   const [row] = await tx
-    .select({ limits: plans.limits })
+    .select({ limits: tenantLimits })
     .from(tenants)
     .innerJoin(plans, eq(plans.id, tenants.planId))
     .where(eq(tenants.id, tenantId));

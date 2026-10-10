@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { createDb } from "@/db/client";
 import { seed } from "@/db/seed";
 
@@ -29,4 +30,28 @@ export async function pgErrorCode(promise: Promise<unknown>): Promise<string | u
     const err = error as { code?: string; cause?: { code?: string } };
     return err.code ?? err.cause?.code;
   }
+}
+
+/**
+ * Remet en vente les anciens packs (Basic, Essentiel, Sérénité, Express,
+ * Vitrine, Signature) et la formule sans engagement, le temps d'un fichier de
+ * tests qui s'en sert pour vérifier les mécanismes d'abonnement. Renvoie la
+ * fonction qui rétablit la grille actuelle.
+ */
+export async function withLegacyCatalog(owner: TestDb) {
+  const codes = ["basic", "essentiel", "serenite", "express", "vitrine", "signature"];
+  await owner.execute(
+    sql`UPDATE plans SET is_public = true WHERE code IN ${sql.raw(`('${codes.join("','")}')`)}`,
+  );
+  await owner.execute(
+    sql`UPDATE platform_settings SET value = 'true'::jsonb WHERE key = 'offer_no_commitment'`,
+  );
+  return async () => {
+    await owner.execute(
+      sql`UPDATE plans SET is_public = false WHERE code IN ${sql.raw(`('${codes.join("','")}')`)}`,
+    );
+    await owner.execute(
+      sql`UPDATE platform_settings SET value = 'false'::jsonb WHERE key = 'offer_no_commitment'`,
+    );
+  };
 }

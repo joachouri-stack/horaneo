@@ -1,3 +1,4 @@
+import { tenantFeatures, tenantLimits } from "@/modules/billing/entitlements";
 import { and, asc, count, desc, eq, gte, ilike, inArray, or, sql, type SQL } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
 import {
@@ -73,11 +74,13 @@ export async function listTenants(tx: Transaction, filters: TenantFilters = {}) 
 
 export async function getTenantOverview(tx: Transaction, tenantId: string) {
   const [row] = await tx
-    .select({ tenant: tenants, plan: plans })
+    // Droits réels : ceux du pack, complétés par les options actives du site.
+    .select({ tenant: tenants, plan: plans, features: tenantFeatures, limits: tenantLimits })
     .from(tenants)
     .innerJoin(plans, eq(plans.id, tenants.planId))
     .where(eq(tenants.id, tenantId));
   if (!row) return null;
+  row.plan = { ...row.plan, features: row.features, limits: row.limits };
   const [businessRows, domains, managers, usage, servicesCount, membersCount, photosCount] =
     await Promise.all([
       tx

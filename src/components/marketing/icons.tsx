@@ -159,3 +159,91 @@ export const ShieldIcon = ({ className }: IconProps) => (
     <path d="M9 12l2.2 2.2L15.5 10" strokeWidth="2.2" />
   </Icon>
 );
+
+/** Retourner une carte (deux flèches en cercle). */
+export const FlipIcon = ({ className }: IconProps) => (
+  <Icon className={className}>
+    <path d="M4 12a8 8 0 0 1 13.7-5.6L20 8.5M20 4v4.5h-4.5" strokeWidth="2.2" />
+    <path d="M20 12a8 8 0 0 1-13.7 5.6L4 15.5M4 20v-4.5h4.5" strokeWidth="2.2" />
+  </Icon>
+);
+
+export const BagIcon = ({ className }: IconProps) => (
+  <Icon className={className}>
+    <path d="M5 8h14l-1 12H6zM9 8V6.5a3 3 0 0 1 6 0V8" strokeWidth="2.2" />
+  </Icon>
+);
+
+export const DocumentIcon = ({ className }: IconProps) => (
+  <Icon className={className}>
+    <path d="M7 3h7l4 4v14H7zM14 3v4h4M10 12h5M10 16h5" strokeWidth="2.2" />
+  </Icon>
+);
+
+export const BrushIcon = ({ className }: IconProps) => (
+  <Icon className={className}>
+    <path
+      d="M14.5 4.5l5 5-7.5 7.5-5-5zM7 12l-2.5 2.5c-1.2 1.2-.5 4.5-1.5 5.5 2.5.5 5-.5 6-1.5L11.5 16"
+      strokeWidth="2"
+    />
+  </Icon>
+);
+
+export const ChartIcon = ({ className }: IconProps) => (
+  <Icon className={className}>
+    <path d="M4 20h16M7 16v-4M12 16V7M17 16v-7" strokeWidth="2.4" />
+  </Icon>
+);
+
+export const GlobeIcon = ({ className }: IconProps) => (
+  <Icon className={className}>
+    <circle cx="12" cy="12" r="8.5" strokeWidth="2" />
+    <path d="M3.5 12h17M12 3.5c2.5 2.6 2.5 14.4 0 17M12 3.5c-2.5 2.6-2.5 14.4 0 17" strokeWidth="2" />
+  </Icon>
+);
+
+export const ServerIcon = ({ className }: IconProps) => (
+  <Icon className={className}>
+    <rect x="4" y="4" width="16" height="7" rx="2" strokeWidth="2.2" />
+    <rect x="4" y="13" width="16" height="7" rx="2" strokeWidth="2.2" />
+    <path d="M8 7.5h.01M8 16.5h.01" strokeWidth="3" />
+  </Icon>
+);
+
+export const PencilIcon = ({ className }: IconProps) => (
+  <Icon className={className}>
+    <path d="M4 20l1-4.5L15.5 5a2.1 2.1 0 0 1 3 3L8 18.5zM13.5 7l3 3" strokeWidth="2.2" />
+  </Icon>
+);
+
+export const HeadsetIcon = ({ className }: IconProps) => (
+  <Icon className={className}>
+    <path
+      d="M4 15v-3a8 8 0 0 1 16 0v3M4 14h3v6H5a1 1 0 0 1-1-1zM20 14h-3v6h2a1 1 0 0 0 1-1z"
+      strokeWidth="2.2"
+    />
+  </Icon>
+);
+
+export const InboxIcon = ({ className }: IconProps) => (
+  <Icon className={className}>
+    <path d="M4 13l2.5-8h11L20 13v6H4zM4 13h5l1 2h4l1-2h5" strokeWidth="2.2" />
+  </Icon>
+);
+
+/** Pictogrammes des options (clé « icon » du catalogue). */
+export const OPTION_ICONS = {
+  calendar: CalendarCheckIcon,
+  card: CardIcon,
+  bell: BellIcon,
+  gift: GiftIcon,
+  heart: HeartIcon,
+  review: ReviewIcon,
+  bag: BagIcon,
+  document: DocumentIcon,
+  spark: SparkleIcon,
+} as const;
+
+export function optionIcon(key: string) {
+  return OPTION_ICONS[key as keyof typeof OPTION_ICONS] ?? SparkleIcon;
+}

@@ -31,6 +31,7 @@ export async function savePlanAction(_previous: Previous, data: FormData) {
           photos: form.text(data, "photos"),
           services: form.text(data, "services"),
           smsPerMonth: form.text(data, "smsPerMonth"),
+          pages: form.text(data, "pages"),
           noCommitmentFee: form.text(data, "noCommitmentFee"),
           // Lignes visibles de la carte : six listes déroulantes, les vides sont ignorées.
           highlights: Array.from({ length: MAX_HIGHLIGHTS }, (_, index) =>
@@ -51,6 +52,7 @@ export async function saveSettingsAction(_previous: Previous, data: FormData) {
   );
   // Case à cocher et liste de fonctions « Bientôt ».
   raw.site_buyout_enabled = form.bool(data, "site_buyout_enabled");
+  raw.offer_no_commitment = form.bool(data, "offer_no_commitment");
   raw.features_soon = FEATURE_KEYS.filter((key) => form.bool(data, `soon_${key}`));
   return adminMutation({ action: "settings.updated" }, (tx) => updatePlatformSettings(tx, raw as never));
 }

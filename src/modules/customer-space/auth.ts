@@ -1,3 +1,4 @@
+import { tenantLimits } from "@/modules/billing/entitlements";
 import { createHash, createHmac, hkdfSync, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { and, desc, eq, gt, isNull, sql } from "drizzle-orm";
 import { authSecret } from "@/config/env";
@@ -66,7 +67,7 @@ function secretHash(codeId: string, channel: CustomerChannel, secret: string) {
 /** Le pack inclut des SMS, et il en reste ce mois-ci (quota ou packs achetés). */
 export async function smsLoginAvailable(tx: Transaction, tenantId: string, period: string) {
   const [row] = await tx
-    .select({ limits: plans.limits, sent: usageCounters.smsSent })
+    .select({ limits: tenantLimits, sent: usageCounters.smsSent })
     .from(tenants)
     .innerJoin(plans, eq(plans.id, tenants.planId))
     .leftJoin(usageCounters, and(eq(usageCounters.tenantId, tenants.id), eq(usageCounters.period, period)))

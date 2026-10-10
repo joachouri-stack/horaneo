@@ -10,7 +10,7 @@ export const NAV = [
   // Même ordre que l'accueil : les tarifs d'abord.
   { hash: "tarifs", key: "pricing" },
   { hash: "etapes", key: "how" },
-  { hash: "fonctions", key: "features" },
+  { hash: "options", key: "features" },
   { hash: "questions", key: "questions" },
 ] as const;
 

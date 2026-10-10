@@ -1,3 +1,4 @@
+import { tenantFeatures } from "@/modules/billing/entitlements";
 import { and, eq } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
 import { businesses, plans, tenants, type PlanFeatures } from "@/db/schema";
@@ -27,7 +28,7 @@ export function connectState(
 
 async function loadBusiness(tx: Transaction, tenantId: string, businessId: string) {
   const [row] = await tx
-    .select({ business: businesses, tenant: tenants, features: plans.features })
+    .select({ business: businesses, tenant: tenants, features: tenantFeatures })
     .from(businesses)
     .innerJoin(tenants, eq(tenants.id, businesses.tenantId))
     .innerJoin(plans, eq(plans.id, tenants.planId))

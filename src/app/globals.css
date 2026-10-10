@@ -36,6 +36,10 @@
   --color-navy-light: #26375c;
   --color-mist: #e6eaf2; /* bleu très pâle : packs Basic et Essentiel */
   --color-mist-strong: #c9d2e3;
+  /* Touches cuivrées et dorées (packs, offre recommandée) : décor et petits textes. */
+  --color-copper: #9a5a24; /* texte cuivré lisible sur fond clair */
+  --color-gold: #d4a75a; /* filets et pictogrammes, accent sur fond bleu nuit */
+  --color-cream: #f7f0e3; /* fond crème des pastilles dorées */
 
   --font-display: var(--font-bricolage), var(--font-outfit), system-ui, sans-serif;
   --font-sans: var(--font-outfit), system-ui, sans-serif;
@@ -196,5 +200,65 @@ html:has(body.saas) {
   }
   .hn-up-late {
     animation: hn-up 0.7s ease 0.15s both;
+  }
+}
+
+/*
+ * Cartes des packs : recto et verso. Ordinateur : la carte se retourne en 3D,
+ * les deux faces partagent la même case (cartes alignées). Téléphone : seule la
+ * face choisie occupe la place, elle apparaît en pivotant légèrement.
+ * Animations coupées si la personne a demandé moins de mouvement.
+ */
+.hn-flip {
+  perspective: 2200px;
+}
+.hn-flip-inner {
+  display: grid;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+.hn-flip-face {
+  grid-area: 1 / 1;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.hn-flip-back {
+  transform: rotateY(180deg);
+}
+.hn-flip[data-flipped="true"] .hn-flip-inner {
+  transform: rotateY(180deg);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hn-flip-inner {
+    transition: transform 0.7s cubic-bezier(0.4, 0.15, 0.2, 1);
+  }
+}
+@media (max-width: 1023.98px) {
+  .hn-flip-inner,
+  .hn-flip[data-flipped="true"] .hn-flip-inner {
+    transform: none;
+    transition: none;
+  }
+  .hn-flip-back {
+    transform: none;
+  }
+  .hn-flip[data-flipped="true"] .hn-flip-front,
+  .hn-flip:not([data-flipped="true"]) .hn-flip-back {
+    display: none;
+  }
+}
+@keyframes hn-face-in {
+  from {
+    opacity: 0;
+    transform: perspective(1200px) rotateY(-14deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (max-width: 1023.98px) and (prefers-reduced-motion: no-preference) {
+  .hn-flip[data-turned="true"] .hn-flip-face {
+    animation: hn-face-in 0.45s ease both;
   }
 }

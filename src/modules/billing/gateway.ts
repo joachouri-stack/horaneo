@@ -15,6 +15,8 @@ export type BillingSubscription = {
   cancelAt: Date | null;
   /** Pack programmé à la fin de la période (changement vers un pack inférieur). */
   scheduleId: string | null;
+  /** Options facturées : une ligne de l'abonnement par option (renseignée dans les informations du prix). */
+  optionItems: { itemId: string; optionId: string }[];
   metadata: Record<string, string>;
 };
 
@@ -35,6 +37,8 @@ export interface BillingGateway {
   createCheckout(input: {
     customerId: string;
     priceId: string;
+    /** Prix mensuels des options choisies, facturés avec le pack (une ligne chacun). */
+    optionPriceIds: string[];
     setupFee: { amountCents: number; currency: string; label: string } | null;
     taxRateId: string | null;
     successUrl: string;
@@ -71,6 +75,10 @@ export interface BillingGateway {
   /** Pack inférieur : appliqué à la fin de la période en cours. */
   schedulePriceChange(input: { subscriptionId: string; priceId: string }): Promise<{ scheduleId: string }>;
   releaseSchedule(scheduleId: string): Promise<void>;
+  /** Ajoute une option à l'abonnement (facturée au prorata jusqu'à la prochaine échéance). */
+  addOptionItem(input: { subscriptionId: string; priceId: string }): Promise<BillingSubscription>;
+  /** Retire une option de l'abonnement (crédit au prorata sur la prochaine facture). */
+  removeOptionItem(input: { subscriptionId: string; itemId: string }): Promise<BillingSubscription>;
   /** Fin programmée de l'abonnement (null : annule la fin programmée). */
   setCancelAt(input: { subscriptionId: string; at: Date | null }): Promise<BillingSubscription>;
   createPortal(input: { customerId: string; returnUrl: string }): Promise<{ url: string }>;

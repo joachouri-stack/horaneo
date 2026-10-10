@@ -4,10 +4,11 @@ import { getTranslations } from "next-intl/server";
 import { SubmitButton } from "@/components/ui/SubmitButton";
 import { ui } from "@/components/ui/styles";
 import { withPlatform } from "@/db/access";
-import { usageCounters } from "@/db/schema";
+import { plans as plansTable, usageCounters } from "@/db/schema";
 import { pickLocalized } from "@/i18n/locales";
 import { managerPage } from "@/lib/manager/page";
 import { billingGateway } from "@/lib/payments/stripe-billing";
+import { listTenantOptions } from "@/modules/billing/options";
 import { listPublicPlans, planHighlights } from "@/modules/billing/plans";
 import { canBuySmsPacks, listSmsPacks, smsPackOffer, syncSmsPackPayment } from "@/modules/billing/sms-packs";
 import { smsUsage } from "@/modules/messages/sms-usage";
@@ -55,6 +56,9 @@ export default async function SubscriptionPage({
       },
       subscription: await getSubscription(tx, page.tenantId),
       plans: await listPublicPlans(tx),
+      // Pack actuel, même s'il n'est plus proposé à la vente (anciens packs).
+      currentPlan: (await tx.select().from(plansTable).where(eq(plansTable.id, page.tenant.planId)))[0],
+      options: await listTenantOptions(tx, page.tenantId),
       display: await getPlatformSetting(tx, "prices_display"),
       commitmentMonths: Number(await getPlatformSetting(tx, "commitment_months")),
       sms: await smsUsage(tx, page.tenantId),
@@ -66,7 +70,7 @@ export default async function SubscriptionPage({
   });
   const { usage, subscription, display, sms } = data;
   const limits = page.tenant.limits;
-  const current = data.plans.find((plan) => plan.id === page.tenant.planId);
+  const current = data.currentPlan;
   const currentPrice = current?.priceCents ?? 0;
   const live = subscription && isLive(subscription.status) ? subscription : null;
   // Site à plusieurs entreprises : l'abonnement est réglé par l'entreprise principale.
@@ -289,6 +293,26 @@ export default async function SubscriptionPage({
           )}
         </section>
       )}
+
+      {/* Options actives : ajoutées par notre équipe, facturées avec l'abonnement. */}
+      <section className={ui.card} aria-labelledby="titre-options">
+        <h2 id="titre-options" className="text-xl font-bold">
+          {t("options")}
+        </h2>
+        {data.options.length === 0 ? (
+          <p className="mt-2 text-ink/70">{t("optionsNone")}</p>
+        ) : (
+          <ul className="mt-3 space-y-1">
+            {data.options.map(({ option }) => (
+              <li key={option.id} className="flex flex-wrap justify-between gap-2">
+                <span className="font-semibold text-night">{pickLocalized(option.name, page.locale)}</span>
+                {option.priceCents !== null && <span>{priceLabel(option.priceCents)}</span>}
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className="mt-3 text-sm text-ink/70">{t("optionsHint")}</p>
+      </section>
 
       <section className="space-y-3">
         <h2 className="text-xl font-bold">{t("choose")}</h2>

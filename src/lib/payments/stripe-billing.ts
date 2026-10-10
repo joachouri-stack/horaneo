@@ -10,8 +10,18 @@ import type { BillingGateway, BillingSubscription } from "@/modules/billing/gate
 
 const toDate = (seconds: number | null | undefined) => (seconds ? new Date(seconds * 1000) : null);
 
+/** Ligne du pack dans l'abonnement : celle dont le prix porte un plan_id (les autres sont des options). */
+function planItem(subscription: Stripe.Subscription) {
+  const items = subscription.items.data;
+  return (
+    items.find((item) => item.price.metadata?.plan_id) ??
+    items.find((item) => !item.price.metadata?.option_id) ??
+    items[0]
+  );
+}
+
 export function toBillingSubscription(subscription: Stripe.Subscription): BillingSubscription {
-  const item = subscription.items.data[0];
+  const item = planItem(subscription);
   const price = item?.price;
   const schedule = subscription.schedule;
   return {
@@ -24,6 +34,9 @@ export function toBillingSubscription(subscription: Stripe.Subscription): Billin
     currentPeriodEnd: toDate(item?.current_period_end),
     cancelAt: toDate(subscription.cancel_at),
     scheduleId: typeof schedule === "string" ? schedule : (schedule?.id ?? null),
+    optionItems: subscription.items.data
+      .filter((line) => line.price.metadata?.option_id)
+      .map((line) => ({ itemId: line.id, optionId: line.price.metadata.option_id })),
     metadata: { ...subscription.metadata },
   };
 }
@@ -89,6 +102,7 @@ export function createStripeBilling(secretKey: string): BillingGateway {
         customer: input.customerId,
         line_items: [
           { price: input.priceId, quantity: 1, tax_rates: taxRates },
+          ...input.optionPriceIds.map((price) => ({ price, quantity: 1, tax_rates: taxRates })),
           ...(input.setupFee
             ? [
                 {
@@ -154,7 +168,7 @@ export function createStripeBilling(secretKey: string): BillingGateway {
     async changePriceNow(input) {
       const current = await stripe.subscriptions.retrieve(input.subscriptionId);
       const updated = await stripe.subscriptions.update(input.subscriptionId, {
-        items: [{ id: current.items.data[0].id, price: input.priceId }],
+        items: [{ id: planItem(current).id, price: input.priceId }],
         // La différence est facturée tout de suite, au prorata des jours restants.
         proration_behavior: "always_invoice",
         payment_behavior: "error_if_incomplete",
@@ -165,7 +179,7 @@ export function createStripeBilling(secretKey: string): BillingGateway {
     async repriceAtRenewal(input) {
       const current = await stripe.subscriptions.retrieve(input.subscriptionId);
       const updated = await stripe.subscriptions.update(input.subscriptionId, {
-        items: [{ id: current.items.data[0].id, price: input.priceId }],
+        items: [{ id: planItem(current).id, price: input.priceId }],
         // Même pack, nouveau prix : rien n'est facturé maintenant, la prochaine facture suit le nouveau prix.
         proration_behavior: "none",
       });
@@ -179,16 +193,23 @@ export function createStripeBilling(secretKey: string): BillingGateway {
         ? await stripe.subscriptionSchedules.retrieve(typeof existing === "string" ? existing : existing.id)
         : await stripe.subscriptionSchedules.create({ from_subscription: input.subscriptionId });
       const phase = schedule.phases[0];
+      // Les options restent facturées dans les deux phases ; seul le prix du pack change.
+      const plan = planItem(current);
+      const items = (priceOfPlan: string) =>
+        current.items.data.map((line) => ({
+          price: line.id === plan.id ? priceOfPlan : line.price.id,
+          quantity: line.quantity ?? 1,
+        }));
       const updated = await stripe.subscriptionSchedules.update(schedule.id, {
         end_behavior: "release",
         phases: [
           {
-            items: [{ price: current.items.data[0].price.id, quantity: 1 }],
+            items: items(plan.price.id),
             start_date: phase.start_date,
             end_date: phase.end_date,
           },
           {
-            items: [{ price: input.priceId, quantity: 1 }],
+            items: items(input.priceId),
             duration: { interval: "month", interval_count: 1 },
           },
         ],
@@ -198,6 +219,26 @@ export function createStripeBilling(secretKey: string): BillingGateway {
 
     async releaseSchedule(scheduleId) {
       await stripe.subscriptionSchedules.release(scheduleId);
+    },
+
+    async addOptionItem(input) {
+      const current = await stripe.subscriptions.retrieve(input.subscriptionId);
+      // Même taux de TVA que le pack.
+      const taxRates = planItem(current).tax_rates?.map((rate) => rate.id);
+      await stripe.subscriptionItems.create({
+        subscription: input.subscriptionId,
+        price: input.priceId,
+        quantity: 1,
+        tax_rates: taxRates && taxRates.length > 0 ? taxRates : undefined,
+        proration_behavior: "create_prorations",
+        payment_behavior: "error_if_incomplete",
+      });
+      return toBillingSubscription(await stripe.subscriptions.retrieve(input.subscriptionId));
+    },
+
+    async removeOptionItem(input) {
+      await stripe.subscriptionItems.del(input.itemId, { proration_behavior: "create_prorations" });
+      return toBillingSubscription(await stripe.subscriptions.retrieve(input.subscriptionId));
     },
 
     async setCancelAt(input) {

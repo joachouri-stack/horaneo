@@ -45,12 +45,13 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
       await Promise.all(keys.map(async (key) => [key, await getPlatformSetting(tx, key)])),
     ) as Record<(typeof keys)[number], string | number>;
   });
-  const [showcase, soon, buyoutEnabled] = await adminQuery(
+  const [showcase, soon, buyoutEnabled, noCommitment] = await adminQuery(
     async (tx) =>
       [
         await listShowcase(tx),
         new Set(await getPlatformSetting(tx, "features_soon")),
         await getPlatformSetting(tx, "site_buyout_enabled"),
+        await getPlatformSetting(tx, "offer_no_commitment"),
       ] as const,
   );
   const field = (
@@ -77,6 +78,11 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
             {field("commitment_months")}
             {field("price_change_notice_days", "number", t("priceChangeHint"))}
             {field("go_live_delay_days")}
+            <CheckboxField
+              name="offer_no_commitment"
+              label={t("offer_no_commitment")}
+              defaultChecked={noCommitment}
+            />
           </div>
         </Section>
         {/* Rachat du site par le client à sa sortie : désactivé par défaut, prix fixe. */}

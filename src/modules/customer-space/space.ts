@@ -1,3 +1,4 @@
+import { tenantFeatures } from "@/modules/billing/entitlements";
 import { and, asc, desc, eq, gt, inArray, isNull, or, sql } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
 import {
@@ -34,7 +35,7 @@ import type { CustomerIdentity } from "./auth";
 /** Fonctions de l'espace incluses dans le pack du site. */
 export async function customerSpaceFeatures(tx: Transaction, tenantId: string) {
   const [row] = await tx
-    .select({ features: plans.features })
+    .select({ features: tenantFeatures })
     .from(tenants)
     .innerJoin(plans, eq(plans.id, tenants.planId))
     .where(eq(tenants.id, tenantId));

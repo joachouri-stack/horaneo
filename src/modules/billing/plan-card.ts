@@ -118,6 +118,8 @@ function tileText(item: ShowcaseTile, t: PlansTranslator) {
       };
     case "sms":
       return { value: String(item.count), label: t("tiles.sms") };
+    case "pageCount":
+      return { value: String(item.count), label: t("tiles.pageCount", { count: item.count }) };
     case "emailReminders":
       return { value: t("tiles.emailValue"), label: t("tiles.emailLabel") };
     case "pages":

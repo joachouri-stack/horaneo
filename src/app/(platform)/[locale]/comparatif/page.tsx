@@ -11,6 +11,8 @@ import { resolveLocale } from "@/i18n/translator";
 import { formatMoney } from "@/lib/format";
 import { planCardContent, type PlansTranslator } from "@/modules/billing/plan-card";
 import { listPublicPlans } from "@/modules/billing/plans";
+import { listPlanOptions } from "@/modules/billing/options";
+import { SHEET_SECTIONS, sheetComparison } from "@/modules/billing/plan-sheet";
 import { comparisonLines, SHOWCASE_GROUPS, splitPlans } from "@/modules/billing/showcase";
 import { smsPackOffer } from "@/modules/billing/sms-packs";
 import { salesOpen } from "@/modules/legal/documents";
@@ -36,6 +38,8 @@ export default async function ComparePage({ params }: PageProps<"/[locale]/compa
   const [t, tPlans] = await Promise.all([getTranslations("home.compare"), getTranslations("home.plans")]);
   const data = await withPlatform(async (tx) => ({
     plans: await listPublicPlans(tx),
+    options: await listPlanOptions(tx),
+    display: String(await getPlatformSetting(tx, "prices_display")),
     commitment: Number(await getPlatformSetting(tx, "commitment_months")),
     soon: await getPlatformSetting(tx, "features_soon"),
     smsPack: await smsPackOffer(tx),
@@ -49,6 +53,37 @@ export default async function ComparePage({ params }: PageProps<"/[locale]/compa
     { key: "booking", title: tPlans("toggleBooking"), plans: booking },
     { key: "site", title: tPlans("toggleSite"), plans: siteOnly },
   ].filter((family) => family.plans.length > 0);
+  // Une seule famille (packs à options) : un titre simple.
+  if (families.length === 1) families[0].title = t("packsTitle");
+  // Packs à options (nombre de pages réglé) : mêmes rubriques que le verso des cartes.
+  const sheetRows = (plans: typeof data.plans) =>
+    SHEET_SECTIONS.map((section) => ({
+      group: section,
+      title: tPlans(`sheet.sections.${section}`),
+      rows: sheetComparison(plans, soon)
+        .filter((row) => row.section === section)
+        .map((row) => ({
+          ...row,
+          label: row.valued
+            ? t(`rows.${row.key}` as "rows.pages")
+            : tPlans(`sheet.lines.${row.key}` as "sheet.lines.gallery"),
+        })),
+    }));
+  const legacyRows = (plans: typeof data.plans) => {
+    const lines = comparisonLines(plans, soon);
+    return SHOWCASE_GROUPS.map((group) => ({
+      group,
+      title: tPlans(`groups.${group}`),
+      rows: lines
+        .filter((row) => row.group === group)
+        .map((row) => ({
+          ...row,
+          label: row.valued
+            ? t(`rows.${row.key}` as "rows.photos")
+            : tPlans(`lines.${row.key}` as "lines.agenda"),
+        })),
+    }));
+  };
 
   return (
     <div className="text-base leading-[1.6] text-body">
@@ -70,7 +105,9 @@ export default async function ComparePage({ params }: PageProps<"/[locale]/compa
         )}
 
         {families.map((family) => {
-          const lines = comparisonLines(family.plans, soon);
+          const groups = family.plans.every((plan) => typeof plan.limits.pages === "number")
+            ? sheetRows(family.plans)
+            : legacyRows(family.plans);
           const cards = family.plans.map((plan) =>
             planCardContent(plan, data.plans, {
               t: translate,
@@ -115,25 +152,25 @@ export default async function ComparePage({ params }: PageProps<"/[locale]/compa
                     </tr>
                   </thead>
                   <tbody>
-                    {data.commitment > 0 && family.plans.some((plan) => plan.priceCents > 0) && (
-                      <tr>
-                        <th
-                          scope="row"
-                          className="sticky left-0 border-b border-line bg-ivory p-3 font-medium text-night"
-                        >
-                          {t("creationFee")}
-                        </th>
-                        {family.plans.map((plan) => (
-                          <td key={plan.id} className="border-b border-line p-3 text-center">
-                            {plan.priceCents > 0 && (plan.noCommitmentFeeCents ?? 0) > 0
-                              ? money(plan.noCommitmentFeeCents ?? 0)
-                              : t("creationFree")}
-                          </td>
-                        ))}
-                      </tr>
-                    )}
-                    {SHOWCASE_GROUPS.map((group) => {
-                      const rows = lines.filter((row) => row.group === group);
+                    {data.commitment > 0 &&
+                      family.plans.some((plan) => (plan.noCommitmentFeeCents ?? 0) > 0) && (
+                        <tr>
+                          <th
+                            scope="row"
+                            className="sticky left-0 border-b border-line bg-ivory p-3 font-medium text-night"
+                          >
+                            {t("creationFee")}
+                          </th>
+                          {family.plans.map((plan) => (
+                            <td key={plan.id} className="border-b border-line p-3 text-center">
+                              {plan.priceCents > 0 && (plan.noCommitmentFeeCents ?? 0) > 0
+                                ? money(plan.noCommitmentFeeCents ?? 0)
+                                : t("creationFree")}
+                            </td>
+                          ))}
+                        </tr>
+                      )}
+                    {groups.map(({ group, title, rows }) => {
                       if (rows.length === 0) return null;
                       return [
                         <tr key={group}>
@@ -142,7 +179,7 @@ export default async function ComparePage({ params }: PageProps<"/[locale]/compa
                             colSpan={family.plans.length + 1}
                             className="sticky left-0 bg-ivory px-3 pb-2 pt-6 text-[0.78rem] font-semibold uppercase tracking-[0.06em] text-navy"
                           >
-                            {tPlans(`groups.${group}`)}
+                            {title}
                           </th>
                         </tr>,
                         ...rows.map((row) => (
@@ -151,9 +188,7 @@ export default async function ComparePage({ params }: PageProps<"/[locale]/compa
                               scope="row"
                               className="sticky left-0 border-b border-line bg-ivory p-3 font-normal text-night"
                             >
-                              {row.valued
-                                ? t(`rows.${row.key}` as "rows.photos")
-                                : tPlans(`lines.${row.key}` as "lines.agenda")}
+                              {row.label}
                               {row.soon && (
                                 <span className="ml-2 inline-block rounded-full bg-blush px-2 py-px align-middle text-[0.7rem] font-semibold uppercase tracking-[0.05em] text-rust">
                                   {tPlans("soonTag")}
@@ -207,6 +242,63 @@ export default async function ComparePage({ params }: PageProps<"/[locale]/compa
             </section>
           );
         })}
+
+        {/* Options à la carte : disponibles avec chaque pack. */}
+        {data.options.length > 0 && (
+          <section aria-labelledby="comparatif-options" className="mt-14">
+            <h2 id="comparatif-options" className={`${TITLE} mb-2 text-[1.5rem]`}>
+              {t("optionsTitle")}
+            </h2>
+            <p className="mb-4 max-w-[40rem] text-[0.95rem] text-stone">{t("optionsIntro")}</p>
+            <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+              <table className="w-full min-w-[32rem] border-separate border-spacing-0 text-left text-[0.92rem]">
+                <caption className="sr-only">{t("optionsTitle")}</caption>
+                <thead>
+                  <tr>
+                    <th scope="col" className="sticky left-0 bg-ivory p-3 font-semibold text-stone">
+                      {t("option")}
+                    </th>
+                    <th scope="col" className="border-b-2 border-line p-3 font-semibold text-stone">
+                      {t("optionPrice", { display: data.display })}
+                    </th>
+                    <th scope="col" className="border-b-2 border-line p-3 font-semibold text-stone">
+                      {t("optionRequires")}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.options.map((option) => (
+                    <tr key={option.code}>
+                      <th
+                        scope="row"
+                        className="sticky left-0 border-b border-line bg-ivory p-3 font-normal text-night"
+                      >
+                        <span className="font-semibold">{pickLocalized(option.name, locale)}</span>
+                        <span className="block text-[0.85rem] text-stone">
+                          {pickLocalized(option.description, locale)}
+                        </span>
+                      </th>
+                      <td className="border-b border-line p-3 whitespace-nowrap">
+                        {!option.isAvailable
+                          ? tPlans("soonTag")
+                          : option.priceCents === null
+                            ? t("onRequest")
+                            : t("perMonthAmount", { amount: money(option.priceCents) })}
+                      </td>
+                      <td className="border-b border-line p-3 text-stone">
+                        {option.requires
+                          .map((code) => data.options.find((item) => item.code === code))
+                          .filter((item) => item !== undefined)
+                          .map((item) => pickLocalized(item.name, locale))
+                          .join(", ") || "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
       </main>
       <PlatformFooter />
     </div>

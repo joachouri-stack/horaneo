@@ -13,7 +13,7 @@ import { EVERYTHING_IN, HIGHLIGHT_KEYS, MAX_HIGHLIGHTS } from "@/modules/billing
 import { listPlans } from "@/modules/tenants/queries";
 import { savePlanAction } from "./actions";
 
-const LIMITS = ["onlineBookingsPerMonth", "members", "photos", "services"] as const;
+const LIMITS = ["pages", "onlineBookingsPerMonth", "members", "photos", "services"] as const;
 
 /** Packs : prix, limites et fonctions (réglages, jamais écrits dans le code). */
 export default async function PlansPage({ params }: PageProps<"/[locale]/admin/packs">) {
@@ -72,7 +72,7 @@ export default async function PlansPage({ params }: PageProps<"/[locale]/admin/p
                 }
               />
               {/* Pack « site seul » : le pack avec réservation qui le reprend entièrement. */}
-              {!planAllowsBooking(plan.features) && (
+              {!planAllowsBooking(plan.features) && plan.bookingTwinCode && (
                 <SelectField
                   id={`twin-${plan.id}`}
                   name="bookingTwinCode"

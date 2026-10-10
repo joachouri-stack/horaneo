@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { platformSettings, plans } from "@/db/schema";
+import { DEFAULT_PLAN_OPTIONS } from "@/config/defaults";
+import { planOptions, platformSettings, plans } from "@/db/schema";
 import { seed } from "@/db/seed";
 import { hasTestDatabase, openTestDb, testDatabaseUrl, type TestDb } from "../setup/db";
 
@@ -15,7 +16,7 @@ describe.skipIf(!hasTestDatabase)("valeurs de départ en base", () => {
     await db?.$client.end();
   });
 
-  it("insère les trois packs avec réservation et les trois packs « site seul »", async () => {
+  it("insère les trois packs vendus, et garde les anciens packs hors vente", async () => {
     const rows = await db.select().from(plans);
     expect(rows.map((plan) => plan.code).sort()).toEqual([
       "basic",
@@ -23,8 +24,28 @@ describe.skipIf(!hasTestDatabase)("valeurs de départ en base", () => {
       "express",
       "serenite",
       "signature",
+      "site-business",
+      "site-essentiel",
+      "site-premium",
       "vitrine",
     ]);
+    const sold = rows.filter((plan) => plan.isPublic).sort((a, b) => a.sortOrder - b.sortOrder);
+    expect(sold.map((plan) => [plan.code, plan.priceCents, plan.limits.pages])).toEqual([
+      ["site-essentiel", 1990, 3],
+      ["site-business", 3990, 7],
+      ["site-premium", 5990, 15],
+    ]);
+    // Aucuns frais de création, et la réservation passe par une option.
+    for (const plan of sold) {
+      expect(plan.noCommitmentFeeCents).toBeNull();
+      expect(plan.features.onlineBooking).toBe(false);
+    }
+  });
+
+  it("insère les options sans inventer de tarif", async () => {
+    const rows = await db.select().from(planOptions);
+    expect(rows.map((option) => option.code)).toContain("booking");
+    expect(rows.every((option) => option.priceCents === null)).toBe(true);
   });
 
   it("peut être relancé sans doublon ni écrasement des réglages modifiés", async () => {
@@ -33,12 +54,17 @@ describe.skipIf(!hasTestDatabase)("valeurs de départ en base", () => {
       .set({ value: 7 })
       .where(sql`key = 'go_live_delay_days'`);
     await seed(testDatabaseUrl!);
-    expect(await db.select().from(plans)).toHaveLength(6);
+    expect(await db.select().from(plans)).toHaveLength(9);
+    expect(await db.select().from(planOptions)).toHaveLength(DEFAULT_PLAN_OPTIONS.length);
     const [delay] = await db
       .select()
       .from(platformSettings)
       .where(sql`key = 'go_live_delay_days'`);
     expect(delay.value).toBe(7);
+    await db
+      .update(platformSettings)
+      .set({ value: 5 })
+      .where(sql`key = 'go_live_delay_days'`);
   });
 
   it("complète un pack existant sans écraser ce qui a été modifié", async () => {
