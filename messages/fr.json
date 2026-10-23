@@ -531,7 +531,8 @@
       "legal": "Mentions légales",
       "privacy": "Confidentialité",
       "madeBy": "Site créé par {product}",
-      "cancellation": "Conditions d'annulation"
+      "cancellation": "Conditions d'annulation",
+      "pro": "Espace professionnel"
     },
     "legal": {
       "title": "Mentions légales",
@@ -763,9 +764,11 @@
     "greeting": "Bonjour {name}",
     "greetingNoName": "Bonjour",
     "signedInAs": "Compte : {email}",
-    "noTenantTitle": "Votre compte est prêt",
-    "noTenantBody": "Prochaine étape : choisir votre pack. Votre site sera ensuite créé et mis en ligne pour vous.",
-    "noTenantCta": "Choisir mon pack",
+    "noTenantTitle": "Aucun espace n'est relié à cette adresse",
+    "noTenantBody": "Vous êtes connectée avec {email}. Vous gérez un institut ? L'accès a sans doute été donné à une autre adresse : reconnectez-vous avec celle-ci.",
+    "noTenantSwitch": "Me connecter avec une autre adresse",
+    "noTenantNew": "Vous n'avez pas encore de site ?",
+    "noTenantCta": "Découvrir les packs",
     "tenantsTitle": "Mes établissements",
     "comingSoon": "Votre espace de gestion (agenda, clientes, site) arrive très bientôt.",
     "adminLink": "Espace admin"

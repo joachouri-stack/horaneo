@@ -5,7 +5,14 @@ import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { authClient } from "@/lib/auth/client";
 
-export function SignOutButton() {
+type Props = {
+  /** Page ouverte après la déconnexion (accueil par défaut). */
+  to?: string;
+  label?: string;
+  className?: string;
+};
+
+export function SignOutButton({ to = "/", label, className }: Props = {}) {
   const t = useTranslations("common");
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -16,12 +23,15 @@ export function SignOutButton() {
       onClick={async () => {
         setPending(true);
         await authClient.signOut();
-        router.replace("/");
+        router.replace(to);
         router.refresh();
       }}
-      className="inline-flex min-h-11 items-center text-sm font-semibold text-night hover:underline disabled:opacity-60 min-[400px]:text-base"
+      className={
+        className ??
+        "inline-flex min-h-11 items-center text-sm font-semibold text-night hover:underline disabled:opacity-60 min-[400px]:text-base"
+      }
     >
-      {t("logout")}
+      {label ?? t("logout")}
     </button>
   );
 }
