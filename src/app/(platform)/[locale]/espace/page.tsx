@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { SignOutButton } from "@/components/auth/SignOutButton";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { ui } from "@/components/ui/styles";
 import { Link, redirect } from "@/i18n/navigation";
@@ -70,12 +71,22 @@ export default async function AccountPage({ params }: PageProps<"/[locale]/espac
             )}
           </section>
         ) : managed.length === 0 ? (
+          // Connectée avec une adresse sans espace (ancien compte, autre adresse) : on le dit, et on
+          // propose de changer de compte avant de proposer un pack.
           <section className={ui.card}>
             <h2 className="text-xl font-bold">{t("noTenantTitle")}</h2>
-            <p className="mt-2">{t("noTenantBody")}</p>
-            <Link href={{ pathname: "/", hash: "tarifs" }} className={`mt-6 ${ui.primaryButton} sm:w-auto`}>
-              {t("noTenantCta")}
-            </Link>
+            <p className="mt-2">{t("noTenantBody", { email: user.email })}</p>
+            <SignOutButton
+              to="/connexion"
+              label={t("noTenantSwitch")}
+              className={`mt-6 ${ui.primaryButton} sm:w-auto`}
+            />
+            <p className="mt-6 text-ink/70">
+              {t("noTenantNew")}{" "}
+              <Link href={{ pathname: "/", hash: "tarifs" }} className="font-semibold text-night underline">
+                {t("noTenantCta")}
+              </Link>
+            </p>
           </section>
         ) : (
           <section className={ui.card}>
