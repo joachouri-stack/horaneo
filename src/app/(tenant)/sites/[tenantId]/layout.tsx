@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { InstallCapture } from "@/components/install/InstallCapture";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
@@ -89,6 +90,7 @@ export default async function TenantLayout({ children, params }: LayoutProps<"/s
   return (
     <html lang={locale}>
       <body style={style} className="min-h-dvh bg-site-bg font-site-body text-site-text antialiased">
+        <InstallCapture />
         <NextIntlClientProvider timeZone={site.tenant.timezone} messages={clientMessages}>
           {preview && (
             <p role="status" className="bg-[#1b2a4a] px-4 py-2 text-center text-sm font-semibold text-white">

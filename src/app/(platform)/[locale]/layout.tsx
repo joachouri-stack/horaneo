@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { InstallCapture } from "@/components/install/InstallCapture";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -35,6 +36,7 @@ export default async function PlatformLayout({ children, params }: LayoutProps<"
   return (
     <html lang={locale} className="scroll-smooth antialiased">
       <body className="saas min-h-dvh">
+        <InstallCapture />
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
       </body>
     </html>
