@@ -710,7 +710,9 @@
       "close": "Fermer",
       "afterBookingTitle": "Retrouvez votre rendez-vous en un geste",
       "afterBookingText": "Installez notre application sur votre téléphone : votre rendez-vous, les rappels et la prochaine réservation à portée de doigt."
-    }
+    },
+    "sms": "SMS",
+    "smsNumber": "Envoyer un SMS au {phone}"
   },
   "emails": {
     "magicLink": {
@@ -987,7 +989,13 @@
         "coordinatesHint": "Facultatif : pour afficher le plan sur le site. Clic droit sur le lieu dans Google Maps pour copier les coordonnées.",
         "social": "Réseaux sociaux",
         "instagram": "Page Instagram (adresse complète)",
-        "facebook": "Page Facebook (adresse complète)"
+        "facebook": "Page Facebook (adresse complète)",
+        "contactBar": "Bouton du bas sur téléphone",
+        "contactBarMode": "À côté de « Réserver », le bouton",
+        "contactBarCall": "Appeler",
+        "contactBarSms": "Envoyer un SMS",
+        "contactBarPhone": "Numéro (facultatif)",
+        "contactBarPhoneHint": "Vide : le numéro du site. Sinon, par exemple le portable d'une professionnelle."
       },
       "appearance": {
         "title": "Métier et modèle",

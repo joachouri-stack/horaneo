@@ -46,6 +46,11 @@ export type TenantBrand = {
   };
   /** Pages des réseaux sociaux (adresses complètes). */
   social?: { instagram?: string; facebook?: string };
+  /**
+   * Bouton à côté de « Réserver » dans la barre du bas sur téléphone : appeler ou
+   * envoyer un SMS, au numéro du site ou à un autre numéro.
+   */
+  contactBar?: { mode: "call" | "sms"; phone?: string | null };
 };
 
 /** Présentation publique d'une entreprise (sa page sur le site : « Esthétique, avec Laïla »). */
