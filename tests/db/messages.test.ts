@@ -42,7 +42,7 @@ import { createTenant } from "@/modules/tenants/create";
 import { changeStatus } from "@/modules/tenants/update";
 import { createFakeGateway } from "../setup/fake-gateway";
 import { createFakeSenders } from "../setup/fake-senders";
-import { hasTestDatabase, openAppDb, openTestDb, type TestDb } from "../setup/db";
+import { hasTestDatabase, openAppDb, openTestDb, withLegacyBasic, type TestDb } from "../setup/db";
 
 /**
  * Messages automatiques sur vraie base : déclenchement, contenu, langue, rappels
@@ -55,6 +55,7 @@ const at = (time: string, date = DAY) => localToUtc(date, time, TZ);
 
 describe.skipIf(!hasTestDatabase)("messages automatiques", () => {
   let owner: TestDb;
+  let restoreBasic: (() => Promise<void>) | undefined;
   let app: TestDb;
   let n = 0;
   const fake = createFakeSenders();
@@ -62,10 +63,13 @@ describe.skipIf(!hasTestDatabase)("messages automatiques", () => {
 
   beforeAll(async () => {
     owner = await openTestDb();
+    // Ces tests vérifient les quotas avec les règles de l'ancien Basic.
+    restoreBasic = await withLegacyBasic(owner);
     app = openAppDb();
   });
 
   afterAll(async () => {
+    await restoreBasic?.();
     await app?.$client.end();
     await owner?.$client.end();
   });

@@ -10,6 +10,7 @@ import { pickLocalized } from "@/i18n/locales";
 import { Link, redirect } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/translator";
 import { getManagedTenants, requireSession } from "@/lib/auth/session";
+import { listLaunchOffers } from "@/modules/billing/launch-offers";
 import { listPlanOptions, pricedOption } from "@/modules/billing/options";
 import { listPublicPlans } from "@/modules/billing/plans";
 import { formatMoney } from "@/lib/format";
@@ -46,7 +47,8 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
   // Déjà cliente : le changement de pack se fait depuis son espace.
   if ((await getManagedTenants(session.user.id)).length > 0) redirect({ href: "/espace", locale });
   const [t, tHome] = await Promise.all([getTranslations("order"), getTranslations("home.plans")]);
-  const { plans, options, display, commitment, noCommitment } = await withPlatform(async (tx) => ({
+  const { plans, options, display, commitment, noCommitment, offers } = await withPlatform(async (tx) => ({
+    offers: await listLaunchOffers(tx, { openOnly: true }),
     plans: await listPublicPlans(tx),
     options: await listPlanOptions(tx),
     display: String(await getPlatformSetting(tx, "prices_display")),
@@ -110,6 +112,23 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
               <fieldset>
                 <legend className={ui.label}>{t("formula")}</legend>
                 <p className="mb-2 text-sm text-ink/70">{t("formulaHint")}</p>
+                {/* Offre de lancement (tablette) : réservée à la formule avec engagement, places réelles. */}
+                {offers.map((offer) => {
+                  const plan = plans.find((item) => item.code === offer.planCode);
+                  return plan ? (
+                    <p
+                      key={offer.id}
+                      className="mb-2 rounded-[var(--radius-card)] bg-navy/5 p-3 text-sm text-night"
+                    >
+                      {t("launchOffer", {
+                        offer: pickLocalized(offer.title, locale),
+                        plan: pickLocalized(plan.name, locale),
+                        remaining: offer.remaining,
+                        commitment: offer.requiresCommitment ? "yes" : "no",
+                      })}
+                    </p>
+                  ) : null;
+                })}
                 <div className="space-y-2">
                   {[
                     {
@@ -120,7 +139,9 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
                     {
                       value: "no",
                       title: t("withoutCommitment"),
-                      text: t("withoutCommitmentPlanFee"),
+                      text: orderable.some((plan) => (plan.noCommitmentFeeCents ?? 0) > 0)
+                        ? t("withoutCommitmentPlanFee")
+                        : t("withoutCommitmentFree"),
                     },
                   ].map((option) => (
                     <label

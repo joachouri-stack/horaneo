@@ -1,3 +1,4 @@
+import { assertQuota } from "@/modules/quotas";
 import { and, asc, desc, eq, ilike, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
@@ -132,6 +133,8 @@ export async function saveCustomer(
       if (!updated) throw new AppError("not_found");
       return updated;
     }
+    // Nombre de fiches clients limité par le pack (ex. Basic).
+    await assertQuota(tx, tenantId, "customers");
     const [created] = await tx
       .insert(customers)
       .values({ tenantId, locale: tenant.locale, ...values })

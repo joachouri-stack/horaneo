@@ -24,6 +24,13 @@ export type PlanLimits = {
   smsPerMonth?: number | null;
   /** Nombre de pages du site annoncé par le pack. */
   pages?: number | null;
+  /** Fiches clients (contacts) du site. */
+  customers?: number | null;
+  /** Quotas mensuels des outils intelligents (0 ou absent : non inclus). */
+  aiChatConversations?: number | null;
+  whatsappConversations?: number | null;
+  aiTexts?: number | null;
+  aiImages?: number | null;
 };
 
 /** Fonctions d'un pack. Une fonction absente est désactivée. */
@@ -97,6 +104,23 @@ export type PlanFeatures = {
   /** Support prioritaire et accompagnement renforcé. */
   prioritySupport?: boolean;
   dedicatedSupport?: boolean;
+  /** Grille Basic, Pro, Business. */
+  helpCenter?: boolean;
+  ticketSupport?: boolean;
+  priorityHumanSupport?: boolean;
+  setupAssistance?: boolean;
+  freeDomain?: boolean;
+  staffPlanning?: boolean;
+  customerFile?: boolean;
+  advancedCrm?: boolean;
+  marketingAutomation?: boolean;
+  aiChatbot?: boolean;
+  whatsappAssistant?: boolean;
+  aiTexts?: boolean;
+  aiImages?: boolean;
+  /** Accès aux modules Commerce et Formation (quand ils seront disponibles). */
+  commerce?: boolean;
+  formation?: boolean;
   [feature: string]: boolean | undefined;
 };
 

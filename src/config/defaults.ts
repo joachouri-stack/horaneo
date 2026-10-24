@@ -8,7 +8,7 @@ import type { LocalizedText } from "@/i18n/locales";
 
 export const DEFAULT_PLATFORM_SETTINGS = {
   /** "TTC" ou "HT" : affichage des prix des packs. */
-  prices_display: "TTC",
+  prices_display: "HT",
   /** Durée d'engagement en mois (0 = sans engagement). */
   commitment_months: 12,
   /** Préavis avant d'appliquer le nouveau prix d'un pack à un abonné (après la fin de son engagement), en jours. */
@@ -18,24 +18,45 @@ export const DEFAULT_PLATFORM_SETTINGS = {
    * elles portent l'étiquette au lieu d'être promises. Retirer une clé quand la fonction est prête.
    */
   features_soon: [
+    // Grille Basic, Pro, Business : outils annoncés, pas encore livrés.
+    "aiChatbot",
+    "whatsappAssistant",
+    "aiTexts",
+    "aiImages",
+    "marketingAutomation",
+    "advancedCrm",
+    "advancedSeo",
+    "multilingual",
+    "commerce",
+    "formation",
+    // Anciens packs.
     "advancedBranding",
     "premiumBranding",
     "advancedStats",
-    "advancedSeo",
     "advancedPresentation",
     "contactForm",
     "businessSections",
     "seoPages",
     "visibilityReport",
     "paymentLinks",
-    "multilingual",
     "qrPoster",
   ] as string[],
+  /**
+   * Les trois solutions et leur état : « available » (souscription ouverte) ou
+   * « soon » (présentée « Disponible bientôt », sans souscription possible).
+   */
+  solutions: [
+    { code: "booking", status: "available" },
+    { code: "commerce", status: "soon" },
+    { code: "formation", status: "soon" },
+  ] as SolutionSetting[],
+  /** Adresse d'une démonstration en ligne ; vide : le bouton « Voir la démonstration » est masqué. */
+  demo_url: "",
   /**
    * Formule sans engagement proposée à la commande (avec frais de création du pack).
    * false : seule la formule avec engagement (commitment_months), création offerte.
    */
-  offer_no_commitment: false as boolean,
+  offer_no_commitment: true as boolean,
   /** Rachat du site par le client quand il part (désactivé par défaut) et son prix TTC en centimes. */
   site_buyout_enabled: false as boolean,
   site_buyout_price_cents: 0,
@@ -88,6 +109,8 @@ export const DEFAULT_PLATFORM_SETTINGS = {
   /** Bloc « Ils nous font confiance » de l'accueil (vide = bloc caché), rempli depuis l'admin. */
   showcase: [] as ShowcaseEntry[],
 } as const;
+
+export type SolutionSetting = { code: "booking" | "commerce" | "formation"; status: "available" | "soon" };
 
 /** Identité légale du SaaS : jamais inventée, saisie par l'administratrice. */
 export type LegalIdentity = {
@@ -249,18 +272,6 @@ const BOOKING = {
  */
 export const DEFAULT_PLANS: PlanSeed[] = [
   {
-    code: "basic",
-    name: { fr: "Basic", en: "Basic", es: "Basic", ru: "Basic" },
-    description: { fr: "Pour essayer sans rien payer" },
-    priceCents: 0,
-    noCommitmentFeeCents: null,
-    highlights: ["basePage", "bookings", "agenda", "emailReminders", "photosServices"],
-    sortOrder: 11,
-    isPublic: false,
-    limits: { onlineBookingsPerMonth: 5, members: 1, photos: 5, services: 10, smsPerMonth: 0 },
-    features: { ...NONE, onlineBooking: true, brandingFooter: true },
-  },
-  {
     code: "essentiel",
     name: { fr: "Essentiel", en: "Essential", es: "Esencial", ru: "Основной" },
     description: { fr: "Un vrai site à vos couleurs, avec la réservation" },
@@ -337,117 +348,148 @@ export const DEFAULT_SITE_ONLY_PLANS: PlanSeed[] = [
 ];
 
 /**
- * Grille actuelle : trois packs « site », la réservation et les autres
- * fonctions métier s'ajoutent en options (DEFAULT_PLAN_OPTIONS). Création
- * offerte, engagement de commitment_months. null = illimité.
+ * Grille actuelle : Basic (gratuit), Pro et Business. Prix de lancement hors
+ * taxes (prices_display « HT »), modifiables dans l'admin ; quotas mensuels
+ * (null = illimité, 0 = non inclus). Une fonction annoncée mais pas livrée
+ * figure dans features_soon et s'affiche « Disponible bientôt ».
  */
-const SITE = {
+const GRID_BASIC = {
   ...NONE,
-  fullSite: true,
-  sitePages: true,
+  onlineBooking: true,
   customDomain: true,
   mobileReady: true,
-  contactForm: true,
-  gallery: true,
-  selfEditing: true,
-  localSeo: true,
   contactButtons: true,
+  localSeo: true,
+  selfEditing: true,
+  gallery: true,
+  customerFile: true,
+  helpCenter: true,
   emailSupport: true,
+  brandingFooter: true,
 } satisfies PlanFeatures;
 
-const BUSINESS = {
-  ...SITE,
-  advancedBranding: true,
-  stats: true,
-  advancedStats: true,
-  advancedSeo: true,
-  richContent: true,
+const GRID_PRO = {
+  ...GRID_BASIC,
+  brandingFooter: false,
+  fullSite: true,
+  sitePages: true,
+  staffPlanning: true,
+  onlinePayment: true,
+  promoCodes: true,
   promotions: true,
   testimonials: true,
-  prioritySupport: true,
+  customerSpace: true,
+  googleReviews: true,
+  stats: true,
+  ticketSupport: true,
+  advancedCrm: false,
+  commerce: true,
+  formation: true,
 } satisfies PlanFeatures;
 
-const PREMIUM = {
-  ...BUSINESS,
-  premiumBranding: true,
-  advancedPresentation: true,
-  dedicatedSupport: true,
-  kickoffCall: true,
-  copywriting: true,
-  photoRetouch: true,
+const GRID_BUSINESS = {
+  ...GRID_PRO,
+  setupAssistance: true,
+  advancedCrm: true,
+  marketingAutomation: true,
+  loyalty: true,
+  giftCards: true,
+  monthlySummary: true,
+  advancedSeo: true,
+  aiChatbot: true,
+  whatsappAssistant: true,
+  aiTexts: true,
+  aiImages: true,
+  multilingual: true,
+  freeDomain: true,
+  priorityHumanSupport: true,
 } satisfies PlanFeatures;
 
-export const DEFAULT_OFFER_PLANS: PlanSeed[] = [
+/** Aucun outil intelligent (quotas à 0). */
+const NO_AI = { aiChatConversations: 0, whatsappConversations: 0, aiTexts: 0, aiImages: 0 };
+
+export const DEFAULT_GRID_PLANS: PlanSeed[] = [
   {
-    code: "site-essentiel",
-    name: { fr: "Essentiel", en: "Essential", es: "Esencial", ru: "Основной" },
-    description: { fr: "Pour développer votre présence en ligne" },
-    priceCents: 1990,
+    code: "basic",
+    name: { fr: "Basic", en: "Basic", es: "Basic", ru: "Basic" },
+    description: { fr: "L'essentiel pour bien démarrer" },
+    priceCents: 0,
     noCommitmentFeeCents: null,
-    highlights: ["pages", "gallery", "contactForm", "selfEditing", "localSeo", "hosting"],
+    highlights: [],
     sortOrder: 1,
     isPublic: true,
     limits: {
-      onlineBookingsPerMonth: null,
+      onlineBookingsPerMonth: 10,
+      customers: 50,
       members: 1,
-      photos: 20,
+      photos: 10,
       services: null,
       smsPerMonth: 0,
-      pages: 3,
+      ...NO_AI,
     },
-    features: { ...SITE, onlineBooking: false },
+    features: GRID_BASIC,
   },
   {
-    code: "site-business",
-    name: { fr: "Business", en: "Business", es: "Business", ru: "Бизнес" },
+    code: "pro",
+    name: { fr: "Pro", en: "Pro", es: "Pro", ru: "Pro" },
     description: { fr: "Pour développer votre activité" },
     priceCents: 3990,
     noCommitmentFeeCents: null,
-    highlights: [
-      "everythingIn:site-essentiel",
-      "pages",
-      "advancedBranding",
-      "advancedStats",
-      "advancedSeo",
-      "prioritySupport",
-    ],
+    highlights: [],
     sortOrder: 2,
     isPublic: true,
     limits: {
       onlineBookingsPerMonth: null,
+      customers: null,
       members: 3,
       photos: null,
       services: null,
-      smsPerMonth: 0,
-      pages: 7,
+      smsPerMonth: 100,
+      ...NO_AI,
     },
-    features: { ...BUSINESS, onlineBooking: false },
+    features: GRID_PRO,
   },
   {
-    code: "site-premium",
-    name: { fr: "Premium", en: "Premium", es: "Premium", ru: "Премиум" },
-    description: { fr: "Pour une présence digitale plus complète" },
-    priceCents: 5990,
+    code: "business",
+    name: { fr: "Business", en: "Business", es: "Business", ru: "Business" },
+    description: { fr: "Pour automatiser et piloter votre activité" },
+    priceCents: 7900,
     noCommitmentFeeCents: null,
-    highlights: [
-      "everythingIn:site-business",
-      "pages",
-      "premiumBranding",
-      "advancedPresentation",
-      "dedicatedSupport",
-      "prioritySupport",
-    ],
+    highlights: [],
     sortOrder: 3,
     isPublic: true,
     limits: {
       onlineBookingsPerMonth: null,
+      customers: null,
       members: null,
       photos: null,
       services: null,
-      smsPerMonth: 0,
-      pages: 15,
+      smsPerMonth: 300,
+      aiChatConversations: 500,
+      whatsappConversations: 200,
+      aiTexts: 100,
+      aiImages: 20,
     },
-    features: { ...PREMIUM, onlineBooking: false },
+    features: GRID_BUSINESS,
+  },
+];
+
+/**
+ * Offre de lancement « tablette offerte » : réglages de départ, modifiables
+ * dans l'admin (/admin/offres). Le nombre de places est réel : chaque
+ * attribution est enregistrée, l'offre s'arrête d'elle-même une fois complète.
+ */
+export const DEFAULT_LAUNCH_OFFERS = [
+  {
+    code: "business-tablet",
+    planCode: "business",
+    isActive: true,
+    quota: 100,
+    requiresCommitment: true,
+    title: { fr: "Tablette professionnelle offerte" },
+    conditions: {
+      fr: "Réservée aux 100 premiers abonnés Business éligibles avec engagement de 12 mois. Une tablette par établissement, configurée par nos soins, expédiée après validation du premier paiement et des contrôles d'éligibilité. Livraison en France métropolitaine.",
+    },
   },
 ];
 

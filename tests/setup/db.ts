@@ -33,25 +33,45 @@ export async function pgErrorCode(promise: Promise<unknown>): Promise<string | u
 }
 
 /**
- * Remet en vente les anciens packs (Basic, Essentiel, Sérénité, Express,
+ * Remet en vente les anciens packs (Essentiel, Sérénité, Express,
  * Vitrine, Signature) et la formule sans engagement, le temps d'un fichier de
  * tests qui s'en sert pour vérifier les mécanismes d'abonnement. Renvoie la
  * fonction qui rétablit la grille actuelle.
  */
 export async function withLegacyCatalog(owner: TestDb) {
-  const codes = ["basic", "essentiel", "serenite", "express", "vitrine", "signature"];
-  await owner.execute(
-    sql`UPDATE plans SET is_public = true WHERE code IN ${sql.raw(`('${codes.join("','")}')`)}`,
-  );
+  const codes = sql.raw(`('essentiel', 'serenite', 'express', 'vitrine', 'signature')`);
+  await owner.execute(sql`UPDATE plans SET is_public = true WHERE code IN ${codes}`);
   await owner.execute(
     sql`UPDATE platform_settings SET value = 'true'::jsonb WHERE key = 'offer_no_commitment'`,
   );
+  // Les anciens packs étaient affichés et facturés toutes taxes comprises ;
+  // le taux de TVA Stripe est recréé par le faux Stripe de chaque fichier.
+  await owner.execute(sql`UPDATE platform_settings SET value = '"TTC"'::jsonb WHERE key = 'prices_display'`);
+  await owner.execute(sql`DELETE FROM platform_settings WHERE key = 'stripe_tax_rate'`);
   return async () => {
-    await owner.execute(
-      sql`UPDATE plans SET is_public = false WHERE code IN ${sql.raw(`('${codes.join("','")}')`)}`,
-    );
-    await owner.execute(
-      sql`UPDATE platform_settings SET value = 'false'::jsonb WHERE key = 'offer_no_commitment'`,
-    );
+    await owner.execute(sql`UPDATE plans SET is_public = false WHERE code IN ${codes}`);
+    await owner.execute(sql`UPDATE platform_settings SET value = '"HT"'::jsonb WHERE key = 'prices_display'`);
+    await owner.execute(sql`DELETE FROM platform_settings WHERE key = 'stripe_tax_rate'`);
+  };
+}
+
+/**
+ * Règles de l'ancien Basic (5 réservations par mois, 5 photos, 10 prestations,
+ * sans nom de domaine), le temps d'un fichier de tests qui vérifie ces
+ * mécanismes de quota. Renvoie la fonction qui rétablit le Basic actuel.
+ */
+export async function withLegacyBasic(owner: TestDb) {
+  const [before] = await owner.execute<{ limits: unknown; features: unknown }>(
+    sql`SELECT limits, features FROM plans WHERE code = 'basic'`,
+  );
+  await owner.execute(sql`UPDATE plans SET
+    limits = limits || '{"onlineBookingsPerMonth": 5, "members": 1, "photos": 5, "services": 10, "customers": null}'::jsonb,
+    features = features || '{"customDomain": false}'::jsonb
+    WHERE code = 'basic'`);
+  return async () => {
+    await owner.execute(sql`UPDATE plans SET
+      limits = ${JSON.stringify(before.limits)}::jsonb,
+      features = ${JSON.stringify(before.features)}::jsonb
+      WHERE code = 'basic'`);
   };
 }

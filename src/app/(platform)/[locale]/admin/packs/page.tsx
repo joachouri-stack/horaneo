@@ -9,11 +9,12 @@ import { requireAdmin } from "@/lib/auth/session";
 import { centsToInput } from "@/lib/format";
 import { FEATURE_KEYS } from "@/modules/billing/admin";
 import { planAllowsBooking } from "@/modules/billing/features";
-import { EVERYTHING_IN, HIGHLIGHT_KEYS, MAX_HIGHLIGHTS } from "@/modules/billing/showcase";
 import { listPlans } from "@/modules/tenants/queries";
 import { savePlanAction } from "./actions";
 
-const LIMITS = ["pages", "onlineBookingsPerMonth", "members", "photos", "services"] as const;
+const LIMITS = ["pages", "onlineBookingsPerMonth", "customers", "members", "photos", "services"] as const;
+/** Quotas mensuels des outils intelligents : 0 = non inclus, vide = illimité. */
+const AI_LIMITS = ["aiChatConversations", "whatsappConversations", "aiTexts", "aiImages"] as const;
 
 /** Packs : prix, limites et fonctions (réglages, jamais écrits dans le code). */
 export default async function PlansPage({ params }: PageProps<"/[locale]/admin/packs">) {
@@ -99,6 +100,18 @@ export default async function PlansPage({ params }: PageProps<"/[locale]/admin/p
                   defaultValue={plan.limits[key] ?? ""}
                 />
               ))}
+              {AI_LIMITS.map((key) => (
+                <TextField
+                  key={key}
+                  id={`${key}-${plan.id}`}
+                  name={key}
+                  type="number"
+                  inputMode="numeric"
+                  label={t(key)}
+                  hint={t("aiLimitHint")}
+                  defaultValue={plan.limits[key] ?? ""}
+                />
+              ))}
               <TextField
                 id={`sms-${plan.id}`}
                 name="smsPerMonth"
@@ -118,35 +131,6 @@ export default async function PlansPage({ params }: PageProps<"/[locale]/admin/p
                     name={`feature_${key}`}
                     label={t(`featureLabels.${key}`)}
                     defaultChecked={Boolean(plan.features[key])}
-                  />
-                ))}
-              </div>
-            </fieldset>
-            {/* Lignes visibles sur la carte du pack (site commercial) ; le reste se déplie. */}
-            <fieldset>
-              <legend className={ui.label}>{t("highlights")}</legend>
-              <p className="mb-2 text-sm text-ink/70">{t("highlightsHint", { max: MAX_HIGHLIGHTS })}</p>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {Array.from({ length: MAX_HIGHLIGHTS }, (_, index) => (
-                  <SelectField
-                    key={index}
-                    id={`highlight-${plan.id}-${index}`}
-                    name={`highlight_${index}`}
-                    label={t("highlightLine", { n: index + 1 })}
-                    defaultValue={plan.highlights[index] ?? ""}
-                    options={[
-                      { value: "", label: t("none") },
-                      ...plans
-                        .filter((item) => item.id !== plan.id)
-                        .map((item) => ({
-                          value: `${EVERYTHING_IN}${item.code}`,
-                          label: t("everythingIn", { plan: pickLocalized(item.name, locale) }),
-                        })),
-                      ...HIGHLIGHT_KEYS.map((key) => ({
-                        value: key,
-                        label: t(`highlightLabels.${key}` as "highlightLabels.basePage"),
-                      })),
-                    ]}
                   />
                 ))}
               </div>

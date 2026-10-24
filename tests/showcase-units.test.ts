@@ -1,8 +1,5 @@
-import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_PLANS, DEFAULT_SITE_ONLY_PLANS } from "@/config/defaults";
-import { formatMoney } from "@/lib/format";
-import { planCardContent, type CardPlan, type PlansTranslator } from "@/modules/billing/plan-card";
 import {
   comparisonLines,
   HIGHLIGHT_KEYS,
@@ -16,14 +13,21 @@ import {
 } from "@/modules/billing/showcase";
 import messages from "../messages/fr.json";
 
-const ALL = [...DEFAULT_PLANS, ...DEFAULT_SITE_ONLY_PLANS];
+/** Ancien Basic (remplacé par le Basic de la grille actuelle), pour les packs d'avant la refonte. */
+const LEGACY_BASIC: (typeof DEFAULT_PLANS)[number] = {
+  code: "basic",
+  name: { fr: "Basic" },
+  description: { fr: "Pour essayer sans rien payer" },
+  noCommitmentFeeCents: null,
+  sortOrder: 1,
+  priceCents: 0,
+  highlights: ["basePage", "bookings", "agenda", "emailReminders", "photosServices"],
+  limits: { onlineBookingsPerMonth: 5, members: 1, photos: 5, services: 10, smsPerMonth: 0 },
+  features: { onlineBooking: true, brandingFooter: true },
+};
+const LEGACY_BOOKING = [LEGACY_BASIC, ...DEFAULT_PLANS];
+const ALL = [...LEGACY_BOOKING, ...DEFAULT_SITE_ONLY_PLANS];
 const NOTHING_SOON = new Set<string>();
-const cards: CardPlan[] = ALL.map((plan) => ({
-  ...plan,
-  id: plan.code,
-  bookingTwinCode: plan.bookingTwinCode ?? null,
-}));
-const t = createTranslator({ locale: "fr", messages, namespace: "home.plans" }) as unknown as PlansTranslator;
 const plansMessages = messages.home.plans as unknown as {
   highlights: Record<string, string>;
   lines: Record<string, string>;
@@ -31,7 +35,7 @@ const plansMessages = messages.home.plans as unknown as {
 
 describe("présentation des packs sur le site commercial", () => {
   it("donne les trois chiffres clés de chaque pack", () => {
-    expect(DEFAULT_PLANS.map(planTiles)).toEqual([
+    expect(LEGACY_BOOKING.map(planTiles)).toEqual([
       [{ key: "bookings", count: 5 }, { key: "members", count: 1 }, { key: "emailReminders" }],
       [
         { key: "bookings", count: null },
@@ -144,79 +148,5 @@ describe("règle des jumeaux", () => {
     expect(twinRuleViolations(plans)).toHaveLength(1);
     plans.find((plan) => plan.code === "signature")!.bookingTwinCode = null;
     expect(twinRuleViolations(plans)).toEqual([]);
-  });
-});
-
-describe("cartes des packs", () => {
-  const options = { t, locale: "fr" as const, soon: NOTHING_SOON, smsPack: { size: 100, priceCents: 800 } };
-
-  it("reprennent exactement les valeurs des réglages de chaque pack", () => {
-    for (const plan of cards) {
-      const card = planCardContent(plan, cards, { ...options, salesOpen: true });
-      expect(card.name).toBe(plan.name.fr);
-      expect(card.description).toBe(plan.description?.fr);
-      expect(card.price).toBe(formatMoney(plan.priceCents, "EUR", "fr"));
-      expect(card.highlights).toEqual(
-        planHighlights(plan, cards, NOTHING_SOON).map((line) => ({
-          text:
-            line.key === "everythingIn"
-              ? t("highlights.everythingIn", {
-                  plan: cards.find((item) => item.code === line.values?.planCode)!.name.fr!,
-                })
-              : t(`highlights.${line.key}`, line.values),
-          soon: false,
-        })),
-      );
-      expect(card.highlights.length).toBeLessThanOrEqual(MAX_HIGHLIGHTS);
-    }
-  });
-
-  it("affichent les prix de la grille des six packs", () => {
-    const prices = Object.fromEntries(
-      cards.map((plan) => [plan.code, planCardContent(plan, cards, { ...options, salesOpen: true }).price]),
-    );
-    const money = (cents: number) => formatMoney(cents, "EUR", "fr");
-    expect(prices).toEqual({
-      basic: money(0),
-      essentiel: money(3999),
-      serenite: money(7900),
-      express: money(900),
-      vitrine: money(2200),
-      signature: money(4900),
-    });
-  });
-
-  it("annoncent les nombres réglés (photos, réservations, SMS) dans le texte", () => {
-    const vitrine = cards.find((plan) => plan.code === "vitrine")!;
-    const card = planCardContent(vitrine, cards, { ...options, salesOpen: true });
-    expect(card.highlights.map((line) => line.text)).toContain("20 photos");
-    const essentiel = cards.find((plan) => plan.code === "essentiel")!;
-    expect(
-      planCardContent(essentiel, cards, { ...options, salesOpen: true }).highlights.map((line) => line.text),
-    ).toContain("100 SMS de rappel par mois");
-  });
-
-  it("mènent au formulaire « Être rappelé » tant que la vente en ligne est fermée", () => {
-    const signature = cards.find((plan) => plan.code === "signature")!;
-    const basic = cards.find((plan) => plan.code === "basic")!;
-    expect(planCardContent(signature, cards, { ...options, salesOpen: false }).cta).toMatchObject({
-      label: "Être rappelé",
-      href: { pathname: "/rappel" },
-    });
-    expect(planCardContent(signature, cards, { ...options, salesOpen: true }).cta).toMatchObject({
-      label: "Choisir Signature",
-      href: { pathname: "/commander" },
-    });
-    expect(planCardContent(basic, cards, { ...options, salesOpen: false }).cta).toMatchObject({
-      label: "Commencer gratuitement",
-      href: { pathname: "/commander" },
-    });
-  });
-
-  it("proposent d'ajouter la réservation en passant au jumeau", () => {
-    const express = cards.find((plan) => plan.code === "express")!;
-    expect(planCardContent(express, cards, { ...options, salesOpen: true }).addBooking).toContain(
-      "Essentiel",
-    );
   });
 });

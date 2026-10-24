@@ -1,16 +1,17 @@
 import "dotenv/config";
 import { eq, sql } from "drizzle-orm";
 import { createDb } from "./client";
-import { planOptions, platformSettings, plans } from "./schema";
+import { launchOffers, planOptions, platformSettings, plans } from "./schema";
 import {
-  DEFAULT_OFFER_PLANS,
+  DEFAULT_GRID_PLANS,
+  DEFAULT_LAUNCH_OFFERS,
   DEFAULT_PLAN_OPTIONS,
   DEFAULT_PLANS,
   DEFAULT_PLATFORM_SETTINGS,
   DEFAULT_SITE_ONLY_PLANS,
 } from "@/config/defaults";
 
-const ALL_PLANS = [...DEFAULT_OFFER_PLANS, ...DEFAULT_PLANS, ...DEFAULT_SITE_ONLY_PLANS];
+const ALL_PLANS = [...DEFAULT_GRID_PLANS, ...DEFAULT_PLANS, ...DEFAULT_SITE_ONLY_PLANS];
 
 /**
  * Insère les valeurs de départ (packs et réglages) si elles n'existent pas.
@@ -38,6 +39,20 @@ export async function seed(url: string) {
       .insert(planOptions)
       .values(DEFAULT_PLAN_OPTIONS.map((option) => ({ ...option, currency: "EUR" })))
       .onConflictDoNothing();
+    // Offre de lancement (tablette) : ajoutée si absente, jamais modifiée ensuite.
+    for (const offer of DEFAULT_LAUNCH_OFFERS) {
+      const [plan] = await database
+        .select({ id: plans.id })
+        .from(plans)
+        .where(eq(plans.code, offer.planCode));
+      if (!plan) continue;
+      const { planCode, ...values } = offer;
+      void planCode;
+      await database
+        .insert(launchOffers)
+        .values({ ...values, planId: plan.id })
+        .onConflictDoNothing();
+    }
     // Packs déjà en base : on complète seulement ce qui manque (accroche, nouvelles fonctions).
     for (const plan of ALL_PLANS) {
       await database

@@ -135,7 +135,7 @@ export default async function Image({ params }: { params: Promise<{ locale: stri
             letterSpacing: -2,
           }}
         >
-          {t("title")}
+          {t("hero.title")}
         </div>
         <div
           style={{
@@ -147,9 +147,9 @@ export default async function Image({ params }: { params: Promise<{ locale: stri
             letterSpacing: -2,
           }}
         >
-          {t("titleAccent")}
+          {t("hero.titleAccent")}
         </div>
-        <div style={{ marginTop: 28, fontSize: 30, color: COLORS.body }}>{t("badge")}</div>
+        <div style={{ marginTop: 28, fontSize: 30, color: COLORS.body }}>{t("hero.badge")}</div>
       </div>
     </div>,
     {

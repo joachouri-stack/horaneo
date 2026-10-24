@@ -5,7 +5,7 @@ import { assets, plans, tenants, type PlanFeatures, type PlanLimits } from "@/db
 import { AppError } from "./errors";
 
 /** Limites du pack ; une valeur absente ou null signifie « illimité ». */
-export type QuotaKey = "services" | "members" | "photos";
+export type QuotaKey = "services" | "members" | "photos" | "customers";
 
 export async function getTenantPlan(tx: Transaction, tenantId: string) {
   const [row] = await tx
@@ -22,7 +22,7 @@ export async function getTenantPlan(tx: Transaction, tenantId: string) {
  * même quand la transaction ne voit que les données d'une entreprise.
  */
 export async function countUsage(tx: Transaction, tenantId: string, key: QuotaKey): Promise<number> {
-  if (key === "services" || key === "members") {
+  if (key === "services" || key === "members" || key === "customers") {
     const rows = await tx.execute<{ value: number }>(
       sql`SELECT app_site_usage(${tenantId}::uuid, ${key}) AS value`,
     );
@@ -40,6 +40,7 @@ const LIMIT_FIELD: Record<QuotaKey, keyof PlanLimits> = {
   services: "services",
   members: "members",
   photos: "photos",
+  customers: "customers",
 };
 
 /** Refuse l'ajout si le pack est déjà au maximum. */

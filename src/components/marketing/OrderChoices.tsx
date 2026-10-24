@@ -3,8 +3,15 @@
 import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { formatMoney } from "@/lib/format";
-import { dependentsOf, monthlyTotal } from "@/modules/billing/option-total";
-import type { ConfiguratorOption, ConfiguratorPlan } from "./OptionsConfigurator";
+import { dependentsOf, monthlyTotal, type PricedOption } from "@/modules/billing/option-total";
+
+export type ConfiguratorOption = PricedOption & {
+  name: string;
+  description: string;
+  icon: string;
+  available: boolean;
+};
+export type ConfiguratorPlan = { code: string; name: string; priceCents: number };
 
 /**
  * Choix du pack et des options dans le formulaire de commande (champs

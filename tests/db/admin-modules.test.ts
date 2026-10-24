@@ -40,11 +40,12 @@ import {
 } from "@/modules/tenants/domains";
 import { getDashboardStats, getTenantOverview, listTenants } from "@/modules/tenants/queries";
 import { changePlan, changeStatus, updateAppearance, updateIdentity } from "@/modules/tenants/update";
-import { hasTestDatabase, openAppDb, openTestDb, type TestDb } from "../setup/db";
+import { hasTestDatabase, openAppDb, openTestDb, withLegacyBasic, type TestDb } from "../setup/db";
 
 /** Modules de l'espace admin, sur vraie base, avec le rôle restreint de l'application. */
 describe.skipIf(!hasTestDatabase)("espace admin : modules", () => {
   let owner: TestDb;
+  let restoreBasic: (() => Promise<void>) | undefined;
   let app: TestDb;
   let store: FileStorage;
   let storageDir: string;
@@ -52,12 +53,15 @@ describe.skipIf(!hasTestDatabase)("espace admin : modules", () => {
 
   beforeAll(async () => {
     owner = await openTestDb();
+    // Ces tests vérifient les quotas avec les règles de l'ancien Basic.
+    restoreBasic = await withLegacyBasic(owner);
     app = openAppDb();
     storageDir = await mkdtemp(path.join(tmpdir(), "horaneo-test-"));
     store = createLocalStorage(storageDir);
   });
 
   afterAll(async () => {
+    await restoreBasic?.();
     await app?.$client.end();
     await owner?.$client.end();
     await rm(storageDir, { recursive: true, force: true });
@@ -514,10 +518,9 @@ describe.skipIf(!hasTestDatabase)("espace admin : modules", () => {
       const stats = await platform((tx) => getDashboardStats(tx));
       expect(stats.drafts).toBeGreaterThan(0);
       expect(stats.byPlan.map((plan) => plan.code)).toEqual([
-        "site-essentiel",
-        "site-business",
-        "site-premium",
         "basic",
+        "pro",
+        "business",
         "essentiel",
         "serenite",
         "express",

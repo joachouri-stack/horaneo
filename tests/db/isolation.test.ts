@@ -60,6 +60,8 @@ const EXPECTED_TENANT_GRANTS: Record<string, string[]> = {
   sms_packs: ["SELECT"],
   plan_options: ["SELECT"],
   tenant_options: ["SELECT"],
+  launch_offer_claims: ["SELECT"],
+  quota_usage: ["SELECT"],
 };
 
 describe.skipIf(!hasTestDatabase)("isolation des données entre tenants", () => {

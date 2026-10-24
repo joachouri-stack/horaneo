@@ -5,6 +5,12 @@ import type { Transaction } from "@/db/client";
 import { getTranslator, resolveLocale } from "@/i18n/translator";
 import { memberships, orders, plans, subscriptions, users } from "@/db/schema";
 import type { BillingGateway } from "@/modules/billing/gateway";
+import {
+  confirmOrderClaim,
+  linkOrderClaimToTenant,
+  releaseOrderClaim,
+  reserveForOrder,
+} from "@/modules/billing/launch-offers";
 import { resolveOptions } from "@/modules/billing/option-total";
 import { ensureOptionPrice, listPlanOptions, pricedOption } from "@/modules/billing/options";
 import { applySubscription, ensurePlanPrice, ensureTaxRate } from "@/modules/billing/subscriptions";
@@ -115,6 +121,16 @@ export async function createOrder(
         .values({ ...values, userId, status: free ? "awaiting_review" : "awaiting_payment" })
         .returning();
 
+  // Offre de lancement (ex. tablette) : une place est retenue si le pack et la formule y donnent droit.
+  if (!free) {
+    await reserveForOrder(tx, {
+      orderId: order.id,
+      userId,
+      planId: plan.id,
+      withCommitment: order.withCommitment,
+    });
+  }
+
   if (free) {
     await queueOrderAlerts(tx, order.id, input.locale);
     return { kind: "submitted", orderId: order.id };
@@ -200,6 +216,8 @@ export async function markOrderPaid(
       stripeCustomerId: input.customerId ?? order.stripeCustomerId,
     })
     .where(eq(orders.id, order.id));
+  // Place de l'offre de lancement confirmée par le premier paiement (éligibilité vérifiée ensuite).
+  await confirmOrderClaim(tx, order.id, now);
   await queueOrderAlerts(tx, order.id, order.locale);
   return { outcome: "paid" as const };
 }
@@ -287,6 +305,7 @@ export async function linkOrderToTenant(
   if (!order) throw new AppError("not_found");
   if (!["awaiting_review", "paid"].includes(order.status)) throw new AppError("order_not_pending");
   await tx.update(orders).set({ status: "in_creation", tenantId }).where(eq(orders.id, order.id));
+  await linkOrderClaimToTenant(tx, order.id, tenantId);
   if (order.stripeSubscriptionId) {
     await tx
       .insert(subscriptions)
@@ -336,6 +355,7 @@ export async function rejectOrder(
     .update(orders)
     .set({ status: "rejected", rejectionReason: reason.trim().slice(0, 500) || null })
     .where(eq(orders.id, order.id));
+  await releaseOrderClaim(tx, order.id);
   await queueMessage(tx, {
     tenantId: null,
     template: "account.order_rejected",

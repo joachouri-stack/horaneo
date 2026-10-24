@@ -186,7 +186,8 @@ async function managerEmails(tx: Transaction, tenantId: string, row: MessageRow)
     row.templateKey === "manager.payment_failed" ||
     row.templateKey === "manager.subscription_ended" ||
     row.templateKey === "manager.price_change" ||
-    row.templateKey === "manager.sms_quota";
+    row.templateKey === "manager.sms_quota" ||
+    row.templateKey === "manager.usage_quota";
   const rows = await tx
     .select({ email: users.email })
     .from(memberships)
@@ -780,6 +781,33 @@ async function renderManager(
       t("notifications.manager.sms_quota.packs"),
     ];
     action = { label: t("notifications.manager.sms_quota.open"), url: `${space}/plus/abonnement` };
+  } else if (template === "manager.usage_quota") {
+    // Quota mensuel d'un outil (chatbot, WhatsApp, textes ou images générés).
+    const data = row.data as {
+      key?: string;
+      level?: number;
+      used?: number;
+      limit?: number;
+      resetsOn?: string;
+    };
+    const reached = (data.level ?? 0) >= 100;
+    const resetsOn = data.resetsOn ? fmt.date(new Date(`${data.resetsOn}T12:00:00Z`)) : "";
+    const tool = t(
+      `notifications.manager.usage_quota.keys.${data.key ?? "aiTexts"}` as "notifications.manager.usage_quota.keys.aiTexts",
+    );
+    subject = reached
+      ? t("notifications.manager.usage_quota.subjectReached", { tool })
+      : t("notifications.manager.usage_quota.subjectAlmost", { tool, percent: data.level ?? 0 });
+    title = subject;
+    paragraphs = [
+      t(reached ? "notifications.manager.usage_quota.reached" : "notifications.manager.usage_quota.almost", {
+        used: data.used ?? 0,
+        limit: data.limit ?? 0,
+        date: resetsOn,
+      }),
+      t("notifications.manager.usage_quota.noCharge"),
+    ];
+    action = { label: t("notifications.manager.usage_quota.open"), url: `${space}/plus/abonnement` };
   } else if (template === "manager.payment_failed") {
     subject = t("notifications.manager.payment_failed.subject");
     title = t("notifications.manager.payment_failed.title");

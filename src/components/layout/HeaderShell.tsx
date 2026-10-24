@@ -38,8 +38,8 @@ export function HeaderShell({
   return (
     <div
       data-scrolled={scrolled}
-      className={`group/hdr sticky top-0 z-40 bg-ivory transition-shadow duration-300 ${
-        scrolled || open ? "shadow-[0_1px_0_#ECE6DA,0_10px_30px_rgba(22,24,29,.06)]" : ""
+      className={`group/hdr sticky top-0 z-40 bg-white/90 backdrop-blur-md transition-shadow duration-300 ${
+        scrolled || open ? "shadow-[0_1px_0_#e6e9f0,0_8px_24px_rgba(15,24,48,.05)]" : ""
       }`}
     >
       <div className="relative">
@@ -89,10 +89,10 @@ export function HeaderShell({
               ))}
               <li className="pt-2">
                 <Link
-                  href={{ pathname: "/", hash: "tarifs" }}
+                  href={{ pathname: "/commander", query: { pack: "basic" } }}
                   onClick={() => setOpen(false)}
                   tabIndex={open ? undefined : -1}
-                  className="flex min-h-12 items-center justify-center rounded-full bg-brick px-6 font-semibold text-white"
+                  className="flex min-h-12 items-center justify-center rounded-xl bg-navy px-6 font-medium text-white"
                 >
                   {menu.cta}
                 </Link>

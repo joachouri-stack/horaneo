@@ -116,14 +116,13 @@ describe.skipIf(!hasTestDatabase)("options à la carte", () => {
     (await platform((tx) => listTenantOptions(tx, tenantId))).map((row) => row.option.code);
 
   it("commande : les options et leurs dépendances sont facturées avec le pack, puis actives sur le site", async () => {
-    const { tenant, order, checkout } = await orderedSite("site-business", ["online-payment"]);
+    const { tenant, order, checkout } = await orderedSite("business", ["online-payment"]);
     expect(order.optionCodes).toEqual(["booking", "online-payment"]);
     expect(checkout.optionPriceIds).toHaveLength(2);
     expect(await codesOf(tenant.id)).toEqual(["booking", "online-payment"]);
     // Droits du site : ceux du pack, plus ceux des options (lus avec le rôle du site).
     const plan = await withTenant(tenant.id, (tx) => getTenantPlan(tx, tenant.id), app);
     expect(plan.features).toMatchObject({ onlineBooking: true, onlinePayment: true, advancedSeo: true });
-    expect(plan.features.giftCards).toBeFalsy();
     const site = await withTenant(tenant.id, (tx) => loadSiteData(tx, tenant.id), app, null);
     expect(site?.features.customerSpace).toBe(true);
   });
@@ -133,23 +132,23 @@ describe.skipIf(!hasTestDatabase)("options à la carte", () => {
     for (const code of ["loyalty", "shop"]) {
       expect(
         await errorCode(
-          platform((tx) => createOrder(tx, user.id, form("site-essentiel", [code]), billing.gateway, urls)),
+          platform((tx) => createOrder(tx, user.id, form("pro", [code]), billing.gateway, urls)),
         ),
       ).toBe("option_unavailable");
     }
   });
 
   it("changement de pack : les options restent facturées", async () => {
-    const { tenant } = await orderedSite("site-essentiel", ["booking"]);
-    const [premium] = await owner.select().from(plans).where(eq(plans.code, "site-premium"));
+    const { tenant } = await orderedSite("pro", ["booking"]);
+    const [business] = await owner.select().from(plans).where(eq(plans.code, "business"));
     expect(
-      (await platform((tx) => requestPlanChange(tx, tenant.id, premium.id, billing.gateway, urls()))).kind,
+      (await platform((tx) => requestPlanChange(tx, tenant.id, business.id, billing.gateway, urls()))).kind,
     ).toBe("upgraded");
     expect(await codesOf(tenant.id)).toEqual(["booking"]);
   });
 
   it("admin : ajout et retrait d'une option sur l'abonnement Stripe, dépendances respectées", async () => {
-    const { tenant, subscription } = await orderedSite("site-essentiel", []);
+    const { tenant, subscription } = await orderedSite("pro", []);
     expect(await codesOf(tenant.id)).toEqual([]);
     expect(
       await errorCode(
@@ -193,7 +192,7 @@ describe.skipIf(!hasTestDatabase)("options à la carte", () => {
       createTenant(tx, {
         name: "Atelier offert",
         slug: `offert-${n}-${Date.now().toString(36)}`,
-        planCode: "site-essentiel",
+        planCode: "pro",
         managerEmail: `offert-${n}@example.com`,
       }),
     );

@@ -1,282 +1,252 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { pickLocalized, type Locale, type LocalizedText } from "@/i18n/locales";
-import {
-  planCardContent,
-  type CardLine,
-  type CardPlan,
-  type PlansTranslator,
-} from "@/modules/billing/plan-card";
-import { planSheet } from "@/modules/billing/plan-sheet";
-import { FlipCard } from "./FlipCard";
-import { ArrowIcon, CheckIcon, PLAN_ICONS, StarIcon } from "./icons";
-import { SitePreview } from "./SitePreview";
+import { formatMoney } from "@/lib/format";
+import type { PlanFeatures, PlanLimits } from "@/db/schema";
+import { gridCard, SOLUTIONS, type CardLine } from "@/modules/billing/grid";
+import type { LaunchOfferView } from "@/modules/billing/launch-offers";
+import { ArrowLine, CheckLine, CrownLine, DashLine, DiamondLine, LeafLine, TabletLine } from "./line-icons";
 
-type CardOption = { code: string; name: LocalizedText; isAvailable: boolean };
+type CardPlan = {
+  id: string;
+  code: string;
+  name: LocalizedText;
+  description: LocalizedText | null;
+  priceCents: number;
+  features: PlanFeatures;
+  limits: PlanLimits;
+};
+
+const ICONS = [LeafLine, CrownLine, DiamondLine];
 
 /**
- * Cartes des packs, chacune à deux faces (FlipCard) :
- * - recto : nom, prix, cible, aperçu de site, chiffres clés, 6 avantages au plus
- *   (choisis dans l'admin), bouton « Choisir ce pack » ;
- * - verso : rubriques détaillées (pages, personnalisation, gestion,
- *   référencement, hébergement, support), options disponibles, conditions.
- * Tout vient des réglages des packs et des options. Le pack du milieu (Business)
- * est mis en avant. Ordinateur : trois colonnes alignées ; téléphone : l'une
- * sous l'autre, le pack recommandé en premier.
+ * Cartes des packs (Basic, Pro, Business) : nom, prix, description, ce que
+ * le pack ajoute au précédent, ce qui n'est pas inclus, bouton et conditions.
+ * Tout vient des réglages des packs (gridCard) ; le dernier pack, le plus
+ * complet, est mis en valeur sur fond sombre. Une offre de lancement ouverte
+ * (tablette) s'affiche sur son pack avec le nombre réel de places restantes.
  */
 export async function PlanCards({
   plans,
-  options,
   locale,
-  smsPack,
   soon,
   salesOpen,
-  conditions,
+  display,
+  commitmentMonths,
+  offers,
 }: {
   plans: CardPlan[];
-  /** Options du catalogue, présentées au verso. */
-  options: CardOption[];
   locale: Locale;
-  smsPack: { size: number; priceCents: number };
-  /** Fonctions pas encore livrées : étiquette « Bientôt ». */
   soon: string[];
-  /** Commande en ligne ouverte ; sinon les packs payants mènent au formulaire « Être rappelé ». */
   salesOpen: boolean;
-  conditions: { commitmentMonths: number; display: string };
+  display: string;
+  commitmentMonths: number;
+  offers: LaunchOfferView[];
 }) {
   const t = await getTranslations("home.plans");
-  const translate = t as unknown as PlansTranslator;
+  const tGrid = await getTranslations("home.grid");
   const soonSet = new Set(soon);
-  // Pack recommandé : celui du milieu (le dernier s'il n'y en a que deux).
-  const featuredIndex = plans.length >= 3 ? Math.floor(plans.length / 2) : plans.length - 1;
-
-  const card = (plan: CardPlan, index: number) => {
-    const featured = plans.length > 1 && index === featuredIndex;
-    const Icon = PLAN_ICONS[Math.min(index, PLAN_ICONS.length - 1)];
-    const content = planCardContent(plan, plans, { t: translate, locale, soon: soonSet, smsPack, salesOpen });
-    // Verso : les différences avec le pack précédent (« Tout le pack Essentiel, plus : »).
-    const previous = index > 0 ? plans[index - 1] : undefined;
-    const sheet = planSheet(plan, soonSet, previous);
-    const strong = featured ? "text-white" : "text-night";
-    const muted = featured ? "text-[#c9d0de]" : "text-stone";
-    const accent = featured ? "text-gold" : "text-copper";
-    const rule = featured ? "border-[#34466b]" : "border-line";
-    const ctaLabel = content.cta.label === t("callback") ? content.cta.label : t("chooseThis");
-    const href = content.cta.href as { pathname: "/commander"; query: Record<string, string> };
-
-    const soonTag = (
-      <span
-        className={`ml-2 inline-block rounded-full px-2 py-px align-middle text-[0.68rem] font-semibold uppercase tracking-[0.05em] ${
-          featured ? "bg-navy-light text-gold" : "bg-cream text-copper"
-        }`}
-      >
-        {t("soonTag")}
-      </span>
-    );
-    const line = (item: CardLine, key: string) => (
-      <li key={key} className="flex items-start gap-2.5">
-        <span
-          className={`mt-[3px] flex size-[1.1rem] flex-none items-center justify-center rounded-full ${
-            featured ? "bg-[#33456b] text-gold" : "bg-cream text-copper"
-          }`}
-        >
-          <CheckIcon className="size-3" />
-        </span>
-        <span>
-          {item.text}
-          {item.soon && soonTag}
-        </span>
-      </li>
-    );
-    const cta = (
-      <Link
-        href={href}
-        aria-label={`${ctaLabel} : ${content.name}`}
-        className={`group/cta relative mt-6 flex min-h-12 items-center justify-center gap-2 rounded-full px-4 py-3 text-[0.98rem] font-semibold transition duration-200 hover:-translate-y-0.5 motion-reduce:transition-none ${
-          featured
-            ? "bg-brick text-white hover:shadow-[0_12px_26px_rgba(212,64,47,.38)]"
-            : "bg-mist text-navy hover:bg-navy hover:text-white hover:shadow-[0_12px_26px_rgba(27,42,74,.25)]"
-        }`}
-      >
-        {ctaLabel}
-        <ArrowIcon
-          className={`size-[18px] shrink-0 transition-transform group-hover/cta:translate-x-1 ${
-            featured ? "" : "text-copper group-hover/cta:text-white"
-          }`}
-        />
-      </Link>
-    );
-    const header = (
-      <div className="relative flex items-start gap-3">
-        <span
-          className={`flex size-11 flex-none items-center justify-center rounded-2xl ${
-            featured ? "bg-gold text-navy" : "bg-cream text-copper"
-          }`}
-        >
-          <Icon className="size-[22px]" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <h3
-            className={`font-display text-[1.4rem] font-bold uppercase leading-tight tracking-[0.02em] ${strong}`}
-          >
-            {content.name}
-          </h3>
-          {content.description && (
-            <p className={`mt-0.5 text-[0.92rem] leading-snug ${muted}`}>{content.description}</p>
-          )}
-        </div>
-      </div>
-    );
-
-    const front = (
-      <>
-        {featured && (
-          <p className="absolute left-1/2 top-0 inline-flex -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 whitespace-nowrap rounded-full bg-gold px-3.5 py-1 text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-navy shadow-[0_8px_20px_-6px_rgba(212,167,90,.6)]">
-            <StarIcon className="size-3.5" />
-            {t("recommended")}
-          </p>
-        )}
-        {header}
-        <SitePreview
-          tier={index}
-          pages={plan.limits.pages ?? null}
-          tone={featured ? "dark" : "light"}
-          label={t("preview", { plan: content.name })}
-          more={(count) => t("previewMore", { count })}
-        />
-        <p className="relative mt-5 flex flex-wrap items-baseline gap-x-1.5">
-          <span
-            className={`font-display text-[2.4rem] font-bold leading-none tracking-[-0.03em] lg:text-[2.6rem] ${strong}`}
-          >
-            {content.price}
-          </span>
-          <span className={`text-[0.92rem] ${muted}`}>
-            {content.priceSuffix} {conditions.display}
-          </span>
-        </p>
-        <dl
-          className={`relative mt-4 grid grid-cols-3 divide-x rounded-2xl border ${rule} ${featured ? "divide-[#34466b]" : "divide-line"}`}
-        >
-          {content.tiles.map((item) => (
-            <div key={item.key} className="flex flex-col-reverse items-center px-1.5 py-2.5 text-center">
-              <dt className={`text-[0.7rem] leading-tight ${muted}`}>{item.label}</dt>
-              <dd className={`text-[0.98rem] font-semibold leading-tight ${strong}`}>{item.value}</dd>
-            </div>
-          ))}
-        </dl>
-        <ul className="relative mt-5 flex flex-col gap-2.5 text-[0.94rem] leading-snug">
-          {content.highlights.map((item, i) => line(item, `h${i}`))}
-        </ul>
-        <div className="mt-auto">{cta}</div>
-      </>
-    );
-
-    const back = (
-      <>
-        <div className="flex items-baseline justify-between gap-3">
-          <h3 className={`font-display text-[1.15rem] font-bold leading-tight ${strong}`}>
-            {t("detailsTitle", { plan: content.name })}
-          </h3>
-          <p className={`whitespace-nowrap text-[0.9rem] font-semibold ${accent}`}>
-            {content.price} <span className="font-normal">{content.priceSuffix}</span>
-          </p>
-        </div>
-        {previous && (
-          <p className={`mt-3 text-[0.9rem] font-semibold ${strong}`}>
-            {t("sheetEverythingIn", { plan: pickLocalized(previous.name, locale) })}
-          </p>
-        )}
-        {/* Rubriques compactes : une ligne de titre, puis les éléments à la suite. */}
-        <dl className="mt-4 flex flex-col gap-2 text-[0.84rem] leading-snug">
-          {sheet.map((group) => (
-            <div key={group.section}>
-              <dt className={`text-[0.68rem] font-semibold uppercase tracking-[0.08em] ${accent}`}>
-                {t(`sheet.sections.${group.section}`)}
-              </dt>
-              <dd>
-                {group.lines.map((item, i) => (
-                  <span key={item.key}>
-                    {i > 0 && (
-                      <span aria-hidden="true" className={`mx-1.5 ${accent}`}>
-                        ·
-                      </span>
-                    )}
-                    {translate(`sheet.lines.${item.key}`, item.values)}
-                    {item.soon && soonTag}
-                  </span>
-                ))}
-              </dd>
-            </div>
-          ))}
-        </dl>
-        {options.length > 0 && (
-          <div className={`mt-3.5 border-t pt-3 ${rule}`}>
-            <p className={`text-[0.68rem] font-semibold uppercase tracking-[0.08em] ${accent}`}>
-              {t("optionsTitle")}
-            </p>
-            <p className="text-[0.85rem] leading-snug">
-              {options
-                .filter((option) => option.isAvailable)
-                .map((option) => pickLocalized(option.name, locale))
-                .join(" · ")}
-            </p>
-            <a
-              href="#options"
-              className={`inline-flex min-h-11 items-center gap-1 text-[0.85rem] font-semibold underline underline-offset-4 ${accent}`}
-            >
-              {t("optionsLink")}
-            </a>
-          </div>
-        )}
-        <div className={`border-t pt-3 ${rule}`}>
-          <p className={`text-[0.68rem] font-semibold uppercase tracking-[0.08em] ${accent}`}>
-            {t("subscriptionTitle")}
-          </p>
-          <p className={`text-[0.84rem] leading-snug ${muted}`}>
-            {[
-              t("subscription.commitment", { months: conditions.commitmentMonths }),
-              t("subscription.creationFree"),
-              t("subscription.display", { display: conditions.display }),
-              t("subscription.upgrade"),
-            ].join(" · ")}
-          </p>
-        </div>
-        <div className="mt-auto">{cta}</div>
-      </>
-    );
-
-    const surface = `relative rounded-[1.75rem] border-2 p-6 lg:p-7 ${
-      featured
-        ? "border-gold bg-navy text-sand shadow-[0_28px_60px_-14px_rgba(27,42,74,.5)]"
-        : "border-line bg-white text-body shadow-[0_1px_0_rgba(22,24,29,.04)]"
-    }`;
-    return (
-      <div
-        key={plan.id}
-        data-plan={content.code}
-        className={`flex transition duration-300 ease-out hover:-translate-y-2 motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${
-          featured ? "max-lg:order-first" : ""
-        }`}
-      >
-        <FlipCard
-          front={front}
-          back={back}
-          surface={surface}
-          tone={featured ? "dark" : "light"}
-          labels={{
-            details: t("details"),
-            detailsLabel: t("detailsOf", { plan: content.name }),
-            back: t("back"),
-            backLabel: t("backOf", { plan: content.name }),
-          }}
-        />
-      </div>
-    );
+  const money = (cents: number) => formatMoney(cents, "EUR", locale);
+  const nameOf = (code: string | null) =>
+    pickLocalized(plans.find((plan) => plan.code === code)?.name ?? null, locale);
+  const text = (line: CardLine) => {
+    const base = `rows.${line.key}` as "rows.photos";
+    if (line.count === null && tGrid.has(`${base}.cardUnlimited` as "rows.photos.cardUnlimited"))
+      return tGrid(`${base}.cardUnlimited` as "rows.photos.cardUnlimited");
+    return tGrid(`${base}.card` as "rows.photos.card", { count: line.count ?? 0 });
   };
 
   return (
-    <div className="flex flex-col gap-8 pt-3 lg:grid lg:grid-cols-3 lg:items-stretch lg:gap-6">
-      {plans.map((plan, index) => card(plan, index))}
+    <div className="grid gap-5 lg:grid-cols-3 lg:items-stretch lg:gap-6">
+      {plans.map((plan, index) => {
+        const featured = plans.length > 1 && index === plans.length - 1;
+        const Icon = ICONS[Math.min(index, ICONS.length - 1)];
+        const name = pickLocalized(plan.name, locale);
+        const card = gridCard(plan, plans, soonSet);
+        const paid = plan.priceCents > 0;
+        const offer = offers.find((item) => item.planCode === plan.code && item.open);
+        const callback = paid && !salesOpen;
+        const href = {
+          pathname: callback ? ("/rappel" as const) : ("/commander" as const),
+          query: { pack: plan.code },
+        };
+        const cta = callback ? t("callback") : paid ? t("choose", { plan: name }) : t("start");
+        const muted = featured ? "text-[#aab3c7]" : "text-ink-soft";
+        const strong = featured ? "text-white" : "text-night";
+
+        const line = (item: CardLine, key: string) => (
+          <li key={key} data-only={item.solution ?? undefined} className="flex items-start gap-2.5">
+            <CheckLine
+              className={`mt-[3px] size-4 flex-none ${featured ? "text-champagne" : "text-accent"}`}
+            />
+            <span>
+              {text(item)}
+              {item.soon && (
+                <span
+                  className={`ml-1.5 inline-block rounded-full px-1.5 py-px align-[1px] text-[0.66rem] font-medium ${
+                    featured ? "bg-white/10 text-champagne" : "bg-mist-50 text-ink-soft"
+                  }`}
+                >
+                  {t("soonTag")}
+                </span>
+              )}
+            </span>
+          </li>
+        );
+
+        return (
+          <article
+            key={plan.id}
+            data-plan={plan.code}
+            className={`relative flex flex-col rounded-[1.4rem] p-6 transition duration-300 motion-reduce:transition-none lg:p-7 ${
+              featured
+                ? "bg-deep text-[#d5dbe8] shadow-[0_30px_60px_-28px_rgba(18,26,44,.75)] ring-1 ring-champagne/40 max-lg:order-first"
+                : "border border-hairline bg-white shadow-[0_1px_2px_rgba(15,24,48,.04)] hover:-translate-y-1 hover:shadow-[0_24px_44px_-30px_rgba(15,24,48,.35)]"
+            }`}
+          >
+            {featured && (
+              <>
+                {/* Reflet champagne discret en haut de la carte. */}
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-0 top-0 h-40 rounded-t-[1.4rem] bg-gradient-to-b from-champagne/10 to-transparent"
+                />
+                <p className="absolute right-5 top-0 -translate-y-1/2 rounded-full bg-gradient-to-r from-[#c9a96a] to-[#e4cfa2] px-3 py-1 text-[0.72rem] font-medium tracking-[0.02em] text-deep">
+                  {t("recommended")}
+                </p>
+              </>
+            )}
+            <div className="relative flex items-center gap-3">
+              <span
+                className={`flex size-11 items-center justify-center rounded-full ${
+                  featured ? "bg-champagne/15 text-champagne" : "bg-accent-soft text-accent"
+                }`}
+              >
+                <Icon className="size-[22px]" />
+              </span>
+              <div>
+                <h3 className={`font-display text-[1.3rem] font-semibold tracking-[-0.015em] ${strong}`}>
+                  {name}
+                </h3>
+                {plan.description && (
+                  <p className={`text-[0.85rem] leading-snug ${muted}`}>
+                    {pickLocalized(plan.description, locale)}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <p className="relative mt-6 flex items-baseline gap-2">
+              <span
+                className={`font-display text-[2.6rem] font-semibold leading-none tracking-[-0.03em] ${strong}`}
+              >
+                {money(plan.priceCents)}
+              </span>
+              <span className={`text-[0.9rem] ${muted}`}>
+                {paid ? t("perMonth", { display }) : t("freeSuffix")}
+              </span>
+            </p>
+
+            <ul
+              className={`relative mt-6 flex flex-col gap-2.5 border-t pt-5 text-[0.92rem] leading-snug ${featured ? "border-white/10" : "border-hairline"}`}
+            >
+              {card.previous && (
+                <li className={`flex items-start gap-2.5 font-medium ${strong}`}>
+                  <CheckLine
+                    className={`mt-[3px] size-4 flex-none ${featured ? "text-champagne" : "text-accent"}`}
+                  />
+                  {t("everythingIn", { plan: nameOf(card.previous) })}
+                </li>
+              )}
+              {card.included.map((item, i) => line(item, `i${i}`))}
+            </ul>
+
+            {/* Fonctions annoncées : à part, en plus petit, jamais présentées comme disponibles. */}
+            {SOLUTIONS.map((solution) => {
+              // Une version par solution : seules les fonctions qui la concernent y figurent.
+              const items = card.upcoming.filter((item) => !item.solution || item.solution === solution);
+              return items.length > 0 ? (
+                <div key={solution} data-only={solution} className="relative mt-5">
+                  <p
+                    className={`mb-1.5 text-[0.75rem] font-medium uppercase tracking-[0.06em] ${featured ? "text-champagne" : "text-accent-strong"}`}
+                  >
+                    {t("upcoming")}
+                  </p>
+                  <p className={`text-[0.84rem] leading-relaxed ${muted}`}>
+                    {items.map((item) => text(item)).join(" · ")}
+                  </p>
+                </div>
+              ) : null;
+            })}
+
+            {card.missing.length > 0 && (
+              <div className="relative mt-5">
+                <p className={`mb-1.5 text-[0.75rem] font-medium uppercase tracking-[0.06em] ${muted}`}>
+                  {t("notIncluded")}
+                </p>
+                <ul className={`flex flex-col gap-1.5 text-[0.85rem] ${muted}`}>
+                  {card.missing.map((item, i) => (
+                    <li
+                      key={`m${i}`}
+                      data-only={item.solution ?? undefined}
+                      className="flex items-start gap-2.5"
+                    >
+                      <DashLine className="mt-[3px] size-4 flex-none opacity-70" />
+                      <span>{tGrid(`rows.${item.key}.label` as "rows.photos.label")}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {offer && (
+              <div className="relative mt-6 flex items-center gap-3 rounded-xl border border-champagne/30 bg-white/[0.04] p-3.5">
+                <span className="flex size-11 flex-none items-center justify-center rounded-lg bg-champagne/15 text-champagne">
+                  <TabletLine className="size-6" />
+                </span>
+                <div className="min-w-0 text-[0.82rem] leading-snug">
+                  <p className="flex flex-wrap items-center gap-2">
+                    <span className="font-medium text-white">{pickLocalized(offer.title, locale)}</span>
+                    <span className="rounded-full bg-champagne/15 px-2 py-px text-[0.68rem] text-champagne">
+                      {t("tablet.badge")}
+                    </span>
+                  </p>
+                  <p className="text-[#aab3c7]">
+                    {t("tablet.places", { remaining: offer.remaining, quota: offer.quota })}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="relative mt-auto pt-6">
+              <Link
+                href={href}
+                className={`group flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-[0.95rem] font-medium transition duration-200 motion-reduce:transition-none ${
+                  featured
+                    ? "bg-gradient-to-r from-[#c9a96a] to-[#e4cfa2] text-deep hover:brightness-105"
+                    : paid
+                      ? "bg-accent text-white hover:bg-accent-strong"
+                      : "border border-hairline bg-white text-night hover:border-accent-line hover:text-accent-strong"
+                }`}
+              >
+                {cta}
+                <ArrowLine className="size-4 transition-transform group-hover:translate-x-0.5" />
+              </Link>
+              <p className={`mt-3 text-center text-[0.76rem] leading-snug ${muted}`}>
+                {paid ? t("contractPaid", { months: commitmentMonths, display }) : t("contractFree")}
+              </p>
+              {offer && (
+                <details className="group mt-2 text-center text-[0.74rem] leading-snug text-[#8e98ad]">
+                  <summary className="inline-flex min-h-9 cursor-pointer list-none items-center underline underline-offset-2 hover:text-champagne [&::-webkit-details-marker]:hidden">
+                    {t("tablet.conditions")}
+                  </summary>
+                  <p className="mt-1 text-left">{pickLocalized(offer.conditions, locale)}</p>
+                </details>
+              )}
+            </div>
+          </article>
+        );
+      })}
     </div>
   );
 }

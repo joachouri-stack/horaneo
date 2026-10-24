@@ -1,3 +1,4 @@
+import { assertQuota } from "@/modules/quotas";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
@@ -235,6 +236,8 @@ export async function createManualAppointment(
             ),
           )
       : [];
+    // Nombre de fiches clients limité par le pack (ex. Basic).
+    if (!existing) await assertQuota(tx, tenantId, "customers");
     customerId =
       existing?.id ??
       (

@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "title": "{product} : votre site professionnel par abonnement",
-    "description": "Un site internet professionnel créé, hébergé et maintenu pour vous, avec un tableau de bord pour le gérer. Pour tous les métiers, des options à la carte : réservation, paiement en ligne, rappels."
+    "title": "{product} : votre activité, un seul outil",
+    "description": "Site web, réservations, clients, paiements, automatisations et marketing, au même endroit. Commencez gratuitement."
   },
   "platformErrors": {
     "notFoundTitle": "Page introuvable",
@@ -45,96 +45,171 @@
   },
   "home": {
     "nav": {
-      "how": "Comment ça marche",
-      "features": "Options",
+      "solutions": "Solutions",
       "pricing": "Tarifs",
-      "questions": "Questions",
+      "features": "Fonctionnalités",
+      "resources": "Ressources",
       "menu": "Menu",
       "closeMenu": "Fermer le menu"
     },
-    "badge": "Pour tous les professionnels",
-    "title": "Nous créons votre site.",
-    "titleAccent": "Vous développez votre activité.",
-    "subtitle": "Un site professionnel à votre nom, créé, hébergé et maintenu par nos soins, dès {price} par mois. Vous le gérez depuis votre tableau de bord et ajoutez les options utiles à votre métier.",
-    "cta": "Je veux mon site",
-    "seePlans": "Voir les tarifs",
-    "howItWorks": "Comment ça marche",
-    "promises": {
-      "creation": "Création offerte",
-      "domain": "Votre nom de domaine",
-      "hosting": "Hébergement inclus"
+    "cta": "Essayer gratuitement",
+    "hero": {
+      "badge": "Une plateforme pour gérer toute votre activité",
+      "title": "Votre activité. Un seul outil.",
+      "titleAccent": "Plus de liberté.",
+      "subtitle": "Site web, réservations, clients, paiements, automatisations et marketing. Gagnez du temps et développez votre activité.",
+      "demo": "Voir la démonstration",
+      "pricing": "Voir les tarifs"
     },
-    "demo": {
-      "label": "Exemple : le site d'un établissement sur téléphone, à l'étape du choix du créneau, avec l'acompte à payer.",
-      "url": "votre-institut.fr",
-      "initial": "L",
-      "business": "Institut Lumière",
-      "step": "Étape 2 sur 3 · Votre créneau",
-      "service": "Soin du visage",
-      "duration": "60 min",
-      "price": "55 €",
-      "days": ["Lun 12", "Mar 13", "Mer 14", "Jeu 15"],
-      "times": ["09:00", "10:30", "14:00", "15:30"],
-      "deposit": "Acompte de 30 %",
-      "depositAmount": "16,50 €",
-      "pay": "Payer l'acompte",
-      "notification": "Nouvelle réservation",
-      "notificationDetail": "Mardi à 14 h, soin du visage",
-      "received": "Acompte reçu",
-      "receivedDetail": "16,50 € sur votre compte"
-    },
-    "madeFor": {
-      "title": "Pensé pour",
-      "items": [
-        "Artisans",
-        "Commerces",
-        "Restaurants",
-        "Instituts de beauté",
-        "Garages",
-        "Consultants",
-        "Coachs sportifs",
-        "Événementiel",
-        "Immobilier"
-      ]
-    },
-    "steps": {
-      "title": "Vous n'avez",
-      "titleAccent": "rien à faire.",
-      "intro": "Trois étapes, et c'est nous qui nous chargeons de la première.",
-      "dot": "Voir l'étape {n}",
-      "create": {
-        "title": "Nous créons votre site",
-        "text": "Logo, photos, textes, services : nous récupérons tout et nous le mettons en ligne à votre adresse.",
-        "tag": "Création offerte"
-      },
-      "book": {
-        "title": "Vous le gérez simplement",
-        "text": "Textes, photos, services, horaires : vous les modifiez vous-même depuis votre tableau de bord, sur ordinateur ou téléphone.",
-        "tag": "Sans rien installer"
-      },
-      "cash": {
-        "title": "Vous développez votre activité",
-        "text": "Réservation, paiement en ligne, rappels, cartes cadeaux : activez les options utiles à votre métier, quand vous voulez.",
-        "tag": "Options à la carte"
+    "solutions": {
+      "title": "Choisissez votre solution",
+      "intro": "Une seule plateforme, un seul compte, trois univers. Les tarifs restent les mêmes.",
+      "label": "Solutions",
+      "soon": "Disponible bientôt",
+      "available": "Disponible",
+      "ctaSoon": "Être prévenu du lancement",
+      "soonNote": "Cette solution est en préparation : la souscription ouvrira à son lancement. Les packs Pro et Business y donneront accès sans frais de plateforme supplémentaires.",
+      "visual": "Aperçu de l'interface {solution} sur ordinateur et téléphone (données d'exemple)",
+      "for": "Pour",
+      "items": {
+        "booking": {
+          "name": "Réservation",
+          "short": "Rendez-vous, prestations, planning et paiements",
+          "badge": "Solution Réservation",
+          "title": "Simplifiez vos rendez-vous.",
+          "titleAccent": "Gagnez du temps.",
+          "text": "Un site professionnel avec réservation en ligne, agenda, fichier clients, rappels automatiques et paiements : tout ce qu'il faut pour remplir votre planning.",
+          "bullets": [
+            "Réservation en ligne 24 h/24",
+            "Rappels automatiques par e-mail et SMS",
+            "Acomptes et paiements en ligne",
+            "Gestion de plusieurs collaborateurs"
+          ],
+          "floating": {
+            "title": "Rappels automatiques",
+            "text": "SMS et e-mail"
+          },
+          "strip": [
+            "Agenda",
+            "Rappels automatiques",
+            "Paiements sécurisés",
+            "Fichier clients",
+            "Statistiques"
+          ],
+          "mock": {
+            "today": "Aujourd'hui",
+            "week": "Semaine du 12",
+            "menu": ["Agenda", "Clients", "Prestations", "Paiements", "Statistiques"],
+            "events": ["Coupe & brushing", "Bilan", "Rendez-vous", "Entretien"],
+            "phoneTitle": "Prenez rendez-vous",
+            "phoneCta": "Réserver",
+            "business": "Votre établissement"
+          },
+          "targets": [
+            "Instituts de beauté",
+            "Coiffeurs et barbiers",
+            "Bien-être",
+            "Garages",
+            "Artisans",
+            "Consultants"
+          ]
+        },
+        "commerce": {
+          "name": "Commerce",
+          "short": "Vente de produits et de services",
+          "badge": "Solution Commerce",
+          "title": "Vendez vos produits",
+          "titleAccent": "en toute simplicité.",
+          "text": "Une boutique en ligne pour vendre vos produits et services : catalogue, commandes, paiements sécurisés et gestion des stocks.",
+          "bullets": [
+            "Boutique en ligne clé en main",
+            "Paiements sécurisés par Stripe",
+            "Commandes et stocks",
+            "Codes promo et cartes cadeaux"
+          ],
+          "floating": {
+            "title": "Paiements sécurisés",
+            "text": "Stripe"
+          },
+          "strip": ["Boutique en ligne", "Catalogue", "Commandes et stocks", "Codes promo", "Cartes cadeaux"],
+          "mock": {
+            "today": "Boutique",
+            "week": "Nouveautés",
+            "menu": ["Produits", "Commandes", "Stocks", "Promotions", "Statistiques"],
+            "events": ["Produit", "Produit", "Produit", "Produit"],
+            "phoneTitle": "Votre boutique",
+            "phoneCta": "Ajouter au panier",
+            "business": "Votre boutique"
+          },
+          "targets": ["Commerces", "Créateurs", "Restaurants et traiteurs", "Artisans"]
+        },
+        "formation": {
+          "name": "Formation",
+          "short": "Cours, ateliers et formations",
+          "badge": "Solution Formation",
+          "title": "Créez et vendez",
+          "titleAccent": "vos formations en ligne.",
+          "text": "Diffusez vos cours et ateliers, gérez vos apprenants et vendez vos formations depuis le même espace.",
+          "bullets": [
+            "Cours vidéo et documents",
+            "Espace apprenant sécurisé",
+            "Quiz et certificats",
+            "Paiements en ligne et abonnements"
+          ],
+          "floating": {
+            "title": "Espace apprenant",
+            "text": "Sécurisé"
+          },
+          "strip": ["Cours vidéo", "Documents", "Espace apprenant", "Certificats", "Suivi des apprenants"],
+          "mock": {
+            "today": "Mes formations",
+            "week": "Module 2",
+            "menu": ["Formations", "Apprenants", "Quiz", "Certificats", "Statistiques"],
+            "events": ["Leçon 1", "Leçon 2", "Leçon 3", "Quiz"],
+            "phoneTitle": "Leçon en cours",
+            "phoneCta": "Continuer",
+            "business": "Votre académie"
+          },
+          "targets": [
+            "Formateurs indépendants",
+            "Consultants et experts",
+            "Organismes de formation",
+            "Créateurs de cours"
+          ]
+        }
       }
     },
     "plans": {
-      "title": "Un prix clair,",
-      "titleAccent": "trois packs.",
-      "subtitle": "Votre site professionnel, hébergé et maintenu par nos soins. Choisissez votre pack, puis ajoutez les options utiles à votre activité.",
-      "perMonth": "par mois {display}",
-      "perMonthShort": "par mois",
+      "title": "Choisissez votre pack",
+      "subtitle": "Les mêmes tarifs pour les trois solutions. Commencez gratuitement, évoluez quand vous voulez.",
+      "monthly": "Prix mensuels {display}",
       "free": "Gratuit",
-      "freeForever": "sans limite de durée",
+      "freeSuffix": "pour toujours",
+      "perMonth": "{display}/mois",
+      "recommended": "Le plus complet",
+      "everythingIn": "Tout le pack {plan}",
+      "notIncluded": "Non inclus",
+      "included": "Inclus :",
+      "missing": "Non inclus :",
+      "soonTag": "Bientôt",
+      "start": "Commencer gratuitement",
+      "choose": "Choisir le pack {plan}",
+      "callback": "Être rappelé",
+      "contractFree": "Gratuit, sans carte bancaire. Évoluez quand vous voulez.",
+      "contractPaid": "{months, plural, =0 {Sans engagement} other {Sans engagement, ou engagement de # mois}}. Prix {display}, facturé chaque mois.",
+      "tablet": {
+        "badge": "Offre limitée",
+        "title": "Tablette offerte",
+        "places": "{remaining, plural, one {# place restante} other {# places restantes}} sur {quota}",
+        "label": "Tablette professionnelle offerte",
+        "conditions": "Conditions de l'offre"
+      },
+      "compare": "Voir le comparatif détaillé",
+      "quotaNote": "Quotas mensuels : à la limite, l'outil se met en pause. Aucun dépassement n'est facturé sans votre accord.",
       "toggleBooking": "Avec réservation",
       "toggleSite": "Sans réservation",
-      "toggleHintBooking": "Vos clients réservent en ligne, 24 h/24. Pas besoin ? Choisissez « Sans réservation ».",
-      "toggleHintSite": "Le même site, vos clients vous appellent ou vous écrivent. La réservation s'ajoute plus tard, sans tout refaire.",
-      "addBooking": "Ajoutez la réservation quand vous voulez : passez au pack {plan}, sans refaire votre site",
-      "recommended": "Recommandé",
-      "start": "Commencer gratuitement",
-      "choose": "Choisir {plan}",
-      "callback": "Être rappelé",
+      "perMonthShort": "par mois",
+      "freeForever": "sans limite de durée",
       "tiles": {
         "unlimited": "Illimité",
         "bookings": "{unlimited, select, yes {réservations} other {réservations par mois}}",
@@ -150,21 +225,6 @@
         "domainValue": "✓",
         "domainLabel": "votre nom de domaine",
         "pageCount": "{count, plural, one {page} other {pages}}"
-      },
-      "included": "Inclus :",
-      "missing": "Non inclus :",
-      "smsExtra": "SMS en plus : {amount} les {count}",
-      "seeAll": "Voir tout ce qui est inclus",
-      "collapse": "Réduire la liste",
-      "soonTag": "Bientôt",
-      "compare": "Comparer tous les packs en détail",
-      "groups": {
-        "style": "Un site pensé avec vous",
-        "google": "Être trouvé sur Google",
-        "requests": "Recevoir des demandes et des paiements",
-        "languages": "Un site en plusieurs langues",
-        "tech": "La technique, sans y penser",
-        "care": "Nous nous occupons de tout"
       },
       "highlights": {
         "everythingIn": "Tout le pack {plan}",
@@ -260,23 +320,18 @@
         "loyalty": "Carte de fidélité",
         "qrPoster": "Affichette avec QR code pour le comptoir, vers vos avis Google"
       },
-      "chooseThis": "Choisir ce pack",
-      "details": "Découvrir les détails",
-      "detailsOf": "Découvrir les détails du pack {plan}",
-      "back": "Revenir à la présentation",
-      "backOf": "Revenir à la présentation du pack {plan}",
-      "detailsTitle": "Le pack {plan} en détail",
-      "optionsTitle": "Options disponibles",
-      "optionsLink": "Voir les options et leurs tarifs",
-      "subscriptionTitle": "Votre abonnement",
-      "subscription": {
-        "commitment": "{months, plural, =0 {Sans engagement} other {Engagement # mois}}",
-        "creationFree": "Création du site offerte",
-        "display": "Prix {display}, facturé chaque mois",
-        "upgrade": "Changement de pack possible à tout moment"
+      "groups": {
+        "style": "Un site pensé avec vous",
+        "google": "Être trouvé sur Google",
+        "requests": "Recevoir des demandes et des paiements",
+        "languages": "Un site en plusieurs langues",
+        "tech": "La technique, sans y penser",
+        "care": "Nous nous occupons de tout"
       },
-      "preview": "Aperçu d'un site du pack {plan}",
-      "previewMore": "+{count}",
+      "addBooking": "Ajoutez la réservation quand vous voulez : passez au pack {plan}, sans refaire votre site",
+      "smsExtra": "SMS en plus : {amount} les {count}",
+      "seeAll": "Voir tout ce qui est inclus",
+      "collapse": "Réduire la liste",
       "sheet": {
         "sections": {
           "site": "Votre site",
@@ -312,82 +367,275 @@
           "dedicatedSupport": "Accompagnement renforcé (échange de départ, textes rédigés, photos retouchées)"
         }
       },
+      "sheetEverythingIn": "Tout le pack {plan}, et en plus :",
+      "chooseThis": "Choisir ce pack",
       "note": {
         "display": "Prix {display}",
         "commitment": "{months, plural, =0 {Sans engagement} other {Engagement # mois}}",
         "setupFree": "Création du site offerte",
         "hosting": "Hébergement et maintenance inclus"
       },
-      "badge": "Dès {price} par mois",
       "trust": {
         "commission": "{percent, plural, =0 {0 % de commission sur vos paiements} other {# % de commission seulement}}",
         "secure": "Paiements sécurisés par Stripe"
       },
-      "sheetEverythingIn": "Tout le pack {plan}, et en plus :"
+      "badge": "Dès {price} par mois",
+      "titleAccent": "trois packs.",
+      "perMonthLegacy": "par mois {display}",
+      "upcoming": "Bientôt inclus",
+      "soonSolution": "La solution {solution} est en préparation. Les packs se souscrivent aujourd'hui avec la solution Réservation ; Pro et Business donneront accès à {solution} dès son lancement, sans frais de plateforme supplémentaires."
     },
-    "faq": {
-      "title": "Les questions qu'on nous pose",
-      "intro": "Une autre question ? Nous répondons sous 24 heures.",
-      "contact": "Nous écrire",
-      "items": {
-        "fees": {
-          "q": "Y a-t-il des frais de création ?",
-          "a": "Non. La création de votre site est comprise dans l'abonnement : vous ne payez que votre pack, et les options que vous choisissez."
+    "grid": {
+      "categories": {
+        "site": "Site web et présence en ligne",
+        "booking": "Réservations et agenda",
+        "commerce": "Commerce",
+        "formation": "Formation",
+        "crm": "Clients et collaborateurs",
+        "marketing": "Marketing et fidélisation",
+        "payments": "Paiements",
+        "ai": "Intelligence artificielle",
+        "messaging": "WhatsApp et SMS",
+        "stats": "Statistiques",
+        "hosting": "Hébergement et domaines",
+        "support": "Assistance"
+      },
+      "unlimited": "Illimité",
+      "included": "Inclus",
+      "notIncluded": "Non inclus",
+      "perMonthCount": "{count}/mois",
+      "rows": {
+        "miniSite": {
+          "label": "Fiche professionnelle (mini-site)",
+          "card": "Fiche professionnelle (mini-site)"
         },
-        "domain": {
-          "q": "Puis-je utiliser mon propre nom de domaine ?",
-          "a": "Oui, avec tous les packs. Vous en gardez la propriété : s'il est déjà à votre nom, nous le relions simplement à votre nouveau site."
+        "fullSite": {
+          "label": "Site multipage personnalisable",
+          "card": "Site multipage personnalisable"
+        },
+        "setupAssistance": {
+          "label": "Configuration accompagnée du site",
+          "card": "Configuration accompagnée"
+        },
+        "photos": {
+          "label": "Photos de la galerie",
+          "card": "Galerie de {count} photos",
+          "cardUnlimited": "Galerie photos illimitée"
+        },
+        "localSeo": {
+          "label": "Référencement de base",
+          "card": "Référencement de base"
+        },
+        "advancedSeo": {
+          "label": "SEO avancé",
+          "card": "SEO avancé"
+        },
+        "multilingual": {
+          "label": "Site multilingue (jusqu'à 5 langues)",
+          "card": "Site jusqu'à 5 langues"
+        },
+        "bookings": {
+          "label": "Réservations en ligne par mois",
+          "card": "{count} réservations par mois",
+          "cardUnlimited": "Réservations illimitées"
+        },
+        "agenda": {
+          "label": "Agenda et disponibilités",
+          "card": "Agenda et disponibilités"
+        },
+        "bookingLink": {
+          "label": "Lien de réservation à partager",
+          "card": "Lien de réservation"
+        },
+        "staffPlanning": {
+          "label": "Gestion des plannings des collaborateurs",
+          "card": "Gestion des plannings"
+        },
+        "customerSpace": {
+          "label": "Espace client (rendez-vous, historique)",
+          "card": "Espace client"
+        },
+        "commerce": {
+          "label": "Boutique, catalogue, commandes et stocks",
+          "card": "Module Commerce"
+        },
+        "formation": {
+          "label": "Formations, espace apprenant, quiz et certificats",
+          "card": "Module Formation"
+        },
+        "customers": {
+          "label": "Fiches clients",
+          "card": "{count} contacts clients",
+          "cardUnlimited": "Fichier clients illimité"
+        },
+        "members": {
+          "label": "Utilisateurs et collaborateurs",
+          "card": "{count, plural, one {# utilisateur} other {Jusqu'à # collaborateurs}}",
+          "cardUnlimited": "Collaborateurs illimités"
+        },
+        "customerFile": {
+          "label": "Historique des rendez-vous et notes clients",
+          "card": "Historique des rendez-vous"
+        },
+        "advancedCrm": {
+          "label": "CRM et automatisations avancées",
+          "card": "CRM et automatisations avancées"
+        },
+        "promoCodes": {
+          "label": "Codes promo et promotions",
+          "card": "Codes promo et promotions"
+        },
+        "googleReviews": {
+          "label": "Avis Google : affichage et demandes d'avis",
+          "card": "Gestion des avis Google"
+        },
+        "loyalty": {
+          "label": "Programme de fidélité",
+          "card": "Outils de fidélisation"
+        },
+        "giftCards": {
+          "label": "Cartes cadeaux",
+          "card": "Cartes cadeaux"
+        },
+        "marketingAutomation": {
+          "label": "Campagnes marketing automatisées",
+          "card": "Campagnes marketing automatisées"
+        },
+        "onlinePayment": {
+          "label": "Paiements Stripe et acomptes",
+          "card": "Paiements Stripe et acomptes"
+        },
+        "aiChatbot": {
+          "label": "Chatbot IA sur le site (conversations par mois)",
+          "card": "Chatbot IA ({count} conversations/mois)"
+        },
+        "aiTexts": {
+          "label": "Textes générés par IA (par mois)",
+          "card": "Génération de textes IA ({count}/mois)"
+        },
+        "aiImages": {
+          "label": "Images générées par IA (par mois)",
+          "card": "Génération d'images IA ({count}/mois)"
+        },
+        "emailReminders": {
+          "label": "Rappels par e-mail",
+          "card": "Rappels par e-mail"
+        },
+        "sms": {
+          "label": "SMS de rappel par mois",
+          "card": "{count} SMS par mois"
+        },
+        "whatsapp": {
+          "label": "Assistant WhatsApp automatisé (conversations par mois)",
+          "card": "Assistant WhatsApp ({count} conv./mois)"
+        },
+        "basicStats": {
+          "label": "Statistiques de base",
+          "card": "Statistiques de base"
+        },
+        "stats": {
+          "label": "Statistiques avancées",
+          "card": "Statistiques avancées"
+        },
+        "reports": {
+          "label": "Rapports détaillés mensuels",
+          "card": "Rapports détaillés"
         },
         "hosting": {
-          "q": "L'hébergement est-il inclus ?",
-          "a": "Oui. Hébergement, certificat SSL, sauvegardes et maintenance technique sont compris dans chaque pack."
+          "label": "Hébergement et certificat SSL",
+          "card": "Hébergement et SSL inclus"
         },
-        "editing": {
-          "q": "Puis-je modifier mon site moi-même ?",
-          "a": "Oui. Depuis votre tableau de bord, vous modifiez vos textes, photos, services et horaires. Pour une modification plus importante, nous la faisons pour vous."
+        "subdomain": {
+          "label": "Sous-domaine offert",
+          "card": "Sous-domaine offert"
         },
-        "booking": {
-          "q": "Puis-je ajouter une réservation plus tard ?",
-          "a": "Oui. La réservation en ligne est une option : vous l'ajoutez quand vous voulez, sans refaire votre site, et elle s'ajoute à votre abonnement."
+        "customDomain": {
+          "label": "Connexion d'un domaine existant",
+          "card": "Connexion de votre domaine"
         },
-        "change": {
-          "q": "Puis-je changer de pack ?",
-          "a": "Oui. Le passage à un pack supérieur est immédiat, la différence est facturée au prorata. Un pack inférieur s'applique à la prochaine échéance."
+        "freeDomain": {
+          "label": "Nom de domaine offert (sous conditions)",
+          "card": "Nom de domaine offert"
         },
-        "cancel": {
-          "q": "Que se passe-t-il si je résilie ?",
-          "a": "{months, plural, =0 {Vous pouvez arrêter à tout moment.} other {La résiliation prend effet au plus tôt à la fin des # mois d'engagement.}} Votre site reste en ligne {days, plural, =0 {jusqu'à la fin de l'abonnement} one {# jour après la fin de l'abonnement} other {# jours après la fin de l'abonnement}}, puis il est retiré. Vous gardez votre nom de domaine, vos contenus et vos données."
+        "helpCenter": {
+          "label": "Centre d'aide",
+          "card": "Centre d'aide"
         },
-        "ownership": {
-          "q": "Suis-je propriétaire de mon site ?",
-          "a": "Vous êtes propriétaire de votre nom de domaine, de vos contenus (textes, logo, photos) et de vos données. Le site lui-même, son design et son code, sont fournis par {product} dans le cadre de l'abonnement et ne sont pas transférés à la résiliation."
+        "ticketSupport": {
+          "label": "Assistance par ticket",
+          "card": "Assistance par ticket"
         },
-        "delay": {
-          "q": "Combien de temps faut-il pour créer mon site ?",
-          "a": "{days, plural, =0 {Comptez quelques jours} one {Comptez # jour ouvré} other {Comptez # jours ouvrés}} après réception de votre logo, de vos photos et de vos textes. Vous validez le site avant sa mise en ligne."
-        },
-        "payments": {
-          "q": "Les paiements en ligne sont-ils inclus ?",
-          "a": "Le paiement en ligne est une option, à ajouter avec la réservation. L'argent arrive directement sur votre compte bancaire : {percent, plural, =0 {nous ne prenons aucune commission} other {nous prenons # % de commission}}, seuls les frais bancaires de Stripe s'appliquent."
+        "priorityHumanSupport": {
+          "label": "Assistance humaine prioritaire",
+          "card": "Assistance prioritaire"
         }
       }
     },
-    "final": {
-      "title": "Votre site en ligne",
-      "titleEnd": "en quelques jours.",
-      "text": "Dites-nous qui vous êtes, nous faisons le reste.",
-      "cta": "Je veux mon site"
+    "benefits": {
+      "badge": "Fonctionnalités",
+      "title": "Tout ce qu'il faut pour gérer votre activité,",
+      "titleAccent": "au même endroit.",
+      "items": {
+        "sales": {
+          "title": "Réservations et ventes",
+          "text": "Vos clients réservent en ligne, à toute heure. La vente en ligne arrive avec la solution Commerce."
+        },
+        "payments": {
+          "title": "Paiements sécurisés",
+          "text": "Acomptes et paiements par carte via Stripe, versés directement sur votre compte."
+        },
+        "clients": {
+          "title": "Gestion des clients",
+          "text": "Fiches clients, historique des rendez-vous et notes, au même endroit."
+        },
+        "automation": {
+          "title": "Automatisations",
+          "text": "Rappels, demandes d'avis et résumés partent tout seuls. Des campagnes automatisées arrivent bientôt."
+        },
+        "assistant": {
+          "title": "Assistant IA",
+          "text": "Un assistant qui répond à vos clients et prépare vos actions, avec votre accord."
+        },
+        "marketing": {
+          "title": "Marketing",
+          "text": "Codes promo, promotions, avis Google et fidélisation pour faire revenir vos clients."
+        },
+        "stats": {
+          "title": "Statistiques et recommandations",
+          "text": "Rendez-vous, chiffre d'affaires et prestations phares, mois après mois."
+        }
+      }
     },
-    "footer": {
-      "legal": "Mentions légales",
-      "privacy": "Confidentialité",
-      "terms": "Conditions",
-      "tagline": "Le site de votre activité, avec ou sans réservation en ligne. Nous le créons et le tenons à jour pour vous.",
-      "discover": "Découvrir",
-      "pro": "Espace pro",
-      "contact": "Nous écrire",
-      "rights": "© {year} {product} · Tous droits réservés",
-      "credit": "Design : Johane A."
+    "comparison": {
+      "title": "Comparatif des fonctionnalités",
+      "titleFor": "Comparatif des fonctionnalités – {solution}",
+      "feature": "Fonctionnalité",
+      "pickPack": "Pack affiché"
+    },
+    "trust": {
+      "title": "Vos engagements, noir sur blanc",
+      "items": {
+        "stripe": {
+          "title": "Paiements sécurisés",
+          "text": "Cartes traitées par Stripe, jamais stockées chez nous."
+        },
+        "commission": {
+          "title": "{percent, plural, =0 {0 % de commission} other {# % de commission}}",
+          "text": "Sur vos acomptes et paiements : seuls les frais Stripe s'appliquent."
+        },
+        "hosting": {
+          "title": "Hébergement et SSL inclus",
+          "text": "Votre site est hébergé, sécurisé et maintenu par nos soins."
+        },
+        "data": {
+          "title": "Vos données vous appartiennent",
+          "text": "Fichier clients, rendez-vous et contenus exportables sur simple demande."
+        },
+        "noOverage": {
+          "title": "Aucun dépassement facturé",
+          "text": "À la limite d'un quota, l'outil se met en pause. Rien n'est facturé sans votre accord."
+        }
+      }
     },
     "showcase": {
       "badge": "Ils nous font confiance",
@@ -395,164 +643,73 @@
       "titleAccent": "comme vous.",
       "visit": "Voir le site de {name}"
     },
-    "compare": {
-      "metaTitle": "Comparer les packs",
-      "title": "Tous les packs,",
-      "titleAccent": "en détail.",
-      "intro": "Ce que comprend chaque pack, ligne par ligne, puis les options à ajouter. Les fonctions marquées « Bientôt » arrivent prochainement.",
-      "back": "Retour aux tarifs",
-      "feature": "Inclus",
-      "price": "Prix par mois",
-      "creationFee": "Création sans engagement",
-      "creationFree": "Offerte",
-      "withCommitment": "Avec engagement {months} mois : création offerte.",
-      "included": "Inclus",
-      "notIncluded": "Non inclus",
-      "unlimited": "Illimité",
-      "rows": {
-        "photos": "Photos",
-        "services": "Prestations",
-        "bookings": "Réservations en ligne par mois",
-        "sms": "SMS de rappel par mois",
-        "members": "Membres de l'équipe",
-        "pages": "Pages du site"
-      },
-      "packsTitle": "Les packs",
-      "optionsTitle": "Les options à la carte",
-      "optionsIntro": "Elles s'ajoutent à n'importe quel pack, à la commande ou plus tard, et sont facturées chaque mois avec votre abonnement.",
-      "option": "Option",
-      "optionPrice": "Tarif mensuel {display}",
-      "optionRequires": "Nécessite",
-      "onRequest": "Sur demande",
-      "perMonthAmount": "{amount} par mois"
-    },
-    "options": {
-      "badge": "Options à la carte",
-      "title": "Personnalisez votre site",
-      "titleAccent": "selon votre activité.",
-      "intro": "Chaque option s'ajoute à n'importe quel pack, quand vous voulez. Cochez celles qui vous intéressent : le total se calcule tout seul.",
-      "summary": "Votre abonnement",
-      "pack": "Pack",
-      "packPrice": "Pack {plan}",
-      "total": "Total",
-      "perMonth": "par mois {display}",
-      "none": "Aucune option choisie",
-      "price": "+ {amount} / mois",
-      "onRequest": "Tarif sur demande",
-      "soon": "Bientôt",
-      "requires": "Nécessite : {names}",
-      "addedWith": "Ajoutée avec {names}",
-      "select": "Ajouter {name}",
-      "cta": "Commander",
-      "ctaCallback": "Être rappelé",
-      "note": "Les options marquées « Tarif sur demande » ne sont pas comptées : nous vous indiquons leur prix avant toute souscription.",
-      "noneOrderable": "Les tarifs des options sont communiqués sur demande. Écrivez-nous ou demandez à être rappelé."
-    },
-    "dashboard": {
-      "badge": "Votre tableau de bord",
-      "title": "Votre site,",
-      "titleAccent": "entre vos mains.",
-      "intro": "Chaque client dispose de son propre espace de gestion, sur ordinateur comme sur téléphone. Ce que vous y trouvez dépend de votre pack et des options activées.",
-      "label": "Aperçu du tableau de bord sur ordinateur et sur téléphone",
-      "tags": {
-        "included": "Inclus",
-        "from": "Dès le pack {plan}",
-        "option": "Option {name}",
-        "soon": "Bientôt"
-      },
+    "faq": {
+      "title": "Questions fréquentes",
+      "intro": "Une autre question ? Écrivez-nous, nous vous répondons.",
+      "contact": "Nous écrire",
       "items": {
-        "content": {
-          "title": "Modifier les textes et les photos",
-          "text": "Mettez votre site à jour en quelques secondes."
+        "basic": {
+          "q": "Le pack Basic est-il vraiment gratuit ?",
+          "a": "Oui, sans limite de durée et sans carte bancaire. Il comprend une fiche professionnelle, {bookings} réservations par mois et {customers} contacts clients. Vous passez à un pack payant quand vous le souhaitez."
         },
-        "pages": {
-          "title": "Gérer les pages et services",
-          "text": "Vos services, tarifs et horaires toujours exacts."
+        "commitment": {
+          "q": "Suis-je engagé ?",
+          "a": "{months, plural, =0 {Non, les packs payants sont sans engagement.} other {Vous choisissez : sans engagement, ou avec un engagement de # mois. L'offre tablette du pack Business est réservée à la formule avec engagement.}}"
         },
-        "requests": {
-          "title": "Consulter les demandes clients",
-          "text": "Les messages reçus depuis votre site, au même endroit."
+        "prices": {
+          "q": "Les prix sont-ils hors taxes ?",
+          "a": "Oui, les prix sont indiqués {display}. La TVA s'ajoute sur votre facture mensuelle."
         },
-        "bookings": {
-          "title": "Gérer les réservations",
-          "text": "Votre agenda, vos rendez-vous et leurs rappels."
+        "domain": {
+          "q": "Puis-je utiliser mon propre nom de domaine ?",
+          "a": "Oui, dès le pack Basic vous pouvez connecter un domaine existant. Avec le pack Business, un nom de domaine peut être offert, sous conditions de coût et de renouvellement."
         },
-        "payments": {
-          "title": "Consulter les paiements",
-          "text": "Acomptes et paiements reçus, et leurs remboursements."
+        "quotas": {
+          "q": "Que se passe-t-il si j'atteins un quota ?",
+          "a": "Vous êtes prévenu à {percent} %, puis l'outil se met en pause à la limite jusqu'au mois suivant. Rien n'est facturé automatiquement : vous pouvez ajouter une recharge si vous le souhaitez."
         },
-        "stats": {
-          "title": "Suivre les statistiques",
-          "text": "Rendez-vous, chiffre d'affaires et services les plus demandés, mois après mois."
+        "change": {
+          "q": "Puis-je changer de pack ?",
+          "a": "Oui. Le passage à un pack supérieur est immédiat, la différence est facturée au prorata. Un pack inférieur s'applique à la prochaine échéance."
         },
-        "options": {
-          "title": "Suivre vos options",
-          "text": "Votre pack, vos options actives et vos factures."
-        }
-      },
-      "mock": {
-        "site": "Mon site",
-        "today": "Aujourd'hui",
-        "visits": "Rendez-vous",
-        "requests": "Demandes",
-        "bookings": "Réservations",
-        "edit": "Modifier",
-        "pages": "Pages",
-        "home": "Accueil",
-        "services": "Services",
-        "gallery": "Galerie",
-        "contact": "Contact",
-        "published": "En ligne",
-        "hello": "Bonjour !",
-        "phoneTitle": "Cette semaine",
-        "times": ["09:00", "10:30", "14:00"],
-        "values": {
-          "visits": "12",
-          "requests": "4",
-          "bookings": "9"
+        "solutions": {
+          "q": "Commerce et Formation sont-ils disponibles ?",
+          "a": "Pas encore : ces deux solutions sont en préparation et affichées « Disponible bientôt ». Les packs Pro et Business y donneront accès à leur lancement, sans frais de plateforme supplémentaires (hors frais Stripe et services tiers)."
+        },
+        "ai": {
+          "q": "Les outils d'intelligence artificielle sont-ils déjà disponibles ?",
+          "a": "Le chatbot, l'assistant WhatsApp et la génération de textes et d'images sont en préparation et marqués « Bientôt ». Ils seront inclus dans le pack Business, avec des quotas mensuels."
+        },
+        "tablet": {
+          "q": "Comment fonctionne l'offre tablette ?",
+          "a": "Une tablette professionnelle est offerte aux premiers abonnés Business éligibles, avec engagement. Une tablette par établissement, expédiée après le premier paiement et la vérification d'éligibilité. Le nombre de places restantes est affiché en temps réel."
+        },
+        "data": {
+          "q": "Mes données m'appartiennent-elles ?",
+          "a": "Oui. Votre fichier clients, vos rendez-vous et vos contenus vous sont remis sur simple demande, y compris si vous quittez {product}."
         }
       }
     },
-    "conditions": {
-      "badge": "Conditions",
-      "title": "Des conditions",
-      "titleAccent": "claires, sans surprise.",
-      "intro": "Votre site est fourni dans le cadre d'un abonnement : nous le créons, l'hébergeons et le maintenons pour vous.",
-      "items": {
-        "creation": {
-          "title": "Aucuns frais de création",
-          "text": "La création de votre site est comprise dans l'abonnement."
-        },
-        "commitment": {
-          "title": "{months, plural, =0 {Sans engagement} other {Engagement de # mois}}",
-          "text": "{months, plural, =0 {Vous arrêtez quand vous voulez.} other {L'abonnement est souscrit pour # mois, puis se poursuit de mois en mois.}}"
-        },
-        "hosting": {
-          "title": "Hébergé et maintenu par nous",
-          "text": "Hébergement, certificat SSL, sauvegardes et mises à jour techniques sont inclus."
-        },
-        "editing": {
-          "title": "Vous gardez la main",
-          "text": "Vous modifiez vous-même les contenus autorisés depuis votre tableau de bord."
-        },
-        "provided": {
-          "title": "Une solution hébergée",
-          "text": "Le site et son code restent ceux de {product} : ils ne sont pas transférés à la fin de l'abonnement."
-        },
-        "domain": {
-          "title": "Votre nom de domaine vous appartient",
-          "text": "Il reste le vôtre : vous le gardez si vous partez."
-        },
-        "content": {
-          "title": "Vos contenus restent à vous",
-          "text": "Textes, logo et photos que vous nous confiez restent votre propriété."
-        },
-        "export": {
-          "title": "Vos données exportables",
-          "text": "Fichier clients, rendez-vous et contenus vous sont remis sur simple demande."
-        }
-      },
-      "buyout": "Rachat du site possible à la fin de l'abonnement : {amount}."
+    "final": {
+      "title": "Prêt à simplifier votre activité ?",
+      "text": "Commencez gratuitement avec le pack Basic. Aucune carte bancaire demandée.",
+      "cta": "Essayer gratuitement"
+    },
+    "options": {
+      "requires": "Nécessite : {names}",
+      "price": "+ {amount} / mois",
+      "perMonth": "par mois {display}"
+    },
+    "footer": {
+      "legal": "Mentions légales",
+      "privacy": "Confidentialité",
+      "terms": "Conditions",
+      "tagline": "Votre activité, un seul outil : site web, réservations, clients, paiements et marketing.",
+      "discover": "Découvrir",
+      "pro": "Espace pro",
+      "contact": "Nous écrire",
+      "rights": "© {year} {product} · Tous droits réservés",
+      "credit": "Design : Johane A."
     }
   },
   "site": {
@@ -979,7 +1136,8 @@
       "documents": "Documents légaux",
       "label": "Navigation de l'administration",
       "waiting": "{count, plural, one {# commande en attente} other {# commandes en attente}}",
-      "options": "Options"
+      "options": "Options",
+      "launchOffers": "Offre tablette"
     },
     "dashboard": {
       "activeClients": "Clients en ligne",
@@ -1449,7 +1607,22 @@
         "richContent": "Gestion enrichie des contenus",
         "advancedPresentation": "Fonctionnalités de présentation avancées",
         "prioritySupport": "Support prioritaire",
-        "dedicatedSupport": "Accompagnement renforcé"
+        "dedicatedSupport": "Accompagnement renforcé",
+        "helpCenter": "Centre d'aide",
+        "ticketSupport": "Assistance par ticket",
+        "priorityHumanSupport": "Assistance humaine prioritaire",
+        "setupAssistance": "Configuration accompagnée du site",
+        "freeDomain": "Nom de domaine offert (sous conditions)",
+        "staffPlanning": "Gestion des plannings des collaborateurs",
+        "customerFile": "Fichier clients : historique et notes",
+        "advancedCrm": "CRM et automatisations avancées",
+        "marketingAutomation": "Campagnes marketing automatisées",
+        "aiChatbot": "Chatbot IA sur le site",
+        "whatsappAssistant": "Assistant WhatsApp automatisé",
+        "aiTexts": "Génération de textes IA",
+        "aiImages": "Génération d'images IA",
+        "commerce": "Module Commerce",
+        "formation": "Module Formation"
       },
       "description": "Accroche",
       "descriptionHint": "Affichée sous le nom du pack sur le site commercial.",
@@ -1503,7 +1676,13 @@
         "prioritySupport": "Support prioritaire",
         "dedicatedSupport": "Accompagnement renforcé"
       },
-      "pages": "Pages du site"
+      "pages": "Pages du site",
+      "customers": "Fiches clients (contacts)",
+      "aiChatConversations": "Chatbot IA : conversations par mois",
+      "whatsappConversations": "Assistant WhatsApp : conversations par mois",
+      "aiTexts": "Textes IA par mois",
+      "aiImages": "Images IA par mois",
+      "aiLimitHint": "0 = non inclus ; vide = illimité"
     },
     "settings": {
       "title": "Réglages",
@@ -1552,7 +1731,16 @@
       "site_buyout_price": "Prix du rachat (€)",
       "soon": "Fonctions annoncées « Bientôt »",
       "soonHint": "Cochées : pas encore livrées. Elles portent l'étiquette « Bientôt » sur le site commercial au lieu d'être promises. Décochez une fonction dès qu'elle est prête.",
-      "offer_no_commitment": "Proposer aussi la formule sans engagement (avec frais de création du pack)"
+      "offer_no_commitment": "Proposer aussi la formule sans engagement (avec frais de création du pack)",
+      "solutions": "Solutions",
+      "solutionsHint": "Cochée : la solution est ouverte à la souscription. Décochée : elle est présentée « Disponible bientôt », sans souscription possible.",
+      "solution": {
+        "booking": "Réservation",
+        "commerce": "Commerce",
+        "formation": "Formation"
+      },
+      "demo_url": "Adresse de la démonstration",
+      "demoHint": "Vide : le bouton « Voir la démonstration » n'apparaît pas."
     },
     "billing": {
       "title": "Paiements des abonnements",
@@ -1641,6 +1829,37 @@
       "requires": "Nécessite : {names}",
       "stripe": "Prix Stripe : {id}",
       "noStripe": "Prix Stripe : créé à la première souscription"
+    },
+    "launchOffers": {
+      "title": "Offres de lancement",
+      "intro": "Offres à places limitées (ex. tablette offerte aux premiers abonnés Business). Une place est retenue à la commande, confirmée par le premier paiement, puis vous vérifiez l'éligibilité avant l'expédition. L'offre s'arrête d'elle-même quand toutes les places sont prises.",
+      "none": "Aucune offre de lancement.",
+      "places": "{taken} / {quota} places prises ({remaining} restantes)",
+      "open": "Proposée en ce moment",
+      "closed": "Non proposée (désactivée, terminée ou complète)",
+      "offerTitle": "Titre affiché",
+      "quota": "Nombre de places",
+      "endsOn": "Date de fin (facultative)",
+      "endsOnHint": "Vide : l'offre dure jusqu'à ce que toutes les places soient prises.",
+      "conditions": "Conditions affichées",
+      "isActive": "Offre active",
+      "requiresCommitment": "Réservée à la formule avec engagement",
+      "claims": "Bénéficiaires",
+      "noClaims": "Aucune place prise pour le moment.",
+      "statuses": {
+        "reserved": "Place retenue, paiement attendu",
+        "pending_review": "Payé, éligibilité à vérifier",
+        "eligible": "Éligible, à expédier",
+        "shipped": "Expédiée",
+        "refused": "Refusée",
+        "cancelled": "Libérée"
+      },
+      "actions": {
+        "eligible": "Éligible",
+        "shipped": "Marquer expédiée",
+        "refused": "Refuser",
+        "cancelled": "Libérer la place"
+      }
     }
   },
   "errors": {
@@ -2694,6 +2913,20 @@
         "until": "D'ici là, vous gardez votre prix actuel.",
         "choice": "Vous pouvez changer de pack depuis votre espace si vous le souhaitez.",
         "open": "Voir mon abonnement"
+      },
+      "usage_quota": {
+        "subjectAlmost": "{tool} : {percent} % de votre quota du mois utilisé",
+        "subjectReached": "{tool} : quota du mois atteint",
+        "almost": "Vous avez utilisé {used} sur {limit} ce mois-ci. Le compteur repart à zéro le {date}.",
+        "reached": "Les {limit} unités comprises ce mois-ci sont utilisées : l'outil est en pause jusqu'au {date}.",
+        "noCharge": "Rien n'est jamais facturé sans votre accord : vous pouvez attendre le mois prochain ou ajouter une recharge depuis votre espace.",
+        "open": "Voir mon abonnement",
+        "keys": {
+          "aiChatConversations": "Chatbot IA",
+          "whatsappConversations": "Assistant WhatsApp",
+          "aiTexts": "Textes IA",
+          "aiImages": "Images IA"
+        }
       }
     },
     "account": {
@@ -2796,13 +3029,13 @@
     "plan": "Pack choisi",
     "businessName": "Nom de votre établissement",
     "activity": "Votre activité",
-    "activityHint": "Par exemple : institut de beauté, coiffure, massage…",
+    "activityHint": "Par exemple : institut de beauté, garage, consultant, coach sportif…",
     "phone": "Téléphone",
     "currentWebsite": "Site actuel (facultatif)",
     "currentWebsitePlaceholder": "www.exemple.fr",
     "terms": "J'ai lu et j'accepte les <link>conditions générales de vente</link>.",
     "paidHint": "Paiement par carte sur la page sécurisée de Stripe. Votre site est ensuite créé par notre équipe.",
-    "freeHint": "Les demandes de fiche gratuite sont validées à la main par notre équipe.",
+    "freeHint": "Les demandes du pack gratuit sont validées par notre équipe.",
     "thanks": {
       "metaTitle": "Merci",
       "paidTitle": "Merci, votre paiement est enregistré !",
@@ -2837,7 +3070,9 @@
     "options": "Options",
     "optionsHint": "Facultatives, ajoutées à votre abonnement. Vous pourrez aussi les ajouter plus tard.",
     "total": "Total de votre abonnement",
-    "commitmentHint": "Abonnement avec engagement de {months} mois, création du site offerte. Vous réglez le premier mois à la commande, sur la page de paiement sécurisée."
+    "commitmentHint": "Abonnement avec engagement de {months} mois, création du site offerte. Vous réglez le premier mois à la commande, sur la page de paiement sécurisée.",
+    "withoutCommitmentFree": "Sans frais de création. Vous arrêtez quand vous voulez, à la fin du mois en cours.",
+    "launchOffer": "{offer} avec le pack {plan}{commitment, select, yes { et la formule avec engagement} other {}} : {remaining, plural, one {# place restante} other {# places restantes}}. Éligibilité vérifiée après le premier paiement."
   },
   "callback": {
     "metaTitle": "Être rappelé",

@@ -15,7 +15,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-import { cents, currency, id, timestamps, utc } from "./_helpers";
+import { cents, currency, id, localized, timestamps, utc } from "./_helpers";
 import { appointments } from "./bookings";
 import { planOptions, plans } from "./platform";
 import { tenants } from "./tenants";
@@ -170,6 +170,98 @@ export const tenantOptions = pgTable(
     ...timestamps(),
   },
   (t) => [uniqueIndex("tenant_options_tenant_option_key").on(t.tenantId, t.optionId)],
+);
+
+// ─── Offre de lancement (ex. tablette offerte aux premiers abonnés Business) ───
+
+/**
+ * Offre limitée à un nombre réel de bénéficiaires, réglée dans l'admin.
+ * Les places prises se comptent dans launch_offer_claims : l'offre s'arrête
+ * d'elle-même quand le quota est atteint.
+ */
+export const launchOffers = pgTable(
+  "launch_offers",
+  {
+    id: id(),
+    code: text().notNull(),
+    planId: uuid()
+      .notNull()
+      .references(() => plans.id, { onDelete: "restrict" }),
+    isActive: boolean().notNull().default(false),
+    /** Nombre maximal de bénéficiaires. */
+    quota: integer().notNull(),
+    /** Réservée aux souscriptions avec engagement. */
+    requiresCommitment: boolean().notNull().default(true),
+    title: localized().notNull(),
+    conditions: localized().notNull(),
+    endsAt: utc(),
+    ...timestamps(),
+  },
+  (t) => [
+    uniqueIndex("launch_offers_code_key").on(t.code),
+    check("launch_offers_quota", sql`${t.quota} >= 0`),
+  ],
+);
+
+export const launchOfferClaimStatusEnum = pgEnum("launch_offer_claim_status", [
+  /** Place retenue à la commande, en attente du paiement. */
+  "reserved",
+  /** Premier paiement reçu : éligibilité à vérifier par l'équipe. */
+  "pending_review",
+  "eligible",
+  "shipped",
+  /** Non éligible, ou commande abandonnée : la place est libérée. */
+  "refused",
+  "cancelled",
+]);
+
+/** Places attribuées : une par commande, puis par établissement. */
+export const launchOfferClaims = pgTable(
+  "launch_offer_claims",
+  {
+    id: id(),
+    offerId: uuid()
+      .notNull()
+      .references(() => launchOffers.id, { onDelete: "restrict" }),
+    orderId: uuid(),
+    tenantId: uuid().references(() => tenants.id, { onDelete: "set null" }),
+    userId: uuid().references(() => users.id, { onDelete: "set null" }),
+    status: launchOfferClaimStatusEnum().notNull().default("reserved"),
+    note: text(),
+    ...timestamps(),
+  },
+  (t) => [
+    uniqueIndex("launch_offer_claims_order_key").on(t.offerId, t.orderId),
+    index("launch_offer_claims_status_idx").on(t.offerId, t.status),
+  ],
+);
+
+// ─── Compteurs de consommation mensuels (outils intelligents, etc.) ──────────
+
+/**
+ * Consommation d'un quota mensuel (clé de PlanLimits) par site et par mois.
+ * La période (AAAA-MM) remet le compteur à zéro chaque mois ; l'alerte
+ * n'est envoyée qu'une fois par mois et par quota.
+ */
+export const quotaUsage = pgTable(
+  "quota_usage",
+  {
+    id: id(),
+    tenantId: uuid()
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    period: text().notNull(),
+    key: text().notNull(),
+    used: integer().notNull().default(0),
+    /** Crédits achetés en plus pour ce mois (recharges volontaires). */
+    extra: integer().notNull().default(0),
+    warnedAt: utc(),
+    ...timestamps(),
+  },
+  (t) => [
+    uniqueIndex("quota_usage_tenant_period_key").on(t.tenantId, t.period, t.key),
+    check("quota_usage_counts", sql`${t.used} >= 0 and ${t.extra} >= 0`),
+  ],
 );
 
 export const orderStatusEnum = pgEnum("order_status", [
