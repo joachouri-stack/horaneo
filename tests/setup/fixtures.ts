@@ -252,6 +252,11 @@ export async function createTenantWithData(db: TestDb, label: string) {
   await db
     .insert(s.smsPacks)
     .values({ tenantId, quantity: 100, remaining: 100, priceCents: 800, status: "paid" });
+  const [option] = await db.select().from(s.planOptions).where(eq(s.planOptions.code, "google-reviews"));
+  await db.insert(s.tenantOptions).values({ tenantId, optionId: option.id });
+  const [offer] = await db.select().from(s.launchOffers).limit(1);
+  await db.insert(s.launchOfferClaims).values({ offerId: offer.id, tenantId, status: "shipped" });
+  await db.insert(s.quotaUsage).values({ tenantId, period: "2026-10", key: "aiTexts", used: 3 });
 
   return { tenant, business, user, domain, service, staff, customer, appointment };
 }

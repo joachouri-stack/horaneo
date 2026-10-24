@@ -12,7 +12,7 @@ const ITEMS = [
   { href: "/admin/commandes", key: "todo", paths: ["/admin/commandes", "/admin/demandes"] },
   { href: "/admin/clients", key: "clients", paths: ["/admin/clients"] },
   { href: "/admin/paiements", key: "billing", paths: ["/admin/paiements"] },
-  { href: "/admin/packs", key: "plans", paths: ["/admin/packs"] },
+  { href: "/admin/packs", key: "plans", paths: ["/admin/packs", "/admin/options", "/admin/offres"] },
   { href: "/admin/reglages", key: "settings", paths: ["/admin/reglages", "/admin/documents"] },
 ] as const;
 

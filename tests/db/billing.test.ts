@@ -14,7 +14,7 @@ import { AppError } from "@/modules/errors";
 import { createTenant } from "@/modules/tenants/create";
 import { changePlan, changeStatus } from "@/modules/tenants/update";
 import { createFakeBilling } from "../setup/fake-billing";
-import { hasTestDatabase, openAppDb, openTestDb, type TestDb } from "../setup/db";
+import { hasTestDatabase, openAppDb, openTestDb, withLegacyCatalog, type TestDb } from "../setup/db";
 
 /** Abonnements Stripe Billing (simulé) : souscription, changements de pack, impayés. */
 const START = new Date("2026-10-05T08:00:00Z");
@@ -22,6 +22,7 @@ const urls = { successUrl: "https://app.test/ok", cancelUrl: "https://app.test/a
 
 describe.skipIf(!hasTestDatabase)("abonnements", () => {
   let owner: TestDb;
+  let restoreCatalog: (() => Promise<void>) | undefined;
   let app: TestDb;
   let n = 0;
   let eventCounter = 0;
@@ -29,10 +30,13 @@ describe.skipIf(!hasTestDatabase)("abonnements", () => {
 
   beforeAll(async () => {
     owner = await openTestDb();
+    // Ces tests vérifient les mécanismes d'abonnement avec les anciens packs.
+    restoreCatalog = await withLegacyCatalog(owner);
     app = openAppDb();
   });
 
   afterAll(async () => {
+    await restoreCatalog?.();
     await app?.$client.end();
     await owner?.$client.end();
   });

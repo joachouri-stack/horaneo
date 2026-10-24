@@ -20,7 +20,7 @@ import { createTenant } from "@/modules/tenants/create";
 import { createFakeBilling } from "../setup/fake-billing";
 import { createFakeSenders } from "../setup/fake-senders";
 import { openSales } from "../setup/fixtures";
-import { hasTestDatabase, openAppDb, openTestDb, type TestDb } from "../setup/db";
+import { hasTestDatabase, openAppDb, openTestDb, withLegacyCatalog, type TestDb } from "../setup/db";
 
 /** Commandes du site commercial : demande Basic, paiement d'un pack, création du site, refus. */
 const START = new Date("2026-10-05T08:00:00Z");
@@ -31,6 +31,7 @@ const urls = (orderId: string) => ({
 
 describe.skipIf(!hasTestDatabase)("commandes", () => {
   let owner: TestDb;
+  let restoreCatalog: (() => Promise<void>) | undefined;
   let app: TestDb;
   let n = 0;
   const billing = createFakeBilling();
@@ -40,6 +41,8 @@ describe.skipIf(!hasTestDatabase)("commandes", () => {
 
   beforeAll(async () => {
     owner = await openTestDb();
+    // Ces tests vérifient les mécanismes d'abonnement avec les anciens packs.
+    restoreCatalog = await withLegacyCatalog(owner);
     app = openAppDb();
     // Pages légales publiées : la commande en ligne des packs payants est ouverte.
     closeSales = await openSales(owner);
@@ -50,6 +53,7 @@ describe.skipIf(!hasTestDatabase)("commandes", () => {
   });
 
   afterAll(async () => {
+    await restoreCatalog?.();
     await closeSales?.();
     await app?.$client.end();
     await owner?.$client.end();

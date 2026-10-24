@@ -42,6 +42,7 @@ export async function submitOrderAction(
           currentWebsite: form.optional(data, "currentWebsite"),
           // Formule des packs payants (avec engagement par défaut).
           withCommitment: data.get("commitment") !== "no",
+          optionCodes: data.getAll("options").map(String),
           locale,
         },
         billingGateway(),

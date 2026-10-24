@@ -24,7 +24,7 @@ export type ShowcasePlan = {
 
 export type ShowcaseTile =
   | { key: "bookings" | "members" | "photos"; count: number | null }
-  | { key: "sms"; count: number }
+  | { key: "sms" | "pageCount"; count: number }
   | { key: "emailReminders" }
   | { key: "pages"; fullSite: boolean }
   | { key: "domain" };
@@ -199,6 +199,23 @@ const HIGHLIGHTS: Omit<LineDef, "group">[] = [
   { key: "stats", when: has("stats") },
   { key: "giftCards", when: has("giftCards") },
   { key: "googleReviews", when: has("googleReviews") },
+  // Packs à options (Essentiel, Business, Premium).
+  {
+    key: "pages",
+    when: (plan) => typeof plan.limits.pages === "number",
+    values: (plan) => ({ count: plan.limits.pages ?? 0 }),
+  },
+  { key: "gallery", when: has("gallery") },
+  { key: "selfEditing", when: has("selfEditing") },
+  { key: "localSeo", when: has("localSeo") },
+  { key: "advancedBranding", when: has("advancedBranding"), soon: "advancedBranding" },
+  { key: "premiumBranding", when: has("premiumBranding"), soon: "premiumBranding" },
+  { key: "advancedStats", when: has("advancedStats"), soon: "advancedStats" },
+  { key: "advancedSeo", when: has("advancedSeo"), soon: "advancedSeo" },
+  { key: "richContent", when: has("richContent") },
+  { key: "advancedPresentation", when: has("advancedPresentation"), soon: "advancedPresentation" },
+  { key: "prioritySupport", when: has("prioritySupport") },
+  { key: "dedicatedSupport", when: has("dedicatedSupport") },
 ];
 
 /** Clés proposées dans l'admin pour les lignes visibles d'une carte. */
@@ -293,6 +310,14 @@ export function comparisonLines(plans: ShowcasePlan[], soon: ReadonlySet<string>
 }
 
 export function planTiles(plan: ShowcasePlan): ShowcaseTile[] {
+  // Packs à options : nombre de pages, photos, nom de domaine.
+  if (!planAllowsBooking(plan.features) && typeof plan.limits.pages === "number") {
+    return [
+      { key: "pageCount", count: plan.limits.pages },
+      { key: "photos", count: plan.limits.photos ?? null },
+      plan.features.customDomain ? { key: "domain" } : { key: "members", count: plan.limits.members ?? null },
+    ];
+  }
   // Site seul : la taille du site plutôt que réservations et rappels.
   if (!planAllowsBooking(plan.features)) {
     return [
@@ -334,7 +359,8 @@ const LIMIT_KEYS = ["photos", "services", "members"] as const;
  */
 export function twinRuleViolations(plans: ShowcasePlan[]): string[] {
   const problems: string[] = [];
-  for (const plan of plans.filter((item) => !planAllowsBooking(item.features))) {
+  // Seuls les packs « site seul » rattachés à un jumeau sont concernés (les packs à options n'en ont pas).
+  for (const plan of plans.filter((item) => !planAllowsBooking(item.features) && item.bookingTwinCode)) {
     const twin = bookingTwinOf(plan, plans);
     if (!twin || !planAllowsBooking(twin.features)) {
       problems.push(`${plan.code} : aucun jumeau avec réservation`);

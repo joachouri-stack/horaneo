@@ -1,3 +1,4 @@
+import { assertQuota } from "@/modules/quotas";
 import { createHash, createHmac, hkdfSync } from "node:crypto";
 import { and, eq, lte, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -181,6 +182,12 @@ async function upsertCustomer(
       .where(eq(customers.id, existing.id));
     return existing.id;
   }
+  // Nombre de fiches clients limité par le pack (ex. Basic) : au-delà, la cliente est invitée à appeler.
+  await assertQuota(tx, context.tenant.id, "customers").catch((error) => {
+    throw error instanceof AppError && error.code === "quota_reached"
+      ? new AppError("booking_quota_reached")
+      : error;
+  });
   const [created] = await tx
     .insert(customers)
     .values({

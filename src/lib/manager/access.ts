@@ -1,3 +1,4 @@
+import { tenantFeatures, tenantLimits } from "@/modules/billing/entitlements";
 import "server-only";
 import { eq } from "drizzle-orm";
 import { refresh } from "next/cache";
@@ -54,8 +55,8 @@ export async function loadManagerTenant(tx: Transaction, tenantId: string) {
       tenant: tenants,
       planCode: plans.code,
       planName: plans.name,
-      features: plans.features,
-      limits: plans.limits,
+      features: tenantFeatures,
+      limits: tenantLimits,
     })
     .from(tenants)
     .innerJoin(plans, eq(plans.id, tenants.planId))

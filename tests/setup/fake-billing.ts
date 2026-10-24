@@ -18,6 +18,7 @@ export function createFakeBilling() {
     {
       customerId: string;
       priceId: string;
+      optionPriceIds: string[];
       setupFee: unknown;
       taxRateId: string | null;
       metadata: Record<string, string>;
@@ -35,12 +36,20 @@ export function createFakeBilling() {
   const planOfPrice = (priceId: string) =>
     prices.get(priceId)?.metadata.plan_id ?? /^price_([0-9a-f-]{36})_/.exec(priceId)?.[1] ?? null;
 
+  const optionOfPrice = (priceId: string) => prices.get(priceId)?.metadata.option_id ?? null;
+  const optionItems = (priceIds: string[]) =>
+    priceIds.map((priceId) => ({ itemId: next("si"), optionId: optionOfPrice(priceId) ?? "" }));
+
   const snapshot = (id: string): BillingSubscription => {
     const sub = subscriptions.get(id);
     if (!sub) throw new Error("Abonnement inconnu");
     const { pendingPriceId, ...rest } = sub;
     void pendingPriceId;
-    return { ...rest, metadata: { ...rest.metadata } };
+    return {
+      ...rest,
+      optionItems: rest.optionItems.map((item) => ({ ...item })),
+      metadata: { ...rest.metadata },
+    };
   };
 
   const gateway: BillingGateway = {
@@ -137,6 +146,17 @@ export function createFakeBilling() {
         }
       }
     },
+    async addOptionItem({ subscriptionId, priceId }) {
+      calls.push("addOptionItem");
+      subscriptions.get(subscriptionId)!.optionItems.push(...optionItems([priceId]));
+      return snapshot(subscriptionId);
+    },
+    async removeOptionItem({ subscriptionId, itemId }) {
+      calls.push("removeOptionItem");
+      const sub = subscriptions.get(subscriptionId)!;
+      sub.optionItems = sub.optionItems.filter((item) => item.itemId !== itemId);
+      return snapshot(subscriptionId);
+    },
     async setCancelAt({ subscriptionId, at }) {
       calls.push(at ? "setCancelAt" : "clearCancelAt");
       const sub = subscriptions.get(subscriptionId)!;
@@ -178,6 +198,7 @@ export function createFakeBilling() {
         currentPeriodEnd: end,
         cancelAt: null,
         scheduleId: null,
+        optionItems: optionItems(checkout.optionPriceIds),
         metadata: { ...checkout.metadata },
         pendingPriceId: null,
       });

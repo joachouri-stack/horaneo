@@ -1,3 +1,4 @@
+import { AdminSubNav } from "@/components/admin/AdminSubNav";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
 import { CheckboxField, Hidden, SelectField, TextField } from "@/components/admin/fields";
@@ -9,11 +10,12 @@ import { requireAdmin } from "@/lib/auth/session";
 import { centsToInput } from "@/lib/format";
 import { FEATURE_KEYS } from "@/modules/billing/admin";
 import { planAllowsBooking } from "@/modules/billing/features";
-import { EVERYTHING_IN, HIGHLIGHT_KEYS, MAX_HIGHLIGHTS } from "@/modules/billing/showcase";
 import { listPlans } from "@/modules/tenants/queries";
 import { savePlanAction } from "./actions";
 
-const LIMITS = ["onlineBookingsPerMonth", "members", "photos", "services"] as const;
+const LIMITS = ["pages", "onlineBookingsPerMonth", "customers", "members", "photos", "services"] as const;
+/** Quotas mensuels des outils intelligents : 0 = non inclus, vide = illimité. */
+const AI_LIMITS = ["aiChatConversations", "whatsappConversations", "aiTexts", "aiImages"] as const;
 
 /** Packs : prix, limites et fonctions (réglages, jamais écrits dans le code). */
 export default async function PlansPage({ params }: PageProps<"/[locale]/admin/packs">) {
@@ -28,6 +30,7 @@ export default async function PlansPage({ params }: PageProps<"/[locale]/admin/p
   return (
     <main id="contenu" className="mx-auto max-w-4xl space-y-6 px-4 py-8">
       <h1 className="text-3xl font-extrabold">{t("title")}</h1>
+      <AdminSubNav group="plans" current="/admin/packs" />
       <p className="text-ink/80">{t("intro")}</p>
       {plans.map((plan) => (
         // Un pack replié : son nom, son prix et sa visibilité ; on l'ouvre pour le modifier.
@@ -80,7 +83,7 @@ export default async function PlansPage({ params }: PageProps<"/[locale]/admin/p
                 }
               />
               {/* Pack « site seul » : le pack avec réservation qui le reprend entièrement. */}
-              {!planAllowsBooking(plan.features) && (
+              {!planAllowsBooking(plan.features) && plan.bookingTwinCode && (
                 <SelectField
                   id={`twin-${plan.id}`}
                   name="bookingTwinCode"
@@ -107,6 +110,18 @@ export default async function PlansPage({ params }: PageProps<"/[locale]/admin/p
                   defaultValue={plan.limits[key] ?? ""}
                 />
               ))}
+              {AI_LIMITS.map((key) => (
+                <TextField
+                  key={key}
+                  id={`${key}-${plan.id}`}
+                  name={key}
+                  type="number"
+                  inputMode="numeric"
+                  label={t(key)}
+                  hint={t("aiLimitHint")}
+                  defaultValue={plan.limits[key] ?? ""}
+                />
+              ))}
               <TextField
                 id={`sms-${plan.id}`}
                 name="smsPerMonth"
@@ -128,38 +143,6 @@ export default async function PlansPage({ params }: PageProps<"/[locale]/admin/p
                       name={`feature_${key}`}
                       label={t(`featureLabels.${key}`)}
                       defaultChecked={Boolean(plan.features[key])}
-                    />
-                  ))}
-                </div>
-              </fieldset>
-            </details>
-            {/* Lignes visibles sur la carte du pack (site commercial) ; le reste se déplie. */}
-            <details className="rounded-[var(--radius-card)] border border-navy/10 p-4">
-              <summary className="cursor-pointer font-semibold text-night">{t("highlights")}</summary>
-              <fieldset className="mt-3">
-                <legend className="sr-only">{t("highlights")}</legend>
-                <p className="mb-2 text-sm text-ink/70">{t("highlightsHint", { max: MAX_HIGHLIGHTS })}</p>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {Array.from({ length: MAX_HIGHLIGHTS }, (_, index) => (
-                    <SelectField
-                      key={index}
-                      id={`highlight-${plan.id}-${index}`}
-                      name={`highlight_${index}`}
-                      label={t("highlightLine", { n: index + 1 })}
-                      defaultValue={plan.highlights[index] ?? ""}
-                      options={[
-                        { value: "", label: t("none") },
-                        ...plans
-                          .filter((item) => item.id !== plan.id)
-                          .map((item) => ({
-                            value: `${EVERYTHING_IN}${item.code}`,
-                            label: t("everythingIn", { plan: pickLocalized(item.name, locale) }),
-                          })),
-                        ...HIGHLIGHT_KEYS.map((key) => ({
-                          value: key,
-                          label: t(`highlightLabels.${key}` as "highlightLabels.basePage"),
-                        })),
-                      ]}
                     />
                   ))}
                 </div>

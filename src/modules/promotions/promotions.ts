@@ -1,3 +1,4 @@
+import { tenantFeatures } from "@/modules/billing/entitlements";
 import { and, asc, desc, eq, gte, inArray, lte } from "drizzle-orm";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
@@ -68,7 +69,7 @@ export const promotionInput = z
 
 async function assertFeature(tx: Transaction, tenantId: string) {
   const [row] = await tx
-    .select({ features: plans.features, locale: tenants.defaultLocale })
+    .select({ features: tenantFeatures, locale: tenants.defaultLocale })
     .from(tenants)
     .innerJoin(plans, eq(plans.id, tenants.planId))
     .where(eq(tenants.id, tenantId));

@@ -33,7 +33,7 @@ import { createFakeBilling } from "../setup/fake-billing";
 import { createFakeGateway } from "../setup/fake-gateway";
 import { createFakeSenders } from "../setup/fake-senders";
 import { openSales } from "../setup/fixtures";
-import { hasTestDatabase, openAppDb, openTestDb, type TestDb } from "../setup/db";
+import { hasTestDatabase, openAppDb, openTestDb, withLegacyCatalog, type TestDb } from "../setup/db";
 
 /**
  * SMS et formules d'engagement sur vraie base : quota du mois, packs achetés,
@@ -46,6 +46,7 @@ const urls = { successUrl: "https://app.test/ok", cancelUrl: "https://app.test/a
 
 describe.skipIf(!hasTestDatabase)("SMS et engagement", () => {
   let owner: TestDb;
+  let restoreCatalog: (() => Promise<void>) | undefined;
   let app: TestDb;
   let n = 0;
   let eventCounter = 0;
@@ -57,12 +58,15 @@ describe.skipIf(!hasTestDatabase)("SMS et engagement", () => {
 
   beforeAll(async () => {
     owner = await openTestDb();
+    // Ces tests vérifient les mécanismes d'abonnement avec les anciens packs.
+    restoreCatalog = await withLegacyCatalog(owner);
     app = openAppDb();
     // Pages légales publiées : la commande en ligne des packs payants est ouverte.
     closeSales = await openSales(owner);
   });
 
   afterAll(async () => {
+    await restoreCatalog?.();
     await closeSales?.();
     // Taux de TVA créé dans ce faux Stripe : un autre fichier de test (autre faux Stripe) ne doit pas le reprendre.
     await owner?.delete(platformSettings).where(eq(platformSettings.key, "stripe_tax_rate"));

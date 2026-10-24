@@ -1,11 +1,16 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 
-/** Pages regroupées sous une même entrée du menu (« À traiter », « Paramètres »). */
+/** Pages regroupées sous une même entrée du menu (« À traiter », « Packs », « Paramètres »). */
 const GROUPS = {
   todo: [
     { href: "/admin/commandes", key: "orders" },
     { href: "/admin/demandes", key: "requests" },
+  ],
+  plans: [
+    { href: "/admin/packs", key: "plans" },
+    { href: "/admin/options", key: "options" },
+    { href: "/admin/offres", key: "launchOffers" },
   ],
   settings: [
     { href: "/admin/reglages", key: "settingsPage" },

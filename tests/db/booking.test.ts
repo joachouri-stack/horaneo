@@ -23,7 +23,7 @@ import { saveStaff } from "@/modules/team/staff";
 import { createTenant } from "@/modules/tenants/create";
 import { changePlan, changeStatus } from "@/modules/tenants/update";
 import { createFakeGateway } from "../setup/fake-gateway";
-import { hasTestDatabase, openAppDb, openTestDb, type TestDb } from "../setup/db";
+import { hasTestDatabase, openAppDb, openTestDb, withLegacyBasic, type TestDb } from "../setup/db";
 
 /**
  * Moteur de réservation sur vraie base, avec le rôle restreint du site public.
@@ -36,15 +36,19 @@ const at = (time: string, date = DAY) => localToUtc(date, time, TZ);
 
 describe.skipIf(!hasTestDatabase)("moteur de réservation", () => {
   let owner: TestDb;
+  let restoreBasic: (() => Promise<void>) | undefined;
   let app: TestDb;
   let n = 0;
 
   beforeAll(async () => {
     owner = await openTestDb();
+    // Ces tests vérifient les quotas avec les règles de l'ancien Basic.
+    restoreBasic = await withLegacyBasic(owner);
     app = openAppDb();
   });
 
   afterAll(async () => {
+    await restoreBasic?.();
     await app?.$client.end();
     await owner?.$client.end();
   });

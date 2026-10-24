@@ -1,0 +1,80 @@
+import { describe, expect, it } from "vitest";
+import { DEFAULT_GRID_PLANS, DEFAULT_PLATFORM_SETTINGS } from "@/config/defaults";
+import { gridCard, gridComparison } from "@/modules/billing/grid";
+import { crossedLevel } from "@/modules/billing/usage";
+import messages from "../messages/fr.json";
+
+const SOON = new Set<string>(DEFAULT_PLATFORM_SETTINGS.features_soon);
+const [basic, pro, business] = DEFAULT_GRID_PLANS;
+
+describe("grille des packs : une seule source pour les cartes et le comparatif", () => {
+  it("donne les quotas réglés, « illimité » ou « non inclus »", () => {
+    const rows = gridComparison(DEFAULT_GRID_PLANS, SOON).flatMap((group) => group.rows);
+    const row = (key: string) => rows.find((item) => item.key === key)!.cells;
+    expect(row("bookings")).toEqual([
+      { included: true, count: 10 },
+      { included: true, count: null },
+      { included: true, count: null },
+    ]);
+    expect(row("sms")).toEqual([
+      { included: false },
+      { included: true, count: 100 },
+      { included: true, count: 300 },
+    ]);
+    expect(row("aiChatbot")).toEqual([
+      { included: false },
+      { included: false },
+      { included: true, count: 500 },
+    ]);
+    expect(row("customers")[0]).toEqual({ included: true, count: 50 });
+  });
+
+  it("range les lignes dans les douze catégories, Commerce et Formation marquées « Bientôt »", () => {
+    const groups = gridComparison(DEFAULT_GRID_PLANS, SOON);
+    expect(groups.map((group) => group.category)).toEqual([
+      "site",
+      "booking",
+      "commerce",
+      "formation",
+      "crm",
+      "marketing",
+      "payments",
+      "ai",
+      "messaging",
+      "stats",
+      "hosting",
+      "support",
+    ]);
+    const commerce = groups.find((group) => group.category === "commerce")!.rows[0];
+    expect(commerce).toMatchObject({ solution: "commerce", soon: true });
+  });
+
+  it("carte : ce que le pack ajoute au précédent, les fonctions annoncées à part", () => {
+    const card = gridCard(business, DEFAULT_GRID_PLANS, SOON);
+    expect(card.previous).toBe("pro");
+    expect(card.included.every((line) => !line.soon)).toBe(true);
+    expect(card.upcoming.map((line) => line.key)).toContain("aiChatbot");
+    expect(card.included.map((line) => line.key)).toContain("sms");
+    expect(gridCard(basic, DEFAULT_GRID_PLANS, SOON).missing.length).toBeLessThanOrEqual(3);
+    expect(gridCard(pro, DEFAULT_GRID_PLANS, SOON).upcoming.map((line) => line.solution)).toEqual([
+      "commerce",
+      "formation",
+    ]);
+  });
+
+  it("chaque ligne a ses textes (comparatif et carte)", () => {
+    const rows = messages.home.grid.rows as Record<string, { label: string; card: string }>;
+    for (const group of gridComparison(DEFAULT_GRID_PLANS, SOON))
+      for (const row of group.rows) expect(rows[row.key]?.label, row.key).toBeTruthy();
+  });
+});
+
+describe("quotas mensuels : alertes", () => {
+  it("prévient une fois au seuil, puis à 100 %", () => {
+    expect(crossedLevel(79, 80, 100, 80)).toBe(80);
+    expect(crossedLevel(80, 81, 100, 80)).toBeNull();
+    expect(crossedLevel(99, 100, 100, 80)).toBe(100);
+    expect(crossedLevel(70, 100, 100, 80)).toBe(100);
+    expect(crossedLevel(0, 1, 0, 80)).toBeNull();
+  });
+});

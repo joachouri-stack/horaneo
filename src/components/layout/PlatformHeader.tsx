@@ -7,14 +7,13 @@ import { routing } from "@/i18n/routing";
 import { HeaderShell } from "./HeaderShell";
 
 export const NAV = [
-  // Même ordre que l'accueil : les tarifs d'abord.
+  { hash: "solutions", key: "solutions" },
   { hash: "tarifs", key: "pricing" },
-  { hash: "etapes", key: "how" },
-  { hash: "fonctions", key: "features" },
-  { hash: "questions", key: "questions" },
+  { hash: "fonctionnalites", key: "features" },
+  { hash: "questions", key: "resources" },
 ] as const;
 
-const LINK = "inline-flex min-h-11 items-center transition-colors hover:text-brick";
+const LINK = "inline-flex min-h-11 items-center transition-colors hover:text-navy";
 
 /**
  * En-tête du site commercial (maquette validée) : logo à gauche ; à droite,
@@ -51,7 +50,7 @@ export async function PlatformHeader({ children }: { children?: React.ReactNode 
             {/* Un peu plus petit sur les très petits téléphones : logo et boutons tiennent sur une ligne. */}
             <Logo productName={product} className="text-[1.5rem] min-[400px]:text-[1.8rem]" />
           </Link>
-          <nav className="flex flex-wrap items-center gap-x-3 font-medium text-night min-[400px]:gap-x-6 xl:gap-x-7">
+          <nav className="flex flex-wrap items-center gap-x-3 text-[0.95rem] text-[#3d4457] min-[400px]:gap-x-6 xl:gap-x-8">
             {!children &&
               NAV.map((item) => (
                 <Link
@@ -69,13 +68,16 @@ export async function PlatformHeader({ children }: { children?: React.ReactNode 
                 {t("common.login")}
               </Link>
             )}
-            {/* Ordinateur : l'action apparaît dès qu'on descend (en haut, celle de l'accroche suffit ; sur téléphone, elle est dans le menu). */}
+            {/* Ordinateur : « Essayer gratuitement » (pack Basic) ; sur téléphone, dans le menu. */}
             {!children && (
               <Link
-                href={{ pathname: "/", hash: "tarifs" }}
-                className="inline-flex min-h-11 items-center rounded-full bg-brick px-5 text-[0.95rem] font-semibold text-white transition-[opacity,visibility,transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_22px_rgba(212,64,47,.3)] group-data-[scrolled=false]/hdr:invisible group-data-[scrolled=false]/hdr:opacity-0 max-lg:hidden"
+                href={{ pathname: "/commander", query: { pack: "basic" } }}
+                className="group/cta inline-flex min-h-11 items-center gap-2 rounded-xl bg-navy px-5 text-[0.93rem] font-medium text-white shadow-[0_6px_16px_-8px_rgba(27,42,74,.6)] transition hover:-translate-y-px hover:bg-[#22345c] max-lg:hidden"
               >
                 {t("home.cta")}
+                <span aria-hidden="true" className="transition-transform group-hover/cta:translate-x-0.5">
+                  →
+                </span>
               </Link>
             )}
           </nav>

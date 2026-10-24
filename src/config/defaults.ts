@@ -8,7 +8,7 @@ import type { LocalizedText } from "@/i18n/locales";
 
 export const DEFAULT_PLATFORM_SETTINGS = {
   /** "TTC" ou "HT" : affichage des prix des packs. */
-  prices_display: "TTC",
+  prices_display: "HT",
   /** Durée d'engagement en mois (0 = sans engagement). */
   commitment_months: 12,
   /** Préavis avant d'appliquer le nouveau prix d'un pack à un abonné (après la fin de son engagement), en jours. */
@@ -18,14 +18,45 @@ export const DEFAULT_PLATFORM_SETTINGS = {
    * elles portent l'étiquette au lieu d'être promises. Retirer une clé quand la fonction est prête.
    */
   features_soon: [
+    // Grille Basic, Pro, Business : outils annoncés, pas encore livrés.
+    "aiChatbot",
+    "whatsappAssistant",
+    "aiTexts",
+    "aiImages",
+    "marketingAutomation",
+    "advancedCrm",
+    "advancedSeo",
+    "multilingual",
+    "commerce",
+    "formation",
+    // Anciens packs.
+    "advancedBranding",
+    "premiumBranding",
+    "advancedStats",
+    "advancedPresentation",
     "contactForm",
     "businessSections",
     "seoPages",
     "visibilityReport",
     "paymentLinks",
-    "multilingual",
     "qrPoster",
   ] as string[],
+  /**
+   * Les trois solutions et leur état : « available » (souscription ouverte) ou
+   * « soon » (présentée « Disponible bientôt », sans souscription possible).
+   */
+  solutions: [
+    { code: "booking", status: "available" },
+    { code: "commerce", status: "soon" },
+    { code: "formation", status: "soon" },
+  ] as SolutionSetting[],
+  /** Adresse d'une démonstration en ligne ; vide : le bouton « Voir la démonstration » est masqué. */
+  demo_url: "",
+  /**
+   * Formule sans engagement proposée à la commande (avec frais de création du pack).
+   * false : seule la formule avec engagement (commitment_months), création offerte.
+   */
+  offer_no_commitment: true as boolean,
   /** Rachat du site par le client quand il part (désactivé par défaut) et son prix TTC en centimes. */
   site_buyout_enabled: false as boolean,
   site_buyout_price_cents: 0,
@@ -79,6 +110,8 @@ export const DEFAULT_PLATFORM_SETTINGS = {
   showcase: [] as ShowcaseEntry[],
 } as const;
 
+export type SolutionSetting = { code: "booking" | "commerce" | "formation"; status: "available" | "soon" };
+
 /** Identité légale du SaaS : jamais inventée, saisie par l'administratrice. */
 export type LegalIdentity = {
   companyName: string;
@@ -121,6 +154,8 @@ type PlanSeed = {
   /** Lignes visibles sur la carte du pack (6 au plus), dans l'ordre ; le reste se déplie. */
   highlights: string[];
   sortOrder: number;
+  /** Pack proposé à la vente (les anciens packs restent en base pour leurs abonnés). */
+  isPublic?: boolean;
   limits: PlanLimits;
   features: PlanFeatures;
 };
@@ -162,6 +197,16 @@ const NONE = {
   paymentLinks: false,
   multilingual: false,
   qrPoster: false,
+  gallery: false,
+  selfEditing: false,
+  advancedBranding: false,
+  premiumBranding: false,
+  advancedStats: false,
+  advancedSeo: false,
+  richContent: false,
+  advancedPresentation: false,
+  prioritySupport: false,
+  dedicatedSupport: false,
 } satisfies PlanFeatures;
 
 /** Site vitrine (Express) : une page, son nom de domaine, les boutons de contact. */
@@ -218,23 +263,14 @@ const BOOKING = {
 } satisfies PlanFeatures;
 
 /**
- * Les packs de départ. null = illimité. Deux familles : avec réservation
+ * Anciens packs (avant la grille Essentiel, Business, Premium) : plus vendus,
+ * ils restent en base pour les sites qui y sont abonnés. Le Basic (gratuit)
+ * reste le pack d'arrivée des abonnements qui se terminent. null = illimité. Deux familles : avec réservation
  * (Basic, Essentiel, Sérénité) et « site seul » (Express, Vitrine, Signature).
  * Règle des jumeaux : un pack avec réservation comprend tout son pack « site
  * seul » (Vitrine → Essentiel, Signature → Sérénité ; Express → Essentiel).
  */
 export const DEFAULT_PLANS: PlanSeed[] = [
-  {
-    code: "basic",
-    name: { fr: "Basic", en: "Basic", es: "Basic", ru: "Basic" },
-    description: { fr: "Pour essayer sans rien payer" },
-    priceCents: 0,
-    noCommitmentFeeCents: null,
-    highlights: ["basePage", "bookings", "agenda", "emailReminders", "photosServices"],
-    sortOrder: 1,
-    limits: { onlineBookingsPerMonth: 5, members: 1, photos: 5, services: 10, smsPerMonth: 0 },
-    features: { ...NONE, onlineBooking: true, brandingFooter: true },
-  },
   {
     code: "essentiel",
     name: { fr: "Essentiel", en: "Essential", es: "Esencial", ru: "Основной" },
@@ -242,7 +278,8 @@ export const DEFAULT_PLANS: PlanSeed[] = [
     priceCents: 3999,
     noCommitmentFeeCents: 14900,
     highlights: ["everythingIn:vitrine", "bookings", "onlinePayment", "sms", "customerSpace", "members"],
-    sortOrder: 2,
+    sortOrder: 12,
+    isPublic: false,
     limits: { onlineBookingsPerMonth: null, members: 3, photos: 20, services: null, smsPerMonth: 100 },
     features: { ...VITRINE, ...BOOKING },
   },
@@ -253,13 +290,14 @@ export const DEFAULT_PLANS: PlanSeed[] = [
     priceCents: 7900,
     noCommitmentFeeCents: 24900,
     highlights: ["everythingIn:signature", "bookings", "sms", "loyalty", "stats", "members"],
-    sortOrder: 3,
+    sortOrder: 13,
+    isPublic: false,
     limits: { onlineBookingsPerMonth: null, members: null, photos: null, services: null, smsPerMonth: 300 },
     features: { ...SIGNATURE, ...BOOKING, monthlySummary: true, loyalty: true, aiMessaging: true },
   },
 ];
 
-/** Packs « site seul » : un site, sans réservation en ligne (ajoutée en passant à leur jumeau). */
+/** Anciens packs « site seul » (plus vendus) : un site, sans réservation en ligne. */
 export const DEFAULT_SITE_ONLY_PLANS: PlanSeed[] = [
   {
     code: "express",
@@ -269,7 +307,8 @@ export const DEFAULT_SITE_ONLY_PLANS: PlanSeed[] = [
     noCommitmentFeeCents: 4900,
     bookingTwinCode: "essentiel",
     highlights: ["onePage", "customDomain", "contactButtons", "photosServices", "monthlyUpdate", "hosting"],
-    sortOrder: 4,
+    sortOrder: 14,
+    isPublic: false,
     limits: { onlineBookingsPerMonth: 0, members: 1, photos: 10, services: 20, smsPerMonth: 0 },
     features: EXPRESS,
   },
@@ -288,7 +327,8 @@ export const DEFAULT_SITE_ONLY_PLANS: PlanSeed[] = [
       "photos",
       "monthlyUpdate",
     ],
-    sortOrder: 5,
+    sortOrder: 15,
+    isPublic: false,
     limits: { onlineBookingsPerMonth: 0, members: 3, photos: 20, services: null, smsPerMonth: 0 },
     features: VITRINE,
   },
@@ -300,8 +340,291 @@ export const DEFAULT_SITE_ONLY_PLANS: PlanSeed[] = [
     noCommitmentFeeCents: 24900,
     bookingTwinCode: "serenite",
     highlights: ["everythingIn:vitrine", "withYou", "google", "cardPayment", "multilingual", "careUpdates"],
-    sortOrder: 6,
+    sortOrder: 16,
+    isPublic: false,
     limits: { onlineBookingsPerMonth: 0, members: null, photos: null, services: null, smsPerMonth: 0 },
     features: SIGNATURE,
+  },
+];
+
+/**
+ * Grille actuelle : Basic (gratuit), Pro et Business. Prix de lancement hors
+ * taxes (prices_display « HT »), modifiables dans l'admin ; quotas mensuels
+ * (null = illimité, 0 = non inclus). Une fonction annoncée mais pas livrée
+ * figure dans features_soon et s'affiche « Disponible bientôt ».
+ */
+const GRID_BASIC = {
+  ...NONE,
+  onlineBooking: true,
+  customDomain: true,
+  mobileReady: true,
+  contactButtons: true,
+  localSeo: true,
+  selfEditing: true,
+  gallery: true,
+  customerFile: true,
+  helpCenter: true,
+  emailSupport: true,
+  brandingFooter: true,
+} satisfies PlanFeatures;
+
+const GRID_PRO = {
+  ...GRID_BASIC,
+  brandingFooter: false,
+  fullSite: true,
+  sitePages: true,
+  staffPlanning: true,
+  onlinePayment: true,
+  promoCodes: true,
+  promotions: true,
+  testimonials: true,
+  customerSpace: true,
+  googleReviews: true,
+  stats: true,
+  ticketSupport: true,
+  advancedCrm: false,
+  commerce: true,
+  formation: true,
+} satisfies PlanFeatures;
+
+const GRID_BUSINESS = {
+  ...GRID_PRO,
+  setupAssistance: true,
+  advancedCrm: true,
+  marketingAutomation: true,
+  loyalty: true,
+  giftCards: true,
+  monthlySummary: true,
+  advancedSeo: true,
+  aiChatbot: true,
+  whatsappAssistant: true,
+  aiTexts: true,
+  aiImages: true,
+  multilingual: true,
+  freeDomain: true,
+  priorityHumanSupport: true,
+} satisfies PlanFeatures;
+
+/** Aucun outil intelligent (quotas à 0). */
+const NO_AI = { aiChatConversations: 0, whatsappConversations: 0, aiTexts: 0, aiImages: 0 };
+
+export const DEFAULT_GRID_PLANS: PlanSeed[] = [
+  {
+    code: "basic",
+    name: { fr: "Basic", en: "Basic", es: "Basic", ru: "Basic" },
+    description: { fr: "L'essentiel pour bien démarrer" },
+    priceCents: 0,
+    noCommitmentFeeCents: null,
+    highlights: [],
+    sortOrder: 1,
+    isPublic: true,
+    limits: {
+      onlineBookingsPerMonth: 10,
+      customers: 50,
+      members: 1,
+      photos: 10,
+      services: null,
+      smsPerMonth: 0,
+      ...NO_AI,
+    },
+    features: GRID_BASIC,
+  },
+  {
+    code: "pro",
+    name: { fr: "Pro", en: "Pro", es: "Pro", ru: "Pro" },
+    description: { fr: "Pour développer votre activité" },
+    priceCents: 3990,
+    noCommitmentFeeCents: null,
+    highlights: [],
+    sortOrder: 2,
+    isPublic: true,
+    limits: {
+      onlineBookingsPerMonth: null,
+      customers: null,
+      members: 3,
+      photos: null,
+      services: null,
+      smsPerMonth: 100,
+      ...NO_AI,
+    },
+    features: GRID_PRO,
+  },
+  {
+    code: "business",
+    name: { fr: "Business", en: "Business", es: "Business", ru: "Business" },
+    description: { fr: "Pour automatiser et piloter votre activité" },
+    priceCents: 7900,
+    noCommitmentFeeCents: null,
+    highlights: [],
+    sortOrder: 3,
+    isPublic: true,
+    limits: {
+      onlineBookingsPerMonth: null,
+      customers: null,
+      members: null,
+      photos: null,
+      services: null,
+      smsPerMonth: 300,
+      aiChatConversations: 500,
+      whatsappConversations: 200,
+      aiTexts: 100,
+      aiImages: 20,
+    },
+    features: GRID_BUSINESS,
+  },
+];
+
+/**
+ * Offre de lancement « tablette offerte » : réglages de départ, modifiables
+ * dans l'admin (/admin/offres). Le nombre de places est réel : chaque
+ * attribution est enregistrée, l'offre s'arrête d'elle-même une fois complète.
+ */
+export const DEFAULT_LAUNCH_OFFERS = [
+  {
+    code: "business-tablet",
+    planCode: "business",
+    isActive: true,
+    quota: 100,
+    requiresCommitment: true,
+    title: { fr: "Tablette professionnelle offerte" },
+    conditions: {
+      fr: "Réservée aux 100 premiers abonnés Business éligibles avec engagement de 12 mois. Une tablette par établissement, configurée par nos soins, expédiée après validation du premier paiement et des contrôles d'éligibilité. Livraison en France métropolitaine.",
+    },
+  },
+];
+
+type PlanOptionSeed = {
+  code: string;
+  name: LocalizedText;
+  description: LocalizedText;
+  icon: string;
+  /** Jamais inventé : null tant que le tarif n'est pas fixé dans l'admin (l'option ne se commande pas). */
+  priceCents: number | null;
+  isAvailable: boolean;
+  features: PlanFeatures;
+  limits: PlanLimits;
+  requires: string[];
+  sortOrder: number;
+};
+
+/**
+ * Options activables avec n'importe quel pack. Les dépendances (« requires »)
+ * sont techniques : le paiement par carte encaisse les acomptes des
+ * réservations, les cartes cadeaux se paient par carte, etc.
+ */
+export const DEFAULT_PLAN_OPTIONS: PlanOptionSeed[] = [
+  {
+    code: "booking",
+    name: { fr: "Réservation en ligne" },
+    description: {
+      fr: "Vos clients réservent directement sur votre site, 24 h/24, avec confirmations et rappels par e-mail.",
+    },
+    icon: "calendar",
+    priceCents: null,
+    isAvailable: true,
+    features: { onlineBooking: true, customerSpace: true, promoCodes: true },
+    limits: {},
+    requires: [],
+    sortOrder: 1,
+  },
+  {
+    code: "online-payment",
+    name: { fr: "Paiement en ligne" },
+    description: { fr: "Encaissez acomptes et paiements par carte bancaire au moment de la réservation." },
+    icon: "card",
+    priceCents: null,
+    isAvailable: true,
+    features: { onlinePayment: true },
+    limits: {},
+    requires: ["booking"],
+    sortOrder: 2,
+  },
+  {
+    code: "sms-reminders",
+    name: { fr: "Rappels automatiques par SMS" },
+    description: { fr: "Réduisez les rendez-vous oubliés : un SMS part automatiquement la veille." },
+    icon: "bell",
+    priceCents: null,
+    isAvailable: true,
+    features: {},
+    limits: { smsPerMonth: 100 },
+    requires: ["booking"],
+    sortOrder: 3,
+  },
+  {
+    code: "gift-cards",
+    name: { fr: "Cartes cadeaux" },
+    description: { fr: "Vendez des cartes cadeaux sur votre site, utilisables en ligne ou sur place." },
+    icon: "gift",
+    priceCents: null,
+    isAvailable: true,
+    features: { giftCards: true },
+    limits: {},
+    requires: ["online-payment"],
+    sortOrder: 4,
+  },
+  {
+    code: "loyalty",
+    name: { fr: "Programme de fidélité" },
+    description: {
+      fr: "Récompensez vos clients fidèles avec un compteur de visites et des bons automatiques.",
+    },
+    icon: "heart",
+    priceCents: null,
+    isAvailable: true,
+    features: { loyalty: true },
+    limits: {},
+    requires: ["booking"],
+    sortOrder: 5,
+  },
+  {
+    code: "google-reviews",
+    name: { fr: "Avis Google" },
+    description: { fr: "Affichez vos avis Google sur votre site et invitez vos clients à en laisser." },
+    icon: "review",
+    priceCents: null,
+    isAvailable: true,
+    features: { googleReviews: true },
+    limits: {},
+    requires: [],
+    sortOrder: 6,
+  },
+  {
+    code: "shop",
+    name: { fr: "Boutique en ligne" },
+    description: { fr: "Vendez vos produits et services sur internet." },
+    icon: "bag",
+    priceCents: null,
+    isAvailable: false,
+    features: {},
+    limits: {},
+    requires: ["online-payment"],
+    sortOrder: 7,
+  },
+  {
+    code: "quotes-invoices",
+    name: { fr: "Devis et factures" },
+    description: { fr: "Préparez vos devis et factures depuis votre tableau de bord." },
+    icon: "document",
+    priceCents: null,
+    isAvailable: false,
+    features: {},
+    limits: {},
+    requires: [],
+    sortOrder: 8,
+  },
+  {
+    code: "business-features",
+    name: { fr: "Fonctionnalités métier" },
+    description: {
+      fr: "Des rubriques adaptées à votre métier : avant/après, zone d'intervention, actualités…",
+    },
+    icon: "spark",
+    priceCents: null,
+    isAvailable: false,
+    features: { businessSections: true },
+    limits: {},
+    requires: [],
+    sortOrder: 9,
   },
 ];

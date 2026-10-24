@@ -1,3 +1,4 @@
+import { tenantFeatures } from "@/modules/billing/entitlements";
 import { and, count, desc, eq, gte, inArray } from "drizzle-orm";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
@@ -57,7 +58,7 @@ export async function listAllRequests(tx: Transaction, filters: { status?: strin
       tenantName: tenants.name,
       // Pack du client : ce qu'il comprend en mises à jour (une par mois, ou à la demande).
       planName: plans.name,
-      planFeatures: plans.features,
+      planFeatures: tenantFeatures,
       authorEmail: users.email,
     })
     .from(updateRequests)

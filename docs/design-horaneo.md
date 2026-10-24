@@ -2,133 +2,69 @@
 
 ## 1. À quoi sert ce fichier
 
-Ce fichier fixe l'apparence d'Horaneo. Il complète le prompt principal et l'emporte sur lui pour tout ce qui touche au visuel et à la page d'accueil.
+Ce fichier fixe l'apparence d'Horaneo. Il complète le prompt principal et l'emporte sur lui pour tout ce qui touche au visuel.
 
-Trois fichiers l'accompagnent :
-
-- `docs/maquette-accueil-horaneo.html` : la page d'accueil validée, à ouvrir dans un navigateur.
-- Les fichiers du logo, fournis à part.
-
-**Consigne :** reproduis la page d'accueil fidèlement à partir de la maquette. Reprends son code comme base plutôt que de la refaire à l'œil, en le découpant en composants propres. Si tu vois une amélioration, propose-la et attends la validation avant de l'appliquer.
+Référence actuelle (octobre 2026) : la maquette « Réservation / Commerce / Formation » fournie par la direction (trois univers, packs Basic, Pro, Business). Elle remplace l'ancienne maquette corail (`docs/maquette-accueil-horaneo.html`, conservée pour mémoire). Toute amélioration visuelle est proposée avant d'être appliquée.
 
 ## 2. L'esprit général
 
-Moderne, chaleureux, généreux en espace. Un site qui donne confiance à une gérante d'institut ou à un artisan, sans jargon. Ce qui a été refusé pendant la conception, et qu'il ne faut pas refaire :
+SaaS premium, crédible, professionnel : une plateforme qu'on utilise chaque jour, pas seulement un site. Fin, aéré, sobre. À éviter : boutons massifs, icônes épaisses, badges partout, dégradés vifs, ombres lourdes, cartes chargées, couleurs enfantines, jaune vif.
 
-- Un rendu fade, plat, sans relief.
-- Des boutons noirs.
-- Trop de bleu dans les textes.
-- Du ton sur ton, par exemple des cartes bleues sur un fond bleu.
-- Plusieurs boutons principaux côte à côte.
-- Des packs peu mis en valeur.
+Promesse : « Votre activité. Un seul outil. Plus de liberté. »
 
 ## 3. Les couleurs
 
 | Rôle | Couleur |
 |---|---|
-| Fond de page | Ivoire `#FAF7F2` |
-| Fond des cartes et sections claires | Blanc `#FFFFFF` |
-| Titres | Noir chaud `#16181D` |
-| Texte courant | `#3A3833` |
-| Texte secondaire | `#6B665E` |
-| Accent, numéros, icônes | Corail `#E8503F` |
-| Boutons pleins avec texte blanc | Corail foncé `#D4402F` |
-| Étiquettes et boutons secondaires | Fond `#FBE3DF`, texte `#9E2B1E` |
-| Formes décoratives claires | Rose `#F6C9C1` |
-| Bordures | `#ECE6DA` |
-| Bleu nuit | `#1B2A4A` |
-| Bleu très pâle (packs Basic et Essentiel) | Fond `#E6EAF2`, formes `#C9D2E3` |
-| Confirmations | Vert `#2E9E6B` |
+| Marque (logo, bouton d'en-tête, bandeau final) | Bleu nuit `#1B2A4A` (logo), avec sa touche corail `#E8503F` réservée au logo |
+| Fond | Blanc `#FFFFFF`, sections claires `#F6F8FC` |
+| Titres | `#16181D` ; texte courant `#3D4457` ; texte secondaire `#5B6275` |
+| Filets et bordures | `#E6E9F0` |
+| Réservation (accent) | Indigo maîtrisé `#3A4BB8`, foncé `#2B3990`, pâle `#EEF0FB` |
+| Commerce (accent) | Bronze `#946636`, foncé `#74502A`, champagne pâle `#F7F0E5` |
+| Formation (accent) | Bleu pétrole `#0E6A73`, foncé `#0A525A`, pâle `#E5F2F2` |
+| Pack Business | Fond `#121A2C`, champagne `#D9C08E` (dégradé doux vers `#E4CFA2` sur le bouton) |
 
-Règles d'usage :
+Règles :
 
-- Le bleu nuit sert de surface : logo, pack recommandé, bandeau des étapes. Il n'est jamais la couleur du texte courant ni des titres sur fond clair.
-- Exception : sur les packs Basic et Essentiel, le bleu nuit colore le texte des boutons et les petits liens, sur fond bleu très pâle. Ces cartes s'accordent ainsi au pack recommandé ; le corail n'y apparaît qu'en petites touches.
-- Le corail est réservé à l'action et à l'accent. S'il est partout, plus rien ne ressort.
-- Sur un fond sombre, les éléments posés dessus sont clairs ou corail, jamais dans la même famille de couleur que le fond.
-- Aucun dégradé.
-- Les sites des clients gardent leurs propres couleurs. Cette palette ne s'y applique pas.
+- La marque reste le bleu nuit du logo ; les couleurs des solutions sont des accents (boutons, coches, pictogrammes, mots mis en valeur), posés par `[data-solution]` (`src/app/globals.css`, utilitaires `bg-accent`, `text-accent`, `bg-accent-soft`…).
+- Le Business est la seule carte sombre ; le Pro reste attractif sans lui voler la vedette.
+- Dégradés : seulement subtils (halo d'accroche, bouton champagne, bandeau final).
+- Les sites des clients gardent leurs propres couleurs.
 
 ## 4. Les typographies
 
-- **Titres :** Bricolage Grotesque, graisse 700, interlettrage serré (environ -0,03em), interligne proche de 1.
-- **Texte :** Outfit, graisses 400, 500 et 600.
-- **Logo uniquement :** Comfortaa 700.
-
-Tailles de référence sur ordinateur : titre principal 3,4rem au maximum (1,85rem sur téléphone), titres de section 2,5 à 3,4rem, texte 1,05rem. Elles se réduisent sur téléphone.
+- **Titres :** Bricolage Grotesque, graisse 600 (jamais 700+), interlettrage -0,025em.
+- **Texte :** Outfit 300 à 500.
+- **Logo :** Comfortaa, inchangé.
 
 ## 5. Les boutons
 
-- Forme de pilule, entièrement arrondie.
-- **Principal :** fond corail foncé, texte blanc, avec une flèche à droite. Un seul par section.
-- **Secondaire :** fond rose clair `#FBE3DF`, texte `#9E2B1E`. Il devient corail plein avec texte blanc au survol.
-- **Sur fond corail :** bouton blanc avec texte `#9E2B1E`.
-- **Action de second rang à côté d'un bouton :** simple lien texte, pas un deuxième bouton.
-- **Au survol :** le bouton se soulève de 2 pixels avec une ombre, et la flèche avance légèrement.
-- Jamais de bouton noir.
+- Coins arrondis modérés (0,75rem), hauteur 48px, texte en graisse 500, flèche fine à droite.
+- **Principal :** fond de l'accent de la solution (Business : champagne sur fond sombre). Un seul par bloc ; l'action secondaire est un bouton blanc à filet.
+- **En-tête :** « Essayer gratuitement », bleu nuit.
 
 ## 6. Les cartes
 
-- Coins très arrondis : 1,5 à 2rem.
-- Bordure de 2 pixels `#ECE6DA` sur fond blanc.
-- **Au survol :** la carte se soulève de 8 à 10 pixels, prend une ombre et un contour corail.
-- Les étiquettes sont des pilules, rose clair avec texte `#9E2B1E`.
+- Fond blanc, filet `#E6E9F0`, coins 1,4rem, ombre légère au survol (soulèvement de 4px).
+- Icônes en traits fins (1,6), dans un rond ou un carré pâle de l'accent (`src/components/marketing/line-icons.tsx`).
 
-## 7. Les formes et le mouvement
+## 7. Le mouvement
 
-- Formes décoratives simples : disques pleins et anneaux épais, partiellement hors cadre.
-- Le haut de page apparaît en douceur au chargement.
-- Les deux cartes posées sur la photo flottent lentement, légèrement inclinées.
-- Les animations sont coupées pour les personnes qui ont demandé moins de mouvement dans leur système.
-- Le mouvement reste léger : la page doit se charger vite sur téléphone.
+Sobre : apparition douce de l'accroche, fondu au changement de solution, soulèvement léger au survol. Tout est coupé si moins de mouvement est demandé.
 
 ## 8. La page d'accueil, section par section
 
-**En-tête**
-Logo à gauche. À droite : Comment ça marche, Tarifs, Questions, choix de la langue, Connexion.
+1. **En-tête :** logo, Solutions, Tarifs, Fonctionnalités, Ressources, Connexion, bouton « Essayer gratuitement ».
+2. **Accroche :** promesse, sous-titre, « Essayer gratuitement » et « Voir la démonstration » (seulement si une adresse de démonstration est réglée dans l'admin ; sinon « Voir les tarifs »). Aucun chiffre de performance inventé.
+3. **Choisissez votre solution :** trois cartes (Réservation, Commerce, Formation) ; la solution choisie change l'accent, le titre, les bénéfices, l'aperçu (ordinateur et téléphone dessinés en HTML/CSS) et le bandeau de cinq fonctions. Une solution pas encore ouverte porte « Disponible bientôt » et propose « Être prévenu du lancement », jamais une souscription.
+4. **Choisissez votre pack {solution} :** Basic, Pro, Business ; mêmes prix pour toutes les solutions. Chaque carte : pictogramme, nom, phrase, prix (HT), ce que le pack ajoute, « Bientôt inclus » à part, « Non inclus » (3 lignes), bouton, conditions. Offre tablette sur le Business avec les places restantes réelles et ses conditions dépliables.
+5. **Fonctionnalités :** sept bénéfices, « Bientôt » quand c'est le cas.
+6. **Comparatif :** douze catégories, mêmes données que les cartes et les droits ; sur téléphone, un pack à la fois.
+7. **Réassurance :** seulement des engagements vérifiés ; témoignages réels s'il y en a.
+8. **Questions, bandeau final, pied de page.**
 
-**Haut de page**
-- Étiquette : "Pour les professionnels sur rendez-vous".
-- Titre : "Nous créons votre site." puis, en corail et souligné d'un trait rose épais, "Vos clients réservent."
-- Texte : "Un site à votre nom, la réservation en ligne et l'acompte contre les absences. Nous faisons tout, de la création aux mises à jour."
-- Un seul bouton : "Je veux mon site". À côté, le lien texte "Voir les tarifs".
-- Trois points avec une coche : Sans commission, Votre nom de domaine, Rien à installer.
-- À droite, pas de photo : un téléphone droit, dessiné en HTML et CSS, qui affiche le site d'un client à l'étape du créneau (prestation, durée, prix, jour, heure, acompte, bouton "Payer l'acompte"). Derrière lui, un simple disque rose clair. Deux petites cartes droites, non inclinées : "Nouvelle réservation" en haut à droite, "Acompte reçu" en bas à gauche. Aucune ne doit cacher le contenu du téléphone.
-- Sur ordinateur, tout le haut de page tient dans un écran de 1366 x 768. Sur téléphone, les liens du menu sont masqués et le haut du téléphone dessiné est visible dès le premier écran.
-
-**Bande des métiers**
-"Pensé pour" suivi de pilules : Instituts de beauté, Salons de coiffure, Barbiers, Bien-être, Tatoueurs, Coachs, Garages, Artisans.
-
-**Les trois étapes**
-Grand bandeau bleu nuit aux coins très arrondis. Titre "Vous n'avez rien à faire.", avec "rien à faire" en corail. Trois cartes : blanche, corail, blanche. Chacune a une icône, un grand numéro plein, un titre, un texte et une étiquette.
-
-1. "Nous créons votre site" : étiquette "C'est nous qui le faisons".
-2. "Vos clients réservent" : étiquette "Sans rien installer".
-3. "Vous encaissez" : acompte, paiement complet ou règlement sur place, au choix. Étiquette "Sans commission".
-
-**Les packs**
-Placés après les fonctions et les témoignages, avant les questions. Titre centré "Un prix clair, sans commission." Un interrupteur "Avec réservation" / "Sans réservation" retourne les trois cartes (Basic, Essentiel, Sérénité / Express, Vitrine, Signature). Chaque carte : une icône, un nom, une phrase qui dit à qui elle s'adresse, un prix en très gros, trois tuiles de chiffres clés, un bouton, puis 6 lignes au plus (choisies dans l'admin). Le bouton "Voir tout ce qui est inclus" déplie la liste complète (six groupes titrés pour Signature et Sérénité) ; ce qui manque par rapport au pack suivant apparaît en gris avec un tiret, à la fin. Étiquette "Bientôt" sur les fonctions pas encore livrées.
-
-- Ordinateur : trois colonnes alignées en haut ; une carte dépliée s'allonge sans déplacer ses voisines. Téléphone : cartes l'une sous l'autre, pack recommandé en premier, seule la face choisie occupe la place.
-- Sous les cartes, le lien "Comparer tous les packs en détail" mène au tableau comparatif (`/comparatif`), une table par famille, première colonne fixe sur téléphone.
-
-- Basic : "Commencer gratuitement".
-- Essentiel : "Choisir Essentiel".
-- Basic et Essentiel : cartes blanches, accents bleus (bouton bleu très pâle qui passe bleu nuit au survol, contour bleu nuit au survol), avec des touches de corail sur bleu très pâle : les coches, le pictogramme du pack, le point du décor et la flèche du bouton. Fonds, contour et bouton plein en corail restent réservés au pack recommandé.
-- Sérénité : carte plus haute, fond bleu nuit, contour corail, étiquette "Recommandé", bouton corail "Choisir Sérénité".
-
-Sous les cartes : Aucune commission, Paiements sécurisés, Vos données vous appartiennent.
-
-Les prix, quotas et fonctions affichés viennent des réglages des packs, jamais de texte écrit dans la page.
-
-**Questions fréquentes**
-À gauche, le titre "Les questions qu'on nous pose" et le lien "Nous écrire". À droite, six questions en menu déroulant, la première ouverte. À l'ouverture, le contour passe en corail et le "+" tourne.
-
-**Bandeau final**
-Fond corail foncé, coins très arrondis, formes décoratives. Titre "Votre site en ligne en quelques jours." et bouton blanc "Je veux mon site".
-
-**Pied de page**
-Logo à gauche et liens légaux à droite. En dessous, séparés par un trait fin : "© 2026 HORANEO · Tous droits réservés" à gauche, "Design by Johane A." à droite.
+Les prix, quotas, fonctions, disponibilités et l'offre tablette viennent des réglages (admin), jamais du code.
 
 ## 9. Téléphone et accessibilité
 

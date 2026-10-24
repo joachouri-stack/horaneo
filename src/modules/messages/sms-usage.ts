@@ -1,3 +1,4 @@
+import { tenantLimits } from "@/modules/billing/entitlements";
 import { and, asc, eq, gt, inArray, sql } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
 import { plans, smsPacks, tenants, usageCounters, type PlanLimits } from "@/db/schema";
@@ -27,7 +28,7 @@ export function nextResetDate(period: string) {
 
 async function tenantPlan(tx: Transaction, tenantId: string) {
   const [row] = await tx
-    .select({ timezone: tenants.timezone, limits: plans.limits })
+    .select({ timezone: tenants.timezone, limits: tenantLimits })
     .from(tenants)
     .innerJoin(plans, eq(plans.id, tenants.planId))
     .where(eq(tenants.id, tenantId));

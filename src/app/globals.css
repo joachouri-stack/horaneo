@@ -36,6 +36,17 @@
   --color-navy-light: #26375c;
   --color-mist: #e6eaf2; /* bleu très pâle : packs Basic et Essentiel */
   --color-mist-strong: #c9d2e3;
+  /* Touches cuivrées et dorées (packs, offre recommandée) : décor et petits textes. */
+  --color-copper: #9a5a24; /* texte cuivré lisible sur fond clair */
+  --color-gold: #d4a75a; /* filets et pictogrammes, accent sur fond bleu nuit */
+  --color-cream: #f7f0e3; /* fond crème des pastilles dorées */
+  /* Site commercial (refonte) : gris bleutés fins, champagne du pack Business. */
+  --color-ink-soft: #5b6275;
+  --color-hairline: #e6e9f0;
+  --color-mist-50: #f6f8fc;
+  --color-champagne: #d9c08e;
+  --color-champagne-soft: #f5ecda;
+  --color-deep: #121a2c; /* fond du pack Business */
 
   --font-display: var(--font-bricolage), var(--font-outfit), system-ui, sans-serif;
   --font-sans: var(--font-outfit), system-ui, sans-serif;
@@ -196,5 +207,69 @@ html:has(body.saas) {
   }
   .hn-up-late {
     animation: hn-up 0.7s ease 0.15s both;
+  }
+}
+
+/*
+ * Solutions du site commercial : une couleur d'accent par univers (la marque
+ * reste le bleu nuit du logo). Posées sur [data-solution], lues par les
+ * utilitaires bg-accent, text-accent, bg-accent-soft…
+ */
+[data-solution="booking"] {
+  --accent: #3a4bb8;
+  --accent-strong: #2b3990;
+  --accent-soft: #eef0fb;
+  --accent-line: #d9ddf5;
+}
+[data-solution="commerce"] {
+  --accent: #946636;
+  --accent-strong: #74502a;
+  --accent-soft: #f7f0e5;
+  --accent-line: #ecdcc4;
+}
+[data-solution="formation"] {
+  --accent: #0e6a73;
+  --accent-strong: #0a525a;
+  --accent-soft: #e5f2f2;
+  --accent-line: #c6e3e3;
+}
+@theme inline {
+  --color-accent: var(--accent, #3a4bb8);
+  --color-accent-strong: var(--accent-strong, #2b3990);
+  --color-accent-soft: var(--accent-soft, #eef0fb);
+  --color-accent-line: var(--accent-line, #d9ddf5);
+}
+
+/* Contenu propre à une solution : seul celui de la solution choisie s'affiche. */
+[data-solution="booking"] [data-only]:not([data-only="booking"]),
+[data-solution="commerce"] [data-only]:not([data-only="commerce"]),
+[data-solution="formation"] [data-only]:not([data-only="formation"]) {
+  display: none;
+}
+
+/* Changement de solution : le contenu apparaît en fondu (sauf moins de mouvement). */
+@keyframes hn-fade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-switched="true"] [data-only] {
+    animation: hn-fade 0.35s ease both;
+  }
+}
+
+/* Comparatif sur téléphone : une seule colonne de pack à la fois (rang du pack). */
+@media (max-width: 767.98px) {
+  [data-pack="0"] [data-col]:not([data-col="0"]),
+  [data-pack="1"] [data-col]:not([data-col="1"]),
+  [data-pack="2"] [data-col]:not([data-col="2"]),
+  [data-pack="3"] [data-col]:not([data-col="3"]) {
+    display: none;
   }
 }

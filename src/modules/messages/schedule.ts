@@ -1,3 +1,4 @@
+import { tenantFeatures, tenantLimits } from "@/modules/billing/entitlements";
 import { and, eq, gte, lt, lte, sql } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
 import {
@@ -27,8 +28,8 @@ async function activeTenants(tx: Transaction) {
       id: tenants.id,
       timezone: tenants.timezone,
       defaultLocale: tenants.defaultLocale,
-      limits: plans.limits,
-      features: plans.features,
+      limits: tenantLimits,
+      features: tenantFeatures,
     })
     .from(tenants)
     .innerJoin(plans, eq(plans.id, tenants.planId))
@@ -48,7 +49,7 @@ async function activeBusinesses(tx: Transaction) {
       tenantId: tenants.id,
       timezone: tenants.timezone,
       defaultLocale: tenants.defaultLocale,
-      features: plans.features,
+      features: tenantFeatures,
       dailySummary: businessSettings.dailySummaryEnabled,
       monthlySummary: businessSettings.monthlySummaryEnabled,
     })

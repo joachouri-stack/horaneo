@@ -1,3 +1,4 @@
+import { tenantFeatures, tenantLimits } from "@/modules/billing/entitlements";
 import { and, asc, eq, gt, inArray, isNull, lt, or } from "drizzle-orm";
 import { planAllowsBooking } from "@/modules/billing/features";
 import { currentBusinessId } from "@/db/access";
@@ -44,8 +45,8 @@ export async function loadBookingContext(tx: Transaction, tenantId: string, busi
       tenant: tenants,
       business: businesses,
       settings: businessSettings,
-      features: plans.features,
-      limits: plans.limits,
+      features: tenantFeatures,
+      limits: tenantLimits,
     })
     .from(tenants)
     .innerJoin(plans, eq(plans.id, tenants.planId))

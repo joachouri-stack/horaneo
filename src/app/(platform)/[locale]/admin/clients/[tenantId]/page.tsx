@@ -8,7 +8,9 @@ import { resolveLocale } from "@/i18n/translator";
 import { adminQuery } from "@/lib/admin/mutation";
 import { loadTenantOverview } from "@/lib/admin/tenant";
 import { formatDate, formatDateTime, formatMoney } from "@/lib/format";
+import { listPlanOptions, listTenantOptions } from "@/modules/billing/options";
 import { listSmsPacks } from "@/modules/billing/sms-packs";
+import { setTenantOptionAction } from "../../options/actions";
 import { getSubscription } from "@/modules/billing/subscriptions";
 import { smsUsage } from "@/modules/messages/sms-usage";
 import { connectState } from "@/modules/payments/connect";
@@ -38,12 +40,16 @@ export default async function TenantOverviewPage({
     loadTenantOverview(tenantId),
     adminQuery((tx) => listPlans(tx)),
   ]);
-  const [subscription, tBilling, sms] = await Promise.all([
+  const [subscription, tBilling, sms, optionRows] = await Promise.all([
     adminQuery((tx) => getSubscription(tx, tenantId)),
     getTranslations("admin.billing"),
     adminQuery(async (tx) => ({
       usage: await smsUsage(tx, tenantId),
       packs: await listSmsPacks(tx, tenantId),
+    })),
+    adminQuery(async (tx) => ({
+      catalog: await listPlanOptions(tx, { all: true }),
+      active: await listTenantOptions(tx, tenantId),
     })),
   ]);
   const { tenant, plan, domains, managers, usage, counts } = overview;
@@ -191,6 +197,41 @@ export default async function TenantOverviewPage({
               </p>
             )}
           </div>
+        </Section>
+
+        {/* Options à la carte du client : activées ici, facturées sur son abonnement s'il en a un. */}
+        <Section title={t("options")}>
+          <p className="mb-3 text-sm text-ink/70">{t("optionsHint")}</p>
+          <ul className="divide-y divide-navy/10">
+            {optionRows.catalog.map((option) => {
+              const row = optionRows.active.find((item) => item.option.id === option.id);
+              const name = pickLocalized(option.name, locale);
+              return (
+                <li key={option.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                  <span>
+                    <span className="font-semibold text-night">{name}</span>
+                    <span className="block text-sm text-ink/70">
+                      {option.priceCents === null
+                        ? t("optionNoPrice")
+                        : t("optionPrice", {
+                            amount: formatMoney(option.priceCents, option.currency, locale),
+                          })}
+                      {row && ` · ${t("optionActive")}`}
+                      {row?.stripeSubscriptionItemId && ` (${t("optionBilled")})`}
+                    </span>
+                  </span>
+                  <ActionForm
+                    action={setTenantOptionAction}
+                    submitLabel={row ? t("optionOff") : t("optionOn")}
+                    variant={row ? "danger" : "secondary"}
+                    confirm={row ? t("optionOffConfirm", { name, tenant: tenant.name }) : undefined}
+                  >
+                    <Hidden values={{ tenantId, code: option.code, active: row ? "no" : "yes" }} />
+                  </ActionForm>
+                </li>
+              );
+            })}
+          </ul>
         </Section>
 
         <details className={`${ui.card} lg:col-span-2`}>
