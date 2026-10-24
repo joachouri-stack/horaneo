@@ -9,7 +9,8 @@ export function MobileMenu({
   links,
   hideFrom = "md",
 }: {
-  links: { href: string; label: string }[];
+  /** `plain` : lien classique (page qui renvoie ailleurs, comme l'espace professionnel). */
+  links: { href: string; label: string; plain?: boolean }[];
   /** Taille d'écran à partir de laquelle le menu complet remplace le bouton. */
   hideFrom?: "md" | "lg";
 }) {
@@ -46,7 +47,7 @@ export function MobileMenu({
             {links.map((link) => (
               <li key={link.href}>
                 {/* Lien vers une catégorie (#…) : lien classique, pour que la page s'ouvre sur elle. */}
-                {link.href.includes("#") ? (
+                {link.plain || link.href.includes("#") ? (
                   <a
                     href={link.href}
                     onClick={() => setOpen(false)}
