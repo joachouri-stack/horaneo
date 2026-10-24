@@ -280,6 +280,7 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
       templateKey: tenant.templateKey,
       colors: tenant.brand.colors,
       social: tenant.brand.social ?? {},
+      contactBar: tenant.brand.contactBar ?? null,
     },
     locale: lang,
     features: {

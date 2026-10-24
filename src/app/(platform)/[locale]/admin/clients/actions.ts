@@ -39,7 +39,13 @@ import {
   removeCustomDomain,
   setPrimaryDomain,
 } from "@/modules/tenants/domains";
-import { changeStatus, updateAppearance, updateIdentity, updateSocial } from "@/modules/tenants/update";
+import {
+  changeStatus,
+  updateAppearance,
+  updateContactBar,
+  updateIdentity,
+  updateSocial,
+} from "@/modules/tenants/update";
 import type { LogoPalette } from "@/lib/images/palette";
 
 /**
@@ -238,6 +244,16 @@ export async function updateSocialAction(_previous: Previous, data: FormData) {
     updateSocial(tx, tenantId, {
       instagram: form.optional(data, "instagram"),
       facebook: form.optional(data, "facebook"),
+    }),
+  );
+}
+
+export async function updateContactBarAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return adminMutation({ action: "tenant.contact_bar_updated", tenantId }, (tx) =>
+    updateContactBar(tx, tenantId, {
+      mode: form.text(data, "mode") as "call",
+      phone: form.optional(data, "contactPhone") ?? undefined,
     }),
   );
 }
