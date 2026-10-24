@@ -29,6 +29,7 @@ import {
   addBusinessManager,
   replaceBusinessManager,
   createBusiness,
+  setBusinessLogo,
   updateBusiness,
   updateBusinessProfile,
 } from "@/modules/businesses/businesses";
@@ -234,7 +235,35 @@ export async function updateBusinessProfileAction(_previous: Previous, data: For
         quote: form.text(data, "quote"),
         availability: form.text(data, "availability"),
         photoAssetId: form.optional(data, "photoAssetId") ?? null,
+        shopName: form.text(data, "shopName"),
       }),
+  );
+}
+
+/** Logo propre à une entreprise : image gardée entière (type « Autre »). */
+export async function uploadBusinessLogoAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const businessId = businessIdOf(data);
+  const bytes = (await form.file(data, "file")) ?? new Uint8Array();
+  return adminMutation(
+    { action: "business.logo_updated", tenantId, targetType: "business", targetId: businessId, businessId },
+    async (tx, context) => {
+      const asset = await uploadAsset(tx, storage(), tenantId, {
+        bytes,
+        kind: "other",
+        uploadedByUserId: context.userId,
+      });
+      return setBusinessLogo(tx, tenantId, businessId, asset.id);
+    },
+  );
+}
+
+export async function removeBusinessLogoAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const businessId = businessIdOf(data);
+  return adminMutation(
+    { action: "business.logo_removed", tenantId, targetType: "business", targetId: businessId, businessId },
+    (tx) => setBusinessLogo(tx, tenantId, businessId, null),
   );
 }
 

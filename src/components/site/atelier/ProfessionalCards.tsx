@@ -4,6 +4,7 @@ import { ctaLabelKey, siteCta } from "@/modules/site/cta";
 import { businessPath } from "@/modules/site/paths";
 import { Stars } from "../GoogleReviews";
 import { SiteImage } from "../SiteImage";
+import { BusinessShop } from "./BusinessShop";
 import { PillLink, Tag } from "./ui";
 
 type Site = NonNullable<SiteData>;
@@ -43,6 +44,7 @@ export async function ProfessionalCards({
             )}
             <div className="p-6 sm:p-8">
               {business.title && <Tag>{business.title}</Tag>}
+              <BusinessShop business={business} className="mt-4" />
               <h3 className="mt-3 font-site-display text-4xl font-medium">{business.name}</h3>
               {business.role && <p className="mt-1 font-semibold text-site-accent">{business.role}</p>}
               {business.bio && <p className="mt-3 whitespace-pre-line text-site-muted">{business.bio}</p>}

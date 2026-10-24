@@ -65,6 +65,10 @@ export type BusinessProfile = {
   /** Disponibilités en clair (ex. « Du lundi au samedi »). */
   availability?: LocalizedText;
   photoAssetId?: string | null;
+  /** Nom de sa boutique, s'il diffère de son nom (ex. « Zen & Bien-être »). */
+  shopName?: string | null;
+  /** Son propre logo, à côté de son nom sur sa carte et sa page. */
+  logoAssetId?: string | null;
 };
 
 export const tenants = pgTable(

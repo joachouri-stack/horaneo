@@ -1218,7 +1218,17 @@
           "shownNoRating": "Avis Google relus le {date} : la fiche n'a pas encore de note.",
           "stale": "Avis Google plus affichés : dernière lecture réussie le {date} (plus de 30 jours).",
           "error": "Dernière erreur de Google ({date}) : {error}"
-        }
+        },
+        "shopName": "Nom de sa boutique",
+        "shopNameHint": "Facultatif. Affiché avec son logo sur sa carte et sa page (ex. « Zen & Bien-être »).",
+        "logo": "Son logo",
+        "logoHint": "Facultatif. Il s'affiche en petit rond à côté de son nom. Image PNG, JPG ou WebP.",
+        "logoFile": "Choisir l'image du logo",
+        "logoSubmit": "Envoyer le logo",
+        "logoReplace": "Remplacer le logo",
+        "logoRemove": "Retirer le logo",
+        "logoRemoveConfirm": "Retirer ce logo de sa carte et de sa page ?",
+        "logoCurrent": "Logo actuel"
       },
       "previewPage": {
         "title": "Aperçu du site",

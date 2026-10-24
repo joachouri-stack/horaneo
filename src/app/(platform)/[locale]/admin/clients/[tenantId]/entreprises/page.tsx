@@ -10,11 +10,14 @@ import { connectState } from "@/modules/payments/connect";
 import {
   addBusinessManagerAction,
   createBusinessAction,
+  removeBusinessLogoAction,
   replaceBusinessManagerAction,
   setOnlineBookingAdminAction,
   updateBusinessAction,
   updateBusinessProfileAction,
+  uploadBusinessLogoAction,
 } from "../../actions";
+import { storage } from "@/lib/storage";
 import { onlineBookingByBusiness } from "@/modules/booking/settings";
 import { formatDateTime } from "@/lib/format";
 import { googlePlacesProvider } from "@/lib/reviews/google-places";
@@ -184,6 +187,13 @@ export default async function BusinessesPage({
                   defaultValue={business.slug}
                 />
                 <TextField
+                  id={`shop-${business.id}`}
+                  name="shopName"
+                  label={t("shopName")}
+                  hint={t("shopNameHint")}
+                  defaultValue={business.profile.shopName ?? ""}
+                />
+                <TextField
                   id={`title-${business.id}`}
                   name="title"
                   label={t("pageTitle")}
@@ -224,6 +234,11 @@ export default async function BusinessesPage({
                   defaultValue={business.profile.photoAssetId ?? ""}
                 />
               </ActionForm>
+              <BusinessLogo
+                tenantId={tenantId}
+                businessId={business.id}
+                logo={photos.find((photo) => photo.id === business.profile.logoAssetId)}
+              />
             </details>
           </Section>
         );
@@ -244,6 +259,65 @@ export default async function BusinessesPage({
         </ActionForm>
       </Section>
     </>
+  );
+}
+
+/** Logo propre à l'entreprise : aperçu, envoi d'une image, retrait. */
+async function BusinessLogo({
+  tenantId,
+  businessId,
+  logo,
+}: {
+  tenantId: string;
+  businessId: string;
+  logo?: { storageKey: string };
+}) {
+  const t = await getTranslations("admin.tenant.businesses");
+  return (
+    <div className="mt-6 rounded-xl bg-navy/5 p-4">
+      <h3 className="font-bold">{t("logo")}</h3>
+      <p className="mt-1 mb-3 text-sm text-ink/70">{t("logoHint")}</p>
+      {logo && (
+        <div className="mb-4 flex flex-wrap items-center gap-4">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={storage().publicUrl(logo.storageKey)}
+            alt={t("logoCurrent")}
+            className="h-20 w-20 rounded-full border border-navy/10 bg-white object-contain"
+          />
+          <ActionForm
+            action={removeBusinessLogoAction}
+            submitLabel={t("logoRemove")}
+            variant="secondary"
+            confirm={t("logoRemoveConfirm")}
+            className=""
+          >
+            <Hidden values={{ tenantId, businessId }} />
+          </ActionForm>
+        </div>
+      )}
+      <ActionForm
+        action={uploadBusinessLogoAction}
+        submitLabel={t(logo ? "logoReplace" : "logoSubmit")}
+        resetOnSuccess
+        className="space-y-3"
+      >
+        <Hidden values={{ tenantId, businessId }} />
+        <div>
+          <label htmlFor={`business-logo-${businessId}`} className="font-semibold text-night">
+            {t("logoFile")}
+          </label>
+          <input
+            id={`business-logo-${businessId}`}
+            name="file"
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/svg+xml,image/avif"
+            required
+            className="mt-1 block w-full text-sm"
+          />
+        </div>
+      </ActionForm>
+    </div>
   );
 }
 
