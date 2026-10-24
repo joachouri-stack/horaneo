@@ -5,16 +5,16 @@ import { useEffect, useState } from "react";
 type InstallPrompt = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
 
 const DISMISS_KEY = "install-app-dismissed-until";
-const DISMISS_DAYS = 30;
-/** Jamais dès l'arrivée : laisse le temps de découvrir le site. */
-const SHOW_AFTER_MS = 30_000;
+const DISMISS_DAYS = 7;
+/** Pas dès l'arrivée : quelques secondes pour découvrir la page d'abord. */
+const SHOW_AFTER_MS = 5_000;
 
 /**
  * Bandeau du site d'un établissement, sur téléphone seulement : propose
  * d'installer le site comme une application (icône sur l'écran d'accueil).
- * Il apparaît 30 secondes après l'arrivée. Android : installation en un
+ * Il apparaît 5 secondes après l'arrivée. Android : installation en un
  * geste ; iPhone : la marche à suivre (Partager → « Sur l'écran d'accueil »).
- * Caché si déjà installé ou refusé (30 jours).
+ * Caché si déjà installé ou refusé (7 jours).
  * Variante « inline » (après une réservation) : un encadré dans la page,
  * affiché tout de suite, même si le bandeau a été refusé.
  */
