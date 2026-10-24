@@ -403,8 +403,13 @@ export async function saveStaffScheduleAction(_previous: Previous, data: FormDat
 
 export async function updateSettingsAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "settings.updated", (tx) =>
-    updateBookingSettings(tx, tenantId, {
+  return managerMutation(tenantId, "settings.updated", async (tx) => {
+    // Réglages enregistrés d'un seul bouton : l'ouverture de la réservation en ligne en fait partie
+    // quand le pack la propose (le champ caché signale que la case était affichée).
+    if (data.has("onlineBookingShown")) {
+      await setOnlineBooking(tx, tenantId, form.bool(data, "onlineBookingEnabled"));
+    }
+    return updateBookingSettings(tx, tenantId, {
       minNoticeHours: form.text(data, "minNoticeHours"),
       maxAdvanceDays: form.text(data, "maxAdvanceDays"),
       slotIntervalMinutes: form.text(data, "slotIntervalMinutes"),
@@ -416,15 +421,8 @@ export async function updateSettingsAction(_previous: Previous, data: FormData) 
       dailySummaryEnabled: form.bool(data, "dailySummaryEnabled"),
       monthlySummaryEnabled: form.bool(data, "monthlySummaryEnabled"),
       reviewRequestEnabled: form.bool(data, "reviewRequestEnabled"),
-    } as never),
-  );
-}
-
-export async function setOnlineBookingAction(_previous: Previous, data: FormData) {
-  const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "settings.online_booking", (tx) =>
-    setOnlineBooking(tx, tenantId, form.bool(data, "onlineBookingEnabled")),
-  );
+    } as never);
+  });
 }
 
 export async function createRequestAction(_previous: Previous, data: FormData) {

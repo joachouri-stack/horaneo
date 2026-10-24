@@ -158,6 +158,21 @@ export async function todaySummary(
   };
 }
 
+/** Prochains rendez-vous à venir (accueil quand la journée est vide). */
+export async function upcomingAppointments(
+  tx: Transaction,
+  tenantId: string,
+  options: { timezone: string; locale: Locale; days?: number; limit?: number },
+  now = new Date(),
+) {
+  const tomorrow = addDays(utcToLocal(now, options.timezone).date, 1);
+  const { start, end } = dayRange(tomorrow, options.timezone, options.days ?? 14);
+  const list = await listAgenda(tx, tenantId, { from: start, to: end, locale: options.locale });
+  return list
+    .filter((item) => item.status === "confirmed" || item.status === "pending_payment")
+    .slice(0, options.limit ?? 3);
+}
+
 /** Un rendez-vous avec tous ses détails (écran de la gérante). */
 export async function getAppointmentDetail(
   tx: Transaction,

@@ -15,11 +15,14 @@ export async function AppointmentCard({
   item,
   href,
   time,
+  day,
   highlight = false,
 }: {
   item: AgendaAppointment;
   href: string;
   time: string;
+  /** Jour du rendez-vous, au-dessus de l'heure (listes sur plusieurs jours). */
+  day?: string;
   highlight?: boolean;
 }) {
   const t = await getTranslations("manager");
@@ -29,7 +32,10 @@ export async function AppointmentCard({
       className={`flex gap-3 rounded-[var(--radius-card)] border-l-8 bg-white p-4 shadow-sm ${highlight ? "ring-2 ring-coral" : ""}`}
       style={{ borderLeftColor: item.staffColor ?? "#1b2a4a" }}
     >
-      <div className="w-16 shrink-0 font-display text-lg font-extrabold text-night">{time}</div>
+      <div className="w-16 shrink-0 font-display text-lg font-extrabold text-night">
+        {day && <span className="block text-xs font-semibold text-ink/60 first-letter:uppercase">{day}</span>}
+        {time}
+      </div>
       <div className="min-w-0 flex-1">
         {/* Étiquette au-dessus du nom : jamais coupée, même avec un nom long. */}
         {highlight && (
