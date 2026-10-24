@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { isInstalled, isIos } from "@/components/install/useInstallPrompt";
 import { Link } from "@/i18n/navigation";
 
 const DISMISS_KEY = "push-reminder-dismissed-until";
@@ -28,12 +29,9 @@ export function PushReminder({
       } catch {
         // Stockage indisponible (navigation privée) : la carte s'affiche quand même.
       }
-      const ios =
-        /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
       const supported = "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
-      // Sur iPhone hors écran d'accueil, la page Notifications explique comment faire.
-      if (!supported) return ios;
+      // iPhone hors écran d'accueil : la carte « Installez l'application » passe d'abord.
+      if (!supported) return isIos() && isInstalled();
       if (Notification.permission === "denied") return false;
       const registration = await navigator.serviceWorker.getRegistration();
       return !(await registration?.pushManager.getSubscription());

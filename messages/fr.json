@@ -2196,7 +2196,14 @@
       "smsReached": "Vos SMS du mois sont épuisés : vos clientes reçoivent leur rappel par e-mail.",
       "smsOpen": "Voir mes SMS",
       "upcoming": "Prochains rendez-vous",
-      "unavailable": "Je ne suis pas disponible"
+      "unavailable": "Je ne suis pas disponible",
+      "install": {
+        "title": "Installez l'application sur votre téléphone",
+        "text": "Votre agenda en un geste depuis l'écran d'accueil, et une alerte à chaque réservation.",
+        "install": "Installer",
+        "later": "Plus tard",
+        "iosHowTo": "Dans Safari, touchez le bouton Partager (le carré avec une flèche vers le haut), puis « Sur l'écran d'accueil » et « Ajouter ». Ouvrez ensuite l'application depuis cette icône."
+      }
     },
     "status": {
       "confirmed": "Confirmé",

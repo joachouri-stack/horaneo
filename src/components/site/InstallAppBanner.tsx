@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-type InstallPrompt = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
+import { useInstallPrompt } from "@/components/install/useInstallPrompt";
 
 const DISMISS_KEY = "install-app-dismissed-until";
 const DISMISS_DAYS = 7;
@@ -27,75 +25,15 @@ export function InstallAppBanner({
   inline?: boolean;
   labels: { title: string; text: string; install: string; later: string; iosHowTo: string; close: string };
 }) {
-  const [mode, setMode] = useState<"hidden" | "android" | "ios">("hidden");
-  const [prompt, setPrompt] = useState<InstallPrompt | null>(null);
-  const [showSteps, setShowSteps] = useState(false);
-
-  useEffect(() => {
-    const installed =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      (navigator as Navigator & { standalone?: boolean }).standalone === true;
-    const phone = window.matchMedia("(max-width: 639px)").matches;
-    let dismissed = false;
-    try {
-      dismissed = Number(localStorage.getItem(DISMISS_KEY) ?? 0) > Date.now();
-    } catch {
-      // Stockage indisponible (navigation privée) : on propose quand même.
-    }
-    if (installed || !phone || (dismissed && !inline)) return;
-    const delay = inline ? 0 : SHOW_AFTER_MS;
-    const ios =
-      /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    if (ios) {
-      timer = setTimeout(() => setMode("ios"), delay);
-      return () => clearTimeout(timer);
-    }
-    // Android (Chrome, Edge, Samsung…) : le navigateur signale que l'installation est possible.
-    const onPrompt = (event: Event) => {
-      event.preventDefault();
-      setPrompt(event as InstallPrompt);
-      timer = setTimeout(() => setMode("android"), delay);
-    };
-    const onInstalled = () => setMode("hidden");
-    window.addEventListener("beforeinstallprompt", onPrompt);
-    window.addEventListener("appinstalled", onInstalled);
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener("beforeinstallprompt", onPrompt);
-      window.removeEventListener("appinstalled", onInstalled);
-    };
-  }, [inline]);
+  const { mode, showSteps, install, later } = useInstallPrompt({
+    delayMs: inline ? 0 : SHOW_AFTER_MS,
+    dismissKey: DISMISS_KEY,
+    dismissDays: DISMISS_DAYS,
+    ignoreDismissed: inline,
+  });
 
   if (mode === "hidden") return null;
   const headingId = inline ? "installer-application-rdv" : "installer-application";
-
-  const later = () => {
-    if (inline) {
-      setMode("hidden");
-      return;
-    }
-    try {
-      localStorage.setItem(DISMISS_KEY, String(Date.now() + DISMISS_DAYS * 24 * 3600 * 1000));
-    } catch {
-      // Sans stockage, le bandeau reviendra à la prochaine visite.
-    }
-    setMode("hidden");
-  };
-
-  const install = async () => {
-    if (mode === "ios") {
-      setShowSteps(true);
-      return;
-    }
-    if (!prompt) return;
-    await prompt.prompt();
-    const choice = await prompt.userChoice;
-    setPrompt(null);
-    if (choice.outcome === "accepted") setMode("hidden");
-    else later();
-  };
 
   return (
     <aside
