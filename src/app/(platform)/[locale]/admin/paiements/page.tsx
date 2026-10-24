@@ -23,9 +23,11 @@ export default async function BillingAdminPage({ params }: PageProps<"/[locale]/
   ]);
   const statusLabel = (status: string) =>
     t.has(`statuses.${status}` as "statuses.active") ? t(`statuses.${status}` as "statuses.active") : status;
+  const tIntro = await getTranslations("admin.intro");
   return (
     <main id="contenu" className="mx-auto max-w-5xl space-y-6 px-4 py-8">
       <h1 className="text-3xl font-extrabold">{t("title")}</h1>
+      <p className="text-ink/70">{tIntro("billing")}</p>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className={ui.card}>
           <p className="text-sm text-ink/70">{t("revenue")}</p>

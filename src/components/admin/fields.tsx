@@ -123,14 +123,32 @@ export function Section({
   children,
   aside,
   level = 2,
+  collapsible = false,
+  open = false,
 }: {
   title: string;
   children: React.ReactNode;
   aside?: React.ReactNode;
   /** 1 quand la section porte le titre de la page (espace gérante). */
   level?: 1 | 2;
+  /** Section repliable (pages longues) ; `open` : dépliée au chargement. */
+  collapsible?: boolean;
+  open?: boolean;
 }) {
   const Heading = level === 1 ? "h1" : "h2";
+  if (collapsible) {
+    return (
+      <details className={`${ui.card} group`} open={open}>
+        <summary className="flex cursor-pointer flex-wrap items-baseline justify-between gap-2">
+          <Heading className="text-xl font-bold">{title}</Heading>
+          <span aria-hidden="true" className="text-navy/50 transition group-open:rotate-180">
+            ▾
+          </span>
+        </summary>
+        <div className="mt-4">{children}</div>
+      </details>
+    );
+  }
   return (
     <section className={ui.card}>
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">

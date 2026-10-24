@@ -1,3 +1,4 @@
+import { AdminSubNav } from "@/components/admin/AdminSubNav";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
 import { Hidden, SelectField } from "@/components/admin/fields";
@@ -30,9 +31,11 @@ export default async function RequestsAdminPage({
     })),
   ]);
 
+  const tIntro = await getTranslations("admin.intro");
   return (
     <main id="contenu" className="mx-auto max-w-4xl space-y-6 px-4 py-8">
       <h1 className="text-3xl font-extrabold">{t("title")}</h1>
+      <AdminSubNav group="todo" current="/admin/demandes" intro={tIntro("requests")} />
       <form method="get" className="flex flex-wrap items-end gap-3">
         <div>
           <label htmlFor="statut" className={ui.label}>

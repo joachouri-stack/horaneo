@@ -30,12 +30,20 @@ export default async function PlansPage({ params }: PageProps<"/[locale]/admin/p
       <h1 className="text-3xl font-extrabold">{t("title")}</h1>
       <p className="text-ink/80">{t("intro")}</p>
       {plans.map((plan) => (
-        <section key={plan.id} className={ui.card} aria-labelledby={`plan-${plan.id}`}>
-          <h2 id={`plan-${plan.id}`} className="mb-4 text-xl font-bold text-night">
-            {pickLocalized(plan.name, locale)}{" "}
-            <span className="text-sm font-normal text-ink/60">({plan.code})</span>
-          </h2>
-          <ActionForm action={savePlanAction} submitLabel={tCommon("save")} className="space-y-4">
+        // Un pack replié : son nom, son prix et sa visibilité ; on l'ouvre pour le modifier.
+        <details key={plan.id} className={`${ui.card} group`}>
+          <summary className="flex cursor-pointer flex-wrap items-baseline justify-between gap-2">
+            <h2 id={`plan-${plan.id}`} className="text-xl font-bold text-night">
+              {pickLocalized(plan.name, locale)}
+            </h2>
+            <span className="text-sm text-ink/70">
+              {plan.priceCents > 0 ? t("perMonth", { price: centsToInput(plan.priceCents) }) : t("free")}
+              {" · "}
+              {plan.isPublic ? t("onSale") : t("notOnSale")}
+              <span className="ml-2 font-semibold text-night underline group-open:hidden">{t("edit")}</span>
+            </span>
+          </summary>
+          <ActionForm action={savePlanAction} submitLabel={tCommon("save")} className="mt-4 space-y-4">
             <Hidden values={{ planId: plan.id }} />
             <div className="grid gap-4 sm:grid-cols-2">
               <TextField
@@ -109,54 +117,58 @@ export default async function PlansPage({ params }: PageProps<"/[locale]/admin/p
                 required
               />
             </div>
-            <fieldset>
-              <legend className={ui.label}>{t("features")}</legend>
-              <div className="grid sm:grid-cols-2">
-                {FEATURE_KEYS.map((key) => (
-                  <CheckboxField
-                    key={key}
-                    name={`feature_${key}`}
-                    label={t(`featureLabels.${key}`)}
-                    defaultChecked={Boolean(plan.features[key])}
-                  />
-                ))}
-              </div>
-            </fieldset>
+            <details className="rounded-[var(--radius-card)] border border-navy/10 p-4">
+              <summary className="cursor-pointer font-semibold text-night">{t("features")}</summary>
+              <fieldset className="mt-3">
+                <legend className="sr-only">{t("features")}</legend>
+                <div className="grid sm:grid-cols-2">
+                  {FEATURE_KEYS.map((key) => (
+                    <CheckboxField
+                      key={key}
+                      name={`feature_${key}`}
+                      label={t(`featureLabels.${key}`)}
+                      defaultChecked={Boolean(plan.features[key])}
+                    />
+                  ))}
+                </div>
+              </fieldset>
+            </details>
             {/* Lignes visibles sur la carte du pack (site commercial) ; le reste se déplie. */}
-            <fieldset>
-              <legend className={ui.label}>{t("highlights")}</legend>
-              <p className="mb-2 text-sm text-ink/70">{t("highlightsHint", { max: MAX_HIGHLIGHTS })}</p>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {Array.from({ length: MAX_HIGHLIGHTS }, (_, index) => (
-                  <SelectField
-                    key={index}
-                    id={`highlight-${plan.id}-${index}`}
-                    name={`highlight_${index}`}
-                    label={t("highlightLine", { n: index + 1 })}
-                    defaultValue={plan.highlights[index] ?? ""}
-                    options={[
-                      { value: "", label: t("none") },
-                      ...plans
-                        .filter((item) => item.id !== plan.id)
-                        .map((item) => ({
-                          value: `${EVERYTHING_IN}${item.code}`,
-                          label: t("everythingIn", { plan: pickLocalized(item.name, locale) }),
+            <details className="rounded-[var(--radius-card)] border border-navy/10 p-4">
+              <summary className="cursor-pointer font-semibold text-night">{t("highlights")}</summary>
+              <fieldset className="mt-3">
+                <legend className="sr-only">{t("highlights")}</legend>
+                <p className="mb-2 text-sm text-ink/70">{t("highlightsHint", { max: MAX_HIGHLIGHTS })}</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {Array.from({ length: MAX_HIGHLIGHTS }, (_, index) => (
+                    <SelectField
+                      key={index}
+                      id={`highlight-${plan.id}-${index}`}
+                      name={`highlight_${index}`}
+                      label={t("highlightLine", { n: index + 1 })}
+                      defaultValue={plan.highlights[index] ?? ""}
+                      options={[
+                        { value: "", label: t("none") },
+                        ...plans
+                          .filter((item) => item.id !== plan.id)
+                          .map((item) => ({
+                            value: `${EVERYTHING_IN}${item.code}`,
+                            label: t("everythingIn", { plan: pickLocalized(item.name, locale) }),
+                          })),
+                        ...HIGHLIGHT_KEYS.map((key) => ({
+                          value: key,
+                          label: t(`highlightLabels.${key}` as "highlightLabels.basePage"),
                         })),
-                      ...HIGHLIGHT_KEYS.map((key) => ({
-                        value: key,
-                        label: t(`highlightLabels.${key}` as "highlightLabels.basePage"),
-                      })),
-                    ]}
-                  />
-                ))}
-              </div>
-            </fieldset>
+                      ]}
+                    />
+                  ))}
+                </div>
+              </fieldset>
+            </details>
             <CheckboxField name="isPublic" label={t("isPublic")} defaultChecked={plan.isPublic} />
-            <p className="text-sm text-ink/60">
-              {plan.stripePriceId ? t("stripe", { id: plan.stripePriceId }) : t("noStripe")}
-            </p>
+            <p className="text-sm text-ink/60">{plan.stripePriceId ? t("cardReady") : t("noStripe")}</p>
           </ActionForm>
-        </section>
+        </details>
       ))}
     </main>
   );
