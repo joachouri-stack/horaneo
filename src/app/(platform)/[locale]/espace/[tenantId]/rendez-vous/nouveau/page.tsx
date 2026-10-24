@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
 import { ManualAppointmentForm } from "@/components/manager/ManualAppointmentForm";
 import { ui } from "@/components/ui/styles";
-import { customers } from "@/db/schema";
+import { customers, serviceCategories } from "@/db/schema";
 import { pickLocalized } from "@/i18n/locales";
 import { managerPage } from "@/lib/manager/page";
 import { loadBookingContext } from "@/modules/booking/availability";
@@ -18,8 +18,11 @@ export default async function NewAppointmentPage({
   const t = await getTranslations("manager.manual");
   const value = (key: string) => (typeof query[key] === "string" ? (query[key] as string) : undefined);
   const customerId = value("cliente");
-  const { context, customer } = await page.db(async (tx) => ({
+  const { context, categories, customer } = await page.db(async (tx) => ({
     context: await loadBookingContext(tx, page.tenantId),
+    categories: await tx
+      .select({ id: serviceCategories.id, name: serviceCategories.name })
+      .from(serviceCategories),
     customer:
       customerId && /^[0-9a-f-]{36}$/i.test(customerId)
         ? (await tx.select().from(customers).where(eq(customers.id, customerId)))[0]
@@ -39,6 +42,10 @@ export default async function NewAppointmentPage({
             id: service.id,
             name: pickLocalized(service.name, page.locale),
             durationMinutes: service.durationMinutes,
+            category: (() => {
+              const category = categories.find((item) => item.id === service.categoryId);
+              return category ? pickLocalized(category.name, page.locale) : null;
+            })(),
           }))}
           staff={context.staff.map((member) => ({
             id: member.id,
@@ -48,6 +55,7 @@ export default async function NewAppointmentPage({
           defaults={{
             date,
             time,
+            timeChosen: time === value("heure"),
             staffId: value("membre") ?? null,
             customer: customer
               ? { id: customer.id, name: [customer.firstName, customer.lastName].filter(Boolean).join(" ") }

@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
+import type { PlanFeatures } from "@/db/schema";
 
 /** Pictogrammes des rubriques (traits, même style que les onglets du bas). */
 const ICONS = {
@@ -27,7 +28,10 @@ const ICONS = {
 
 type Key = keyof typeof ICONS;
 
-const GROUPS: { key: "activity" | "sell" | "account" | "support"; items: { key: Key; href: string }[] }[] = [
+/** `feature` : rubrique affichée seulement si le pack de l'établissement la comprend. */
+type Item = { key: Key; href: string; feature?: keyof PlanFeatures };
+
+const GROUPS: { key: "activity" | "sell" | "account" | "support"; items: Item[] }[] = [
   {
     key: "activity",
     items: [
@@ -40,16 +44,16 @@ const GROUPS: { key: "activity" | "sell" | "account" | "support"; items: { key: 
   {
     key: "sell",
     items: [
-      { key: "promotions", href: "/plus/promotions" },
-      { key: "promo", href: "/plus/codes-promo" },
-      { key: "giftCards", href: "/plus/cartes-cadeaux" },
-      { key: "loyalty", href: "/plus/fidelite" },
+      { key: "promotions", href: "/plus/promotions", feature: "promotions" },
+      { key: "promo", href: "/plus/codes-promo", feature: "promoCodes" },
+      { key: "giftCards", href: "/plus/cartes-cadeaux", feature: "giftCards" },
+      { key: "loyalty", href: "/plus/fidelite", feature: "loyalty" },
     ],
   },
   {
     key: "account",
     items: [
-      { key: "payments", href: "/plus/paiements" },
+      { key: "payments", href: "/plus/paiements", feature: "onlinePayment" },
       { key: "subscription", href: "/plus/abonnement" },
       { key: "settings", href: "/plus/reglages" },
     ],
@@ -58,7 +62,7 @@ const GROUPS: { key: "activity" | "sell" | "account" | "support"; items: { key: 
     key: "support",
     items: [
       { key: "requests", href: "/plus/demandes" },
-      { key: "customerData", href: "/plus/donnees-clientes" },
+      { key: "customerData", href: "/plus/donnees-clientes", feature: "customerSpace" },
       { key: "help", href: "/plus/aide" },
     ],
   },
@@ -71,42 +75,51 @@ export default async function MorePage({ params }: PageProps<"/[locale]/espace/[
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-extrabold">{t("title")}</h1>
-      {GROUPS.map((group) => (
-        <section key={group.key} aria-labelledby={`more-${group.key}`}>
-          <h2 id={`more-${group.key}`} className="mb-2 text-sm font-bold tracking-wide text-ink/60 uppercase">
-            {t(`groups.${group.key}`)}
-          </h2>
-          <ul className="divide-y divide-navy/10 rounded-[var(--radius-card)] bg-white shadow-sm">
-            {group.items.map((item) => (
-              <li key={item.key}>
-                <Link
-                  href={`${page.base}${item.href}`}
-                  className="flex min-h-14 items-center gap-4 px-4 py-3 font-semibold text-night hover:bg-ivory"
-                >
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-navy/5 text-navy">
-                    <svg
-                      aria-hidden="true"
-                      viewBox="0 0 24 24"
-                      className="size-5"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d={ICONS[item.key]} />
-                    </svg>
-                  </span>
-                  <span className="flex-1">{t(item.key)}</span>
-                  <span aria-hidden="true" className="text-navy/40">
-                    →
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
+      {GROUPS.map((group) => ({
+        ...group,
+        // Pas de rubrique pour une fonction que le pack ne comprend pas : le menu reste court.
+        items: group.items.filter((item) => !item.feature || page.tenant.features[item.feature]),
+      }))
+        .filter((group) => group.items.length > 0)
+        .map((group) => (
+          <section key={group.key} aria-labelledby={`more-${group.key}`}>
+            <h2
+              id={`more-${group.key}`}
+              className="mb-2 text-sm font-bold tracking-wide text-ink/60 uppercase"
+            >
+              {t(`groups.${group.key}`)}
+            </h2>
+            <ul className="divide-y divide-navy/10 rounded-[var(--radius-card)] bg-white shadow-sm">
+              {group.items.map((item) => (
+                <li key={item.key}>
+                  <Link
+                    href={`${page.base}${item.href}`}
+                    className="flex min-h-14 items-center gap-4 px-4 py-3 font-semibold text-night hover:bg-ivory"
+                  >
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-navy/5 text-navy">
+                      <svg
+                        aria-hidden="true"
+                        viewBox="0 0 24 24"
+                        className="size-5"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d={ICONS[item.key]} />
+                      </svg>
+                    </span>
+                    <span className="flex-1">{t(item.key)}</span>
+                    <span aria-hidden="true" className="text-navy/40">
+                      →
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
     </div>
   );
 }

@@ -4,11 +4,14 @@ import { PushReminder } from "@/components/manager/PushReminder";
 import { ui } from "@/components/ui/styles";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
-import { todaySummary } from "@/modules/agenda/queries";
+import { todaySummary, upcomingAppointments } from "@/modules/agenda/queries";
 import { smsUsage } from "@/modules/messages/sms-usage";
 import { getPlatformSetting } from "@/modules/settings";
 
-/** Écran « Aujourd'hui » : trois chiffres, les rendez-vous du jour, ajout rapide. */
+/**
+ * Écran « Aujourd'hui » : un bouton pour ajouter un rendez-vous, trois chiffres, les
+ * rendez-vous du jour (ou les prochains si la journée est vide) et « Je ne suis pas disponible ».
+ */
 export default async function TodayPage({ params }: PageProps<"/[locale]/espace/[tenantId]">) {
   const page = await managerPage(params);
   const t = await getTranslations("manager.today");
@@ -20,6 +23,19 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
         await getPlatformSetting(tx, "sms_warning_percent"),
       ] as const,
   );
+  // Journée vide : on montre les prochains rendez-vous plutôt qu'un écran vide.
+  const upcoming =
+    summary.appointments.length === 0
+      ? await page.db((tx) =>
+          upcomingAppointments(tx, page.tenantId, { timezone: page.tenant.timezone, locale: page.locale }),
+        )
+      : [];
+  const shortDay = new Intl.DateTimeFormat(page.locale, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    timeZone: page.tenant.timezone,
+  });
   // Alerte SMS : à partir du seuil du quota du mois, sauf si des SMS achetés prennent le relais.
   const smsAlert =
     sms && sms.limit !== null && sms.limit > 0 && sms.packsRemaining === 0
@@ -32,14 +48,13 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-3">
+      <div className="space-y-3">
         <h1 className="text-2xl font-extrabold first-letter:uppercase">{page.fmt.day(new Date())}</h1>
-        <Link
-          href={`${page.base}/rendez-vous/nouveau`}
-          aria-label={t("add")}
-          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-coral text-3xl font-bold text-white shadow-lg hover:bg-coral-dark"
-        >
-          +
+        <Link href={`${page.base}/rendez-vous/nouveau`} className={`${ui.primaryButton} gap-2 sm:w-auto`}>
+          <span aria-hidden="true" className="text-2xl leading-none">
+            +
+          </span>
+          {t("add")}
         </Link>
       </div>
 
@@ -88,7 +103,26 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
           {t("title")}
         </h2>
         {summary.appointments.length === 0 ? (
-          <p className={ui.card}>{t("empty")}</p>
+          <div className="space-y-3">
+            <p className={ui.card}>{t("empty")}</p>
+            {upcoming.length > 0 && (
+              <>
+                <h3 className="pt-2 font-bold">{t("upcoming")}</h3>
+                <ul className="space-y-3">
+                  {upcoming.map((item) => (
+                    <li key={item.id}>
+                      <AppointmentCard
+                        item={item}
+                        href={`${page.base}/rendez-vous/${item.id}`}
+                        day={shortDay.format(item.startsAt)}
+                        time={page.fmt.time(item.startsAt)}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
         ) : (
           <ul className="space-y-3">
             {summary.appointments.map((item) => (
@@ -105,22 +139,10 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
         )}
       </section>
 
-      <section aria-labelledby="actions-rapides">
-        <h2 id="actions-rapides" className="mb-3 text-lg font-bold">
-          {t("quick")}
-        </h2>
-        <div className="grid gap-3 sm:grid-cols-3">
-          {(["block", "leave", "closure"] as const).map((kind) => (
-            <Link
-              key={kind}
-              href={`${page.base}/indisponibilites?type=${kind}`}
-              className={ui.secondaryButton}
-            >
-              {t(kind)}
-            </Link>
-          ))}
-        </div>
-      </section>
+      {/* Une seule entrée pour les absences : la page propose ensuite créneau, congés ou fermeture. */}
+      <Link href={`${page.base}/indisponibilites`} className={ui.secondaryButton}>
+        {t("unavailable")}
+      </Link>
     </div>
   );
 }

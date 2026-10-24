@@ -37,7 +37,10 @@ export default async function UnavailabilityPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-extrabold">{t("title")}</h1>
+      <div>
+        <h1 className="text-2xl font-extrabold">{t("title")}</h1>
+        <p className="mt-1 text-ink/70">{t("intro")}</p>
+      </div>
       <div className="flex rounded-full bg-white p-1 shadow-sm">
         {KINDS.map((value) => (
           <Link
