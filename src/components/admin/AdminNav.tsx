@@ -3,18 +3,17 @@
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 
+/**
+ * Six entrées : chaque entrée couvre une ou plusieurs pages (`paths`), reliées
+ * entre elles par des sous-onglets (voir AdminSubNav).
+ */
 const ITEMS = [
-  { href: "/admin", key: "home", exact: true },
-  { href: "/admin/clients", key: "clients", exact: false },
-  { href: "/admin/clients/nouveau", key: "newClient", exact: true },
-  { href: "/admin/commandes", key: "orders", exact: false },
-  { href: "/admin/demandes", key: "requests", exact: false },
-  { href: "/admin/paiements", key: "billing", exact: false },
-  { href: "/admin/packs", key: "plans", exact: false },
-  { href: "/admin/options", key: "options", exact: false },
-  { href: "/admin/offres", key: "launchOffers", exact: false },
-  { href: "/admin/reglages", key: "settings", exact: false },
-  { href: "/admin/documents", key: "documents", exact: false },
+  { href: "/admin", key: "home", paths: [] },
+  { href: "/admin/commandes", key: "todo", paths: ["/admin/commandes", "/admin/demandes"] },
+  { href: "/admin/clients", key: "clients", paths: ["/admin/clients"] },
+  { href: "/admin/paiements", key: "billing", paths: ["/admin/paiements"] },
+  { href: "/admin/packs", key: "plans", paths: ["/admin/packs", "/admin/options", "/admin/offres"] },
+  { href: "/admin/reglages", key: "settings", paths: ["/admin/reglages", "/admin/documents"] },
 ] as const;
 
 /** Navigation principale de l'espace admin. */
@@ -26,9 +25,7 @@ export function AdminNav({
   const t = useTranslations("admin.nav");
   const pathname = usePathname();
   const isActive = (item: (typeof ITEMS)[number]) =>
-    item.exact
-      ? pathname === item.href
-      : pathname.startsWith(item.href) && pathname !== "/admin/clients/nouveau";
+    item.paths.length === 0 ? pathname === item.href : item.paths.some((path) => pathname.startsWith(path));
   return (
     <nav aria-label={t("label")} className="mx-auto max-w-6xl overflow-x-auto px-4">
       <ul className="flex gap-2 border-b border-navy/10">

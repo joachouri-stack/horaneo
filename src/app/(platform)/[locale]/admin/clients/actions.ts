@@ -29,6 +29,7 @@ import {
   addBusinessManager,
   replaceBusinessManager,
   createBusiness,
+  setBusinessLogo,
   updateBusiness,
   updateBusinessProfile,
 } from "@/modules/businesses/businesses";
@@ -39,7 +40,13 @@ import {
   removeCustomDomain,
   setPrimaryDomain,
 } from "@/modules/tenants/domains";
-import { changeStatus, updateAppearance, updateIdentity, updateSocial } from "@/modules/tenants/update";
+import {
+  changeStatus,
+  updateAppearance,
+  updateContactBar,
+  updateIdentity,
+  updateSocial,
+} from "@/modules/tenants/update";
 import type { LogoPalette } from "@/lib/images/palette";
 
 /**
@@ -228,7 +235,35 @@ export async function updateBusinessProfileAction(_previous: Previous, data: For
         quote: form.text(data, "quote"),
         availability: form.text(data, "availability"),
         photoAssetId: form.optional(data, "photoAssetId") ?? null,
+        shopName: form.text(data, "shopName"),
       }),
+  );
+}
+
+/** Logo propre à une entreprise : image gardée entière (type « Autre »). */
+export async function uploadBusinessLogoAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const businessId = businessIdOf(data);
+  const bytes = (await form.file(data, "file")) ?? new Uint8Array();
+  return adminMutation(
+    { action: "business.logo_updated", tenantId, targetType: "business", targetId: businessId, businessId },
+    async (tx, context) => {
+      const asset = await uploadAsset(tx, storage(), tenantId, {
+        bytes,
+        kind: "other",
+        uploadedByUserId: context.userId,
+      });
+      return setBusinessLogo(tx, tenantId, businessId, asset.id);
+    },
+  );
+}
+
+export async function removeBusinessLogoAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const businessId = businessIdOf(data);
+  return adminMutation(
+    { action: "business.logo_removed", tenantId, targetType: "business", targetId: businessId, businessId },
+    (tx) => setBusinessLogo(tx, tenantId, businessId, null),
   );
 }
 
@@ -238,6 +273,16 @@ export async function updateSocialAction(_previous: Previous, data: FormData) {
     updateSocial(tx, tenantId, {
       instagram: form.optional(data, "instagram"),
       facebook: form.optional(data, "facebook"),
+    }),
+  );
+}
+
+export async function updateContactBarAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return adminMutation({ action: "tenant.contact_bar_updated", tenantId }, (tx) =>
+    updateContactBar(tx, tenantId, {
+      mode: form.text(data, "mode") as "call",
+      phone: form.optional(data, "contactPhone") ?? undefined,
     }),
   );
 }

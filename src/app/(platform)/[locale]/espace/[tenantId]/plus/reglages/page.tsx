@@ -9,9 +9,14 @@ import { getBookingSettings, SLOT_INTERVALS } from "@/modules/booking/settings";
 import { planAllowsBooking } from "@/modules/billing/features";
 import { centsToInput } from "@/lib/format";
 import { getPlatformSetting } from "@/modules/settings";
-import { setOnlineBookingAction, updateSettingsAction } from "../../actions";
+import { updateSettingsAction } from "../../actions";
 
-/** Réglages de la réservation en ligne, de l'acompte et des résumés. */
+/** Durées proposées pour réserver à l'avance, plus la valeur actuelle si elle n'en fait pas partie. */
+const ADVANCE_DAYS = [7, 14, 30, 60, 90, 180, 365];
+const advanceOptions = (current: number) =>
+  ADVANCE_DAYS.includes(current) ? ADVANCE_DAYS : [...ADVANCE_DAYS, current].sort((a, b) => a - b);
+
+/** Réglages de la réservation en ligne, de l'acompte et des résumés : un seul bouton « Enregistrer ». */
 export default async function SettingsPage({
   params,
 }: PageProps<"/[locale]/espace/[tenantId]/plus/reglages">) {
@@ -28,21 +33,22 @@ export default async function SettingsPage({
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-extrabold">{t("title")}</h1>
-      {/* Pack « site seul » : pas de réservation en ligne, on propose de changer de pack. */}
-      {!planAllowsBooking(page.tenant.features) ? (
-        <Section title={t("onlineTitle")}>
-          <p className="font-semibold text-coral-dark">{t("onlineNotInPlan")}</p>
-          <Link
-            href={`/espace/${page.tenantId}/plus/abonnement`}
-            className="font-semibold text-night underline"
-          >
-            {t("onlineUpgrade")} →
-          </Link>
-        </Section>
-      ) : (
-        <ActionForm action={setOnlineBookingAction} submitLabel={tCommon("save")} className="space-y-3">
-          <Hidden values={{ tenantId: page.tenantId }} />
+      <ActionForm action={updateSettingsAction} submitLabel={tCommon("save")} className="space-y-6">
+        <Hidden values={{ tenantId: page.tenantId }} />
+        {/* Pack « site seul » : pas de réservation en ligne, on propose de changer de pack. */}
+        {!planAllowsBooking(page.tenant.features) ? (
           <Section title={t("onlineTitle")}>
+            <p className="font-semibold text-coral-dark">{t("onlineNotInPlan")}</p>
+            <Link
+              href={`/espace/${page.tenantId}/plus/abonnement`}
+              className="font-semibold text-night underline"
+            >
+              {t("onlineUpgrade")} →
+            </Link>
+          </Section>
+        ) : (
+          <Section title={t("onlineTitle")}>
+            <Hidden values={{ onlineBookingShown: "1" }} />
             <p
               className={`font-semibold ${settings.onlineBookingEnabled ? "text-success" : "text-coral-dark"}`}
             >
@@ -55,10 +61,7 @@ export default async function SettingsPage({
             />
             <p className="text-sm text-ink/70">{t("onlineHelp")}</p>
           </Section>
-        </ActionForm>
-      )}
-      <ActionForm action={updateSettingsAction} submitLabel={tCommon("save")} className="space-y-6">
-        <Hidden values={{ tenantId: page.tenantId }} />
+        )}
         <Section title={t("booking")}>
           <div className="grid gap-4 sm:grid-cols-2">
             <TextField
@@ -69,13 +72,14 @@ export default async function SettingsPage({
               defaultValue={settings.minNoticeMinutes / 60}
               required
             />
-            <TextField
+            <SelectField
               name="maxAdvanceDays"
-              type="number"
-              inputMode="numeric"
               label={t("maxAdvance")}
-              defaultValue={settings.maxAdvanceDays}
-              required
+              defaultValue={String(settings.maxAdvanceDays)}
+              options={advanceOptions(settings.maxAdvanceDays).map((days) => ({
+                value: String(days),
+                label: t("advanceDays", { days: String(days) }),
+              }))}
             />
             <SelectField
               name="slotIntervalMinutes"

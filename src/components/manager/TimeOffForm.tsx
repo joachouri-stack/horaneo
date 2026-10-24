@@ -67,7 +67,9 @@ export function TimeOffForm({ tenantId, kind, staff, today, timeZone }: Props) {
     >
       <input type="hidden" name="tenantId" value={tenantId} />
       <input type="hidden" name="kind" value={kind} />
-      {kind !== "closure" && (
+      {/* Une seule personne dans l'équipe : pas de choix à faire. */}
+      {kind !== "closure" && staff.length === 1 && <input type="hidden" name="staffId" value={staff[0].id} />}
+      {kind !== "closure" && staff.length > 1 && (
         <div>
           <label htmlFor="to-staff" className={ui.label}>
             {t("staff")}

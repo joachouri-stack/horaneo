@@ -1,9 +1,9 @@
 import { getTranslations } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
-import { Hidden, Section, TextField } from "@/components/admin/fields";
+import { Hidden, Section, SelectField, TextField } from "@/components/admin/fields";
 import { WizardNav } from "@/components/admin/WizardNav";
 import { loadTenantOverview } from "@/lib/admin/tenant";
-import { updateIdentityAction, updateSocialAction } from "../../actions";
+import { updateContactBarAction, updateIdentityAction, updateSocialAction } from "../../actions";
 
 export default async function IdentityPage({
   params,
@@ -49,6 +49,32 @@ export default async function IdentityPage({
             inputMode="decimal"
             label={t("longitude")}
             defaultValue={tenant.longitude}
+          />
+        </ActionForm>
+      </Section>
+      {/* Barre du bas sur téléphone : bouton à côté de « Réserver ». */}
+      <Section title={t("contactBar")}>
+        <ActionForm
+          action={updateContactBarAction}
+          submitLabel={tCommon("save")}
+          className="grid gap-4 sm:grid-cols-2"
+        >
+          <Hidden values={{ tenantId }} />
+          <SelectField
+            name="mode"
+            label={t("contactBarMode")}
+            defaultValue={tenant.brand.contactBar?.mode ?? "call"}
+            options={[
+              { value: "call", label: t("contactBarCall") },
+              { value: "sms", label: t("contactBarSms") },
+            ]}
+          />
+          <TextField
+            name="contactPhone"
+            type="tel"
+            label={t("contactBarPhone")}
+            hint={t("contactBarPhoneHint")}
+            defaultValue={tenant.brand.contactBar?.phone ?? ""}
           />
         </ActionForm>
       </Section>

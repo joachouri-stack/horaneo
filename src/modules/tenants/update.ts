@@ -160,6 +160,28 @@ export async function updateSocial(tx: Transaction, tenantId: string, raw: z.inp
     .where(eq(tenants.id, tenantId));
 }
 
+// ─── Bouton de contact (barre du bas sur téléphone) ──────────────────────────
+
+export const contactBarInput = z.object({
+  mode: z.enum(["call", "sms"]),
+  phone: z.string().trim().max(30).optional(),
+});
+
+/** « Appeler » ou « SMS » à côté de « Réserver » ; numéro vide = numéro du site. */
+export async function updateContactBar(
+  tx: Transaction,
+  tenantId: string,
+  raw: z.input<typeof contactBarInput>,
+) {
+  const input = contactBarInput.parse(raw);
+  const tenant = await loadTenant(tx, tenantId);
+  const phone = normalizePhone(input.phone, tenant.country, "contactPhone");
+  await tx
+    .update(tenants)
+    .set({ brand: { ...tenant.brand, contactBar: { mode: input.mode, phone } } })
+    .where(eq(tenants.id, tenantId));
+}
+
 // ─── Statut ───────────────────────────────────────────────────────────────────
 
 export type TenantStatusAction = "activate" | "suspend" | "reactivate";

@@ -857,7 +857,8 @@
       "legal": "Mentions légales",
       "privacy": "Confidentialité",
       "madeBy": "Site créé par {product}",
-      "cancellation": "Conditions d'annulation"
+      "cancellation": "Conditions d'annulation",
+      "pro": "Espace professionnel"
     },
     "legal": {
       "title": "Mentions légales",
@@ -1035,7 +1036,9 @@
       "close": "Fermer",
       "afterBookingTitle": "Retrouvez votre rendez-vous en un geste",
       "afterBookingText": "Installez notre application sur votre téléphone : votre rendez-vous, les rappels et la prochaine réservation à portée de doigt."
-    }
+    },
+    "sms": "SMS",
+    "smsNumber": "Envoyer un SMS au {phone}"
   },
   "emails": {
     "magicLink": {
@@ -1089,9 +1092,11 @@
     "greeting": "Bonjour {name}",
     "greetingNoName": "Bonjour",
     "signedInAs": "Compte : {email}",
-    "noTenantTitle": "Votre compte est prêt",
-    "noTenantBody": "Prochaine étape : choisir votre pack. Votre site sera ensuite créé et mis en ligne pour vous.",
-    "noTenantCta": "Choisir mon pack",
+    "noTenantTitle": "Aucun espace n'est relié à cette adresse",
+    "noTenantBody": "Vous êtes connectée avec {email}. Vous gérez un institut ? L'accès a sans doute été donné à une autre adresse : reconnectez-vous avec celle-ci.",
+    "noTenantSwitch": "Me connecter avec une autre adresse",
+    "noTenantNew": "Vous n'avez pas encore de site ?",
+    "noTenantCta": "Découvrir les packs",
     "tenantsTitle": "Mes établissements",
     "comingSoon": "Votre espace de gestion (agenda, clientes, site) arrive très bientôt.",
     "adminLink": "Espace admin"
@@ -1127,15 +1132,16 @@
     "nav": {
       "home": "Accueil",
       "clients": "Clients",
-      "newClient": "Nouveau client",
-      "requests": "Demandes",
+      "requests": "Demandes de modification",
       "plans": "Packs",
-      "settings": "Réglages",
+      "settings": "Paramètres",
       "billing": "Paiements",
       "orders": "Commandes",
       "documents": "Documents légaux",
       "label": "Navigation de l'administration",
-      "waiting": "{count, plural, one {# commande en attente} other {# commandes en attente}}",
+      "waiting": "{count, plural, one {# élément à traiter} other {# éléments à traiter}}",
+      "todo": "À traiter",
+      "settingsPage": "Réglages",
       "options": "Options",
       "launchOffers": "Offre tablette"
     },
@@ -1152,7 +1158,27 @@
       "basicAtLimit": "{name} a atteint ses {count} réservations du mois (limite de son pack).",
       "openRequests": "{count, plural, one {# demande de mise à jour à traiter} other {# demandes de mise à jour à traiter}}",
       "pastDue": "{count, plural, one {# prélèvement en échec} other {# prélèvements en échec}}",
-      "pendingOrders": "{count, plural, one {# commande à traiter} other {# commandes à traiter}}"
+      "pendingOrders": "{count, plural, one {# commande à traiter} other {# commandes à traiter}}",
+      "todo": {
+        "title": "À faire",
+        "empty": "Tout est à jour : rien à faire pour le moment.",
+        "figures": "Les chiffres du mois",
+        "salesClosed": "Les commandes en ligne sont fermées : publiez vos documents légaux pour pouvoir vendre.",
+        "draftMissing": "Site « {name} » en création : il manque {missing}.",
+        "draftReady": "Site « {name} » prêt : il ne reste qu'à le mettre en ligne.",
+        "missing": {
+          "logo": "le logo",
+          "services": "les prestations",
+          "team": "l'équipe",
+          "hours": "les horaires",
+          "manager": "l'accès de la gérante"
+        },
+        "open": "Ouvrir",
+        "review": "Traiter",
+        "see": "Voir",
+        "complete": "Compléter",
+        "goLive": "Mettre en ligne"
+      }
     },
     "clients": {
       "title": "Clients",
@@ -1162,7 +1188,8 @@
       "activeOnly": "Tous (sauf supprimés)",
       "empty": "Aucun client ne correspond.",
       "count": "{count, plural, =0 {Aucun client} one {# client} other {# clients}}",
-      "createdOn": "Créé le {date}"
+      "createdOn": "Créé le {date}",
+      "newClient": "+ Nouveau client"
     },
     "create": {
       "title": "Nouveau client",
@@ -1205,14 +1232,21 @@
         "pages": "Textes",
         "photos": "Photos",
         "temoignages": "Témoignages",
-        "apercu": "Aperçu"
+        "apercu": "Aperçu",
+        "groups": {
+          "overview": "Fiche",
+          "info": "Infos et entreprises",
+          "look": "Apparence",
+          "content": "Contenu du site",
+          "preview": "Aperçu"
+        }
       },
       "viewSite": "Voir le site",
       "backToList": "Tous les clients",
       "overview": {
         "plan": "Pack",
         "changePlan": "Changer de pack",
-        "changePlanHint": "Sans abonnement Stripe, le pack est attribué sans prélèvement. Avec un abonnement, utilisez plutôt le changement de pack de l'espace du client.",
+        "changePlanHint": "Sans abonnement payé par carte, le pack est attribué sans prélèvement. Si la cliente paie par carte, elle change plutôt de pack depuis son espace.",
         "changePlanConfirm": "Changer le pack de {name} ? Ses limites et ses fonctions changent tout de suite ; sans domaine personnel inclus, son adresse principale redevient le sous-domaine.",
         "suspendConfirm": "Suspendre {name} ? Son site sera hors ligne immédiatement.",
         "status": "Statut",
@@ -1220,7 +1254,7 @@
         "suspend": "Suspendre",
         "reactivate": "Réactiver",
         "activateHint": "Le site devient visible du public.",
-        "suspendHint": "Le site affiche « temporairement indisponible ».",
+        "suspendHint": "Si vous suspendez le site, il affichera « temporairement indisponible » jusqu'à sa réactivation.",
         "usage": "Ce mois-ci",
         "onlineBookings": "Réservations en ligne",
         "usageOf": "{used} / {limit}",
@@ -1238,17 +1272,17 @@
         "error": "Erreur",
         "addDomain": "Ajouter un domaine propre",
         "domainPlaceholder": "www.institut-lea.fr",
-        "markActive": "Marquer comme branché",
-        "markActiveConfirm": "Le domaine {host} pointe-t-il bien vers le serveur (DNS vérifié) ? S'il ne répond pas, le site sera inaccessible une fois ce domaine en adresse principale.",
-        "markActiveHint": "Vérifiez d'abord que le domaine pointe bien vers le serveur (DNS).",
+        "markActive": "Le domaine fonctionne",
+        "markActiveConfirm": "Avez-vous vérifié que {host} s'ouvre bien sur le site ? S'il ne répond pas, le site sera inaccessible une fois ce domaine choisi comme adresse principale.",
+        "markActiveHint": "Avant d'ajouter le domaine, faites-le pointer vers votre serveur chez le vendeur du nom de domaine (réglage « DNS »).",
         "makePrimary": "Définir comme principale",
         "removeDomain": "Retirer",
         "removeDomainConfirm": "Retirer le domaine {host} ?",
         "noCustomDomain": "Le pack de ce client n'inclut pas de domaine propre.",
         "created": "Client depuis le {date}",
         "countryTimezone": "{country} · {timezone} · {currency}",
-        "noMembers": "Aucun membre dans l'équipe : la réservation en ligne est impossible. Ajoutez au moins un membre (onglet Équipe) et cochez ses prestations.",
-        "stripe": "Paiement en ligne (Stripe)",
+        "noMembers": "Aucun membre dans l'équipe : la réservation en ligne est impossible.",
+        "stripe": "Paiement en ligne",
         "stripeState": {
           "unavailable": "Non inclus dans le pack",
           "not_started": "Compte non ouvert",
@@ -1256,12 +1290,12 @@
           "active": "Compte actif"
         },
         "subscription": "Abonnement",
-        "subscriptionNone": "Aucun abonnement Stripe (pack attribué à la main).",
+        "subscriptionNone": "Pas d'abonnement payé par carte (pack attribué à la main).",
         "businesses": "Entreprises",
-        "stripeInvite": "Envoyer le lien Stripe au client",
+        "stripeInvite": "Envoyer le lien pour activer le paiement en ligne",
         "stripeInviteHint": "La gérante reçoit un e-mail avec le lien direct vers la page Paiements de son espace. C'est elle qui renseigne son identité et son IBAN.",
         "stripeInviteSent": "E-mail envoyé à la gérante.",
-        "smsQuota": "SMS du mois (quota du pack)",
+        "smsQuota": "SMS du mois (inclus dans le pack)",
         "smsFromPacks": "SMS pris sur les packs ce mois-ci",
         "smsPacksRemaining": "SMS achetés encore disponibles",
         "smsPacks": "Packs de SMS achetés",
@@ -1285,14 +1319,20 @@
         "address2": "Complément d'adresse",
         "postalCode": "Code postal",
         "city": "Ville",
-        "country": "Pays (code à 2 lettres)",
+        "country": "Pays (FR pour la France, BE pour la Belgique…)",
         "timezone": "Fuseau horaire",
         "latitude": "Latitude",
         "longitude": "Longitude",
         "coordinatesHint": "Facultatif : pour afficher le plan sur le site. Clic droit sur le lieu dans Google Maps pour copier les coordonnées.",
         "social": "Réseaux sociaux",
         "instagram": "Page Instagram (adresse complète)",
-        "facebook": "Page Facebook (adresse complète)"
+        "facebook": "Page Facebook (adresse complète)",
+        "contactBar": "Bouton du bas sur téléphone",
+        "contactBarMode": "À côté de « Réserver », le bouton",
+        "contactBarCall": "Appeler",
+        "contactBarSms": "Envoyer un SMS",
+        "contactBarPhone": "Numéro (facultatif)",
+        "contactBarPhoneHint": "Vide : le numéro du site. Sinon, par exemple le portable d'une professionnelle."
       },
       "appearance": {
         "title": "Métier et modèle",
@@ -1457,7 +1497,7 @@
       },
       "businesses": {
         "title": "Entreprises du site",
-        "intro": "Chaque entreprise a son SIRET, son compte Stripe, son équipe, ses prestations, son agenda et ses clientes. Le site, le domaine, le modèle et l'abonnement sont communs.",
+        "intro": "Chaque entreprise a son SIRET, son compte de paiement en ligne, son équipe, ses prestations, son agenda et ses clientes. Le site, le domaine, le modèle et l'abonnement sont communs.",
         "primary": "Entreprise principale (règle l'abonnement)",
         "name": "Nom affiché (ex. prénom de la professionnelle)",
         "legalName": "Raison sociale ou nom de l'entrepreneur",
@@ -1503,11 +1543,11 @@
         "photo": "Photo",
         "noPhoto": "Aucune photo",
         "saveProfile": "Enregistrer sa page",
-        "googlePlaceId": "Fiche Google (identifiant « place »)",
-        "googlePlaceIdHint": "Pour afficher ses avis Google. L'identifiant commence souvent par « ChIJ » : cherchez l'établissement sur la page « Place ID Finder » de Google, puis copiez-le ici. Les avis apparaissent dans les 24 h.",
+        "googlePlaceId": "Fiche Google (code de l'établissement)",
+        "googlePlaceIdHint": "Pour afficher ses avis Google sur le site. Ouvrez la page « Place ID Finder » de Google, cherchez l'établissement, puis copiez ici le code qui s'affiche (il commence souvent par « ChIJ »). Les avis apparaissent dans les 24 h.",
         "reviews": {
           "notInPlan": "Avis Google : non inclus dans le pack de ce site.",
-          "noKey": "Avis Google : clé Google absente sur le serveur (variable GOOGLE_PLACES_API_KEY), aucun avis n'est relu.",
+          "noKey": "Avis Google : la connexion à Google n'est pas encore configurée sur le serveur, aucun avis n'est affiché.",
           "siteOffline": "Avis Google : relus une fois le site en ligne.",
           "pending": "Avis Google : en attente de la première lecture (quelques minutes si la tâche planifiée tourne).",
           "failing": "Avis Google : jamais lus, Google refuse la demande.",
@@ -1515,7 +1555,17 @@
           "shownNoRating": "Avis Google relus le {date} : la fiche n'a pas encore de note.",
           "stale": "Avis Google plus affichés : dernière lecture réussie le {date} (plus de 30 jours).",
           "error": "Dernière erreur de Google ({date}) : {error}"
-        }
+        },
+        "shopName": "Nom de sa boutique",
+        "shopNameHint": "Facultatif. Affiché avec son logo sur sa carte et sa page (ex. « Zen & Bien-être »).",
+        "logo": "Son logo",
+        "logoHint": "Facultatif. Il s'affiche en petit rond à côté de son nom. Image PNG, JPG ou WebP.",
+        "logoFile": "Choisir l'image du logo",
+        "logoSubmit": "Envoyer le logo",
+        "logoReplace": "Remplacer le logo",
+        "logoRemove": "Retirer le logo",
+        "logoRemoveConfirm": "Retirer ce logo de sa carte et de sa page ?",
+        "logoCurrent": "Logo actuel"
       },
       "previewPage": {
         "title": "Aperçu du site",
@@ -1528,7 +1578,21 @@
         "frameTitle": "Aperçu du site {name}",
         "noDomain": "Le site n'a pas encore d'adresse : ajoutez-en une pour voir l'aperçu."
       },
-      "preview": "Aperçu du site (1 h)"
+      "preview": "Aperçu du site (1 h)",
+      "ready": {
+        "title": "Prêt à mettre en ligne ?",
+        "items": {
+          "logo": "Logo",
+          "services": "Prestations",
+          "team": "Équipe (qui fait quelles prestations)",
+          "hours": "Horaires d'ouverture",
+          "manager": "Accès de la gérante"
+        },
+        "done": "Fait",
+        "todo": "À compléter",
+        "allSet": "Tout est prêt : vous pouvez mettre le site en ligne.",
+        "notYet": "Vous pouvez déjà mettre le site en ligne, mais pensez à compléter les points marqués « ! »."
+      }
     },
     "requests": {
       "title": "Demandes de mise à jour",
@@ -1558,10 +1622,9 @@
       "services": "Prestations",
       "smsPerMonth": "SMS de rappel par mois",
       "unlimitedHint": "Vide = illimité",
-      "features": "Fonctions incluses",
+      "features": "Ce que comprend le pack (fonctions)",
       "isPublic": "Proposé à la souscription",
-      "stripe": "Prix Stripe : {id}",
-      "noStripe": "Prix Stripe : créé à la première souscription",
+      "noStripe": "Paiement par carte : préparé automatiquement à la première souscription.",
       "featureLabels": {
         "onlineBooking": "Réservation en ligne (décochée : pack « site seul »)",
         "fullSite": "Site complet personnalisé",
@@ -1631,7 +1694,7 @@
       "bookingTwin": "Pack avec réservation qui le reprend",
       "bookingTwinHint": "« Pour ajouter la réservation » mène à ce pack. Il doit comprendre tout ce que comprend ce pack (règle vérifiée à l'enregistrement).",
       "none": "Aucun",
-      "highlights": "Lignes visibles sur la carte du pack",
+      "highlights": "Lignes affichées sur la carte du pack (site commercial)",
       "highlightsHint": "{max} lignes au plus, dans l'ordre ; le reste de la liste se déplie. Une ligne que le pack ne comprend pas n'est pas affichée.",
       "highlightLine": "Ligne {n}",
       "everythingIn": "Tout le pack {plan}",
@@ -1676,6 +1739,12 @@
         "prioritySupport": "Support prioritaire",
         "dedicatedSupport": "Accompagnement renforcé"
       },
+      "perMonth": "{price} € / mois",
+      "free": "Gratuit",
+      "onSale": "en vente",
+      "notOnSale": "pas en vente",
+      "edit": "Modifier",
+      "cardReady": "Paiement par carte prêt pour ce prix.",
       "pages": "Pages du site",
       "customers": "Fiches clients (contacts)",
       "aiChatConversations": "Chatbot IA : conversations par mois",
@@ -1702,7 +1771,7 @@
       "daily_summary_time": "Heure du résumé du lendemain",
       "monthly_summary_time": "Heure du bilan mensuel (le 1er)",
       "legal": "Mentions légales",
-      "legal_infrastructure": "Hébergeur (affiché dans les mentions légales des sites)",
+      "legal_infrastructure": "Hébergeur des sites de vos clientes (affiché dans leurs mentions légales)",
       "showcase": {
         "title": "Ils nous font confiance (accueil)",
         "intro": "Témoignages de vos clients affichés sur la page d'accueil, {max} au maximum. Le bloc reste caché tant qu'il n'y en a aucun. N'ajoutez que de vrais témoignages, avec l'accord de la personne.",
@@ -1721,8 +1790,8 @@
       },
       "sms_pack_size": "Pack de SMS supplémentaires : nombre de SMS",
       "sms_pack_price": "Pack de SMS supplémentaires : prix (€)",
-      "sms_warning_percent": "Alerte SMS à la gérante (% du quota du mois)",
-      "smsWarningHint": "Une seconde alerte part quand le quota est épuisé.",
+      "sms_warning_percent": "Prévenir la gérante quand elle a utilisé (% de ses SMS du mois)",
+      "smsWarningHint": "Une seconde alerte part quand ses SMS du mois sont épuisés.",
       "price_change_notice_days": "Préavis avant un nouveau prix (jours)",
       "priceChangeHint": "Un abonné garde son prix jusqu'à la fin de son engagement ; il est prévenu ce nombre de jours avant le nouveau prix.",
       "buyout": "Rachat du site à la sortie",
@@ -1774,7 +1843,7 @@
         "empty": "Aucun SMS envoyé pour le moment.",
         "period": "Mois",
         "total": "SMS envoyés",
-        "fromQuota": "Sur les quotas",
+        "fromQuota": "Inclus dans les packs",
         "fromPacks": "Sur les packs achetés",
         "packsSold": "Packs vendus"
       }
@@ -1798,7 +1867,7 @@
       "reject": "Refuser la demande",
       "reason": "Motif (envoyé au professionnel)",
       "rejectConfirm": "Refuser cette commande ? Le professionnel sera prévenu par e-mail.",
-      "refundHint": "Commande payée : l'abonnement sera arrêté. Remboursez le paiement depuis votre tableau de bord Stripe."
+      "refundHint": "Commande payée : l'abonnement sera arrêté. Pensez à rembourser le paiement depuis votre compte de paiement (Stripe)."
     },
     "documents": {
       "title": "Documents légaux",
@@ -1816,6 +1885,13 @@
         "salesClosed": "Commande en ligne fermée : tant que les trois documents ne sont pas publiés, les packs payants mènent au formulaire « Être rappelé ».",
         "salesOpen": "Commande en ligne ouverte : les trois documents sont publiés."
       }
+    },
+    "intro": {
+      "requests": "Les modifications demandées par vos clientes depuis leur espace (textes, photos, logo…).",
+      "settings": "Vos prix, vos messages automatiques et les règles communes à tous les sites.",
+      "clients": "Tous les sites de vos clientes. Cliquez sur un nom pour ouvrir sa fiche.",
+      "billing": "Les abonnements de vos clientes et leur état de paiement.",
+      "plans": "Le contenu et le prix de chaque pack proposé à la vente."
     },
     "options": {
       "title": "Options à la carte",
@@ -1975,7 +2051,8 @@
       "loading": "Recherche des créneaux…",
       "moreDays": "Jours suivants",
       "previousDays": "Jours précédents",
-      "chosen": "{date} à {time}"
+      "chosen": "{date} à {time}",
+      "goToMonth": "Aller au mois de"
     },
     "details": {
       "title": "Vos coordonnées",
@@ -2108,11 +2185,7 @@
       "newBookings": "Nouvelles réservations (24 h)",
       "empty": "Aucun rendez-vous aujourd'hui.",
       "next": "Prochain",
-      "add": "Ajouter un rendez-vous",
-      "quick": "Actions rapides",
-      "block": "Bloquer un créneau",
-      "leave": "Poser un congé",
-      "closure": "Fermer une journée",
+      "add": "Nouveau rendez-vous",
       "pushReminder": {
         "title": "Soyez prévenue sur votre téléphone",
         "text": "Une alerte à chaque réservation, annulation ou report, même quand l'espace est fermé.",
@@ -2121,7 +2194,9 @@
       },
       "smsAlmost": "Vous avez utilisé {used} des {limit} SMS de votre pack ce mois-ci.",
       "smsReached": "Vos SMS du mois sont épuisés : vos clientes reçoivent leur rappel par e-mail.",
-      "smsOpen": "Voir mes SMS"
+      "smsOpen": "Voir mes SMS",
+      "upcoming": "Prochains rendez-vous",
+      "unavailable": "Je ne suis pas disponible"
     },
     "status": {
       "confirmed": "Confirmé",
@@ -2194,18 +2269,30 @@
       "date": "Date",
       "time": "Heure",
       "freeSlots": "Créneaux libres ce jour-là",
-      "noFreeSlots": "Aucun créneau libre selon les horaires. Vous pouvez quand même saisir une heure.",
+      "noFreeSlots": "Aucun créneau libre ce jour-là selon les horaires. Vous pouvez choisir une autre heure ci-dessous, ou un autre jour.",
       "customer": "Cliente",
-      "search": "Rechercher une cliente (nom, téléphone)",
+      "search": "Rechercher une cliente (nom ou téléphone)",
       "newCustomer": "Nouvelle cliente",
-      "existing": "Cliente existante",
       "firstName": "Prénom",
       "lastName": "Nom",
       "phone": "Téléphone",
       "email": "E-mail",
       "note": "Note interne",
       "submit": "Enregistrer le rendez-vous",
-      "pickServices": "Choisissez au moins une prestation."
+      "pickServices": "Choisissez au moins une prestation.",
+      "searchExisting": "Chercher une cliente déjà enregistrée",
+      "selected": "Choisi : {names} · {minutes} min",
+      "searchService": "Rechercher une prestation",
+      "when": "Quand ?",
+      "withStaff": "Avec {name}",
+      "pickServicesFirst": "Choisissez d'abord une prestation : les créneaux libres s'afficheront ici.",
+      "otherTime": "Choisir une autre heure",
+      "addNote": "Ajouter une note (visible par vous seule)",
+      "periods": {
+        "morning": "Matin",
+        "afternoon": "Après-midi",
+        "evening": "Fin de journée"
+      }
     },
     "agenda": {
       "title": "Agenda",
@@ -2229,10 +2316,11 @@
       "dayCount": "{count, plural, =0 {aucun rendez-vous} one {# rendez-vous} other {# rendez-vous}}"
     },
     "unavailability": {
-      "title": "Indisponibilités",
-      "block": "Bloquer un créneau",
-      "leave": "Poser un congé",
-      "closure": "Fermer l'établissement",
+      "title": "Je ne suis pas disponible",
+      "intro": "Ces moments ne seront plus proposés à la réservation en ligne.",
+      "block": "Quelques heures",
+      "leave": "Plusieurs jours",
+      "closure": "Institut fermé",
       "staff": "Membre",
       "date": "Date",
       "from": "De",
@@ -2437,16 +2525,16 @@
     },
     "settings": {
       "title": "Réglages",
-      "onlineTitle": "Prise de rendez-vous en ligne",
+      "onlineTitle": "Réservation en ligne",
       "onlineEnabled": "Accepter les réservations en ligne",
       "onlineHelp": "Décochez si vous voulez seulement un site vitrine : les boutons « Réserver » deviennent « Appeler » (ou « Nous écrire »). Vous pouvez toujours noter vos rendez-vous dans votre agenda, et les rendez-vous déjà pris restent valables.",
       "onlineNotInPlan": "Votre pack ne comprend pas la réservation en ligne : vos clientes vous appellent ou vous écrivent depuis votre site.",
       "onlineUpgrade": "Ajouter la réservation en ligne (changer de pack)",
       "onlineOn": "Réservation en ligne ouverte.",
       "onlineOff": "Réservation en ligne coupée : votre site est en mode vitrine.",
-      "booking": "Réservation en ligne",
+      "booking": "Règles de réservation",
       "minNotice": "Délai minimum avant un rendez-vous (heures)",
-      "maxAdvance": "Réservation possible jusqu'à (jours à l'avance)",
+      "maxAdvance": "Les clientes peuvent réserver jusqu'à",
       "interval": "Créneaux proposés toutes les",
       "minutes": "{count} minutes",
       "maxServices": "Prestations maximum par rendez-vous",
@@ -2467,7 +2555,8 @@
       "reviewsTitle": "Avis Google",
       "reviewRequest": "Demander un avis Google après chaque rendez-vous",
       "reviewRequestHelp": "Quelques heures après un rendez-vous marqué « Venue », la cliente reçoit un e-mail de remerciement avec un lien direct pour laisser un avis sur votre fiche Google. Une seule demande par cliente tous les {months} mois.",
-      "reviewRequestNoPlace": "Votre fiche Google n'est pas encore reliée à votre site : aucune demande ne partira tant qu'elle ne l'est pas. Écrivez-nous depuis « Demander une modification du site »."
+      "reviewRequestNoPlace": "Votre fiche Google n'est pas encore reliée à votre site : aucune demande ne partira tant qu'elle ne l'est pas. Écrivez-nous depuis « Demander une modification du site ».",
+      "advanceDays": "{days, select, 7 {1 semaine à l'avance} 14 {2 semaines à l'avance} 30 {1 mois à l'avance} 60 {2 mois à l'avance} 90 {3 mois à l'avance} 180 {6 mois à l'avance} 365 {1 an à l'avance} other {{days} jours à l'avance}}"
     },
     "requests": {
       "title": "Demandes de modification",

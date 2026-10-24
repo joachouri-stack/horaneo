@@ -281,6 +281,7 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
       templateKey: tenant.templateKey,
       colors: tenant.brand.colors,
       social: tenant.brand.social ?? {},
+      contactBar: tenant.brand.contactBar ?? null,
     },
     locale: lang,
     features: {
@@ -360,6 +361,8 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
       quote: text(business.profile.quote),
       availability: text(business.profile.availability),
       photo: image(business.profile.photoAssetId),
+      shopName: business.profile.shopName ?? null,
+      logo: image(business.profile.logoAssetId),
       /** Réservation en ligne ouverte pour cette entreprise (sinon : appeler, écrire). */
       bookingEnabled: bookingOpen(business.id),
     })),

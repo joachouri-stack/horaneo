@@ -13,7 +13,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/[locale]/a
   return (
     <>
       <AppHeader />
-      <AdminNav badges={{ orders: waitingOrders }} />
+      <AdminNav badges={{ todo: waitingOrders }} />
       {children}
     </>
   );

@@ -142,6 +142,16 @@ export function UserIcon({ className = "h-5 w-5" }: IconProps) {
   );
 }
 
+/** Mallette : espace professionnel. */
+export function BriefcaseIcon({ className = "h-5 w-5" }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <rect x="3" y="7" width="18" height="13" rx="2" />
+      <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18" />
+    </svg>
+  );
+}
+
 export function CheckIcon({ className = "h-4 w-4" }: IconProps) {
   return (
     <svg {...base} strokeWidth={2.4} className={className}>

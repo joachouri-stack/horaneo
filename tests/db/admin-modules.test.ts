@@ -6,7 +6,15 @@ import sharp from "sharp";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { withPlatform, withTenant } from "@/db/access";
 import type { Transaction } from "@/db/client";
-import { memberships, sitePages, staffSchedules, tenantDomains, businessSettings, users } from "@/db/schema";
+import {
+  memberships,
+  sitePages,
+  staffSchedules,
+  tenantDomains,
+  businessSettings,
+  tenants,
+  users,
+} from "@/db/schema";
 import { createLocalStorage } from "@/lib/storage/local";
 import type { FileStorage } from "@/lib/storage/types";
 import {
@@ -39,7 +47,13 @@ import {
   setPrimaryDomain,
 } from "@/modules/tenants/domains";
 import { getDashboardStats, getTenantOverview, listTenants } from "@/modules/tenants/queries";
-import { changePlan, changeStatus, updateAppearance, updateIdentity } from "@/modules/tenants/update";
+import {
+  changePlan,
+  changeStatus,
+  updateAppearance,
+  updateContactBar,
+  updateIdentity,
+} from "@/modules/tenants/update";
 import { hasTestDatabase, openAppDb, openTestDb, withLegacyBasic, type TestDb } from "../setup/db";
 
 /** Modules de l'espace admin, sur vraie base, avec le rôle restreint de l'application. */
@@ -180,6 +194,20 @@ describe.skipIf(!hasTestDatabase)("espace admin : modules", () => {
       );
       expect(updated.theme).toBe("nature");
       expect(updated.brand.colors).toMatchObject({ primary: "#aa3355", secondary: "#f0e0d0" });
+    });
+
+    it("bouton du bas : SMS vers un autre numéro, refuse un numéro invalide", async () => {
+      const tenant = await newTenant();
+      await platform((tx) => updateContactBar(tx, tenant.id, { mode: "sms", phone: "06 12 01 73 85" }));
+      const [row] = await owner.select().from(tenants).where(eq(tenants.id, tenant.id));
+      expect(row.brand.contactBar).toEqual({ mode: "sms", phone: "+33612017385" });
+      // Numéro vide : celui du site.
+      await platform((tx) => updateContactBar(tx, tenant.id, { mode: "call", phone: "" }));
+      const [again] = await owner.select().from(tenants).where(eq(tenants.id, tenant.id));
+      expect(again.brand.contactBar).toEqual({ mode: "call", phone: null });
+      expect(
+        await errorCode(platform((tx) => updateContactBar(tx, tenant.id, { mode: "sms", phone: "12" }))),
+      ).toBe("phone_invalid");
     });
 
     it("met en ligne, suspend, réactive ; refuse une transition impossible", async () => {

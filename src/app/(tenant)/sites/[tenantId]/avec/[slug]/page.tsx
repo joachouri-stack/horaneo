@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ClockIcon, PhoneIcon } from "@/components/site/atelier/icons";
+import { BusinessShop } from "@/components/site/atelier/BusinessShop";
 import { OpenFromHash } from "@/components/site/atelier/OpenFromHash";
 import { ServiceAccordion } from "@/components/site/atelier/ServiceAccordion";
 import { PillLink, Tag } from "@/components/site/atelier/ui";
@@ -55,6 +56,7 @@ export default async function BusinessPage({ params }: PageProps<"/sites/[tenant
         />
       )}
       <div className="p-6 sm:p-8">
+        <BusinessShop business={business} className="mb-4" />
         <h2 className="font-site-display text-4xl font-medium">{business.name}</h2>
         {business.role && <p className="mt-1 font-semibold text-site-accent">{business.role}</p>}
         {business.bio && (

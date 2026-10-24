@@ -18,6 +18,8 @@ export const SITE_PATHS = {
   appointment: "/rendez-vous",
   /** Espace des clientes : leurs rendez-vous, cartes cadeaux et fidélité. */
   account: "/mes-rendez-vous",
+  /** Accès des professionnelles à leur espace de gestion (renvoie vers la connexion). */
+  pro: "/espace-pro",
 } as const;
 
 export type SitePathKey = keyof typeof SITE_PATHS;

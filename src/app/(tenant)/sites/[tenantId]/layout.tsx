@@ -109,7 +109,11 @@ export default async function TenantLayout({ children, params }: LayoutProps<"/s
           )}
           <Footer site={site} />
           {site.tenant.status !== "suspended" && (
-            <MobileBookBar phone={site.tenant.phone} cta={siteCta(site)} />
+            <MobileBookBar
+              phone={site.tenant.contactBar?.phone ?? site.tenant.phone}
+              mode={site.tenant.contactBar?.mode ?? "call"}
+              cta={siteCta(site)}
+            />
           )}
           {site.tenant.status === "active" && (
             // Pas pendant une réservation ou un paiement : la cliente reste concentrée.

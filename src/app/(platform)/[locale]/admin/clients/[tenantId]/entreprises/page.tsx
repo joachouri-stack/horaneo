@@ -10,11 +10,14 @@ import { connectState } from "@/modules/payments/connect";
 import {
   addBusinessManagerAction,
   createBusinessAction,
+  removeBusinessLogoAction,
   replaceBusinessManagerAction,
   setOnlineBookingAdminAction,
   updateBusinessAction,
   updateBusinessProfileAction,
+  uploadBusinessLogoAction,
 } from "../../actions";
+import { storage } from "@/lib/storage";
 import { onlineBookingByBusiness } from "@/modules/booking/settings";
 import { formatDateTime } from "@/lib/format";
 import { googlePlacesProvider } from "@/lib/reviews/google-places";
@@ -116,9 +119,12 @@ export default async function BusinessesPage({
               />
             </div>
             {/* Sans gérante : on donne l'accès ; avec gérante : on la remplace (l'ancienne perd l'accès). */}
-            <div className="mb-6 rounded-xl bg-navy/5 p-4">
-              <h3 className="font-bold">{t(managers.length === 0 ? "addManager" : "replaceManager")}</h3>
-              <p className="mb-3 text-sm text-ink/70">
+            {/* Déjà une gérante : le remplacement reste replié. */}
+            <details className="mb-6 rounded-xl bg-navy/5 p-4" open={managers.length === 0}>
+              <summary className="cursor-pointer font-bold">
+                {t(managers.length === 0 ? "addManager" : "replaceManager")}
+              </summary>
+              <p className="mt-2 mb-3 text-sm text-ink/70">
                 {t(managers.length === 0 ? "addManagerHint" : "replaceManagerHint")}
               </p>
               <ActionForm
@@ -138,7 +144,7 @@ export default async function BusinessesPage({
                 />
                 <TextField id={`manager-name-${business.id}`} name="managerName" label={t("managerName")} />
               </ActionForm>
-            </div>
+            </details>
             <ActionForm
               action={updateBusinessAction}
               submitLabel={tCommon("save")}
@@ -163,9 +169,10 @@ export default async function BusinessesPage({
                 <p className="text-sm text-ink/70">{t("onlineBookingHint")}</p>
               </ActionForm>
             </div>
-            <div className="mt-6 border-t border-navy/10 pt-6">
-              <h3 className="text-lg font-bold">{t("profile")}</h3>
-              <p className="mb-4 text-sm text-ink/70">{t("profileHint")}</p>
+            {/* Page publique de l'entreprise : repliée, on l'ouvre pour la modifier. */}
+            <details className="mt-6 border-t border-navy/10 pt-6">
+              <summary className="cursor-pointer text-lg font-bold">{t("profile")}</summary>
+              <p className="mt-2 mb-4 text-sm text-ink/70">{t("profileHint")}</p>
               <ActionForm
                 action={updateBusinessProfileAction}
                 submitLabel={t("saveProfile")}
@@ -178,6 +185,13 @@ export default async function BusinessesPage({
                   label={t("slug")}
                   hint={t("slugHint")}
                   defaultValue={business.slug}
+                />
+                <TextField
+                  id={`shop-${business.id}`}
+                  name="shopName"
+                  label={t("shopName")}
+                  hint={t("shopNameHint")}
+                  defaultValue={business.profile.shopName ?? ""}
                 />
                 <TextField
                   id={`title-${business.id}`}
@@ -220,12 +234,17 @@ export default async function BusinessesPage({
                   defaultValue={business.profile.photoAssetId ?? ""}
                 />
               </ActionForm>
-            </div>
+              <BusinessLogo
+                tenantId={tenantId}
+                businessId={business.id}
+                logo={photos.find((photo) => photo.id === business.profile.logoAssetId)}
+              />
+            </details>
           </Section>
         );
       })}
 
-      <Section title={t("add")}>
+      <Section title={t("add")} collapsible>
         <p className="mb-4 text-ink/80">{t("addHint")}</p>
         <ActionForm
           action={createBusinessAction}
@@ -240,6 +259,65 @@ export default async function BusinessesPage({
         </ActionForm>
       </Section>
     </>
+  );
+}
+
+/** Logo propre à l'entreprise : aperçu, envoi d'une image, retrait. */
+async function BusinessLogo({
+  tenantId,
+  businessId,
+  logo,
+}: {
+  tenantId: string;
+  businessId: string;
+  logo?: { storageKey: string };
+}) {
+  const t = await getTranslations("admin.tenant.businesses");
+  return (
+    <div className="mt-6 rounded-xl bg-navy/5 p-4">
+      <h3 className="font-bold">{t("logo")}</h3>
+      <p className="mt-1 mb-3 text-sm text-ink/70">{t("logoHint")}</p>
+      {logo && (
+        <div className="mb-4 flex flex-wrap items-center gap-4">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={storage().publicUrl(logo.storageKey)}
+            alt={t("logoCurrent")}
+            className="h-20 w-20 rounded-full border border-navy/10 bg-white object-contain"
+          />
+          <ActionForm
+            action={removeBusinessLogoAction}
+            submitLabel={t("logoRemove")}
+            variant="secondary"
+            confirm={t("logoRemoveConfirm")}
+            className=""
+          >
+            <Hidden values={{ tenantId, businessId }} />
+          </ActionForm>
+        </div>
+      )}
+      <ActionForm
+        action={uploadBusinessLogoAction}
+        submitLabel={t(logo ? "logoReplace" : "logoSubmit")}
+        resetOnSuccess
+        className="space-y-3"
+      >
+        <Hidden values={{ tenantId, businessId }} />
+        <div>
+          <label htmlFor={`business-logo-${businessId}`} className="font-semibold text-night">
+            {t("logoFile")}
+          </label>
+          <input
+            id={`business-logo-${businessId}`}
+            name="file"
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/svg+xml,image/avif"
+            required
+            className="mt-1 block w-full text-sm"
+          />
+        </div>
+      </ActionForm>
+    </div>
   );
 }
 

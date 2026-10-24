@@ -16,7 +16,28 @@ type Props = {
   selected?: PickedSlot | null;
   /** Praticienne choisie d'avance (« Reprendre ce soin »). */
   initialStaffId?: string | null;
+  /** Réservation possible jusqu'à N jours : au-delà de 45, raccourci « Aller au mois de… ». */
+  maxAdvanceDays?: number;
 };
+
+/** Mois réservables (« 2026-11 »), du mois en cours à celui de la date limite. */
+function bookableMonths(maxAdvanceDays: number) {
+  const now = new Date();
+  const last = new Date(now.getFullYear(), now.getMonth(), now.getDate() + maxAdvanceDays);
+  const months: string[] = [];
+  for (
+    let y = now.getFullYear(), m = now.getMonth();
+    y < last.getFullYear() || (y === last.getFullYear() && m <= last.getMonth());
+    m++
+  ) {
+    if (m === 12) {
+      m = 0;
+      y++;
+    }
+    months.push(`${y}-${String(m + 1).padStart(2, "0")}`);
+  }
+  return months;
+}
 
 /** Choix du membre (ou « sans préférence »), du jour puis de l'heure. */
 export function SlotPicker({
@@ -27,6 +48,7 @@ export function SlotPicker({
   onError,
   selected,
   initialStaffId,
+  maxAdvanceDays,
 }: Props) {
   const t = useTranslations("booking.slot");
   const [staffId, setStaffId] = useState<string | null>(
@@ -75,6 +97,15 @@ export function SlotPicker({
     void load(staffId, next);
   };
 
+  const months = maxAdvanceDays && maxAdvanceDays > 45 ? bookableMonths(maxAdvanceDays) : [];
+  const monthLabel = new Intl.DateTimeFormat(locale, { month: "long", year: "numeric", timeZone: "UTC" });
+  const goToMonth = (month: string) => {
+    // Mois en cours : depuis aujourd'hui ; sinon depuis le 1er du mois.
+    const first = months[0] === month ? undefined : `${month}-01`;
+    setPages(first ? [days[0]?.date].filter((value): value is string => Boolean(value)) : []);
+    void load(staffId, first);
+  };
+
   const previousPage = () => {
     const previous = pages.at(-1);
     setPages(pages.slice(0, -1));
@@ -111,6 +142,25 @@ export function SlotPicker({
 
       <fieldset className="min-w-0">
         <legend className="mb-3 text-lg font-semibold text-site-text">{t("day")}</legend>
+        {months.length > 1 && (
+          <div className="mb-3">
+            <label htmlFor="slot-month" className="mb-1 block text-sm text-site-muted">
+              {t("goToMonth")}
+            </label>
+            <select
+              id="slot-month"
+              value={days[0]?.date.slice(0, 7) ?? months[0]}
+              onChange={(event) => goToMonth(event.target.value)}
+              className="block min-h-12 w-full rounded-site border border-site-border bg-site-bg px-4 text-site-text first-letter:uppercase sm:w-auto"
+            >
+              {months.map((month) => (
+                <option key={month} value={month}>
+                  {monthLabel.format(new Date(`${month}-01T12:00:00Z`))}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2" aria-busy={loading}>
           {days.map((day) => {
             const chip = dayChip(day.date, locale);

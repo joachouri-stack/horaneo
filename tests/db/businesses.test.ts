@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { withPlatform, withTenant } from "@/db/access";
 import type { Transaction } from "@/db/client";
-import { appointments, customers, messageLog, services, staffMembers, users } from "@/db/schema";
+import { appointments, assets, customers, messageLog, services, staffMembers, users } from "@/db/schema";
 import { resolveManagerAccess } from "@/lib/manager/role";
 import { createBooking } from "@/modules/booking/create";
 import { businessOfManageToken, findByManageToken } from "@/modules/booking/manage";
@@ -12,6 +12,7 @@ import {
   businessOfServices,
   createBusiness,
   replaceBusinessManager,
+  setBusinessLogo,
   updateBusinessProfile,
 } from "@/modules/businesses/businesses";
 import { loadSiteData } from "@/modules/site/data";
@@ -321,6 +322,50 @@ describe.skipIf(!hasTestDatabase)("plusieurs entreprises sur un même site", () 
     expect(data?.businesses[0]).toMatchObject({
       role: "Esthéticienne, spécialiste du regard",
       availability: "Du lundi au samedi",
+    });
+  });
+
+  it("une entreprise a son nom de boutique et son logo (l'ancien logo est mis de côté)", async () => {
+    const newLogo = (name: string) =>
+      platform(async (tx) => {
+        const [asset] = await tx
+          .insert(assets)
+          .values({
+            tenantId: site.tenantId,
+            kind: "other",
+            storageKey: `${name}.webp`,
+            mimeType: "image/webp",
+            bytes: 100,
+          })
+          .returning();
+        return asset.id;
+      });
+    const first = await newLogo("logo-1");
+    const second = await newLogo("logo-2");
+    await platform((tx) => setBusinessLogo(tx, site.tenantId, site.natacha.id, first));
+    await platform((tx) => setBusinessLogo(tx, site.tenantId, site.natacha.id, second));
+    await platform((tx) =>
+      updateBusinessProfile(tx, site.tenantId, site.natacha.id, { shopName: "Zen & Bien-être" }),
+    );
+    const [old] = await platform((tx) => tx.select().from(assets).where(eq(assets.id, first)));
+    expect(old.status).toBe("replaced");
+    const data = await asBusiness(null, (tx) => loadSiteData(tx, site.tenantId));
+    const natacha = data?.businesses.find((business) => business.id === site.natacha.id);
+    expect(natacha?.shopName).toBe("Zen & Bien-être");
+    expect(natacha?.logo?.key).toBe("logo-2.webp");
+    expect(
+      await errorCode(
+        platform((tx) =>
+          setBusinessLogo(tx, site.tenantId, site.natacha.id, "01890000-0000-7000-8000-000000000000"),
+        ),
+      ),
+    ).toBe("invalid");
+    await platform((tx) => setBusinessLogo(tx, site.tenantId, site.natacha.id, null));
+    await platform((tx) => updateBusinessProfile(tx, site.tenantId, site.natacha.id, { shopName: "" }));
+    const cleared = await asBusiness(null, (tx) => loadSiteData(tx, site.tenantId));
+    expect(cleared?.businesses.find((business) => business.id === site.natacha.id)).toMatchObject({
+      shopName: null,
+      logo: null,
     });
   });
 

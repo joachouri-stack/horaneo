@@ -151,6 +151,13 @@ export async function getDashboardStats(tx: Transaction, now = new Date()) {
     tx.select({ value: count() }).from(tenants).where(eq(tenants.status, "draft")),
     tx.select({ value: count() }).from(updateRequests).where(eq(updateRequests.status, "new")),
   ]);
+  // Sites en création (les plus anciens d'abord) : listés sur l'accueil avec ce qu'il leur manque.
+  const draftTenants = await tx
+    .select({ id: tenants.id, name: tenants.name })
+    .from(tenants)
+    .where(eq(tenants.status, "draft"))
+    .orderBy(asc(tenants.createdAt))
+    .limit(10);
   // Clients Basic ayant atteint leur quota de réservations ce mois-ci.
   const basicAtLimit = await tx
     .select({
@@ -177,6 +184,7 @@ export async function getDashboardStats(tx: Transaction, now = new Date()) {
     newThisMonth,
     cancelledThisMonth,
     drafts,
+    draftTenants,
     openRequests,
     basicAtLimit,
   };

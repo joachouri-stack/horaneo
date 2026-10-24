@@ -61,6 +61,11 @@ export async function SiteFooter({ site }: { site: NonNullable<SiteData> }) {
               </Link>
             </li>
           )}
+          <li>
+            <a href={SITE_PATHS.pro} className="underline">
+              {t("pro")}
+            </a>
+          </li>
           {site.features.brandingFooter && (
             <li>
               <a href={`https://${config.MAIN_DOMAIN}`} className="underline">

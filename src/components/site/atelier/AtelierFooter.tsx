@@ -250,6 +250,14 @@ export async function AtelierFooter({ site }: { site: Site }) {
                 </Link>
               </li>
             )}
+            <li>
+              <a
+                href={SITE_PATHS.pro}
+                className="inline-flex min-h-11 items-center underline underline-offset-4"
+              >
+                {tFooter("pro")}
+              </a>
+            </li>
           </ul>
         </div>
         {credit && <p className="pb-4 text-right text-sm opacity-75">{credit}</p>}

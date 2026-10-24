@@ -46,6 +46,11 @@ export type TenantBrand = {
   };
   /** Pages des réseaux sociaux (adresses complètes). */
   social?: { instagram?: string; facebook?: string };
+  /**
+   * Bouton à côté de « Réserver » dans la barre du bas sur téléphone : appeler ou
+   * envoyer un SMS, au numéro du site ou à un autre numéro.
+   */
+  contactBar?: { mode: "call" | "sms"; phone?: string | null };
 };
 
 /** Présentation publique d'une entreprise (sa page sur le site : « Esthétique, avec Laïla »). */
@@ -60,6 +65,10 @@ export type BusinessProfile = {
   /** Disponibilités en clair (ex. « Du lundi au samedi »). */
   availability?: LocalizedText;
   photoAssetId?: string | null;
+  /** Nom de sa boutique, s'il diffère de son nom (ex. « Zen & Bien-être »). */
+  shopName?: string | null;
+  /** Son propre logo, à côté de son nom sur sa carte et sa page. */
+  logoAssetId?: string | null;
 };
 
 export const tenants = pgTable(

@@ -51,6 +51,8 @@ type Props = {
   giftCardsEnabled?: boolean;
   holdMinutes: number;
   cancellationHours: number;
+  /** Réservation possible jusqu'à N jours à l'avance. */
+  maxAdvanceDays?: number;
   privacyPath: string;
   managePath: string;
   /** Étapes déjà franchies avant ce parcours (ex. « Avec qui ? » sur un site à plusieurs entreprises). */
@@ -486,6 +488,7 @@ export function BookingFlow(props: Props) {
             loadDays={loadDays}
             selected={slot}
             initialStaffId={props.preselectedStaffId ?? null}
+            maxAdvanceDays={props.maxAdvanceDays}
             onError={setError}
             onPick={(picked) => {
               setError(null);

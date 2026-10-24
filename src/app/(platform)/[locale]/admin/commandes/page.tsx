@@ -1,3 +1,4 @@
+import { AdminSubNav } from "@/components/admin/AdminSubNav";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
 import { Hidden, TextField } from "@/components/admin/fields";
@@ -24,6 +25,7 @@ export default async function OrdersPage({ params }: PageProps<"/[locale]/admin/
   return (
     <main id="contenu" className="mx-auto max-w-4xl space-y-6 px-4 py-8">
       <h1 className="text-3xl font-extrabold">{t("title")}</h1>
+      <AdminSubNav group="todo" current="/admin/commandes" />
       <p className="text-ink/80">{t("intro")}</p>
       {rows.length === 0 && <p className="text-ink/70">{t("empty")}</p>}
       <ul className="space-y-4">
