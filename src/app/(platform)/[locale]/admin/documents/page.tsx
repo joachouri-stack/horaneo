@@ -1,3 +1,4 @@
+import { AdminSubNav } from "@/components/admin/AdminSubNav";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
 import { Hidden, TextArea, TextField } from "@/components/admin/fields";
@@ -27,6 +28,7 @@ export default async function LegalDocumentsPage({ params }: PageProps<"/[locale
   return (
     <main id="contenu" className="mx-auto max-w-4xl space-y-6 px-4 py-8">
       <h1 className="text-3xl font-extrabold">{t("title")}</h1>
+      <AdminSubNav group="settings" current="/admin/documents" />
       <p className="text-ink/80">{t("intro")}</p>
       <p className={open ? ui.success : ui.error}>
         {open ? t("identity.salesOpen") : t("identity.salesClosed")}

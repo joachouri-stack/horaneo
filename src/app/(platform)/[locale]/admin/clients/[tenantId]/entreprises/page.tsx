@@ -116,9 +116,12 @@ export default async function BusinessesPage({
               />
             </div>
             {/* Sans gérante : on donne l'accès ; avec gérante : on la remplace (l'ancienne perd l'accès). */}
-            <div className="mb-6 rounded-xl bg-navy/5 p-4">
-              <h3 className="font-bold">{t(managers.length === 0 ? "addManager" : "replaceManager")}</h3>
-              <p className="mb-3 text-sm text-ink/70">
+            {/* Déjà une gérante : le remplacement reste replié. */}
+            <details className="mb-6 rounded-xl bg-navy/5 p-4" open={managers.length === 0}>
+              <summary className="cursor-pointer font-bold">
+                {t(managers.length === 0 ? "addManager" : "replaceManager")}
+              </summary>
+              <p className="mt-2 mb-3 text-sm text-ink/70">
                 {t(managers.length === 0 ? "addManagerHint" : "replaceManagerHint")}
               </p>
               <ActionForm
@@ -138,7 +141,7 @@ export default async function BusinessesPage({
                 />
                 <TextField id={`manager-name-${business.id}`} name="managerName" label={t("managerName")} />
               </ActionForm>
-            </div>
+            </details>
             <ActionForm
               action={updateBusinessAction}
               submitLabel={tCommon("save")}
@@ -163,9 +166,10 @@ export default async function BusinessesPage({
                 <p className="text-sm text-ink/70">{t("onlineBookingHint")}</p>
               </ActionForm>
             </div>
-            <div className="mt-6 border-t border-navy/10 pt-6">
-              <h3 className="text-lg font-bold">{t("profile")}</h3>
-              <p className="mb-4 text-sm text-ink/70">{t("profileHint")}</p>
+            {/* Page publique de l'entreprise : repliée, on l'ouvre pour la modifier. */}
+            <details className="mt-6 border-t border-navy/10 pt-6">
+              <summary className="cursor-pointer text-lg font-bold">{t("profile")}</summary>
+              <p className="mt-2 mb-4 text-sm text-ink/70">{t("profileHint")}</p>
               <ActionForm
                 action={updateBusinessProfileAction}
                 submitLabel={t("saveProfile")}
@@ -220,12 +224,12 @@ export default async function BusinessesPage({
                   defaultValue={business.profile.photoAssetId ?? ""}
                 />
               </ActionForm>
-            </div>
+            </details>
           </Section>
         );
       })}
 
-      <Section title={t("add")}>
+      <Section title={t("add")} collapsible>
         <p className="mb-4 text-ink/80">{t("addHint")}</p>
         <ActionForm
           action={createBusinessAction}

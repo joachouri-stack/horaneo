@@ -1,3 +1,4 @@
+import { AdminSubNav } from "@/components/admin/AdminSubNav";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
 import { CheckboxField, Hidden, Section, SelectField, TextArea, TextField } from "@/components/admin/fields";
@@ -58,11 +59,13 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
     type = "number",
     hint?: string,
   ) => <TextField name={name} type={type} label={t(name)} defaultValue={s[name]} hint={hint} required />;
+  const tIntro = await getTranslations("admin.intro");
   return (
     <main id="contenu" className="mx-auto max-w-3xl space-y-6 px-4 py-8">
       <h1 className="text-3xl font-extrabold">{t("title")}</h1>
+      <AdminSubNav group="settings" current="/admin/reglages" intro={tIntro("settings")} />
       <ActionForm action={saveSettingsAction} submitLabel={tCommon("save")} className="space-y-6">
-        <Section title={t("pricing")}>
+        <Section title={t("pricing")} collapsible open>
           <div className="grid gap-4 sm:grid-cols-2">
             <SelectField
               name="prices_display"
@@ -80,7 +83,7 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
           </div>
         </Section>
         {/* Rachat du site par le client à sa sortie : désactivé par défaut, prix fixe. */}
-        <Section title={t("buyout")}>
+        <Section title={t("buyout")} collapsible>
           <p className="mb-3 text-sm text-ink/70">{t("buyoutHint")}</p>
           <div className="grid gap-4 sm:grid-cols-2">
             <CheckboxField
@@ -98,7 +101,7 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
           </div>
         </Section>
         {/* Fonctions pas encore livrées : étiquette « Bientôt » sur le site commercial. */}
-        <Section title={t("soon")}>
+        <Section title={t("soon")} collapsible>
           <p className="mb-3 text-sm text-ink/70">{t("soonHint")}</p>
           <div className="grid sm:grid-cols-2">
             {FEATURE_KEYS.map((key) => (
@@ -111,14 +114,14 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
             ))}
           </div>
         </Section>
-        <Section title={t("payments")}>
+        <Section title={t("payments")} collapsible>
           <div className="grid gap-4 sm:grid-cols-2">
             {field("deposit_commission_percent")}
             {field("retention_days_after_cancel")}
             {field("replaced_asset_retention_days")}
           </div>
         </Section>
-        <Section title={t("messages")}>
+        <Section title={t("messages")} collapsible>
           <div className="grid gap-4 sm:grid-cols-2">
             {field("sms_pack_size")}
             <TextField
@@ -135,11 +138,13 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
             {field("monthly_summary_time", "time")}
           </div>
         </Section>
-        <Section title={t("legal")}>{field("legal_infrastructure", "text")}</Section>
+        <Section title={t("legal")} collapsible>
+          {field("legal_infrastructure", "text")}
+        </Section>
       </ActionForm>
 
       {/* Bloc « Ils nous font confiance » de l'accueil : caché tant qu'il est vide. */}
-      <Section title={t("showcase.title")}>
+      <Section title={t("showcase.title")} collapsible>
         <p className="mb-4 text-sm text-ink/70">{t("showcase.intro", { max: SHOWCASE_MAX })}</p>
         {showcase.length > 0 && (
           <ul className="mb-6 space-y-3">

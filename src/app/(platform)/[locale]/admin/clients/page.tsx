@@ -25,9 +25,16 @@ export default async function ClientsPage({ params, searchParams }: PageProps<"/
     adminQuery(async (tx) => ({ rows: await listTenants(tx, filters), plans: await listPlans(tx) })),
   ]);
 
+  const tIntro = await getTranslations("admin.intro");
   return (
     <main id="contenu" className="mx-auto max-w-6xl space-y-6 px-4 py-8">
-      <h1 className="text-3xl font-extrabold">{t("title")}</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-3xl font-extrabold">{t("title")}</h1>
+        <Link href="/admin/clients/nouveau" className={`${ui.primaryButton} sm:w-auto`}>
+          {t("newClient")}
+        </Link>
+      </div>
+      <p className="text-ink/70">{tIntro("clients")}</p>
 
       <form method="get" className={`${ui.card} grid gap-4 sm:grid-cols-[2fr_1fr_1fr_auto] sm:items-end`}>
         <div>
