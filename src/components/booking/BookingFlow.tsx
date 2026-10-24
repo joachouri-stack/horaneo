@@ -1,5 +1,7 @@
 "use client";
 
+import { appointmentEvent, googleCalendarUrl } from "@/lib/calendar/appointment";
+import { appointmentCalendarPath } from "@/modules/site/paths";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -320,20 +322,30 @@ export function BookingFlow(props: Props) {
         <p className="mt-6">{t("confirmation.keepLink", { hours: props.cancellationHours })}</p>
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
           {!pendingPayment && (
-            <a
-              href={calendarFile({
-                title: [chosen.map((service) => service.name).join(" + "), props.siteName]
-                  .filter(Boolean)
-                  .join(" · "),
-                start: confirmation.startsAt,
-                end: confirmation.endsAt,
-                location: props.address ?? "",
-              })}
-              download="rendez-vous.ics"
-              className={primaryClass}
-            >
-              {t("confirmation.addToCalendar")}
-            </a>
+            <>
+              <a href={appointmentCalendarPath(confirmation.manageToken)} className={primaryClass}>
+                {t("confirmation.addToCalendar")}
+              </a>
+              <a
+                href={googleCalendarUrl(
+                  appointmentEvent({
+                    id: confirmation.manageToken,
+                    start: new Date(confirmation.startsAt),
+                    end: new Date(confirmation.endsAt),
+                    services: chosen.map((service) => service.name),
+                    businessName: props.siteName ?? "",
+                    address: props.address,
+                    manageUrl: `${window.location.origin}${manageUrl}`,
+                    host: window.location.host,
+                  }),
+                )}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-center font-semibold text-site-accent underline"
+              >
+                {t("confirmation.googleCalendar")}
+              </a>
+            </>
           )}
           <Link href={manageUrl} className="text-center font-semibold text-site-accent underline">
             {t("confirmation.manageLink")}
@@ -754,31 +766,6 @@ export function BookingFlow(props: Props) {
       )}
     </div>
   );
-}
-
-/** Fichier d'agenda (.ics) du rendez-vous, à ouvrir avec l'agenda du téléphone. */
-function calendarFile(event: { title: string; start: string; end: string; location: string }) {
-  const stamp = (iso: string) =>
-    new Date(iso)
-      .toISOString()
-      .replace(/[-:]/g, "")
-      .replace(/\.\d{3}/, "");
-  const escape = (value: string) => value.replace(/[\\;,]/g, (c) => `\\${c}`).replace(/\n/g, "\\n");
-  const lines = [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//rendez-vous//FR",
-    "BEGIN:VEVENT",
-    `UID:${stamp(event.start)}-${Math.random().toString(36).slice(2)}`,
-    `DTSTAMP:${stamp(new Date().toISOString())}`,
-    `DTSTART:${stamp(event.start)}`,
-    `DTEND:${stamp(event.end)}`,
-    `SUMMARY:${escape(event.title)}`,
-    ...(event.location ? [`LOCATION:${escape(event.location)}`] : []),
-    "END:VEVENT",
-    "END:VCALENDAR",
-  ];
-  return `data:text/calendar;charset=utf-8,${encodeURIComponent(lines.join("\r\n"))}`;
 }
 
 function Field({

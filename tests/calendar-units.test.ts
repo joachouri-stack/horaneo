@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { calendarFeedToken, readCalendarFeedToken } from "@/lib/calendar/feed-token";
+import { appointmentEvent, googleCalendarUrl } from "@/lib/calendar/appointment";
 import { buildIcs, escapeIcsText, foldIcsLine } from "@/lib/calendar/ics";
 
 const TENANT = "11111111-1111-4111-8111-111111111111";
@@ -62,5 +63,37 @@ describe("format iCalendar", () => {
     expect(ics).toContain("DESCRIPTION:Avec Léa\\n06 12 34 56 78\r\n");
     expect(ics).toContain("STATUS:TENTATIVE\r\n");
     expect(ics.endsWith("END:VCALENDAR\r\n")).toBe(true);
+  });
+});
+
+describe("rendez-vous dans l'agenda de la cliente", () => {
+  const event = appointmentEvent({
+    id: "rdv-1",
+    start: new Date("2026-11-03T09:00:00Z"),
+    end: new Date("2026-11-03T10:00:00Z"),
+    services: ["Soin visage", "Épilation"],
+    businessName: "Institut, Léa",
+    address: "1 rue des Lilas, 84000 Avignon",
+    manageUrl: "https://institut.example/rendez-vous/abc",
+    host: "institut.example",
+  });
+
+  it("titre, lieu et lien du rendez-vous dans le fichier d'agenda", () => {
+    expect(event).toMatchObject({
+      uid: "rdv-1@institut.example",
+      summary: "Soin visage + Épilation · Institut, Léa",
+    });
+    const ics = buildIcs({ name: "Institut", productId: "institut.example", events: [event] });
+    expect(ics).toContain("DTSTART:20261103T090000Z");
+    expect(ics).toContain("LOCATION:1 rue des Lilas\\, 84000 Avignon");
+    expect(ics).toContain("URL:https://institut.example/rendez-vous/abc");
+  });
+
+  it("lien Google Agenda avec les dates en UTC", () => {
+    const url = new URL(googleCalendarUrl(event));
+    expect(url.origin).toBe("https://calendar.google.com");
+    expect(url.searchParams.get("dates")).toBe("20261103T090000Z/20261103T100000Z");
+    expect(url.searchParams.get("text")).toBe("Soin visage + Épilation · Institut, Léa");
+    expect(url.searchParams.get("location")).toBe("1 rue des Lilas, 84000 Avignon");
   });
 });

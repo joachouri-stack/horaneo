@@ -785,7 +785,8 @@
       "dataKinds": {
         "export": "copie de vos données",
         "deletion": "suppression de vos données"
-      }
+      },
+      "addToCalendar": "Ajouter à mon agenda"
     },
     "suspended": "Ce site est temporairement indisponible. Merci de contacter l'établissement par téléphone.",
     "book": "Réserver",
@@ -2104,7 +2105,8 @@
       "emailSoon": "Vous recevrez aussi une confirmation par e-mail.",
       "paidTitle": "C'est confirmé",
       "addToCalendar": "Ajouter à mon agenda",
-      "emailSent": "Un e-mail de confirmation vient de vous être envoyé."
+      "emailSent": "Un e-mail de confirmation vient de vous être envoyé.",
+      "googleCalendar": "Ou l'ajouter à Google Agenda"
     },
     "back": "Retour",
     "continue": "Continuer",
@@ -2146,7 +2148,9 @@
       "refundInfo": "L'acompte de {amount} vous sera remboursé automatiquement.",
       "refunded": "L'acompte de {amount} vous est remboursé. Il apparaît sur votre compte sous 5 à 10 jours.",
       "payNow": "Régler l'acompte pour confirmer le rendez-vous",
-      "discount": "Réduction"
+      "discount": "Réduction",
+      "addToCalendar": "Ajouter à mon agenda",
+      "googleCalendar": "Ou l'ajouter à Google Agenda"
     },
     "business": {
       "title": "Avec qui souhaitez-vous réserver ?",
@@ -2846,7 +2850,9 @@
       "managerFooter": "Message automatique envoyé par {product}.",
       "openSpace": "Ouvrir mon espace",
       "spaceHint": "Retrouvez tous vos rendez-vous et vos avantages sur {url}",
-      "summaryFooter": "Vous pouvez couper les résumés dans Plus → Réglages."
+      "summaryFooter": "Vous pouvez couper les résumés dans Plus → Réglages.",
+      "addToCalendar": "Ajouter à mon agenda",
+      "googleCalendar": "Google Agenda"
     },
     "customer": {
       "confirmation": {
