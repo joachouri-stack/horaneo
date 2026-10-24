@@ -360,6 +360,8 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
       quote: text(business.profile.quote),
       availability: text(business.profile.availability),
       photo: image(business.profile.photoAssetId),
+      shopName: business.profile.shopName ?? null,
+      logo: image(business.profile.logoAssetId),
       /** Réservation en ligne ouverte pour cette entreprise (sinon : appeler, écrire). */
       bookingEnabled: bookingOpen(business.id),
     })),

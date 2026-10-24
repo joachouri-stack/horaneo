@@ -14,6 +14,7 @@ import {
 import { setLocalized } from "@/modules/content/localized";
 import { slugify } from "@/modules/tenants/slug";
 import { AppError } from "@/modules/errors";
+import { retireAsset } from "@/modules/media/assets";
 import { normalizePhone } from "@/modules/phone";
 
 /**
@@ -257,6 +258,7 @@ export const businessProfileInput = z.object({
   quote: z.string().trim().max(280).optional(),
   availability: z.string().trim().max(80).optional(),
   photoAssetId: z.uuid().nullable().optional(),
+  shopName: z.string().trim().max(80).optional(),
 });
 
 /**
@@ -298,10 +300,45 @@ export async function updateBusinessProfile(
     quote: setLocalized(previous.quote, locale, input.quote),
     availability: setLocalized(previous.availability, locale, input.availability),
     photoAssetId: input.photoAssetId !== undefined ? input.photoAssetId : (previous.photoAssetId ?? null),
+    shopName: input.shopName !== undefined ? input.shopName || null : (previous.shopName ?? null),
+    logoAssetId: previous.logoAssetId ?? null,
   };
   const [updated] = await tx
     .update(businesses)
     .set({ slug, profile })
+    .where(and(eq(businesses.tenantId, tenantId), eq(businesses.id, businessId)))
+    .returning();
+  return updated;
+}
+
+/**
+ * Logo propre à une entreprise (`null` : le retire). L'ancien logo est mis de
+ * côté, récupérable pendant le délai de conservation.
+ */
+export async function setBusinessLogo(
+  tx: Transaction,
+  tenantId: string,
+  businessId: string,
+  assetId: string | null,
+) {
+  const business = await getBusiness(tx, tenantId, businessId);
+  if (assetId) {
+    const [logo] = await tx
+      .select({ id: assets.id })
+      .from(assets)
+      .where(and(eq(assets.tenantId, tenantId), eq(assets.id, assetId)));
+    if (!logo) throw new AppError("invalid", "file");
+  }
+  const previous = business.profile ?? {};
+  if (previous.logoAssetId && previous.logoAssetId !== assetId) {
+    await retireAsset(tx, tenantId, previous.logoAssetId, assetId).catch((error: unknown) => {
+      // Déjà retiré depuis l'écran Photos : rien à mettre de côté.
+      if (!(error instanceof AppError && error.code === "not_found")) throw error;
+    });
+  }
+  const [updated] = await tx
+    .update(businesses)
+    .set({ profile: { ...previous, logoAssetId: assetId } })
     .where(and(eq(businesses.tenantId, tenantId), eq(businesses.id, businessId)))
     .returning();
   return updated;
