@@ -224,6 +224,7 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
         promoEnabled={promoEnabled}
         giftCardsEnabled={giftCardsEnabled}
         holdMinutes={context.settings.holdMinutes}
+        maxAdvanceDays={context.settings.maxAdvanceDays}
         cancellationHours={context.settings.cancellationDeadlineHours}
         privacyPath={SITE_PATHS.privacy}
         managePath={SITE_PATHS.appointment}
