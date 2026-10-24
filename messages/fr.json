@@ -1539,7 +1539,8 @@
       "loading": "Recherche des créneaux…",
       "moreDays": "Jours suivants",
       "previousDays": "Jours précédents",
-      "chosen": "{date} à {time}"
+      "chosen": "{date} à {time}",
+      "goToMonth": "Aller au mois de"
     },
     "details": {
       "title": "Vos coordonnées",
@@ -2018,7 +2019,7 @@
       "onlineOff": "Réservation en ligne coupée : votre site est en mode vitrine.",
       "booking": "Règles de réservation",
       "minNotice": "Délai minimum avant un rendez-vous (heures)",
-      "maxAdvance": "Réservation possible jusqu'à (jours à l'avance)",
+      "maxAdvance": "Les clientes peuvent réserver jusqu'à",
       "interval": "Créneaux proposés toutes les",
       "minutes": "{count} minutes",
       "maxServices": "Prestations maximum par rendez-vous",
@@ -2039,7 +2040,8 @@
       "reviewsTitle": "Avis Google",
       "reviewRequest": "Demander un avis Google après chaque rendez-vous",
       "reviewRequestHelp": "Quelques heures après un rendez-vous marqué « Venue », la cliente reçoit un e-mail de remerciement avec un lien direct pour laisser un avis sur votre fiche Google. Une seule demande par cliente tous les {months} mois.",
-      "reviewRequestNoPlace": "Votre fiche Google n'est pas encore reliée à votre site : aucune demande ne partira tant qu'elle ne l'est pas. Écrivez-nous depuis « Demander une modification du site »."
+      "reviewRequestNoPlace": "Votre fiche Google n'est pas encore reliée à votre site : aucune demande ne partira tant qu'elle ne l'est pas. Écrivez-nous depuis « Demander une modification du site ».",
+      "advanceDays": "{days, select, 7 {1 semaine à l'avance} 14 {2 semaines à l'avance} 30 {1 mois à l'avance} 60 {2 mois à l'avance} 90 {3 mois à l'avance} 180 {6 mois à l'avance} 365 {1 an à l'avance} other {{days} jours à l'avance}}"
     },
     "requests": {
       "title": "Demandes de modification",

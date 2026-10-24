@@ -11,6 +11,11 @@ import { centsToInput } from "@/lib/format";
 import { getPlatformSetting } from "@/modules/settings";
 import { updateSettingsAction } from "../../actions";
 
+/** Durées proposées pour réserver à l'avance, plus la valeur actuelle si elle n'en fait pas partie. */
+const ADVANCE_DAYS = [7, 14, 30, 60, 90, 180, 365];
+const advanceOptions = (current: number) =>
+  ADVANCE_DAYS.includes(current) ? ADVANCE_DAYS : [...ADVANCE_DAYS, current].sort((a, b) => a - b);
+
 /** Réglages de la réservation en ligne, de l'acompte et des résumés : un seul bouton « Enregistrer ». */
 export default async function SettingsPage({
   params,
@@ -67,13 +72,14 @@ export default async function SettingsPage({
               defaultValue={settings.minNoticeMinutes / 60}
               required
             />
-            <TextField
+            <SelectField
               name="maxAdvanceDays"
-              type="number"
-              inputMode="numeric"
               label={t("maxAdvance")}
-              defaultValue={settings.maxAdvanceDays}
-              required
+              defaultValue={String(settings.maxAdvanceDays)}
+              options={advanceOptions(settings.maxAdvanceDays).map((days) => ({
+                value: String(days),
+                label: t("advanceDays", { days: String(days) }),
+              }))}
             />
             <SelectField
               name="slotIntervalMinutes"
