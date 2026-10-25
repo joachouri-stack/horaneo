@@ -26,7 +26,8 @@ import {
 } from "@/modules/requests/update-requests";
 import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
 import { createTimeOff } from "@/modules/schedule/time-off";
-import { monthStats } from "@/modules/stats/month";
+import { getStatsGoals, updateStatsGoals } from "@/modules/stats/goals";
+import { monthDetails, monthStats } from "@/modules/stats/month";
 import { replaceStaffSchedules } from "@/modules/team/schedules";
 import { deleteStaff, saveStaff } from "@/modules/team/staff";
 import { createTenant } from "@/modules/tenants/create";
@@ -543,6 +544,41 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
         newCustomers: 2,
       });
       expect(stats.topServices).toEqual([["Massage", 2]]);
+      // Détail pour les graphiques : jour par jour, équipe, jour de la semaine, heures.
+      const details = await asManager(s.id, (tx) => monthDetails(tx, s.id, "2026-10", TZ));
+      expect(details.days).toHaveLength(31);
+      expect(details.days[5]).toMatchObject({ date: "2026-10-06", online: 2, manual: 0, revenueCents: 7000 });
+      expect(details.staff).toHaveLength(1);
+      expect(details.staff[0]).toMatchObject({ count: 2, revenueCents: 7000 });
+      expect(details.weekdays[1]).toBe(2); // mardi
+      expect(details.hours[10] + details.hours[14]).toBe(2);
+      expect(details.averageBasketCents).toBe(7000);
+      expect(details).toMatchObject({ customers: 2, returningCustomers: 0 });
+    });
+
+    it("objectifs du mois : enregistrés, retirés quand le champ est vide, refusés s'ils sont invalides", async () => {
+      const s = await setup();
+      await asManager(s.id, (tx) =>
+        updateStatsGoals(tx, s.id, { revenue: "3 000,50", appointments: "80", newCustomers: "" }),
+      );
+      expect(await asManager(s.id, (tx) => getStatsGoals(tx, s.id))).toEqual({
+        revenueCents: 300050,
+        appointments: 80,
+        newCustomers: null,
+      });
+      await asManager(s.id, (tx) =>
+        updateStatsGoals(tx, s.id, { revenue: "", appointments: "", newCustomers: "5" }),
+      );
+      expect(await asManager(s.id, (tx) => getStatsGoals(tx, s.id))).toEqual({
+        revenueCents: null,
+        appointments: null,
+        newCustomers: 5,
+      });
+      await expect(
+        asManager(s.id, (tx) =>
+          updateStatsGoals(tx, s.id, { revenue: "abc", appointments: "", newCustomers: "" }),
+        ),
+      ).rejects.toThrow(AppError);
     });
   });
 });
