@@ -197,6 +197,13 @@
       "when": 1792861930529,
       "tag": "0027_grid_launch_offer",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1792942948520,
+      "tag": "0028_starter_plan",
+      "breakpoints": true
     }
   ]
 }

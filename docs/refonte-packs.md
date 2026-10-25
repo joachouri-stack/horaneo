@@ -55,7 +55,17 @@ L'état se règle dans `/admin/reglages` (Solutions).
 
 Options à la carte (`/admin/options`) et leur facturation comme lignes de l'abonnement Stripe : elles ne sont plus présentées sur le site commercial, mais restent disponibles pour l'équipe.
 
-## 7. À décider ou à faire
+## 7. Plus de pack gratuit à la vente (Starter)
+
+Le Starter (19,99 € HT par mois, mêmes fonctions et limites que l'ancien Basic) remplace le Basic gratuit sur le site commercial (migration `0028_starter_plan`). Le Basic reste en base, hors vente :
+
+- les sites qui l'avaient le gardent ;
+- il reçoit les sites dont l'abonnement payant se termine. Tant qu'aucun pack gratuit n'est vendu, ces sites sont mis en pause (statut « suspendu », rien n'est supprimé) et reviennent en ligne dès le prochain abonnement payé ;
+- la gérante arrête son abonnement par « Arrêter mon abonnement » (fin à l'échéance, pas avant la fin de l'engagement).
+
+Remettre un pack gratuit en vente (Admin → Packs) rétablit l'ancien fonctionnement : retour au pack gratuit, sans mise en pause.
+
+## 8. À décider ou à faire
 
 1. Tarifs des recharges (IA, SMS supplémentaires déjà réglés) et unité de consommation WhatsApp selon le fournisseur.
 2. Prix annuels : le sélecteur « Prix annuels » de la maquette n'est pas affiché tant qu'aucun prix annuel n'existe.

@@ -77,6 +77,14 @@ describe.skipIf(!hasTestDatabase)("abonnements", () => {
     return row.code;
   }
 
+  async function tenantStatus(tenantId: string) {
+    const [row] = await owner
+      .select({ status: tenants.status })
+      .from(tenants)
+      .where(eq(tenants.id, tenantId));
+    return row.status;
+  }
+
   async function subscriptionOf(tenantId: string) {
     const [row] = await owner.select().from(subscriptions).where(eq(subscriptions.tenantId, tenantId));
     return row;
@@ -205,13 +213,15 @@ describe.skipIf(!hasTestDatabase)("abonnements", () => {
     expect(billing.subscriptions.get(subscriptionId)?.cancelAt).toBeNull();
     expect((await subscriptionOf(tenantId)).cancelAt).toBeNull();
 
-    // Nouvelle demande, puis fin de l'abonnement chez Stripe : retour au Basic, gérante prévenue.
+    // Nouvelle demande, puis fin de l'abonnement chez Stripe : Basic hors vente, site en pause, gérante prévenue.
     await platform((tx) => requestPlanChange(tx, tenantId, basic, billing.gateway, urls));
     await send({ kind: "subscription", subscription: billing.setStatus(subscriptionId, "canceled") });
     expect(await tenantPlan(tenantId)).toBe("basic");
+    expect(await tenantStatus(tenantId)).toBe("suspended");
     const messages = await owner.select().from(messageLog).where(eq(messageLog.tenantId, tenantId));
     expect(messages.find((m) => m.templateKey === "manager.subscription_ended")?.data).toEqual({
       reason: "requested",
+      paused: true,
     });
   });
 
@@ -322,7 +332,9 @@ describe.skipIf(!hasTestDatabase)("abonnements", () => {
     expect(messages.filter((m) => m.templateKey === "manager.payment_failed")).toHaveLength(2);
     expect(messages.find((m) => m.templateKey === "manager.subscription_ended")?.data).toEqual({
       reason: "unpaid",
+      paused: true,
     });
+    expect(await tenantStatus(tenantId)).toBe("suspended");
     // Elle peut reprendre un pack payant : nouvelle page de paiement.
     expect(
       (
@@ -331,6 +343,23 @@ describe.skipIf(!hasTestDatabase)("abonnements", () => {
         )
       ).kind,
     ).toBe("redirect");
+    // Nouvel abonnement payé : le site revient en ligne.
+    await subscribe(tenantId, "starter");
+    expect(await tenantPlan(tenantId)).toBe("starter");
+    expect(await tenantStatus(tenantId)).toBe("active");
+  });
+
+  it("pack gratuit encore vendu : fin de l'abonnement sans mise en pause", async () => {
+    const tenantId = await setup();
+    await owner.update(plans).set({ isPublic: true }).where(eq(plans.code, "basic"));
+    try {
+      const subscriptionId = await subscribe(tenantId, "essentiel");
+      await send({ kind: "subscription", subscription: billing.setStatus(subscriptionId, "canceled") });
+      expect(await tenantPlan(tenantId)).toBe("basic");
+      expect(await tenantStatus(tenantId)).toBe("active");
+    } finally {
+      await owner.update(plans).set({ isPublic: false }).where(eq(plans.code, "basic"));
+    }
   });
 
   it("portail Stripe pour la carte et les factures ; sans Stripe configuré, message clair", async () => {

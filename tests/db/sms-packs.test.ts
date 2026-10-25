@@ -58,8 +58,8 @@ describe.skipIf(!hasTestDatabase)("SMS et engagement", () => {
 
   beforeAll(async () => {
     owner = await openTestDb();
-    // Ces tests vérifient les mécanismes d'abonnement avec les anciens packs.
-    restoreCatalog = await withLegacyCatalog(owner);
+    // Ces tests vérifient les mécanismes d'abonnement avec les anciens packs (et leur pack gratuit à la vente).
+    restoreCatalog = await withLegacyCatalog(owner, { freeOnSale: true });
     app = openAppDb();
     // Pages légales publiées : la commande en ligne des packs payants est ouverte.
     closeSales = await openSales(owner);

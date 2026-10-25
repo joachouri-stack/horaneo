@@ -68,10 +68,10 @@ export async function PlatformHeader({ children }: { children?: React.ReactNode 
                 {t("common.login")}
               </Link>
             )}
-            {/* Ordinateur : « Essayer gratuitement » (pack Basic) ; sur téléphone, dans le menu. */}
+            {/* Ordinateur : « Commencer » (premier pack de la grille) ; sur téléphone, dans le menu. */}
             {!children && (
               <Link
-                href={{ pathname: "/commander", query: { pack: "basic" } }}
+                href="/commander"
                 className="group/cta inline-flex min-h-11 items-center gap-2 rounded-xl bg-navy px-5 text-[0.93rem] font-medium text-white shadow-[0_6px_16px_-8px_rgba(27,42,74,.6)] transition hover:-translate-y-px hover:bg-[#22345c] max-lg:hidden"
               >
                 {t("home.cta")}

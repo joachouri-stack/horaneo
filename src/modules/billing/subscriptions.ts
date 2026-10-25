@@ -53,7 +53,7 @@ async function primaryBusiness(tx: Transaction, tenantId: string) {
   return row ?? null;
 }
 
-async function freePlan(tx: Transaction) {
+export async function freePlan(tx: Transaction) {
   // Le pack gratuit (prix 0) le mieux classé : le Basic.
   const [plan] = await tx
     .select()
@@ -158,7 +158,9 @@ export async function requestPlanChange(
   if (!gateway) throw new AppError("payments_unavailable");
   const { tenant, plan: current } = await loadTenant(tx, tenantId);
   const [target] = await tx.select().from(plans).where(eq(plans.id, targetPlanId));
-  if (!target || (!target.isPublic && target.id !== current.id)) throw new AppError("invalid", "planId");
+  // Hors vente : seulement le pack actuel, ou le pack gratuit (fin de l'abonnement payant).
+  if (!target || (!target.isPublic && target.id !== current.id && target.priceCents > 0))
+    throw new AppError("invalid", "planId");
   const subscription = await getSubscription(tx, tenantId);
   const live = subscription?.stripeSubscriptionId && isLive(subscription.status) ? subscription : null;
 
@@ -320,12 +322,15 @@ export async function applySubscription(tx: Transaction, sub: BillingSubscriptio
     await expireSmsPacks(tx, row.tenantId, now);
     await syncTenantOptions(tx, row.tenantId, []);
     const { tenant } = await loadTenant(tx, row.tenantId);
+    // Pack gratuit hors vente : le site est mis en pause (rien n'est supprimé) jusqu'au prochain abonnement.
+    if (!basic.isPublic && tenant.status === "active")
+      await tx.update(tenants).set({ status: "suspended" }).where(eq(tenants.id, row.tenantId));
     if (tenant.planId !== basic.id) {
       await changePlan(tx, row.tenantId, basic.code);
       await queueMessage(tx, {
         tenantId: row.tenantId,
         template: "manager.subscription_ended",
-        data: { reason: voluntary ? "requested" : "unpaid" },
+        data: { reason: voluntary ? "requested" : "unpaid", paused: !basic.isPublic },
         dedupeKey: `manager.subscription_ended:${sub.id}`,
       });
     }
@@ -364,6 +369,9 @@ export async function applySubscription(tx: Transaction, sub: BillingSubscriptio
   if (isLive(sub.status) && plan) {
     const { tenant } = await loadTenant(tx, row.tenantId);
     if (tenant.planId !== plan.id) await changePlan(tx, row.tenantId, plan.code);
+    // Site mis en pause à la fin du précédent abonnement : il revient en ligne.
+    if (tenant.status === "suspended" && ENDED_STATUSES.includes(row.status ?? ""))
+      await tx.update(tenants).set({ status: "active" }).where(eq(tenants.id, row.tenantId));
   }
   // Options facturées : celles des lignes de l'abonnement.
   if (isLive(sub.status)) await syncTenantOptions(tx, row.tenantId, sub.optionItems ?? []);

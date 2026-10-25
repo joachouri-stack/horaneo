@@ -65,7 +65,7 @@ export function CreateTenantForm({ plans, mainDomain, prefill }: Props) {
         name="planCode"
         label={t("plan")}
         options={plans}
-        defaultValue={prefill?.planCode ?? "basic"}
+        defaultValue={prefill?.planCode ?? "starter"}
       />
       <TextField
         name="managerEmail"

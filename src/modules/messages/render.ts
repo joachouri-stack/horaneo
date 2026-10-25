@@ -862,13 +862,14 @@ async function renderManager(
     ];
     action = { label: t("notifications.manager.price_change.open"), url: `${space}/plus/abonnement` };
   } else if (template === "manager.subscription_ended") {
-    const reason = (row.data as { reason?: string }).reason;
-    subject = t("notifications.manager.subscription_ended.subject");
-    title = t("notifications.manager.subscription_ended.title");
+    const { reason, paused } = row.data as { reason?: string; paused?: boolean };
+    const mode = { paused: paused ? "yes" : "no" };
+    subject = t("notifications.manager.subscription_ended.subject", mode);
+    title = t("notifications.manager.subscription_ended.title", mode);
     paragraphs = [
       reason === "unpaid"
-        ? t("notifications.manager.subscription_ended.unpaid")
-        : t("notifications.manager.subscription_ended.requested"),
+        ? t("notifications.manager.subscription_ended.unpaid", mode)
+        : t("notifications.manager.subscription_ended.requested", mode),
       t("notifications.manager.subscription_ended.back"),
     ];
     action = { label: t("notifications.manager.subscription_ended.open"), url: `${space}/plus/abonnement` };
