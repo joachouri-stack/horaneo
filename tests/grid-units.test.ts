@@ -71,17 +71,15 @@ describe("grille des packs : une seule source pour les cartes et le comparatif",
     const card = gridCard(business, GRID, SOON);
     expect(card.previous).toBe("pro");
     expect(card.included.every((line) => !line.soon)).toBe(true);
-    expect(card.upcoming.map((line) => line.key)).toContain("aiChatbot");
+    expect(card.included.map((line) => line.key)).toContain("aiChatbot");
     expect(card.included.map((line) => line.key)).toContain("sms");
     expect(gridCard(starter, GRID, SOON).missing.length).toBeLessThanOrEqual(3);
-    // Pro : chatbot (questions et réponses) et langues en plus, annoncés tant qu'ils ne sont pas livrés.
-    expect(gridCard(pro, GRID, SOON).upcoming.map((line) => line.key)).toEqual([
-      "multilingual",
-      "commerce",
-      "formation",
-      "chatbotQuestions",
-    ]);
-    expect(gridCard(pro, GRID, SOON).upcoming.find((line) => line.key === "chatbotQuestions")?.count).toBe(
+    // Pro : chatbot (questions et réponses) et langues en plus inclus ; seuls Commerce et Formation sont annoncés.
+    expect(gridCard(pro, GRID, SOON).upcoming.map((line) => line.key)).toEqual(["commerce", "formation"]);
+    expect(gridCard(pro, GRID, SOON).included.map((line) => line.key)).toEqual(
+      expect.arrayContaining(["multilingual", "chatbotQuestions"]),
+    );
+    expect(gridCard(pro, GRID, SOON).included.find((line) => line.key === "chatbotQuestions")?.count).toBe(
       20,
     );
     expect(gridCard(pro, GRID, SOON).included.map((line) => line.key)).toContain("setupAssistance");
