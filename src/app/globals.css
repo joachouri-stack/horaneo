@@ -284,3 +284,101 @@ html:has(body.saas) {
 form:has(input[name="billing"][value="year"]:checked) [data-monthly-only] {
   display: none;
 }
+
+/*
+ * Cartes des packs (proposition « premium ») : lumière qui suit le pointeur,
+ * liseré champagne qui tourne lentement autour du pack mis en avant, grain
+ * léger, reflet sur son bouton. Tout s'arrête si moins d'animations est demandé.
+ */
+@property --hn-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes hn-spin {
+  to {
+    --hn-angle: 360deg;
+  }
+}
+.hn-spot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(22rem circle at var(--mx, 50%) var(--my, 0%), var(--spot), transparent 65%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+.hn-spot:hover::before {
+  opacity: 1;
+}
+.hn-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--hn-angle),
+    rgb(217 192 142 / 0.18),
+    #ecdbb4 10%,
+    rgb(217 192 142 / 0.18) 24%,
+    rgb(217 192 142 / 0.18) 58%,
+    #c9a96a 70%,
+    rgb(217 192 142 / 0.18) 84%
+  );
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.hn-edge {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(to bottom, var(--color-accent), var(--color-accent-line) 35%, transparent 70%);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.hn-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+}
+.hn-gold {
+  background: linear-gradient(180deg, #f6e9c9 0%, #d9c08e 55%, #c3a266 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.hn-shine {
+  position: relative;
+  overflow: hidden;
+}
+.hn-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / 0.55) 50%, transparent 65%);
+  transform: translateX(-120%);
+  pointer-events: none;
+}
+.hn-dots {
+  background-image: radial-gradient(rgb(27 42 74 / 0.09) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 35%, #000 30%, transparent 75%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hn-ring {
+    animation: hn-spin 9s linear infinite;
+  }
+  .hn-shine:hover::after {
+    transform: translateX(120%);
+    transition: transform 0.9s ease;
+  }
+}

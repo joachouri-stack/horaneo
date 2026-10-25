@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { pickLocalized, type Locale, type LocalizedText } from "@/i18n/locales";
-import { formatMoney } from "@/lib/format";
+import { formatMoney, moneyParts } from "@/lib/format";
 import type { PlanFeatures, PlanLimits } from "@/db/schema";
 import { gridCard, SOLUTIONS, type CardLine } from "@/modules/billing/grid";
 import type { LaunchOfferView } from "@/modules/billing/launch-offers";
@@ -11,6 +11,7 @@ import {
   yearlySavingCents,
   type BillingInterval,
 } from "@/modules/billing/yearly";
+import { PlanSpotlight } from "./PlanSpotlight";
 import { ArrowLine, CheckLine, CrownLine, DashLine, DiamondLine, LeafLine, TabletLine } from "./line-icons";
 
 type CardPlan = {
@@ -24,6 +25,8 @@ type CardPlan = {
 };
 
 const ICONS = [LeafLine, CrownLine, DiamondLine];
+/** Lignes affichées d'emblée sur chaque carte ; les suivantes se déplient. */
+const VISIBLE_LINES = 9;
 
 /**
  * Cartes des packs (Basic, Pro, Business) : nom, prix, description, ce que
@@ -55,6 +58,18 @@ export async function PlanCards({
   const tGrid = await getTranslations("home.grid");
   const soonSet = new Set(soon);
   const money = (cents: number) => formatMoney(cents, "EUR", locale);
+  // Prix des cartes : partie entière en grand, centimes et devise en petit.
+  const bigPrice = (cents: number, gold: boolean, className: string) => {
+    const { lead, tail } = moneyParts(cents, "EUR", locale);
+    return (
+      <span
+        className={`font-display font-semibold leading-none tracking-[-0.035em] tabular-nums ${gold ? "hn-gold" : className}`}
+      >
+        <span className="text-[3rem]">{lead}</span>
+        <span className="text-[1.5rem] tracking-[-0.02em]">{tail}</span>
+      </span>
+    );
+  };
   const nameOf = (code: string | null) =>
     pickLocalized(plans.find((plan) => plan.code === code)?.name ?? null, locale);
   const text = (line: CardLine) => {
@@ -65,7 +80,7 @@ export async function PlanCards({
   };
 
   return (
-    <div className="grid gap-5 lg:grid-cols-3 lg:items-stretch lg:gap-6">
+    <PlanSpotlight className="grid gap-5 lg:grid-cols-3 lg:items-stretch lg:gap-6">
       {plans.map((plan, index) => {
         // Pack mis en avant (« Le plus populaire ») : celui du milieu dans une grille de trois, sinon le dernier.
         const featured =
@@ -87,14 +102,21 @@ export async function PlanCards({
           pathname: "/commander" as const,
           query: billing === "year" ? { pack: plan.code, billing } : { pack: plan.code },
         });
+        const check = (
+          <span
+            className={`mt-[1px] flex size-[18px] flex-none items-center justify-center rounded-full ${
+              featured ? "bg-champagne/20 text-champagne" : "bg-accent-soft text-accent"
+            }`}
+          >
+            <CheckLine className="size-3" />
+          </span>
+        );
         const muted = featured ? "text-[#aab3c7]" : "text-ink-soft";
         const strong = featured ? "text-white" : "text-night";
 
         const line = (item: CardLine, key: string) => (
           <li key={key} data-only={item.solution ?? undefined} className="flex items-start gap-2.5">
-            <CheckLine
-              className={`mt-[3px] size-4 flex-none ${featured ? "text-champagne" : "text-accent"}`}
-            />
+            {check}
             <span>
               {text(item)}
               {item.soon && (
@@ -114,10 +136,10 @@ export async function PlanCards({
           <article
             key={plan.id}
             data-plan={plan.code}
-            className={`relative flex flex-col rounded-[1.4rem] p-6 transition duration-300 motion-reduce:transition-none lg:p-7 ${
+            className={`hn-spot relative flex flex-col rounded-[1.4rem] p-6 transition duration-300 motion-reduce:transition-none lg:p-7 ${
               featured
-                ? "bg-deep text-[#d5dbe8] shadow-[0_30px_60px_-28px_rgba(18,26,44,.75)] ring-1 ring-champagne/40 max-lg:order-first"
-                : "border border-hairline bg-white shadow-[0_1px_2px_rgba(15,24,48,.04)] hover:-translate-y-1 hover:shadow-[0_24px_44px_-30px_rgba(15,24,48,.35)]"
+                ? "bg-[radial-gradient(120%_60%_at_50%_-8%,#26324f_0%,#121a2c_55%,#0b1120_100%)] text-[#d5dbe8] shadow-[0_40px_80px_-36px_rgba(18,26,44,.85),0_0_0_1px_rgba(217,192,142,.08)] [--spot:rgba(217,192,142,.11)] max-lg:order-first lg:-my-3 lg:py-10"
+                : "border border-hairline bg-white/90 shadow-[0_1px_2px_rgba(15,24,48,.04),0_12px_32px_-24px_rgba(15,24,48,.18)] backdrop-blur-sm [--spot:color-mix(in_srgb,var(--color-accent)_9%,transparent)] hover:-translate-y-1 hover:shadow-[0_28px_50px_-30px_rgba(15,24,48,.35)]"
             }`}
           >
             {entry && (
@@ -127,10 +149,7 @@ export async function PlanCards({
                   aria-hidden="true"
                   className="pointer-events-none absolute inset-x-0 top-0 h-36 rounded-t-[1.4rem] bg-gradient-to-b from-accent-soft to-transparent"
                 />
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-x-0 top-0 h-1 rounded-t-[1.4rem] bg-accent"
-                />
+                <span aria-hidden="true" className="hn-edge" />
                 <p className="absolute right-5 top-0 -translate-y-1/2 rounded-full border border-accent-line bg-white px-3 py-1 text-[0.72rem] font-medium tracking-[0.02em] text-accent-strong">
                   {t("entryTag")}
                 </p>
@@ -138,7 +157,12 @@ export async function PlanCards({
             )}
             {featured && (
               <>
-                {/* Reflet champagne discret en haut de la carte. */}
+                {/* Liseré champagne qui tourne lentement, grain léger, reflet en haut de la carte. */}
+                <span aria-hidden="true" className="hn-ring" />
+                <span
+                  aria-hidden="true"
+                  className="hn-grain pointer-events-none absolute inset-0 rounded-[1.4rem]"
+                />
                 <span
                   aria-hidden="true"
                   className="pointer-events-none absolute inset-x-0 top-0 h-40 rounded-t-[1.4rem] bg-gradient-to-b from-champagne/10 to-transparent"
@@ -174,11 +198,7 @@ export async function PlanCards({
 
             <div className="relative mt-6 min-h-[4.6rem]">
               <p data-billing-only={withYearly ? "month" : undefined} className="flex items-baseline gap-2">
-                <span
-                  className={`font-display text-[2.6rem] font-semibold leading-none tracking-[-0.03em] ${strong}`}
-                >
-                  {money(plan.priceCents)}
-                </span>
+                {bigPrice(plan.priceCents, featured, strong)}
                 <span className={`text-[0.9rem] ${muted}`}>
                   {paid ? t("perMonth", { display }) : t("freeSuffix")}
                 </span>
@@ -186,11 +206,7 @@ export async function PlanCards({
               {withYearly && (
                 <div data-billing-only="year">
                   <p className="flex items-baseline gap-2">
-                    <span
-                      className={`font-display text-[2.6rem] font-semibold leading-none tracking-[-0.03em] ${strong}`}
-                    >
-                      {money(yearlyCents)}
-                    </span>
+                    {bigPrice(yearlyCents, featured, strong)}
                     <span className={`text-[0.9rem] ${muted}`}>{t("perYear", { display })}</span>
                   </p>
                   <p className={`mt-1.5 text-[0.82rem] ${muted}`}>
@@ -220,14 +236,27 @@ export async function PlanCards({
             >
               {card.previous && (
                 <li className={`flex items-start gap-2.5 font-medium ${strong}`}>
-                  <CheckLine
-                    className={`mt-[3px] size-4 flex-none ${featured ? "text-champagne" : "text-accent"}`}
-                  />
+                  {check}
                   {t("everythingIn", { plan: nameOf(card.previous) })}
                 </li>
               )}
-              {card.included.map((item, i) => line(item, `i${i}`))}
+              {card.included.slice(0, VISIBLE_LINES).map((item, i) => line(item, `i${i}`))}
             </ul>
+            {/* Listes longues : le reste se déplie, pour garder des cartes lisibles d'un coup d'œil. */}
+            {card.included.length > VISIBLE_LINES && (
+              <details className="group/more relative mt-2.5 text-[0.92rem] leading-snug">
+                <summary
+                  className={`inline-flex min-h-11 cursor-pointer list-none items-center gap-1.5 text-[0.85rem] font-medium underline-offset-4 hover:underline [&::-webkit-details-marker]:hidden ${featured ? "text-champagne" : "text-accent-strong"}`}
+                >
+                  <span className="group-open/more:hidden">{t("showAll")}</span>
+                  <span className="hidden group-open/more:inline">{t("showLess")}</span>
+                  <ArrowLine className="size-3.5 rotate-90 transition-transform group-open/more:-rotate-90" />
+                </summary>
+                <ul className="flex flex-col gap-2.5 pt-1">
+                  {card.included.slice(VISIBLE_LINES).map((item, i) => line(item, `r${i}`))}
+                </ul>
+              </details>
+            )}
 
             {/* Fonctions annoncées : à part, en plus petit, jamais présentées comme disponibles. */}
             {SOLUTIONS.map((solution) => {
@@ -295,9 +324,9 @@ export async function PlanCards({
                 href={hrefFor("month")}
                 className={`group flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-[0.95rem] font-medium transition duration-200 motion-reduce:transition-none ${
                   featured
-                    ? "bg-gradient-to-r from-[#c9a96a] to-[#e4cfa2] text-deep hover:brightness-105"
+                    ? "hn-shine bg-gradient-to-r from-[#c9a96a] via-[#e4cfa2] to-[#d2b47c] text-deep shadow-[0_12px_30px_-14px_rgba(217,192,142,.7)] hover:brightness-105"
                     : paid
-                      ? "bg-accent text-white hover:bg-accent-strong"
+                      ? "bg-accent text-white shadow-[inset_0_1px_0_rgba(255,255,255,.2),0_12px_26px_-16px_var(--color-accent)] hover:bg-accent-strong"
                       : "border border-hairline bg-white text-night hover:border-accent-line hover:text-accent-strong"
                 }`}
               >
@@ -310,9 +339,9 @@ export async function PlanCards({
                   href={hrefFor("year")}
                   className={`group flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-[0.95rem] font-medium transition duration-200 motion-reduce:transition-none ${
                     featured
-                      ? "bg-gradient-to-r from-[#c9a96a] to-[#e4cfa2] text-deep hover:brightness-105"
+                      ? "hn-shine bg-gradient-to-r from-[#c9a96a] via-[#e4cfa2] to-[#d2b47c] text-deep shadow-[0_12px_30px_-14px_rgba(217,192,142,.7)] hover:brightness-105"
                       : paid
-                        ? "bg-accent text-white hover:bg-accent-strong"
+                        ? "bg-accent text-white shadow-[inset_0_1px_0_rgba(255,255,255,.2),0_12px_26px_-16px_var(--color-accent)] hover:bg-accent-strong"
                         : "border border-hairline bg-white text-night hover:border-accent-line hover:text-accent-strong"
                   }`}
                 >
@@ -348,6 +377,6 @@ export async function PlanCards({
           </article>
         );
       })}
-    </div>
+    </PlanSpotlight>
   );
 }

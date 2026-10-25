@@ -163,10 +163,8 @@ export function BillingToggle({
       type="button"
       aria-pressed={context.billing === value}
       onClick={() => context.setBilling(value)}
-      className={`flex min-h-10 items-center gap-2 rounded-full px-4 text-[0.88rem] font-medium transition ${
-        context.billing === value
-          ? "bg-white text-night shadow-[0_2px_8px_-4px_rgba(15,24,48,.35)]"
-          : "text-ink-soft hover:text-night"
+      className={`relative z-10 flex min-h-10 items-center justify-center gap-2 rounded-full px-4 text-[0.88rem] font-medium transition-colors ${
+        context.billing === value ? "text-night" : "text-ink-soft hover:text-night"
       }`}
     >
       {text}
@@ -178,7 +176,18 @@ export function BillingToggle({
     </button>
   );
   return (
-    <div role="group" aria-label={labels.group} className="inline-flex rounded-full bg-accent-soft p-1">
+    <div
+      role="group"
+      aria-label={labels.group}
+      className="relative inline-grid grid-cols-2 rounded-full border border-accent-line bg-accent-soft/70 p-1 backdrop-blur"
+    >
+      {/* Pastille blanche qui glisse sous la périodicité choisie. */}
+      <span
+        aria-hidden="true"
+        className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-[0_4px_14px_-6px_rgba(15,24,48,.35)] transition-transform duration-300 ease-out motion-reduce:transition-none ${
+          context.billing === "year" ? "translate-x-full" : ""
+        }`}
+      />
       {option("month", labels.month)}
       {option("year", labels.year)}
     </div>

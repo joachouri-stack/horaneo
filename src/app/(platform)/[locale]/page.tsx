@@ -336,8 +336,14 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           <section
             id="tarifs"
             aria-labelledby="titre-tarifs"
-            className="mx-auto max-w-[75rem] scroll-mt-20 px-4 pt-20 sm:px-6 lg:pt-28"
+            className="relative isolate mx-auto max-w-[75rem] scroll-mt-20 px-4 pt-20 sm:px-6 lg:pt-28"
           >
+            {/* Fond des packs : trame de points et halos doux de l'accent et du champagne. */}
+            <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-40 -z-10 h-[46rem]">
+              <div className="hn-dots absolute inset-0" />
+              <div className="absolute left-[8%] top-24 size-[22rem] rounded-full bg-accent/10 blur-[90px]" />
+              <div className="absolute left-1/2 top-10 size-[26rem] -translate-x-1/2 rounded-full bg-champagne/20 blur-[100px]" />
+            </div>
             <div className="mb-10 flex flex-wrap items-end justify-between gap-4 lg:mb-12">
               <div>
                 <h2 id="titre-tarifs" className={`${TITLE} text-[clamp(1.8rem,3.4vw,2.5rem)] leading-[1.1]`}>
