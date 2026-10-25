@@ -3243,7 +3243,7 @@
     "billing": "Paiement",
     "billingMonthly": "Chaque mois",
     "billingYearly": "À l'année{months, plural, =0 {} one { · # mois offert} other { · # mois offerts}}",
-    "billingYearlyHint": "Payé en une fois pour 12 mois, renouvelé chaque année. Les options se facturent au mois."
+    "billingYearlyHint": "Payé en une fois pour 12 mois, renouvelé chaque année.{options, select, yes { Les options se facturent au mois.} other {}}"
   },
   "callback": {
     "metaTitle": "Être rappelé",
