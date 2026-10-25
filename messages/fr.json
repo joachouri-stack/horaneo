@@ -2574,7 +2574,33 @@
         "account": "Paiements et compte",
         "support": "Demandes et aide"
       },
-      "calendar": "Agenda sur mon téléphone"
+      "calendar": "Agenda sur mon téléphone",
+      "subtitle": "Tous vos outils au même endroit, rangés par thème.",
+      "desc": {
+        "stats": "Chiffre d'affaires, objectifs et graphiques du mois.",
+        "team": "Les membres de l'équipe et leurs horaires de travail.",
+        "unavailability": "Congés, pauses et fermetures de l'institut.",
+        "calendar": "Vos rendez-vous dans l'agenda de votre téléphone.",
+        "promotions": "Baissez le prix d'une prestation pendant quelques jours.",
+        "promo": "Des codes de réduction à partager avec vos clientes.",
+        "giftCards": "Les cartes cadeaux achetées sur votre site.",
+        "loyalty": "Un avantage offert après un nombre de visites.",
+        "payments": "Acomptes versés directement sur votre compte.",
+        "subscription": "Votre pack et votre utilisation du mois.",
+        "settings": "Réservation en ligne, horaires et informations.",
+        "requests": "Logo, couleurs, textes : demandez un changement.",
+        "customerData": "Copies et suppressions demandées par vos clientes.",
+        "help": "Questions fréquentes et contact du support."
+      },
+      "badge": {
+        "team": "{count, plural, =0 {Aucun membre} one {# membre} other {# membres}}",
+        "unavailability": "{count, plural, =0 {Aucune à venir} one {# à venir} other {# à venir}}",
+        "promotions": "{count, plural, =0 {Aucune en cours} one {# en cours} other {# en cours}}",
+        "promo": "{count, plural, =0 {Aucun actif} one {# actif} other {# actifs}}",
+        "giftCards": "{count, plural, =0 {Aucune active} one {# active} other {# actives}}",
+        "requests": "{count, plural, =0 {Aucune en cours} one {# en cours} other {# en cours}}",
+        "customerData": "{count, plural, =0 {Aucune à traiter} one {# à traiter} other {# à traiter}}"
+      }
     },
     "stats": {
       "title": "Statistiques",

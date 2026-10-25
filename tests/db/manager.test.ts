@@ -29,6 +29,7 @@ import { createTimeOff } from "@/modules/schedule/time-off";
 import { getStatsGoals, updateStatsGoals } from "@/modules/stats/goals";
 import { monthDetails, monthStats } from "@/modules/stats/month";
 import { replaceStaffSchedules } from "@/modules/team/schedules";
+import { toolsOverview } from "@/modules/stats/tools";
 import { deleteStaff, saveStaff } from "@/modules/team/staff";
 import { createTenant } from "@/modules/tenants/create";
 import { changePlan, changeStatus } from "@/modules/tenants/update";
@@ -362,6 +363,20 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
       const card = await asManager(s.id, (tx) => getCustomer(tx, s.id, byName[0].id, "fr"));
       expect(card?.stats).toEqual({ visits: 1, noShows: 0, spentCents: 7000 });
       expect(card?.history[0].services).toEqual(["Massage"]);
+    });
+
+    it("compteurs de « Tous les outils »", async () => {
+      const s = await setup();
+      const counts = await asManager(s.id, (tx) => toolsOverview(tx, s.id, "Europe/Paris"));
+      expect(counts).toEqual({
+        team: 2,
+        unavailability: 0,
+        promotions: 0,
+        promo: 0,
+        giftCards: 0,
+        requests: 0,
+        customerData: 0,
+      });
     });
 
     it("fichier clientes : visites, dépenses et groupes (nouvelles, à relancer)", async () => {
