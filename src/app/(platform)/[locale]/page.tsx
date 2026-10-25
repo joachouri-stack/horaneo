@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { pickLocalized } from "@/i18n/locales";
 import { formatMoney } from "@/lib/format";
+import Image from "next/image";
 import { connection } from "next/server";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PlatformFooter } from "@/components/layout/PlatformFooter";
@@ -383,6 +384,64 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   </ul>
                 </div>
               ))}
+            </div>
+          </section>
+
+          {/* Le tableau de bord (Réservation) : aperçu de l'espace de gestion. */}
+          <section
+            data-only="booking"
+            aria-labelledby="titre-tableau"
+            className="relative isolate overflow-hidden px-4 pt-20 sm:px-6 lg:pt-28"
+          >
+            <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-40 -z-10 h-[40rem]">
+              <div className="hn-drift absolute left-[10%] top-20 size-[26rem] rounded-full bg-accent/15 blur-[100px]" />
+              <div className="hn-drift-slow absolute right-[8%] top-40 size-[22rem] rounded-full bg-champagne/25 blur-[100px]" />
+            </div>
+            <div className="mx-auto max-w-[72rem]">
+              <div className="mx-auto max-w-[46rem] text-center">
+                <p data-reveal className={EYEBROW}>
+                  {t("dashboard.badge")}
+                </p>
+                <h2
+                  id="titre-tableau"
+                  data-reveal
+                  className={`${TITLE} hn-balance mt-4 text-[clamp(1.8rem,3.4vw,2.5rem)] leading-[1.1]`}
+                >
+                  {t("dashboard.title")} <span className="text-accent">{t("dashboard.titleAccent")}</span>
+                </h2>
+                <p data-reveal className="mt-4 text-[1.0625rem] text-ink-soft">
+                  {t("dashboard.text")}
+                </p>
+              </div>
+              <ul className="mx-auto mt-7 flex max-w-[52rem] flex-wrap justify-center gap-2.5">
+                {(t.raw("dashboard.points") as string[]).map((point) => (
+                  <li
+                    key={point}
+                    data-reveal
+                    className="flex items-center gap-2 rounded-full border border-accent-line bg-white/80 px-3.5 py-1.5 text-[0.9375rem] text-night backdrop-blur"
+                  >
+                    <span className="flex size-5 flex-none items-center justify-center rounded-full bg-accent text-white">
+                      <CheckLine className="size-3" />
+                    </span>
+                    {point}
+                  </li>
+                ))}
+              </ul>
+              <figure data-reveal className="mt-10 lg:mt-14">
+                <div className="rounded-[1.4rem] border border-hairline bg-white/70 p-1.5 shadow-[0_40px_90px_-40px_rgba(15,24,48,.45),0_0_0_1px_rgba(255,255,255,.6)_inset] backdrop-blur sm:p-2.5 lg:rounded-[1.8rem]">
+                  <Image
+                    src="/images/tableau-de-bord.webp"
+                    width={1536}
+                    height={1024}
+                    alt={t("dashboard.alt")}
+                    sizes="(min-width: 1152px) 72rem, 100vw"
+                    className="h-auto w-full rounded-[1rem] lg:rounded-[1.3rem]"
+                  />
+                </div>
+                <figcaption className="mt-3 text-center text-[0.8125rem] text-ink-soft">
+                  {t("dashboard.note")}
+                </figcaption>
+              </figure>
             </div>
           </section>
 
