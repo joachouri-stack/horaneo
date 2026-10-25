@@ -89,7 +89,7 @@ export function HeaderShell({
               ))}
               <li className="pt-2">
                 <Link
-                  href={{ pathname: "/commander", query: { pack: "basic" } }}
+                  href="/commander"
                   onClick={() => setOpen(false)}
                   tabIndex={open ? undefined : -1}
                   className="flex min-h-12 items-center justify-center rounded-xl bg-navy px-6 font-medium text-white"

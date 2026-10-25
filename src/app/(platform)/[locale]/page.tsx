@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { pickLocalized } from "@/i18n/locales";
+import { formatMoney } from "@/lib/format";
 import { connection } from "next/server";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PlatformFooter } from "@/components/layout/PlatformFooter";
@@ -141,19 +143,27 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
   const soon = new Set<string>(data.soon);
   const isSoon = (solution: Solution) =>
     data.solutions.find((item) => item.code === solution)?.status !== "available";
-  const free = data.plans.find((plan) => plan.priceCents <= 0);
+  // Premier pack de la grille (le moins cher) : bouton « Commencer » et question de la FAQ.
+  const first = [...data.plans].sort((a, b) => a.priceCents - b.priceCents)[0];
   const contact = config.SUPPORT_EMAIL ?? `support@${config.MAIN_DOMAIN}`;
-  const startHref = { pathname: "/commander" as const, query: free ? { pack: free.code } : {} };
+  const startHref = { pathname: "/commander" as const, query: first ? { pack: first.code } : {} };
 
   const faqValues = {
     months: data.commitment,
     display: data.display,
     percent: data.warningPercent,
     product: config.PRODUCT_NAME,
-    bookings: free?.limits.onlineBookingsPerMonth ?? 0,
-    customers: free?.limits.customers ?? 0,
+    plan: first ? pickLocalized(first.name, locale) : "",
+    price: first ? formatMoney(first.priceCents, first.currency, locale) : "",
+    free: first && first.priceCents <= 0 ? "yes" : "no",
+    bookings: first?.limits.onlineBookingsPerMonth ?? 0,
+    customers: first?.limits.customers ?? 0,
   };
-  const faq = FAQ.map((key) => ({ key, q: t(`faq.items.${key}.q`), a: t(`faq.items.${key}.a`, faqValues) }));
+  const faq = FAQ.map((key) => ({
+    key,
+    q: t(`faq.items.${key}.q`, faqValues),
+    a: t(`faq.items.${key}.a`, faqValues),
+  }));
   const structuredData = [
     {
       "@context": "https://schema.org",

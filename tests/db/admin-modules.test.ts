@@ -547,6 +547,7 @@ describe.skipIf(!hasTestDatabase)("espace admin : modules", () => {
       expect(stats.drafts).toBeGreaterThan(0);
       expect(stats.byPlan.map((plan) => plan.code)).toEqual([
         "basic",
+        "starter",
         "pro",
         "business",
         "essentiel",

@@ -12,7 +12,7 @@ import { listTenantOptions } from "@/modules/billing/options";
 import { listPublicPlans, planHighlights } from "@/modules/billing/plans";
 import { canBuySmsPacks, listSmsPacks, smsPackOffer, syncSmsPackPayment } from "@/modules/billing/sms-packs";
 import { smsUsage } from "@/modules/messages/sms-usage";
-import { getSubscription, isLive } from "@/modules/billing/subscriptions";
+import { freePlan, getSubscription, isLive } from "@/modules/billing/subscriptions";
 import type { AppErrorCode } from "@/modules/errors";
 import { countUsage } from "@/modules/quotas";
 import { getPlatformSetting } from "@/modules/settings";
@@ -58,6 +58,8 @@ export default async function SubscriptionPage({
       plans: await listPublicPlans(tx),
       // Pack actuel, même s'il n'est plus proposé à la vente (anciens packs).
       currentPlan: (await tx.select().from(plansTable).where(eq(plansTable.id, page.tenant.planId)))[0],
+      // Pack gratuit : vendu (on peut y passer) ou hors vente (fin d'abonnement = site en pause).
+      freePlan: await freePlan(tx),
       options: await listTenantOptions(tx, page.tenantId),
       display: await getPlatformSetting(tx, "prices_display"),
       commitmentMonths: Number(await getPlatformSetting(tx, "commitment_months")),
@@ -81,6 +83,7 @@ export default async function SubscriptionPage({
   const freeDate = [periodEnd, live?.commitmentEndsAt]
     .filter((date): date is Date => Boolean(date))
     .sort((a, b) => b.getTime() - a.getTime())[0];
+  const pausing = !data.freePlan.isPublic;
   const priceLabel = (cents: number) =>
     cents > 0 ? t("perMonth", { amount: page.fmt.money(cents), display }) : t("free");
   const error = typeof query.erreur === "string" ? (query.erreur as AppErrorCode) : null;
@@ -123,6 +126,11 @@ export default async function SubscriptionPage({
       {result && (
         <p role="status" className={ui.success}>
           {t(`result.${result}`)}
+        </p>
+      )}
+      {page.tenant.status === "suspended" && !live && (
+        <p role="alert" className={ui.error}>
+          {t("paused")}
         </p>
       )}
       {live?.paymentFailedAt && (
@@ -170,7 +178,9 @@ export default async function SubscriptionPage({
         )}
         {live?.cancelAt && (
           <div className="mt-4 rounded-[var(--radius-card)] bg-ivory p-4">
-            <p>{t("status.cancelAt", { date: page.fmt.short(live.cancelAt) })}</p>
+            <p>
+              {t("status.cancelAt", { date: page.fmt.short(live.cancelAt), pause: pausing ? "yes" : "no" })}
+            </p>
             {keepForm}
           </div>
         )}
@@ -436,6 +446,23 @@ export default async function SubscriptionPage({
               })}
             </div>
           ))}
+        {/* Sans pack gratuit à la vente : on arrête l'abonnement, le site est mis en pause à la fin. */}
+        {live && pausing && !live.cancelAt && configured && (
+          <form action={changeSubscriptionAction} className={`${ui.card} space-y-2`}>
+            <input type="hidden" name="tenantId" value={page.tenantId} />
+            <input type="hidden" name="planId" value={data.freePlan.id} />
+            <h3 className="text-lg font-bold text-night">{t("stop")}</h3>
+            <p className="text-sm text-ink/70">
+              {t("stopHint", { date: freeDate ? page.fmt.short(freeDate) : "" })}
+            </p>
+            <SubmitButton
+              className={`${ui.secondaryButton} sm:w-auto`}
+              confirm={t("stopConfirm", { date: freeDate ? page.fmt.short(freeDate) : "" })}
+            >
+              {t("stop")}
+            </SubmitButton>
+          </form>
+        )}
       </section>
     </div>
   );

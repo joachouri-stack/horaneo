@@ -50,9 +50,10 @@ describe("valeurs de départ des packs", () => {
 
   const grid = Object.fromEntries(DEFAULT_GRID_PLANS.map((plan) => [plan.code, plan]));
 
-  it("grille Basic, Pro, Business : prix de lancement hors taxes", () => {
+  it("grille Starter, Pro, Business : prix de lancement hors taxes ; le Basic gratuit hors vente", () => {
     expect(DEFAULT_GRID_PLANS.map((plan) => [plan.code, plan.priceCents, plan.isPublic])).toEqual([
-      ["basic", 0, true],
+      ["basic", 0, false],
+      ["starter", 1999, true],
       ["pro", 3990, true],
       ["business", 7900, true],
     ]);

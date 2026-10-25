@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "{product} : votre activité, un seul outil",
-    "description": "Site web, réservations, clients, paiements, automatisations et marketing, au même endroit. Commencez gratuitement."
+    "description": "Site web, réservations, clients, paiements, automatisations et marketing, au même endroit."
   },
   "platformErrors": {
     "notFoundTitle": "Page introuvable",
@@ -52,7 +52,7 @@
       "menu": "Menu",
       "closeMenu": "Fermer le menu"
     },
-    "cta": "Essayer gratuitement",
+    "cta": "Commencer",
     "hero": {
       "badge": "Une plateforme pour gérer toute votre activité",
       "title": "Votre activité. Un seul outil.",
@@ -181,7 +181,7 @@
     },
     "plans": {
       "title": "Choisissez votre pack",
-      "subtitle": "Les mêmes tarifs pour les trois solutions. Commencez gratuitement, évoluez quand vous voulez.",
+      "subtitle": "Les mêmes tarifs pour les trois solutions. Évoluez quand vous voulez.",
       "monthly": "Prix mensuels {display}",
       "free": "Gratuit",
       "freeSuffix": "pour toujours",
@@ -649,8 +649,8 @@
       "contact": "Nous écrire",
       "items": {
         "basic": {
-          "q": "Le pack Basic est-il vraiment gratuit ?",
-          "a": "Oui, sans limite de durée et sans carte bancaire. Il comprend une fiche professionnelle, {bookings} réservations par mois et {customers} contacts clients. Vous passez à un pack payant quand vous le souhaitez."
+          "q": "Que comprend le pack {plan} ?",
+          "a": "{free, select, yes {Il est gratuit, sans limite de durée.} other {Il coûte {price} par mois {display}.}} Il comprend un site vitrine, {bookings} réservations en ligne par mois et {customers} contacts clients. Vous passez à un pack plus complet quand vous le souhaitez."
         },
         "commitment": {
           "q": "Suis-je engagé ?",
@@ -662,7 +662,7 @@
         },
         "domain": {
           "q": "Puis-je utiliser mon propre nom de domaine ?",
-          "a": "Oui, dès le pack Basic vous pouvez connecter un domaine existant. Avec le pack Business, un nom de domaine peut être offert, sous conditions de coût et de renouvellement."
+          "a": "Oui, dès le premier pack vous pouvez connecter un domaine existant. Avec le pack Business, un nom de domaine peut être offert, sous conditions de coût et de renouvellement."
         },
         "quotas": {
           "q": "Que se passe-t-il si j'atteins un quota ?",
@@ -692,8 +692,8 @@
     },
     "final": {
       "title": "Prêt à simplifier votre activité ?",
-      "text": "Commencez gratuitement avec le pack Basic. Aucune carte bancaire demandée.",
-      "cta": "Essayer gratuitement"
+      "text": "Choisissez votre pack : vous en changez quand vous voulez.",
+      "cta": "Commencer"
     },
     "options": {
       "requires": "Nécessite : {names}",
@@ -2450,7 +2450,7 @@
         "nextPayment": "Prochain prélèvement le {date} : {amount}",
         "commitment": "Engagement jusqu'au {date}",
         "scheduled": "Passage au pack {name} le {date}.",
-        "cancelAt": "Votre pack payant se termine le {date}. Votre site passera ensuite au pack gratuit.",
+        "cancelAt": "Votre pack payant se termine le {date}. {pause, select, yes {Votre site sera ensuite mis en pause.} other {Votre site passera ensuite au pack gratuit.}}",
         "keep": "Garder mon pack actuel",
         "free": "Pack gratuit, sans prélèvement.",
         "assigned": "Pack mis en place par notre équipe : aucun prélèvement automatique pour le moment.",
@@ -2471,6 +2471,10 @@
       "toFree": "Passer au pack gratuit",
       "toFreeHint": "Votre pack payant continue jusqu'au {date}, puis votre site devient une fiche gratuite d'une page. Rien n'est supprimé.",
       "toFreeConfirm": "Passer au pack gratuit le {date} ?",
+      "stop": "Arrêter mon abonnement",
+      "stopHint": "Votre abonnement continue jusqu'au {date}, puis votre site est mis en pause. Rien n'est supprimé : vous pourrez reprendre un pack quand vous voulez.",
+      "stopConfirm": "Arrêter votre abonnement le {date} ?",
+      "paused": "Votre site est en pause : il n'est plus visible. Choisissez un pack pour le remettre en ligne, rien n'a été supprimé.",
       "subscribe": "Choisir ce pack",
       "subscribeHint": "Paiement par carte sur la page sécurisée de Stripe.",
       "setupFee": "Frais de création : {amount} (une seule fois).",
@@ -2969,15 +2973,15 @@
         "subject": "Votre prélèvement n'a pas abouti",
         "title": "Prélèvement refusé",
         "intro": "Le prélèvement de votre abonnement n'a pas pu être effectué. Une nouvelle tentative sera faite automatiquement dans les prochains jours.",
-        "action": "Mettez à jour votre carte pour éviter le retour au pack gratuit.",
+        "action": "Mettez à jour votre carte pour que votre site reste en ligne avec son pack.",
         "open": "Mettre à jour ma carte"
       },
       "subscription_ended": {
-        "subject": "Votre site est passé au pack gratuit",
-        "title": "Retour au pack gratuit",
-        "requested": "Comme demandé, votre abonnement payant est terminé. Votre site est désormais une fiche gratuite d'une page.",
-        "unpaid": "Les prélèvements de votre abonnement n'ont pas abouti malgré plusieurs tentatives. Votre site est passé au pack gratuit : rien n'est supprimé.",
-        "back": "Vous pouvez reprendre un pack payant à tout moment depuis votre espace.",
+        "subject": "{paused, select, yes {Votre site est en pause} other {Votre site est passé au pack gratuit}}",
+        "title": "{paused, select, yes {Site en pause} other {Retour au pack gratuit}}",
+        "requested": "{paused, select, yes {Comme demandé, votre abonnement est terminé. Votre site est en pause : il n'est plus visible, mais rien n'est supprimé.} other {Comme demandé, votre abonnement payant est terminé. Votre site est désormais une fiche gratuite d'une page.}}",
+        "unpaid": "{paused, select, yes {Les prélèvements de votre abonnement n'ont pas abouti malgré plusieurs tentatives. Votre site est en pause : il n'est plus visible, mais rien n'est supprimé.} other {Les prélèvements de votre abonnement n'ont pas abouti malgré plusieurs tentatives. Votre site est passé au pack gratuit : rien n'est supprimé.}}",
+        "back": "Vous pouvez reprendre un pack à tout moment depuis votre espace : votre site revient aussitôt en ligne.",
         "open": "Voir les packs"
       },
       "gift_card_sold": {

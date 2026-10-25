@@ -57,13 +57,32 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
   }));
   // Options choisies sur l'accueil (?options=booking,online-payment), reprises dans le formulaire.
   const initialOptions = typeof query.options === "string" ? query.options.split(",").slice(0, 20) : [];
-  // Vente fermée : seuls les packs gratuits se commandent en ligne.
+  // Vente fermée : seuls les packs gratuits (s'il y en a) se commandent en ligne.
   const orderable = open ? plans : plans.filter((plan) => plan.priceCents <= 0);
   const selected =
     orderable.find((plan) => plan.code === pack) ??
     orderable.find((plan) => plan.priceCents > 0) ??
     orderable[0];
   const money = (cents: number) => formatMoney(cents, "EUR", locale);
+
+  // Vente fermée et aucun pack gratuit : on propose d'être rappelée.
+  if (orderable.length === 0) {
+    const tErrors = await getTranslations("errors");
+    return (
+      <>
+        <PlatformHeader />
+        <main id="contenu" className="mx-auto max-w-2xl space-y-6 px-4 py-8">
+          <h1 className="text-3xl font-extrabold">{t("title")}</h1>
+          <div className={`${ui.card} space-y-4`}>
+            <p>{tErrors("sales_paused")}</p>
+            <Link href="/rappel" className={`${ui.primaryButton} sm:w-auto`}>
+              {tHome("callback")}
+            </Link>
+          </div>
+        </main>
+      </>
+    );
+  }
 
   return (
     <>

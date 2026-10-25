@@ -38,9 +38,11 @@ export async function pgErrorCode(promise: Promise<unknown>): Promise<string | u
  * tests qui s'en sert pour vérifier les mécanismes d'abonnement. Renvoie la
  * fonction qui rétablit la grille actuelle.
  */
-export async function withLegacyCatalog(owner: TestDb) {
+export async function withLegacyCatalog(owner: TestDb, { freeOnSale = false } = {}) {
   const codes = sql.raw(`('essentiel', 'serenite', 'express', 'vitrine', 'signature')`);
   await owner.execute(sql`UPDATE plans SET is_public = true WHERE code IN ${codes}`);
+  // Ancienne offre avec un pack gratuit à la vente (demande validée à la main).
+  if (freeOnSale) await owner.execute(sql`UPDATE plans SET is_public = true WHERE code = 'basic'`);
   await owner.execute(
     sql`UPDATE platform_settings SET value = 'true'::jsonb WHERE key = 'offer_no_commitment'`,
   );
@@ -49,7 +51,7 @@ export async function withLegacyCatalog(owner: TestDb) {
   await owner.execute(sql`UPDATE platform_settings SET value = '"TTC"'::jsonb WHERE key = 'prices_display'`);
   await owner.execute(sql`DELETE FROM platform_settings WHERE key = 'stripe_tax_rate'`);
   return async () => {
-    await owner.execute(sql`UPDATE plans SET is_public = false WHERE code IN ${codes}`);
+    await owner.execute(sql`UPDATE plans SET is_public = false WHERE code IN ${codes} OR code = 'basic'`);
     await owner.execute(sql`UPDATE platform_settings SET value = '"HT"'::jsonb WHERE key = 'prices_display'`);
     await owner.execute(sql`DELETE FROM platform_settings WHERE key = 'stripe_tax_rate'`);
   };

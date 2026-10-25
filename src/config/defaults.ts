@@ -408,25 +408,41 @@ const GRID_BUSINESS = {
 /** Aucun outil intelligent (quotas à 0). */
 const NO_AI = { aiChatConversations: 0, whatsappConversations: 0, aiTexts: 0, aiImages: 0 };
 
+/** Limites du premier pack de la grille (et du pack gratuit hors vente). */
+const STARTER_LIMITS = {
+  onlineBookingsPerMonth: 10,
+  customers: 50,
+  members: 1,
+  photos: 10,
+  services: null,
+  smsPerMonth: 0,
+  ...NO_AI,
+};
+
 export const DEFAULT_GRID_PLANS: PlanSeed[] = [
   {
+    // Hors vente : reçoit les sites dont l'abonnement payant se termine (mis en pause).
     code: "basic",
     name: { fr: "Basic", en: "Basic", es: "Basic", ru: "Basic" },
     description: { fr: "L'essentiel pour bien démarrer" },
     priceCents: 0,
     noCommitmentFeeCents: null,
     highlights: [],
+    sortOrder: 0,
+    isPublic: false,
+    limits: STARTER_LIMITS,
+    features: GRID_BASIC,
+  },
+  {
+    code: "starter",
+    name: { fr: "Starter", en: "Starter", es: "Starter", ru: "Starter" },
+    description: { fr: "L'essentiel pour bien démarrer" },
+    priceCents: 1999,
+    noCommitmentFeeCents: null,
+    highlights: [],
     sortOrder: 1,
     isPublic: true,
-    limits: {
-      onlineBookingsPerMonth: 10,
-      customers: 50,
-      members: 1,
-      photos: 10,
-      services: null,
-      smsPerMonth: 0,
-      ...NO_AI,
-    },
+    limits: STARTER_LIMITS,
     features: GRID_BASIC,
   },
   {

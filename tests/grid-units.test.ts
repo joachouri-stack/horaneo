@@ -5,11 +5,13 @@ import { crossedLevel } from "@/modules/billing/usage";
 import messages from "../messages/fr.json";
 
 const SOON = new Set<string>(DEFAULT_PLATFORM_SETTINGS.features_soon);
-const [basic, pro, business] = DEFAULT_GRID_PLANS;
+// La grille montre les packs en vente (le Basic gratuit est hors vente).
+const GRID = DEFAULT_GRID_PLANS.filter((plan) => plan.isPublic);
+const [starter, pro, business] = GRID;
 
 describe("grille des packs : une seule source pour les cartes et le comparatif", () => {
   it("donne les quotas réglés, « illimité » ou « non inclus »", () => {
-    const rows = gridComparison(DEFAULT_GRID_PLANS, SOON).flatMap((group) => group.rows);
+    const rows = gridComparison(GRID, SOON).flatMap((group) => group.rows);
     const row = (key: string) => rows.find((item) => item.key === key)!.cells;
     expect(row("bookings")).toEqual([
       { included: true, count: 10 },
@@ -30,7 +32,7 @@ describe("grille des packs : une seule source pour les cartes et le comparatif",
   });
 
   it("range les lignes dans les douze catégories, Commerce et Formation marquées « Bientôt »", () => {
-    const groups = gridComparison(DEFAULT_GRID_PLANS, SOON);
+    const groups = gridComparison(GRID, SOON);
     expect(groups.map((group) => group.category)).toEqual([
       "site",
       "booking",
@@ -50,13 +52,13 @@ describe("grille des packs : une seule source pour les cartes et le comparatif",
   });
 
   it("carte : ce que le pack ajoute au précédent, les fonctions annoncées à part", () => {
-    const card = gridCard(business, DEFAULT_GRID_PLANS, SOON);
+    const card = gridCard(business, GRID, SOON);
     expect(card.previous).toBe("pro");
     expect(card.included.every((line) => !line.soon)).toBe(true);
     expect(card.upcoming.map((line) => line.key)).toContain("aiChatbot");
     expect(card.included.map((line) => line.key)).toContain("sms");
-    expect(gridCard(basic, DEFAULT_GRID_PLANS, SOON).missing.length).toBeLessThanOrEqual(3);
-    expect(gridCard(pro, DEFAULT_GRID_PLANS, SOON).upcoming.map((line) => line.solution)).toEqual([
+    expect(gridCard(starter, GRID, SOON).missing.length).toBeLessThanOrEqual(3);
+    expect(gridCard(pro, GRID, SOON).upcoming.map((line) => line.solution)).toEqual([
       "commerce",
       "formation",
     ]);
@@ -64,7 +66,7 @@ describe("grille des packs : une seule source pour les cartes et le comparatif",
 
   it("chaque ligne a ses textes (comparatif et carte)", () => {
     const rows = messages.home.grid.rows as Record<string, { label: string; card: string }>;
-    for (const group of gridComparison(DEFAULT_GRID_PLANS, SOON))
+    for (const group of gridComparison(GRID, SOON))
       for (const row of group.rows) expect(rows[row.key]?.label, row.key).toBeTruthy();
   });
 });
