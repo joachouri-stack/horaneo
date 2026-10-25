@@ -17,7 +17,11 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   images: {
     // Photos des clients : stockage local (/media) ou domaine public R2.
-    localPatterns: [{ pathname: "/media/**", search: "" }],
+    // Images du site commercial : /images.
+    localPatterns: [
+      { pathname: "/media/**", search: "" },
+      { pathname: "/images/**", search: "" },
+    ],
     remotePatterns: process.env.R2_PUBLIC_URL
       ? [new URL(`${process.env.R2_PUBLIC_URL.replace(/\/$/, "")}/**`)]
       : [],
