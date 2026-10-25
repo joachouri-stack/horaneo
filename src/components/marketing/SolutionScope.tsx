@@ -90,7 +90,7 @@ export function SolutionTabs({
                 </span>
                 {item.soon && (
                   <span
-                    className={`rounded-full px-2 py-px text-[0.68rem] font-medium ${
+                    className={`rounded-full px-2 py-px text-[0.75rem] font-medium ${
                       active ? "bg-white/15 text-white" : "bg-mist-50 text-ink-soft"
                     }`}
                   >
@@ -163,13 +163,13 @@ export function BillingToggle({
       type="button"
       aria-pressed={context.billing === value}
       onClick={() => context.setBilling(value)}
-      className={`relative z-10 flex min-h-10 items-center justify-center gap-2 rounded-full px-4 text-[0.88rem] font-medium transition-colors ${
+      className={`relative z-10 flex min-h-11 items-center justify-center gap-2 rounded-full px-4 text-[0.88rem] font-medium transition-colors ${
         context.billing === value ? "text-night" : "text-ink-soft hover:text-night"
       }`}
     >
       {text}
       {value === "year" && labels.badge && (
-        <span className="rounded-full bg-accent px-2 py-px text-[0.7rem] font-medium text-white">
+        <span className="rounded-full bg-accent px-2 py-px text-[0.75rem] font-medium text-white">
           {labels.badge}
         </span>
       )}

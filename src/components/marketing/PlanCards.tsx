@@ -80,7 +80,7 @@ export async function PlanCards({
   };
 
   return (
-    <PlanSpotlight className="grid gap-5 lg:grid-cols-3 lg:items-stretch lg:gap-6">
+    <PlanSpotlight className="grid gap-5 md:max-lg:mx-auto md:max-lg:max-w-[36rem] lg:grid-cols-3 lg:items-stretch lg:gap-6">
       {plans.map((plan, index) => {
         // Pack mis en avant (« Le plus populaire ») : celui du milieu dans une grille de trois, sinon le dernier.
         const featured =
@@ -121,7 +121,7 @@ export async function PlanCards({
               {text(item)}
               {item.soon && (
                 <span
-                  className={`ml-1.5 inline-block rounded-full px-1.5 py-px align-[1px] text-[0.66rem] font-medium ${
+                  className={`ml-1.5 inline-block rounded-full px-1.5 py-px align-[1px] text-[0.75rem] font-medium ${
                     featured ? "bg-white/10 text-champagne" : "bg-mist-50 text-ink-soft"
                   }`}
                 >
@@ -150,7 +150,7 @@ export async function PlanCards({
                   className="pointer-events-none absolute inset-x-0 top-0 h-36 rounded-t-[1.4rem] bg-gradient-to-b from-accent-soft to-transparent"
                 />
                 <span aria-hidden="true" className="hn-edge" />
-                <p className="absolute right-5 top-0 -translate-y-1/2 rounded-full border border-accent-line bg-white px-3 py-1 text-[0.72rem] font-medium tracking-[0.02em] text-accent-strong">
+                <p className="absolute right-5 top-0 -translate-y-1/2 rounded-full border border-accent-line bg-white px-3 py-1 text-[0.75rem] font-medium tracking-[0.02em] text-accent-strong">
                   {t("entryTag")}
                 </p>
               </>
@@ -167,7 +167,7 @@ export async function PlanCards({
                   aria-hidden="true"
                   className="pointer-events-none absolute inset-x-0 top-0 h-40 rounded-t-[1.4rem] bg-gradient-to-b from-champagne/10 to-transparent"
                 />
-                <p className="absolute right-5 top-0 -translate-y-1/2 rounded-full bg-gradient-to-r from-[#c9a96a] to-[#e4cfa2] px-3 py-1 text-[0.72rem] font-medium tracking-[0.02em] text-deep">
+                <p className="absolute right-5 top-0 -translate-y-1/2 rounded-full bg-gradient-to-r from-[#c9a96a] to-[#e4cfa2] px-3 py-1 text-[0.75rem] font-medium tracking-[0.02em] text-deep">
                   {t("recommended")}
                 </p>
               </>
@@ -196,7 +196,7 @@ export async function PlanCards({
               </div>
             </div>
 
-            <div className="relative mt-6 min-h-[4.6rem]">
+            <div className={`relative mt-6 ${withYearly ? "lg:min-h-[4.6rem]" : ""}`}>
               <p data-billing-only={withYearly ? "month" : undefined} className="flex items-baseline gap-2">
                 {bigPrice(plan.priceCents, featured, strong)}
                 <span className={`text-[0.9rem] ${muted}`}>
@@ -217,7 +217,7 @@ export async function PlanCards({
                     })}
                     {yearly.freeMonths > 0 && (
                       <span
-                        className={`ml-2 inline-block rounded-full px-2 py-px text-[0.72rem] font-medium ${
+                        className={`ml-2 inline-block rounded-full px-2 py-px text-[0.75rem] font-medium ${
                           featured ? "bg-champagne/15 text-champagne" : "bg-accent-soft text-accent-strong"
                         }`}
                       >
@@ -309,7 +309,7 @@ export async function PlanCards({
                   <p className="flex flex-wrap items-center gap-2">
                     <span className={`font-medium ${strong}`}>{pickLocalized(offer.title, locale)}</span>
                     <span
-                      className={`rounded-full px-2 py-px text-[0.68rem] ${featured ? "bg-champagne/15 text-champagne" : "bg-white text-accent-strong"}`}
+                      className={`rounded-full px-2 py-px text-[0.75rem] ${featured ? "bg-champagne/15 text-champagne" : "bg-white text-accent-strong"}`}
                     >
                       {t("tablet.badge")}
                     </span>
@@ -324,7 +324,7 @@ export async function PlanCards({
                 href={hrefFor("month")}
                 className={`group flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-[0.95rem] font-medium transition duration-200 motion-reduce:transition-none ${
                   featured
-                    ? "hn-shine bg-gradient-to-r from-[#c9a96a] via-[#e4cfa2] to-[#d2b47c] text-deep shadow-[0_12px_30px_-14px_rgba(217,192,142,.7)] hover:brightness-105"
+                    ? "hn-shine bg-gradient-to-r from-[#c9a96a] via-[#e4cfa2] to-[#d2b47c] text-deep focus-visible:outline-white shadow-[0_12px_30px_-14px_rgba(217,192,142,.7)] hover:brightness-105"
                     : paid
                       ? "bg-accent text-white shadow-[inset_0_1px_0_rgba(255,255,255,.2),0_12px_26px_-16px_var(--color-accent)] hover:bg-accent-strong"
                       : "border border-hairline bg-white text-night hover:border-accent-line hover:text-accent-strong"
@@ -339,7 +339,7 @@ export async function PlanCards({
                   href={hrefFor("year")}
                   className={`group flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-[0.95rem] font-medium transition duration-200 motion-reduce:transition-none ${
                     featured
-                      ? "hn-shine bg-gradient-to-r from-[#c9a96a] via-[#e4cfa2] to-[#d2b47c] text-deep shadow-[0_12px_30px_-14px_rgba(217,192,142,.7)] hover:brightness-105"
+                      ? "hn-shine bg-gradient-to-r from-[#c9a96a] via-[#e4cfa2] to-[#d2b47c] text-deep focus-visible:outline-white shadow-[0_12px_30px_-14px_rgba(217,192,142,.7)] hover:brightness-105"
                       : paid
                         ? "bg-accent text-white shadow-[inset_0_1px_0_rgba(255,255,255,.2),0_12px_26px_-16px_var(--color-accent)] hover:bg-accent-strong"
                         : "border border-hairline bg-white text-night hover:border-accent-line hover:text-accent-strong"
@@ -366,7 +366,7 @@ export async function PlanCards({
               {offer && (
                 <details className={`group mt-2 text-center text-[0.74rem] leading-snug ${muted}`}>
                   <summary
-                    className={`inline-flex min-h-9 cursor-pointer list-none items-center underline underline-offset-2 [&::-webkit-details-marker]:hidden ${featured ? "hover:text-champagne" : "hover:text-accent-strong"}`}
+                    className={`inline-flex min-h-11 cursor-pointer list-none items-center underline underline-offset-2 [&::-webkit-details-marker]:hidden ${featured ? "hover:text-champagne" : "hover:text-accent-strong"}`}
                   >
                     {t("tablet.conditions")}
                   </summary>
