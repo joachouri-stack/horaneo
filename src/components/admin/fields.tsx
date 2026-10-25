@@ -18,6 +18,7 @@ export function TextField({
   defaultValue?: string | number | null;
   placeholder?: string;
   inputMode?: "numeric" | "decimal" | "email" | "tel" | "url";
+  autoComplete?: string;
 }) {
   const id = props.id ?? `f-${props.name}`;
   return (
@@ -33,6 +34,7 @@ export function TextField({
         defaultValue={defaultValue ?? undefined}
         placeholder={placeholder}
         inputMode={props.inputMode}
+        autoComplete={props.autoComplete}
         className={ui.input}
       />
       <Hint text={props.hint} />

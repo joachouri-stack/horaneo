@@ -16,6 +16,7 @@ import {
 } from "@/modules/orders/orders";
 import { salesOpen } from "@/modules/legal/documents";
 import { requestCallback } from "@/modules/orders/callback";
+import { findOrCreateOrderCustomer } from "@/modules/orders/customer";
 import { createTenant } from "@/modules/tenants/create";
 import { createFakeBilling } from "../setup/fake-billing";
 import { createFakeSenders } from "../setup/fake-senders";
@@ -162,6 +163,37 @@ describe.skipIf(!hasTestDatabase)("commandes", () => {
     // Un autre utilisateur ne peut pas consulter cette commande.
     const stranger = await newUser();
     expect(await platform((tx) => syncOrderPayment(tx, stranger.id, order.id, billing.gateway))).toBeNull();
+  });
+
+  it("commande sans compte : le compte est créé ou retrouvé par l'e-mail, puis paiement", async () => {
+    n += 1;
+    const email = `Sans-Compte-${n}-${Date.now().toString(36)}@Example.com`;
+    const customer = { email: `  ${email} `, firstName: "Léa", lastName: "Martin" };
+    const userId = await platform((tx) => findOrCreateOrderCustomer(tx, customer, "fr"));
+    const [created] = await owner.select().from(users).where(eq(users.id, userId));
+    expect(created).toMatchObject({ email: email.toLowerCase(), name: "Léa Martin", isPlatformAdmin: false });
+    // Même adresse (casse différente), autre nom : même compte, nom inchangé.
+    const again = await platform((tx) =>
+      findOrCreateOrderCustomer(tx, { email: email.toUpperCase(), firstName: "X", lastName: "Y" }, "fr"),
+    );
+    expect(again).toBe(userId);
+    const [kept] = await owner.select().from(users).where(eq(users.id, userId));
+    expect(kept.name).toBe("Léa Martin");
+    // Adresse invalide ou prénom manquant : refusés.
+    await expect(
+      platform((tx) => findOrCreateOrderCustomer(tx, { ...customer, email: "pas-un-email" }, "fr")),
+    ).rejects.toThrow();
+    await expect(
+      platform((tx) => findOrCreateOrderCustomer(tx, { ...customer, firstName: " " }, "fr")),
+    ).rejects.toThrow();
+
+    const order = await platform((tx) => createOrder(tx, userId, form("essentiel"), billing.gateway, urls));
+    expect(order.kind).toBe("redirect");
+    const [row] = await owner.select().from(orders).where(eq(orders.id, order.orderId));
+    billing.completeCheckout(row.stripeCheckoutSessionId!, START);
+    // Retour de Stripe sans être connecté : l'identifiant de la commande suffit.
+    const synced = await platform((tx) => syncOrderPayment(tx, null, order.orderId, billing.gateway));
+    expect(synced?.status).toBe("paid");
   });
 
   it("création du site depuis la commande : abonnement rattaché, puis activation et message « site en ligne »", async () => {

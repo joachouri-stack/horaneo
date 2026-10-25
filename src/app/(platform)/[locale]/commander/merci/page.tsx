@@ -5,7 +5,7 @@ import { ui } from "@/components/ui/styles";
 import { withPlatform } from "@/db/access";
 import { Link } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/translator";
-import { requireSession } from "@/lib/auth/session";
+import { getCurrentSession } from "@/lib/auth/session";
 import { billingGateway } from "@/lib/payments/stripe-billing";
 import { AppError } from "@/modules/errors";
 import { syncOrderPayment } from "@/modules/orders/orders";
@@ -27,11 +27,12 @@ export default async function ThanksPage({ params, searchParams }: PageProps<"/[
   setRequestLocale(locale);
   const query = await searchParams;
   const orderId = typeof query.commande === "string" ? query.commande : "";
-  const session = await requireSession(locale, `/commander/merci?commande=${encodeURIComponent(orderId)}`);
+  // Commande passée sans compte : pas de connexion demandée pour voir sa confirmation.
+  const session = await getCurrentSession();
   const t = await getTranslations("order.thanks");
   const { order, days } = await withPlatform(async (tx) => ({
     // Retour depuis Stripe : l'état du paiement est relu tout de suite.
-    order: await syncOrderPayment(tx, session.user.id, orderId, billingGateway()).catch((error) => {
+    order: await syncOrderPayment(tx, session?.user.id ?? null, orderId, billingGateway()).catch((error) => {
       if (error instanceof AppError) return null;
       throw error;
     }),
@@ -64,6 +65,7 @@ export default async function ThanksPage({ params, searchParams }: PageProps<"/[
               <Link href="/espace" className={`mt-6 ${ui.primaryButton} sm:w-auto`}>
                 {t("space")}
               </Link>
+              {!session && <p className="mt-3 text-sm text-ink/70">{t("spaceHint")}</p>}
             </>
           )}
         </section>
