@@ -55,6 +55,7 @@ export async function saveSettingsAction(_previous: Previous, data: FormData) {
   // Case à cocher et liste de fonctions « Bientôt ».
   raw.site_buyout_enabled = form.bool(data, "site_buyout_enabled");
   raw.offer_no_commitment = form.bool(data, "offer_no_commitment");
+  raw.yearly_billing_enabled = form.bool(data, "yearly_billing_enabled");
   raw.solutions_available = (["booking", "commerce", "formation"] as const).filter((code) =>
     form.bool(data, `solution_${code}`),
   );

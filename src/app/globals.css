@@ -273,3 +273,14 @@ html:has(body.saas) {
     display: none;
   }
 }
+
+/* Prix mensuels ou annuels : seul le contenu de la périodicité choisie s'affiche. */
+[data-billing="month"] [data-billing-only="year"],
+[data-billing="year"] [data-billing-only="month"] {
+  display: none;
+}
+
+/* Commande : à l'année, le choix d'engagement (formule mensuelle) disparaît. */
+form:has(input[name="billing"][value="year"]:checked) [data-monthly-only] {
+  display: none;
+}

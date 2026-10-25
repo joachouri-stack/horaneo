@@ -138,6 +138,7 @@ describe.skipIf(!hasTestDatabase)("commandes", () => {
       order_id: order.id,
       plan_id: serenite.id,
       commitment: "yes",
+      interval: "month",
     });
 
     const subscription = billing.completeCheckout(order.stripeCheckoutSessionId!, START);

@@ -204,6 +204,13 @@
       "when": 1792942948520,
       "tag": "0028_starter_plan",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1792945832597,
+      "tag": "0029_yearly_billing",
+      "breakpoints": true
     }
   ]
 }

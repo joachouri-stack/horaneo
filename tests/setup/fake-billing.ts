@@ -10,7 +10,7 @@ export function createFakeBilling() {
   const next = (prefix: string) => `${prefix}_${instance}_${(counter += 1)}`;
   const prices = new Map<
     string,
-    { productId: string; amountCents: number; metadata: Record<string, string> }
+    { productId: string; amountCents: number; interval: "month" | "year"; metadata: Record<string, string> }
   >();
   const subscriptions = new Map<string, BillingSubscription & { pendingPriceId: string | null }>();
   const checkouts = new Map<
@@ -47,6 +47,7 @@ export function createFakeBilling() {
     void pendingPriceId;
     return {
       ...rest,
+      interval: rest.priceId ? (prices.get(rest.priceId)?.interval ?? "month") : null,
       optionItems: rest.optionItems.map((item) => ({ ...item })),
       metadata: { ...rest.metadata },
     };
@@ -65,6 +66,7 @@ export function createFakeBilling() {
       prices.set(id, {
         productId: input.productId,
         amountCents: input.amountCents,
+        interval: input.interval,
         metadata: input.metadata,
       });
       return { id };
@@ -187,7 +189,8 @@ export function createFakeBilling() {
       const id = next("sub");
       checkout.subscriptionId = id;
       const end = new Date(start);
-      end.setUTCMonth(end.getUTCMonth() + 1);
+      // Prix annuel : la période dure douze mois.
+      end.setUTCMonth(end.getUTCMonth() + (prices.get(checkout.priceId)?.interval === "year" ? 12 : 1));
       subscriptions.set(id, {
         id,
         customerId: checkout.customerId,
@@ -198,6 +201,7 @@ export function createFakeBilling() {
         currentPeriodEnd: end,
         cancelAt: null,
         scheduleId: null,
+        interval: null,
         optionItems: optionItems(checkout.optionPriceIds),
         metadata: { ...checkout.metadata },
         pendingPriceId: null,

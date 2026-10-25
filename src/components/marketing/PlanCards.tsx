@@ -5,6 +5,12 @@ import { formatMoney } from "@/lib/format";
 import type { PlanFeatures, PlanLimits } from "@/db/schema";
 import { gridCard, SOLUTIONS, type CardLine } from "@/modules/billing/grid";
 import type { LaunchOfferView } from "@/modules/billing/launch-offers";
+import {
+  monthlyEquivalentCents,
+  yearlyPriceCents,
+  yearlySavingCents,
+  type BillingInterval,
+} from "@/modules/billing/yearly";
 import { ArrowLine, CheckLine, CrownLine, DashLine, DiamondLine, LeafLine, TabletLine } from "./line-icons";
 
 type CardPlan = {
@@ -30,18 +36,19 @@ export async function PlanCards({
   plans,
   locale,
   soon,
-  salesOpen,
   display,
   commitmentMonths,
   offers,
+  yearly,
 }: {
   plans: CardPlan[];
   locale: Locale;
   soon: string[];
-  salesOpen: boolean;
   display: string;
   commitmentMonths: number;
   offers: LaunchOfferView[];
+  /** Paiement à l'année proposé, et ses mois offerts (réglages). */
+  yearly: { enabled: boolean; freeMonths: number };
 }) {
   const t = await getTranslations("home.plans");
   const tGrid = await getTranslations("home.grid");
@@ -65,12 +72,14 @@ export async function PlanCards({
         const card = gridCard(plan, plans, soonSet);
         const paid = plan.priceCents > 0;
         const offer = offers.find((item) => item.planCode === plan.code && item.open);
-        const callback = paid && !salesOpen;
-        const href = {
-          pathname: callback ? ("/rappel" as const) : ("/commander" as const),
-          query: { pack: plan.code },
-        };
-        const cta = callback ? t("callback") : paid ? t("choose", { plan: name }) : t("start");
+        // « Démarrer » mène à la commande (paiement Stripe) ; tant que la vente en ligne est
+        // fermée (pages légales non publiées), la page de commande propose d'être rappelé.
+        const withYearly = paid && yearly.enabled;
+        const yearlyCents = yearlyPriceCents(plan.priceCents, yearly.freeMonths);
+        const hrefFor = (billing: BillingInterval) => ({
+          pathname: "/commander" as const,
+          query: billing === "year" ? { pack: plan.code, billing } : { pack: plan.code },
+        });
         const muted = featured ? "text-[#aab3c7]" : "text-ink-soft";
         const strong = featured ? "text-white" : "text-night";
 
@@ -136,16 +145,48 @@ export async function PlanCards({
               </div>
             </div>
 
-            <p className="relative mt-6 flex items-baseline gap-2">
-              <span
-                className={`font-display text-[2.6rem] font-semibold leading-none tracking-[-0.03em] ${strong}`}
-              >
-                {money(plan.priceCents)}
-              </span>
-              <span className={`text-[0.9rem] ${muted}`}>
-                {paid ? t("perMonth", { display }) : t("freeSuffix")}
-              </span>
-            </p>
+            <div className="relative mt-6 min-h-[4.6rem]">
+              <p data-billing-only={withYearly ? "month" : undefined} className="flex items-baseline gap-2">
+                <span
+                  className={`font-display text-[2.6rem] font-semibold leading-none tracking-[-0.03em] ${strong}`}
+                >
+                  {money(plan.priceCents)}
+                </span>
+                <span className={`text-[0.9rem] ${muted}`}>
+                  {paid ? t("perMonth", { display }) : t("freeSuffix")}
+                </span>
+              </p>
+              {withYearly && (
+                <div data-billing-only="year">
+                  <p className="flex items-baseline gap-2">
+                    <span
+                      className={`font-display text-[2.6rem] font-semibold leading-none tracking-[-0.03em] ${strong}`}
+                    >
+                      {money(yearlyCents)}
+                    </span>
+                    <span className={`text-[0.9rem] ${muted}`}>{t("perYear", { display })}</span>
+                  </p>
+                  <p className={`mt-1.5 text-[0.82rem] ${muted}`}>
+                    {t("yearlyDetail", {
+                      monthly: money(monthlyEquivalentCents(yearlyCents)),
+                      display,
+                      months: yearly.freeMonths,
+                    })}
+                    {yearly.freeMonths > 0 && (
+                      <span
+                        className={`ml-2 inline-block rounded-full px-2 py-px text-[0.72rem] font-medium ${
+                          featured ? "bg-champagne/15 text-champagne" : "bg-accent-soft text-accent-strong"
+                        }`}
+                      >
+                        {t("yearlySaving", {
+                          amount: money(yearlySavingCents(plan.priceCents, yearly.freeMonths)),
+                        })}
+                      </span>
+                    )}
+                  </p>
+                </div>
+              )}
+            </div>
 
             <ul
               className={`relative mt-6 flex flex-col gap-2.5 border-t pt-5 text-[0.92rem] leading-snug ${featured ? "border-white/10" : "border-hairline"}`}
@@ -220,7 +261,8 @@ export async function PlanCards({
 
             <div className="relative mt-auto pt-6">
               <Link
-                href={href}
+                data-billing-only={withYearly ? "month" : undefined}
+                href={hrefFor("month")}
                 className={`group flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-[0.95rem] font-medium transition duration-200 motion-reduce:transition-none ${
                   featured
                     ? "bg-gradient-to-r from-[#c9a96a] to-[#e4cfa2] text-deep hover:brightness-105"
@@ -229,12 +271,39 @@ export async function PlanCards({
                       : "border border-hairline bg-white text-night hover:border-accent-line hover:text-accent-strong"
                 }`}
               >
-                {cta}
+                {t("start")}
                 <ArrowLine className="size-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
-              <p className={`mt-3 text-center text-[0.76rem] leading-snug ${muted}`}>
+              {withYearly && (
+                <Link
+                  data-billing-only="year"
+                  href={hrefFor("year")}
+                  className={`group flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-[0.95rem] font-medium transition duration-200 motion-reduce:transition-none ${
+                    featured
+                      ? "bg-gradient-to-r from-[#c9a96a] to-[#e4cfa2] text-deep hover:brightness-105"
+                      : paid
+                        ? "bg-accent text-white hover:bg-accent-strong"
+                        : "border border-hairline bg-white text-night hover:border-accent-line hover:text-accent-strong"
+                  }`}
+                >
+                  {t("start")}
+                  <ArrowLine className="size-4 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              )}
+              <p
+                data-billing-only={withYearly ? "month" : undefined}
+                className={`mt-3 text-center text-[0.76rem] leading-snug ${muted}`}
+              >
                 {paid ? t("contractPaid", { months: commitmentMonths, display }) : t("contractFree")}
               </p>
+              {withYearly && (
+                <p
+                  data-billing-only="year"
+                  className={`mt-3 text-center text-[0.76rem] leading-snug ${muted}`}
+                >
+                  {t("contractYearly", { display })}
+                </p>
+              )}
               {offer && (
                 <details className="group mt-2 text-center text-[0.74rem] leading-snug text-[#8e98ad]">
                   <summary className="inline-flex min-h-9 cursor-pointer list-none items-center underline underline-offset-2 hover:text-champagne [&::-webkit-details-marker]:hidden">

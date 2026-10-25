@@ -9,6 +9,10 @@ import type { LocalizedText } from "@/i18n/locales";
 export const DEFAULT_PLATFORM_SETTINGS = {
   /** "TTC" ou "HT" : affichage des prix des packs. */
   prices_display: "HT",
+  /** Facturation à l'année proposée en plus du paiement mensuel. */
+  yearly_billing_enabled: true as boolean,
+  /** Réduction du paiement à l'année, en mois offerts (2 : 10 mois payés pour 12). */
+  yearly_free_months: 2,
   /** Durée d'engagement en mois (0 = sans engagement). */
   commitment_months: 12,
   /** Préavis avant d'appliquer le nouveau prix d'un pack à un abonné (après la fin de son engagement), en jours. */

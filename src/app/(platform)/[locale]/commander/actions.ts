@@ -12,6 +12,7 @@ import { sendQueuedSoon } from "@/lib/jobs/tick";
 import { billingGateway } from "@/lib/payments/stripe-billing";
 import { createRateLimiter } from "@/lib/rate-limit";
 import { AppError } from "@/modules/errors";
+import { parseInterval } from "@/modules/billing/yearly";
 import { createOrder } from "@/modules/orders/orders";
 
 const orderAttempts = createRateLimiter({ max: 10, windowMs: 10 * 60 * 1000 });
@@ -42,13 +43,14 @@ export async function submitOrderAction(
           currentWebsite: form.optional(data, "currentWebsite"),
           // Formule des packs payants (avec engagement par défaut).
           withCommitment: data.get("commitment") !== "no",
-          optionCodes: data.getAll("options").map(String),
+          optionCodes: data.get("billing") === "year" ? [] : data.getAll("options").map(String),
+          billingInterval: parseInterval(data.get("billing")),
           locale,
         },
         billingGateway(),
         (orderId) => ({
           successUrl: `${base}/merci?commande=${orderId}`,
-          cancelUrl: `${base}?pack=${encodeURIComponent(form.text(data, "planCode"))}`,
+          cancelUrl: `${base}?pack=${encodeURIComponent(form.text(data, "planCode"))}${data.get("billing") === "year" ? "&billing=year" : ""}`,
         }),
       ),
     );

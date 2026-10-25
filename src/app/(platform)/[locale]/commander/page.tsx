@@ -11,6 +11,7 @@ import { Link, redirect } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/translator";
 import { getManagedTenants, requireSession } from "@/lib/auth/session";
 import { listLaunchOffers } from "@/modules/billing/launch-offers";
+import { parseInterval } from "@/modules/billing/yearly";
 import { listPlanOptions, pricedOption } from "@/modules/billing/options";
 import { listPublicPlans } from "@/modules/billing/plans";
 import { formatMoney } from "@/lib/format";
@@ -42,19 +43,27 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
   }
   const session = await requireSession(
     locale,
-    pack ? `/commander?pack=${encodeURIComponent(pack)}` : "/commander",
+    pack
+      ? `/commander?pack=${encodeURIComponent(pack)}${query.billing === "year" ? "&billing=year" : ""}`
+      : "/commander",
   );
   // Déjà cliente : le changement de pack se fait depuis son espace.
   if ((await getManagedTenants(session.user.id)).length > 0) redirect({ href: "/espace", locale });
   const [t, tHome] = await Promise.all([getTranslations("order"), getTranslations("home.plans")]);
-  const { plans, options, display, commitment, noCommitment, offers } = await withPlatform(async (tx) => ({
-    offers: await listLaunchOffers(tx, { openOnly: true }),
-    plans: await listPublicPlans(tx),
-    options: await listPlanOptions(tx),
-    display: String(await getPlatformSetting(tx, "prices_display")),
-    commitment: Number(await getPlatformSetting(tx, "commitment_months")),
-    noCommitment: Boolean(await getPlatformSetting(tx, "offer_no_commitment")),
-  }));
+  const { plans, options, display, commitment, noCommitment, offers, yearly } = await withPlatform(
+    async (tx) => ({
+      offers: await listLaunchOffers(tx, { openOnly: true }),
+      plans: await listPublicPlans(tx),
+      options: await listPlanOptions(tx),
+      display: String(await getPlatformSetting(tx, "prices_display")),
+      commitment: Number(await getPlatformSetting(tx, "commitment_months")),
+      noCommitment: Boolean(await getPlatformSetting(tx, "offer_no_commitment")),
+      yearly: {
+        enabled: Boolean(await getPlatformSetting(tx, "yearly_billing_enabled")),
+        freeMonths: Number(await getPlatformSetting(tx, "yearly_free_months")),
+      },
+    }),
+  );
   // Options choisies sur l'accueil (?options=booking,online-payment), reprises dans le formulaire.
   const initialOptions = typeof query.options === "string" ? query.options.split(",").slice(0, 20) : [];
   // Vente fermée : seuls les packs gratuits (s'il y en a) se commandent en ligne.
@@ -117,6 +126,8 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
               }))}
               initialPlan={selected?.code ?? ""}
               initialOptions={initialOptions}
+              initialBilling={parseInterval(query.billing)}
+              yearly={yearly}
               display={display}
               labels={{
                 plan: t("plan"),
@@ -124,11 +135,17 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
                 optionsHint: t("optionsHint"),
                 total: t("total"),
                 perMonth: tHome("perMonth", { display }),
+                perYear: tHome("perYear", { display }),
+                billing: t("billing"),
+                monthly: t("billingMonthly"),
+                yearly: t("billingYearly", { months: yearly.freeMonths }),
+                yearlyHint: t("billingYearlyHint"),
               }}
             />
             {/* Formule des packs payants : avec engagement (création offerte) ou sans (frais de création). */}
             {commitment > 0 && noCommitment && orderable.some((plan) => plan.priceCents > 0) && (
-              <fieldset>
+              // À l'année, les 12 mois sont payés d'avance : la formule ne concerne que le mensuel.
+              <fieldset data-monthly-only>
                 <legend className={ui.label}>{t("formula")}</legend>
                 <p className="mb-2 text-sm text-ink/70">{t("formulaHint")}</p>
                 {/* Offre de lancement (tablette) : réservée à la formule avec engagement, places réelles. */}

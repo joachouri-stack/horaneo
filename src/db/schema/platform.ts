@@ -143,6 +143,9 @@ export const plans = pgTable(
     highlights: jsonb().$type<string[]>().notNull().default([]),
     /** Produit Stripe du pack (un nouveau prix y est ajouté à chaque changement de tarif). */
     stripeProductId: text(),
+    /** Prix Stripe annuel (facturation à l'année) et montant pour lequel il a été créé. */
+    stripeYearlyPriceId: text(),
+    stripeYearlyPriceCents: cents(),
     limits: jsonb().$type<PlanLimits>().notNull().default({}),
     features: jsonb().$type<PlanFeatures>().notNull().default({}),
     isPublic: boolean().notNull().default(true),
