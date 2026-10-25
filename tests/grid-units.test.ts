@@ -14,7 +14,7 @@ describe("grille des packs : une seule source pour les cartes et le comparatif",
     const rows = gridComparison(GRID, SOON).flatMap((group) => group.rows);
     const row = (key: string) => rows.find((item) => item.key === key)!.cells;
     expect(row("bookings")).toEqual([
-      { included: true, count: 10 },
+      { included: true, count: null },
       { included: true, count: null },
       { included: true, count: null },
     ]);
@@ -29,6 +29,21 @@ describe("grille des packs : une seule source pour les cartes et le comparatif",
       { included: true, count: 500 },
     ]);
     expect(row("customers")[0]).toEqual({ included: true, count: 50 });
+    expect(row("photos")[0]).toEqual({ included: true, count: 50 });
+    // Starter : site multipage (le site vitrine disparaît), nouvelles promesses incluses dans les trois packs.
+    expect(rows.find((item) => item.key === "miniSite")).toBeUndefined();
+    for (const key of [
+      "fullSite",
+      "onlinePayment",
+      "freeDomain",
+      "whatsappSupport",
+      "maintenance",
+      "security",
+      "favicon",
+      "responsive",
+      "technicalSupport247",
+    ])
+      expect(row(key), key).toEqual([{ included: true }, { included: true }, { included: true }]);
   });
 
   it("range les lignes dans les douze catégories, Commerce et Formation marquées « Bientôt »", () => {

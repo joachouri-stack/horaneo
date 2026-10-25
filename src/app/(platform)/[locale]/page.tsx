@@ -158,8 +158,9 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     plan: first ? pickLocalized(first.name, locale) : "",
     price: first ? formatMoney(first.priceCents, first.currency, locale) : "",
     free: first && first.priceCents <= 0 ? "yes" : "no",
-    bookings: first?.limits.onlineBookingsPerMonth ?? 0,
-    customers: first?.limits.customers ?? 0,
+    // -1 : illimité (quota absent).
+    bookings: first ? (first.limits.onlineBookingsPerMonth ?? -1) : 0,
+    customers: first ? (first.limits.customers ?? -1) : 0,
   };
   const faq = FAQ.map((key) => ({
     key,
