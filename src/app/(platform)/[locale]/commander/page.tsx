@@ -9,7 +9,7 @@ import { withPlatform } from "@/db/access";
 import { pickLocalized } from "@/i18n/locales";
 import { Link, redirect } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/translator";
-import { getManagedTenants, requireSession } from "@/lib/auth/session";
+import { getCurrentSession, getManagedTenants } from "@/lib/auth/session";
 import { listLaunchOffers } from "@/modules/billing/launch-offers";
 import { parseInterval } from "@/modules/billing/yearly";
 import { listPlanOptions, pricedOption } from "@/modules/billing/options";
@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/commande
 
 /**
  * Commande : le pack choisi sur l'accueil, puis un court formulaire.
- * Sans compte, la connexion (ou l'inscription) se fait d'abord, puis retour ici.
+ * Sans compte, pas d'inscription préalable : e-mail, prénom et nom se saisissent dans le formulaire.
  */
 export default async function OrderPage({ params, searchParams }: PageProps<"/[locale]/commander">) {
   const locale = resolveLocale((await params).locale);
@@ -43,14 +43,10 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
     const billing = query.billing === "year" ? { billing: "year" } : {};
     redirect({ href: { pathname: "/rappel", query: pack ? { pack, ...billing } : billing }, locale });
   }
-  const session = await requireSession(
-    locale,
-    pack
-      ? `/commander?pack=${encodeURIComponent(pack)}${query.billing === "year" ? "&billing=year" : ""}`
-      : "/commander",
-  );
+  // Pas de compte à créer avant : sans connexion, l'e-mail, le prénom et le nom se saisissent ici.
+  const session = await getCurrentSession();
   // Déjà cliente : le changement de pack se fait depuis son espace.
-  if ((await getManagedTenants(session.user.id)).length > 0) redirect({ href: "/espace", locale });
+  if (session && (await getManagedTenants(session.user.id)).length > 0) redirect({ href: "/espace", locale });
   const [t, tHome] = await Promise.all([getTranslations("order"), getTranslations("home.plans")]);
   const { plans, options, display, commitment, noCommitment, offers, yearly } = await withPlatform(
     async (tx) => ({
@@ -207,9 +203,36 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
                 </div>
               </fieldset>
             )}
-            <TextField name="businessName" label={t("businessName")} required />
+            {/* Coordonnées : saisies ici sans compte ; une personne connectée commande avec le sien. */}
+            {session ? (
+              <p className="text-sm text-ink/70">{t("orderingAs", { email: session.user.email })}</p>
+            ) : (
+              <>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <TextField name="firstName" autoComplete="given-name" label={t("firstName")} required />
+                  <TextField name="lastName" autoComplete="family-name" label={t("lastName")} required />
+                </div>
+                <TextField
+                  name="email"
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  label={t("email")}
+                  hint={t("emailHint")}
+                  required
+                />
+              </>
+            )}
+            <TextField name="businessName" autoComplete="organization" label={t("businessName")} required />
             <TextField name="activity" label={t("activity")} hint={t("activityHint")} required />
-            <TextField name="phone" type="tel" inputMode="tel" label={t("phone")} required />
+            <TextField
+              name="phone"
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              label={t("phone")}
+              required
+            />
             <TextField
               name="currentWebsite"
               inputMode="url"

@@ -237,10 +237,14 @@ export async function markOrderPaid(
   return { outcome: "paid" as const };
 }
 
-/** Retour sur la page de confirmation : l'état du paiement est relu chez Stripe. */
+/**
+ * Retour sur la page de confirmation : l'état du paiement est relu chez Stripe.
+ * Sans connexion (commande passée sans compte), l'identifiant de la commande,
+ * transmis par le retour de Stripe, suffit : seul son état est affiché.
+ */
 export async function syncOrderPayment(
   tx: Transaction,
-  userId: string,
+  userId: string | null,
   orderId: string,
   gateway: BillingGateway | null,
 ) {
@@ -248,7 +252,7 @@ export async function syncOrderPayment(
   const [order] = await tx
     .select()
     .from(orders)
-    .where(and(eq(orders.id, orderId), eq(orders.userId, userId)));
+    .where(userId ? and(eq(orders.id, orderId), eq(orders.userId, userId)) : eq(orders.id, orderId));
   if (!order) return null;
   if (order.status === "awaiting_payment" && order.stripeCheckoutSessionId && gateway) {
     const checkout = await gateway.retrieveCheckout(order.stripeCheckoutSessionId).catch(providerError);

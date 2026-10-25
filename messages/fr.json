@@ -3214,6 +3214,11 @@
     "title": "Votre commande",
     "intro": "Quelques informations pour préparer votre site. Cela prend une minute.",
     "plan": "Pack choisi",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "email": "Adresse e-mail",
+    "emailHint": "Vous y recevrez la confirmation et le lien d'accès à votre espace. Aucun mot de passe à créer.",
+    "orderingAs": "Commande au nom de {email}.",
     "businessName": "Nom de votre établissement",
     "activity": "Votre activité",
     "activityHint": "Par exemple : institut de beauté, garage, consultant, coach sportif…",
@@ -3232,7 +3237,8 @@
       "reload": "Recharger",
       "next": "Notre équipe crée votre site : il sera en ligne sous {days, plural, one {# jour ouvré} other {# jours ouvrés}} environ. Vous recevrez un e-mail dès qu'il est prêt.",
       "reviewNext": "Nous validons votre demande et créons votre fiche : comptez {days, plural, one {# jour ouvré} other {# jours ouvrés}} environ.",
-      "space": "Aller à mon espace"
+      "space": "Aller à mon espace",
+      "spaceHint": "Pour entrer dans votre espace, indiquez l'adresse e-mail de votre commande : vous recevrez un lien de connexion, sans mot de passe."
     },
     "status": {
       "title": "Ma commande",
