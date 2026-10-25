@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import type { Solution } from "@/modules/billing/grid";
 import {
@@ -16,9 +17,28 @@ import {
  * bord) et un téléphone (ce que voit le client), dessinés en HTML/CSS avec des
  * données d'exemple (traductions). Couleurs : accent de la solution.
  */
+/** Photo de couverture d'une solution, à la place de l'aperçu dessiné (public/images). */
+const COVERS: Partial<Record<Solution, { src: string; width: number; height: number }>> = {
+  booking: { src: "/images/couverture-reservation.webp", width: 1536, height: 1024 },
+};
+
 export async function SolutionVisual({ solution }: { solution: Solution }) {
   const t = await getTranslations(`home.solutions.items.${solution}`);
   const tAll = await getTranslations("home.solutions");
+  const cover = COVERS[solution];
+  if (cover)
+    return (
+      // S'adapte à la largeur : pleine largeur sur téléphone et tablette, colonne de droite sur ordinateur.
+      <Image
+        src={cover.src}
+        width={cover.width}
+        height={cover.height}
+        alt={tAll("visual", { solution: t("name") })}
+        sizes="(min-width: 1024px) 40rem, 100vw"
+        priority
+        className="mx-auto h-auto w-full max-w-[40rem] rounded-[1.4rem] object-cover"
+      />
+    );
   const menu = t.raw("mock.menu") as string[];
   const events = t.raw("mock.events") as string[];
   const FloatIcon = { booking: BellLine, commerce: LockLine, formation: UsersLine }[solution];
