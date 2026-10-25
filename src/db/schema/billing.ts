@@ -17,7 +17,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { cents, currency, id, localized, timestamps, utc } from "./_helpers";
 import { appointments } from "./bookings";
-import { planOptions, plans } from "./platform";
+import { billingIntervalEnum, planOptions, plans } from "./platform";
 import { tenants } from "./tenants";
 import { users } from "./users";
 
@@ -136,6 +136,8 @@ export const subscriptions = pgTable(
     priceChangeNotifiedAt: utc(),
     /** Formule choisie à la souscription : avec engagement (création offerte) ou sans (frais de création). null : abonnement antérieur à ce choix. */
     withCommitment: boolean(),
+    /** Périodicité de facturation (mensuelle ou annuelle), lue sur l'abonnement Stripe. */
+    billingInterval: billingIntervalEnum().notNull().default("month"),
     /** Pack inférieur choisi, appliqué à la fin de la période en cours. */
     scheduledPlanId: uuid().references(() => plans.id, { onDelete: "set null" }),
     /** Dernier échec de prélèvement (effacé quand un paiement réussit). */
@@ -291,6 +293,8 @@ export const orders = pgTable(
     currentWebsite: text(),
     /** Formule choisie : avec engagement (création offerte) ou sans (frais de création payés à la commande). */
     withCommitment: boolean().notNull().default(true),
+    /** Facturation choisie à la commande : chaque mois, ou à l'année (réduction). */
+    billingInterval: billingIntervalEnum().notNull().default("month"),
     /** Options choisies à la commande (codes), facturées avec le pack. */
     optionCodes: jsonb().$type<string[]>().notNull().default([]),
     locale: text().notNull().default("fr"),

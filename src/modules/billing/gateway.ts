@@ -10,6 +10,8 @@ export type BillingSubscription = {
   /** Prix en cours et pack correspondant (renseigné dans les informations du prix). */
   priceId: string | null;
   planId: string | null;
+  /** Périodicité du prix du pack (null : inconnue). */
+  interval: "month" | "year" | null;
   currentPeriodStart: Date | null;
   currentPeriodEnd: Date | null;
   cancelAt: Date | null;

@@ -33,7 +33,7 @@ import {
   CapLine,
 } from "@/components/marketing/line-icons";
 import { PlanCards } from "@/components/marketing/PlanCards";
-import { SolutionScope, SolutionTabs } from "@/components/marketing/SolutionScope";
+import { BillingToggle, SolutionScope, SolutionTabs } from "@/components/marketing/SolutionScope";
 import { SolutionVisual } from "@/components/marketing/SolutionVisual";
 import { env, publicAppUrl } from "@/config/env";
 import { withPlatform } from "@/db/access";
@@ -43,7 +43,6 @@ import { resolveLocale } from "@/i18n/translator";
 import { SOLUTIONS, type Solution } from "@/modules/billing/grid";
 import { listLaunchOffers } from "@/modules/billing/launch-offers";
 import { listPublicPlans } from "@/modules/billing/plans";
-import { salesOpen } from "@/modules/legal/documents";
 import { getPlatformSetting } from "@/modules/settings";
 import { listShowcase } from "@/modules/showcase/showcase";
 
@@ -132,11 +131,14 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     display: String(await getPlatformSetting(tx, "prices_display")),
     commission: Number(await getPlatformSetting(tx, "deposit_commission_percent")),
     commitment: Number(await getPlatformSetting(tx, "commitment_months")),
+    yearly: {
+      enabled: Boolean(await getPlatformSetting(tx, "yearly_billing_enabled")),
+      freeMonths: Number(await getPlatformSetting(tx, "yearly_free_months")),
+    },
     warningPercent: Number(await getPlatformSetting(tx, "sms_warning_percent")),
     soon: await getPlatformSetting(tx, "features_soon"),
     solutions: await getPlatformSetting(tx, "solutions"),
     demoUrl: String(await getPlatformSetting(tx, "demo_url")),
-    salesOpen: await salesOpen(tx),
     offers: await listLaunchOffers(tx, { openOnly: true }),
     showcase: await listShowcase(tx),
   }));
@@ -349,9 +351,24 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 </h2>
                 <p className="mt-2 max-w-[36rem] text-ink-soft">{t("plans.subtitle")}</p>
               </div>
-              <p className="rounded-full bg-accent-soft px-3.5 py-1.5 text-[0.82rem] font-medium text-accent-strong">
-                {t("plans.monthly", { display: data.display })}
-              </p>
+              {/* Mensuel / Annuel : seulement si le paiement à l'année est proposé (réglage). */}
+              {data.yearly.enabled ? (
+                <BillingToggle
+                  labels={{
+                    group: t("plans.billingLabel"),
+                    month: t("plans.billingMonth"),
+                    year: t("plans.billingYear"),
+                    badge:
+                      data.yearly.freeMonths > 0
+                        ? t("plans.billingBadge", { months: data.yearly.freeMonths })
+                        : null,
+                  }}
+                />
+              ) : (
+                <p className="rounded-full bg-accent-soft px-3.5 py-1.5 text-[0.82rem] font-medium text-accent-strong">
+                  {t("plans.monthly", { display: data.display })}
+                </p>
+              )}
             </div>
             {/* Solution en préparation : les packs se souscrivent aujourd'hui pour la Réservation. */}
             {SOLUTIONS.filter(isSoon).map((code) => (
@@ -367,10 +384,10 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               plans={data.plans}
               locale={locale}
               soon={data.soon}
-              salesOpen={data.salesOpen}
               display={data.display}
               commitmentMonths={data.commitment}
               offers={data.offers}
+              yearly={data.yearly}
             />
             <p className="mt-6 text-center text-[0.82rem] text-ink-soft">{t("plans.quotaNote")}</p>
           </section>
@@ -431,7 +448,13 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 </span>
               ))}
             </h2>
-            <Comparison plans={data.plans} locale={locale} soon={data.soon} display={data.display} />
+            <Comparison
+              plans={data.plans}
+              locale={locale}
+              soon={data.soon}
+              display={data.display}
+              yearly={data.yearly}
+            />
           </section>
         </SolutionScope>
 

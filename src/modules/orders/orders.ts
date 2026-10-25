@@ -44,6 +44,8 @@ export const orderInput = z.object({
   withCommitment: z.boolean().default(true),
   /** Options choisies (codes) ; leurs dépendances sont ajoutées automatiquement. */
   optionCodes: z.array(z.string().max(40)).max(20).default([]),
+  /** Facturation : chaque mois, ou à l'année (réduction réglée dans l'admin). */
+  billingInterval: z.enum(["month", "year"]).default("month"),
 });
 
 export type OrderInput = z.input<typeof orderInput>;
@@ -97,11 +99,19 @@ export async function createOrder(
   if (input.optionCodes.some((code) => !optionCodes.includes(code)))
     throw new AppError("option_unavailable", "optionCodes");
   if (optionCodes.length > 0 && plan.priceCents <= 0) throw new AppError("invalid", "optionCodes");
+  // À l'année : seulement si proposé, pour un pack payant, et sans option (facturées chaque mois).
+  const yearly = input.billingInterval === "year";
+  if (yearly && (plan.priceCents <= 0 || !(await getPlatformSetting(tx, "yearly_billing_enabled"))))
+    throw new AppError("invalid", "billingInterval");
+  if (yearly && optionCodes.length > 0) throw new AppError("option_monthly_only", "optionCodes");
   const values = {
     planId: plan.id,
     optionCodes,
     // Pack gratuit, ou aucune formule avec engagement proposée : sans engagement.
-    withCommitment: plan.priceCents > 0 && months > 0 && (input.withCommitment || !noCommitmentOffered),
+    // À l'année, les 12 mois sont payés d'avance : c'est un engagement (offre tablette comprise).
+    withCommitment:
+      plan.priceCents > 0 && (yearly || (months > 0 && (input.withCommitment || !noCommitmentOffered))),
+    billingInterval: input.billingInterval,
     businessName: input.businessName,
     activity: input.activity,
     phone: phone ?? input.phone,
@@ -152,7 +162,7 @@ export async function createOrder(
   const checkout = await gateway
     .createCheckout({
       customerId,
-      priceId: await ensurePlanPrice(tx, plan.id, gateway),
+      priceId: await ensurePlanPrice(tx, plan.id, gateway, order.billingInterval),
       optionPriceIds,
       setupFee:
         setupFeeCents > 0
@@ -164,7 +174,12 @@ export async function createOrder(
           : null,
       taxRateId: await ensureTaxRate(tx, gateway),
       ...urls(order.id),
-      metadata: { order_id: order.id, plan_id: plan.id, commitment: order.withCommitment ? "yes" : "no" },
+      metadata: {
+        order_id: order.id,
+        plan_id: plan.id,
+        commitment: order.withCommitment ? "yes" : "no",
+        interval: order.billingInterval,
+      },
     })
     .catch(providerError);
   await tx

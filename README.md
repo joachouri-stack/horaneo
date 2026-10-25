@@ -352,9 +352,11 @@ Les packs (prix, limites, fonctions) et les réglages commerciaux se modifient d
 
 **Grille des six packs.** Deux familles : avec réservation (Basic, Essentiel, Sérénité) et « site seul » (Express, Vitrine, Signature). Règle des jumeaux : chaque pack « site seul » est entièrement compris dans son jumeau avec réservation (`plans.booking_twin_code`) ; l'admin refuse un pack qui en sort (`twinRuleViolations`). Chaque carte affiche au plus 6 lignes choisies dans **Admin → Packs** (`plans.highlights`), puis un bouton qui déplie la liste complète ; le détail de tous les packs est sur `/comparatif`. Les fonctions pas encore livrées portent l'étiquette « Bientôt » (réglage `features_soon`).
 
+**Paiement mensuel ou annuel.** Chaque pack payant se paie chaque mois, ou à l'année (réglages `yearly_billing_enabled` et `yearly_free_months` dans **Admin → Réglages** : 2 mois offerts par défaut, soit 10 mois payés pour 12). Le prix Stripe annuel est créé automatiquement (`plans.stripe_yearly_price_id`) et recréé si le prix du pack ou la réduction change ; les abonnés gardent le leur. La périodicité est choisie sur l'accueil (Mensuel / Annuel), à la commande et depuis l'espace ; elle est enregistrée sur la commande et l'abonnement (`billing_interval`), et les changements de pack la conservent. À l'année, les 12 mois sont payés d'avance (engagement de fait, offre tablette comprise) ; les options à la carte, facturées au mois, ne s'y ajoutent pas.
+
 **Nouveau prix d'un pack.** Les abonnés gardent leur prix jusqu'à la fin de leur engagement. La tâche planifiée les prévient `price_change_notice_days` jours avant (`manager.price_change`), puis applique le nouveau prix chez Stripe à l'échéance suivante, sans prorata ; sans engagement, préavis puis nouveau prix (`src/modules/billing/price-change.ts`). Rachat du site : réglages `site_buyout_enabled` (désactivé par défaut) et `site_buyout_price_cents`.
 
-**Vente en ligne et pages légales.** Tant que les trois pages légales (mentions, confidentialité, conditions) ne sont pas publiées en français dans **Admin → Documents**, les packs payants mènent au formulaire « Être rappelé » (`/rappel`, e-mail aux administratrices) et la commande en ligne les refuse (`sales_paused`). L'identité de l'éditeur (raison sociale, SIRET, hébergeur…) se saisit sur la même page et s'affiche en tête des pages légales ; aucune valeur n'est écrite dans le code.
+**Vente en ligne et pages légales.** Tant que les trois pages légales (mentions, confidentialité, conditions) ne sont pas publiées en français dans **Admin → Documents**, le bouton « Démarrer » des packs payants mène au formulaire « Être rappelé » (`/rappel`, e-mail aux administratrices) et la commande en ligne les refuse (`sales_paused`). L'identité de l'éditeur (raison sociale, SIRET, hébergeur…) se saisit sur la même page et s'affiche en tête des pages légales ; aucune valeur n'est écrite dans le code.
 
 **Langues.** La racine `/` mène à `/fr` (308). Une langue prévue mais pas activée (`/en`, `/es`, `/ru`) mène à la même page en français ; le choix de langue n'apparaît que si plusieurs langues sont ouvertes.
 
@@ -374,6 +376,16 @@ Les packs (prix, limites, fonctions) et les réglages commerciaux se modifient d
 - **Admin → Paiements** : revenu mensuel réel, abonnements, échéances, prélèvements en échec. L'accueil admin signale les impayés et les clients Basic à 5 réservations.
 - L'administratrice ne peut pas changer à la main le pack d'un client qui a un abonnement Stripe en cours (pour ne jamais désynchroniser les deux) : elle passe par « Voir comme le client ».
 - Événements Stripe des abonnements : point de réception `/api/stripe/billing` (voir `.env.example` pour les événements et les réglages Stripe à faire).
+
+**Activer l'encaissement des abonnements (production)**
+
+1. Stripe → Développeurs → Clés API : copier la clé secrète (`sk_live_…`, ou une clé limitée `rk_live_…`) et la clé publique (`pk_live_…`) dans `STRIPE_SECRET_KEY` et `STRIPE_PUBLISHABLE_KEY` sur le serveur.
+2. Stripe → Développeurs → Webhooks → « Événements de votre compte » : point de réception `https://<domaine principal>/api/stripe/billing`, avec `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, `invoice.payment_failed`. Copier son secret (`whsec_…`) dans `STRIPE_BILLING_WEBHOOK_SECRET`.
+3. Stripe → Facturation : activer le portail client (carte et factures) ; après l'échec de toutes les tentatives, annuler l'abonnement.
+4. Redémarrer l'application, puis publier les trois pages légales dans **Admin → Documents** : la commande en ligne s'ouvre (sinon « Démarrer » mène au formulaire de rappel).
+5. Vérifier **Admin → Réglages** : affichage HT, taux de TVA, engagement, paiement à l'année et mois offerts.
+
+Les produits et prix Stripe (mensuels et annuels) sont créés automatiquement à la première commande de chaque pack : rien à créer à la main dans Stripe.
 
 ## Site commercial et commandes
 

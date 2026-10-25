@@ -847,7 +847,7 @@ async function renderManager(
     action = { label: t("notifications.manager.payment_failed.open"), url: `${space}/plus/abonnement` };
   } else if (template === "manager.price_change") {
     // Nouveau prix du pack : annoncé à l'avance, appliqué à la date prévue (fin d'engagement).
-    const data = row.data as { planId?: string; priceCents?: number; changeAt?: string };
+    const data = row.data as { planId?: string; priceCents?: number; interval?: string; changeAt?: string };
     const [plan] = data.planId ? await tx.select().from(plans).where(eq(plans.id, data.planId)) : [];
     subject = t("notifications.manager.price_change.subject");
     title = t("notifications.manager.price_change.title");
@@ -855,6 +855,7 @@ async function renderManager(
       t("notifications.manager.price_change.intro", {
         plan: plan ? pickLocalized(plan.name, locale) : "",
         price: fmt.money(data.priceCents ?? 0, "EUR"),
+        interval: data.interval === "year" ? "year" : "month",
         date: data.changeAt ? fmt.date(new Date(data.changeAt)) : "",
       }),
       t("notifications.manager.price_change.until"),

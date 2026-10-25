@@ -5,7 +5,14 @@ import { CalendarLine, CapLine, StoreLine } from "./line-icons";
 
 type Solution = "booking" | "commerce" | "formation";
 
-const Context = createContext<{ solution: Solution; choose: (solution: Solution) => void } | null>(null);
+type Billing = "month" | "year";
+
+const Context = createContext<{
+  solution: Solution;
+  choose: (solution: Solution) => void;
+  billing: Billing;
+  setBilling: (billing: Billing) => void;
+} | null>(null);
 
 /**
  * Solution choisie (Réservation, Commerce, Formation) : posée sur la page
@@ -21,14 +28,16 @@ export function SolutionScope({
   initial?: Solution;
 }) {
   const [solution, setSolution] = useState<Solution>(initial);
+  // Prix affichés : mensuels ou annuels (cartes, comparatif, liens vers la commande).
+  const [billing, setBilling] = useState<Billing>("month");
   const [switched, setSwitched] = useState(false);
   const choose = (next: Solution) => {
     setSolution(next);
     setSwitched(true);
   };
   return (
-    <Context.Provider value={{ solution, choose }}>
-      <div data-solution={solution} data-switched={switched}>
+    <Context.Provider value={{ solution, choose, billing, setBilling }}>
+      <div data-solution={solution} data-switched={switched} data-billing={billing}>
         {children}
       </div>
     </Context.Provider>
@@ -137,6 +146,41 @@ export function PackColumns({
         ))}
       </div>
       {children}
+    </div>
+  );
+}
+
+/** Mensuel / Annuel : bascule tous les prix de la page (les mois offerts sont annoncés). */
+export function BillingToggle({
+  labels,
+}: {
+  labels: { group: string; month: string; year: string; badge: string | null };
+}) {
+  const context = useContext(Context);
+  if (!context) return null;
+  const option = (value: Billing, text: string) => (
+    <button
+      type="button"
+      aria-pressed={context.billing === value}
+      onClick={() => context.setBilling(value)}
+      className={`flex min-h-10 items-center gap-2 rounded-full px-4 text-[0.88rem] font-medium transition ${
+        context.billing === value
+          ? "bg-white text-night shadow-[0_2px_8px_-4px_rgba(15,24,48,.35)]"
+          : "text-ink-soft hover:text-night"
+      }`}
+    >
+      {text}
+      {value === "year" && labels.badge && (
+        <span className="rounded-full bg-accent px-2 py-px text-[0.7rem] font-medium text-white">
+          {labels.badge}
+        </span>
+      )}
+    </button>
+  );
+  return (
+    <div role="group" aria-label={labels.group} className="inline-flex rounded-full bg-accent-soft p-1">
+      {option("month", labels.month)}
+      {option("year", labels.year)}
     </div>
   );
 }

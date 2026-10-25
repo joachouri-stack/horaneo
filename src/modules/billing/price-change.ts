@@ -5,6 +5,7 @@ import { queueMessage } from "@/modules/messages/queue";
 import { getPlatformSetting } from "@/modules/settings";
 import type { BillingGateway } from "./gateway";
 import { ensurePlanPrice, isLive } from "./subscriptions";
+import { yearlyPriceCents } from "./yearly";
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -38,7 +39,8 @@ export async function applyPriceChanges(tx: Transaction, gateway: BillingGateway
         .set({ stripePriceId: currentPriceId })
         .where(eq(subscriptions.id, sub.id));
     }
-    const planPriceId = await ensurePlanPrice(tx, plan.id, gateway);
+    // Prix actuel du pack, dans la périodicité de l'abonnement (mensuelle ou annuelle).
+    const planPriceId = await ensurePlanPrice(tx, plan.id, gateway, sub.billingInterval);
     if (currentPriceId === planPriceId) {
       // Prix revenu à l'ancien montant : plus de changement prévu.
       if (sub.priceChangeAt) {
@@ -66,7 +68,15 @@ export async function applyPriceChanges(tx: Transaction, gateway: BillingGateway
         tenantId: sub.tenantId,
         template: "manager.price_change",
         locale: tenant?.defaultLocale,
-        data: { planId: plan.id, priceCents: plan.priceCents, changeAt: changeAt.toISOString() },
+        data: {
+          planId: plan.id,
+          priceCents:
+            sub.billingInterval === "year"
+              ? yearlyPriceCents(plan.priceCents, Number(await getPlatformSetting(tx, "yearly_free_months")))
+              : plan.priceCents,
+          interval: sub.billingInterval,
+          changeAt: changeAt.toISOString(),
+        },
         dedupeKey: `manager.price_change:${sub.id}:${planPriceId}`,
       });
       await tx.update(subscriptions).set({ priceChangeNotifiedAt: now }).where(eq(subscriptions.id, sub.id));

@@ -52,6 +52,8 @@ export async function setTenantOption(
   }
 
   if (!gateway) throw new AppError("payments_unavailable");
+  // Stripe exige la même périodicité pour toutes les lignes : options seulement sur un abonnement mensuel.
+  if (input.active && live.billingInterval === "year") throw new AppError("option_monthly_only");
   const subscriptionId = live.stripeSubscriptionId!;
   try {
     let remote;

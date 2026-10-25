@@ -27,6 +27,7 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
       "prices_display",
       "vat_rate_percent",
       "commitment_months",
+      "yearly_free_months",
       "price_change_notice_days",
       "site_buyout_price_cents",
       "sms_pack_size",
@@ -46,7 +47,7 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
       await Promise.all(keys.map(async (key) => [key, await getPlatformSetting(tx, key)])),
     ) as Record<(typeof keys)[number], string | number>;
   });
-  const [showcase, soon, buyoutEnabled, noCommitment, solutions, demoUrl] = await adminQuery(
+  const [showcase, soon, buyoutEnabled, noCommitment, solutions, demoUrl, yearlyEnabled] = await adminQuery(
     async (tx) =>
       [
         await listShowcase(tx),
@@ -55,6 +56,7 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
         await getPlatformSetting(tx, "offer_no_commitment"),
         await getPlatformSetting(tx, "solutions"),
         String(await getPlatformSetting(tx, "demo_url")),
+        await getPlatformSetting(tx, "yearly_billing_enabled"),
       ] as const,
   );
   const field = (
@@ -88,6 +90,13 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
               label={t("offer_no_commitment")}
               defaultChecked={noCommitment}
             />
+            {/* Paiement à l'année : proposé ou non, et sa réduction en mois offerts. */}
+            <CheckboxField
+              name="yearly_billing_enabled"
+              label={t("yearly_billing_enabled")}
+              defaultChecked={yearlyEnabled}
+            />
+            {field("yearly_free_months", "number", t("yearlyHint"))}
           </div>
         </Section>
         {/* Solutions : ouvertes à la souscription, ou « Disponible bientôt ». */}

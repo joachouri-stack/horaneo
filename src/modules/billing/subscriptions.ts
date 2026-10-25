@@ -9,6 +9,7 @@ import { expireSmsPacks } from "@/modules/messages/sms-usage";
 import { getPlatformSetting, setPlatformSetting } from "@/modules/settings";
 import { changePlan } from "@/modules/tenants/update";
 import type { BillingGateway, BillingSubscription } from "./gateway";
+import { yearlyPriceCents, type BillingInterval } from "./yearly";
 import { syncTenantOptions } from "./options";
 
 /**
@@ -70,12 +71,30 @@ export async function getSubscription(tx: Transaction, tenantId: string) {
   return row ?? null;
 }
 
-/** Prix Stripe d'un pack payant, créé au besoin (avec son produit). */
-export async function ensurePlanPrice(tx: Transaction, planId: string, gateway: BillingGateway) {
+/**
+ * Prix Stripe d'un pack payant, créé au besoin (avec son produit) : mensuel,
+ * ou annuel (12 mois moins les mois offerts du réglage yearly_free_months).
+ * Le prix annuel est recréé quand le prix du pack ou la réduction change ;
+ * les abonnements en cours gardent leur prix.
+ */
+export async function ensurePlanPrice(
+  tx: Transaction,
+  planId: string,
+  gateway: BillingGateway,
+  interval: BillingInterval = "month",
+) {
   const [plan] = await tx.select().from(plans).where(eq(plans.id, planId));
   if (!plan) throw new AppError("not_found");
   if (plan.priceCents <= 0) throw new AppError("invalid", "priceCents");
-  if (plan.stripePriceId) return plan.stripePriceId;
+  const yearly = interval === "year";
+  if (yearly && !(await getPlatformSetting(tx, "yearly_billing_enabled")))
+    throw new AppError("invalid", "billing");
+  const amountCents = yearly
+    ? yearlyPriceCents(plan.priceCents, Number(await getPlatformSetting(tx, "yearly_free_months")))
+    : plan.priceCents;
+  if (!yearly && plan.stripePriceId) return plan.stripePriceId;
+  if (yearly && plan.stripeYearlyPriceId && plan.stripeYearlyPriceCents === amountCents)
+    return plan.stripeYearlyPriceId;
   const display = await getPlatformSetting(tx, "prices_display");
   let productId = plan.stripeProductId;
   if (!productId) {
@@ -86,16 +105,20 @@ export async function ensurePlanPrice(tx: Transaction, planId: string, gateway: 
   const price = await gateway
     .createPrice({
       productId,
-      amountCents: plan.priceCents,
+      amountCents,
       currency: plan.currency,
-      interval: plan.interval,
+      interval: yearly ? "year" : plan.interval,
       taxInclusive: display === "TTC",
-      metadata: { plan_id: plan.id },
+      metadata: { plan_id: plan.id, interval: yearly ? "year" : "month" },
     })
     .catch(billingError);
   await tx
     .update(plans)
-    .set({ stripeProductId: productId, stripePriceId: price.id })
+    .set(
+      yearly
+        ? { stripeProductId: productId, stripeYearlyPriceId: price.id, stripeYearlyPriceCents: amountCents }
+        : { stripeProductId: productId, stripePriceId: price.id },
+    )
     .where(eq(plans.id, plan.id));
   return price.id;
 }
@@ -152,7 +175,7 @@ export async function requestPlanChange(
   tenantId: string,
   targetPlanId: string,
   gateway: BillingGateway | null,
-  urls: { successUrl: string; cancelUrl: string; withCommitment?: boolean },
+  urls: { successUrl: string; cancelUrl: string; withCommitment?: boolean; interval?: BillingInterval },
   now = new Date(),
 ): Promise<PlanChangeResult> {
   if (!gateway) throw new AppError("payments_unavailable");
@@ -173,9 +196,11 @@ export async function requestPlanChange(
       return { kind: "downgraded" };
     }
     const row = await ensureCustomer(tx, tenantId, gateway);
-    const priceId = await ensurePlanPrice(tx, target.id, gateway);
+    const interval = urls.interval ?? "month";
+    const priceId = await ensurePlanPrice(tx, target.id, gateway, interval);
     // Formule choisie : avec engagement (frais du pack), ou sans (frais de création en plus).
-    const withCommitment = urls.withCommitment ?? true;
+    // À l'année, les 12 mois sont payés d'avance : c'est un engagement, sans frais de création.
+    const withCommitment = interval === "year" || (urls.withCommitment ?? true);
     const setupFeeCents = await creationFeeFor(tx, target, withCommitment);
     const checkout = await gateway
       .createCheckout({
@@ -193,7 +218,12 @@ export async function requestPlanChange(
         taxRateId: await ensureTaxRate(tx, gateway),
         successUrl: urls.successUrl,
         cancelUrl: urls.cancelUrl,
-        metadata: { tenant_id: tenantId, plan_id: target.id, commitment: withCommitment ? "yes" : "no" },
+        metadata: {
+          tenant_id: tenantId,
+          plan_id: target.id,
+          commitment: withCommitment ? "yes" : "no",
+          interval,
+        },
       })
       .catch(billingError);
     return { kind: "redirect", url: checkout.url };
@@ -230,7 +260,8 @@ export async function requestPlanChange(
     return { kind: "cancel_scheduled" };
   }
 
-  const priceId = await ensurePlanPrice(tx, target.id, gateway);
+  // Même périodicité que l'abonnement en cours (mensuelle ou annuelle).
+  const priceId = await ensurePlanPrice(tx, target.id, gateway, live.billingInterval);
   if (target.priceCents > current.priceCents) {
     await resetPending();
     const remote = await gateway.changePriceNow({ subscriptionId: stripeId, priceId }).catch(billingError);
@@ -357,6 +388,7 @@ export async function applySubscription(tx: Transaction, sub: BillingSubscriptio
       planId,
       // Prix réellement facturé (l'ancien prix, tant qu'il est maintenu).
       stripePriceId: sub.priceId ?? row.stripePriceId,
+      billingInterval: sub.interval ?? row.billingInterval,
       currentPeriodEnd: sub.currentPeriodEnd,
       cancelAt: sub.cancelAt,
       commitmentEndsAt,
