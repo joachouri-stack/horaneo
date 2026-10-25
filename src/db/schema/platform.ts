@@ -110,6 +110,9 @@ export type PlanFeatures = {
   priorityHumanSupport?: boolean;
   setupAssistance?: boolean;
   freeDomain?: boolean;
+  /** Promesses de service : maintenance du site incluse, protection contre les attaques (pare-feu, HTTPS). */
+  maintenance?: boolean;
+  securityProtection?: boolean;
   staffPlanning?: boolean;
   customerFile?: boolean;
   advancedCrm?: boolean;

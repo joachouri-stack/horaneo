@@ -78,6 +78,8 @@ export const FEATURE_KEYS = [
   "priorityHumanSupport",
   "setupAssistance",
   "freeDomain",
+  "maintenance",
+  "securityProtection",
   "staffPlanning",
   "customerFile",
   "advancedCrm",

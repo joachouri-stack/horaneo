@@ -58,6 +58,8 @@ const FEATURE_KEYS = [
   "googleReviews",
   // L'assistance par e-mail est offerte à tous les packs : elle n'est pas présentée comme un avantage.
   "whatsappSupport",
+  "maintenance",
+  "securityProtection",
 ] as const;
 
 export type PlanHighlight =

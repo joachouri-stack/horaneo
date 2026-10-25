@@ -368,8 +368,20 @@ const GRID_BASIC = {
   brandingFooter: true,
 } satisfies PlanFeatures;
 
-const GRID_PRO = {
+/** Starter : site multipage, paiement par carte, nom de domaine pour la création, assistance WhatsApp. */
+const GRID_STARTER = {
   ...GRID_BASIC,
+  fullSite: true,
+  sitePages: true,
+  onlinePayment: true,
+  freeDomain: true,
+  whatsappSupport: true,
+  maintenance: true,
+  securityProtection: true,
+} satisfies PlanFeatures;
+
+const GRID_PRO = {
+  ...GRID_STARTER,
   brandingFooter: false,
   fullSite: true,
   sitePages: true,
@@ -408,8 +420,8 @@ const GRID_BUSINESS = {
 /** Aucun outil intelligent (quotas à 0). */
 const NO_AI = { aiChatConversations: 0, whatsappConversations: 0, aiTexts: 0, aiImages: 0 };
 
-/** Limites du premier pack de la grille (et du pack gratuit hors vente). */
-const STARTER_LIMITS = {
+/** Limites du pack gratuit (hors vente). */
+const BASIC_LIMITS = {
   onlineBookingsPerMonth: 10,
   customers: 50,
   members: 1,
@@ -430,7 +442,7 @@ export const DEFAULT_GRID_PLANS: PlanSeed[] = [
     highlights: [],
     sortOrder: 0,
     isPublic: false,
-    limits: STARTER_LIMITS,
+    limits: BASIC_LIMITS,
     features: GRID_BASIC,
   },
   {
@@ -442,8 +454,8 @@ export const DEFAULT_GRID_PLANS: PlanSeed[] = [
     highlights: [],
     sortOrder: 1,
     isPublic: true,
-    limits: STARTER_LIMITS,
-    features: GRID_BASIC,
+    limits: { ...BASIC_LIMITS, onlineBookingsPerMonth: null, photos: 50 },
+    features: GRID_STARTER,
   },
   {
     code: "pro",
