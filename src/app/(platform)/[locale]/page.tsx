@@ -55,12 +55,18 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">): Prom
     description: t("description"),
     alternates: {
       canonical: `${base}/${locale}`,
-      languages: Object.fromEntries(ENABLED_LOCALES.map((item) => [item, `${base}/${item}`])),
+      languages: {
+        ...Object.fromEntries(ENABLED_LOCALES.map((item) => [item, `${base}/${item}`])),
+        "x-default": `${base}/${ENABLED_LOCALES[0]}`,
+      },
     },
     openGraph: {
       title: t("title", { product: env().PRODUCT_NAME }),
       description: t("description"),
       type: "website",
+      url: `${base}/${locale}`,
+      siteName: env().PRODUCT_NAME,
+      locale,
     },
   };
 }
@@ -68,15 +74,19 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">): Prom
 /** Questions fréquentes, dans l'ordre (textes : home.faq.items.<clé>). */
 const FAQ = [
   "basic",
+  "setup",
+  "creation",
   "commitment",
+  "cancel",
   "prices",
   "domain",
   "quotas",
   "change",
+  "support",
+  "data",
   "solutions",
   "ai",
   "tablet",
-  "data",
 ] as const;
 
 /** Pictogrammes du bandeau de fonctions de chaque solution (dans l'ordre des textes). */
@@ -113,9 +123,9 @@ const SECONDARY =
   "inline-flex min-h-12 items-center gap-2 rounded-xl border border-hairline bg-white px-5 text-[0.95rem] font-medium text-night transition hover:border-accent-line hover:text-accent-strong";
 
 /**
- * Site commercial : « Votre activité. Un seul outil. Plus de liberté. »
+ * Site commercial : site de réservation en ligne, prêt à remplir l'agenda.
  * Une marque, trois solutions (Réservation, Commerce, Formation) qui
- * partagent les mêmes packs (Basic, Pro, Business). Le choix d'une solution
+ * partagent les mêmes packs (Starter, Pro, Business). Le choix d'une solution
  * change l'accent, les textes, les visuels et le comparatif ; les tarifs ne
  * changent pas. Prix, quotas, disponibilités et offre tablette viennent des
  * réglages (base), jamais du code.
@@ -136,6 +146,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
       freeMonths: Number(await getPlatformSetting(tx, "yearly_free_months")),
     },
     warningPercent: Number(await getPlatformSetting(tx, "sms_warning_percent")),
+    goLiveDays: Number(await getPlatformSetting(tx, "go_live_delay_days")),
     soon: await getPlatformSetting(tx, "features_soon"),
     solutions: await getPlatformSetting(tx, "solutions"),
     demoUrl: String(await getPlatformSetting(tx, "demo_url")),
@@ -145,7 +156,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
   const soon = new Set<string>(data.soon);
   const isSoon = (solution: Solution) =>
     data.solutions.find((item) => item.code === solution)?.status !== "available";
-  // Premier pack de la grille (le moins cher) : bouton « Commencer » et question de la FAQ.
+  // Premier pack de la grille (le moins cher) : bouton « Créer mon site » et question de la FAQ.
   const first = [...data.plans].sort((a, b) => a.priceCents - b.priceCents)[0];
   const contact = config.SUPPORT_EMAIL ?? `support@${config.MAIN_DOMAIN}`;
   const startHref = { pathname: "/commander" as const, query: first ? { pack: first.code } : {} };
@@ -153,6 +164,8 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
   const faqValues = {
     months: data.commitment,
     display: data.display,
+    days: data.goLiveDays,
+    email: contact,
     percent: data.warningPercent,
     product: config.PRODUCT_NAME,
     plan: first ? pickLocalized(first.name, locale) : "",
@@ -173,7 +186,30 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
       "@type": "Organization",
       name: config.PRODUCT_NAME,
       url: publicAppUrl(),
+      logo: `${publicAppUrl()}/icon.svg`,
       email: contact,
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: config.PRODUCT_NAME,
+      url: `${publicAppUrl()}/${locale}`,
+      inLanguage: locale,
+    },
+    // Logiciel et prix des packs en vente (réglages), mensuels.
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      name: config.PRODUCT_NAME,
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Web",
+      offers: data.plans.map((plan) => ({
+        "@type": "Offer",
+        name: pickLocalized(plan.name, locale),
+        price: (plan.priceCents / 100).toFixed(2),
+        priceCurrency: plan.currency,
+        url: `${publicAppUrl()}/${locale}#tarifs`,
+      })),
     },
     {
       "@context": "https://schema.org",
@@ -204,8 +240,8 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             />
             <div className="hn-up relative mx-auto max-w-[56rem] px-4 pb-10 pt-12 text-center sm:px-6 lg:pb-12 lg:pt-20">
               <p className={EYEBROW}>{t("hero.badge")}</p>
-              <h1 className={`${TITLE} mt-5 text-[clamp(2.1rem,5vw,3.6rem)] leading-[1.06]`}>
-                {t("hero.title")} <br className="max-sm:hidden" />
+              <h1 className={`${TITLE} hn-balance mt-5 text-[clamp(2.1rem,5vw,3.6rem)] leading-[1.06]`}>
+                {t("hero.title")} <br />
                 <span className="text-accent">{t("hero.titleAccent")}</span>
               </h1>
               <p className="mx-auto mt-5 max-w-[38rem] text-[1.08rem] text-ink-soft lg:text-[1.15rem]">
@@ -233,7 +269,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
 
           {/* Choisissez votre solution */}
           <section id="solutions" aria-labelledby="titre-solutions" className="scroll-mt-20 px-4 sm:px-6">
-            <div className="mx-auto max-w-[75rem]">
+            <div className="mx-auto max-w-[72rem]">
               <h2 id="titre-solutions" className="sr-only">
                 {t("solutions.title")}
               </h2>
@@ -339,7 +375,10 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             className="relative isolate mx-auto max-w-[75rem] scroll-mt-20 px-4 pt-20 sm:px-6 lg:pt-28"
           >
             {/* Fond des packs : trame de points et halos doux de l'accent et du champagne. */}
-            <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-40 -z-10 h-[46rem]">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 top-40 -z-10 h-[46rem] overflow-hidden"
+            >
               <div className="hn-dots absolute inset-0" />
               <div className="absolute left-[8%] top-24 size-[22rem] rounded-full bg-accent/10 blur-[90px]" />
               <div className="absolute left-1/2 top-10 size-[26rem] -translate-x-1/2 rounded-full bg-champagne/20 blur-[100px]" />
@@ -449,8 +488,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               {t("comparison.title")}
               {SOLUTIONS.map((code) => (
                 <span key={code} data-only={code} className="text-accent">
-                  {" – "}
-                  {t(`solutions.items.${code}.name`)}
+                  {t("comparison.forSolution", { solution: t(`solutions.items.${code}.name`) })}
                 </span>
               ))}
             </h2>
@@ -491,7 +529,9 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               {data.showcase.map((entry) => (
                 <li key={entry.id}>
                   <figure className="flex h-full flex-col rounded-2xl border border-hairline bg-white p-6">
-                    <blockquote className="flex-1 text-night">« {entry.quote} »</blockquote>
+                    <blockquote className="flex-1 text-night">
+                      {t("showcase.quote", { quote: entry.quote })}
+                    </blockquote>
                     <figcaption className="mt-4 text-[0.88rem] text-ink-soft">
                       <span className="font-medium text-night">{entry.author}</span> · {entry.name} ·{" "}
                       {entry.activity}
@@ -509,7 +549,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           aria-labelledby="titre-questions"
           className="scroll-mt-20 px-4 py-20 sm:px-6 lg:py-28"
         >
-          <div className="mx-auto grid max-w-[75rem] gap-8 lg:grid-cols-[1fr_2fr] lg:gap-14">
+          <div className="mx-auto grid max-w-[72rem] gap-8 lg:grid-cols-[1fr_2fr] lg:gap-14">
             <div>
               <h2 id="titre-questions" className={`${TITLE} text-[clamp(1.6rem,3vw,2.2rem)] leading-[1.1]`}>
                 {t("faq.title")}
@@ -538,7 +578,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
 
         {/* Bandeau final */}
         <section className="px-4 pb-16 sm:px-6">
-          <div className="relative mx-auto max-w-[75rem] overflow-hidden rounded-[1.75rem] bg-[linear-gradient(120deg,#1b2a4a,#24366a_60%,#2f3f86)] px-6 py-14 text-center lg:py-16">
+          <div className="relative mx-auto max-w-[72rem] overflow-hidden rounded-[1.75rem] bg-[linear-gradient(120deg,#1b2a4a,#24366a_60%,#2f3f86)] px-6 py-14 text-center lg:py-16">
             <div
               aria-hidden="true"
               className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full border border-white/10"
@@ -553,7 +593,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             <p className="relative mx-auto mt-3 max-w-[32rem] text-[#c8d0e4]">{t("final.text")}</p>
             <Link
               href={startHref}
-              className="group relative mt-7 inline-flex min-h-12 items-center gap-2 rounded-xl bg-white px-6 font-medium text-navy transition hover:-translate-y-px"
+              className="group relative mt-7 inline-flex min-h-12 items-center gap-2 rounded-xl bg-white px-6 font-medium text-navy transition hover:-translate-y-px focus-visible:outline-white"
             >
               {t("final.cta")}
               <ArrowLine className="size-[18px] transition-transform group-hover:translate-x-0.5" />

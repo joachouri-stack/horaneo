@@ -71,6 +71,8 @@ export function HeaderShell({
         <nav
           id="menu-accueil"
           aria-label={menu.open}
+          // Menu fermé : ni lu par les lecteurs d'écran, ni atteint au clavier.
+          inert={!open}
           className={`grid overflow-hidden transition-[grid-template-rows] duration-300 ease-out lg:hidden ${open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
         >
           <div className="min-h-0">

@@ -35,7 +35,7 @@ export async function SolutionVisual({ solution }: { solution: Solution }) {
         height={cover.height}
         alt={tAll("visual", { solution: t("name") })}
         sizes="(min-width: 1024px) 40rem, 100vw"
-        priority
+        preload
         className="mx-auto h-auto w-full max-w-[40rem] rounded-[1.4rem] object-cover"
       />
     );

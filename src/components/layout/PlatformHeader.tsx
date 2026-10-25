@@ -44,7 +44,7 @@ export async function PlatformHeader({ children }: { children?: React.ReactNode 
         }
       >
         <header
-          className={`mx-auto flex max-w-[75rem] flex-wrap items-center justify-between gap-3 px-4 py-3 min-[400px]:gap-4 sm:px-6 lg:py-4 ${children ? "" : "max-lg:pr-16"}`}
+          className={`mx-auto flex max-w-[75rem] flex-wrap items-center justify-between gap-3 py-3 pl-4 min-[400px]:gap-4 sm:pl-6 lg:py-4 ${children ? "pr-4 sm:pr-6" : "pr-16 lg:pr-6"}`}
         >
           <Link href="/" aria-label={t("common.homeLink", { product })}>
             {/* Un peu plus petit sur les très petits téléphones : logo et boutons tiennent sur une ligne. */}

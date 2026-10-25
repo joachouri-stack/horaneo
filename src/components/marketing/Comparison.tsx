@@ -72,8 +72,9 @@ export async function Comparison({
   ]);
   const groups = gridComparison(plans, new Set(soon));
   const money = (cents: number) => formatMoney(cents, "EUR", locale);
-  const last = plans.length - 1;
-  const col = (index: number) => (index === last ? "bg-champagne-soft/50" : "");
+  // Même pack mis en avant que sur les cartes : celui du milieu dans une grille de trois, sinon le dernier.
+  const featured = plans.length >= 3 ? Math.floor(plans.length / 2) : plans.length - 1;
+  const col = (index: number) => (index === featured ? "bg-champagne-soft/50" : "");
 
   return (
     <PackColumns packs={plans.map((plan) => pickLocalized(plan.name, locale))} label={t("pickPack")}>
@@ -140,7 +141,7 @@ export async function Comparison({
                     <th scope="row" className="px-4 py-3 font-normal text-[#2d3446] lg:px-6">
                       {tGrid(`rows.${row.key}.label` as "rows.photos.label")}
                       {row.soon && (
-                        <span className="ml-2 inline-block rounded-full bg-mist-50 px-2 py-px align-[1px] text-[0.68rem] text-ink-soft">
+                        <span className="ml-2 inline-block rounded-full bg-mist-50 px-2 py-px align-[1px] text-[0.75rem] text-ink-soft">
                           {tPlans("soonTag")}
                         </span>
                       )}
