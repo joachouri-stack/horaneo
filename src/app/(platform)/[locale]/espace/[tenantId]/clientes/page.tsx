@@ -19,7 +19,9 @@ export default async function CustomersPage({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-extrabold">{t("title")}</h1>
+        <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
+          {t("title")}
+        </h1>
         <Link href={`${page.base}/clientes/nouvelle`} className={`${ui.secondaryButton} w-auto`}>
           + {t("new")}
         </Link>
@@ -40,7 +42,7 @@ export default async function CustomersPage({
         <button
           type="submit"
           aria-label={tCommon("search")}
-          className="inline-flex min-h-12 w-14 shrink-0 items-center justify-center rounded-full bg-brick text-white transition hover:shadow-md"
+          className="inline-flex min-h-12 w-14 shrink-0 items-center justify-center rounded-full bg-accent text-white transition hover:shadow-md"
         >
           <svg
             aria-hidden="true"
@@ -64,7 +66,7 @@ export default async function CustomersPage({
             <li key={customer.id}>
               <Link
                 href={`${page.base}/clientes/${customer.id}`}
-                className="flex items-center justify-between gap-3 px-4 py-4 hover:bg-ivory"
+                className="flex items-center justify-between gap-3 px-4 py-4 hover:bg-mist-50"
               >
                 <span>
                   <span className="block font-semibold">

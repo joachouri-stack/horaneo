@@ -20,7 +20,9 @@ export default async function ManagerServicesPage({
   }));
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-extrabold">{t("services")}</h1>
+      <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
+        {t("services")}
+      </h1>
       <ServicesEditor
         tenantId={page.tenantId}
         locale={page.tenant.defaultLocale}

@@ -19,7 +19,9 @@ export default async function LoyaltyPage({
   if (!config.included) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-extrabold">{t("title")}</h1>
+        <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
+          {t("title")}
+        </h1>
         <p className={ui.card}>
           {t("unavailable", {
             plan: (await page.db((tx) => firstPlanWith(tx, "loyalty", page.locale))) ?? "none",
@@ -30,7 +32,9 @@ export default async function LoyaltyPage({
   }
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-extrabold">{t("title")}</h1>
+      <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
+        {t("title")}
+      </h1>
       <p className="text-ink/80">{t("intro")}</p>
       <Section title={t("card")}>
         <ActionForm action={saveLoyaltySettingsAction} submitLabel={tCommon("save")} className="space-y-4">

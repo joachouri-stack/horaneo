@@ -98,9 +98,9 @@ export function ManualAppointmentForm({ tenantId, services, staff, defaults }: P
 
   const chip =
     "relative cursor-pointer rounded-[var(--radius-card)] border-2 px-4 py-3 has-[:checked]:border-navy has-[:checked]:bg-navy has-[:checked]:text-white";
-  const step = "flex items-center gap-2 text-lg font-bold text-night";
+  const step = "flex items-center gap-2 text-lg font-semibold text-night";
   const number =
-    "flex size-7 shrink-0 items-center justify-center rounded-full bg-navy text-sm font-bold text-white";
+    "flex size-7 shrink-0 items-center justify-center rounded-full bg-navy text-sm font-semibold text-white";
 
   return (
     <ActionForm action={createManualAction} submitLabel={t("submit")} className="space-y-8">
@@ -141,7 +141,7 @@ export function ManualAppointmentForm({ tenantId, services, staff, defaults }: P
                           name: [item.firstName, item.lastName].filter(Boolean).join(" "),
                         })
                       }
-                      className="block min-h-11 w-full px-4 py-3 text-left hover:bg-ivory"
+                      className="block min-h-11 w-full px-4 py-3 text-left hover:bg-mist-50"
                     >
                       <span className="font-semibold">
                         {[item.firstName, item.lastName].filter(Boolean).join(" ")}
@@ -225,7 +225,7 @@ export function ManualAppointmentForm({ tenantId, services, staff, defaults }: P
         {groups.map((group) => (
           <div key={group.name ?? "other"} className="space-y-2">
             {group.name && (
-              <p className="text-sm font-bold tracking-wide text-ink/60 uppercase">{group.name}</p>
+              <p className="text-sm font-semibold tracking-wide text-ink/60 uppercase">{group.name}</p>
             )}
             <div className="grid gap-2 sm:grid-cols-2">
               {group.items.map((service) => (
@@ -315,7 +315,7 @@ export function ManualAppointmentForm({ tenantId, services, staff, defaults }: P
                     if (slots.length === 0) return null;
                     return (
                       <div key={period.key}>
-                        <p className="mb-1 text-xs font-bold tracking-wide text-ink/60 uppercase">
+                        <p className="mb-1 text-xs font-semibold tracking-wide text-ink/60 uppercase">
                           {t(`periods.${period.key}`)}
                         </p>
                         <div className="flex flex-wrap gap-2">

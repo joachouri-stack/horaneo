@@ -36,7 +36,9 @@ export default async function PaymentsPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-extrabold">{t("title")}</h1>
+      <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
+        {t("title")}
+      </h1>
       <p className="text-ink/80">{t("intro", { product: env().PRODUCT_NAME, percent })}</p>
 
       {error && (
@@ -49,7 +51,7 @@ export default async function PaymentsPage({
       <section className={ui.card}>
         {/* Paiement en ligne pas encore configuré sur la plateforme : un seul message, jamais « compte actif ». */}
         {(configured || state === "unavailable") && (
-          <p className={`text-lg font-bold ${state === "active" ? "text-success" : "text-night"}`}>
+          <p className={`text-lg font-semibold ${state === "active" ? "text-success" : "text-night"}`}>
             {t(`state.${state}`)}
           </p>
         )}
@@ -64,7 +66,7 @@ export default async function PaymentsPage({
         )}
 
         {state !== "unavailable" && !configured && (
-          <p className="text-lg font-bold text-night">{t("notConfigured")}</p>
+          <p className="text-lg font-semibold text-night">{t("notConfigured")}</p>
         )}
 
         {(state === "not_started" || state === "incomplete") && configured && (

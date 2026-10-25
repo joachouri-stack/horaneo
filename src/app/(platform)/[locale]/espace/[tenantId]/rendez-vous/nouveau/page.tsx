@@ -34,7 +34,9 @@ export default async function NewAppointmentPage({
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-extrabold">{t("title")}</h1>
+      <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
+        {t("title")}
+      </h1>
       <div className={ui.card}>
         <ManualAppointmentForm
           tenantId={page.tenantId}

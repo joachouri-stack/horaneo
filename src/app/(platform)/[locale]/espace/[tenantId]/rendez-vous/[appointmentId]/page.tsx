@@ -22,10 +22,10 @@ import {
 /** Couleur de l'étiquette de statut en haut de la fiche. */
 const STATUS_BADGE: Record<string, string> = {
   confirmed: "bg-navy/10 text-night",
-  pending_payment: "bg-coral/15 text-coral-dark",
+  pending_payment: "bg-[#fdf3e2] text-[#a8661b]",
   attended: "bg-success/15 text-[#1e6b48]",
   no_show: "bg-ink/10 text-ink/80",
-  cancelled: "bg-coral-dark text-white",
+  cancelled: "bg-[#fdecea] text-[#b4372a]",
 };
 
 export default async function AppointmentPage({
@@ -46,7 +46,7 @@ export default async function AppointmentPage({
   const active = item.status === "confirmed" || item.status === "pending_payment";
   const hidden = { tenantId: page.tenantId, id: item.id };
   const big =
-    "inline-flex min-h-14 flex-1 items-center justify-center rounded-[var(--radius-card)] px-4 font-bold";
+    "inline-flex min-h-14 flex-1 items-center justify-center rounded-[var(--radius-card)] px-4 font-semibold";
 
   return (
     <div className="space-y-6">
@@ -58,7 +58,7 @@ export default async function AppointmentPage({
           </span>
           <span className="uppercase">{t(`source.${item.source}`)}</span>
         </p>
-        <h1 className="mt-1 text-2xl font-extrabold first-letter:uppercase">
+        <h1 className="mt-1 font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night first-letter:uppercase">
           {t("appointment.when", {
             date: page.fmt.day(item.startsAt),
             time: page.fmt.time(item.startsAt),
@@ -70,7 +70,7 @@ export default async function AppointmentPage({
 
       <section className={ui.card}>
         <h2 className="text-sm font-semibold uppercase text-ink/60">{t("appointment.customer")}</h2>
-        <p className="mt-1 text-xl font-bold text-night">
+        <p className="mt-1 text-xl font-semibold text-night">
           <Link href={`${page.base}/clientes/${item.customerId}`} className="underline">
             {item.customerName}
           </Link>
@@ -135,7 +135,7 @@ export default async function AppointmentPage({
           </p>
         )}
         {item.customerNote && (
-          <p className="mt-3 rounded bg-ivory p-3">
+          <p className="mt-3 rounded bg-mist-50 p-3">
             <span className="block text-sm font-semibold text-ink/60">{t("appointment.customerNote")}</span>
             {item.customerNote}
           </p>
@@ -213,7 +213,9 @@ export default async function AppointmentPage({
 
       {item.status === "confirmed" && (
         <details className={ui.card}>
-          <summary className="cursor-pointer text-lg font-bold text-night">{t("appointment.move")}</summary>
+          <summary className="cursor-pointer text-lg font-semibold text-night">
+            {t("appointment.move")}
+          </summary>
           <ActionForm
             action={moveAppointmentAction}
             submitLabel={t("appointment.move")}
@@ -248,7 +250,7 @@ export default async function AppointmentPage({
 
       {active && (
         <details className={ui.card}>
-          <summary className="cursor-pointer text-lg font-bold text-coral-dark">
+          <summary className="cursor-pointer text-lg font-semibold text-[#b4372a]">
             {t("appointment.cancel")}
           </summary>
           <ActionForm

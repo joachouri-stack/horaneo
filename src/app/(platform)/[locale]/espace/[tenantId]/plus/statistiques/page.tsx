@@ -45,7 +45,9 @@ export default async function StatsPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-extrabold">{t("title")}</h1>
+      <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
+        {t("title")}
+      </h1>
       <div className="flex items-center justify-between">
         <Link
           href={`${page.base}/plus/statistiques?mois=${shift(period, -1)}`}
@@ -53,7 +55,7 @@ export default async function StatsPage({
         >
           ← {t("previous")}
         </Link>
-        <span className="font-bold first-letter:uppercase">{label}</span>
+        <span className="font-semibold first-letter:uppercase">{label}</span>
         {period < current ? (
           <Link
             href={`${page.base}/plus/statistiques?mois=${shift(period, 1)}`}
@@ -68,7 +70,9 @@ export default async function StatsPage({
       <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {cards.map((card) => (
           <div key={card.label} className="rounded-[var(--radius-card)] bg-white p-4 shadow-sm">
-            <dd className="font-display text-2xl font-extrabold text-night">{card.value}</dd>
+            <dd className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
+              {card.value}
+            </dd>
             <dt className="text-sm text-ink/70">{card.label}</dt>
           </div>
         ))}
@@ -78,7 +82,7 @@ export default async function StatsPage({
           <p className="mb-3">
             {t("newCustomers")} : <strong>{stats.newCustomers}</strong>
           </p>
-          <h2 className="text-lg font-bold">{t("topServices")}</h2>
+          <h2 className="text-lg font-semibold">{t("topServices")}</h2>
           {stats.topServices.length === 0 ? (
             <p className="text-ink/60">{t("none")}</p>
           ) : (

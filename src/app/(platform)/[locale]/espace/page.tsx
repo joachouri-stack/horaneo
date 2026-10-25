@@ -45,7 +45,7 @@ export default async function AccountPage({ params }: PageProps<"/[locale]/espac
       <AppHeader />
       <main id="contenu" className="mx-auto max-w-2xl space-y-6 px-4 py-8">
         <div>
-          <h1 className="text-3xl font-extrabold">
+          <h1 className="font-display text-[2rem] font-semibold tracking-[-0.025em] text-night">
             {user.name ? t("greeting", { name: user.name }) : t("greetingNoName")}
           </h1>
           <p className="mt-1 text-ink/70">{t("signedInAs", { email: user.email })}</p>
@@ -53,7 +53,7 @@ export default async function AccountPage({ params }: PageProps<"/[locale]/espac
 
         {managed.length === 0 && order && order.order.status !== "abandoned" ? (
           <section className={ui.card}>
-            <h2 className="text-xl font-bold">{tOrder("title")}</h2>
+            <h2 className="text-xl font-semibold">{tOrder("title")}</h2>
             <p className="mt-2 font-semibold text-night">
               {order.order.businessName} · {pickLocalized(order.planName, locale)}
             </p>
@@ -74,7 +74,7 @@ export default async function AccountPage({ params }: PageProps<"/[locale]/espac
           // Connectée avec une adresse sans espace (ancien compte, autre adresse) : on le dit, et on
           // propose de changer de compte avant de proposer un pack.
           <section className={ui.card}>
-            <h2 className="text-xl font-bold">{t("noTenantTitle")}</h2>
+            <h2 className="text-xl font-semibold">{t("noTenantTitle")}</h2>
             <p className="mt-2">{t("noTenantBody", { email: user.email })}</p>
             <SignOutButton
               to="/connexion"
@@ -90,7 +90,7 @@ export default async function AccountPage({ params }: PageProps<"/[locale]/espac
           </section>
         ) : (
           <section className={ui.card}>
-            <h2 className="text-xl font-bold">{t("tenantsTitle")}</h2>
+            <h2 className="text-xl font-semibold">{t("tenantsTitle")}</h2>
             <ul className="mt-4 space-y-2">
               {managed.map((tenant) => (
                 <li key={tenant.id}>

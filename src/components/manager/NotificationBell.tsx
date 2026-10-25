@@ -18,7 +18,7 @@ export function NotificationBell({ href, count, label }: { href: string; count: 
       href={href}
       aria-label={label}
       aria-current={pathname === href ? "page" : undefined}
-      className="relative flex size-11 shrink-0 items-center justify-center rounded-full text-navy transition hover:bg-blush aria-[current=page]:bg-blush aria-[current=page]:text-coral-dark"
+      className="relative flex size-11 shrink-0 items-center justify-center rounded-full text-navy transition hover:bg-accent-soft aria-[current=page]:bg-accent-soft aria-[current=page]:text-accent"
     >
       <svg
         aria-hidden="true"
@@ -35,7 +35,7 @@ export function NotificationBell({ href, count, label }: { href: string; count: 
       {shown > 0 && (
         <span
           aria-hidden="true"
-          className="absolute right-0.5 top-0.5 flex min-w-5 items-center justify-center rounded-full bg-coral px-1 text-xs font-bold leading-5 text-white ring-2 ring-ivory"
+          className="absolute right-0.5 top-0.5 flex min-w-5 items-center justify-center rounded-full bg-coral px-1 text-xs font-semibold leading-5 text-white ring-2 ring-white"
         >
           {shown > 9 ? "9+" : shown}
         </span>
