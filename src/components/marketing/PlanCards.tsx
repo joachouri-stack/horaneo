@@ -60,6 +60,8 @@ export async function PlanCards({
     <div className="grid gap-5 lg:grid-cols-3 lg:items-stretch lg:gap-6">
       {plans.map((plan, index) => {
         const featured = plans.length > 1 && index === plans.length - 1;
+        // Premier pack : porte d'entrée, mise en valeur légère (filet d'accent, halo, étiquette).
+        const entry = plans.length > 1 && index === 0;
         const Icon = ICONS[Math.min(index, ICONS.length - 1)];
         const name = pickLocalized(plan.name, locale);
         const card = gridCard(plan, plans, soonSet);
@@ -104,6 +106,22 @@ export async function PlanCards({
                 : "border border-hairline bg-white shadow-[0_1px_2px_rgba(15,24,48,.04)] hover:-translate-y-1 hover:shadow-[0_24px_44px_-30px_rgba(15,24,48,.35)]"
             }`}
           >
+            {entry && (
+              <>
+                {/* Filet et halo de l'accent de la solution, discrets. */}
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-0 top-0 h-36 rounded-t-[1.4rem] bg-gradient-to-b from-accent-soft to-transparent"
+                />
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-0 top-0 h-1 rounded-t-[1.4rem] bg-accent"
+                />
+                <p className="absolute right-5 top-0 -translate-y-1/2 rounded-full border border-accent-line bg-white px-3 py-1 text-[0.72rem] font-medium tracking-[0.02em] text-accent-strong">
+                  {t("entryTag")}
+                </p>
+              </>
+            )}
             {featured && (
               <>
                 {/* Reflet champagne discret en haut de la carte. */}
@@ -119,7 +137,11 @@ export async function PlanCards({
             <div className="relative flex items-center gap-3">
               <span
                 className={`flex size-11 items-center justify-center rounded-full ${
-                  featured ? "bg-champagne/15 text-champagne" : "bg-accent-soft text-accent"
+                  featured
+                    ? "bg-champagne/15 text-champagne"
+                    : entry
+                      ? "bg-accent text-white"
+                      : "bg-accent-soft text-accent"
                 }`}
               >
                 <Icon className="size-[22px]" />
