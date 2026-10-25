@@ -406,8 +406,8 @@
       "perMonthCount": "{count}/mois",
       "rows": {
         "miniSite": {
-          "label": "Fiche professionnelle (mini-site)",
-          "card": "Fiche professionnelle (mini-site)"
+          "label": "Site vitrine",
+          "card": "Site vitrine"
         },
         "fullSite": {
           "label": "Site multipage personnalisable",
