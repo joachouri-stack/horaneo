@@ -116,11 +116,11 @@ const TRUST = [
 
 const TITLE = "font-display font-semibold tracking-[-0.025em] text-night";
 const EYEBROW =
-  "inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1 text-[0.75rem] font-medium uppercase tracking-[0.08em] text-accent-strong";
+  "inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1 text-[0.8125rem] font-medium uppercase tracking-[0.08em] text-accent-strong";
 const PRIMARY =
-  "group inline-flex min-h-12 items-center gap-2 rounded-xl bg-accent px-5 text-[0.95rem] font-medium text-white shadow-[0_12px_24px_-14px_var(--accent)] transition hover:-translate-y-px hover:bg-accent-strong motion-reduce:transition-none";
+  "group inline-flex min-h-12 items-center gap-2 rounded-xl bg-accent px-5 text-base font-medium text-white shadow-[0_12px_24px_-14px_var(--accent)] transition hover:-translate-y-px hover:bg-accent-strong motion-reduce:transition-none";
 const SECONDARY =
-  "inline-flex min-h-12 items-center gap-2 rounded-xl border border-hairline bg-white px-5 text-[0.95rem] font-medium text-night transition hover:border-accent-line hover:text-accent-strong";
+  "inline-flex min-h-12 items-center gap-2 rounded-xl border border-hairline bg-white px-5 text-base font-medium text-night transition hover:border-accent-line hover:text-accent-strong";
 
 /**
  * Site commercial : site de réservation en ligne, prêt à remplir l'agenda.
@@ -223,7 +223,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
   ];
 
   return (
-    <div className="bg-white text-[1rem] font-light leading-[1.65] text-[#3d4457]">
+    <div className="bg-white text-base font-light leading-[1.65] text-[#3d4457]">
       <script
         type="application/ld+json"
         // Le « < » est échappé : le texte ne peut pas fermer la balise.
@@ -244,7 +244,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 {t("hero.title")} <br />
                 <span className="text-accent">{t("hero.titleAccent")}</span>
               </h1>
-              <p className="mx-auto mt-5 max-w-[38rem] text-[1.08rem] text-ink-soft lg:text-[1.15rem]">
+              <p className="mx-auto mt-5 max-w-[38rem] text-[1.125rem] text-ink-soft lg:text-[1.15rem]">
                 {t("hero.subtitle")}
               </p>
               <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
@@ -291,7 +291,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                       <p className={EYEBROW}>
                         {t(`solutions.items.${code}.badge`)}
                         {isSoon(code) && (
-                          <span className="rounded-full bg-white px-2 py-px text-[0.68rem] normal-case tracking-normal text-ink-soft">
+                          <span className="rounded-full bg-white px-2 py-px text-[0.75rem] normal-case tracking-normal text-ink-soft">
                             {t("solutions.soon")}
                           </span>
                         )}
@@ -303,10 +303,10 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                         <br />
                         <span className="text-accent">{t(`solutions.items.${code}.titleAccent`)}</span>
                       </h3>
-                      <p className="mt-4 max-w-[32rem] text-[1.03rem] text-ink-soft">
+                      <p className="mt-4 max-w-[32rem] text-[1.0625rem] text-ink-soft">
                         {t(`solutions.items.${code}.text`)}
                       </p>
-                      <ul className="mt-6 grid gap-2.5 text-[0.98rem] text-[#2d3446]">
+                      <ul className="mt-6 grid gap-2.5 text-[1.0625rem] text-[#2d3446]">
                         {(t.raw(`solutions.items.${code}.bullets`) as string[]).map((item) => (
                           <li key={item} className="flex items-center gap-3">
                             <span className="flex size-6 flex-none items-center justify-center rounded-full bg-accent text-white">
@@ -316,7 +316,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                           </li>
                         ))}
                       </ul>
-                      <p className="mt-5 text-[0.85rem] text-ink-soft">
+                      <p className="mt-5 text-[0.875rem] text-ink-soft">
                         <span className="font-medium text-night">{t("solutions.for")} : </span>
                         {(t.raw(`solutions.items.${code}.targets`) as string[]).join(" · ")}
                       </p>
@@ -326,7 +326,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                             {t("solutions.ctaSoon")}
                             <ArrowLine className="size-[18px] transition-transform group-hover:translate-x-0.5" />
                           </Link>
-                          <p className="mt-3 max-w-[30rem] text-[0.82rem] text-ink-soft">
+                          <p className="mt-3 max-w-[30rem] text-[0.875rem] text-ink-soft">
                             {t("solutions.soonNote")}
                           </p>
                         </div>
@@ -355,7 +355,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                       return (
                         <li
                           key={item}
-                          className="flex flex-col items-center gap-2 bg-white px-3 py-5 text-center text-[0.85rem] text-[#2d3446] max-sm:last:col-span-2"
+                          className="flex flex-col items-center gap-2 bg-white px-3 py-5 text-center text-[0.875rem] text-[#2d3446] max-sm:last:col-span-2"
                         >
                           <Icon className="size-6 text-accent" />
                           {item}
@@ -410,7 +410,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   }}
                 />
               ) : (
-                <p className="rounded-full bg-accent-soft px-3.5 py-1.5 text-[0.82rem] font-medium text-accent-strong">
+                <p className="rounded-full bg-accent-soft px-3.5 py-1.5 text-[0.875rem] font-medium text-accent-strong">
                   {t("plans.monthly", { display: data.display })}
                 </p>
               )}
@@ -420,7 +420,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               <p
                 key={code}
                 data-only={code}
-                className="mb-8 rounded-xl border border-accent-line bg-accent-soft px-4 py-3 text-[0.9rem] text-accent-strong"
+                className="mb-8 rounded-xl border border-accent-line bg-accent-soft px-4 py-3 text-base text-accent-strong"
               >
                 {t("plans.soonSolution", { solution: t(`solutions.items.${code}.name`) })}
               </p>
@@ -434,7 +434,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               offers={data.offers}
               yearly={data.yearly}
             />
-            <p className="mt-6 text-center text-[0.82rem] text-ink-soft">{t("plans.quotaNote")}</p>
+            <p className="mt-6 text-center text-[0.875rem] text-ink-soft">{t("plans.quotaNote")}</p>
           </section>
 
           {/* Les bénéfices */}
@@ -458,17 +458,15 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     <span className="flex size-11 items-center justify-center rounded-xl border border-accent-line bg-accent-soft text-accent">
                       <item.Icon className="size-[22px]" />
                     </span>
-                    <h3 className="mt-4 flex flex-wrap items-center gap-2 font-display text-[1.05rem] font-semibold text-night">
+                    <h3 className="mt-4 flex flex-wrap items-center gap-2 font-display text-[1.125rem] font-semibold text-night">
                       {t(`benefits.items.${item.key}.title`)}
                       {later && (
-                        <span className="rounded-full bg-mist-50 px-2 py-px font-sans text-[0.68rem] font-normal text-ink-soft">
+                        <span className="rounded-full bg-mist-50 px-2 py-px font-sans text-[0.75rem] font-normal text-ink-soft">
                           {t("plans.soonTag")}
                         </span>
                       )}
                     </h3>
-                    <p className="mt-1.5 text-[0.92rem] text-ink-soft">
-                      {t(`benefits.items.${item.key}.text`)}
-                    </p>
+                    <p className="mt-1.5 text-base text-ink-soft">{t(`benefits.items.${item.key}.text`)}</p>
                   </li>
                 );
               })}
@@ -517,7 +515,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 <p className="mt-3 font-medium text-night">
                   {t(`trust.items.${key}.title`, { percent: data.commission })}
                 </p>
-                <p className="mt-1 text-[0.85rem] leading-snug text-ink-soft">
+                <p className="mt-1 text-[0.875rem] leading-snug text-ink-soft">
                   {t(`trust.items.${key}.text`)}
                 </p>
               </li>
@@ -532,7 +530,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     <blockquote className="flex-1 text-night">
                       {t("showcase.quote", { quote: entry.quote })}
                     </blockquote>
-                    <figcaption className="mt-4 text-[0.88rem] text-ink-soft">
+                    <figcaption className="mt-4 text-base text-ink-soft">
                       <span className="font-medium text-night">{entry.author}</span> · {entry.name} ·{" "}
                       {entry.activity}
                     </figcaption>
@@ -569,7 +567,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     {item.q}
                     <PlusLine className="size-5 flex-none text-ink-soft transition-transform group-open:rotate-45 motion-reduce:transition-none" />
                   </summary>
-                  <p className="pb-5 pr-8 text-[0.95rem] text-ink-soft">{item.a}</p>
+                  <p className="pb-5 pr-8 text-base text-ink-soft">{item.a}</p>
                 </details>
               ))}
             </div>

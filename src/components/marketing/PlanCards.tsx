@@ -138,7 +138,7 @@ export async function PlanCards({
               {text(item)}
               {item.soon && (
                 <span
-                  className={`ml-1.5 inline-block rounded-full px-1.5 py-px align-[1px] text-[0.75rem] font-medium ${
+                  className={`ml-1.5 inline-block rounded-full px-1.5 py-px align-[1px] text-[0.8125rem] font-medium ${
                     featured ? "bg-white/10 text-champagne" : "bg-mist-50 text-ink-soft"
                   }`}
                 >
@@ -167,7 +167,7 @@ export async function PlanCards({
               <>
                 {/* Filet complet et halo de l'accent de la solution. */}
                 <span aria-hidden="true" className="hn-edge hn-edge-full" />
-                <p className="absolute right-5 top-0 -translate-y-1/2 rounded-full bg-gradient-to-r from-accent to-accent-strong px-3 py-1 text-[0.75rem] font-medium tracking-[0.02em] text-white shadow-[0_6px_16px_-8px_var(--color-accent)]">
+                <p className="absolute right-5 top-0 -translate-y-1/2 rounded-full bg-gradient-to-r from-accent to-accent-strong px-3 py-1 text-[0.8125rem] font-medium tracking-[0.02em] text-white shadow-[0_6px_16px_-8px_var(--color-accent)]">
                   {t("entryTag")}
                 </p>
               </>
@@ -180,7 +180,7 @@ export async function PlanCards({
                   aria-hidden="true"
                   className="pointer-events-none absolute inset-x-0 top-0 h-36 rounded-t-[1.4rem] bg-gradient-to-b from-champagne-soft to-transparent"
                 />
-                <p className="absolute right-5 top-0 -translate-y-1/2 rounded-full bg-deep px-3 py-1 text-[0.75rem] font-medium tracking-[0.02em] text-champagne shadow-[0_6px_16px_-8px_rgba(18,26,44,.6)]">
+                <p className="absolute right-5 top-0 -translate-y-1/2 rounded-full bg-deep px-3 py-1 text-[0.8125rem] font-medium tracking-[0.02em] text-champagne shadow-[0_6px_16px_-8px_rgba(18,26,44,.6)]">
                   {t("completeTag")}
                 </p>
               </>
@@ -197,7 +197,7 @@ export async function PlanCards({
                   aria-hidden="true"
                   className="pointer-events-none absolute inset-x-0 top-0 h-40 rounded-t-[1.4rem] bg-gradient-to-b from-champagne/10 to-transparent"
                 />
-                <p className="absolute right-5 top-0 -translate-y-1/2 rounded-full bg-gradient-to-r from-[#c9a96a] to-[#e4cfa2] px-3 py-1 text-[0.75rem] font-medium tracking-[0.02em] text-deep">
+                <p className="absolute right-5 top-0 -translate-y-1/2 rounded-full bg-gradient-to-r from-[#c9a96a] to-[#e4cfa2] px-3 py-1 text-[0.8125rem] font-medium tracking-[0.02em] text-deep">
                   {t("recommended")}
                 </p>
               </>
@@ -221,7 +221,7 @@ export async function PlanCards({
                   {name}
                 </h3>
                 {plan.description && (
-                  <p className={`text-[0.85rem] leading-snug ${muted}`}>
+                  <p className={`text-[0.875rem] leading-snug ${muted}`}>
                     {pickLocalized(plan.description, locale)}
                   </p>
                 )}
@@ -236,7 +236,7 @@ export async function PlanCards({
                   strong,
                   entry ? "text-accent" : top ? "text-copper" : "",
                 )}
-                <span className={`text-[0.9rem] ${muted}`}>
+                <span className={`text-base ${muted}`}>
                   {paid ? t("perMonth", { display }) : t("freeSuffix")}
                 </span>
               </p>
@@ -249,9 +249,9 @@ export async function PlanCards({
                       strong,
                       entry ? "text-accent" : top ? "text-copper" : "",
                     )}
-                    <span className={`text-[0.9rem] ${muted}`}>{t("perYear", { display })}</span>
+                    <span className={`text-base ${muted}`}>{t("perYear", { display })}</span>
                   </p>
-                  <p className={`mt-1.5 text-[0.82rem] ${muted}`}>
+                  <p className={`mt-1.5 text-[0.875rem] ${muted}`}>
                     {t("yearlyDetail", {
                       monthly: money(monthlyEquivalentCents(yearlyCents)),
                       display,
@@ -259,7 +259,7 @@ export async function PlanCards({
                     })}
                     {yearly.freeMonths > 0 && (
                       <span
-                        className={`ml-2 inline-block rounded-full px-2 py-px text-[0.75rem] font-medium ${
+                        className={`ml-2 inline-block rounded-full px-2 py-px text-[0.8125rem] font-medium ${
                           featured
                             ? "bg-champagne/15 text-champagne"
                             : top
@@ -278,7 +278,7 @@ export async function PlanCards({
             </div>
 
             <ul
-              className={`relative mt-6 flex flex-col gap-2.5 border-t pt-5 text-[0.92rem] leading-snug ${featured ? "border-white/10" : top ? "border-champagne/30" : "border-hairline"}`}
+              className={`relative mt-6 flex flex-col gap-2.5 border-t pt-5 text-base leading-snug ${featured ? "border-white/10" : top ? "border-champagne/30" : "border-hairline"}`}
             >
               {card.previous && (
                 <li className={`flex items-start gap-2.5 font-medium ${strong}`}>
@@ -290,9 +290,9 @@ export async function PlanCards({
             </ul>
             {/* Listes longues : le reste se déplie, pour garder des cartes lisibles d'un coup d'œil. */}
             {card.included.length > VISIBLE_LINES && (
-              <details className="group/more relative mt-2.5 text-[0.92rem] leading-snug">
+              <details className="group/more relative mt-2.5 text-base leading-snug">
                 <summary
-                  className={`inline-flex min-h-11 cursor-pointer list-none items-center gap-1.5 text-[0.85rem] font-medium underline-offset-4 hover:underline [&::-webkit-details-marker]:hidden ${tint}`}
+                  className={`inline-flex min-h-11 cursor-pointer list-none items-center gap-1.5 text-[0.875rem] font-medium underline-offset-4 hover:underline [&::-webkit-details-marker]:hidden ${tint}`}
                 >
                   <span className="group-open/more:hidden">{t("showAll")}</span>
                   <span className="hidden group-open/more:inline">{t("showLess")}</span>
@@ -310,10 +310,10 @@ export async function PlanCards({
               const items = card.upcoming.filter((item) => !item.solution || item.solution === solution);
               return items.length > 0 ? (
                 <div key={solution} data-only={solution} className="relative mt-5">
-                  <p className={`mb-1.5 text-[0.75rem] font-medium uppercase tracking-[0.06em] ${tint}`}>
+                  <p className={`mb-1.5 text-[0.8125rem] font-medium uppercase tracking-[0.06em] ${tint}`}>
                     {t("upcoming")}
                   </p>
-                  <p className={`text-[0.84rem] leading-relaxed ${muted}`}>
+                  <p className={`text-[0.875rem] leading-relaxed ${muted}`}>
                     {items.map((item) => text(item)).join(" · ")}
                   </p>
                 </div>
@@ -322,10 +322,10 @@ export async function PlanCards({
 
             {card.missing.length > 0 && (
               <div className="relative mt-5">
-                <p className={`mb-1.5 text-[0.75rem] font-medium uppercase tracking-[0.06em] ${muted}`}>
+                <p className={`mb-1.5 text-[0.8125rem] font-medium uppercase tracking-[0.06em] ${muted}`}>
                   {t("notIncluded")}
                 </p>
-                <ul className={`flex flex-col gap-1.5 text-[0.85rem] ${muted}`}>
+                <ul className={`flex flex-col gap-1.5 text-[0.875rem] ${muted}`}>
                   {card.missing.map((item, i) => (
                     <li
                       key={`m${i}`}
@@ -349,11 +349,11 @@ export async function PlanCards({
                 >
                   <TabletLine className="size-6" />
                 </span>
-                <div className="min-w-0 text-[0.82rem] leading-snug">
+                <div className="min-w-0 text-[0.875rem] leading-snug">
                   <p className="flex flex-wrap items-center gap-2">
                     <span className={`font-medium ${strong}`}>{pickLocalized(offer.title, locale)}</span>
                     <span
-                      className={`rounded-full px-2 py-px text-[0.75rem] ${featured ? "bg-champagne/15 text-champagne" : top ? "bg-white text-copper" : "bg-white text-accent-strong"}`}
+                      className={`rounded-full px-2 py-px text-[0.8125rem] ${featured ? "bg-champagne/15 text-champagne" : top ? "bg-white text-copper" : "bg-white text-accent-strong"}`}
                     >
                       {t("tablet.badge")}
                     </span>
@@ -366,7 +366,7 @@ export async function PlanCards({
               <Link
                 data-billing-only={withYearly ? "month" : undefined}
                 href={hrefFor("month")}
-                className={`group flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-[0.95rem] font-medium transition duration-200 motion-reduce:transition-none ${
+                className={`group flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-base font-medium transition duration-200 motion-reduce:transition-none ${
                   featured
                     ? "hn-shine bg-gradient-to-r from-[#c9a96a] via-[#e4cfa2] to-[#d2b47c] text-deep focus-visible:outline-white shadow-[0_12px_30px_-14px_rgba(217,192,142,.7)] hover:brightness-105"
                     : top && paid
@@ -385,7 +385,7 @@ export async function PlanCards({
                 <Link
                   data-billing-only="year"
                   href={hrefFor("year")}
-                  className={`group flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-[0.95rem] font-medium transition duration-200 motion-reduce:transition-none ${
+                  className={`group flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-base font-medium transition duration-200 motion-reduce:transition-none ${
                     featured
                       ? "hn-shine bg-gradient-to-r from-[#c9a96a] via-[#e4cfa2] to-[#d2b47c] text-deep focus-visible:outline-white shadow-[0_12px_30px_-14px_rgba(217,192,142,.7)] hover:brightness-105"
                       : top && paid
@@ -403,20 +403,20 @@ export async function PlanCards({
               )}
               <p
                 data-billing-only={withYearly ? "month" : undefined}
-                className={`mt-3 text-center text-[0.76rem] leading-snug ${muted}`}
+                className={`mt-3 text-center text-[0.8125rem] leading-snug ${muted}`}
               >
                 {paid ? t("contractPaid", { months: commitmentMonths, display }) : t("contractFree")}
               </p>
               {withYearly && (
                 <p
                   data-billing-only="year"
-                  className={`mt-3 text-center text-[0.76rem] leading-snug ${muted}`}
+                  className={`mt-3 text-center text-[0.8125rem] leading-snug ${muted}`}
                 >
                   {t("contractYearly", { display })}
                 </p>
               )}
               {offer && (
-                <details className={`group mt-2 text-center text-[0.74rem] leading-snug ${muted}`}>
+                <details className={`group mt-2 text-center text-[0.8125rem] leading-snug ${muted}`}>
                   <summary
                     className={`inline-flex min-h-11 cursor-pointer list-none items-center underline underline-offset-2 [&::-webkit-details-marker]:hidden ${featured ? "hover:text-champagne" : "hover:text-accent-strong"}`}
                   >

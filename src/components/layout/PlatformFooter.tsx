@@ -5,7 +5,7 @@ import { env } from "@/config/env";
 import { Link } from "@/i18n/navigation";
 
 const LINK = "inline-flex min-h-11 items-center text-night transition-colors hover:text-brick";
-const HEADING = "mb-1 text-[0.8rem] font-semibold uppercase tracking-[0.12em] text-stone";
+const HEADING = "mb-1 text-[0.875rem] font-semibold uppercase tracking-[0.12em] text-stone";
 
 /**
  * Pied de page du site commercial : logo, phrase d'accroche et adresse de
@@ -36,7 +36,7 @@ export async function PlatformFooter() {
           >
             <Logo productName={product} className="text-[1.8rem]" />
           </Link>
-          <p className="mt-3 max-w-[22rem] text-[0.95rem] text-body">{t("tagline")}</p>
+          <p className="mt-3 max-w-[22rem] text-base text-body">{t("tagline")}</p>
           <a href={`mailto:${contact}`} className={`${LINK} font-semibold underline underline-offset-4`}>
             {contact}
           </a>
@@ -45,7 +45,7 @@ export async function PlatformFooter() {
           <p id="pied-decouvrir" className={HEADING}>
             {t("discover")}
           </p>
-          <ul className="text-[0.95rem]">
+          <ul className="text-base">
             {NAV.map((item) => (
               <li key={item.hash}>
                 <Link href={{ pathname: "/", hash: item.hash }} className={LINK}>
@@ -59,7 +59,7 @@ export async function PlatformFooter() {
           <p id="pied-pro" className={HEADING}>
             {t("pro")}
           </p>
-          <ul className="text-[0.95rem]">
+          <ul className="text-base">
             <li>
               <Link href="/connexion" className={LINK}>
                 {tCommon("login")}
@@ -73,7 +73,7 @@ export async function PlatformFooter() {
           </ul>
         </nav>
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 pt-5 text-[0.95rem] text-[#5f5b54]">
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 pt-5 text-base text-[#5f5b54]">
         <p>{t("rights", { year: new Date().getFullYear(), product: product.toLocaleUpperCase() })}</p>
         <nav aria-label={t("legal")}>
           <ul className="flex flex-wrap gap-x-6">

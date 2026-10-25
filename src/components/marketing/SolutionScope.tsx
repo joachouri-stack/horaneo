@@ -85,12 +85,12 @@ export function SolutionTabs({
             </span>
             <span className="min-w-0">
               <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                <span className="font-display text-[1.05rem] font-semibold tracking-[-0.01em]">
+                <span className="font-display text-[1.125rem] font-semibold tracking-[-0.01em]">
                   {item.name}
                 </span>
                 {item.soon && (
                   <span
-                    className={`rounded-full px-2 py-px text-[0.75rem] font-medium ${
+                    className={`rounded-full px-2 py-px text-[0.8125rem] font-medium ${
                       active ? "bg-white/15 text-white" : "bg-mist-50 text-ink-soft"
                     }`}
                   >
@@ -99,7 +99,7 @@ export function SolutionTabs({
                 )}
               </span>
               <span
-                className={`block text-[0.83rem] leading-snug ${active ? "text-white/80" : "text-ink-soft"}`}
+                className={`block text-[0.875rem] leading-snug ${active ? "text-white/80" : "text-ink-soft"}`}
               >
                 {item.short}
               </span>
@@ -135,7 +135,7 @@ export function PackColumns({
             type="button"
             aria-pressed={pack === index}
             onClick={() => setPack(index)}
-            className={`min-h-11 rounded-lg text-[0.9rem] font-medium transition ${
+            className={`min-h-11 rounded-lg text-base font-medium transition ${
               pack === index
                 ? "bg-white text-night shadow-[0_2px_8px_-4px_rgba(15,24,48,.3)]"
                 : "text-ink-soft"
@@ -163,13 +163,13 @@ export function BillingToggle({
       type="button"
       aria-pressed={context.billing === value}
       onClick={() => context.setBilling(value)}
-      className={`relative z-10 flex min-h-11 items-center justify-center gap-2 rounded-full px-4 text-[0.88rem] font-medium transition-colors ${
+      className={`relative z-10 flex min-h-11 items-center justify-center gap-2 rounded-full px-3 text-[0.9375rem] sm:px-4 sm:text-base font-medium transition-colors ${
         context.billing === value ? "text-night" : "text-ink-soft hover:text-night"
       }`}
     >
       {text}
       {value === "year" && labels.badge && (
-        <span className="rounded-full bg-accent px-2 py-px text-[0.75rem] font-medium text-white">
+        <span className="whitespace-nowrap rounded-full bg-accent px-2 py-px text-[0.8125rem] font-medium text-white">
           {labels.badge}
         </span>
       )}
