@@ -39,7 +39,9 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
     free: (await listPublicPlans(tx)).filter((plan) => plan.priceCents <= 0).map((plan) => plan.code),
   }));
   if (!open && !free.includes(pack)) {
-    redirect({ href: { pathname: "/rappel", query: pack ? { pack } : {} }, locale });
+    // Le choix mensuel ou annuel suit la demande de rappel.
+    const billing = query.billing === "year" ? { billing: "year" } : {};
+    redirect({ href: { pathname: "/rappel", query: pack ? { pack, ...billing } : billing }, locale });
   }
   // Pas de compte à créer avant : sans connexion, l'e-mail, le prénom et le nom se saisissent ici.
   const session = await getCurrentSession();

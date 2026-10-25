@@ -72,17 +72,18 @@ export async function Comparison({
   ]);
   const groups = gridComparison(plans, new Set(soon));
   const money = (cents: number) => formatMoney(cents, "EUR", locale);
-  const last = plans.length - 1;
-  const col = (index: number) => (index === last ? "bg-champagne-soft/50" : "");
+  // Même pack mis en avant que sur les cartes : celui du milieu dans une grille de trois, sinon le dernier.
+  const featured = plans.length >= 3 ? Math.floor(plans.length / 2) : plans.length - 1;
+  const col = (index: number) => (index === featured ? "bg-champagne-soft/50" : "");
 
   return (
     <PackColumns packs={plans.map((plan) => pickLocalized(plan.name, locale))} label={t("pickPack")}>
       <div className="overflow-hidden rounded-[1.4rem] border border-hairline bg-white">
-        <table className="w-full border-collapse text-left text-[0.9rem]">
+        <table className="w-full border-collapse text-left text-base">
           <caption className="sr-only">{t("title")}</caption>
           <thead>
             <tr className="border-b border-hairline">
-              <th scope="col" className="p-4 font-display text-[1rem] font-semibold text-night lg:px-6">
+              <th scope="col" className="p-4 font-display text-base font-semibold text-night lg:px-6">
                 {t("feature")}
               </th>
               {plans.map((plan, index) => (
@@ -92,19 +93,22 @@ export async function Comparison({
                   data-col={index}
                   className={`w-[22%] p-4 text-center align-bottom md:w-[17%] ${col(index)}`}
                 >
-                  <span className="block font-display text-[1.02rem] font-semibold text-night">
+                  <span className="block font-display text-[1.0625rem] font-semibold text-night">
                     {pickLocalized(plan.name, locale)}
                   </span>
                   <span
                     data-billing-only={plan.priceCents > 0 && yearly?.enabled ? "month" : undefined}
-                    className="block text-[0.82rem] font-normal text-ink-soft"
+                    className="block text-[0.875rem] font-normal text-ink-soft"
                   >
                     {plan.priceCents > 0
                       ? `${money(plan.priceCents)} ${tPlans("perMonth", { display })}`
                       : tPlans("free")}
                   </span>
                   {plan.priceCents > 0 && yearly?.enabled && (
-                    <span data-billing-only="year" className="block text-[0.82rem] font-normal text-ink-soft">
+                    <span
+                      data-billing-only="year"
+                      className="block text-[0.875rem] font-normal text-ink-soft"
+                    >
                       {money(yearlyPriceCents(plan.priceCents, yearly.freeMonths))}{" "}
                       {tPlans("perYear", { display })}
                     </span>
@@ -123,7 +127,7 @@ export async function Comparison({
                   <th
                     scope="colgroup"
                     colSpan={plans.length + 1}
-                    className="bg-mist-50/70 px-4 pb-2 pt-5 text-[0.78rem] font-medium uppercase tracking-[0.07em] text-accent-strong lg:px-6"
+                    className="bg-mist-50/70 px-4 pb-2 pt-5 text-[0.8125rem] font-medium uppercase tracking-[0.07em] text-accent-strong lg:px-6"
                   >
                     <span className="flex items-center gap-2">
                       <Icon className="size-4" />
@@ -140,7 +144,7 @@ export async function Comparison({
                     <th scope="row" className="px-4 py-3 font-normal text-[#2d3446] lg:px-6">
                       {tGrid(`rows.${row.key}.label` as "rows.photos.label")}
                       {row.soon && (
-                        <span className="ml-2 inline-block rounded-full bg-mist-50 px-2 py-px align-[1px] text-[0.68rem] text-ink-soft">
+                        <span className="ml-2 inline-block rounded-full bg-mist-50 px-2 py-px align-[1px] text-[0.8125rem] text-ink-soft">
                           {tPlans("soonTag")}
                         </span>
                       )}

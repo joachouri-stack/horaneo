@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "{product} : votre activité, un seul outil",
-    "description": "Site web, réservations, clients, paiements, automatisations et marketing, au même endroit."
+    "description": "Votre site de réservation en ligne avec prise de rendez-vous 24 h/24, rappels automatiques, acomptes et fichier clients : tout pour remplir votre agenda, au même endroit."
   },
   "platformErrors": {
     "notFoundTitle": "Page introuvable",
@@ -48,16 +48,16 @@
       "solutions": "Solutions",
       "pricing": "Tarifs",
       "features": "Fonctionnalités",
-      "resources": "Ressources",
+      "resources": "Questions",
       "menu": "Menu",
       "closeMenu": "Fermer le menu"
     },
-    "cta": "Commencer",
+    "cta": "Créer mon site",
     "hero": {
-      "badge": "Une plateforme pour gérer toute votre activité",
-      "title": "Votre activité. Un seul outil.",
-      "titleAccent": "Plus de liberté.",
-      "subtitle": "Site web, réservations, clients, paiements, automatisations et marketing. Gagnez du temps et développez votre activité.",
+      "badge": "Site, réservations et paiements en ligne",
+      "title": "Votre site de réservation en ligne,",
+      "titleAccent": "prêt à remplir votre agenda.",
+      "subtitle": "Un site professionnel, la prise de rendez-vous 24 h/24, des rappels automatiques et des acomptes : vos clients réservent seuls, vous vous concentrez sur votre métier.",
       "demo": "Voir la démonstration",
       "pricing": "Voir les tarifs"
     },
@@ -81,9 +81,9 @@
           "text": "Un site professionnel avec réservation en ligne, agenda, fichier clients, rappels automatiques et paiements : tout ce qu'il faut pour remplir votre planning.",
           "bullets": [
             "Réservation en ligne 24 h/24",
-            "Rappels automatiques par e-mail et SMS",
+            "Rappels automatiques par e-mail (et SMS dès le pack Pro)",
             "Acomptes et paiements en ligne",
-            "Gestion de plusieurs collaborateurs"
+            "Plusieurs collaborateurs dès le pack Pro"
           ],
           "floating": {
             "title": "Rappels automatiques",
@@ -188,6 +188,7 @@
       "perMonth": "{display}/mois",
       "recommended": "Le plus populaire",
       "entryTag": "Idéal pour démarrer",
+      "completeTag": "Le plus complet",
       "everythingIn": "Tout le pack {plan}",
       "notIncluded": "Non inclus",
       "included": "Inclus :",
@@ -195,11 +196,11 @@
       "soonTag": "Bientôt",
       "showAll": "Voir tout le contenu",
       "showLess": "Réduire",
-      "start": "Démarrer",
+      "start": "Créer mon site",
       "choose": "Choisir le pack {plan}",
       "callback": "Être rappelé",
       "contractFree": "Gratuit, sans carte bancaire. Évoluez quand vous voulez.",
-      "contractPaid": "{months, plural, =0 {Sans engagement} other {Sans engagement, ou engagement de # mois}}. Prix {display}, facturé chaque mois.",
+      "contractPaid": "{months, plural, =0 {Sans engagement, résiliable chaque mois} other {Au choix : sans engagement (résiliable chaque mois) ou engagement de # mois}}. Prix {display}, facturé chaque mois.",
       "tablet": {
         "badge": "Offre limitée",
         "title": "Tablette offerte",
@@ -207,7 +208,7 @@
         "conditions": "Conditions de l'offre"
       },
       "compare": "Voir le comparatif détaillé",
-      "quotaNote": "Quotas mensuels : à la limite, l'outil se met en pause. Aucun dépassement n'est facturé sans votre accord.",
+      "quotaNote": "Les limites de chaque pack sont indiquées sur sa carte. Les SMS sont comptés par mois : à la limite, l'envoi s'arrête jusqu'au mois suivant. Rien n'est jamais facturé sans votre accord.",
       "toggleBooking": "Avec réservation",
       "toggleSite": "Sans réservation",
       "perMonthShort": "par mois",
@@ -405,7 +406,7 @@
         "marketing": "Marketing et fidélisation",
         "payments": "Paiements",
         "ai": "Intelligence artificielle",
-        "messaging": "WhatsApp et SMS",
+        "messaging": "Rappels et messages",
         "stats": "Statistiques",
         "hosting": "Hébergement et domaines",
         "support": "Assistance"
@@ -442,20 +443,20 @@
           "card": "Référencement optimisé"
         },
         "favicon": {
-          "label": "Création du logo et du favicon (icône du site dans l'onglet et sur l'écran d'accueil)",
-          "card": "Création du logo et du favicon"
+          "label": "Création du logo et de l'icône du site (onglet du navigateur, écran d'accueil)",
+          "card": "Création du logo et de l'icône du site"
         },
         "responsive": {
-          "label": "Responsive design : s'adapte à tous les mobiles et tablettes",
-          "card": "Responsive design (mobiles et tablettes)"
+          "label": "Site adapté aux mobiles et tablettes",
+          "card": "Site adapté aux mobiles et tablettes"
         },
         "advancedSeo": {
-          "label": "SEO avancé",
-          "card": "SEO avancé"
+          "label": "Référencement Google avancé",
+          "card": "Référencement Google avancé"
         },
         "multilingual": {
           "label": "Langues du site en plus du français",
-          "card": "Site multipage personnalisable + {count, plural, one {# langue} other {# langues}} en plus",
+          "card": "Site en {count, plural, one {# langue} other {# langues}} de plus",
           "cardUnlimited": "Site multipage dans toutes les langues"
         },
         "bookings": {
@@ -502,8 +503,8 @@
           "card": "Historique des rendez-vous"
         },
         "advancedCrm": {
-          "label": "CRM et automatisations avancées",
-          "card": "CRM et automatisations avancées"
+          "label": "Suivi clients et relances automatiques avancés",
+          "card": "Suivi clients et relances avancés"
         },
         "promoCodes": {
           "label": "Codes promo et promotions",
@@ -571,8 +572,8 @@
           "card": "Rapports détaillés"
         },
         "hosting": {
-          "label": "Hébergement et certificat SSL",
-          "card": "Hébergement et SSL inclus"
+          "label": "Hébergement et connexion sécurisée (HTTPS)",
+          "card": "Hébergement et connexion sécurisée inclus"
         },
         "subdomain": {
           "label": "Sous-domaine offert",
@@ -607,8 +608,8 @@
           "card": "Assistance WhatsApp"
         },
         "ticketSupport": {
-          "label": "Assistance par ticket",
-          "card": "Assistance par ticket"
+          "label": "Assistance par e-mail",
+          "card": "Assistance par e-mail"
         },
         "priorityHumanSupport": {
           "label": "Assistance humaine prioritaire",
@@ -622,7 +623,7 @@
       "titleAccent": "au même endroit.",
       "items": {
         "sales": {
-          "title": "Réservations et ventes",
+          "title": "Réservations en ligne",
           "text": "Vos clients réservent en ligne, à toute heure. La vente en ligne arrive avec la solution Commerce."
         },
         "payments": {
@@ -646,19 +647,20 @@
           "text": "Codes promo, promotions, avis Google et fidélisation pour faire revenir vos clients."
         },
         "stats": {
-          "title": "Statistiques et recommandations",
+          "title": "Statistiques",
           "text": "Rendez-vous, chiffre d'affaires et prestations phares, mois après mois."
         }
       }
     },
     "comparison": {
       "title": "Comparatif des fonctionnalités",
+      "forSolution": " – {solution}",
       "titleFor": "Comparatif des fonctionnalités – {solution}",
       "feature": "Fonctionnalité",
       "pickPack": "Pack affiché"
     },
     "trust": {
-      "title": "Vos engagements, noir sur blanc",
+      "title": "Nos engagements, noir sur blanc",
       "items": {
         "stripe": {
           "title": "Paiements sécurisés",
@@ -686,6 +688,7 @@
       "badge": "Ils nous font confiance",
       "title": "Des professionnels",
       "titleAccent": "comme vous.",
+      "quote": "« {quote} »",
       "visit": "Voir le site de {name}"
     },
     "faq": {
@@ -698,12 +701,12 @@
           "a": "{free, select, yes {Il est gratuit, sans limite de durée.} other {Il coûte {price} par mois {display}.}} Il comprend un site multipage personnalisable, {bookings, plural, =-1 {des réservations illimitées} other {# réservations en ligne par mois}} et {customers, plural, =-1 {des contacts clients illimités} other {# contacts clients}}. Vous passez à un pack plus complet quand vous le souhaitez."
         },
         "commitment": {
-          "q": "Suis-je engagé ?",
-          "a": "{months, plural, =0 {Non, les packs payants sont sans engagement.} other {Vous choisissez : sans engagement, ou avec un engagement de # mois. L'offre tablette du pack Business est réservée à la formule avec engagement.}}"
+          "q": "Y a-t-il un engagement ?",
+          "a": "{months, plural, =0 {Non, les packs payants sont sans engagement.} other {Vous choisissez : sans engagement, résiliable chaque mois, ou avec un engagement de # mois. L'offre tablette du pack Business est réservée à la formule avec engagement.}}"
         },
         "prices": {
-          "q": "Les prix sont-ils hors taxes ?",
-          "a": "Oui, les prix sont indiqués {display}. La TVA s'ajoute sur votre facture mensuelle."
+          "q": "Les prix sont-ils HT ou TTC ?",
+          "a": "Les prix sont indiqués {display}. {display, select, HT {La TVA s'ajoute sur chaque facture.} other {La TVA est déjà comprise.}}"
         },
         "domain": {
           "q": "Puis-je utiliser mon propre nom de domaine ?",
@@ -711,7 +714,7 @@
         },
         "quotas": {
           "q": "Que se passe-t-il si j'atteins un quota ?",
-          "a": "Vous êtes prévenu à {percent} %, puis l'outil se met en pause à la limite jusqu'au mois suivant. Rien n'est facturé automatiquement : vous pouvez ajouter une recharge si vous le souhaitez."
+          "a": "Pour les SMS, comptés chaque mois, vous recevez une alerte à {percent} %, puis l'envoi s'arrête à la limite jusqu'au mois suivant : vous pouvez acheter des SMS en plus si vous le souhaitez. Les autres limites (contacts, photos, collaborateurs) figurent sur la carte de chaque pack. Rien n'est jamais facturé automatiquement."
         },
         "change": {
           "q": "Puis-je changer de pack ?",
@@ -723,11 +726,27 @@
         },
         "ai": {
           "q": "Les outils d'intelligence artificielle sont-ils déjà disponibles ?",
-          "a": "Le chatbot, l'assistant WhatsApp et la génération de textes et d'images sont en préparation et marqués « Bientôt ». Ils seront inclus dans le pack Business, avec des quotas mensuels."
+          "a": "Pas encore : le chatbot, l'assistant WhatsApp et la génération de textes et d'images sont en préparation et marqués « Bientôt » sur les packs. Ils seront inclus selon votre pack, comme indiqué sur chaque carte."
         },
         "tablet": {
           "q": "Comment fonctionne l'offre tablette ?",
           "a": "Une tablette professionnelle est offerte aux premiers abonnés Business éligibles, avec engagement. Une tablette par établissement, expédiée après le premier paiement et la vérification d'éligibilité."
+        },
+        "setup": {
+          "q": "Combien de temps pour mettre mon site en ligne ?",
+          "a": "En général {days} jours ouvrés après votre commande et l'envoi de vos informations (textes, photos, prestations, horaires)."
+        },
+        "creation": {
+          "q": "Qui crée mon site ?",
+          "a": "Notre équipe le met en place à partir de vos informations. Vous le modifiez ensuite vous-même depuis votre espace : prestations, horaires, photos, textes."
+        },
+        "cancel": {
+          "q": "Comment arrêter mon abonnement ?",
+          "a": "Depuis votre espace, rubrique Abonnement : « Arrêter mon abonnement ». Il prend fin à la date de la prochaine échéance (et pas avant la fin d'un engagement). Votre site est alors mis en pause : rien n'est supprimé."
+        },
+        "support": {
+          "q": "Comment joindre l'assistance ?",
+          "a": "Par e-mail à {email}, et par WhatsApp si votre pack le comprend. Le centre d'aide de votre espace répond aux questions les plus fréquentes."
         },
         "data": {
           "q": "Mes données m'appartiennent-elles ?",

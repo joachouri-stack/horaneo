@@ -345,6 +345,25 @@ form:has(input[name="billing"][value="year"]:checked) [data-monthly-only] {
   mask-composite: exclude;
   pointer-events: none;
 }
+/* Premier pack : filet de l'accent sur tout le tour, plus marqué en haut. */
+.hn-edge-full {
+  background: linear-gradient(
+    to bottom,
+    var(--color-accent),
+    var(--color-accent-line) 40%,
+    color-mix(in srgb, var(--color-accent-line) 60%, transparent) 100%
+  );
+}
+/* Pack le plus complet : filet champagne. */
+.hn-edge-gold {
+  background: linear-gradient(
+    160deg,
+    #e4cfa2,
+    rgb(217 192 142 / 0.45) 35%,
+    rgb(217 192 142 / 0.25) 65%,
+    #d9c08e
+  );
+}
 .hn-grain {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   opacity: 0.06;

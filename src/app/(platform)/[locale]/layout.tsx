@@ -34,7 +34,7 @@ export default async function PlatformLayout({ children, params }: LayoutProps<"
   setRequestLocale(locale);
 
   return (
-    <html lang={locale} className="scroll-smooth antialiased">
+    <html lang={locale} className="antialiased">
       <body className="saas min-h-dvh">
         <InstallCapture />
         <NextIntlClientProvider>{children}</NextIntlClientProvider>

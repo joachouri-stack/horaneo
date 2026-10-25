@@ -28,7 +28,8 @@ describe("grille des packs : une seule source pour les cartes et le comparatif",
       { included: false },
       { included: true, count: 500 },
     ]);
-    expect(row("customers")[0]).toEqual({ included: true, count: 50 });
+    // Starter : contacts clients illimités (la réservation en ligne ne s'arrête jamais).
+    expect(row("customers")[0]).toEqual({ included: true, count: null });
     expect(row("photos")[0]).toEqual({ included: true, count: 50 });
     // Starter : site multipage (le site vitrine disparaît), nouvelles promesses incluses dans les trois packs.
     expect(rows.find((item) => item.key === "miniSite")).toBeUndefined();
