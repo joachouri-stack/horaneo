@@ -29,11 +29,11 @@ const ICONS = [LeafLine, CrownLine, DiamondLine];
 const VISIBLE_LINES = 9;
 
 /**
- * Cartes des packs (Basic, Pro, Business) : nom, prix, description, ce que
+ * Cartes des packs (Starter, Pro, Business) : nom, prix, description, ce que
  * le pack ajoute au précédent, ce qui n'est pas inclus, bouton et conditions.
  * Tout vient des réglages des packs (gridCard) ; le pack du milieu, le plus
  * populaire, est mis en valeur sur fond sombre ; le premier, porte d'entrée,
- * porte un filet d'accent. Une offre de lancement ouverte
+ * porte un filet d'accent et reste en tête sur téléphone. Une offre de lancement ouverte
  * (tablette) s'affiche sur son pack avec le nombre réel de places restantes.
  */
 export async function PlanCards({
@@ -138,7 +138,7 @@ export async function PlanCards({
             data-plan={plan.code}
             className={`hn-spot relative flex flex-col rounded-[1.4rem] p-6 transition duration-300 motion-reduce:transition-none lg:p-7 ${
               featured
-                ? "bg-[radial-gradient(120%_60%_at_50%_-8%,#26324f_0%,#121a2c_55%,#0b1120_100%)] text-[#d5dbe8] shadow-[0_40px_80px_-36px_rgba(18,26,44,.85),0_0_0_1px_rgba(217,192,142,.08)] [--spot:rgba(217,192,142,.11)] max-lg:order-first lg:-my-3 lg:py-10"
+                ? "bg-[radial-gradient(120%_60%_at_50%_-8%,#26324f_0%,#121a2c_55%,#0b1120_100%)] text-[#d5dbe8] shadow-[0_40px_80px_-36px_rgba(18,26,44,.85),0_0_0_1px_rgba(217,192,142,.08)] [--spot:rgba(217,192,142,.11)] md:max-lg:order-first lg:-my-3 lg:py-10"
                 : "border border-hairline bg-white/90 shadow-[0_1px_2px_rgba(15,24,48,.04),0_12px_32px_-24px_rgba(15,24,48,.18)] backdrop-blur-sm [--spot:color-mix(in_srgb,var(--color-accent)_9%,transparent)] hover:-translate-y-1 hover:shadow-[0_28px_50px_-30px_rgba(15,24,48,.35)]"
             }`}
           >
