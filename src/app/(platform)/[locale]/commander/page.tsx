@@ -139,7 +139,12 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
                 billing: t("billing"),
                 monthly: t("billingMonthly"),
                 yearly: t("billingYearly", { months: yearly.freeMonths }),
-                yearlyHint: t("billingYearlyHint"),
+                // La mention des options n'apparaît que si des options se commandent ici.
+                yearlyHint: t("billingYearlyHint", {
+                  options: options.map(pricedOption).some((o) => o.orderable && o.priceCents !== null)
+                    ? "yes"
+                    : "no",
+                }),
               }}
             />
             {/* Formule des packs payants : avec engagement (création offerte) ou sans (frais de création). */}
@@ -212,7 +217,9 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
             {/* Rappel avant le paiement : la formule ne concerne que les packs payants. */}
             <p className="text-sm text-ink/70">
               {noCommitment || commitment === 0
-                ? `${t("paidHint")} ${t("freeHint")}`
+                ? [t("paidHint"), orderable.some((plan) => plan.priceCents <= 0) && t("freeHint")]
+                    .filter(Boolean)
+                    .join(" ")
                 : t("commitmentHint", { months: commitment })}
             </p>
             <label className="flex items-start gap-3 text-sm">
