@@ -16,7 +16,7 @@ import { createBooking } from "@/modules/booking/create";
 import { updateBookingSettings } from "@/modules/booking/settings";
 import { localToUtc } from "@/modules/booking/time";
 import { saveService } from "@/modules/catalog/services";
-import { getCustomer, saveCustomer, searchCustomers } from "@/modules/customers/customers";
+import { customerDirectory, getCustomer, saveCustomer, searchCustomers } from "@/modules/customers/customers";
 import { AppError } from "@/modules/errors";
 import {
   createUpdateRequest,
@@ -362,6 +362,30 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
       const card = await asManager(s.id, (tx) => getCustomer(tx, s.id, byName[0].id, "fr"));
       expect(card?.stats).toEqual({ visits: 1, noShows: 0, spentCents: 7000 });
       expect(card?.history[0].services).toEqual(["Massage"]);
+    });
+
+    it("fichier clientes : visites, dépenses et groupes (nouvelles, à relancer)", async () => {
+      const s = await setup();
+      const a = await onlineBooking(s.id, s.massage.id, at("10:00"), "marie.dupont@example.com");
+      await asManager(s.id, (tx) => setAttendance(tx, s.id, a.appointmentId, "attended"));
+      await asManager(s.id, (tx) => saveCustomer(tx, s.id, { firstName: "Zoé", phone: "0611223344" }));
+
+      const today = await asManager(s.id, (tx) => customerDirectory(tx, s.id, { now: new Date() }));
+      expect(today.counts).toEqual({ all: 2, visited: 1, loyal: 0, new: 2, inactive: 0 });
+      const camille = today.customers.find((row) => row.firstName === "Camille")!;
+      expect(camille).toMatchObject({ visits: 1, spentCents: 7000, isNew: true, inactive: false });
+      expect(camille.lastVisit?.getTime()).toBe(at("10:00").getTime());
+      expect(today.customers.find((row) => row.firstName === "Zoé")).toMatchObject({ visits: 0 });
+
+      // Trois mois plus tard : Camille n'est pas revenue, elle est à relancer.
+      const later = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+      const inactive = await asManager(s.id, (tx) =>
+        customerDirectory(tx, s.id, { now: later, segment: "inactive" }),
+      );
+      expect(inactive.counts).toMatchObject({ new: 0, inactive: 1 });
+      expect(inactive.customers.map((row) => row.firstName)).toEqual(["Camille"]);
+      const search = await asManager(s.id, (tx) => customerDirectory(tx, s.id, { now: later, query: "zo" }));
+      expect(search.customers.map((row) => row.firstName)).toEqual(["Zoé"]);
     });
 
     it("notes et coordonnées ; refuse un e-mail déjà utilisé", async () => {

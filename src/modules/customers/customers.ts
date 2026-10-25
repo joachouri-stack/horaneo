@@ -1,6 +1,7 @@
 import { assertQuota } from "@/modules/quotas";
 import { and, asc, desc, eq, ilike, or, sql } from "drizzle-orm";
 import { z } from "zod";
+import { CUSTOMER_SEGMENTS } from "@/config/customers";
 import type { Transaction } from "@/db/client";
 import { appointmentItems, appointments, customers, staffMembers, tenants } from "@/db/schema";
 import { pickLocalized, type Locale } from "@/i18n/locales";
@@ -42,6 +43,125 @@ export async function searchCustomers(tx: Transaction, tenantId: string, query: 
     )
     .orderBy(asc(customers.firstName), asc(customers.lastName))
     .limit(limit);
+}
+
+export const CUSTOMER_SEGMENT_KEYS = ["all", "loyal", "new", "inactive"] as const;
+export type CustomerSegment = (typeof CUSTOMER_SEGMENT_KEYS)[number];
+
+const toDate = (value: unknown) => (value == null ? null : new Date(value as string));
+
+/**
+ * Fichier clientes de la page « Clientes » : chaque fiche avec ses visites passées, le total
+ * dépensé, la dernière et la prochaine visite, ses groupes (fidèle, nouvelle, à relancer),
+ * filtrable par groupe et par recherche ; plus le nombre de fiches de chaque groupe.
+ */
+export async function customerDirectory(
+  tx: Transaction,
+  tenantId: string,
+  input: { query?: string; segment?: CustomerSegment; now: Date; limit?: number },
+) {
+  const { loyalVisits, newDays, inactiveDays } = CUSTOMER_SEGMENTS;
+  const day = 24 * 60 * 60 * 1000;
+  // Dates passées en texte : le pilote ne convertit pas un Date dans une requête SQL brute.
+  const now = sql`${input.now.toISOString()}::timestamptz`;
+  const newSince = sql`${new Date(input.now.getTime() - newDays * day).toISOString()}::timestamptz`;
+  const inactiveBefore = sql`${new Date(input.now.getTime() - inactiveDays * day).toISOString()}::timestamptz`;
+  const past = sql`${appointments.status} in ('confirmed','attended') and ${appointments.startsAt} <= ${now}`;
+  const stats = tx
+    .select({
+      customerId: appointments.customerId,
+      visits: sql<number>`count(*) filter (where ${past})`.as("visits"),
+      spentCents: sql<number>`coalesce(sum(${appointments.totalCents}) filter (where ${past}), 0)`.as(
+        "spent_cents",
+      ),
+      lastVisit: sql<string | null>`max(${appointments.startsAt}) filter (where ${past})`.as("last_visit"),
+      nextVisit: sql<
+        string | null
+      >`min(${appointments.startsAt}) filter (where ${appointments.status} in ('pending_payment','confirmed') and ${appointments.startsAt} > ${now})`.as(
+        "next_visit",
+      ),
+    })
+    .from(appointments)
+    .where(eq(appointments.tenantId, tenantId))
+    .groupBy(appointments.customerId)
+    .as("stats");
+
+  const visits = sql<number>`coalesce(${stats.visits}, 0)`;
+  const segments = {
+    loyal: sql`${visits} >= ${loyalVisits}`,
+    // Une cliente déjà fidèle n'est plus « nouvelle », même si sa fiche est récente.
+    new: sql`${customers.createdAt} >= ${newSince} and ${visits} < ${loyalVisits}`,
+    inactive: sql`${visits} > 0 and ${stats.lastVisit} < ${inactiveBefore} and ${stats.nextVisit} is null`,
+  };
+
+  const q = input.query?.trim() ?? "";
+  const pattern = `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+  const digits = q.replace(/\D/g, "").replace(/^0+/, "");
+  const segment = input.segment ?? "all";
+
+  // Requêtes l'une après l'autre : elles partagent la connexion de la transaction.
+  const rows = await tx
+    .select({
+      id: customers.id,
+      firstName: customers.firstName,
+      lastName: customers.lastName,
+      phone: customers.phone,
+      email: customers.email,
+      visits,
+      spentCents: sql<number>`coalesce(${stats.spentCents}, 0)`,
+      lastVisit: stats.lastVisit,
+      nextVisit: stats.nextVisit,
+      loyal: sql<boolean>`${segments.loyal}`,
+      isNew: sql<boolean>`${segments.new}`,
+      inactive: sql<boolean>`coalesce(${segments.inactive}, false)`,
+    })
+    .from(customers)
+    .leftJoin(stats, eq(stats.customerId, customers.id))
+    .where(
+      and(
+        eq(customers.tenantId, tenantId),
+        segment === "all" ? undefined : segments[segment],
+        q
+          ? or(
+              ilike(customers.firstName, pattern),
+              ilike(customers.lastName, pattern),
+              ilike(customers.email, pattern),
+              sql`${customers.firstName} || ' ' || coalesce(${customers.lastName}, '') ilike ${pattern}`,
+              digits.length >= 3 ? ilike(customers.phone, `%${digits.slice(-9)}%`) : undefined,
+            )
+          : undefined,
+      ),
+    )
+    .orderBy(asc(customers.firstName), asc(customers.lastName))
+    .limit(input.limit ?? 200);
+  const [counts] = await tx
+    .select({
+      all: sql<number>`count(*)`,
+      visited: sql<number>`count(*) filter (where ${visits} > 0)`,
+      loyal: sql<number>`count(*) filter (where ${segments.loyal})`,
+      new: sql<number>`count(*) filter (where ${segments.new})`,
+      inactive: sql<number>`count(*) filter (where ${segments.inactive})`,
+    })
+    .from(customers)
+    .leftJoin(stats, eq(stats.customerId, customers.id))
+    .where(eq(customers.tenantId, tenantId));
+
+  return {
+    customers: rows.map((row) => ({
+      ...row,
+      visits: Number(row.visits),
+      spentCents: Number(row.spentCents),
+      lastVisit: toDate(row.lastVisit),
+      nextVisit: toDate(row.nextVisit),
+    })),
+    counts: {
+      all: Number(counts.all),
+      visited: Number(counts.visited),
+      loyal: Number(counts.loyal),
+      new: Number(counts.new),
+      inactive: Number(counts.inactive),
+    },
+  };
 }
 
 export async function getCustomer(tx: Transaction, tenantId: string, customerId: string, locale: Locale) {
