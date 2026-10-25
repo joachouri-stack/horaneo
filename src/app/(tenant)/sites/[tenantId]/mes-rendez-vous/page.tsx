@@ -13,7 +13,7 @@ import { customerSession } from "@/lib/site/customer-session";
 import { getSite } from "@/lib/site/load";
 import { knownBusinesses } from "@/modules/customer-space/auth";
 import { loadBusinessSpace, type BusinessSpace } from "@/modules/customer-space/space";
-import { SITE_PATHS } from "@/modules/site/paths";
+import { appointmentCalendarPath, SITE_PATHS } from "@/modules/site/paths";
 import { logoutAction } from "./actions";
 
 // Espace personnel : jamais indexé.
@@ -145,6 +145,12 @@ export default async function CustomerSpacePage({ params }: PageProps<"/sites/[t
                 {t("depositPaid", { amount: money(item.depositPaidCents, item.currency) })}
               </p>
             )}
+            <a
+              href={appointmentCalendarPath(item.manageToken)}
+              className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-site-accent underline underline-offset-4"
+            >
+              {t("addToCalendar")}
+            </a>
             <div className="mt-4 border-t border-site-border pt-4">
               {item.canModify ? (
                 <div className="flex flex-wrap items-center gap-3">

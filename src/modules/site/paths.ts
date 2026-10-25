@@ -38,6 +38,9 @@ export const APP_PATHS = {
   maskableIcon: (size: number) => `/app-icon/${size}?v=${APP_VERSION}&maskable=1`,
 } as const;
 
+/** Fichier d'agenda d'un rendez-vous (sans extension : les adresses à point ne passent pas par le site). */
+export const appointmentCalendarPath = (token: string) => `${SITE_PATHS.appointment}/${token}/agenda`;
+
 export const categoryPath = (slug: string) => `${SITE_PATHS.services}/${slug}`;
 
 /** Page d'une professionnelle (entreprise) : /avec/laila. */

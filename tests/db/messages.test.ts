@@ -171,6 +171,9 @@ describe.skipIf(!hasTestDatabase)("messages automatiques", () => {
       const token = /\/rendez-vous\/([A-Za-z0-9_-]+)/.exec(confirmation.text)?.[1];
       expect(token).toBe(result.manageToken);
       expect(confirmation.text).toContain(`http://${s.slug}.localhost:3000/rendez-vous/${token}`);
+      // « Ajouter à mon agenda » : fichier du site et Google Agenda.
+      expect(confirmation.text).toContain(`http://${s.slug}.localhost:3000/rendez-vous/${token}/agenda`);
+      expect(confirmation.text).toContain("https://calendar.google.com/calendar/render?action=TEMPLATE");
       expect((await asTenant(s.id, (tx) => findByManageToken(tx, s.id, token!)))?.appointment.id).toBe(
         result.appointmentId,
       );

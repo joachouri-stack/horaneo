@@ -13,7 +13,9 @@ import { AppError } from "@/modules/errors";
 import { depositCheckout, syncDeposit } from "@/modules/payments/deposits";
 import { depositSummary } from "@/modules/payments/refunds";
 import { formatPhone } from "@/modules/phone";
-import { SITE_PATHS } from "@/modules/site/paths";
+import { appointmentCalendarPath, SITE_PATHS } from "@/modules/site/paths";
+import { appointmentEvent, googleCalendarUrl } from "@/lib/calendar/appointment";
+import { tenantSiteUrl } from "@/lib/tenancy/urls";
 
 // Lien personnel : jamais indexé, jamais transmis aux sites externes.
 export const metadata: Metadata = { robots: { index: false, follow: false }, referrer: "no-referrer" };
@@ -62,6 +64,7 @@ export default async function ManageAppointmentPage({
     .filter((member) => serviceIds.every((id) => member.serviceIds.includes(id)))
     .map((member) => ({ id: member.id, name: member.name }));
   const iso = appointment.startsAt.toISOString();
+  const siteUrl = site.primaryHostname ? tenantSiteUrl(site.primaryHostname) : "";
 
   return (
     <main id="contenu" className="mx-auto max-w-2xl space-y-8 px-4 py-12">
@@ -112,6 +115,42 @@ export default async function ManageAppointmentPage({
           </p>
         )}
       </section>
+
+      {/* Dans l'agenda du téléphone : la cliente ne l'oublie plus. */}
+      {appointment.status === "confirmed" && appointment.endsAt > new Date() && (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <a
+            href={appointmentCalendarPath(token)}
+            className="inline-flex min-h-12 items-center justify-center rounded-site bg-site-button px-6 font-semibold text-site-on-button"
+          >
+            {t("addToCalendar")}
+          </a>
+          <a
+            href={googleCalendarUrl(
+              appointmentEvent({
+                id: appointment.id,
+                start: appointment.startsAt,
+                end: appointment.endsAt,
+                services: managed.items.map((item) => item.name),
+                businessName: site.tenant.name,
+                address: [
+                  context.tenant.addressLine1,
+                  [context.tenant.postalCode, context.tenant.city].filter(Boolean).join(" "),
+                ]
+                  .filter(Boolean)
+                  .join(", "),
+                manageUrl: `${siteUrl}${SITE_PATHS.appointment}/${token}`,
+                host: site.primaryHostname ?? "",
+              }),
+            )}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-center font-semibold text-site-accent underline"
+          >
+            {t("googleCalendar")}
+          </a>
+        </div>
+      )}
 
       {!modifiable && appointment.status === "confirmed" && (
         <p className="text-lg">

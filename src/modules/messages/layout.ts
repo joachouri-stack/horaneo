@@ -16,6 +16,8 @@ export type EmailContent = {
   details?: { label: string; value: string }[];
   list?: string[];
   action?: { label: string; url: string } | null;
+  /** Liens secondaires, sous le bouton (ex. « Ajouter à mon agenda »). */
+  links?: { label: string; url: string }[];
   after?: string[];
   footer: string[];
 };
@@ -54,6 +56,18 @@ export function renderEmail(content: EmailContent) {
       )
     : "";
 
+  const links = content.links?.length
+    ? row(
+        content.links
+          .map(
+            (link) =>
+              `<a href="${escapeHtml(link.url)}" style="color:${color};font-weight:bold;text-decoration:underline">${escapeHtml(link.label)}</a>`,
+          )
+          .join(" &nbsp;·&nbsp; "),
+        "font-size:15px;padding:0 0 20px",
+      )
+    : "";
+
   const html = `<!doctype html>
 <html lang="${escapeHtml(content.locale)}">
 <body style="margin:0;background:#FAF7F2;font-family:Arial,Helvetica,sans-serif;color:#2B2B2B">
@@ -66,6 +80,7 @@ export function renderEmail(content: EmailContent) {
         ${details}
         ${list}
         ${action}
+        ${links}
         ${(content.after ?? []).map((text) => row(escapeHtml(text), "font-size:15px;line-height:1.5;padding-bottom:10px;color:#444")).join("\n        ")}
         ${row(content.footer.map(escapeHtml).join("<br>"), "font-size:13px;color:#6b6b6b;line-height:1.5;padding-top:16px;border-top:1px solid #eee")}
       </table>
@@ -83,6 +98,7 @@ export function renderEmail(content: EmailContent) {
       : []),
     ...(content.list?.length ? ["", ...content.list.map((item) => `- ${item}`)] : []),
     ...(content.action ? ["", `${content.action.label} : ${content.action.url}`] : []),
+    ...(content.links ?? []).map((link) => `${link.label} : ${link.url}`),
     ...(content.after?.length ? ["", ...content.after] : []),
     "",
     "--",

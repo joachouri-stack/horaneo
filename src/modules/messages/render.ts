@@ -1,4 +1,5 @@
 import { tenantFeatures, tenantLimits } from "@/modules/billing/entitlements";
+import { appointmentEvent, googleCalendarUrl } from "@/lib/calendar/appointment";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { declareBusiness } from "@/db/access";
 import type { Transaction } from "@/db/client";
@@ -33,7 +34,7 @@ import { formatPhone } from "@/modules/phone";
 import { getPlatformSetting } from "@/modules/settings";
 import { monthStats } from "@/modules/stats/month";
 import { writeReviewUrl } from "@/modules/reviews/google";
-import { SITE_PATHS } from "@/modules/site/paths";
+import { appointmentCalendarPath, SITE_PATHS } from "@/modules/site/paths";
 import { renderEmail } from "./layout";
 import type { MessageTemplate } from "./queue";
 import { fitSingleSms, smsSenderName, toGsm7 } from "./senders";
@@ -467,12 +468,38 @@ async function renderCustomer(
   let details: { label: string; value: string }[] | undefined = appointmentDetails(t, fmt, info);
   let action: { label: string; url: string } | null = manageAction;
   let after: string[] = [];
+  // Rendez-vous confirmé : l'ajouter à l'agenda du téléphone (fichier du site, ou Google Agenda).
+  const calendarLinks = [
+    {
+      label: t("notifications.common.addToCalendar"),
+      url: `${siteUrl}${appointmentCalendarPath(manageTokenFor(a.id))}`,
+    },
+    {
+      label: t("notifications.common.googleCalendar"),
+      url: googleCalendarUrl(
+        appointmentEvent({
+          id: a.id,
+          start: a.startsAt,
+          end: a.endsAt,
+          services: info.services,
+          businessName: business,
+          address: [tenant.addressLine1, [tenant.postalCode, tenant.city].filter(Boolean).join(" ")]
+            .filter(Boolean)
+            .join(", "),
+          manageUrl,
+          host: new URL(siteUrl).host,
+        }),
+      ),
+    },
+  ];
+  let links: { label: string; url: string }[] = [];
 
   switch (template) {
     case "customer.confirmation":
       subject = t("notifications.customer.confirmation.subject", { date: fmt.date(a.startsAt) });
       title = t("notifications.customer.confirmation.title");
       paragraphs = [greeting, t("notifications.customer.confirmation.intro", { business })];
+      links = calendarLinks;
       after = [await manageHint(tx, t, fmt, info, tenant, options.now), ...spaceLine];
       break;
     case "customer.reminder_email":
@@ -508,6 +535,7 @@ async function renderCustomer(
       subject = t(`notifications.customer.${key}.subject`, { date: fmt.date(a.startsAt) });
       title = t(`notifications.customer.${key}.title`);
       paragraphs = [greeting, t(`notifications.customer.${key}.intro`, { business, previous })];
+      links = calendarLinks;
       after = [await manageHint(tx, t, fmt, info, tenant, options.now)];
       break;
     }
@@ -557,6 +585,7 @@ async function renderCustomer(
     paragraphs,
     details,
     action,
+    links,
     after: [...after, contact],
     footer: tenantFooter(tenant),
   });
