@@ -2499,7 +2499,36 @@
       "contact": "Coordonnées",
       "history": "Historique",
       "noHistory": "Aucun rendez-vous.",
-      "book": "Nouveau rendez-vous pour elle"
+      "book": "Nouveau rendez-vous pour elle",
+      "subtitle": "Votre fichier clientes : visites, fidélité et clientes à relancer.",
+      "statAll": "Clientes",
+      "statAllSub": "{count, plural, =0 {Aucune venue pour l'instant} one {# déjà venue} other {# déjà venues}}",
+      "statLoyal": "Fidèles",
+      "statLoyalSub": "{visits} visites ou plus",
+      "statNew": "Nouvelles",
+      "statNewSub": "Arrivées ces {days} derniers jours",
+      "statInactive": "À relancer",
+      "statInactiveSub": "Pas revenues depuis {days} jours",
+      "filters": "Filtrer les clientes",
+      "filter": {
+        "all": "Toutes",
+        "loyal": "Fidèles",
+        "new": "Nouvelles",
+        "inactive": "À relancer"
+      },
+      "badge": {
+        "loyal": "Fidèle",
+        "new": "Nouvelle",
+        "inactive": "À relancer"
+      },
+      "colCustomer": "Cliente",
+      "colVisits": "Visites",
+      "colLastVisit": "Dernière visite",
+      "colNextVisit": "Prochaine visite",
+      "visitsCount": "{count, plural, =0 {Aucune visite} one {# visite} other {# visites}}",
+      "nextVisit": "Prochaine visite : {date}",
+      "noNextVisit": "—",
+      "emptyFilter": "Aucune cliente dans ce groupe."
     },
     "site": {
       "title": "Mon site",
