@@ -10,7 +10,8 @@ import { managerPage } from "@/lib/manager/page";
 import { billingGateway } from "@/lib/payments/stripe-billing";
 import { listTenantOptions } from "@/modules/billing/options";
 import { yearlyPriceCents } from "@/modules/billing/yearly";
-import { listPublicPlans, planHighlights } from "@/modules/billing/plans";
+import { gridCard, type CardLine } from "@/modules/billing/grid";
+import { listPublicPlans } from "@/modules/billing/plans";
 import { canBuySmsPacks, listSmsPacks, smsPackOffer, syncSmsPackPayment } from "@/modules/billing/sms-packs";
 import { smsUsage } from "@/modules/messages/sms-usage";
 import { freePlan, getSubscription, isLive } from "@/modules/billing/subscriptions";
@@ -29,9 +30,11 @@ export default async function SubscriptionPage({
 }: PageProps<"/[locale]/espace/[tenantId]/plus/abonnement">) {
   const page = await managerPage(params);
   const query = await searchParams;
-  const [t, tErrors] = await Promise.all([
+  const [t, tErrors, tGrid, tPlans] = await Promise.all([
     getTranslations("manager.subscription"),
     getTranslations("errors"),
+    getTranslations("home.grid"),
+    getTranslations("home.plans"),
   ]);
   // Retour de la page de paiement d'un pack de SMS : crédité tout de suite (sans attendre Stripe).
   const smsCheckout = typeof query.paiement === "string" ? query.paiement : null;
@@ -57,6 +60,7 @@ export default async function SubscriptionPage({
       },
       subscription: await getSubscription(tx, page.tenantId),
       plans: await listPublicPlans(tx),
+      soon: new Set(await getPlatformSetting(tx, "features_soon")),
       // Pack actuel, même s'il n'est plus proposé à la vente (anciens packs).
       currentPlan: (await tx.select().from(plansTable).where(eq(plansTable.id, page.tenant.planId)))[0],
       // Pack gratuit : vendu (on peut y passer) ou hors vente (fin d'abonnement = site en pause).
@@ -78,6 +82,17 @@ export default async function SubscriptionPage({
   const { usage, subscription, display, sms } = data;
   const limits = page.tenant.limits;
   const current = data.currentPlan;
+  // Lignes des packs : les mêmes que sur les cartes du site commercial (grille unique).
+  const lineText = (line: CardLine) => {
+    const base = `rows.${line.key}` as "rows.photos";
+    if (line.count === null && tGrid.has(`${base}.cardUnlimited` as "rows.photos.cardUnlimited"))
+      return tGrid(`${base}.cardUnlimited` as "rows.photos.cardUnlimited");
+    return tGrid(`${base}.card` as "rows.photos.card", { count: line.count ?? 0 });
+  };
+  // L'espace gérante est celui de la solution Réservation (seule ouverte à la souscription).
+  const forBooking = (line: CardLine) => !line.solution || line.solution === "booking";
+  const planName = (code: string) =>
+    pickLocalized(data.plans.find((item) => item.code === code)?.name ?? null, page.locale);
   const currentPrice = current?.priceCents ?? 0;
   const live = subscription && isLive(subscription.status) ? subscription : null;
   // Site à plusieurs entreprises : l'abonnement est réglé par l'entreprise principale.
@@ -364,6 +379,7 @@ export default async function SubscriptionPage({
                         ? t("upgradeHint")
                         : t("downgradeHint", { date: periodEnd ? page.fmt.short(periodEnd) : "" });
                 // Pack gratuit : choisi directement quand le pack actuel est payant (abonnement ou attribué).
+                const card = gridCard(plan, data.plans, data.soon);
                 const canChoose =
                   configured && !isCurrent && (live || plan.priceCents > 0 || currentPrice > 0);
                 return (
@@ -379,13 +395,21 @@ export default async function SubscriptionPage({
                       <p className="font-semibold">{priceLabel(plan.priceCents)}</p>
                     </div>
                     {isCurrent && <p className="text-sm font-semibold text-success">{t("current")}</p>}
+                    {/* Même contenu que les cartes du site commercial (solution Réservation). */}
                     <ul className="mt-3 grid gap-1 text-sm text-ink/80 sm:grid-cols-2">
-                      {planHighlights(plan).map((item) => (
+                      {card.previous && (
+                        <li className="font-semibold text-night sm:col-span-2">
+                          ✓ {tPlans("everythingIn", { plan: planName(card.previous) })}
+                        </li>
+                      )}
+                      {[...card.included, ...card.upcoming].filter(forBooking).map((item) => (
                         <li key={item.key}>
-                          ✓{" "}
-                          {item.kind === "limit"
-                            ? t(`limits.${item.key}`, { count: item.count })
-                            : t(`features.${item.key}`)}
+                          ✓ {lineText(item)}
+                          {item.soon && (
+                            <span className="ml-1.5 rounded-full bg-navy/5 px-1.5 py-px text-xs text-ink/70">
+                              {tPlans("soonTag")}
+                            </span>
+                          )}
                         </li>
                       ))}
                     </ul>
