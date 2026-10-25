@@ -193,6 +193,8 @@
       "included": "Inclus :",
       "missing": "Non inclus :",
       "soonTag": "Bientôt",
+      "showAll": "Voir tout le contenu",
+      "showLess": "Réduire",
       "start": "Démarrer",
       "choose": "Choisir le pack {plan}",
       "callback": "Être rappelé",

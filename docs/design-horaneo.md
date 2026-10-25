@@ -53,6 +53,8 @@ Règles :
 
 Sobre : apparition douce de l'accroche, fondu au changement de solution, soulèvement léger au survol. Tout est coupé si moins de mouvement est demandé.
 
+Cartes des packs (validé en octobre 2026) : lumière douce qui suit la souris, liseré champagne qui tourne lentement autour du Pro, reflet sur son bouton, pastille glissante du sélecteur Mensuel / Annuel. Prix : partie entière en grand, centimes et devise en petit (Pro en dégradé champagne). Listes limitées à neuf lignes, le reste se déplie.
+
 ## 8. La page d'accueil, section par section
 
 1. **En-tête :** logo, Solutions, Tarifs, Fonctionnalités, Ressources, Connexion, bouton « Essayer gratuitement ».

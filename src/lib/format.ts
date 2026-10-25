@@ -11,6 +11,23 @@ export function formatMoney(cents: number, currency: string, locale: string): st
   }).format(cents / 100);
 }
 
+/**
+ * Montant découpé pour l'affichage des prix : la partie entière (« 19 ») et
+ * le reste (« ,99 € »), même format que formatMoney.
+ */
+export function moneyParts(cents: number, currency: string, locale: string): { lead: string; tail: string } {
+  const whole = cents % 100 === 0;
+  const parts = new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+    minimumFractionDigits: whole ? 0 : 2,
+    maximumFractionDigits: whole ? 0 : 2,
+  }).formatToParts(cents / 100);
+  const last = parts.findLastIndex((part) => part.type === "integer");
+  const join = (list: Intl.NumberFormatPart[]) => list.map((part) => part.value).join("");
+  return { lead: join(parts.slice(0, last + 1)), tail: join(parts.slice(last + 1)) };
+}
+
 /** Montant en centimes → texte à modifier dans un champ (« 45,50 »). */
 export function centsToInput(cents: number): string {
   return (cents / 100).toFixed(2).replace(".", ",").replace(/,00$/, "");
