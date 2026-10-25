@@ -27,13 +27,20 @@ type CardPlan = {
 const ICONS = [LeafLine, CrownLine, DiamondLine];
 /** Lignes affichées d'emblée sur chaque carte ; les suivantes se déplient. */
 const VISIBLE_LINES = 9;
+/** Bouton du premier pack : dégradé de l'accent avec reflet. */
+const ENTRY_BUTTON =
+  "hn-shine bg-gradient-to-r from-accent to-accent-strong text-white shadow-[inset_0_1px_0_rgba(255,255,255,.2),0_14px_30px_-14px_var(--color-accent)] hover:brightness-110";
+/** Bouton du pack le plus complet : champagne sur fond sombre. */
+const TOP_BUTTON =
+  "hn-shine bg-deep text-champagne shadow-[inset_0_1px_0_rgba(255,255,255,.08),0_14px_30px_-14px_rgba(18,26,44,.7)] hover:bg-[#1b2540]";
 
 /**
  * Cartes des packs (Starter, Pro, Business) : nom, prix, description, ce que
  * le pack ajoute au précédent, ce qui n'est pas inclus, bouton et conditions.
  * Tout vient des réglages des packs (gridCard) ; le pack du milieu, le plus
  * populaire, est mis en valeur sur fond sombre ; le premier, porte d'entrée,
- * porte un filet d'accent et reste en tête sur téléphone. Une offre de lancement ouverte
+ * porte un filet d'accent et reste en tête sur téléphone ; le dernier, le plus
+ * complet, est une carte nacrée à filet champagne. Une offre de lancement ouverte
  * (tablette) s'affiche sur son pack avec le nombre réel de places restantes.
  */
 export async function PlanCards({
@@ -59,14 +66,14 @@ export async function PlanCards({
   const soonSet = new Set(soon);
   const money = (cents: number) => formatMoney(cents, "EUR", locale);
   // Prix des cartes : partie entière en grand, centimes et devise en petit.
-  const bigPrice = (cents: number, gold: boolean, className: string) => {
+  const bigPrice = (cents: number, gold: boolean, className: string, tailClass = "") => {
     const { lead, tail } = moneyParts(cents, "EUR", locale);
     return (
       <span
         className={`font-display font-semibold leading-none tracking-[-0.035em] tabular-nums ${gold ? "hn-gold" : className}`}
       >
         <span className="text-[3rem]">{lead}</span>
-        <span className="text-[1.5rem] tracking-[-0.02em]">{tail}</span>
+        <span className={`text-[1.5rem] tracking-[-0.02em] ${tailClass}`}>{tail}</span>
       </span>
     );
   };
@@ -89,6 +96,8 @@ export async function PlanCards({
             : plans.length > 1 && index === plans.length - 1;
         // Premier pack : porte d'entrée, mise en valeur légère (filet d'accent, halo, étiquette).
         const entry = plans.length > 1 && index === 0;
+        // Dernier pack d'une grille de trois : le plus complet, carte claire nacrée à filet champagne.
+        const top = plans.length >= 3 && index === plans.length - 1;
         const Icon = ICONS[Math.min(index, ICONS.length - 1)];
         const name = pickLocalized(plan.name, locale);
         const card = gridCard(plan, plans, soonSet);
@@ -105,7 +114,13 @@ export async function PlanCards({
         const check = (
           <span
             className={`mt-[1px] flex size-[18px] flex-none items-center justify-center rounded-full ${
-              featured ? "bg-champagne/20 text-champagne" : "bg-accent-soft text-accent"
+              featured
+                ? "bg-champagne/20 text-champagne"
+                : entry
+                  ? "bg-accent text-white"
+                  : top
+                    ? "bg-[#efdfbd] text-copper"
+                    : "bg-accent-soft text-accent"
             }`}
           >
             <CheckLine className="size-3" />
@@ -113,6 +128,8 @@ export async function PlanCards({
         );
         const muted = featured ? "text-[#aab3c7]" : "text-ink-soft";
         const strong = featured ? "text-white" : "text-night";
+        // Couleur des petits titres et liens de la carte.
+        const tint = featured ? "text-champagne" : top ? "text-copper" : "text-accent-strong";
 
         const line = (item: CardLine, key: string) => (
           <li key={key} data-only={item.solution ?? undefined} className="flex items-start gap-2.5">
@@ -139,19 +156,32 @@ export async function PlanCards({
             className={`hn-spot relative flex flex-col rounded-[1.4rem] p-6 transition duration-300 motion-reduce:transition-none lg:p-7 ${
               featured
                 ? "bg-[radial-gradient(120%_60%_at_50%_-8%,#26324f_0%,#121a2c_55%,#0b1120_100%)] text-[#d5dbe8] shadow-[0_40px_80px_-36px_rgba(18,26,44,.85),0_0_0_1px_rgba(217,192,142,.08)] [--spot:rgba(217,192,142,.11)] md:max-lg:order-first lg:-my-3 lg:py-10"
-                : "border border-hairline bg-white/90 shadow-[0_1px_2px_rgba(15,24,48,.04),0_12px_32px_-24px_rgba(15,24,48,.18)] backdrop-blur-sm [--spot:color-mix(in_srgb,var(--color-accent)_9%,transparent)] hover:-translate-y-1 hover:shadow-[0_28px_50px_-30px_rgba(15,24,48,.35)]"
+                : entry
+                  ? "bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-accent)_7%,white)_0%,#fff_42%)] shadow-[0_1px_2px_rgba(15,24,48,.04),0_30px_60px_-36px_color-mix(in_srgb,var(--color-accent)_60%,transparent)] [--spot:color-mix(in_srgb,var(--color-accent)_10%,transparent)] hover:-translate-y-1 hover:shadow-[0_36px_70px_-34px_color-mix(in_srgb,var(--color-accent)_70%,transparent)]"
+                  : top
+                    ? "bg-[linear-gradient(180deg,#fffdf8_0%,#fbf6ec_100%)] shadow-[0_1px_2px_rgba(15,24,48,.04),0_30px_60px_-36px_rgba(148,102,54,.45)] [--spot:rgba(217,192,142,.16)] hover:-translate-y-1 hover:shadow-[0_36px_70px_-34px_rgba(148,102,54,.55)]"
+                    : "border border-hairline bg-white/90 shadow-[0_1px_2px_rgba(15,24,48,.04),0_12px_32px_-24px_rgba(15,24,48,.18)] backdrop-blur-sm [--spot:color-mix(in_srgb,var(--color-accent)_9%,transparent)] hover:-translate-y-1 hover:shadow-[0_28px_50px_-30px_rgba(15,24,48,.35)]"
             }`}
           >
             {entry && (
               <>
-                {/* Filet et halo de l'accent de la solution, discrets. */}
+                {/* Filet complet et halo de l'accent de la solution. */}
+                <span aria-hidden="true" className="hn-edge hn-edge-full" />
+                <p className="absolute right-5 top-0 -translate-y-1/2 rounded-full bg-gradient-to-r from-accent to-accent-strong px-3 py-1 text-[0.75rem] font-medium tracking-[0.02em] text-white shadow-[0_6px_16px_-8px_var(--color-accent)]">
+                  {t("entryTag")}
+                </p>
+              </>
+            )}
+            {top && (
+              <>
+                {/* Filet champagne, reflet nacré en haut de la carte. */}
+                <span aria-hidden="true" className="hn-edge hn-edge-gold" />
                 <span
                   aria-hidden="true"
-                  className="pointer-events-none absolute inset-x-0 top-0 h-36 rounded-t-[1.4rem] bg-gradient-to-b from-accent-soft to-transparent"
+                  className="pointer-events-none absolute inset-x-0 top-0 h-36 rounded-t-[1.4rem] bg-gradient-to-b from-champagne-soft to-transparent"
                 />
-                <span aria-hidden="true" className="hn-edge" />
-                <p className="absolute right-5 top-0 -translate-y-1/2 rounded-full border border-accent-line bg-white px-3 py-1 text-[0.75rem] font-medium tracking-[0.02em] text-accent-strong">
-                  {t("entryTag")}
+                <p className="absolute right-5 top-0 -translate-y-1/2 rounded-full bg-deep px-3 py-1 text-[0.75rem] font-medium tracking-[0.02em] text-champagne shadow-[0_6px_16px_-8px_rgba(18,26,44,.6)]">
+                  {t("completeTag")}
                 </p>
               </>
             )}
@@ -178,8 +208,10 @@ export async function PlanCards({
                   featured
                     ? "bg-champagne/15 text-champagne"
                     : entry
-                      ? "bg-accent text-white"
-                      : "bg-accent-soft text-accent"
+                      ? "bg-gradient-to-br from-accent to-accent-strong text-white shadow-[0_8px_18px_-8px_var(--color-accent)] ring-4 ring-accent-soft"
+                      : top
+                        ? "bg-gradient-to-br from-[#f6e9c9] to-[#e4cfa2] text-copper shadow-[0_8px_18px_-8px_rgba(148,102,54,.5)] ring-4 ring-champagne-soft"
+                        : "bg-accent-soft text-accent"
                 }`}
               >
                 <Icon className="size-[22px]" />
@@ -198,7 +230,12 @@ export async function PlanCards({
 
             <div className={`relative mt-6 ${withYearly ? "lg:min-h-[4.6rem]" : ""}`}>
               <p data-billing-only={withYearly ? "month" : undefined} className="flex items-baseline gap-2">
-                {bigPrice(plan.priceCents, featured, strong)}
+                {bigPrice(
+                  plan.priceCents,
+                  featured,
+                  strong,
+                  entry ? "text-accent" : top ? "text-copper" : "",
+                )}
                 <span className={`text-[0.9rem] ${muted}`}>
                   {paid ? t("perMonth", { display }) : t("freeSuffix")}
                 </span>
@@ -206,7 +243,12 @@ export async function PlanCards({
               {withYearly && (
                 <div data-billing-only="year">
                   <p className="flex items-baseline gap-2">
-                    {bigPrice(yearlyCents, featured, strong)}
+                    {bigPrice(
+                      yearlyCents,
+                      featured,
+                      strong,
+                      entry ? "text-accent" : top ? "text-copper" : "",
+                    )}
                     <span className={`text-[0.9rem] ${muted}`}>{t("perYear", { display })}</span>
                   </p>
                   <p className={`mt-1.5 text-[0.82rem] ${muted}`}>
@@ -218,7 +260,11 @@ export async function PlanCards({
                     {yearly.freeMonths > 0 && (
                       <span
                         className={`ml-2 inline-block rounded-full px-2 py-px text-[0.75rem] font-medium ${
-                          featured ? "bg-champagne/15 text-champagne" : "bg-accent-soft text-accent-strong"
+                          featured
+                            ? "bg-champagne/15 text-champagne"
+                            : top
+                              ? "bg-champagne-soft text-copper"
+                              : "bg-accent-soft text-accent-strong"
                         }`}
                       >
                         {t("yearlySaving", {
@@ -232,7 +278,7 @@ export async function PlanCards({
             </div>
 
             <ul
-              className={`relative mt-6 flex flex-col gap-2.5 border-t pt-5 text-[0.92rem] leading-snug ${featured ? "border-white/10" : "border-hairline"}`}
+              className={`relative mt-6 flex flex-col gap-2.5 border-t pt-5 text-[0.92rem] leading-snug ${featured ? "border-white/10" : top ? "border-champagne/30" : "border-hairline"}`}
             >
               {card.previous && (
                 <li className={`flex items-start gap-2.5 font-medium ${strong}`}>
@@ -246,7 +292,7 @@ export async function PlanCards({
             {card.included.length > VISIBLE_LINES && (
               <details className="group/more relative mt-2.5 text-[0.92rem] leading-snug">
                 <summary
-                  className={`inline-flex min-h-11 cursor-pointer list-none items-center gap-1.5 text-[0.85rem] font-medium underline-offset-4 hover:underline [&::-webkit-details-marker]:hidden ${featured ? "text-champagne" : "text-accent-strong"}`}
+                  className={`inline-flex min-h-11 cursor-pointer list-none items-center gap-1.5 text-[0.85rem] font-medium underline-offset-4 hover:underline [&::-webkit-details-marker]:hidden ${tint}`}
                 >
                   <span className="group-open/more:hidden">{t("showAll")}</span>
                   <span className="hidden group-open/more:inline">{t("showLess")}</span>
@@ -264,9 +310,7 @@ export async function PlanCards({
               const items = card.upcoming.filter((item) => !item.solution || item.solution === solution);
               return items.length > 0 ? (
                 <div key={solution} data-only={solution} className="relative mt-5">
-                  <p
-                    className={`mb-1.5 text-[0.75rem] font-medium uppercase tracking-[0.06em] ${featured ? "text-champagne" : "text-accent-strong"}`}
-                  >
+                  <p className={`mb-1.5 text-[0.75rem] font-medium uppercase tracking-[0.06em] ${tint}`}>
                     {t("upcoming")}
                   </p>
                   <p className={`text-[0.84rem] leading-relaxed ${muted}`}>
@@ -298,10 +342,10 @@ export async function PlanCards({
 
             {offer && (
               <div
-                className={`relative mt-6 flex items-center gap-3 rounded-xl border p-3.5 ${featured ? "border-champagne/30 bg-white/[0.04]" : "border-accent-line bg-accent-soft/60"}`}
+                className={`relative mt-6 flex items-center gap-3 rounded-xl border p-3.5 ${featured ? "border-champagne/30 bg-white/[0.04]" : top ? "border-champagne/40 bg-champagne-soft/60" : "border-accent-line bg-accent-soft/60"}`}
               >
                 <span
-                  className={`flex size-11 flex-none items-center justify-center rounded-lg ${featured ? "bg-champagne/15 text-champagne" : "bg-white text-accent"}`}
+                  className={`flex size-11 flex-none items-center justify-center rounded-lg ${featured ? "bg-champagne/15 text-champagne" : top ? "bg-white text-copper" : "bg-white text-accent"}`}
                 >
                   <TabletLine className="size-6" />
                 </span>
@@ -309,7 +353,7 @@ export async function PlanCards({
                   <p className="flex flex-wrap items-center gap-2">
                     <span className={`font-medium ${strong}`}>{pickLocalized(offer.title, locale)}</span>
                     <span
-                      className={`rounded-full px-2 py-px text-[0.75rem] ${featured ? "bg-champagne/15 text-champagne" : "bg-white text-accent-strong"}`}
+                      className={`rounded-full px-2 py-px text-[0.75rem] ${featured ? "bg-champagne/15 text-champagne" : top ? "bg-white text-copper" : "bg-white text-accent-strong"}`}
                     >
                       {t("tablet.badge")}
                     </span>
@@ -325,9 +369,13 @@ export async function PlanCards({
                 className={`group flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-[0.95rem] font-medium transition duration-200 motion-reduce:transition-none ${
                   featured
                     ? "hn-shine bg-gradient-to-r from-[#c9a96a] via-[#e4cfa2] to-[#d2b47c] text-deep focus-visible:outline-white shadow-[0_12px_30px_-14px_rgba(217,192,142,.7)] hover:brightness-105"
-                    : paid
-                      ? "bg-accent text-white shadow-[inset_0_1px_0_rgba(255,255,255,.2),0_12px_26px_-16px_var(--color-accent)] hover:bg-accent-strong"
-                      : "border border-hairline bg-white text-night hover:border-accent-line hover:text-accent-strong"
+                    : top && paid
+                      ? TOP_BUTTON
+                      : entry && paid
+                        ? ENTRY_BUTTON
+                        : paid
+                          ? "bg-accent text-white shadow-[inset_0_1px_0_rgba(255,255,255,.2),0_12px_26px_-16px_var(--color-accent)] hover:bg-accent-strong"
+                          : "border border-hairline bg-white text-night hover:border-accent-line hover:text-accent-strong"
                 }`}
               >
                 {t("start")}
@@ -340,9 +388,13 @@ export async function PlanCards({
                   className={`group flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-[0.95rem] font-medium transition duration-200 motion-reduce:transition-none ${
                     featured
                       ? "hn-shine bg-gradient-to-r from-[#c9a96a] via-[#e4cfa2] to-[#d2b47c] text-deep focus-visible:outline-white shadow-[0_12px_30px_-14px_rgba(217,192,142,.7)] hover:brightness-105"
-                      : paid
-                        ? "bg-accent text-white shadow-[inset_0_1px_0_rgba(255,255,255,.2),0_12px_26px_-16px_var(--color-accent)] hover:bg-accent-strong"
-                        : "border border-hairline bg-white text-night hover:border-accent-line hover:text-accent-strong"
+                      : top && paid
+                        ? TOP_BUTTON
+                        : entry && paid
+                          ? ENTRY_BUTTON
+                          : paid
+                            ? "bg-accent text-white shadow-[inset_0_1px_0_rgba(255,255,255,.2),0_12px_26px_-16px_var(--color-accent)] hover:bg-accent-strong"
+                            : "border border-hairline bg-white text-night hover:border-accent-line hover:text-accent-strong"
                   }`}
                 >
                   {t("start")}

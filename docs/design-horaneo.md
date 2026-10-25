@@ -28,7 +28,7 @@ Promesse : « Votre activité. Un seul outil. Plus de liberté. »
 Règles :
 
 - La marque reste le bleu nuit du logo ; les couleurs des solutions sont des accents (boutons, coches, pictogrammes, mots mis en valeur), posés par `[data-solution]` (`src/app/globals.css`, utilitaires `bg-accent`, `text-accent`, `bg-accent-soft`…).
-- Le Pro (« Le plus populaire ») est la seule carte sombre ; le Starter porte un filet et un halo discrets de l'accent ; le Business reste une carte claire.
+- Le Pro (« Le plus populaire ») est la seule carte sombre ; le Starter (« Idéal pour démarrer ») porte un filet complet, un léger dégradé et un bouton de l'accent ; le Business (« Le plus complet ») est une carte claire nacrée à filet champagne, bouton champagne sur fond sombre.
 - Dégradés : seulement subtils (halo d'accroche, bouton champagne, bandeau final).
 - Les sites des clients gardent leurs propres couleurs.
 

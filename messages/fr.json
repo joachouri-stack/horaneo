@@ -188,6 +188,7 @@
       "perMonth": "{display}/mois",
       "recommended": "Le plus populaire",
       "entryTag": "Idéal pour démarrer",
+      "completeTag": "Le plus complet",
       "everythingIn": "Tout le pack {plan}",
       "notIncluded": "Non inclus",
       "included": "Inclus :",
