@@ -146,7 +146,7 @@ export function Donut({
   total,
   centerLabel,
 }: {
-  items: { label: string; value: number }[];
+  items: { label: string; value: number; color?: string | null }[];
   total: number;
   centerLabel: string;
 }) {
@@ -166,7 +166,7 @@ export function Donut({
               cy="50"
               r={radius}
               fill="none"
-              stroke={DONUT_COLORS[index % DONUT_COLORS.length]}
+              stroke={item.color ?? DONUT_COLORS[index % DONUT_COLORS.length]}
               strokeWidth="11"
               strokeDasharray={`${Math.max(lengths[index] - 1.5, 0)} ${circumference}`}
               strokeDashoffset={-offsets[index]}
@@ -187,7 +187,7 @@ export function Donut({
             <span
               aria-hidden="true"
               className="size-2.5 shrink-0 rounded-full"
-              style={{ backgroundColor: DONUT_COLORS[index % DONUT_COLORS.length] }}
+              style={{ backgroundColor: item.color ?? DONUT_COLORS[index % DONUT_COLORS.length] }}
             />
             <span className="min-w-0 flex-1 truncate text-ink">{item.label}</span>
             <span className="tabular-nums text-ink-soft">

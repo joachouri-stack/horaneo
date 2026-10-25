@@ -47,6 +47,7 @@ import { deletePromoCode, savePromoCode } from "@/modules/promo/codes";
 import { createUpdateRequest } from "@/modules/requests/update-requests";
 import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
 import { createTimeOff, deleteTimeOff } from "@/modules/schedule/time-off";
+import { updateStatsGoals } from "@/modules/stats/goals";
 import { replaceStaffSchedules } from "@/modules/team/schedules";
 import { deleteStaff, saveStaff } from "@/modules/team/staff";
 import { tenants } from "@/db/schema";
@@ -718,4 +719,16 @@ export async function renewCalendarFeedAction(_previous: Previous, data: FormDat
 export async function disableCalendarFeedAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   return managerMutation(tenantId, "calendar_feed.disabled", (tx) => disableCalendarFeed(tx, tenantId));
+}
+
+/** Objectifs du mois (statistiques) : chiffre d'affaires, rendez-vous, nouvelles clientes. */
+export async function updateStatsGoalsAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "stats.goals", (tx) =>
+    updateStatsGoals(tx, tenantId, {
+      revenue: form.text(data, "revenue"),
+      appointments: form.text(data, "appointments"),
+      newCustomers: form.text(data, "newCustomers"),
+    }),
+  );
 }

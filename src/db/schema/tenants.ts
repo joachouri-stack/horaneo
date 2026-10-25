@@ -242,6 +242,10 @@ export const businessSettings = pgTable(
     reviewRequestEnabled: boolean().notNull().default(false),
     /** Lien d'abonnement à l'agenda (téléphone) : 0 = désactivé ; augmenté à chaque nouveau lien. */
     calendarFeedVersion: integer().notNull().default(0),
+    // Objectifs du mois fixés par la gérante (statistiques) ; vides = pas d'objectif.
+    revenueGoalCents: integer(),
+    appointmentsGoal: integer(),
+    newCustomersGoal: integer(),
     // Cartes cadeaux (pack qui les inclut) : réglages de l'entreprise.
     giftCardsEnabled: boolean().notNull().default(false),
     giftCardValidityMonths: smallint().notNull().default(12),
