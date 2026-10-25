@@ -432,8 +432,12 @@
           "card": "Référencement optimisé"
         },
         "favicon": {
-          "label": "Favicon (icône du site dans l'onglet et sur l'écran d'accueil)",
-          "card": "Favicon"
+          "label": "Création du logo et du favicon (icône du site dans l'onglet et sur l'écran d'accueil)",
+          "card": "Création du logo et du favicon"
+        },
+        "responsive": {
+          "label": "Responsive design : s'adapte à tous les mobiles et tablettes",
+          "card": "Responsive design (mobiles et tablettes)"
         },
         "advancedSeo": {
           "label": "SEO avancé",
@@ -577,6 +581,10 @@
         "helpCenter": {
           "label": "Centre d'aide",
           "card": "Centre d'aide"
+        },
+        "technicalSupport247": {
+          "label": "Service technique 24 h/24, 7 j/7",
+          "card": "Service technique 24 h/24, 7 j/7"
         },
         "whatsappSupport": {
           "label": "Assistance par WhatsApp",
@@ -1700,6 +1708,8 @@
         "freeDomain": "Nom de domaine inclus pour la création (sous conditions)",
         "maintenance": "Maintenance du site incluse",
         "securityProtection": "Protection contre les cyberattaques",
+        "logoCreation": "Création du logo et du favicon",
+        "technicalSupport247": "Service technique 24 h/24, 7 j/7",
         "staffPlanning": "Gestion des plannings des collaborateurs",
         "customerFile": "Fichier clients : historique et notes",
         "advancedCrm": "CRM et automatisations avancées",
@@ -2534,7 +2544,9 @@
         "emailSupport": "Assistance par e-mail",
         "whatsappSupport": "Assistance prioritaire par WhatsApp",
         "maintenance": "Maintenance du site incluse",
-        "securityProtection": "Protection contre les cyberattaques"
+        "securityProtection": "Protection contre les cyberattaques",
+        "logoCreation": "Création du logo et du favicon",
+        "technicalSupport247": "Service technique 24 h/24, 7 j/7"
       },
       "overLimit": "Au-delà de votre pack : rien n'est supprimé, mais vous ne pouvez plus en ajouter.",
       "primaryOnly": "L'abonnement est commun à tout le site : il est géré par l'entreprise principale. Vous voyez ici le pack en cours et l'utilisation du site.",

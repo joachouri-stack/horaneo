@@ -60,6 +60,8 @@ const FEATURE_KEYS = [
   "whatsappSupport",
   "maintenance",
   "securityProtection",
+  "logoCreation",
+  "technicalSupport247",
 ] as const;
 
 export type PlanHighlight =

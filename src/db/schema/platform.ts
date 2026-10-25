@@ -113,6 +113,9 @@ export type PlanFeatures = {
   /** Promesses de service : maintenance du site incluse, protection contre les attaques (pare-feu, HTTPS). */
   maintenance?: boolean;
   securityProtection?: boolean;
+  /** Promesses de service : création du logo et du favicon, service technique 24 h/24, 7 j/7. */
+  logoCreation?: boolean;
+  technicalSupport247?: boolean;
   staffPlanning?: boolean;
   customerFile?: boolean;
   advancedCrm?: boolean;

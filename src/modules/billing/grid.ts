@@ -57,7 +57,8 @@ const ROWS: RowDef[] = [
   { key: "photos", category: "site", limit: "photos", always: true },
   { key: "services", category: "site", limit: "services", always: true },
   { key: "localSeo", category: "site", feature: "localSeo" },
-  { key: "favicon", category: "site", always: true },
+  { key: "favicon", category: "site", feature: "logoCreation" },
+  { key: "responsive", category: "site", feature: "mobileReady" },
   { key: "advancedSeo", category: "site", feature: "advancedSeo" },
   { key: "multilingual", category: "site", feature: "multilingual" },
   // Réservations et agenda
@@ -109,6 +110,7 @@ const ROWS: RowDef[] = [
   { key: "maintenance", category: "hosting", feature: "maintenance" },
   // Assistance
   { key: "helpCenter", category: "support", feature: "helpCenter", detail: true },
+  { key: "technicalSupport247", category: "support", feature: "technicalSupport247" },
   { key: "whatsappSupport", category: "support", feature: "whatsappSupport" },
   { key: "ticketSupport", category: "support", feature: "ticketSupport" },
   { key: "priorityHumanSupport", category: "support", feature: "priorityHumanSupport" },

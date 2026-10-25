@@ -378,6 +378,8 @@ const GRID_STARTER = {
   whatsappSupport: true,
   maintenance: true,
   securityProtection: true,
+  logoCreation: true,
+  technicalSupport247: true,
 } satisfies PlanFeatures;
 
 const GRID_PRO = {

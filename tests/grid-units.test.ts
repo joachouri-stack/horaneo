@@ -39,6 +39,9 @@ describe("grille des packs : une seule source pour les cartes et le comparatif",
       "whatsappSupport",
       "maintenance",
       "security",
+      "favicon",
+      "responsive",
+      "technicalSupport247",
     ])
       expect(row(key), key).toEqual([{ included: true }, { included: true }, { included: true }]);
   });

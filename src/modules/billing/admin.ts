@@ -80,6 +80,8 @@ export const FEATURE_KEYS = [
   "freeDomain",
   "maintenance",
   "securityProtection",
+  "logoCreation",
+  "technicalSupport247",
   "staffPlanning",
   "customerFile",
   "advancedCrm",
