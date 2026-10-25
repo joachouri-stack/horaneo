@@ -15,7 +15,14 @@ import { savePlanAction } from "./actions";
 
 const LIMITS = ["pages", "onlineBookingsPerMonth", "customers", "members", "photos", "services"] as const;
 /** Quotas mensuels des outils intelligents : 0 = non inclus, vide = illimité. */
-const AI_LIMITS = ["aiChatConversations", "whatsappConversations", "aiTexts", "aiImages"] as const;
+const AI_LIMITS = [
+  "aiChatConversations",
+  "chatbotQuestions",
+  "whatsappConversations",
+  "aiTexts",
+  "aiImages",
+  "extraLanguages",
+] as const;
 
 /** Packs : prix, limites et fonctions (réglages, jamais écrits dans le code). */
 export default async function PlansPage({ params }: PageProps<"/[locale]/admin/packs">) {

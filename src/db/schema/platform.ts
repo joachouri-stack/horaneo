@@ -31,6 +31,10 @@ export type PlanLimits = {
   whatsappConversations?: number | null;
   aiTexts?: number | null;
   aiImages?: number | null;
+  /** Questions-réponses du chatbot (vide : illimité). */
+  chatbotQuestions?: number | null;
+  /** Langues en plus du français sur le site (vide : toutes). */
+  extraLanguages?: number | null;
 };
 
 /** Fonctions d'un pack. Une fonction absente est désactivée. */

@@ -201,7 +201,6 @@
       "tablet": {
         "badge": "Offre limitée",
         "title": "Tablette offerte",
-        "places": "{remaining, plural, one {# place restante} other {# places restantes}} sur {quota}",
         "label": "Tablette professionnelle offerte",
         "conditions": "Conditions de l'offre"
       },
@@ -453,8 +452,9 @@
           "card": "SEO avancé"
         },
         "multilingual": {
-          "label": "Site multilingue (jusqu'à 5 langues)",
-          "card": "Site jusqu'à 5 langues"
+          "label": "Langues du site en plus du français",
+          "card": "Site multipage personnalisable + {count, plural, one {# langue} other {# langues}} en plus",
+          "cardUnlimited": "Site multipage dans toutes les langues"
         },
         "bookings": {
           "label": "Réservations en ligne par mois",
@@ -526,6 +526,11 @@
         "onlinePayment": {
           "label": "Paiements Stripe et acomptes",
           "card": "Paiements Stripe et acomptes"
+        },
+        "chatbotQuestions": {
+          "label": "Chatbot inclus (questions et réponses)",
+          "card": "Chatbot inclus ({count} questions et réponses)",
+          "cardUnlimited": "Chatbot inclus (questions et réponses illimitées)"
         },
         "aiChatbot": {
           "label": "Chatbot IA sur le site (conversations par mois)",
@@ -720,7 +725,7 @@
         },
         "tablet": {
           "q": "Comment fonctionne l'offre tablette ?",
-          "a": "Une tablette professionnelle est offerte aux premiers abonnés Business éligibles, avec engagement. Une tablette par établissement, expédiée après le premier paiement et la vérification d'éligibilité. Le nombre de places restantes est affiché en temps réel."
+          "a": "Une tablette professionnelle est offerte aux premiers abonnés Business éligibles, avec engagement. Une tablette par établissement, expédiée après le premier paiement et la vérification d'éligibilité."
         },
         "data": {
           "q": "Mes données m'appartiennent-elles ?",
@@ -1791,6 +1796,8 @@
       "pages": "Pages du site",
       "customers": "Fiches clients (contacts)",
       "aiChatConversations": "Chatbot IA : conversations par mois",
+      "chatbotQuestions": "Chatbot : questions et réponses",
+      "extraLanguages": "Langues du site en plus du français",
       "whatsappConversations": "Assistant WhatsApp : conversations par mois",
       "aiTexts": "Textes IA par mois",
       "aiImages": "Images IA par mois",
