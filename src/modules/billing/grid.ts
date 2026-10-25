@@ -50,11 +50,15 @@ type RowDef = {
 
 const ROWS: RowDef[] = [
   // Site web et présence en ligne
-  { key: "miniSite", category: "site", always: true },
+  // Site vitrine : remplacé par le site multipage quand le pack l'inclut.
+  { key: "miniSite", category: "site", always: true, unless: "fullSite" },
   { key: "fullSite", category: "site", feature: "fullSite" },
   { key: "setupAssistance", category: "site", feature: "setupAssistance" },
   { key: "photos", category: "site", limit: "photos", always: true },
-  { key: "localSeo", category: "site", feature: "localSeo", detail: true },
+  { key: "services", category: "site", limit: "services", always: true },
+  { key: "localSeo", category: "site", feature: "localSeo" },
+  { key: "favicon", category: "site", feature: "logoCreation" },
+  { key: "responsive", category: "site", feature: "mobileReady" },
   { key: "advancedSeo", category: "site", feature: "advancedSeo" },
   { key: "multilingual", category: "site", feature: "multilingual" },
   // Réservations et agenda
@@ -102,8 +106,12 @@ const ROWS: RowDef[] = [
   { key: "subdomain", category: "hosting", always: true, detail: true },
   { key: "customDomain", category: "hosting", feature: "customDomain" },
   { key: "freeDomain", category: "hosting", feature: "freeDomain" },
+  { key: "security", category: "hosting", feature: "securityProtection" },
+  { key: "maintenance", category: "hosting", feature: "maintenance" },
   // Assistance
   { key: "helpCenter", category: "support", feature: "helpCenter", detail: true },
+  { key: "technicalSupport247", category: "support", feature: "technicalSupport247" },
+  { key: "whatsappSupport", category: "support", feature: "whatsappSupport" },
   { key: "ticketSupport", category: "support", feature: "ticketSupport" },
   { key: "priorityHumanSupport", category: "support", feature: "priorityHumanSupport" },
 ];

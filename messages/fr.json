@@ -422,9 +422,22 @@
           "card": "Galerie de {count} photos",
           "cardUnlimited": "Galerie photos illimitée"
         },
+        "services": {
+          "label": "Produits et prestations",
+          "card": "{count} produits et prestations",
+          "cardUnlimited": "Produits et prestations illimités"
+        },
         "localSeo": {
-          "label": "Référencement de base",
-          "card": "Référencement de base"
+          "label": "Référencement optimisé",
+          "card": "Référencement optimisé"
+        },
+        "favicon": {
+          "label": "Création du logo et du favicon (icône du site dans l'onglet et sur l'écran d'accueil)",
+          "card": "Création du logo et du favicon"
+        },
+        "responsive": {
+          "label": "Responsive design : s'adapte à tous les mobiles et tablettes",
+          "card": "Responsive design (mobiles et tablettes)"
         },
         "advancedSeo": {
           "label": "SEO avancé",
@@ -554,12 +567,28 @@
           "card": "Connexion de votre domaine"
         },
         "freeDomain": {
-          "label": "Nom de domaine offert (sous conditions)",
-          "card": "Nom de domaine offert"
+          "label": "Nom de domaine inclus pour la création du site (sous conditions)",
+          "card": "Nom de domaine inclus pour la création"
+        },
+        "security": {
+          "label": "Protection contre les cyberattaques (pare-feu, HTTPS)",
+          "card": "Protection contre les cyberattaques"
+        },
+        "maintenance": {
+          "label": "Maintenance du site incluse pendant l'abonnement",
+          "card": "Maintenance incluse"
         },
         "helpCenter": {
           "label": "Centre d'aide",
           "card": "Centre d'aide"
+        },
+        "technicalSupport247": {
+          "label": "Service technique 24 h/24, 7 j/7",
+          "card": "Service technique 24 h/24, 7 j/7"
+        },
+        "whatsappSupport": {
+          "label": "Assistance par WhatsApp",
+          "card": "Assistance WhatsApp"
         },
         "ticketSupport": {
           "label": "Assistance par ticket",
@@ -650,7 +679,7 @@
       "items": {
         "basic": {
           "q": "Que comprend le pack {plan} ?",
-          "a": "{free, select, yes {Il est gratuit, sans limite de durée.} other {Il coûte {price} par mois {display}.}} Il comprend un site vitrine, {bookings} réservations en ligne par mois et {customers} contacts clients. Vous passez à un pack plus complet quand vous le souhaitez."
+          "a": "{free, select, yes {Il est gratuit, sans limite de durée.} other {Il coûte {price} par mois {display}.}} Il comprend un site multipage personnalisable, {bookings, plural, =-1 {des réservations illimitées} other {# réservations en ligne par mois}} et {customers, plural, =-1 {des contacts clients illimités} other {# contacts clients}}. Vous passez à un pack plus complet quand vous le souhaitez."
         },
         "commitment": {
           "q": "Suis-je engagé ?",
@@ -662,7 +691,7 @@
         },
         "domain": {
           "q": "Puis-je utiliser mon propre nom de domaine ?",
-          "a": "Oui, dès le premier pack vous pouvez connecter un domaine existant. Avec le pack Business, un nom de domaine peut être offert, sous conditions de coût et de renouvellement."
+          "a": "Oui, dès le premier pack vous pouvez connecter un domaine existant. Pour la création de votre site, un nom de domaine est inclus, sous conditions de coût et de renouvellement."
         },
         "quotas": {
           "q": "Que se passe-t-il si j'atteins un quota ?",
@@ -1676,7 +1705,11 @@
         "ticketSupport": "Assistance par ticket",
         "priorityHumanSupport": "Assistance humaine prioritaire",
         "setupAssistance": "Configuration accompagnée du site",
-        "freeDomain": "Nom de domaine offert (sous conditions)",
+        "freeDomain": "Nom de domaine inclus pour la création (sous conditions)",
+        "maintenance": "Maintenance du site incluse",
+        "securityProtection": "Protection contre les cyberattaques",
+        "logoCreation": "Création du logo et du favicon",
+        "technicalSupport247": "Service technique 24 h/24, 7 j/7",
         "staffPlanning": "Gestion des plannings des collaborateurs",
         "customerFile": "Fichier clients : historique et notes",
         "advancedCrm": "CRM et automatisations avancées",
@@ -2509,7 +2542,11 @@
         "loyalty": "Carte de fidélité",
         "googleReviews": "Avis Google affichés sur votre site",
         "emailSupport": "Assistance par e-mail",
-        "whatsappSupport": "Assistance prioritaire par WhatsApp"
+        "whatsappSupport": "Assistance prioritaire par WhatsApp",
+        "maintenance": "Maintenance du site incluse",
+        "securityProtection": "Protection contre les cyberattaques",
+        "logoCreation": "Création du logo et du favicon",
+        "technicalSupport247": "Service technique 24 h/24, 7 j/7"
       },
       "overLimit": "Au-delà de votre pack : rien n'est supprimé, mais vous ne pouvez plus en ajouter.",
       "primaryOnly": "L'abonnement est commun à tout le site : il est géré par l'entreprise principale. Vous voyez ici le pack en cours et l'utilisation du site.",
