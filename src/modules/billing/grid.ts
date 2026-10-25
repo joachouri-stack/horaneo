@@ -60,7 +60,7 @@ const ROWS: RowDef[] = [
   { key: "favicon", category: "site", feature: "logoCreation" },
   { key: "responsive", category: "site", feature: "mobileReady" },
   { key: "advancedSeo", category: "site", feature: "advancedSeo" },
-  { key: "multilingual", category: "site", feature: "multilingual" },
+  { key: "multilingual", category: "site", feature: "multilingual", limit: "extraLanguages" },
   // Réservations et agenda
   {
     key: "bookings",
@@ -90,6 +90,7 @@ const ROWS: RowDef[] = [
   // Paiements
   { key: "onlinePayment", category: "payments", feature: "onlinePayment" },
   // Intelligence artificielle
+  { key: "chatbotQuestions", category: "ai", feature: "aiChatbot", limit: "chatbotQuestions" },
   { key: "aiChatbot", category: "ai", feature: "aiChatbot", limit: "aiChatConversations" },
   { key: "aiTexts", category: "ai", feature: "aiTexts", limit: "aiTexts" },
   { key: "aiImages", category: "ai", feature: "aiImages", limit: "aiImages" },

@@ -244,9 +244,6 @@ export async function PlanCards({
                       {t("tablet.badge")}
                     </span>
                   </p>
-                  <p className={muted}>
-                    {t("tablet.places", { remaining: offer.remaining, quota: offer.quota })}
-                  </p>
                 </div>
               </div>
             )}

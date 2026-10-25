@@ -211,6 +211,13 @@
       "when": 1792945409618,
       "tag": "0029_starter_content",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1792947502876,
+      "tag": "0030_pro_chatbot_languages",
+      "breakpoints": true
     }
   ]
 }

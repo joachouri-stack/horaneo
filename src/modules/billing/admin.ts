@@ -118,6 +118,8 @@ export const planInput = z.object({
   whatsappConversations: z.string().default("0").pipe(optionalLimit),
   aiTexts: z.string().default("0").pipe(optionalLimit),
   aiImages: z.string().default("0").pipe(optionalLimit),
+  chatbotQuestions: z.string().default("0").pipe(optionalLimit),
+  extraLanguages: z.string().default("0").pipe(optionalLimit),
   /** Frais de création de la formule sans engagement, en euros (vide : aucun). */
   noCommitmentFee: z
     .string()
@@ -161,6 +163,8 @@ export async function savePlan(
     whatsappConversations: input.whatsappConversations,
     aiTexts: input.aiTexts,
     aiImages: input.aiImages,
+    chatbotQuestions: input.chatbotQuestions,
+    extraLanguages: input.extraLanguages,
   };
   const features: PlanFeatures = Object.fromEntries(
     FEATURE_KEYS.map((key) => [key, input.features.includes(key)]),

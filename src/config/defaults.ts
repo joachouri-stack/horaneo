@@ -384,6 +384,9 @@ const GRID_STARTER = {
 
 const GRID_PRO = {
   ...GRID_STARTER,
+  setupAssistance: true,
+  aiChatbot: true,
+  multilingual: true,
   brandingFooter: false,
   fullSite: true,
   sitePages: true,
@@ -476,6 +479,8 @@ export const DEFAULT_GRID_PLANS: PlanSeed[] = [
       services: null,
       smsPerMonth: 100,
       ...NO_AI,
+      chatbotQuestions: 20,
+      extraLanguages: 2,
     },
     features: GRID_PRO,
   },
@@ -499,6 +504,8 @@ export const DEFAULT_GRID_PLANS: PlanSeed[] = [
       whatsappConversations: 200,
       aiTexts: 100,
       aiImages: 20,
+      chatbotQuestions: 20,
+      extraLanguages: 4,
     },
     features: GRID_BUSINESS,
   },

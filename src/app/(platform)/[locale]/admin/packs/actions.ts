@@ -36,6 +36,8 @@ export async function savePlanAction(_previous: Previous, data: FormData) {
           whatsappConversations: form.text(data, "whatsappConversations"),
           aiTexts: form.text(data, "aiTexts"),
           aiImages: form.text(data, "aiImages"),
+          chatbotQuestions: form.text(data, "chatbotQuestions"),
+          extraLanguages: form.text(data, "extraLanguages"),
           noCommitmentFee: form.text(data, "noCommitmentFee"),
           // Cartes du site commercial : construites à partir des fonctions et quotas du pack.
           highlights: [],
