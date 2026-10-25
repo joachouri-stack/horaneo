@@ -153,6 +153,7 @@ export async function PlanCards({
           <article
             key={plan.id}
             data-plan={plan.code}
+            data-reveal
             className={`hn-spot relative flex flex-col rounded-[1.4rem] p-6 transition duration-300 motion-reduce:transition-none lg:p-7 ${
               featured
                 ? "bg-[radial-gradient(120%_60%_at_50%_-8%,#26324f_0%,#121a2c_55%,#0b1120_100%)] text-[#d5dbe8] shadow-[0_40px_80px_-36px_rgba(18,26,44,.85),0_0_0_1px_rgba(217,192,142,.08)] [--spot:rgba(217,192,142,.11)] md:max-lg:order-first lg:-my-3 lg:py-10"

@@ -33,6 +33,7 @@ import {
   CapLine,
 } from "@/components/marketing/line-icons";
 import { PlanCards } from "@/components/marketing/PlanCards";
+import { RevealOnScroll } from "@/components/marketing/RevealOnScroll";
 import { BillingToggle, SolutionScope, SolutionTabs } from "@/components/marketing/SolutionScope";
 import { SolutionVisual } from "@/components/marketing/SolutionVisual";
 import { env, publicAppUrl } from "@/config/env";
@@ -118,7 +119,7 @@ const TITLE = "font-display font-semibold tracking-[-0.025em] text-night";
 const EYEBROW =
   "inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1 text-[0.8125rem] font-medium uppercase tracking-[0.08em] text-accent-strong";
 const PRIMARY =
-  "group inline-flex min-h-12 items-center gap-2 rounded-xl bg-accent px-5 text-base font-medium text-white shadow-[0_12px_24px_-14px_var(--accent)] transition hover:-translate-y-px hover:bg-accent-strong motion-reduce:transition-none";
+  "hn-shine group inline-flex min-h-12 items-center gap-2 rounded-xl bg-accent px-5 text-base font-medium text-white shadow-[0_12px_24px_-14px_var(--accent)] transition hover:-translate-y-px hover:bg-accent-strong motion-reduce:transition-none";
 const SECONDARY =
   "inline-flex min-h-12 items-center gap-2 rounded-xl border border-hairline bg-white px-5 text-base font-medium text-night transition hover:border-accent-line hover:text-accent-strong";
 
@@ -230,6 +231,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }}
       />
       <PlatformHeader />
+      <RevealOnScroll />
       <main id="contenu">
         <SolutionScope>
           {/* Accroche */}
@@ -238,16 +240,29 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               aria-hidden="true"
               className="pointer-events-none absolute inset-x-0 top-0 h-[34rem] bg-[radial-gradient(60rem_26rem_at_50%_-6rem,var(--accent-soft),transparent_70%)]"
             />
-            <div className="hn-up relative mx-auto max-w-[56rem] px-4 pb-10 pt-12 text-center sm:px-6 lg:pb-12 lg:pt-20">
-              <p className={EYEBROW}>{t("hero.badge")}</p>
-              <h1 className={`${TITLE} hn-balance mt-5 text-[clamp(2.1rem,5vw,3.6rem)] leading-[1.06]`}>
+            {/* Halos qui dérivent lentement derrière l'accroche. */}
+            <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+              <div className="hn-drift absolute -left-24 top-10 size-[24rem] rounded-full bg-accent/15 blur-[90px] max-sm:size-[16rem]" />
+              <div className="hn-drift-slow absolute -right-20 top-32 size-[22rem] rounded-full bg-champagne/25 blur-[90px] max-sm:size-[14rem]" />
+            </div>
+            <div className="relative mx-auto max-w-[56rem] px-4 pb-10 pt-12 text-center sm:px-6 lg:pb-12 lg:pt-20">
+              <p className={`${EYEBROW} hn-up`}>
+                <span aria-hidden="true" className="relative flex size-2">
+                  <span className="hn-ping absolute inset-0 rounded-full bg-accent" />
+                  <span className="relative size-2 rounded-full bg-accent" />
+                </span>
+                {t("hero.badge")}
+              </p>
+              <h1
+                className={`${TITLE} hn-balance hn-up-2 mt-5 text-[clamp(2.1rem,5vw,3.6rem)] leading-[1.06]`}
+              >
                 {t("hero.title")} <br />
-                <span className="text-accent">{t("hero.titleAccent")}</span>
+                <span className="hn-shimmer">{t("hero.titleAccent")}</span>
               </h1>
-              <p className="mx-auto mt-5 max-w-[38rem] text-[1.125rem] text-ink-soft lg:text-[1.15rem]">
+              <p className="hn-up-3 mx-auto mt-5 max-w-[38rem] text-[1.125rem] text-ink-soft lg:text-[1.15rem]">
                 {t("hero.subtitle")}
               </p>
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <div className="hn-up-4 mt-8 flex flex-wrap items-center justify-center gap-3">
                 <Link href={startHref} className={PRIMARY}>
                   {t("cta")}
                   <ArrowLine className="size-[18px] transition-transform group-hover:translate-x-0.5" />
@@ -287,7 +302,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               {SOLUTIONS.map((code) => (
                 <div key={code} data-only={code} className="pt-10 lg:pt-14">
                   <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-14">
-                    <div>
+                    <div data-reveal>
                       <p className={EYEBROW}>
                         {t(`solutions.items.${code}.badge`)}
                         {isSoon(code) && (
@@ -345,7 +360,9 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                         </div>
                       )}
                     </div>
-                    <SolutionVisual solution={code} />
+                    <div data-reveal>
+                      <SolutionVisual solution={code} />
+                    </div>
                   </div>
 
                   {/* Bandeau des fonctions de la solution */}
@@ -355,9 +372,10 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                       return (
                         <li
                           key={item}
-                          className="flex flex-col items-center gap-2 bg-white px-3 py-5 text-center text-[0.875rem] text-[#2d3446] max-sm:last:col-span-2"
+                          data-reveal
+                          className="group flex flex-col items-center gap-2 bg-white px-3 py-5 text-center text-[0.875rem] text-[#2d3446] max-sm:last:col-span-2"
                         >
-                          <Icon className="size-6 text-accent" />
+                          <Icon className="size-6 text-accent transition-transform duration-300 group-hover:-translate-y-1 group-hover:scale-110 motion-reduce:transition-none" />
                           {item}
                         </li>
                       );
@@ -380,11 +398,13 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               className="pointer-events-none absolute inset-x-0 top-40 -z-10 h-[46rem] overflow-hidden"
             >
               <div className="hn-dots absolute inset-0" />
-              <div className="absolute left-[8%] top-24 size-[22rem] rounded-full bg-accent/10 blur-[90px]" />
-              <div className="absolute left-1/2 top-10 size-[26rem] -translate-x-1/2 rounded-full bg-champagne/20 blur-[100px]" />
+              <div className="hn-drift absolute left-[8%] top-24 size-[22rem] rounded-full bg-accent/10 blur-[90px]" />
+              <div className="absolute left-1/2 top-10 -translate-x-1/2">
+                <div className="hn-drift-slow size-[26rem] rounded-full bg-champagne/20 blur-[100px]" />
+              </div>
             </div>
             <div className="mb-10 flex flex-wrap items-end justify-between gap-4 lg:mb-12">
-              <div>
+              <div data-reveal>
                 <h2 id="titre-tarifs" className={`${TITLE} text-[clamp(1.8rem,3.4vw,2.5rem)] leading-[1.1]`}>
                   {t("plans.title")}
                   {SOLUTIONS.map((code) => (
@@ -443,9 +463,12 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             aria-labelledby="titre-benefices"
             className="mx-auto max-w-[75rem] scroll-mt-20 px-4 pt-20 sm:px-6 lg:pt-28"
           >
-            <p className={EYEBROW}>{t("benefits.badge")}</p>
+            <p data-reveal className={EYEBROW}>
+              {t("benefits.badge")}
+            </p>
             <h2
               id="titre-benefices"
+              data-reveal
               className={`${TITLE} mt-4 max-w-[44rem] text-[clamp(1.8rem,3.4vw,2.5rem)] leading-[1.1]`}
             >
               {t("benefits.title")} <span className="text-accent">{t("benefits.titleAccent")}</span>
@@ -454,8 +477,8 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               {BENEFITS.map((item) => {
                 const later = "feature" in item && soon.has(item.feature);
                 return (
-                  <li key={item.key}>
-                    <span className="flex size-11 items-center justify-center rounded-xl border border-accent-line bg-accent-soft text-accent">
+                  <li key={item.key} data-reveal className="group">
+                    <span className="flex size-11 items-center justify-center rounded-xl border border-accent-line bg-accent-soft text-accent transition duration-300 group-hover:-translate-y-1 group-hover:-rotate-6 group-hover:bg-accent group-hover:text-white group-hover:shadow-[0_10px_20px_-10px_var(--accent)] motion-reduce:transition-none">
                       <item.Icon className="size-[22px]" />
                     </span>
                     <h3 className="mt-4 flex flex-wrap items-center gap-2 font-display text-[1.125rem] font-semibold text-night">
@@ -481,6 +504,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           >
             <h2
               id="titre-comparatif"
+              data-reveal
               className={`${TITLE} mb-8 text-[clamp(1.6rem,3vw,2.2rem)] leading-[1.1]`}
             >
               {t("comparison.title")}
@@ -505,13 +529,17 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           aria-labelledby="titre-confiance"
           className="mx-auto max-w-[75rem] px-4 pt-20 sm:px-6 lg:pt-28"
         >
-          <h2 id="titre-confiance" className={`${TITLE} text-center text-[clamp(1.5rem,2.6vw,1.9rem)]`}>
+          <h2
+            id="titre-confiance"
+            data-reveal
+            className={`${TITLE} text-center text-[clamp(1.5rem,2.6vw,1.9rem)]`}
+          >
             {t("trust.title")}
           </h2>
           <ul className="mt-8 grid gap-px overflow-hidden rounded-2xl border border-hairline bg-hairline sm:grid-cols-2 lg:grid-cols-5">
             {TRUST.map(({ key, Icon }) => (
-              <li key={key} className="bg-white p-5">
-                <Icon className="size-6 text-navy" />
+              <li key={key} data-reveal className="group bg-white p-5">
+                <Icon className="size-6 text-navy transition-transform duration-300 group-hover:-translate-y-1 group-hover:scale-110 motion-reduce:transition-none" />
                 <p className="mt-3 font-medium text-night">
                   {t(`trust.items.${key}.title`, { percent: data.commission })}
                 </p>
@@ -525,7 +553,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           {data.showcase.length > 0 && (
             <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {data.showcase.map((entry) => (
-                <li key={entry.id}>
+                <li key={entry.id} data-reveal>
                   <figure className="flex h-full flex-col rounded-2xl border border-hairline bg-white p-6">
                     <blockquote className="flex-1 text-night">
                       {t("showcase.quote", { quote: entry.quote })}
@@ -548,7 +576,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           className="scroll-mt-20 px-4 py-20 sm:px-6 lg:py-28"
         >
           <div className="mx-auto grid max-w-[72rem] gap-8 lg:grid-cols-[1fr_2fr] lg:gap-14">
-            <div>
+            <div data-reveal>
               <h2 id="titre-questions" className={`${TITLE} text-[clamp(1.6rem,3vw,2.2rem)] leading-[1.1]`}>
                 {t("faq.title")}
               </h2>
@@ -560,7 +588,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 {t("faq.contact")}
               </a>
             </div>
-            <div className="divide-y divide-hairline border-y border-hairline">
+            <div data-reveal className="divide-y divide-hairline border-y border-hairline">
               {faq.map((item, index) => (
                 <details key={item.key} open={index === 0} className="group">
                   <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 py-4 font-medium text-night [&::-webkit-details-marker]:hidden">
@@ -576,14 +604,25 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
 
         {/* Bandeau final */}
         <section className="px-4 pb-16 sm:px-6">
-          <div className="relative mx-auto max-w-[72rem] overflow-hidden rounded-[1.75rem] bg-[linear-gradient(120deg,#1b2a4a,#24366a_60%,#2f3f86)] px-6 py-14 text-center lg:py-16">
+          <div
+            data-reveal
+            className="relative mx-auto max-w-[72rem] overflow-hidden rounded-[1.75rem] bg-[linear-gradient(120deg,#1b2a4a,#24366a_60%,#2f3f86)] px-6 py-14 text-center lg:py-16"
+          >
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full border border-white/10"
+              className="hn-drift pointer-events-none absolute -left-10 -top-20 size-80 rounded-full bg-[#5b6fd6]/30 blur-[80px]"
             />
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute -bottom-32 -left-16 size-80 rounded-full border border-white/10"
+              className="hn-drift-slow pointer-events-none absolute -bottom-24 right-0 size-80 rounded-full bg-champagne/20 blur-[80px]"
+            />
+            <div
+              aria-hidden="true"
+              className="hn-float pointer-events-none absolute -right-24 -top-24 size-72 rounded-full border border-white/10"
+            />
+            <div
+              aria-hidden="true"
+              className="hn-float-late pointer-events-none absolute -bottom-32 -left-16 size-80 rounded-full border border-white/10"
             />
             <h2 className="relative font-display text-[clamp(1.6rem,3vw,2.3rem)] font-semibold tracking-[-0.02em] text-white">
               {t("final.title")}
@@ -591,7 +630,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             <p className="relative mx-auto mt-3 max-w-[32rem] text-[#c8d0e4]">{t("final.text")}</p>
             <Link
               href={startHref}
-              className="group relative mt-7 inline-flex min-h-12 items-center gap-2 rounded-xl bg-white px-6 font-medium text-navy transition hover:-translate-y-px focus-visible:outline-white"
+              className="hn-shine group relative mt-7 inline-flex min-h-12 items-center gap-2 rounded-xl bg-white px-6 font-medium text-navy transition hover:-translate-y-px focus-visible:outline-white"
             >
               {t("final.cta")}
               <ArrowLine className="size-[18px] transition-transform group-hover:translate-x-0.5" />

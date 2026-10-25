@@ -401,3 +401,121 @@ form:has(input[name="billing"][value="year"]:checked) [data-monthly-only] {
     transition: transform 0.9s ease;
   }
 }
+
+/*
+ * Accueil vivant : apparitions au défilement (posées par RevealOnScroll, qui
+ * ajoute .hn-motion seulement si la personne n'a pas demandé moins
+ * d'animations), halos qui dérivent, éléments qui flottent, accroche en
+ * dégradé animé. Sans JavaScript ou avec moins d'animations, tout reste fixe
+ * et visible.
+ */
+.hn-motion [data-reveal]:not([data-shown]) {
+  opacity: 0;
+}
+.hn-motion [data-reveal][data-shown] {
+  animation: hn-rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) var(--hn-delay, 0ms) backwards;
+}
+[data-reveal]:nth-child(2) {
+  --hn-delay: 90ms;
+}
+[data-reveal]:nth-child(3) {
+  --hn-delay: 180ms;
+}
+[data-reveal]:nth-child(4) {
+  --hn-delay: 270ms;
+}
+[data-reveal]:nth-child(5) {
+  --hn-delay: 360ms;
+}
+[data-reveal]:nth-child(n + 6) {
+  --hn-delay: 450ms;
+}
+@keyframes hn-rise {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes hn-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(6%, 8%, 0) scale(1.08);
+  }
+  100% {
+    transform: translate3d(-5%, 3%, 0) scale(0.96);
+  }
+}
+@keyframes hn-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+@keyframes hn-gradient {
+  to {
+    background-position: 200% center;
+  }
+}
+@keyframes hn-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  80%,
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+.hn-shimmer {
+  background-image: linear-gradient(
+    90deg,
+    var(--color-accent),
+    color-mix(in srgb, var(--color-accent) 55%, #fff) 25%,
+    var(--color-accent-strong) 50%,
+    color-mix(in srgb, var(--color-accent) 55%, #fff) 75%,
+    var(--color-accent)
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hn-drift {
+    animation: hn-drift 16s ease-in-out infinite alternate;
+  }
+  .hn-drift-slow {
+    animation: hn-drift 22s ease-in-out -6s infinite alternate-reverse;
+  }
+  .hn-float {
+    animation: hn-float 6s ease-in-out infinite;
+  }
+  .hn-float-late {
+    animation: hn-float 7s ease-in-out -2.5s infinite;
+  }
+  .hn-shimmer {
+    animation: hn-gradient 7s linear infinite;
+  }
+  .hn-ping {
+    animation: hn-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+  .hn-up-2 {
+    animation: hn-up 0.7s ease 0.12s both;
+  }
+  .hn-up-3 {
+    animation: hn-up 0.7s ease 0.24s both;
+  }
+  .hn-up-4 {
+    animation: hn-up 0.7s ease 0.36s both;
+  }
+}
