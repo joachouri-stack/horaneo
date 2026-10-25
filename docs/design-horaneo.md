@@ -23,12 +23,12 @@ Promesse : « Votre activité. Un seul outil. Plus de liberté. »
 | Réservation (accent) | Indigo maîtrisé `#3A4BB8`, foncé `#2B3990`, pâle `#EEF0FB` |
 | Commerce (accent) | Bronze `#946636`, foncé `#74502A`, champagne pâle `#F7F0E5` |
 | Formation (accent) | Bleu pétrole `#0E6A73`, foncé `#0A525A`, pâle `#E5F2F2` |
-| Pack Business | Fond `#121A2C`, champagne `#D9C08E` (dégradé doux vers `#E4CFA2` sur le bouton) |
+| Pack mis en avant (Pro) | Fond `#121A2C`, champagne `#D9C08E` (dégradé doux vers `#E4CFA2` sur le bouton) |
 
 Règles :
 
 - La marque reste le bleu nuit du logo ; les couleurs des solutions sont des accents (boutons, coches, pictogrammes, mots mis en valeur), posés par `[data-solution]` (`src/app/globals.css`, utilitaires `bg-accent`, `text-accent`, `bg-accent-soft`…).
-- Le Business est la seule carte sombre ; le Pro reste attractif sans lui voler la vedette.
+- Le Pro (« Le plus populaire ») est la seule carte sombre ; le Starter porte un filet et un halo discrets de l'accent ; le Business reste une carte claire.
 - Dégradés : seulement subtils (halo d'accroche, bouton champagne, bandeau final).
 - Les sites des clients gardent leurs propres couleurs.
 

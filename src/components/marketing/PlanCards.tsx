@@ -22,8 +22,9 @@ const ICONS = [LeafLine, CrownLine, DiamondLine];
 /**
  * Cartes des packs (Basic, Pro, Business) : nom, prix, description, ce que
  * le pack ajoute au précédent, ce qui n'est pas inclus, bouton et conditions.
- * Tout vient des réglages des packs (gridCard) ; le dernier pack, le plus
- * complet, est mis en valeur sur fond sombre. Une offre de lancement ouverte
+ * Tout vient des réglages des packs (gridCard) ; le pack du milieu, le plus
+ * populaire, est mis en valeur sur fond sombre ; le premier, porte d'entrée,
+ * porte un filet d'accent. Une offre de lancement ouverte
  * (tablette) s'affiche sur son pack avec le nombre réel de places restantes.
  */
 export async function PlanCards({
@@ -59,7 +60,11 @@ export async function PlanCards({
   return (
     <div className="grid gap-5 lg:grid-cols-3 lg:items-stretch lg:gap-6">
       {plans.map((plan, index) => {
-        const featured = plans.length > 1 && index === plans.length - 1;
+        // Pack mis en avant (« Le plus populaire ») : celui du milieu dans une grille de trois, sinon le dernier.
+        const featured =
+          plans.length >= 3
+            ? index === Math.floor(plans.length / 2)
+            : plans.length > 1 && index === plans.length - 1;
         // Premier pack : porte d'entrée, mise en valeur légère (filet d'accent, halo, étiquette).
         const entry = plans.length > 1 && index === 0;
         const Icon = ICONS[Math.min(index, ICONS.length - 1)];
@@ -222,18 +227,24 @@ export async function PlanCards({
             )}
 
             {offer && (
-              <div className="relative mt-6 flex items-center gap-3 rounded-xl border border-champagne/30 bg-white/[0.04] p-3.5">
-                <span className="flex size-11 flex-none items-center justify-center rounded-lg bg-champagne/15 text-champagne">
+              <div
+                className={`relative mt-6 flex items-center gap-3 rounded-xl border p-3.5 ${featured ? "border-champagne/30 bg-white/[0.04]" : "border-accent-line bg-accent-soft/60"}`}
+              >
+                <span
+                  className={`flex size-11 flex-none items-center justify-center rounded-lg ${featured ? "bg-champagne/15 text-champagne" : "bg-white text-accent"}`}
+                >
                   <TabletLine className="size-6" />
                 </span>
                 <div className="min-w-0 text-[0.82rem] leading-snug">
                   <p className="flex flex-wrap items-center gap-2">
-                    <span className="font-medium text-white">{pickLocalized(offer.title, locale)}</span>
-                    <span className="rounded-full bg-champagne/15 px-2 py-px text-[0.68rem] text-champagne">
+                    <span className={`font-medium ${strong}`}>{pickLocalized(offer.title, locale)}</span>
+                    <span
+                      className={`rounded-full px-2 py-px text-[0.68rem] ${featured ? "bg-champagne/15 text-champagne" : "bg-white text-accent-strong"}`}
+                    >
                       {t("tablet.badge")}
                     </span>
                   </p>
-                  <p className="text-[#aab3c7]">
+                  <p className={muted}>
                     {t("tablet.places", { remaining: offer.remaining, quota: offer.quota })}
                   </p>
                 </div>
@@ -258,8 +269,10 @@ export async function PlanCards({
                 {paid ? t("contractPaid", { months: commitmentMonths, display }) : t("contractFree")}
               </p>
               {offer && (
-                <details className="group mt-2 text-center text-[0.74rem] leading-snug text-[#8e98ad]">
-                  <summary className="inline-flex min-h-9 cursor-pointer list-none items-center underline underline-offset-2 hover:text-champagne [&::-webkit-details-marker]:hidden">
+                <details className={`group mt-2 text-center text-[0.74rem] leading-snug ${muted}`}>
+                  <summary
+                    className={`inline-flex min-h-9 cursor-pointer list-none items-center underline underline-offset-2 [&::-webkit-details-marker]:hidden ${featured ? "hover:text-champagne" : "hover:text-accent-strong"}`}
+                  >
                     {t("tablet.conditions")}
                   </summary>
                   <p className="mt-1 text-left">{pickLocalized(offer.conditions, locale)}</p>
