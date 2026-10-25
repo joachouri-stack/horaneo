@@ -3,6 +3,7 @@ import { pickLocalized, type Locale, type LocalizedText } from "@/i18n/locales";
 import { formatMoney } from "@/lib/format";
 import type { PlanFeatures, PlanLimits } from "@/db/schema";
 import { gridComparison, type GridCategory } from "@/modules/billing/grid";
+import { yearlyPriceCents } from "@/modules/billing/yearly";
 import {
   CalendarLine,
   CapLine,
@@ -55,11 +56,14 @@ export async function Comparison({
   locale,
   soon,
   display,
+  yearly,
 }: {
   plans: ComparePlan[];
   locale: Locale;
   soon: string[];
   display: string;
+  /** Prix annuels affichés quand « Annuel » est choisi (absent : mensuels seulement). */
+  yearly?: { enabled: boolean; freeMonths: number };
 }) {
   const [t, tGrid, tPlans] = await Promise.all([
     getTranslations("home.comparison"),
@@ -91,11 +95,20 @@ export async function Comparison({
                   <span className="block font-display text-[1.02rem] font-semibold text-night">
                     {pickLocalized(plan.name, locale)}
                   </span>
-                  <span className="block text-[0.82rem] font-normal text-ink-soft">
+                  <span
+                    data-billing-only={plan.priceCents > 0 && yearly?.enabled ? "month" : undefined}
+                    className="block text-[0.82rem] font-normal text-ink-soft"
+                  >
                     {plan.priceCents > 0
                       ? `${money(plan.priceCents)} ${tPlans("perMonth", { display })}`
                       : tPlans("free")}
                   </span>
+                  {plan.priceCents > 0 && yearly?.enabled && (
+                    <span data-billing-only="year" className="block text-[0.82rem] font-normal text-ink-soft">
+                      {money(yearlyPriceCents(plan.priceCents, yearly.freeMonths))}{" "}
+                      {tPlans("perYear", { display })}
+                    </span>
+                  )}
                 </th>
               ))}
             </tr>

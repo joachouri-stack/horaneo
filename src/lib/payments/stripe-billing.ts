@@ -30,6 +30,12 @@ export function toBillingSubscription(subscription: Stripe.Subscription): Billin
     status: subscription.status,
     priceId: price?.id ?? null,
     planId: price?.metadata?.plan_id ?? null,
+    interval:
+      price?.recurring?.interval === "year"
+        ? "year"
+        : price?.recurring?.interval === "month"
+          ? "month"
+          : null,
     currentPeriodStart: toDate(item?.current_period_start),
     currentPeriodEnd: toDate(item?.current_period_end),
     cancelAt: toDate(subscription.cancel_at),

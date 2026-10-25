@@ -14,10 +14,11 @@ import {
   type PlanLimits,
 } from "@/db/schema";
 import { AppError } from "@/modules/errors";
-import { setPlatformSetting } from "@/modules/settings";
+import { getPlatformSetting, setPlatformSetting } from "@/modules/settings";
 import type { BillingGateway } from "./gateway";
 import { EVERYTHING_IN, HIGHLIGHT_KEYS, MAX_HIGHLIGHTS, twinRuleViolations } from "./showcase";
 import { ensurePlanPrice, isLive } from "./subscriptions";
+import { monthlyEquivalentCents, yearlyPriceCents } from "./yearly";
 
 /** Réglages des packs et des abonnements, depuis l'espace admin (rôle plateforme). */
 
@@ -227,6 +228,9 @@ export const settingsInput = z.object({
   features_soon: z.array(z.enum(FEATURE_KEYS)),
   /** Formule sans engagement proposée à la commande (avec les frais de création du pack). */
   offer_no_commitment: z.boolean().default(false),
+  /** Paiement à l'année proposé, et sa réduction en mois offerts. */
+  yearly_billing_enabled: z.boolean().default(true),
+  yearly_free_months: z.coerce.number().int().min(0).max(6).default(2),
   /** Solutions ouvertes à la souscription (les autres : « Disponible bientôt »). */
   solutions_available: z.array(z.enum(["booking", "commerce", "formation"])).default(["booking"]),
   /** Adresse de la démonstration (vide : bouton masqué). */
@@ -290,6 +294,7 @@ export async function liveRevenue(tx: Transaction) {
   const rows = await listSubscriptions(tx);
   const live = rows.filter((row) => row.live && row.subscription.stripeSubscriptionId);
   const liveTenants = live.map((row) => row.subscription.tenantId);
+  const freeMonths = Number(await getPlatformSetting(tx, "yearly_free_months"));
   const [options] = liveTenants.length
     ? await tx
         .select({ cents: sql<number>`coalesce(sum(${planOptions.priceCents}), 0)::int` })
@@ -303,7 +308,16 @@ export async function liveRevenue(tx: Transaction) {
         )
     : [{ cents: 0 }];
   return {
-    monthlyRevenueCents: live.reduce((sum, row) => sum + row.priceCents, 0) + options.cents,
+    // Abonnements à l'année : comptés pour leur équivalent mensuel.
+    monthlyRevenueCents:
+      live.reduce(
+        (sum, row) =>
+          sum +
+          (row.subscription.billingInterval === "year"
+            ? monthlyEquivalentCents(yearlyPriceCents(row.priceCents, freeMonths))
+            : row.priceCents),
+        0,
+      ) + options.cents,
     paying: live.length,
     pastDue: rows.filter((row) => row.subscription.paymentFailedAt && row.live).length,
   };

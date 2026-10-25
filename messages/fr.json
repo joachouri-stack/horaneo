@@ -193,7 +193,7 @@
       "included": "Inclus :",
       "missing": "Non inclus :",
       "soonTag": "Bientôt",
-      "start": "Commencer gratuitement",
+      "start": "Démarrer",
       "choose": "Choisir le pack {plan}",
       "callback": "Être rappelé",
       "contractFree": "Gratuit, sans carte bancaire. Évoluez quand vous voulez.",
@@ -383,7 +383,15 @@
       "titleAccent": "trois packs.",
       "perMonthLegacy": "par mois {display}",
       "upcoming": "Bientôt inclus",
-      "soonSolution": "La solution {solution} est en préparation. Les packs se souscrivent aujourd'hui avec la solution Réservation ; Pro et Business donneront accès à {solution} dès son lancement, sans frais de plateforme supplémentaires."
+      "soonSolution": "La solution {solution} est en préparation. Les packs se souscrivent aujourd'hui avec la solution Réservation ; Pro et Business donneront accès à {solution} dès son lancement, sans frais de plateforme supplémentaires.",
+      "perYear": "{display}/an",
+      "yearlyDetail": "soit {monthly} {display}/mois",
+      "yearlySaving": "{amount} d'économie",
+      "contractYearly": "Payé en une fois pour 12 mois, renouvelé chaque année. Prix {display}.",
+      "billingLabel": "Périodicité de paiement",
+      "billingMonth": "Mensuel",
+      "billingYear": "Annuel",
+      "billingBadge": "{months, plural, one {# mois offert} other {# mois offerts}}"
     },
     "grid": {
       "categories": {
@@ -1851,7 +1859,10 @@
         "formation": "Formation"
       },
       "demo_url": "Adresse de la démonstration",
-      "demoHint": "Vide : le bouton « Voir la démonstration » n'apparaît pas."
+      "demoHint": "Vide : le bouton « Voir la démonstration » n'apparaît pas.",
+      "yearly_billing_enabled": "Proposer le paiement à l'année",
+      "yearly_free_months": "Mois offerts pour le paiement à l'année",
+      "yearlyHint": "2 = 10 mois payés pour 12. Un nouveau prix annuel est créé chez Stripe ; les abonnés gardent le leur."
     },
     "billing": {
       "title": "Paiements des abonnements",
@@ -2039,7 +2050,8 @@
     "option_requires": "Cette option a besoin d'une autre option active : activez-la d'abord.",
     "option_required_by": "Une autre option active a besoin de celle-ci : coupez-la d'abord.",
     "option_price_missing": "Fixez d'abord le tarif de cette option dans l'espace admin (Options).",
-    "option_unavailable": "Cette option n'est pas encore disponible à la commande."
+    "option_unavailable": "Cette option n'est pas encore disponible à la commande.",
+    "option_monthly_only": "Les options se facturent chaque mois : elles ne sont pas disponibles avec le paiement à l'année."
   },
   "status": {
     "draft": "En création",
@@ -2581,7 +2593,11 @@
       "withoutCommitment": "Sans engagement : frais de création de {fee}, payés maintenant",
       "options": "Vos options",
       "optionsNone": "Aucune option active pour le moment.",
-      "optionsHint": "Réservation, paiement en ligne, rappels par SMS… Pour ajouter ou retirer une option, écrivez-nous depuis « Demandes » : nous l'activons et elle s'ajoute à votre abonnement."
+      "optionsHint": "Réservation, paiement en ligne, rappels par SMS… Pour ajouter ou retirer une option, écrivez-nous depuis « Demandes » : nous l'activons et elle s'ajoute à votre abonnement.",
+      "billing": "Paiement",
+      "billingMonthly": "Chaque mois : {amount} {display} par mois",
+      "billingYearly": "À l'année : {amount} {display} par an{months, plural, =0 {} one { (# mois offert)} other { (# mois offerts)}}",
+      "interval": "{interval, select, year {Facturation annuelle} other {Facturation mensuelle}}"
     },
     "settings": {
       "title": "Réglages",
@@ -3060,7 +3076,7 @@
       "price_change": {
         "subject": "Le prix de votre pack évolue",
         "title": "Le prix de votre pack évolue",
-        "intro": "Le prix du pack {plan} passe à {price} par mois. Ce nouveau prix s'appliquera à votre abonnement à partir du {date}.",
+        "intro": "Le prix du pack {plan} passe à {price} {interval, select, year {par an} other {par mois}}. Ce nouveau prix s'appliquera à votre abonnement à partir du {date}.",
         "until": "D'ici là, vous gardez votre prix actuel.",
         "choice": "Vous pouvez changer de pack depuis votre espace si vous le souhaitez.",
         "open": "Voir mon abonnement"
@@ -3223,7 +3239,11 @@
     "total": "Total de votre abonnement",
     "commitmentHint": "Abonnement avec engagement de {months} mois, création du site offerte. Vous réglez le premier mois à la commande, sur la page de paiement sécurisée.",
     "withoutCommitmentFree": "Sans frais de création. Vous arrêtez quand vous voulez, à la fin du mois en cours.",
-    "launchOffer": "{offer} avec le pack {plan}{commitment, select, yes { et la formule avec engagement} other {}} : {remaining, plural, one {# place restante} other {# places restantes}}. Éligibilité vérifiée après le premier paiement."
+    "launchOffer": "{offer} avec le pack {plan}{commitment, select, yes { et la formule avec engagement} other {}} : {remaining, plural, one {# place restante} other {# places restantes}}. Éligibilité vérifiée après le premier paiement.",
+    "billing": "Paiement",
+    "billingMonthly": "Chaque mois",
+    "billingYearly": "À l'année{months, plural, =0 {} one { · # mois offert} other { · # mois offerts}}",
+    "billingYearlyHint": "Payé en une fois pour 12 mois, renouvelé chaque année. Les options se facturent au mois."
   },
   "callback": {
     "metaTitle": "Être rappelé",

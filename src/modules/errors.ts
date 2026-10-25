@@ -70,4 +70,5 @@ export type AppErrorCode =
   | "option_requires"
   | "option_required_by"
   | "option_price_missing"
-  | "option_unavailable";
+  | "option_unavailable"
+  | "option_monthly_only";

@@ -68,7 +68,7 @@ Remettre un pack gratuit en vente (Admin → Packs) rétablit l'ancien fonctionn
 ## 8. À décider ou à faire
 
 1. Tarifs des recharges (IA, SMS supplémentaires déjà réglés) et unité de consommation WhatsApp selon le fournisseur.
-2. Prix annuels : le sélecteur « Prix annuels » de la maquette n'est pas affiché tant qu'aucun prix annuel n'existe.
+2. Paiement à l'année : en place (sélecteur Mensuel / Annuel, 2 mois offerts par défaut, réglable dans `/admin/reglages`). Vérifier la réduction souhaitée.
 3. Garde-fous anti-abus des e-mails du Basic : seuil à définir.
 4. Adresse de démonstration (`/admin/reglages`) : le bouton apparaît dès qu'elle est saisie.
 5. Anciens abonnés : leurs prix étaient TTC ; l'affichage passe en HT. À vérifier pour leurs factures (leurs prix Stripe ne changent pas).

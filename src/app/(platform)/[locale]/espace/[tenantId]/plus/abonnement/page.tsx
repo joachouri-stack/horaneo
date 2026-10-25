@@ -9,6 +9,7 @@ import { pickLocalized } from "@/i18n/locales";
 import { managerPage } from "@/lib/manager/page";
 import { billingGateway } from "@/lib/payments/stripe-billing";
 import { listTenantOptions } from "@/modules/billing/options";
+import { yearlyPriceCents } from "@/modules/billing/yearly";
 import { listPublicPlans, planHighlights } from "@/modules/billing/plans";
 import { canBuySmsPacks, listSmsPacks, smsPackOffer, syncSmsPackPayment } from "@/modules/billing/sms-packs";
 import { smsUsage } from "@/modules/messages/sms-usage";
@@ -63,6 +64,10 @@ export default async function SubscriptionPage({
       options: await listTenantOptions(tx, page.tenantId),
       display: await getPlatformSetting(tx, "prices_display"),
       commitmentMonths: Number(await getPlatformSetting(tx, "commitment_months")),
+      yearly: {
+        enabled: Boolean(await getPlatformSetting(tx, "yearly_billing_enabled")),
+        freeMonths: Number(await getPlatformSetting(tx, "yearly_free_months")),
+      },
       sms: await smsUsage(tx, page.tenantId),
       smsPacks: await listSmsPacks(tx, page.tenantId),
       smsOffer: await smsPackOffer(tx),
@@ -156,10 +161,16 @@ export default async function SubscriptionPage({
             <p>
               {t("status.nextPayment", {
                 date: page.fmt.short(periodEnd),
-                amount: page.fmt.money(scheduled?.priceCents ?? currentPrice),
+                // À l'année : le montant de l'année (réduction comprise).
+                amount: page.fmt.money(
+                  live.billingInterval === "year"
+                    ? yearlyPriceCents(scheduled?.priceCents ?? currentPrice, data.yearly.freeMonths)
+                    : (scheduled?.priceCents ?? currentPrice),
+                ),
               })}
             </p>
           )}
+          {live && <p>{t("interval", { interval: live.billingInterval })}</p>}
           {live?.commitmentEndsAt && live.commitmentEndsAt > new Date() && (
             <p>{t("status.commitment", { date: page.fmt.short(live.commitmentEndsAt) })}</p>
           )}
@@ -391,6 +402,37 @@ export default async function SubscriptionPage({
                       <form action={changeSubscriptionAction} className="mt-4 space-y-2">
                         <input type="hidden" name="tenantId" value={page.tenantId} />
                         <input type="hidden" name="planId" value={plan.id} />
+                        {/* Souscription : chaque mois, ou à l'année avec des mois offerts. */}
+                        {!live && plan.priceCents > 0 && data.yearly.enabled && (
+                          <fieldset className="space-y-2">
+                            <legend className="text-sm font-semibold">{t("billing")}</legend>
+                            {(["month", "year"] as const).map((value) => (
+                              <label key={value} className="flex items-start gap-3 text-sm">
+                                <input
+                                  type="radio"
+                                  name="billing"
+                                  value={value}
+                                  defaultChecked={value === "month"}
+                                  className="mt-0.5 h-5 w-5 shrink-0 accent-navy"
+                                />
+                                <span>
+                                  {value === "month"
+                                    ? t("billingMonthly", {
+                                        amount: page.fmt.money(plan.priceCents),
+                                        display,
+                                      })
+                                    : t("billingYearly", {
+                                        amount: page.fmt.money(
+                                          yearlyPriceCents(plan.priceCents, data.yearly.freeMonths),
+                                        ),
+                                        months: data.yearly.freeMonths,
+                                        display,
+                                      })}
+                                </span>
+                              </label>
+                            ))}
+                          </fieldset>
+                        )}
                         {/* Souscription : avec engagement (création offerte) ou sans (frais de création). */}
                         {!live && plan.priceCents > 0 && data.commitmentMonths > 0 && (
                           <fieldset className="space-y-2">

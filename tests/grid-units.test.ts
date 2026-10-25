@@ -102,3 +102,17 @@ describe("quotas mensuels : alertes", () => {
     expect(crossedLevel(0, 1, 0, 80)).toBeNull();
   });
 });
+
+describe("paiement à l'année", () => {
+  it("12 mois moins les mois offerts", async () => {
+    const { yearlyPriceCents, monthlyEquivalentCents, yearlySavingCents, parseInterval } =
+      await import("@/modules/billing/yearly");
+    expect(yearlyPriceCents(3990, 2)).toBe(39900);
+    expect(yearlyPriceCents(7900, 0)).toBe(94800);
+    expect(yearlyPriceCents(7900, 20)).toBe(7900);
+    expect(monthlyEquivalentCents(39900)).toBe(3325);
+    expect(yearlySavingCents(7900, 2)).toBe(15800);
+    expect(parseInterval("year")).toBe("year");
+    expect(parseInterval("autre")).toBe("month");
+  });
+});

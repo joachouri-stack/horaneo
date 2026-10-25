@@ -215,8 +215,15 @@
     {
       "idx": 30,
       "version": "7",
-      "when": 1792947502876,
-      "tag": "0030_pro_chatbot_languages",
+      "when": 1792946775808,
+      "tag": "0030_yearly_billing",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1792947845734,
+      "tag": "0031_pro_chatbot_languages",
       "breakpoints": true
     }
   ]

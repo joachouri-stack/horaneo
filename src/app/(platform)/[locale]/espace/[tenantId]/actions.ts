@@ -40,6 +40,7 @@ import { deleteCategory, deleteService, saveCategory, saveService } from "@/modu
 import { deleteTestimonial, saveTestimonial } from "@/modules/content/testimonials";
 import { saveCustomer, searchCustomers } from "@/modules/customers/customers";
 import { restoreAsset, retireAsset, uploadAsset } from "@/modules/media/assets";
+import { parseInterval } from "@/modules/billing/yearly";
 import { AppError } from "@/modules/errors";
 import { refreshAccount, startOnboarding } from "@/modules/payments/connect";
 import { deletePromoCode, savePromoCode } from "@/modules/promo/codes";
@@ -581,8 +582,9 @@ export async function changeSubscriptionAction(data: FormData) {
         return requestPlanChange(tx, tenantId, planId, billingGateway(), {
           successUrl: `${page}?retour=ok`,
           cancelUrl: `${page}?retour=annule`,
-          // Formule choisie à la souscription (avec engagement par défaut).
+          // Formule choisie à la souscription (avec engagement par défaut), et périodicité.
           withCommitment: data.get("commitment") !== "no",
+          interval: parseInterval(data.get("billing")),
         });
       },
     );
