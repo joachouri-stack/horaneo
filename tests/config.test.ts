@@ -96,9 +96,11 @@ describe("valeurs de départ des packs", () => {
     }
   });
 
-  it("annonce « Bientôt » les outils pas encore livrés, et l'offre tablette à places limitées", () => {
-    for (const key of ["aiChatbot", "whatsappAssistant", "aiTexts", "aiImages", "commerce", "formation"])
+  it("annonce « Bientôt » les modules Commerce et Formation, et l'offre tablette à places limitées", () => {
+    for (const key of ["commerce", "formation"])
       expect(DEFAULT_PLATFORM_SETTINGS.features_soon).toContain(key);
+    for (const key of ["aiChatbot", "whatsappAssistant", "aiTexts", "aiImages", "cashRegisterNf525"])
+      expect(DEFAULT_PLATFORM_SETTINGS.features_soon).not.toContain(key);
     expect(DEFAULT_LAUNCH_OFFERS[0]).toMatchObject({
       planCode: "business",
       quota: 100,
