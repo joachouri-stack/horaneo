@@ -99,7 +99,7 @@ export async function SolutionVisual({ solution }: { solution: Solution }) {
         </div>
 
         {/* Téléphone */}
-        <div className="absolute bottom-0 right-[2%] w-[27%] rounded-[1.6rem] border border-[#2a3043] bg-[#1d2333] p-[1.1%] shadow-[0_30px_50px_-20px_rgba(15,24,48,.6)]">
+        <div className="hn-float-late absolute bottom-0 right-[2%] w-[27%] rounded-[1.6rem] border border-[#2a3043] bg-[#1d2333] p-[1.1%] shadow-[0_30px_50px_-20px_rgba(15,24,48,.6)]">
           <div className="flex aspect-[9/18.5] flex-col overflow-hidden rounded-[1.35rem] bg-white">
             <div className="mx-auto mt-[4%] h-[2.2%] w-[32%] rounded-full bg-[#1d2333]" />
             <div className="flex flex-1 flex-col gap-[3%] p-[8%]">
@@ -118,7 +118,7 @@ export async function SolutionVisual({ solution }: { solution: Solution }) {
         </div>
 
         {/* Carte flottante */}
-        <div className="absolute right-[4%] top-0 flex items-center gap-2.5 rounded-xl border border-hairline bg-white/95 px-3 py-2 shadow-[0_16px_30px_-18px_rgba(15,24,48,.45)] backdrop-blur">
+        <div className="hn-float absolute right-[4%] top-0 flex items-center gap-2.5 rounded-xl border border-hairline bg-white/95 px-3 py-2 shadow-[0_16px_30px_-18px_rgba(15,24,48,.45)] backdrop-blur">
           <span className="flex size-8 items-center justify-center rounded-lg bg-accent-soft text-accent">
             <FloatIcon className="size-[18px]" />
           </span>

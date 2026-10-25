@@ -51,7 +51,7 @@ Règles :
 
 ## 7. Le mouvement
 
-Sobre : apparition douce de l'accroche, fondu au changement de solution, soulèvement léger au survol. Tout est coupé si moins de mouvement est demandé.
+Vivant mais doux (validé en octobre 2026) : l'accroche apparaît en cascade (étiquette avec point lumineux, titre, texte, boutons), la fin du titre porte un dégradé de l'accent qui glisse lentement, des halos flous dérivent derrière l'accroche, les tarifs et le bandeau final. Les blocs apparaissent au défilement en montant légèrement, les cartes une à une. La carte flottante et le téléphone de l'aperçu flottent doucement ; les pictogrammes se soulèvent au survol ; les boutons principaux ont un reflet au survol. Fondu au changement de solution. Tout est coupé si moins de mouvement est demandé, et rien n'est caché sans JavaScript.
 
 Cartes des packs (validé en octobre 2026) : lumière douce qui suit la souris, liseré champagne qui tourne lentement autour du Pro, reflet sur son bouton, pastille glissante du sélecteur Mensuel / Annuel. Prix : partie entière en grand, centimes et devise en petit (Pro en dégradé champagne). Listes limitées à neuf lignes, le reste se déplie.
 

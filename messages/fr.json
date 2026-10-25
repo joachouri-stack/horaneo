@@ -637,6 +637,20 @@
         }
       }
     },
+    "dashboard": {
+      "badge": "Votre espace de gestion",
+      "title": "Un logiciel complet pour votre salon,",
+      "titleAccent": "tout dans un seul tableau de bord.",
+      "text": "Un site web sur mesure, relié à un espace de gestion simple : agenda, réservations, clients, paiements et statistiques, sur ordinateur comme sur téléphone.",
+      "points": [
+        "Agenda du jour en un coup d'œil",
+        "Chiffre d'affaires et statistiques",
+        "Fiches clients et historique",
+        "Rappels et paiements en ligne"
+      ],
+      "alt": "Aperçu du tableau de bord : agenda du jour, chiffre d'affaires, nouveaux clients et avis",
+      "note": "Image d'illustration : les fonctions disponibles dépendent de votre pack."
+    },
     "benefits": {
       "badge": "Fonctionnalités",
       "title": "Tout ce qu'il faut pour gérer votre activité,",
