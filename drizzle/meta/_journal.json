@@ -232,6 +232,13 @@
       "when": 1792951271924,
       "tag": "0032_audit_soon_starter",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1792955868313,
+      "tag": "0033_pack_lines_no_tablet",
+      "breakpoints": true
     }
   ]
 }

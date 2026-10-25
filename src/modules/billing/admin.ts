@@ -91,6 +91,11 @@ export const FEATURE_KEYS = [
   "whatsappAssistant",
   "aiTexts",
   "aiImages",
+  "socialBooking",
+  "customerFollowUp",
+  "stockManagement",
+  "accountingExport",
+  "cashRegisterNf525",
   "commerce",
   "formation",
 ] as const;

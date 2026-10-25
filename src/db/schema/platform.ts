@@ -129,6 +129,16 @@ export type PlanFeatures = {
   aiTexts?: boolean;
   aiImages?: boolean;
   /** Accès aux modules Commerce et Formation (quand ils seront disponibles). */
+  /** Bouton de réservation à placer sur les réseaux sociaux. */
+  socialBooking?: boolean;
+  /** Suivi et gestion du fichier client (mise en avant du pack). */
+  customerFollowUp?: boolean;
+  /** Gestion des stocks de produits (annoncée). */
+  stockManagement?: boolean;
+  /** Export des données comptables (annoncé). */
+  accountingExport?: boolean;
+  /** Logiciel de caisse certifié NF525 (annoncé). */
+  cashRegisterNf525?: boolean;
   commerce?: boolean;
   formation?: boolean;
   [feature: string]: boolean | undefined;
