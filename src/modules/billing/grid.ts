@@ -70,16 +70,19 @@ const ROWS: RowDef[] = [
     limit: "onlineBookingsPerMonth",
   },
   { key: "agenda", category: "booking", solution: "booking", feature: "onlineBooking" },
+  { key: "socialBooking", category: "booking", solution: "booking", feature: "socialBooking" },
   { key: "bookingLink", category: "booking", solution: "booking", feature: "onlineBooking", detail: true },
   { key: "staffPlanning", category: "booking", solution: "booking", feature: "staffPlanning" },
   { key: "customerSpace", category: "booking", solution: "booking", feature: "customerSpace", detail: true },
   // Commerce et Formation : modules en préparation
   { key: "commerce", category: "commerce", solution: "commerce", feature: "commerce" },
+  { key: "stockManagement", category: "commerce", feature: "stockManagement" },
   { key: "formation", category: "formation", solution: "formation", feature: "formation" },
   // Clients et collaborateurs
   { key: "customers", category: "crm", limit: "customers", always: true },
   { key: "members", category: "crm", limit: "members", always: true },
   { key: "customerFile", category: "crm", feature: "customerFile", detail: true },
+  { key: "customerFollowUp", category: "crm", feature: "customerFollowUp" },
   { key: "advancedCrm", category: "crm", feature: "advancedCrm" },
   // Marketing et fidélisation
   { key: "promoCodes", category: "marketing", feature: "promoCodes" },
@@ -89,6 +92,8 @@ const ROWS: RowDef[] = [
   { key: "marketingAutomation", category: "marketing", feature: "marketingAutomation" },
   // Paiements
   { key: "onlinePayment", category: "payments", feature: "onlinePayment" },
+  { key: "accountingExport", category: "payments", feature: "accountingExport" },
+  { key: "cashRegisterNf525", category: "payments", feature: "cashRegisterNf525" },
   // Intelligence artificielle
   { key: "chatbotQuestions", category: "ai", feature: "aiChatbot", limit: "chatbotQuestions" },
   { key: "aiChatbot", category: "ai", feature: "aiChatbot", limit: "aiChatConversations" },

@@ -474,7 +474,11 @@
         },
         "staffPlanning": {
           "label": "Gestion des plannings des collaborateurs",
-          "card": "Gestion des plannings"
+          "card": "Agenda en ligne et plannings de l'équipe"
+        },
+        "socialBooking": {
+          "label": "Bouton de réservation pour les réseaux sociaux",
+          "card": "Bouton de réservation pour vos réseaux sociaux"
         },
         "customerSpace": {
           "label": "Espace client (rendez-vous, historique)",
@@ -484,6 +488,10 @@
           "label": "Boutique, catalogue, commandes et stocks",
           "card": "Module Commerce"
         },
+        "stockManagement": {
+          "label": "Gestion des stocks de vos produits",
+          "card": "Gestion des stocks de vos produits"
+        },
         "formation": {
           "label": "Formations, espace apprenant, quiz et certificats",
           "card": "Module Formation"
@@ -492,6 +500,10 @@
           "label": "Fiches clients",
           "card": "{count} contacts clients",
           "cardUnlimited": "Fichier clients illimité"
+        },
+        "customerFollowUp": {
+          "label": "Suivi et gestion du fichier client",
+          "card": "Suivi et gestion du fichier client"
         },
         "members": {
           "label": "Utilisateurs et collaborateurs",
@@ -520,7 +532,7 @@
         },
         "giftCards": {
           "label": "Cartes cadeaux",
-          "card": "Cartes cadeaux"
+          "card": "Vente de cartes cadeaux et prestations en ligne"
         },
         "marketingAutomation": {
           "label": "Campagnes marketing automatisées",
@@ -529,6 +541,14 @@
         "onlinePayment": {
           "label": "Paiements Stripe et acomptes",
           "card": "Paiements Stripe et acomptes"
+        },
+        "accountingExport": {
+          "label": "Export des données comptables",
+          "card": "Export des données comptables"
+        },
+        "cashRegisterNf525": {
+          "label": "Logiciel de caisse certifié NF525",
+          "card": "Logiciel de caisse certifié NF525"
         },
         "chatbotQuestions": {
           "label": "Chatbot inclus (questions et réponses)",
@@ -1691,6 +1711,11 @@
       "isPublic": "Proposé à la souscription",
       "noStripe": "Paiement par carte : préparé automatiquement à la première souscription.",
       "featureLabels": {
+        "socialBooking": "Bouton de réservation pour les réseaux sociaux",
+        "customerFollowUp": "Suivi et gestion du fichier client",
+        "stockManagement": "Gestion des stocks de vos produits",
+        "accountingExport": "Export des données comptables",
+        "cashRegisterNf525": "Logiciel de caisse certifié NF525",
         "onlineBooking": "Réservation en ligne (décochée : pack « site seul »)",
         "fullSite": "Site complet personnalisé",
         "customDomain": "Votre propre nom de domaine",

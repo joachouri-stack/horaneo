@@ -33,6 +33,9 @@ export const DEFAULT_PLATFORM_SETTINGS = {
     "multilingual",
     "commerce",
     "formation",
+    "stockManagement",
+    "accountingExport",
+    "cashRegisterNf525",
     // Anciens packs.
     "advancedBranding",
     "premiumBranding",
@@ -403,6 +406,8 @@ const GRID_PRO = {
   googleReviews: true,
   stats: true,
   ticketSupport: true,
+  socialBooking: true,
+  customerFollowUp: true,
   advancedCrm: false,
   commerce: true,
   formation: true,
@@ -424,6 +429,9 @@ const GRID_BUSINESS = {
   multilingual: true,
   freeDomain: true,
   priorityHumanSupport: true,
+  stockManagement: true,
+  accountingExport: true,
+  cashRegisterNf525: true,
 } satisfies PlanFeatures;
 
 /** Aucun outil intelligent (quotas à 0). */
@@ -524,7 +532,8 @@ export const DEFAULT_LAUNCH_OFFERS = [
   {
     code: "business-tablet",
     planCode: "business",
-    isActive: true,
+    // Suspendue pour l'instant (réactivable dans Admin → Offres).
+    isActive: false,
     quota: 100,
     requiresCommitment: true,
     title: { fr: "Tablette professionnelle offerte" },
