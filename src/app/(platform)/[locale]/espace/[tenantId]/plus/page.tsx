@@ -1,7 +1,9 @@
 import { getTranslations } from "next-intl/server";
+import { DASH_ICONS, DashIcon, panel } from "@/components/manager/DashboardWidgets";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
 import type { PlanFeatures } from "@/db/schema";
+import { toolsOverview } from "@/modules/stats/tools";
 
 /** Pictogrammes des rubriques (traits, même style que les onglets du bas). */
 const ICONS = {
@@ -68,15 +70,41 @@ const GROUPS: { key: "activity" | "sell" | "account" | "support"; items: Item[] 
   },
 ];
 
-/** Onglet « Plus » : les autres rubriques, rangées par thème. */
+/** Couleur de chaque thème : pastille de l'icône. */
+const TONES = {
+  activity: "bg-[#e8ebfa] text-[#3a4bb8]",
+  sell: "bg-[#fbe8ee] text-[#b8456b]",
+  account: "bg-[#e3f4ee] text-[#1f7a5f]",
+  support: "bg-[#fdf1e0] text-[#a8661b]",
+} as const;
+
+/** Rubriques dont la tuile affiche un compteur en direct. */
+type CountKey = keyof Awaited<ReturnType<typeof toolsOverview>>;
+const COUNTED = new Set<Key>([
+  "team",
+  "unavailability",
+  "promotions",
+  "promo",
+  "giftCards",
+  "requests",
+  "customerData",
+]);
+/** Compteurs qui demandent une action de la gérante : mis en avant quand ils ne sont pas nuls. */
+const TO_HANDLE = new Set<Key>(["customerData"]);
+
+/** Onglet « Plus » : tous les outils en tuiles, rangés par thème, avec leurs compteurs. */
 export default async function MorePage({ params }: PageProps<"/[locale]/espace/[tenantId]/plus">) {
   const page = await managerPage(params);
   const t = await getTranslations("manager.more");
+  const counts = await page.db((tx) => toolsOverview(tx, page.tenantId, page.tenant.timezone));
   return (
-    <div className="space-y-6">
-      <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
-        {t("title")}
-      </h1>
+    <div className="space-y-8">
+      <div>
+        <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
+          {t("title")}
+        </h1>
+        <p className="mt-1 text-ink-soft">{t("subtitle")}</p>
+      </div>
       {GROUPS.map((group) => ({
         ...group,
         // Pas de rubrique pour une fonction que le pack ne comprend pas : le menu reste court.
@@ -87,38 +115,65 @@ export default async function MorePage({ params }: PageProps<"/[locale]/espace/[
           <section key={group.key} aria-labelledby={`more-${group.key}`}>
             <h2
               id={`more-${group.key}`}
-              className="mb-2 text-sm font-semibold tracking-wide text-ink/60 uppercase"
+              className="mb-3 text-[0.78rem] font-medium tracking-[0.08em] text-ink-soft uppercase"
             >
               {t(`groups.${group.key}`)}
             </h2>
-            <ul className="divide-y divide-navy/10 rounded-[var(--radius-card)] bg-white shadow-sm">
-              {group.items.map((item) => (
-                <li key={item.key}>
-                  <Link
-                    href={`${page.base}${item.href}`}
-                    className="flex min-h-14 items-center gap-4 px-4 py-3 font-semibold text-night hover:bg-mist-50"
-                  >
-                    <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-navy/5 text-navy">
-                      <svg
-                        aria-hidden="true"
-                        viewBox="0 0 24 24"
-                        className="size-5"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d={ICONS[item.key]} />
-                      </svg>
-                    </span>
-                    <span className="flex-1">{t(item.key)}</span>
-                    <span aria-hidden="true" className="text-navy/40">
-                      →
-                    </span>
-                  </Link>
-                </li>
-              ))}
+            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 lg:gap-4">
+              {group.items.map((item) => {
+                const count = COUNTED.has(item.key) ? counts[item.key as CountKey] : null;
+                const urgent = count !== null && count > 0 && TO_HANDLE.has(item.key);
+                return (
+                  <li key={item.key} className="min-w-0">
+                    <Link
+                      href={`${page.base}${item.href}`}
+                      className={`${panel} group flex h-full flex-col gap-3 !p-4 transition hover:-translate-y-0.5 hover:border-accent-line hover:shadow-[0_14px_30px_-20px_rgba(15,24,48,.35)] sm:!p-5`}
+                    >
+                      <span className="flex items-start justify-between gap-2">
+                        <span
+                          className={`flex size-11 shrink-0 items-center justify-center rounded-xl ${TONES[group.key]}`}
+                        >
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            className="size-[22px]"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.7"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d={ICONS[item.key]} />
+                          </svg>
+                        </span>
+                        <DashIcon
+                          d={DASH_ICONS.arrow}
+                          className="mt-1 hidden h-4 w-4 text-ink-soft/60 transition group-hover:translate-x-0.5 group-hover:text-accent sm:block"
+                        />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block font-medium leading-snug text-night">{t(item.key)}</span>
+                        <span className="mt-1 line-clamp-2 block text-[0.82rem] leading-snug text-ink-soft">
+                          {t(`desc.${item.key}`)}
+                        </span>
+                      </span>
+                      {count !== null && (
+                        <span
+                          className={`mt-auto w-fit rounded-full px-2.5 py-0.5 text-[0.75rem] font-medium tabular-nums ${
+                            urgent
+                              ? "bg-[#fdf3e2] text-[#a8661b]"
+                              : count > 0
+                                ? "bg-accent-soft text-accent-strong"
+                                : "bg-mist-50 text-ink-soft"
+                          }`}
+                        >
+                          {t(`badge.${item.key as CountKey}`, { count })}
+                        </span>
+                      )}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </section>
         ))}
