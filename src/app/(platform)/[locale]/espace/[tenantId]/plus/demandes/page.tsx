@@ -14,7 +14,9 @@ export default async function RequestsPage({
   const requests = await page.db((tx) => listTenantRequests(tx, page.tenantId));
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-extrabold">{t("title")}</h1>
+      <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
+        {t("title")}
+      </h1>
       <Section title={t("send")}>
         <p className="mb-4 text-ink/70">{t("intro")}</p>
         <ActionForm action={createRequestAction} submitLabel={t("send")} resetOnSuccess>
@@ -24,7 +26,7 @@ export default async function RequestsPage({
         </ActionForm>
       </Section>
       <section className="space-y-2">
-        <h2 className="text-lg font-bold">{t("history")}</h2>
+        <h2 className="text-lg font-semibold">{t("history")}</h2>
         {requests.length === 0 ? (
           <p className="text-ink/60">{t("none")}</p>
         ) : (

@@ -76,7 +76,7 @@ export default async function ManagerLayout({
         </div>
       )}
       {subscription?.paymentFailedAt && (
-        <div role="alert" className="bg-coral-dark px-4 py-2 text-center text-sm font-semibold text-white">
+        <div role="alert" className="bg-[#b4372a] px-4 py-2 text-center text-sm font-semibold text-white">
           {t("subscription.pastDueBanner")}{" "}
           <Link href={`/espace/${tenantId}/plus/abonnement`} className="underline">
             {t("subscription.portal")}

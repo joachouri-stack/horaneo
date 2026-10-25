@@ -126,7 +126,9 @@ export default async function SubscriptionPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-extrabold">{t("title")}</h1>
+      <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
+        {t("title")}
+      </h1>
 
       {error && (
         <p role="alert" className={ui.error}>
@@ -166,7 +168,7 @@ export default async function SubscriptionPage({
       )}
 
       <section className={ui.card}>
-        <p className="text-xl font-bold text-night">
+        <p className="text-xl font-semibold text-night">
           {t("plan", { name: pickLocalized(page.tenant.planName, page.locale) })}
         </p>
         <div className="mt-2 space-y-1 text-ink/80">
@@ -192,7 +194,7 @@ export default async function SubscriptionPage({
           {live && live.withCommitment === false && <p>{t("status.noCommitment")}</p>}
         </div>
         {scheduled && periodEnd && (
-          <div className="mt-4 rounded-[var(--radius-card)] bg-ivory p-4">
+          <div className="mt-4 rounded-[var(--radius-card)] bg-mist-50 p-4">
             <p>
               {t("status.scheduled", {
                 name: pickLocalized(scheduled.name, page.locale),
@@ -203,7 +205,7 @@ export default async function SubscriptionPage({
           </div>
         )}
         {live?.cancelAt && (
-          <div className="mt-4 rounded-[var(--radius-card)] bg-ivory p-4">
+          <div className="mt-4 rounded-[var(--radius-card)] bg-mist-50 p-4">
             <p>
               {t("status.cancelAt", { date: page.fmt.short(live.cancelAt), pause: pausing ? "yes" : "no" })}
             </p>
@@ -225,13 +227,13 @@ export default async function SubscriptionPage({
               <li key={row.label} className="py-3">
                 <div className="flex justify-between gap-3">
                   <span>{row.label}</span>
-                  <span className={`text-right font-semibold ${over ? "text-coral-dark" : ""}`}>
+                  <span className={`text-right font-semibold ${over ? "text-[#b4372a]" : ""}`}>
                     {row.limit === null || row.limit === undefined
                       ? `${row.used} · ${t("unlimited")}`
                       : t("of", { used: row.used, limit: row.limit })}
                   </span>
                 </div>
-                {over && <p className="mt-1 text-sm text-coral-dark">{t("overLimit")}</p>}
+                {over && <p className="mt-1 text-sm text-[#b4372a]">{t("overLimit")}</p>}
               </li>
             );
           })}
@@ -240,7 +242,7 @@ export default async function SubscriptionPage({
 
       {sms && (
         <section id="sms" className={`${ui.card} scroll-mt-24`} aria-labelledby="titre-sms">
-          <h2 id="titre-sms" className="text-xl font-bold">
+          <h2 id="titre-sms" className="text-xl font-semibold">
             {t("smsTitle")}
           </h2>
           {query.sms === "ok" && (
@@ -265,7 +267,7 @@ export default async function SubscriptionPage({
               {sms.limit !== null &&
                 sms.used < sms.limit &&
                 sms.used >= Math.ceil((sms.limit * data.warningPercent) / 100) && (
-                  <p role="status" className={`${ui.card} mt-3 border-coral/40 bg-blush`}>
+                  <p role="status" className={`${ui.card} mt-3 border-[#f3d3cc] bg-[#fdf4f2]`}>
                     {t("smsQuotaAlmost", { used: sms.used, limit: sms.limit })}
                   </p>
                 )}
@@ -332,7 +334,7 @@ export default async function SubscriptionPage({
 
       {/* Options actives : ajoutées par notre équipe, facturées avec l'abonnement. */}
       <section className={ui.card} aria-labelledby="titre-options">
-        <h2 id="titre-options" className="text-xl font-bold">
+        <h2 id="titre-options" className="text-xl font-semibold">
           {t("options")}
         </h2>
         {data.options.length === 0 ? (
@@ -351,7 +353,7 @@ export default async function SubscriptionPage({
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-xl font-bold">{t("choose")}</h2>
+        <h2 className="text-xl font-semibold">{t("choose")}</h2>
         {!configured && canManage && <p className="text-ink/70">{t("unavailable")}</p>}
         {/* Deux groupes : avec réservation en ligne, puis « site seul » (ajout de la réservation = changer de pack). */}
         {[splitPlans(data.plans).booking, splitPlans(data.plans).siteOnly]
@@ -389,7 +391,7 @@ export default async function SubscriptionPage({
                     aria-current={isCurrent ? "true" : undefined}
                   >
                     <div className="flex flex-wrap items-baseline justify-between gap-2">
-                      <h3 className="text-lg font-bold text-night">
+                      <h3 className="text-lg font-semibold text-night">
                         {pickLocalized(plan.name, page.locale)}
                       </h3>
                       <p className="font-semibold">{priceLabel(plan.priceCents)}</p>
@@ -517,7 +519,7 @@ export default async function SubscriptionPage({
           <form action={changeSubscriptionAction} className={`${ui.card} space-y-2`}>
             <input type="hidden" name="tenantId" value={page.tenantId} />
             <input type="hidden" name="planId" value={data.freePlan.id} />
-            <h3 className="text-lg font-bold text-night">{t("stop")}</h3>
+            <h3 className="text-lg font-semibold text-night">{t("stop")}</h3>
             <p className="text-sm text-ink/70">
               {t("stopHint", { date: freeDate ? page.fmt.short(freeDate) : "" })}
             </p>

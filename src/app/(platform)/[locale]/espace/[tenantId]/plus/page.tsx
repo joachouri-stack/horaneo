@@ -74,7 +74,9 @@ export default async function MorePage({ params }: PageProps<"/[locale]/espace/[
   const t = await getTranslations("manager.more");
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-extrabold">{t("title")}</h1>
+      <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
+        {t("title")}
+      </h1>
       {GROUPS.map((group) => ({
         ...group,
         // Pas de rubrique pour une fonction que le pack ne comprend pas : le menu reste court.
@@ -85,7 +87,7 @@ export default async function MorePage({ params }: PageProps<"/[locale]/espace/[
           <section key={group.key} aria-labelledby={`more-${group.key}`}>
             <h2
               id={`more-${group.key}`}
-              className="mb-2 text-sm font-bold tracking-wide text-ink/60 uppercase"
+              className="mb-2 text-sm font-semibold tracking-wide text-ink/60 uppercase"
             >
               {t(`groups.${group.key}`)}
             </h2>
@@ -94,7 +96,7 @@ export default async function MorePage({ params }: PageProps<"/[locale]/espace/[
                 <li key={item.key}>
                   <Link
                     href={`${page.base}${item.href}`}
-                    className="flex min-h-14 items-center gap-4 px-4 py-3 font-semibold text-night hover:bg-ivory"
+                    className="flex min-h-14 items-center gap-4 px-4 py-3 font-semibold text-night hover:bg-mist-50"
                   >
                     <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-navy/5 text-navy">
                       <svg

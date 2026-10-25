@@ -110,7 +110,9 @@ export default async function PromoCodesPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-extrabold">{t("title")}</h1>
+      <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
+        {t("title")}
+      </h1>
       {!available ? (
         <p className={ui.card}>{t("unavailable")}</p>
       ) : (
@@ -125,7 +127,7 @@ export default async function PromoCodesPage({
                   <details className={ui.card}>
                     <summary className="cursor-pointer">
                       <span
-                        className={`block text-lg font-bold ${code.isActive ? "text-night" : "text-ink/50"}`}
+                        className={`block text-lg font-semibold ${code.isActive ? "text-night" : "text-ink/50"}`}
                       >
                         {code.code}
                       </span>
@@ -153,7 +155,7 @@ export default async function PromoCodesPage({
             </ul>
           )}
           <details className={ui.card} open={codes.length === 0}>
-            <summary className="cursor-pointer text-lg font-bold text-night">+ {t("new")}</summary>
+            <summary className="cursor-pointer text-lg font-semibold text-night">+ {t("new")}</summary>
             <ActionForm
               action={savePromoCodeAction}
               submitLabel={tCommon("save")}

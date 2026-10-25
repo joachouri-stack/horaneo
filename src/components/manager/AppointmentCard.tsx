@@ -4,7 +4,7 @@ import type { AgendaAppointment } from "@/modules/agenda/queries";
 
 const STATUS_STYLE: Record<string, string> = {
   confirmed: "bg-navy/10 text-night",
-  pending_payment: "bg-coral/15 text-coral-dark",
+  pending_payment: "bg-[#fdf3e2] text-[#a8661b]",
   attended: "bg-success/15 text-[#1e6b48]",
   no_show: "bg-ink/10 text-ink/70",
   cancelled: "bg-ink/10 text-ink/60 line-through",
@@ -29,17 +29,17 @@ export async function AppointmentCard({
   return (
     <Link
       href={href}
-      className={`flex gap-3 rounded-[var(--radius-card)] border-l-8 bg-white p-4 shadow-sm ${highlight ? "ring-2 ring-coral" : ""}`}
+      className={`flex gap-3 rounded-[var(--radius-card)] border-l-8 bg-white p-4 shadow-sm ${highlight ? "ring-2 ring-accent" : ""}`}
       style={{ borderLeftColor: item.staffColor ?? "#1b2a4a" }}
     >
-      <div className="w-16 shrink-0 font-display text-lg font-extrabold text-night">
+      <div className="w-16 shrink-0 font-display text-lg font-semibold text-night">
         {day && <span className="block text-xs font-semibold text-ink/60 first-letter:uppercase">{day}</span>}
         {time}
       </div>
       <div className="min-w-0 flex-1">
         {/* Étiquette au-dessus du nom : jamais coupée, même avec un nom long. */}
         {highlight && (
-          <span className="mb-1 inline-block rounded-full bg-coral px-2 py-0.5 text-xs font-bold text-white">
+          <span className="mb-1 inline-block rounded-full bg-accent px-2 py-0.5 text-xs font-medium text-white">
             {t("today.next")}
           </span>
         )}

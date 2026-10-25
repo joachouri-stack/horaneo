@@ -60,11 +60,11 @@ export function PushReminder({
   return (
     <aside
       aria-labelledby="rappel-notifications"
-      className="flex items-start gap-3 rounded-[var(--radius-card)] border-2 border-coral/30 bg-white p-4"
+      className="flex items-start gap-3 rounded-[var(--radius-card)] border-2 border-accent-line bg-white p-4"
     >
       <span
         aria-hidden="true"
-        className="flex size-11 shrink-0 items-center justify-center rounded-full bg-blush text-rust"
+        className="flex size-11 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent-strong"
       >
         <svg
           viewBox="0 0 24 24"
@@ -79,14 +79,14 @@ export function PushReminder({
         </svg>
       </span>
       <div className="min-w-0 flex-1">
-        <h2 id="rappel-notifications" className="font-bold text-night">
+        <h2 id="rappel-notifications" className="font-semibold text-night">
           {labels.title}
         </h2>
         <p className="mt-0.5 text-sm text-ink/80">{labels.text}</p>
         <div className="mt-2 flex flex-wrap items-center gap-x-4">
           <Link
             href={href}
-            className="inline-flex min-h-11 items-center font-semibold text-coral-dark underline underline-offset-4"
+            className="inline-flex min-h-11 items-center font-semibold text-accent underline underline-offset-4"
           >
             {labels.action} →
           </Link>

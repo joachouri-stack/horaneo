@@ -12,11 +12,9 @@ export function ManagerMain({ tenantId, children }: { tenantId: string; children
   const base = `/espace/${tenantId}`;
   const wide = pathname === base || pathname.startsWith(`${base}/agenda`);
   return (
-    <main
-      id="contenu"
-      className={`mx-auto px-4 pb-28 pt-4 sm:px-6 lg:px-8 lg:pb-12 ${wide ? "max-w-6xl" : "max-w-3xl lg:max-w-4xl"}`}
-    >
-      {children}
+    <main id="contenu" className="mx-auto max-w-6xl px-4 pb-28 pt-4 sm:px-6 lg:px-8 lg:pb-12">
+      {/* Pages étroites : alignées sur l'en-tête, à gauche. */}
+      {wide ? children : <div className="max-w-3xl">{children}</div>}
     </main>
   );
 }

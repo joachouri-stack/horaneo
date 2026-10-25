@@ -32,13 +32,15 @@ export default async function SettingsPage({
   const stripeReady = onlinePaymentReady(page.business, page.tenant.features, paymentGateway());
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-extrabold">{t("title")}</h1>
+      <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
+        {t("title")}
+      </h1>
       <ActionForm action={updateSettingsAction} submitLabel={tCommon("save")} className="space-y-6">
         <Hidden values={{ tenantId: page.tenantId }} />
         {/* Pack « site seul » : pas de réservation en ligne, on propose de changer de pack. */}
         {!planAllowsBooking(page.tenant.features) ? (
           <Section title={t("onlineTitle")}>
-            <p className="font-semibold text-coral-dark">{t("onlineNotInPlan")}</p>
+            <p className="font-semibold text-[#b4372a]">{t("onlineNotInPlan")}</p>
             <Link
               href={`/espace/${page.tenantId}/plus/abonnement`}
               className="font-semibold text-night underline"
@@ -50,7 +52,7 @@ export default async function SettingsPage({
           <Section title={t("onlineTitle")}>
             <Hidden values={{ onlineBookingShown: "1" }} />
             <p
-              className={`font-semibold ${settings.onlineBookingEnabled ? "text-success" : "text-coral-dark"}`}
+              className={`font-semibold ${settings.onlineBookingEnabled ? "text-success" : "text-[#b4372a]"}`}
             >
               {settings.onlineBookingEnabled ? t("onlineOn") : t("onlineOff")}
             </p>
@@ -183,7 +185,7 @@ export default async function SettingsPage({
               {t("reviewRequestHelp", { months: Math.max(1, Math.round(reviewCooldownDays / 30)) })}
             </p>
             {!page.business.googlePlaceId && (
-              <p className="mt-2 text-sm font-semibold text-coral-dark">{t("reviewRequestNoPlace")}</p>
+              <p className="mt-2 text-sm font-semibold text-[#b4372a]">{t("reviewRequestNoPlace")}</p>
             )}
           </Section>
         )}

@@ -25,7 +25,9 @@ export default async function MySitePage({ params }: PageProps<"/[locale]/espace
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold">{t("title")}</h1>
+        <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
+          {t("title")}
+        </h1>
         <p className="mt-1 text-ink/70">{t("intro")}</p>
       </div>
       <ul className="grid gap-3 sm:grid-cols-2">
@@ -48,7 +50,7 @@ export default async function MySitePage({ params }: PageProps<"/[locale]/espace
         </a>
       )}
       <section className={ui.card}>
-        <h2 className="text-lg font-bold">{t("requestTitle")}</h2>
+        <h2 className="text-lg font-semibold">{t("requestTitle")}</h2>
         <p className="mt-1 text-ink/70">{t("requestText")}</p>
         <Link href={`${page.base}/plus/demandes`} className={`mt-4 ${ui.primaryButton} sm:w-auto`}>
           {t("requestCta")}

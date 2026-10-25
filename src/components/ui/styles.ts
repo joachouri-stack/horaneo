@@ -1,17 +1,18 @@
 /**
- * Classes partagées des éléments d'interface du SaaS : la même charte que la page
- * d'accueil (docs/design-horaneo.md) en version sobre — boutons pilule corail foncé,
- * boutons secondaires rose clair, cartes blanches à bordure claire, titres noirs.
+ * Classes partagées des éléments d'interface du SaaS (espaces gérante et admin,
+ * commande, connexion) : la charte de docs/design-horaneo.md en version sobre —
+ * bouton principal de l'accent (bleu indigo), bouton secondaire blanc à filet,
+ * champs et cartes blancs à filet fin, coins arrondis modérés.
  */
 export const ui = {
   primaryButton:
-    "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-brick px-6 py-3 text-lg font-bold text-white transition hover:-translate-y-0.5 hover:shadow-md disabled:translate-y-0 disabled:opacity-60 disabled:shadow-none",
+    "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent px-6 py-3 text-base font-medium text-white shadow-[inset_0_1px_0_rgba(255,255,255,.2),0_12px_26px_-16px_var(--color-accent)] transition hover:bg-accent-strong disabled:opacity-60 disabled:shadow-none",
   secondaryButton:
-    "inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-full bg-blush px-6 py-3 text-lg font-semibold text-rust transition hover:bg-blush-strong disabled:opacity-60",
+    "inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-hairline bg-white px-6 py-3 text-base font-medium text-night transition hover:border-accent-line hover:text-accent disabled:opacity-60",
   input:
-    "block min-h-12 w-full rounded-[var(--radius-card)] border-2 border-line bg-white px-4 py-3 text-lg text-ink placeholder:text-ink/40 focus:border-brick",
-  label: "mb-2 block font-semibold text-night",
-  card: "rounded-[1.5rem] border-2 border-line bg-white p-6 sm:p-8",
-  error: "rounded-[var(--radius-card)] bg-blush px-4 py-3 text-rust",
-  success: "rounded-[var(--radius-card)] bg-success/10 px-4 py-3 text-ink",
+    "block min-h-12 w-full rounded-xl border border-hairline bg-white px-4 py-3 text-base text-ink placeholder:text-ink-soft/60 transition focus:border-accent focus:outline-none focus:ring-4 focus:ring-accent/10",
+  label: "mb-2 block font-medium text-night",
+  card: "rounded-[1.4rem] border border-hairline bg-white p-5 shadow-[0_1px_2px_rgba(15,24,48,.04)] sm:p-6",
+  error: "rounded-xl bg-[#fdecea] px-4 py-3 text-[#8f2a20]",
+  success: "rounded-xl bg-[#e7f6ee] px-4 py-3 text-[#1b5e3d]",
 };

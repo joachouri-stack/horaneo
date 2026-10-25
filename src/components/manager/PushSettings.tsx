@@ -168,15 +168,15 @@ export function PushSettings({
   return (
     <section
       aria-labelledby="notifications-telephone"
-      className="rounded-[var(--radius-card)] border-2 border-line bg-white p-4 sm:p-5"
+      className="rounded-[var(--radius-card)] border-2 border-hairline bg-white p-4 sm:p-5"
     >
-      <h2 id="notifications-telephone" className="font-bold text-night">
+      <h2 id="notifications-telephone" className="font-semibold text-night">
         {labels.title}
       </h2>
       <p className="mt-1 text-sm text-ink/80">{labels.intro}</p>
 
       {state === "install" && (
-        <div className="mt-3 rounded-[var(--radius-card)] bg-blush/60 p-3 text-sm text-ink">
+        <div className="mt-3 rounded-[var(--radius-card)] bg-accent-soft/60 p-3 text-sm text-ink">
           <p className="font-semibold">{labels.iosTitle}</p>
           <ol className="mt-1 list-decimal space-y-1 pl-5">
             <li>{labels.iosStep1}</li>
