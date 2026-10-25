@@ -110,7 +110,8 @@ export default async function CustomersPage({
       </div>
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <nav aria-label={t("filters")} className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+        {/* Téléphone : les quatre filtres tiennent sur une ligne, sans défilement. */}
+        <nav aria-label={t("filters")} className="grid grid-cols-4 gap-1.5 sm:flex sm:gap-2">
           {CUSTOMER_SEGMENT_KEYS.map((key) => {
             const active = key === segment;
             return (
@@ -118,7 +119,7 @@ export default async function CustomersPage({
                 key={key}
                 href={href(key)}
                 aria-current={active ? "page" : undefined}
-                className={`inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border px-4 text-[0.9rem] font-medium transition ${
+                className={`inline-flex min-h-10 min-w-0 items-center justify-center gap-1 whitespace-nowrap rounded-full border px-1 text-[0.78rem] font-medium transition sm:shrink-0 sm:gap-2 sm:px-4 sm:text-[0.9rem] ${
                   active
                     ? "border-night bg-night text-white"
                     : "border-hairline bg-white text-night hover:border-accent-line"
@@ -126,7 +127,7 @@ export default async function CustomersPage({
               >
                 {t(`filter.${key}`)}
                 <span
-                  className={`rounded-full px-1.5 text-[0.75rem] tabular-nums ${active ? "bg-white/20" : "bg-mist-50 text-ink-soft"}`}
+                  className={`hidden rounded-full px-1 text-[0.7rem] tabular-nums min-[360px]:inline sm:px-1.5 sm:text-[0.75rem] ${active ? "bg-white/20" : "bg-mist-50 text-ink-soft"}`}
                 >
                   {counts[key]}
                 </span>
