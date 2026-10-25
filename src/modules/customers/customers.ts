@@ -21,7 +21,9 @@ export async function searchCustomers(tx: Transaction, tenantId: string, query: 
       lastName: customers.lastName,
       phone: customers.phone,
       email: customers.email,
-      lastVisit: sql<Date | null>`(select max(a.starts_at) from ${appointments} a where a.customer_id = ${customers.id} and a.status in ('confirmed','attended'))`,
+      // Dernière visite passée. La colonne de la cliente est écrite en entier : sans le nom
+      // de table, « id » désignerait celui du rendez-vous dans la sous-requête.
+      lastVisit: sql<Date | null>`(select max(a.starts_at) from ${appointments} a where a.customer_id = "customers"."id" and a.status in ('confirmed','attended') and a.starts_at <= now())`,
     })
     .from(customers)
     .where(

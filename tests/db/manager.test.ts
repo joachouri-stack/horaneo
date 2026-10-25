@@ -354,6 +354,8 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
       await asManager(s.id, (tx) => setAttendance(tx, s.id, a.appointmentId, "attended"));
       const byName = await asManager(s.id, (tx) => searchCustomers(tx, s.id, "cami"));
       expect(byName).toHaveLength(1);
+      // La liste affiche la dernière visite (et non « Pas encore venue »).
+      expect(new Date(byName[0].lastVisit!).getTime()).toBe(at("10:00").getTime());
       const byPhone = await asManager(s.id, (tx) => searchCustomers(tx, s.id, "06 12 34"));
       expect(byPhone).toHaveLength(1);
       const card = await asManager(s.id, (tx) => getCustomer(tx, s.id, byName[0].id, "fr"));
