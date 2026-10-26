@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { withPlatform, withTenant } from "@/db/access";
 import type { Transaction } from "@/db/client";
@@ -229,7 +229,11 @@ describe.skipIf(!hasTestDatabase)("espace des clientes", () => {
           { now: NOW },
         ),
       );
-      const [fiche] = await owner.select().from(customers).where(eq(customers.email, "camille@example.com"));
+      // Fiche de ce site seulement : d'autres fichiers de test, lancés en même temps, ont aussi une Camille.
+      const [fiche] = await owner
+        .select()
+        .from(customers)
+        .where(and(eq(customers.tenantId, tenantId), eq(customers.email, "camille@example.com")));
       expect(fiche).toMatchObject({ firstName: "camille", phone: "+33612345678" });
       // …et ne peut donc pas se connecter par SMS à l'espace de Camille.
       const intrus = { channel: "sms" as const, identifier: "+33799999999" };
