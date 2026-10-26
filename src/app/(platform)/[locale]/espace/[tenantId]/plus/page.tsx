@@ -1,3 +1,5 @@
+import { ui } from "@/components/ui/styles";
+import { SignOutButton } from "@/components/auth/SignOutButton";
 import { getTranslations } from "next-intl/server";
 import { DASH_ICONS, DashIcon, panel } from "@/components/manager/DashboardWidgets";
 import { Link } from "@/i18n/navigation";
@@ -177,6 +179,10 @@ export default async function MorePage({ params }: PageProps<"/[locale]/espace/[
             </ul>
           </section>
         ))}
+      {/* Déconnexion : ici sur téléphone (le bandeau du haut n'est affiché que sur ordinateur). */}
+      <div className="lg:hidden">
+        <SignOutButton className={ui.secondaryButton} />
+      </div>
     </div>
   );
 }

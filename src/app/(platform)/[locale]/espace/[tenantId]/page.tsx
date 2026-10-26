@@ -96,7 +96,7 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
           </Link>
           <Link
             href={`${page.base}/rendez-vous/nouveau`}
-            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-accent px-5 text-[0.95rem] font-medium text-white shadow-[inset_0_1px_0_rgba(255,255,255,.2),0_12px_26px_-16px_var(--color-accent)] transition hover:bg-accent-strong"
+            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-accent px-5 text-[0.95rem] font-medium text-white shadow-[0_1px_2px_rgba(15,24,48,.08)] transition hover:bg-accent-strong"
           >
             <DashIcon d={DASH_ICONS.plus} className="h-5 w-5" />
             {t("add")}
