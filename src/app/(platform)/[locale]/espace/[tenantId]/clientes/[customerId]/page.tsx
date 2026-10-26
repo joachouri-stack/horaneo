@@ -30,12 +30,12 @@ export default async function CustomerPage({
   const { customer, history, stats } = card;
   const name = [customer.firstName, customer.lastName].filter(Boolean).join(" ");
   const big =
-    "inline-flex min-h-14 flex-1 items-center justify-center rounded-[var(--radius-card)] px-4 font-bold";
+    "inline-flex min-h-14 flex-1 items-center justify-center rounded-[var(--radius-card)] px-4 font-semibold";
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold">{name}</h1>
+        <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">{name}</h1>
         <p className="text-ink/70">
           {[customer.phone && formatPhone(customer.phone), customer.email].filter(Boolean).join(" · ")}
         </p>
@@ -67,7 +67,7 @@ export default async function CustomerPage({
             key={stat.label}
             className="min-w-0 rounded-[var(--radius-card)] bg-white px-1.5 py-3 text-center shadow-sm min-[400px]:p-3"
           >
-            <dd className="font-display text-lg font-extrabold whitespace-nowrap text-night tabular-nums min-[400px]:text-xl">
+            <dd className="font-display text-lg font-semibold whitespace-nowrap text-night tabular-nums min-[400px]:text-xl">
               {stat.value}
             </dd>
             <dt className="text-xs text-ink/70">{stat.label}</dt>
@@ -76,12 +76,12 @@ export default async function CustomerPage({
       </dl>
       {loyalty && (
         <section className={`${ui.card} space-y-4`} aria-labelledby="fidelite">
-          <h2 id="fidelite" className="text-lg font-bold">
+          <h2 id="fidelite" className="text-lg font-semibold">
             {tLoyalty("card")}
           </h2>
           {loyalty.summary?.active && (
             <>
-              <p className="font-display text-2xl font-extrabold text-night">
+              <p className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
                 {tLoyalty("progress", {
                   points: loyalty.summary.points,
                   required: loyalty.summary.visitsRequired,
@@ -99,7 +99,7 @@ export default async function CustomerPage({
           )}
           {loyalty.summary?.reward && (
             <div className="space-y-2 rounded-[var(--radius-card)] border-2 border-dashed border-navy/30 p-4">
-              <p className="font-bold">
+              <p className="font-semibold">
                 {tLoyalty("reward", {
                   label:
                     loyalty.summary.reward.label || page.fmt.money(loyalty.summary.reward.amountCents ?? 0),
@@ -150,7 +150,9 @@ export default async function CustomerPage({
                       {event.reason && event.reason !== "expired" && ` — ${event.reason}`}
                       <span className="block text-ink/60">{page.fmt.short(event.createdAt)}</span>
                     </span>
-                    <span className="font-bold">{event.points > 0 ? `+${event.points}` : event.points}</span>
+                    <span className="font-semibold">
+                      {event.points > 0 ? `+${event.points}` : event.points}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -162,14 +164,14 @@ export default async function CustomerPage({
         + {t("book")}
       </Link>
       <section className={ui.card}>
-        <h2 className="mb-4 text-lg font-bold">{t("contact")}</h2>
+        <h2 className="mb-4 text-lg font-semibold">{t("contact")}</h2>
         <ActionForm action={saveCustomerAction} submitLabel={tCommon("save")}>
           <Hidden values={{ tenantId: page.tenantId, id: customer.id }} />
           <CustomerFields customer={customer} />
         </ActionForm>
       </section>
       <section aria-labelledby="historique" className="space-y-2">
-        <h2 id="historique" className="text-lg font-bold">
+        <h2 id="historique" className="text-lg font-semibold">
           {t("history")}
         </h2>
         {history.length === 0 ? (
@@ -180,7 +182,7 @@ export default async function CustomerPage({
               <li key={item.id}>
                 <Link
                   href={`${page.base}/rendez-vous/${item.id}`}
-                  className="flex justify-between gap-3 px-4 py-3 hover:bg-ivory"
+                  className="flex justify-between gap-3 px-4 py-3 hover:bg-mist-50"
                 >
                   <span>
                     <span className="block font-semibold">{page.fmt.short(item.startsAt)}</span>

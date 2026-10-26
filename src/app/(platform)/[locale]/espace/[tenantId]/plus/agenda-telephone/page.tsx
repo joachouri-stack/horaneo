@@ -29,7 +29,9 @@ export default async function PhoneCalendarPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold">{t("title")}</h1>
+        <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
+          {t("title")}
+        </h1>
         <p className="mt-1 text-ink/70">{t("intro")}</p>
       </div>
       {!url || !webcal ? (

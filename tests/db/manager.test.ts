@@ -16,7 +16,7 @@ import { createBooking } from "@/modules/booking/create";
 import { updateBookingSettings } from "@/modules/booking/settings";
 import { localToUtc } from "@/modules/booking/time";
 import { saveService } from "@/modules/catalog/services";
-import { getCustomer, saveCustomer, searchCustomers } from "@/modules/customers/customers";
+import { customerDirectory, getCustomer, saveCustomer, searchCustomers } from "@/modules/customers/customers";
 import { AppError } from "@/modules/errors";
 import {
   createUpdateRequest,
@@ -26,8 +26,10 @@ import {
 } from "@/modules/requests/update-requests";
 import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
 import { createTimeOff } from "@/modules/schedule/time-off";
-import { monthStats } from "@/modules/stats/month";
+import { getStatsGoals, updateStatsGoals } from "@/modules/stats/goals";
+import { monthDetails, monthStats } from "@/modules/stats/month";
 import { replaceStaffSchedules } from "@/modules/team/schedules";
+import { toolsOverview } from "@/modules/stats/tools";
 import { deleteStaff, saveStaff } from "@/modules/team/staff";
 import { createTenant } from "@/modules/tenants/create";
 import { changePlan, changeStatus } from "@/modules/tenants/update";
@@ -354,11 +356,51 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
       await asManager(s.id, (tx) => setAttendance(tx, s.id, a.appointmentId, "attended"));
       const byName = await asManager(s.id, (tx) => searchCustomers(tx, s.id, "cami"));
       expect(byName).toHaveLength(1);
+      // La liste affiche la dernière visite (et non « Pas encore venue »).
+      expect(new Date(byName[0].lastVisit!).getTime()).toBe(at("10:00").getTime());
       const byPhone = await asManager(s.id, (tx) => searchCustomers(tx, s.id, "06 12 34"));
       expect(byPhone).toHaveLength(1);
       const card = await asManager(s.id, (tx) => getCustomer(tx, s.id, byName[0].id, "fr"));
       expect(card?.stats).toEqual({ visits: 1, noShows: 0, spentCents: 7000 });
       expect(card?.history[0].services).toEqual(["Massage"]);
+    });
+
+    it("compteurs de « Tous les outils »", async () => {
+      const s = await setup();
+      const counts = await asManager(s.id, (tx) => toolsOverview(tx, s.id, "Europe/Paris"));
+      expect(counts).toEqual({
+        team: 2,
+        unavailability: 0,
+        promotions: 0,
+        promo: 0,
+        giftCards: 0,
+        requests: 0,
+        customerData: 0,
+      });
+    });
+
+    it("fichier clientes : visites, dépenses et groupes (nouvelles, à relancer)", async () => {
+      const s = await setup();
+      const a = await onlineBooking(s.id, s.massage.id, at("10:00"), "marie.dupont@example.com");
+      await asManager(s.id, (tx) => setAttendance(tx, s.id, a.appointmentId, "attended"));
+      await asManager(s.id, (tx) => saveCustomer(tx, s.id, { firstName: "Zoé", phone: "0611223344" }));
+
+      const today = await asManager(s.id, (tx) => customerDirectory(tx, s.id, { now: new Date() }));
+      expect(today.counts).toEqual({ all: 2, visited: 1, loyal: 0, new: 2, inactive: 0 });
+      const camille = today.customers.find((row) => row.firstName === "Camille")!;
+      expect(camille).toMatchObject({ visits: 1, spentCents: 7000, isNew: true, inactive: false });
+      expect(camille.lastVisit?.getTime()).toBe(at("10:00").getTime());
+      expect(today.customers.find((row) => row.firstName === "Zoé")).toMatchObject({ visits: 0 });
+
+      // Trois mois plus tard : Camille n'est pas revenue, elle est à relancer.
+      const later = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+      const inactive = await asManager(s.id, (tx) =>
+        customerDirectory(tx, s.id, { now: later, segment: "inactive" }),
+      );
+      expect(inactive.counts).toMatchObject({ new: 0, inactive: 1 });
+      expect(inactive.customers.map((row) => row.firstName)).toEqual(["Camille"]);
+      const search = await asManager(s.id, (tx) => customerDirectory(tx, s.id, { now: later, query: "zo" }));
+      expect(search.customers.map((row) => row.firstName)).toEqual(["Zoé"]);
     });
 
     it("notes et coordonnées ; refuse un e-mail déjà utilisé", async () => {
@@ -541,6 +583,41 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
         newCustomers: 2,
       });
       expect(stats.topServices).toEqual([["Massage", 2]]);
+      // Détail pour les graphiques : jour par jour, équipe, jour de la semaine, heures.
+      const details = await asManager(s.id, (tx) => monthDetails(tx, s.id, "2026-10", TZ));
+      expect(details.days).toHaveLength(31);
+      expect(details.days[5]).toMatchObject({ date: "2026-10-06", online: 2, manual: 0, revenueCents: 7000 });
+      expect(details.staff).toHaveLength(1);
+      expect(details.staff[0]).toMatchObject({ count: 2, revenueCents: 7000 });
+      expect(details.weekdays[1]).toBe(2); // mardi
+      expect(details.hours[10] + details.hours[14]).toBe(2);
+      expect(details.averageBasketCents).toBe(7000);
+      expect(details).toMatchObject({ customers: 2, returningCustomers: 0 });
+    });
+
+    it("objectifs du mois : enregistrés, retirés quand le champ est vide, refusés s'ils sont invalides", async () => {
+      const s = await setup();
+      await asManager(s.id, (tx) =>
+        updateStatsGoals(tx, s.id, { revenue: "3 000,50", appointments: "80", newCustomers: "" }),
+      );
+      expect(await asManager(s.id, (tx) => getStatsGoals(tx, s.id))).toEqual({
+        revenueCents: 300050,
+        appointments: 80,
+        newCustomers: null,
+      });
+      await asManager(s.id, (tx) =>
+        updateStatsGoals(tx, s.id, { revenue: "", appointments: "", newCustomers: "5" }),
+      );
+      expect(await asManager(s.id, (tx) => getStatsGoals(tx, s.id))).toEqual({
+        revenueCents: null,
+        appointments: null,
+        newCustomers: 5,
+      });
+      await expect(
+        asManager(s.id, (tx) =>
+          updateStatsGoals(tx, s.id, { revenue: "abc", appointments: "", newCustomers: "" }),
+        ),
+      ).rejects.toThrow(AppError);
     });
   });
 });

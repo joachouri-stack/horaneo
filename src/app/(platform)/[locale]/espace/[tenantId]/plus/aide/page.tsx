@@ -12,7 +12,9 @@ export default async function HelpPage({ params }: PageProps<"/[locale]/espace/[
   const whatsapp = page.tenant.features.whatsappSupport && config.SUPPORT_WHATSAPP;
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-extrabold">{t("title")}</h1>
+      <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
+        {t("title")}
+      </h1>
       <div className="grid gap-3 sm:grid-cols-2">
         <a
           href={`mailto:${email}?subject=${encodeURIComponent(page.tenant.name)}`}
@@ -27,7 +29,7 @@ export default async function HelpPage({ params }: PageProps<"/[locale]/espace/[
         )}
       </div>
       <section className={ui.card}>
-        <h2 className="text-lg font-bold">{t("faq")}</h2>
+        <h2 className="text-lg font-semibold">{t("faq")}</h2>
         <dl className="mt-3 space-y-4">
           {(["1", "2", "3"] as const).map((n) => (
             <div key={n}>

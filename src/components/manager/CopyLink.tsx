@@ -41,7 +41,7 @@ export function CopyLink({
         <button
           type="button"
           onClick={copy}
-          className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-full bg-blush px-5 font-semibold text-rust transition hover:bg-blush-strong"
+          className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-full bg-accent-soft px-5 font-semibold text-accent-strong transition hover:bg-accent-soft"
           aria-live="polite"
         >
           {copied ? copiedLabel : copyLabel}

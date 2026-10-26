@@ -10,7 +10,8 @@ import { managerPage } from "@/lib/manager/page";
 import { billingGateway } from "@/lib/payments/stripe-billing";
 import { listTenantOptions } from "@/modules/billing/options";
 import { yearlyPriceCents } from "@/modules/billing/yearly";
-import { listPublicPlans, planHighlights } from "@/modules/billing/plans";
+import { gridCard, type CardLine } from "@/modules/billing/grid";
+import { listPublicPlans } from "@/modules/billing/plans";
 import { canBuySmsPacks, listSmsPacks, smsPackOffer, syncSmsPackPayment } from "@/modules/billing/sms-packs";
 import { smsUsage } from "@/modules/messages/sms-usage";
 import { freePlan, getSubscription, isLive } from "@/modules/billing/subscriptions";
@@ -29,9 +30,11 @@ export default async function SubscriptionPage({
 }: PageProps<"/[locale]/espace/[tenantId]/plus/abonnement">) {
   const page = await managerPage(params);
   const query = await searchParams;
-  const [t, tErrors] = await Promise.all([
+  const [t, tErrors, tGrid, tPlans] = await Promise.all([
     getTranslations("manager.subscription"),
     getTranslations("errors"),
+    getTranslations("home.grid"),
+    getTranslations("home.plans"),
   ]);
   // Retour de la page de paiement d'un pack de SMS : crédité tout de suite (sans attendre Stripe).
   const smsCheckout = typeof query.paiement === "string" ? query.paiement : null;
@@ -57,6 +60,7 @@ export default async function SubscriptionPage({
       },
       subscription: await getSubscription(tx, page.tenantId),
       plans: await listPublicPlans(tx),
+      soon: new Set(await getPlatformSetting(tx, "features_soon")),
       // Pack actuel, même s'il n'est plus proposé à la vente (anciens packs).
       currentPlan: (await tx.select().from(plansTable).where(eq(plansTable.id, page.tenant.planId)))[0],
       // Pack gratuit : vendu (on peut y passer) ou hors vente (fin d'abonnement = site en pause).
@@ -78,6 +82,17 @@ export default async function SubscriptionPage({
   const { usage, subscription, display, sms } = data;
   const limits = page.tenant.limits;
   const current = data.currentPlan;
+  // Lignes des packs : les mêmes que sur les cartes du site commercial (grille unique).
+  const lineText = (line: CardLine) => {
+    const base = `rows.${line.key}` as "rows.photos";
+    if (line.count === null && tGrid.has(`${base}.cardUnlimited` as "rows.photos.cardUnlimited"))
+      return tGrid(`${base}.cardUnlimited` as "rows.photos.cardUnlimited");
+    return tGrid(`${base}.card` as "rows.photos.card", { count: line.count ?? 0 });
+  };
+  // L'espace gérante est celui de la solution Réservation (seule ouverte à la souscription).
+  const forBooking = (line: CardLine) => !line.solution || line.solution === "booking";
+  const planName = (code: string) =>
+    pickLocalized(data.plans.find((item) => item.code === code)?.name ?? null, page.locale);
   const currentPrice = current?.priceCents ?? 0;
   const live = subscription && isLive(subscription.status) ? subscription : null;
   // Site à plusieurs entreprises : l'abonnement est réglé par l'entreprise principale.
@@ -111,7 +126,9 @@ export default async function SubscriptionPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-extrabold">{t("title")}</h1>
+      <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
+        {t("title")}
+      </h1>
 
       {error && (
         <p role="alert" className={ui.error}>
@@ -151,7 +168,7 @@ export default async function SubscriptionPage({
       )}
 
       <section className={ui.card}>
-        <p className="text-xl font-bold text-night">
+        <p className="text-xl font-semibold text-night">
           {t("plan", { name: pickLocalized(page.tenant.planName, page.locale) })}
         </p>
         <div className="mt-2 space-y-1 text-ink/80">
@@ -177,7 +194,7 @@ export default async function SubscriptionPage({
           {live && live.withCommitment === false && <p>{t("status.noCommitment")}</p>}
         </div>
         {scheduled && periodEnd && (
-          <div className="mt-4 rounded-[var(--radius-card)] bg-ivory p-4">
+          <div className="mt-4 rounded-[var(--radius-card)] bg-mist-50 p-4">
             <p>
               {t("status.scheduled", {
                 name: pickLocalized(scheduled.name, page.locale),
@@ -188,7 +205,7 @@ export default async function SubscriptionPage({
           </div>
         )}
         {live?.cancelAt && (
-          <div className="mt-4 rounded-[var(--radius-card)] bg-ivory p-4">
+          <div className="mt-4 rounded-[var(--radius-card)] bg-mist-50 p-4">
             <p>
               {t("status.cancelAt", { date: page.fmt.short(live.cancelAt), pause: pausing ? "yes" : "no" })}
             </p>
@@ -210,13 +227,13 @@ export default async function SubscriptionPage({
               <li key={row.label} className="py-3">
                 <div className="flex justify-between gap-3">
                   <span>{row.label}</span>
-                  <span className={`text-right font-semibold ${over ? "text-coral-dark" : ""}`}>
+                  <span className={`text-right font-semibold ${over ? "text-[#b4372a]" : ""}`}>
                     {row.limit === null || row.limit === undefined
                       ? `${row.used} · ${t("unlimited")}`
                       : t("of", { used: row.used, limit: row.limit })}
                   </span>
                 </div>
-                {over && <p className="mt-1 text-sm text-coral-dark">{t("overLimit")}</p>}
+                {over && <p className="mt-1 text-sm text-[#b4372a]">{t("overLimit")}</p>}
               </li>
             );
           })}
@@ -225,7 +242,7 @@ export default async function SubscriptionPage({
 
       {sms && (
         <section id="sms" className={`${ui.card} scroll-mt-24`} aria-labelledby="titre-sms">
-          <h2 id="titre-sms" className="text-xl font-bold">
+          <h2 id="titre-sms" className="text-xl font-semibold">
             {t("smsTitle")}
           </h2>
           {query.sms === "ok" && (
@@ -250,7 +267,7 @@ export default async function SubscriptionPage({
               {sms.limit !== null &&
                 sms.used < sms.limit &&
                 sms.used >= Math.ceil((sms.limit * data.warningPercent) / 100) && (
-                  <p role="status" className={`${ui.card} mt-3 border-coral/40 bg-blush`}>
+                  <p role="status" className={`${ui.card} mt-3 border-[#f3d3cc] bg-[#fdf4f2]`}>
                     {t("smsQuotaAlmost", { used: sms.used, limit: sms.limit })}
                   </p>
                 )}
@@ -317,7 +334,7 @@ export default async function SubscriptionPage({
 
       {/* Options actives : ajoutées par notre équipe, facturées avec l'abonnement. */}
       <section className={ui.card} aria-labelledby="titre-options">
-        <h2 id="titre-options" className="text-xl font-bold">
+        <h2 id="titre-options" className="text-xl font-semibold">
           {t("options")}
         </h2>
         {data.options.length === 0 ? (
@@ -336,7 +353,7 @@ export default async function SubscriptionPage({
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-xl font-bold">{t("choose")}</h2>
+        <h2 className="text-xl font-semibold">{t("choose")}</h2>
         {!configured && canManage && <p className="text-ink/70">{t("unavailable")}</p>}
         {/* Deux groupes : avec réservation en ligne, puis « site seul » (ajout de la réservation = changer de pack). */}
         {[splitPlans(data.plans).booking, splitPlans(data.plans).siteOnly]
@@ -364,6 +381,7 @@ export default async function SubscriptionPage({
                         ? t("upgradeHint")
                         : t("downgradeHint", { date: periodEnd ? page.fmt.short(periodEnd) : "" });
                 // Pack gratuit : choisi directement quand le pack actuel est payant (abonnement ou attribué).
+                const card = gridCard(plan, data.plans, data.soon);
                 const canChoose =
                   configured && !isCurrent && (live || plan.priceCents > 0 || currentPrice > 0);
                 return (
@@ -373,19 +391,27 @@ export default async function SubscriptionPage({
                     aria-current={isCurrent ? "true" : undefined}
                   >
                     <div className="flex flex-wrap items-baseline justify-between gap-2">
-                      <h3 className="text-lg font-bold text-night">
+                      <h3 className="text-lg font-semibold text-night">
                         {pickLocalized(plan.name, page.locale)}
                       </h3>
                       <p className="font-semibold">{priceLabel(plan.priceCents)}</p>
                     </div>
                     {isCurrent && <p className="text-sm font-semibold text-success">{t("current")}</p>}
+                    {/* Même contenu que les cartes du site commercial (solution Réservation). */}
                     <ul className="mt-3 grid gap-1 text-sm text-ink/80 sm:grid-cols-2">
-                      {planHighlights(plan).map((item) => (
+                      {card.previous && (
+                        <li className="font-semibold text-night sm:col-span-2">
+                          ✓ {tPlans("everythingIn", { plan: planName(card.previous) })}
+                        </li>
+                      )}
+                      {[...card.included, ...card.upcoming].filter(forBooking).map((item) => (
                         <li key={item.key}>
-                          ✓{" "}
-                          {item.kind === "limit"
-                            ? t(`limits.${item.key}`, { count: item.count })
-                            : t(`features.${item.key}`)}
+                          ✓ {lineText(item)}
+                          {item.soon && (
+                            <span className="ml-1.5 rounded-full bg-navy/5 px-1.5 py-px text-xs text-ink/70">
+                              {tPlans("soonTag")}
+                            </span>
+                          )}
                         </li>
                       ))}
                     </ul>
@@ -493,7 +519,7 @@ export default async function SubscriptionPage({
           <form action={changeSubscriptionAction} className={`${ui.card} space-y-2`}>
             <input type="hidden" name="tenantId" value={page.tenantId} />
             <input type="hidden" name="planId" value={data.freePlan.id} />
-            <h3 className="text-lg font-bold text-night">{t("stop")}</h3>
+            <h3 className="text-lg font-semibold text-night">{t("stop")}</h3>
             <p className="text-sm text-ink/70">
               {t("stopHint", { date: freeDate ? page.fmt.short(freeDate) : "" })}
             </p>

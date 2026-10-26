@@ -48,7 +48,12 @@ import { hasTestDatabase, openAppDb, openTestDb, type TestDb } from "../setup/db
 const TZ = "Europe/Paris";
 const NOW = localToUtc("2026-10-05", "09:00", TZ);
 const at = (time: string) => localToUtc("2026-10-06", time, TZ);
-const day = (offset: number) => utcToLocal(new Date(Date.now() + offset * 86_400_000), TZ).date;
+/** Date locale d'aujourd'hui décalée de `offset` jours (calendrier, pas 24 h : juste aux changements d'heure). */
+const day = (offset: number) => {
+  const today = new Date(`${utcToLocal(new Date(), TZ).date}T00:00:00Z`);
+  today.setUTCDate(today.getUTCDate() + offset);
+  return today.toISOString().slice(0, 10);
+};
 
 describe.skipIf(!hasTestDatabase)("promotions, cartes cadeaux et avis Google", () => {
   let owner: TestDb;

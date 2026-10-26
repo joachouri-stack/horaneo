@@ -91,6 +91,9 @@ const FAQ = [
   "tablet",
 ] as const;
 
+/** Fonctions d'IA : la question de la FAQ à leur sujet ne s'affiche que si l'une est encore « Bientôt ». */
+const AI_FEATURES = ["aiChatbot", "aiTexts", "aiImages", "whatsappAssistant"];
+
 /** Pictogrammes du bandeau de fonctions de chaque solution (dans l'ordre des textes). */
 const STRIP: Record<Solution, (typeof CheckLine)[]> = {
   booking: [CalendarLine, BellLine, LockLine, UsersLine, ChartLine],
@@ -176,12 +179,19 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     // -1 : illimité (quota absent).
     bookings: first ? (first.limits.onlineBookingsPerMonth ?? -1) : 0,
     customers: first ? (first.limits.customers ?? -1) : 0,
+    tablet: data.offers.length > 0 ? "yes" : "no",
   };
-  const faq = FAQ.map((key) => ({
-    key,
-    q: t(`faq.items.${key}.q`, faqValues),
-    a: t(`faq.items.${key}.a`, faqValues),
-  }));
+  // Questions affichées seulement quand elles s'appliquent : outils d'IA encore annoncés
+  // « Bientôt », offre de lancement ouverte.
+  const aiSoon = AI_FEATURES.some((key) => soon.has(key));
+  const hasOffer = data.offers.length > 0;
+  const faq = FAQ.filter((key) => (key === "ai" ? aiSoon : key === "tablet" ? hasOffer : true)).map(
+    (key) => ({
+      key,
+      q: t(`faq.items.${key}.q`, faqValues),
+      a: t(`faq.items.${key}.a`, faqValues),
+    }),
+  );
   const structuredData = [
     {
       "@context": "https://schema.org",

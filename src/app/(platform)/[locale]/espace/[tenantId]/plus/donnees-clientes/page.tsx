@@ -17,14 +17,16 @@ export default async function CustomerDataPage({
   const requests = await page.db((tx) => listDataRequests(tx, page.tenantId));
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-extrabold">{t("title")}</h1>
+      <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
+        {t("title")}
+      </h1>
       <p className="text-ink/80">{t("intro")}</p>
       {requests.length === 0 && <p className={ui.card}>{t("empty")}</p>}
       <ul className="space-y-3">
         {requests.map(({ request, firstName, lastName, email, phone }) => (
           <li key={request.id} className={`${ui.card} space-y-3`}>
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-lg font-bold">{t(`kinds.${request.kind}`)}</p>
+              <p className="text-lg font-semibold">{t(`kinds.${request.kind}`)}</p>
               <span className="rounded-full bg-navy/10 px-3 py-1 text-sm font-semibold text-night">
                 {t(`status.${request.status}`)}
               </span>

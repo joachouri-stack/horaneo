@@ -14,7 +14,7 @@ export default async function NewCustomerPage({
   const tCommon = await getTranslations("common");
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-extrabold">{t("new")}</h1>
+      <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">{t("new")}</h1>
       <div className={ui.card}>
         <ActionForm action={saveCustomerAction} submitLabel={tCommon("save")}>
           <Hidden values={{ tenantId: page.tenantId }} />

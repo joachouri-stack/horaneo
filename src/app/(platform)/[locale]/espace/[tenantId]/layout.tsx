@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { AppHeader } from "@/components/layout/AppHeader";
+import { ManagerMain } from "@/components/manager/ManagerMain";
 import { ManagerTabs } from "@/components/manager/ManagerTabs";
 import { NotificationBell } from "@/components/manager/NotificationBell";
 import { Link } from "@/i18n/navigation";
@@ -8,6 +9,9 @@ import { resolveLocale } from "@/i18n/translator";
 import { env } from "@/config/env";
 import { withTenant } from "@/db/access";
 import { managedTenantIds, requireManager } from "@/lib/manager/access";
+import { and, eq } from "drizzle-orm";
+import { tenantDomains } from "@/db/schema";
+import { tenantSiteUrl } from "@/lib/tenancy/urls";
 import { getSubscription } from "@/modules/billing/subscriptions";
 import { unseenNotificationCount } from "@/modules/notifications/feed";
 
@@ -39,10 +43,18 @@ export default async function ManagerLayout({
   );
   const t = await getTranslations("manager");
   const several = role === "owner" && (await managedTenantIds(userId)).length > 1;
-  const [subscription, unseen] = await Promise.all([
+  const [subscription, unseen, [primary]] = await Promise.all([
     withTenant(tenantId, (tx) => getSubscription(tx, tenantId)),
     withTenant(tenantId, (tx) => unseenNotificationCount(tx, tenantId, { userId }), undefined, businessId),
+    // Adresse du site, pour le lien « Voir mon site » de la barre latérale (site en ligne seulement).
+    withTenant(tenantId, (tx) =>
+      tx
+        .select({ hostname: tenantDomains.hostname })
+        .from(tenantDomains)
+        .where(and(eq(tenantDomains.tenantId, tenantId), eq(tenantDomains.isPrimary, true))),
+    ),
   ]);
+  const siteUrl = primary && tenant.status === "active" ? tenantSiteUrl(primary.hostname) : null;
 
   return (
     <>
@@ -64,39 +76,41 @@ export default async function ManagerLayout({
         </div>
       )}
       {subscription?.paymentFailedAt && (
-        <div role="alert" className="bg-coral-dark px-4 py-2 text-center text-sm font-semibold text-white">
+        <div role="alert" className="bg-[#b4372a] px-4 py-2 text-center text-sm font-semibold text-white">
           {t("subscription.pastDueBanner")}{" "}
           <Link href={`/espace/${tenantId}/plus/abonnement`} className="underline">
             {t("subscription.portal")}
           </Link>
         </div>
       )}
-      <div className="mx-auto max-w-3xl px-4 pt-2">
-        <div className="flex items-center justify-between gap-3">
-          <p className="truncate font-display text-lg font-extrabold text-night">
-            {tenant.name}
-            {multiBusiness && <span className="font-semibold text-ink/70"> · {business.name}</span>}
-          </p>
-          <div className="flex shrink-0 items-center gap-3">
-            {several && (
-              <Link href="/espace" className="text-sm font-semibold text-night underline">
-                {t("switchTenant")}
-              </Link>
-            )}
-            <NotificationBell
-              href={`/espace/${tenantId}/notifications`}
-              count={unseen}
-              label={unseen > 0 ? t("notifications.bellUnseen", { count: unseen }) : t("notifications.title")}
-            />
+      <div className="min-h-dvh bg-mist-50 lg:flex">
+        <ManagerTabs tenantId={tenantId} siteUrl={siteUrl} siteLabel={t("viewSite")} />
+        <div className="min-w-0 flex-1">
+          <div className="mx-auto max-w-6xl px-4 pt-4 sm:px-6 lg:px-8 lg:pt-6">
+            <div className="flex items-center justify-between gap-3">
+              <p className="truncate font-display text-lg font-semibold tracking-[-0.015em] text-night">
+                {tenant.name}
+                {multiBusiness && <span className="font-medium text-ink-soft"> · {business.name}</span>}
+              </p>
+              <div className="flex shrink-0 items-center gap-3">
+                {several && (
+                  <Link href="/espace" className="text-sm font-medium text-night underline">
+                    {t("switchTenant")}
+                  </Link>
+                )}
+                <NotificationBell
+                  href={`/espace/${tenantId}/notifications`}
+                  count={unseen}
+                  label={
+                    unseen > 0 ? t("notifications.bellUnseen", { count: unseen }) : t("notifications.title")
+                  }
+                />
+              </div>
+            </div>
           </div>
+          <ManagerMain tenantId={tenantId}>{children}</ManagerMain>
         </div>
       </div>
-      <div className="mx-auto max-w-3xl px-4">
-        <ManagerTabs tenantId={tenantId} />
-      </div>
-      <main id="contenu" className="mx-auto max-w-3xl px-4 pb-28 pt-4 md:pb-12">
-        {children}
-      </main>
     </>
   );
 }
