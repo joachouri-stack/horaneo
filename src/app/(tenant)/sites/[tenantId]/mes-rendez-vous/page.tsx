@@ -9,6 +9,8 @@ import { PageTitle } from "@/components/site/blocks";
 import { withTenant } from "@/db/access";
 import type { Locale } from "@/i18n/locales";
 import { formatMoney } from "@/lib/format";
+import { formatPhone } from "@/modules/phone";
+import { formatDuration } from "@/modules/site/format";
 import { customerSession } from "@/lib/site/customer-session";
 import { getSite } from "@/lib/site/load";
 import { knownBusinesses } from "@/modules/customer-space/auth";
@@ -33,6 +35,8 @@ export default async function CustomerSpacePage({ params }: PageProps<"/sites/[t
   const site = await getSite(tenantId);
   if (!site.features.customerSpace) notFound();
   const t = await getTranslations("site.account");
+  const tBooking = await getTranslations("booking");
+  const tServices = await getTranslations("site.services");
   const session = await customerSession(tenantId);
 
   if (!session) {
@@ -73,10 +77,33 @@ export default async function CustomerSpacePage({ params }: PageProps<"/sites/[t
   const date = (value: Date) => formatLongDate(value.toISOString(), locale, timezone);
   const time = (value: Date) => formatTimeOf(value.toISOString(), locale, timezone);
   const money = (cents: number, currency: string) => formatMoney(cents, currency, locale);
+  // Chaque prestation suivie de sa durée (« Massage (1 h) »).
+  const serviceNames = (item: { services: string[]; durations: number[] }) =>
+    item.services
+      .map((name, index) =>
+        item.durations[index]
+          ? tBooking("serviceDuration", {
+              name,
+              duration: formatDuration(
+                (key, values) => tServices(key as "durationMinutes", values),
+                item.durations[index],
+              ),
+            })
+          : name,
+      )
+      .join(" + ");
+  const phoneOf = (businessId: string) =>
+    site.businesses.find((business) => business.id === businessId)?.phone ?? site.tenant.phone;
   const firstName = spaces.find((space) => space.contact)?.contact?.firstName;
 
   const upcoming = spaces
-    .flatMap((space) => space.upcoming.map((item) => ({ ...item, businessName: space.businessName })))
+    .flatMap((space) =>
+      space.upcoming.map((item) => ({
+        ...item,
+        businessName: space.businessName,
+        businessId: space.businessId,
+      })),
+    )
     .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
   const past = spaces
     .flatMap((space) =>
@@ -108,7 +135,7 @@ export default async function CustomerSpacePage({ params }: PageProps<"/sites/[t
         <form action={logoutAction}>
           <button
             type="submit"
-            className="text-sm font-semibold text-site-muted underline underline-offset-4"
+            className="inline-flex min-h-11 items-center text-sm font-semibold text-site-muted underline underline-offset-4"
           >
             {t("logout")}
           </button>
@@ -133,7 +160,7 @@ export default async function CustomerSpacePage({ params }: PageProps<"/sites/[t
             <p className="font-site-display text-2xl font-semibold first-letter:uppercase text-site-heading">
               {t("when", { date: date(item.startsAt), time: time(item.startsAt) })}
             </p>
-            <p className="mt-1 font-semibold">{item.services.join(" + ")}</p>
+            <p className="mt-1 font-semibold">{serviceNames(item)}</p>
             <p className="text-site-muted">{who(item)}</p>
             {item.beneficiaryName && (
               <p className="mt-2 inline-flex rounded-full bg-site-surface px-3 py-1 text-sm font-semibold text-site-accent">
@@ -161,11 +188,21 @@ export default async function CustomerSpacePage({ params }: PageProps<"/sites/[t
                     {t("manage")}
                   </Link>
                   <span className="text-sm text-site-muted">
-                    {t("freeUntil", { date: `${date(item.deadline)} ${time(item.deadline)}` })}
+                    {t("freeUntil", { date: date(item.deadline), time: time(item.deadline) })}
                   </span>
                 </div>
               ) : (
-                <p className="text-sm text-site-muted">{t("tooLate")}</p>
+                <p className="text-sm text-site-muted">
+                  {t("tooLate")}{" "}
+                  {phoneOf(item.businessId) && (
+                    <a
+                      href={`tel:${phoneOf(item.businessId)}`}
+                      className="inline-flex min-h-11 items-center font-semibold text-site-accent underline underline-offset-4"
+                    >
+                      {formatPhone(phoneOf(item.businessId)!)}
+                    </a>
+                  )}
+                </p>
               )}
             </div>
           </article>
@@ -307,7 +344,7 @@ export default async function CustomerSpacePage({ params }: PageProps<"/sites/[t
             {past.map((item) => (
               <li key={item.id} className="flex flex-wrap items-center justify-between gap-3 py-4">
                 <div className="min-w-0">
-                  <p className="font-semibold">{item.services.join(" + ")}</p>
+                  <p className="font-semibold">{serviceNames(item)}</p>
                   <p className="text-sm text-site-muted">
                     {date(item.startsAt)} · {who(item)}
                     {item.beneficiaryName && ` · ${t("for", { name: item.beneficiaryName })}`}

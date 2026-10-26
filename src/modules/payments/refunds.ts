@@ -57,7 +57,13 @@ export async function refundDeposit(
 
   const [row] = await tx
     .insert(refunds)
-    .values({ tenantId, paymentId: payment.id, amountCents: remainingCents, reason: options.reason })
+    .values({
+      tenantId,
+      businessId: payment.businessId,
+      paymentId: payment.id,
+      amountCents: remainingCents,
+      reason: options.reason,
+    })
     .returning();
   let refund: GatewayRefund;
   try {
@@ -115,6 +121,7 @@ export async function applyRefund(tx: Transaction, tenantId: string, refund: Gat
     .insert(refunds)
     .values({
       tenantId,
+      businessId: payment.businessId,
       paymentId: payment.id,
       stripeRefundId: refund.id,
       amountCents: refund.amountCents,

@@ -101,7 +101,10 @@ export default async function BusinessPage({ params }: PageProps<"/sites/[tenant
           {business.phone && (
             <li className="flex items-center gap-2">
               <PhoneIcon className="h-4 w-4 text-site-accent" />
-              <a href={`tel:${business.phone}`} className="font-semibold underline underline-offset-4">
+              <a
+                href={`tel:${business.phone}`}
+                className="inline-flex min-h-11 items-center font-semibold underline underline-offset-4"
+              >
                 {formatPhone(business.phone, site.tenant.country)}
               </a>
             </li>

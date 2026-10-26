@@ -1,6 +1,6 @@
 import { assertQuota } from "@/modules/quotas";
 import { createHash, createHmac, hkdfSync } from "node:crypto";
-import { and, eq, lte, sql } from "drizzle-orm";
+import { and, eq, lte, notInArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { authSecret } from "@/config/env";
 import type { Transaction } from "@/db/client";
@@ -22,6 +22,7 @@ import {
 } from "./availability";
 import { computeDeposit } from "./pricing";
 import { chooseLeastLoaded } from "./slots";
+import { adjustHoldUsage } from "./holds";
 import { addMinutes, utcToLocal } from "./time";
 
 /**
@@ -89,9 +90,12 @@ export async function assignManageToken(tx: Transaction, appointmentId: string):
   return token;
 }
 
-/** Libère les réservations temporaires (paiement non abouti) dont le délai est passé. */
+/**
+ * Libère les réservations temporaires (paiement non abouti) dont le délai est passé.
+ * Le code promo et la réservation du mois qu'elles avaient comptés sont rendus.
+ */
 export async function expireStaleHolds(tx: Transaction, tenantId: string, now: Date) {
-  await tx
+  const expired = await tx
     .update(appointments)
     .set({ status: "expired" })
     .where(
@@ -100,7 +104,13 @@ export async function expireStaleHolds(tx: Transaction, tenantId: string, now: D
         eq(appointments.status, "pending_payment"),
         lte(appointments.holdExpiresAt, now),
       ),
-    );
+    )
+    .returning({
+      promoCodeId: appointments.promoCodeId,
+      createdAt: appointments.createdAt,
+      source: appointments.source,
+    });
+  await adjustHoldUsage(tx, tenantId, expired, "release", now);
 }
 
 /**
@@ -143,8 +153,9 @@ export async function consumeOnlineQuota(
 /**
  * Retrouve ou crée la fiche cliente (même e-mail chez un même établissement = même fiche).
  * En ligne, n'importe qui peut saisir l'e-mail d'une autre : une fiche existante n'est
- * donc que complétée (téléphone ou nom manquant), jamais modifiée. Sinon, un inconnu
- * pourrait y mettre son numéro et se connecter par SMS à l'espace de la cliente.
+ * donc jamais modifiée sur ce qui compte (seul un nom de famille manquant est ajouté).
+ * Ni téléphone (un inconnu pourrait y mettre son numéro et se connecter par SMS à
+ * l'espace de la cliente), ni accord pour les offres (seule la cliente peut le donner).
  * La gérante, elle, met la fiche à jour.
  */
 async function upsertCustomer(
@@ -166,11 +177,8 @@ async function upsertCustomer(
       .update(customers)
       .set(
         source === "online"
-          ? {
-              phone: existing.phone ?? phone,
-              lastName: existing.lastName ?? (input.lastName || null),
-              ...consent,
-            }
+          ? // Écrit même sans changement : verrouille la fiche (code promo « une fois par cliente »).
+            { lastName: existing.lastName ?? (input.lastName || null) }
           : {
               firstName: input.firstName,
               lastName: input.lastName || existing.lastName,
@@ -188,7 +196,8 @@ async function upsertCustomer(
       ? new AppError("booking_quota_reached")
       : error;
   });
-  const [created] = await tx
+  // Deux réservations simultanées avec une même nouvelle adresse : la seconde reprend la fiche créée.
+  const created = await tx
     .insert(customers)
     .values({
       tenantId: context.tenant.id,
@@ -199,8 +208,38 @@ async function upsertCustomer(
       locale,
       ...consent,
     })
+    .onConflictDoNothing()
     .returning({ id: customers.id });
-  return created.id;
+  if (created[0]) return created[0].id;
+  const [concurrent] = await tx
+    .select({ id: customers.id })
+    .from(customers)
+    .where(and(eq(customers.tenantId, context.tenant.id), sql`lower(${customers.email}) = ${input.email}`))
+    .for("update");
+  if (!concurrent) throw new AppError("slot_unavailable", "start");
+  return concurrent.id;
+}
+
+/** Code promo limité à une utilisation par cliente (rendez-vous annulés ou expirés exclus). */
+async function assertPromoUnusedBy(
+  tx: Transaction,
+  tenantId: string,
+  promoCodeId: string,
+  customerId: string,
+) {
+  const [used] = await tx
+    .select({ id: appointments.id })
+    .from(appointments)
+    .where(
+      and(
+        eq(appointments.tenantId, tenantId),
+        eq(appointments.customerId, customerId),
+        eq(appointments.promoCodeId, promoCodeId),
+        notInArray(appointments.status, ["cancelled", "expired"]),
+      ),
+    )
+    .limit(1);
+  if (used) throw new AppError("promo_code_already_used", "promoCode");
 }
 
 function isExclusionViolation(error: unknown) {
@@ -273,6 +312,7 @@ export async function createBooking(
   if (giftCardCode) await checkGiftCard(tx, tenantId, giftCardCode, depositCents, now);
 
   const customerId = await upsertCustomer(tx, context, input.customer, input.locale, now, source);
+  if (promo) await assertPromoUnusedBy(tx, tenantId, promo.promoCodeId, customerId);
   const endsAt = addMinutes(input.start, totals.durationMinutes);
   const pending = depositCents > 0 && !giftCardCode;
 

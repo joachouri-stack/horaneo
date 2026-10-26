@@ -80,7 +80,8 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
             <legend className="mb-4 font-site-display text-3xl font-semibold text-site-heading">
               {t("business.title")}
             </legend>
-            {open.map((item, index) => {
+            {/* Aucune présélection : la cliente choisit elle-même avec qui elle réserve. */}
+            {open.map((item) => {
               const team = site.staff.filter((member) => member.businessId === item.id);
               const detail =
                 item.role ||
@@ -99,7 +100,6 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
                     name="avec"
                     value={item.id}
                     required
-                    defaultChecked={index === 0}
                     className="h-5 w-5 accent-[var(--site-button)]"
                   />
                   {photo && (
@@ -159,7 +159,7 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
   if (quotaReached || bookable.length === 0) {
     return (
       <main id="contenu" className="mx-auto max-w-2xl px-4 py-12">
-        <PageTitle title={t("unavailable.title")} />
+        <PageTitle title={phone ? t("unavailable.title") : t("unavailable.titleNoPhone")} />
         {phone ? (
           <p className="text-lg">
             {t("unavailable.text")}{" "}
@@ -223,10 +223,13 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
         }}
         promoEnabled={promoEnabled}
         giftCardsEnabled={giftCardsEnabled}
+        // Rappel SMS la veille : seulement si le pack comprend des SMS (comme l'envoi des rappels).
+        smsReminders={(context.limits.smsPerMonth ?? 1) > 0}
         holdMinutes={context.settings.holdMinutes}
         maxAdvanceDays={context.settings.maxAdvanceDays}
         cancellationHours={context.settings.cancellationDeadlineHours}
         privacyPath={SITE_PATHS.privacy}
+        conditionsPath={SITE_PATHS.cancellation}
         managePath={SITE_PATHS.appointment}
         stepOffset={multi ? 1 : 0}
         previousHref={multi ? SITE_PATHS.booking : undefined}

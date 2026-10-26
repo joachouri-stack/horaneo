@@ -30,9 +30,7 @@ export function money(cents: number, currency: string, locale: string) {
   return new Intl.NumberFormat(locale, { style: "currency", currency }).format(cents / 100);
 }
 
-export function durationLabel(minutes: number) {
-  const hours = Math.floor(minutes / 60);
-  const rest = minutes % 60;
-  if (hours === 0) return `${minutes} min`;
-  return rest === 0 ? `${hours} h` : `${hours} h ${String(rest).padStart(2, "0")}`;
+/** Heure de fin (début + durée), dans le fuseau de l'établissement. */
+export function endTimeOf(iso: string, minutes: number, locale: string, timeZone: string) {
+  return formatTimeOf(new Date(new Date(iso).getTime() + minutes * 60_000).toISOString(), locale, timeZone);
 }

@@ -14,7 +14,7 @@ type Props = {
   onPick: (slot: PickedSlot) => void;
   onError: (error: string) => void;
   selected?: PickedSlot | null;
-  /** Praticienne choisie d'avance (« Reprendre ce soin »). */
+  /** Praticienne choisie d'avance (« Réserver à nouveau »). */
   initialStaffId?: string | null;
   /** Réservation possible jusqu'à N jours : au-delà de 45, raccourci « Aller au mois de… ». */
   maxAdvanceDays?: number;
@@ -37,6 +37,18 @@ function bookableMonths(maxAdvanceDays: number) {
     months.push(`${y}-${String(m + 1).padStart(2, "0")}`);
   }
   return months;
+}
+
+const pageButton = "inline-flex min-h-11 items-center px-1 font-semibold text-site-accent underline";
+
+type Slot = DayAvailability["slots"][number];
+
+/** Créneaux regroupés : matin (avant 12 h), après-midi (avant 18 h), soir. */
+function periodsOf(slots: Slot[]) {
+  const periodOf = (time: string) => (time < "12:00" ? "morning" : time < "18:00" ? "afternoon" : "evening");
+  return (["morning", "afternoon", "evening"] as const)
+    .map((period) => ({ period, slots: slots.filter((slot) => periodOf(slot.time) === period) }))
+    .filter((group) => group.slots.length > 0);
 }
 
 /** Choix du membre (ou « sans préférence »), du jour puis de l'heure. */
@@ -180,23 +192,23 @@ export function SlotPicker({
                   onChange={() => setDate(day.date)}
                   aria-label={chip.full}
                 />
-                <span className="text-xs uppercase">{chip.weekday}</span>
+                <span className="text-sm uppercase">{chip.weekday}</span>
                 <span className="text-xl font-semibold">{chip.day}</span>
-                <span className="text-xs">{chip.month}</span>
+                <span className="text-sm">{chip.month}</span>
               </label>
             );
           })}
         </div>
-        <div className="mt-2 flex justify-between text-sm">
+        <div className="mt-1 flex justify-between text-sm">
           {pages.length > 0 ? (
-            <button type="button" onClick={previousPage} className="font-semibold text-site-accent underline">
+            <button type="button" onClick={previousPage} className={pageButton}>
               ← {t("previousDays")}
             </button>
           ) : (
             <span />
           )}
           {days.length > 0 && (
-            <button type="button" onClick={nextPage} className="font-semibold text-site-accent underline">
+            <button type="button" onClick={nextPage} className={pageButton}>
               {t("moreDays")} →
             </button>
           )}
@@ -214,17 +226,28 @@ export function SlotPicker({
         ) : !current || current.slots.length === 0 ? (
           <p className="text-site-muted">{t("noSlotsDay")}</p>
         ) : (
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-            {current.slots.map((slot) => (
-              <button
-                key={slot.start}
-                type="button"
-                onClick={() => onPick({ start: slot.start, time: slot.time, date: current.date, staffId })}
-                aria-pressed={selected?.start === slot.start}
-                className="min-h-12 rounded-site border border-site-border text-lg font-semibold text-site-text hover:border-site-button aria-pressed:bg-site-button aria-pressed:text-site-on-button"
-              >
-                {slot.time}
-              </button>
+          <div className="space-y-4">
+            {periodsOf(current.slots).map(({ period, slots }) => (
+              <div key={period}>
+                <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-site-muted">
+                  {t(`periods.${period}`)}
+                </h3>
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+                  {slots.map((slot) => (
+                    <button
+                      key={slot.start}
+                      type="button"
+                      onClick={() =>
+                        onPick({ start: slot.start, time: slot.time, date: current.date, staffId })
+                      }
+                      aria-pressed={selected?.start === slot.start}
+                      className="min-h-12 rounded-site border border-site-border text-lg font-semibold text-site-text hover:border-site-button aria-pressed:bg-site-button aria-pressed:text-site-on-button"
+                    >
+                      {slot.time}
+                    </button>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         )}

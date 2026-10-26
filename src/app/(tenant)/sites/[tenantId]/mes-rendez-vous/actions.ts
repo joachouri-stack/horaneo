@@ -15,6 +15,7 @@ import { currentSiteTenant, publicLimits } from "@/lib/site/current";
 import { getSite } from "@/lib/site/load";
 import {
   closeSession,
+  CUSTOMER_LOGIN,
   issueLoginCode,
   knownBusinesses,
   parseIdentifier,
@@ -49,7 +50,7 @@ async function siteWithSpace() {
 export async function requestLoginAction(
   _previous: Previous,
   data: FormData,
-): Promise<ActionResult<{ channel: "email" | "sms"; identifier: string }>> {
+): Promise<ActionResult<{ channel: "email" | "sms"; identifier: string; minutes: number }>> {
   try {
     const { tenantId, ip } = await siteWithSpace();
     if (!publicLimits.customerLogin.attempt(`${tenantId}:${ip}`)) throw new AppError("rate_limited");
@@ -82,7 +83,9 @@ export async function requestLoginAction(
         sendQueuedSoon();
       }
     }
-    return { ok: true, data: identity };
+    // Durée de validité annoncée : celle du lien (e-mail) ou du code (SMS).
+    const minutes = identity.channel === "sms" ? CUSTOMER_LOGIN.smsMinutes : CUSTOMER_LOGIN.linkMinutes;
+    return { ok: true, data: { channel: identity.channel, identifier: identity.identifier, minutes } };
   } catch (error) {
     return toActionError(error);
   }

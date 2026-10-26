@@ -1,4 +1,5 @@
 import { eq, sql } from "drizzle-orm";
+import { declareBusiness } from "@/db/access";
 import type { Transaction } from "@/db/client";
 import { applyGiftCardIntent } from "@/modules/giftcards/giftcards";
 import { stripeEvents } from "@/db/schema";
@@ -51,6 +52,8 @@ async function dispatch(tx: Transaction, event: GatewayEvent, gateway: PaymentGa
   const owner = await businessOfAccount(tx, event.account);
   if (!owner) return "unknown_account";
   const tenantId = owner.tenantId;
+  // Site à plusieurs entreprises : les lignes créées (remboursements, messages) sont celles de l'entreprise du compte.
+  await declareBusiness(tx, owner.businessId);
 
   if (event.type.startsWith("payment_intent.")) {
     // Achat d'une carte cadeau (et non un acompte).

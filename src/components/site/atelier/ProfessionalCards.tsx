@@ -86,7 +86,8 @@ export async function ProfessionalCards({
 /** Avis Google de la professionnelle : note, nombre d'avis et un extrait (tel que Google le fournit). */
 async function BusinessReviews({ reviews, locale }: { reviews: Site["reviews"][number]; locale: string }) {
   const t = await getTranslations("site.reviews");
-  const link = "font-semibold underline underline-offset-4 hover:opacity-80";
+  const link =
+    "inline-flex min-h-11 items-center font-semibold underline underline-offset-4 hover:opacity-80";
   if (reviews.rating === null) {
     return (
       <p className="mt-5 text-sm">
