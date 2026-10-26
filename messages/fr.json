@@ -2343,7 +2343,8 @@
         "install": "Installer",
         "later": "Plus tard",
         "iosHowTo": "Dans Safari, touchez le bouton Partager (le carré avec une flèche vers le haut), puis « Sur l'écran d'accueil » et « Ajouter ». Ouvrez ensuite l'application depuis cette icône."
-      }
+      },
+      "checkIn": "Pointer :"
     },
     "status": {
       "confirmed": "Confirmé",

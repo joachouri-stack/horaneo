@@ -561,7 +561,13 @@ export default async function AgendaPage({
                 {dayAppointments.length === 0 && dayOff.length === 0 ? (
                   <p className="text-[0.85rem] text-ink-soft">{t("empty")}</p>
                 ) : (
-                  <DayTimeline items={dayAppointments} base={page.base} time={page.fmt.time} now={now} />
+                  <DayTimeline
+                    items={dayAppointments}
+                    tenantId={page.tenantId}
+                    base={page.base}
+                    time={page.fmt.time}
+                    now={now}
+                  />
                 )}
               </section>
             );
