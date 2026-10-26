@@ -22,12 +22,23 @@ export default async function SettingsPage({
 }: PageProps<"/[locale]/espace/[tenantId]/plus/reglages">) {
   const page = await managerPage(params);
   const [t, tCommon] = await Promise.all([getTranslations("manager.settings"), getTranslations("common")]);
-  const [settings, reviewCooldownDays] = await page.db((tx) =>
+  const [settings, reviewCooldownDays, dailyTime, monthlyTime] = await page.db((tx) =>
     Promise.all([
       getBookingSettings(tx, page.tenantId),
       getPlatformSetting(tx, "review_request_cooldown_days"),
+      getPlatformSetting(tx, "daily_summary_time"),
+      getPlatformSetting(tx, "monthly_summary_time"),
     ]),
   );
+  // Heures d'envoi des résumés (réglages de la plateforme), écrites à la française : « 19 h ».
+  const hourLabel = (time: string) => {
+    const [hours, minutes] = time.split(":").map(Number);
+    return new Intl.DateTimeFormat(page.locale, {
+      hour: "numeric",
+      minute: minutes ? "2-digit" : undefined,
+      timeZone: "UTC",
+    }).format(new Date(Date.UTC(2000, 0, 1, hours, minutes)));
+  };
   const paymentAvailable = Boolean(page.tenant.features.onlinePayment);
   const stripeReady = onlinePaymentReady(page.business, page.tenant.features, paymentGateway());
   return (
@@ -166,12 +177,12 @@ export default async function SettingsPage({
         <Section title={t("summaries")}>
           <CheckboxField
             name="dailySummaryEnabled"
-            label={t("daily")}
+            label={t("daily", { time: hourLabel(String(dailyTime)) })}
             defaultChecked={settings.dailySummaryEnabled}
           />
           <CheckboxField
             name="monthlySummaryEnabled"
-            label={t("monthly")}
+            label={t("monthly", { time: hourLabel(String(monthlyTime)) })}
             defaultChecked={settings.monthlySummaryEnabled}
           />
         </Section>
