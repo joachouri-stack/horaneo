@@ -2684,7 +2684,19 @@
       "overLimit": "Votre pack prévoit {limit, plural, one {# membre} other {# membres}} : seuls {limit, plural, one {le premier} other {les # premiers}} de la liste {limit, plural, one {est proposé} other {sont proposés}} à la réservation en ligne. Vous pouvez toujours noter des rendez-vous avec toute l'équipe, ou passer à un pack supérieur.",
       "deactivatedInstead": "Ce membre a déjà des rendez-vous : il a été désactivé au lieu d'être supprimé.{upcoming, plural, =0 {} one { # rendez-vous à venir lui reste attribué : pensez à le déplacer.} other { # rendez-vous à venir lui restent attribués : pensez à les déplacer.}}",
       "schedule": "Horaires de travail",
-      "scheduleHint": "Les créneaux proposés en ligne tiennent compte de ces horaires et des horaires d'ouverture."
+      "scheduleHint": "Les créneaux proposés en ligne tiennent compte de ces horaires et des horaires d'ouverture.",
+      "subtitle": "Les membres de votre équipe, leurs jours de travail et leurs prestations.",
+      "active": "Actif",
+      "inactive": "Inactif",
+      "daysSpan": "Du {from} au {to}",
+      "noSchedule": "Aucun horaire de travail",
+      "noServices": "Aucune prestation choisie",
+      "moreServices": "+ {count}",
+      "addPhoto": "Ajouter une photo",
+      "changePhoto": "Changer la photo",
+      "removePhoto": "Retirer la photo",
+      "photoSending": "Envoi…",
+      "full": "Limite de votre pack atteinte"
     },
     "subscription": {
       "groupBooking": "Avec réservation en ligne",

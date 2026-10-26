@@ -49,7 +49,7 @@ import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
 import { createTimeOff, deleteTimeOff } from "@/modules/schedule/time-off";
 import { updateStatsGoals } from "@/modules/stats/goals";
 import { replaceStaffSchedules } from "@/modules/team/schedules";
-import { deleteStaff, saveStaff } from "@/modules/team/staff";
+import { deleteStaff, saveStaff, setStaffPhoto } from "@/modules/team/staff";
 import type { Transaction } from "@/db/client";
 import { tenants } from "@/db/schema";
 import { resolveDataRequest } from "@/modules/customer-space/space";
@@ -388,6 +388,23 @@ export async function saveStaffAction(_previous: Previous, data: FormData) {
       idOf(data),
     ),
   );
+}
+
+/** Photo d'un membre de l'équipe : envoi (recadrée et compressée par le serveur) ou retrait. */
+export async function staffPhotoAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const staffId = idOf(data)!;
+  const remove = form.text(data, "operation") === "remove";
+  const bytes = remove ? null : ((await form.file(data, "file")) ?? new Uint8Array());
+  return managerMutation(tenantId, remove ? "staff.photo_removed" : "staff.photo", async (tx, context) => {
+    if (!bytes) return setStaffPhoto(tx, tenantId, staffId, null);
+    const asset = await uploadAsset(tx, storage(), tenantId, {
+      bytes,
+      kind: "staff",
+      uploadedByUserId: context.userId,
+    });
+    return setStaffPhoto(tx, tenantId, staffId, asset.id);
+  });
 }
 
 export async function deleteStaffAction(_previous: Previous, data: FormData) {

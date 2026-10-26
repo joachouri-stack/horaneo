@@ -1,10 +1,10 @@
 import { getTranslations } from "next-intl/server";
-import { TeamEditor } from "@/components/editors/TeamEditor";
+import { TeamBoard } from "@/components/manager/TeamBoard";
 import { ui } from "@/components/ui/styles";
 import { managerPage } from "@/lib/manager/page";
 import { listServices } from "@/modules/catalog/services";
 import { listStaff } from "@/modules/team/staff";
-import { deleteStaffAction, saveStaffAction } from "../../actions";
+import { deleteStaffAction, saveStaffAction, staffPhotoAction } from "../../actions";
 
 export default async function ManagerTeamPage({
   params,
@@ -23,15 +23,15 @@ export default async function ManagerTeamPage({
       {limit !== null && limit !== undefined && active > limit && (
         <p className={`${ui.card} mb-4`}>{t("overLimit", { limit })}</p>
       )}
-      <TeamEditor
+      <TeamBoard
         tenantId={page.tenantId}
         contentLocale={page.tenant.defaultLocale}
+        locale={page.locale}
         limit={page.tenant.limits.members}
         staff={staff}
         services={services}
-        actions={{ save: saveStaffAction, remove: deleteStaffAction }}
-        headingLevel={1}
-        memberHref={(staffId) => `${page.base}/plus/equipe/${staffId}`}
+        actions={{ save: saveStaffAction, remove: deleteStaffAction, photo: staffPhotoAction }}
+        base={page.base}
       />
     </>
   );
