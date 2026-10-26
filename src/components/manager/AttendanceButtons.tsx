@@ -20,13 +20,13 @@ export function AttendanceButtons({ tenantId, appointmentId }: { tenantId: strin
     startTransition(() => action(data));
   };
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <span className="text-[0.78rem] text-ink-soft">{t("manager.today.checkIn")}</span>
+    <div className="grid grid-cols-2 gap-3">
+      <span className="col-span-2 text-sm text-ink-soft">{t("manager.today.checkIn")}</span>
       <button
         type="button"
         disabled={pending}
         onClick={() => send("attended")}
-        className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-[#e7f6ee] px-3.5 text-[0.82rem] font-medium text-[#1e7a4c] transition hover:bg-[#d6efe2] disabled:opacity-60"
+        className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-[#e7f6ee] px-4 text-[0.95rem] font-medium text-[#1e7a4c] transition hover:bg-[#d6efe2] disabled:opacity-60"
       >
         <svg
           aria-hidden="true"
@@ -46,12 +46,12 @@ export function AttendanceButtons({ tenantId, appointmentId }: { tenantId: strin
         type="button"
         disabled={pending}
         onClick={() => send("no_show")}
-        className="inline-flex min-h-9 items-center rounded-full border border-hairline bg-white px-3.5 text-[0.82rem] font-medium text-ink-soft transition hover:border-[#e6b8b2] hover:text-[#b4372a] disabled:opacity-60"
+        className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#e6b8b2] bg-white px-4 text-[0.95rem] font-medium text-[#b4372a] transition hover:bg-[#fdf1ef] disabled:opacity-60"
       >
         {t("manager.appointment.noShow")}
       </button>
       {state && !state.ok && (
-        <p role="alert" className="w-full text-[0.8rem] text-[#b4372a]">
+        <p role="alert" className="col-span-2 text-sm text-[#b4372a]">
           {t(`errors.${state.error}`)}
         </p>
       )}

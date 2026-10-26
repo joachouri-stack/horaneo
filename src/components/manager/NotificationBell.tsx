@@ -35,7 +35,7 @@ export function NotificationBell({ href, count, label }: { href: string; count: 
       {shown > 0 && (
         <span
           aria-hidden="true"
-          className="absolute right-0.5 top-0.5 flex min-w-5 items-center justify-center rounded-full bg-coral px-1 text-xs font-semibold leading-5 text-white ring-2 ring-white"
+          className="absolute right-0.5 top-0.5 flex min-w-5 items-center justify-center rounded-full bg-coral px-1 text-[0.8125rem] font-semibold leading-5 text-white ring-2 ring-white"
         >
           {shown > 9 ? "9+" : shown}
         </span>

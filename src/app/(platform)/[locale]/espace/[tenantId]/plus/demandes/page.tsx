@@ -38,7 +38,7 @@ export default async function RequestsPage({
                   <span className="text-sm text-ink/60">{t(`status.${request.status}`)}</span>
                 </div>
                 <p className="mt-1 whitespace-pre-line text-sm text-ink/80">{request.message}</p>
-                <p className="mt-1 text-xs text-ink/50">{page.fmt.short(request.createdAt)}</p>
+                <p className="mt-1 text-[0.8125rem] text-ink/50">{page.fmt.short(request.createdAt)}</p>
               </li>
             ))}
           </ul>

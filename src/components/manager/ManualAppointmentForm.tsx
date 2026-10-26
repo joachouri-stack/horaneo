@@ -59,6 +59,8 @@ export function ManualAppointmentForm({ tenantId, services, staff, defaults }: P
   const [found, setFound] = useState<Found[]>([]);
   const [customer, setCustomer] = useState<{ id: string; name: string } | null>(defaults.customer);
   const [serviceQuery, setServiceQuery] = useState("");
+  // Liste des prestations repliée une fois un choix fait : l'étape « Quand ? » remonte.
+  const [listOpen, setListOpen] = useState(true);
   const effectiveStaff = eligible.some((member) => member.id === staffId) ? staffId : (eligible[0]?.id ?? "");
 
   useEffect(() => {
@@ -93,8 +95,16 @@ export function ManualAppointmentForm({ tenantId, services, staff, defaults }: P
     else groups.push({ name: service.category, items: [service] });
   }
   const selected = services.filter((service) => serviceIds.includes(service.id));
-  const toggle = (id: string, checked: boolean) =>
+  const toggle = (id: string, checked: boolean) => {
     setServiceIds(checked ? [...serviceIds, id] : serviceIds.filter((value) => value !== id));
+    if (checked) setListOpen(false);
+  };
+  /** Durée lisible : « 45 min », « 1 h », « 1 h 10 ». */
+  const duration = (minutes: number) => {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return h === 0 ? t("durationM", { m }) : m === 0 ? t("durationH", { h }) : t("durationHM", { h, m });
+  };
 
   const chip =
     "relative cursor-pointer rounded-[var(--radius-card)] border-2 px-4 py-3 has-[:checked]:border-navy has-[:checked]:bg-navy has-[:checked]:text-white";
@@ -203,48 +213,59 @@ export function ManualAppointmentForm({ tenantId, services, staff, defaults }: P
           <p className="text-sm font-semibold text-night">
             {t("selected", {
               names: selected.map((service) => service.name).join(", "),
-              minutes: selected.reduce((sum, service) => sum + service.durationMinutes, 0),
+              duration: duration(selected.reduce((sum, service) => sum + service.durationMinutes, 0)),
             })}
           </p>
         )}
-        {services.length > 6 && (
-          <>
-            <label htmlFor="m-service-search" className="sr-only">
-              {t("searchService")}
-            </label>
-            <input
-              id="m-service-search"
-              type="search"
-              placeholder={t("searchService")}
-              value={serviceQuery}
-              onChange={(event) => setServiceQuery(event.target.value)}
-              className={ui.input}
-            />
-          </>
+        {selected.length > 0 && !listOpen && (
+          <button
+            type="button"
+            onClick={() => setListOpen(true)}
+            className="inline-flex min-h-11 items-center font-semibold text-night underline"
+          >
+            {t("changeServices")}
+          </button>
         )}
-        {groups.map((group) => (
-          <div key={group.name ?? "other"} className="space-y-2">
-            {group.name && (
-              <p className="text-sm font-semibold tracking-wide text-ink/60 uppercase">{group.name}</p>
-            )}
-            <div className="grid gap-2 sm:grid-cols-2">
-              {group.items.map((service) => (
-                <label key={service.id} className={`${chip} flex justify-between gap-2 border-navy/15`}>
-                  <input
-                    type="checkbox"
-                    checked={serviceIds.includes(service.id)}
-                    onChange={(event) => toggle(service.id, event.target.checked)}
-                    className="sr-only"
-                  />
-                  <span className="font-semibold">{service.name}</span>
-                  <span className="shrink-0 text-sm whitespace-nowrap opacity-80">
-                    {service.durationMinutes} min
-                  </span>
-                </label>
-              ))}
+        <div className={selected.length > 0 && !listOpen ? "hidden" : "space-y-3"}>
+          {services.length > 6 && (
+            <>
+              <label htmlFor="m-service-search" className="sr-only">
+                {t("searchService")}
+              </label>
+              <input
+                id="m-service-search"
+                type="search"
+                placeholder={t("searchService")}
+                value={serviceQuery}
+                onChange={(event) => setServiceQuery(event.target.value)}
+                className={ui.input}
+              />
+            </>
+          )}
+          {groups.map((group) => (
+            <div key={group.name ?? "other"} className="space-y-2">
+              {group.name && (
+                <p className="text-sm font-semibold tracking-wide text-ink/60 uppercase">{group.name}</p>
+              )}
+              <div className="grid gap-2 sm:grid-cols-2">
+                {group.items.map((service) => (
+                  <label key={service.id} className={`${chip} flex justify-between gap-2 border-navy/15`}>
+                    <input
+                      type="checkbox"
+                      checked={serviceIds.includes(service.id)}
+                      onChange={(event) => toggle(service.id, event.target.checked)}
+                      className="sr-only"
+                    />
+                    <span className="font-semibold">{service.name}</span>
+                    <span className="shrink-0 text-sm whitespace-nowrap opacity-80">
+                      {duration(service.durationMinutes)}
+                    </span>
+                  </label>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
         {/* Prestations choisies, envoyées même quand la recherche les masque. */}
         {serviceIds.map((id) => (
           <input key={id} type="hidden" name="serviceIds" value={id} />
@@ -315,7 +336,7 @@ export function ManualAppointmentForm({ tenantId, services, staff, defaults }: P
                     if (slots.length === 0) return null;
                     return (
                       <div key={period.key}>
-                        <p className="mb-1 text-xs font-semibold tracking-wide text-ink/60 uppercase">
+                        <p className="mb-1 text-[0.8125rem] font-semibold tracking-wide text-ink/60 uppercase">
                           {t(`periods.${period.key}`)}
                         </p>
                         <div className="flex flex-wrap gap-2">

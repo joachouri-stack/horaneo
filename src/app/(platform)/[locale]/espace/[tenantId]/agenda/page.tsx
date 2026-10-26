@@ -140,7 +140,7 @@ export default async function AgendaPage({
   const iconButton =
     "flex size-11 items-center justify-center rounded-xl border border-hairline bg-white text-night transition hover:border-accent-line hover:text-accent";
   const segment =
-    "flex min-h-10 items-center rounded-lg px-3.5 text-[0.88rem] font-medium text-ink-soft transition hover:text-night aria-[current=page]:bg-white aria-[current=page]:text-night aria-[current=page]:shadow-[0_1px_3px_rgba(15,24,48,.12)]";
+    "flex min-h-10 items-center rounded-lg px-3.5 text-[0.9375rem] font-medium text-ink-soft transition hover:text-night aria-[current=page]:bg-white aria-[current=page]:text-night aria-[current=page]:shadow-[0_1px_3px_rgba(15,24,48,.12)]";
 
   const header = (
     <div className="space-y-4">
@@ -165,7 +165,7 @@ export default async function AgendaPage({
         </Link>
         <Link
           href={link({ date: today })}
-          className="flex min-h-11 items-center rounded-xl border border-hairline bg-white px-4 text-[0.9rem] font-medium text-night transition hover:border-accent-line hover:text-accent"
+          className="flex min-h-11 items-center rounded-xl border border-hairline bg-white px-4 text-[0.9375rem] font-medium text-night transition hover:border-accent-line hover:text-accent"
         >
           {t("today")}
         </Link>
@@ -190,7 +190,7 @@ export default async function AgendaPage({
           <Link
             href={link({ membre: null })}
             aria-current={!memberFilter ? "page" : undefined}
-            className="flex min-h-10 shrink-0 items-center rounded-full border border-hairline bg-white px-4 text-[0.88rem] font-medium text-night aria-[current=page]:border-night aria-[current=page]:bg-night aria-[current=page]:text-white"
+            className="flex min-h-10 shrink-0 items-center rounded-full border border-hairline bg-white px-4 text-[0.9375rem] font-medium text-night aria-[current=page]:border-night aria-[current=page]:bg-night aria-[current=page]:text-white"
           >
             {t("allStaff")}
           </Link>
@@ -201,11 +201,11 @@ export default async function AgendaPage({
                 key={member.id}
                 href={link({ membre: member.id })}
                 aria-current={memberFilter === member.id ? "page" : undefined}
-                className="flex min-h-10 shrink-0 items-center gap-2 rounded-full border border-hairline bg-white py-1 pl-1.5 pr-4 text-[0.88rem] font-medium text-night aria-[current=page]:border-night aria-[current=page]:bg-night aria-[current=page]:text-white"
+                className="flex min-h-10 shrink-0 items-center gap-2 rounded-full border border-hairline bg-white py-1 pl-1.5 pr-4 text-[0.9375rem] font-medium text-night aria-[current=page]:border-night aria-[current=page]:bg-night aria-[current=page]:text-white"
               >
                 <span
                   aria-hidden="true"
-                  className="flex size-7 items-center justify-center rounded-full text-[0.7rem] font-semibold text-white"
+                  className="flex size-7 items-center justify-center rounded-full text-[0.8125rem] font-semibold text-white"
                   style={{ backgroundColor: member.color ?? DEFAULT_COLOR }}
                 >
                   {initials(member.name)}
@@ -240,7 +240,7 @@ export default async function AgendaPage({
             {gridDays.slice(0, 7).map((day) => (
               <p
                 key={day}
-                className="py-2.5 text-center text-[0.72rem] font-medium uppercase tracking-[0.06em] text-ink-soft"
+                className="py-2.5 text-center text-[0.8125rem] font-medium uppercase tracking-[0.06em] text-ink-soft"
               >
                 {weekdayName.format(instant(day)).replace(".", "")}
               </p>
@@ -268,7 +268,7 @@ export default async function AgendaPage({
                     } ${outside ? "opacity-40" : ""}`}
                   >
                     <span
-                      className={`flex size-7 items-center justify-center self-center rounded-full text-[0.85rem] font-medium tabular-nums sm:self-start ${
+                      className={`flex size-7 items-center justify-center self-center rounded-full text-sm font-medium tabular-nums sm:self-start ${
                         day === today ? "bg-accent text-white" : "text-night"
                       }`}
                     >
@@ -397,7 +397,7 @@ export default async function AgendaPage({
               {Array.from({ length: lastHour - firstHour }, (_, index) => (
                 <span
                   key={index}
-                  className="absolute right-2 -translate-y-1/2 text-[0.72rem] text-ink-soft tabular-nums first:translate-y-0"
+                  className="absolute right-2 -translate-y-1/2 text-[0.8125rem] text-ink-soft tabular-nums first:translate-y-0"
                   style={{ top: index * HOUR_HEIGHT + (index === 0 ? 4 : 0) }}
                 >
                   {String(firstHour + index).padStart(2, "0")}:00
@@ -442,7 +442,7 @@ export default async function AgendaPage({
                   {column.timeOff.map((off) => (
                     <div
                       key={off.id}
-                      className="absolute inset-x-1 rounded-lg border border-dashed border-[#d5dae4] bg-[#f4f6fa] p-1.5 text-[0.72rem] text-ink-soft"
+                      className="absolute inset-x-1 rounded-lg border border-dashed border-[#d5dae4] bg-[#f4f6fa] p-1.5 text-[0.8125rem] text-ink-soft"
                       style={{ top: top(off.from), height: Math.max(top(off.to) - top(off.from), 18) }}
                     >
                       {t(`timeOff.${off.kind}` as "timeOff.leave")}
@@ -457,7 +457,7 @@ export default async function AgendaPage({
                       <Link
                         key={item.id}
                         href={`${page.base}/rendez-vous/${item.id}`}
-                        className={`absolute z-10 overflow-hidden rounded-lg border-l-[3px] px-2 py-1 text-[0.75rem] leading-tight shadow-[0_1px_2px_rgba(15,24,48,.06)] transition hover:z-20 hover:shadow-[0_8px_20px_-10px_rgba(15,24,48,.35)] ${
+                        className={`absolute z-10 overflow-hidden rounded-lg border-l-[3px] px-2 py-1 text-[0.8125rem] leading-tight shadow-[0_1px_2px_rgba(15,24,48,.06)] transition hover:z-20 hover:shadow-[0_8px_20px_-10px_rgba(15,24,48,.35)] ${
                           item.status === "no_show" ? "opacity-50" : ""
                         }`}
                         style={{
@@ -469,7 +469,7 @@ export default async function AgendaPage({
                           backgroundColor: tint(item.staffColor),
                         }}
                       >
-                        <span className="flex items-center gap-1 text-[0.7rem] text-ink-soft tabular-nums">
+                        <span className="flex items-center gap-1 text-[0.8125rem] text-ink-soft tabular-nums">
                           {page.fmt.time(item.startsAt)}
                           {place.lanes === 1 && <> – {page.fmt.time(item.endsAt)}</>}
                           {item.source === "online" && place.lanes === 1 && (
@@ -515,11 +515,11 @@ export default async function AgendaPage({
           className="flex flex-col items-center leading-tight"
           aria-label={page.fmt.day(instant(day))}
         >
-          <span className="text-[0.7rem] uppercase tracking-[0.06em] text-ink-soft">
+          <span className="text-[0.8125rem] uppercase tracking-[0.06em] text-ink-soft">
             {weekdayShort.format(instant(day)).replace(".", "")}
           </span>
           <span
-            className={`mt-0.5 flex size-7 items-center justify-center rounded-full text-[0.9rem] font-medium tabular-nums ${
+            className={`mt-0.5 flex size-7 items-center justify-center rounded-full text-[0.9375rem] font-medium tabular-nums ${
               day === today ? "bg-accent text-white" : "text-night"
             }`}
           >
@@ -549,17 +549,17 @@ export default async function AgendaPage({
                   >
                     {label}
                   </Link>
-                  <span className="text-[0.8rem] text-ink-soft">
+                  <span className="text-sm text-ink-soft">
                     {t("dayCount", { count: dayAppointments.length })}
                   </span>
                 </h2>
                 {dayOff.map((off) => (
-                  <p key={off.id} className="rounded-xl bg-[#f1f2f5] px-4 py-2 text-[0.85rem] text-ink-soft">
+                  <p key={off.id} className="rounded-xl bg-[#f1f2f5] px-4 py-2 text-sm text-ink-soft">
                     {t(`timeOff.${off.kind}`)} · {off.staffName ?? ""} {off.reason ? `· ${off.reason}` : ""}
                   </p>
                 ))}
                 {dayAppointments.length === 0 && dayOff.length === 0 ? (
-                  <p className="text-[0.85rem] text-ink-soft">{t("empty")}</p>
+                  <p className="text-sm text-ink-soft">{t("empty")}</p>
                 ) : (
                   <DayTimeline
                     items={dayAppointments}
@@ -586,17 +586,17 @@ export default async function AgendaPage({
         <span className="flex min-w-0 items-center gap-2">
           <span
             aria-hidden="true"
-            className="flex size-8 shrink-0 items-center justify-center rounded-full text-[0.72rem] font-semibold text-white"
+            className="flex size-8 shrink-0 items-center justify-center rounded-full text-[0.8125rem] font-semibold text-white"
             style={{ backgroundColor: member.color ?? DEFAULT_COLOR }}
           >
             {initials(member.name)}
           </span>
           <span className="min-w-0 leading-tight">
-            <span className="block truncate text-[0.9rem] font-medium text-night">
+            <span className="block truncate text-[0.9375rem] font-medium text-night">
               {member.name}
               {member.inactive && <span className="font-normal text-ink-soft"> ({t("inactiveStaff")})</span>}
             </span>
-            <span className="block text-[0.72rem] text-ink-soft">
+            <span className="block text-[0.8125rem] text-ink-soft">
               {t("dayCount", { count: memberAppointments.length })}
             </span>
           </span>
@@ -623,7 +623,28 @@ export default async function AgendaPage({
       {hoursOf(date).length === 0 && appointments.length === 0 && (
         <p className="rounded-2xl border border-hairline bg-white px-5 py-4 text-ink-soft">{t("closed")}</p>
       )}
-      {grid(columns, { nowColumn: date === today ? "*" : null, wide: columns.length > 2 })}
+      {/* Téléphone : liste lisible (comme la semaine) ; frise horaire à partir de la tablette. */}
+      <div className="hidden sm:block">
+        {grid(columns, { nowColumn: date === today ? "*" : null, wide: columns.length > 2 })}
+      </div>
+      <div className="space-y-2 sm:hidden">
+        {dayOffOf(date).map((off) => (
+          <p key={off.id} className="rounded-xl bg-[#f1f2f5] px-4 py-2 text-sm text-ink-soft">
+            {t(`timeOff.${off.kind}`)} · {off.staffName ?? ""} {off.reason ? `· ${off.reason}` : ""}
+          </p>
+        ))}
+        {onDay(date).length === 0 ? (
+          <p className="rounded-2xl border border-hairline bg-white px-5 py-4 text-ink-soft">{t("empty")}</p>
+        ) : (
+          <DayTimeline
+            items={onDay(date)}
+            tenantId={page.tenantId}
+            base={page.base}
+            time={page.fmt.time}
+            now={now}
+          />
+        )}
+      </div>
     </div>
   );
 }

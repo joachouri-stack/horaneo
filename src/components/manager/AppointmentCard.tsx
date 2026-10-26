@@ -33,13 +33,17 @@ export async function AppointmentCard({
       style={{ borderLeftColor: item.staffColor ?? "#1b2a4a" }}
     >
       <div className="w-16 shrink-0 font-display text-lg font-semibold text-night">
-        {day && <span className="block text-xs font-semibold text-ink/60 first-letter:uppercase">{day}</span>}
+        {day && (
+          <span className="block text-[0.8125rem] font-semibold text-ink/60 first-letter:uppercase">
+            {day}
+          </span>
+        )}
         {time}
       </div>
       <div className="min-w-0 flex-1">
         {/* Étiquette au-dessus du nom : jamais coupée, même avec un nom long. */}
         {highlight && (
-          <span className="mb-1 inline-block rounded-full bg-accent px-2 py-0.5 text-xs font-medium text-white">
+          <span className="mb-1 inline-block rounded-full bg-accent px-2 py-0.5 text-[0.8125rem] font-medium text-white">
             {t("today.next")}
           </span>
         )}
@@ -48,7 +52,7 @@ export async function AppointmentCard({
         <p className="text-sm text-ink/60">{item.staffName}</p>
       </div>
       <span
-        className={`h-fit shrink-0 rounded-full px-2 py-1 text-xs font-semibold ${STATUS_STYLE[item.status] ?? ""}`}
+        className={`h-fit shrink-0 rounded-full px-2 py-1 text-[0.8125rem] font-semibold ${STATUS_STYLE[item.status] ?? ""}`}
       >
         {t(`status.${item.status}`)}
       </span>

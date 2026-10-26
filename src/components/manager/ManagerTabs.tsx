@@ -9,7 +9,7 @@ const ICONS = {
   customers:
     "M16 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1M9 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 19v-1a4 4 0 0 0-3-3.87M16 2.13a4 4 0 0 1 0 7.75",
   site: "M3 5h18v12H3zM8 21h8M12 17v4",
-  more: "M5 12h.01M12 12h.01M19 12h.01",
+  more: "M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z",
   stats: "M4 20h16M7 16.5v-4M11.5 16.5V8M16 16.5v-6.5",
   team: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1",
   payments: "M3 6h18v12H3zM3 10h18M7 15h3",
@@ -91,7 +91,7 @@ export function ManagerTabs({
               <Link
                 href={`${base}${tab.path}`}
                 aria-current={isActive(tab.path) ? "page" : undefined}
-                className="group flex min-h-16 flex-col items-center justify-center gap-1 text-[0.72rem] font-medium text-ink-soft aria-[current=page]:text-accent"
+                className="group flex min-h-16 flex-col items-center justify-center gap-1 text-[0.8125rem] font-medium text-ink-soft aria-[current=page]:text-accent"
               >
                 <span className="flex h-7 w-12 items-center justify-center rounded-full transition group-aria-[current=page]:bg-accent-soft">
                   <Icon d={ICONS[tab.key]} className="h-[22px] w-[22px]" />
@@ -123,7 +123,7 @@ export function ManagerTabs({
           ))}
         </ul>
         <div>
-          <p className="px-3 pb-2 text-[0.72rem] font-medium uppercase tracking-[0.08em] text-ink-soft/80">
+          <p className="px-3 pb-2 text-[0.8125rem] font-medium uppercase tracking-[0.08em] text-ink-soft/80">
             {t("more")}
           </p>
           <ul className="space-y-1">

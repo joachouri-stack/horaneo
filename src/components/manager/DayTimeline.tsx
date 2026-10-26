@@ -68,14 +68,14 @@ export async function DayTimeline({
             >
               <div className="w-14 shrink-0 pt-0.5 text-right">
                 {day && (
-                  <span className="block text-[0.72rem] text-ink-soft first-letter:uppercase">
+                  <span className="block text-[0.8125rem] text-ink-soft first-letter:uppercase">
                     {day(item.startsAt)}
                   </span>
                 )}
                 <span className="block font-display text-[1.05rem] font-semibold text-night tabular-nums">
                   {time(item.startsAt)}
                 </span>
-                <span className="block text-[0.72rem] text-ink-soft tabular-nums">{time(item.endsAt)}</span>
+                <span className="block text-[0.8125rem] text-ink-soft tabular-nums">{time(item.endsAt)}</span>
               </div>
               <span
                 aria-hidden="true"
@@ -86,17 +86,17 @@ export async function DayTimeline({
                 <p className="flex flex-wrap items-center gap-2">
                   <span className="truncate font-medium text-night">{item.customerName}</span>
                   {next && (
-                    <span className="rounded-full bg-accent px-2 py-px text-[0.7rem] font-medium text-white">
+                    <span className="rounded-full bg-accent px-2 py-px text-[0.8125rem] font-medium text-white">
                       {t("today.next")}
                     </span>
                   )}
                 </p>
-                <p className="truncate text-[0.88rem] text-ink-soft">{item.services.join(" + ")}</p>
-                <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.78rem] text-ink-soft">
+                <p className="truncate text-[0.9375rem] text-ink-soft">{item.services.join(" + ")}</p>
+                <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-soft">
                   <span className="inline-flex items-center gap-1.5">
                     <span
                       aria-hidden="true"
-                      className="flex size-5 items-center justify-center rounded-full text-[0.6rem] font-semibold text-white"
+                      className="flex size-5 items-center justify-center rounded-full text-[0.8125rem] font-semibold text-white"
                       style={{ backgroundColor: color }}
                     >
                       {initials(item.staffName)}
@@ -107,7 +107,7 @@ export async function DayTimeline({
                 </p>
               </div>
               <span
-                className={`h-fit shrink-0 rounded-full px-2.5 py-1 text-[0.72rem] font-medium ${STATUS_STYLE[item.status] ?? ""}`}
+                className={`h-fit shrink-0 rounded-full px-2.5 py-1 text-[0.8125rem] font-medium ${STATUS_STYLE[item.status] ?? ""}`}
               >
                 {t(`status.${item.status}`)}
               </span>

@@ -408,7 +408,7 @@ export default async function SubscriptionPage({
                         <li key={item.key}>
                           ✓ {lineText(item)}
                           {item.soon && (
-                            <span className="ml-1.5 rounded-full bg-navy/5 px-1.5 py-px text-xs text-ink/70">
+                            <span className="ml-1.5 rounded-full bg-navy/5 px-1.5 py-px text-[0.8125rem] text-ink/70">
                               {tPlans("soonTag")}
                             </span>
                           )}

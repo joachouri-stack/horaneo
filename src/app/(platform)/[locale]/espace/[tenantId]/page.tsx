@@ -74,7 +74,9 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
       : null;
 
   return (
-    <div className="space-y-6">
+    // Sur téléphone, l'agenda du jour passe juste après les actions, avant les chiffres
+    // et les rappels ; sur ordinateur, l'ordre d'origine (tout tient à l'écran).
+    <div className="flex flex-col gap-6">
       {/* Salutation et actions principales. */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
@@ -113,31 +115,33 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
 
       {/* Rappel tant que les notifications ne sont pas activées sur cet appareil (gérante seulement). */}
       {page.role !== "admin" && (
-        <InstallAppCard
-          iconUrl="/api/app/icon/192"
-          labels={{
-            title: t("install.title"),
-            text: t("install.text"),
-            install: t("install.install"),
-            later: t("install.later"),
-            iosHowTo: t("install.iosHowTo"),
-          }}
-        />
-      )}
-      {page.role !== "admin" && (
-        <PushReminder
-          href={`${page.base}/notifications`}
-          labels={{
-            title: t("pushReminder.title"),
-            text: t("pushReminder.text"),
-            action: t("pushReminder.action"),
-            later: t("pushReminder.later"),
-          }}
-        />
+        <div className="order-3 space-y-6 empty:hidden lg:order-none">
+          <InstallAppCard
+            iconUrl="/api/app/icon/192"
+            labels={{
+              title: t("install.title"),
+              text: t("install.text"),
+              install: t("install.install"),
+              later: t("install.later"),
+              iosHowTo: t("install.iosHowTo"),
+            }}
+          />
+          <PushReminder
+            href={`${page.base}/notifications`}
+            labels={{
+              title: t("pushReminder.title"),
+              text: t("pushReminder.text"),
+              action: t("pushReminder.action"),
+              later: t("pushReminder.later"),
+            }}
+          />
+        </div>
       )}
 
       {/* Chiffres clés. */}
-      <div className={`grid grid-cols-2 gap-3 sm:gap-4 ${rating ? "xl:grid-cols-5" : "xl:grid-cols-4"}`}>
+      <div
+        className={`order-2 grid grid-cols-2 gap-3 sm:gap-4 lg:order-none [&>*:last-child:nth-child(odd)]:col-span-2 xl:[&>*:last-child:nth-child(odd)]:col-span-1 ${rating ? "xl:grid-cols-5" : "xl:grid-cols-4"}`}
+      >
         <StatCard
           icon={DASH_ICONS.calendar}
           tone="indigo"
@@ -183,7 +187,7 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
         )}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="order-1 grid gap-6 lg:order-none lg:grid-cols-3">
         {/* Agenda du jour. */}
         <section aria-labelledby="rdv-du-jour" className={`${panel} min-w-0 lg:col-span-2`}>
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -192,13 +196,13 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
               className="flex items-center gap-3 font-display text-[1.2rem] font-semibold text-night"
             >
               {t("title")}
-              <span className="rounded-full bg-accent-soft px-2.5 py-0.5 font-sans text-[0.78rem] font-medium text-accent-strong">
+              <span className="rounded-full bg-accent-soft px-2.5 py-0.5 font-sans text-sm font-medium text-accent-strong">
                 {t("count", { count: summary.count })}
               </span>
             </h2>
             <Link
               href={`${page.base}/agenda`}
-              className="inline-flex min-h-10 items-center gap-1.5 rounded-xl px-2 text-[0.88rem] font-medium text-accent hover:bg-accent-soft"
+              className="inline-flex min-h-10 items-center gap-1.5 rounded-xl px-2 text-[0.9375rem] font-medium text-accent hover:bg-accent-soft"
             >
               {t("openAgenda")}
               <DashIcon d={DASH_ICONS.arrow} className="h-4 w-4" />
@@ -214,7 +218,7 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
               </div>
               {upcoming.length > 0 && (
                 <div className="space-y-3">
-                  <h3 className="text-[0.8rem] font-medium uppercase tracking-[0.08em] text-ink-soft">
+                  <h3 className="text-sm font-medium uppercase tracking-[0.08em] text-ink-soft">
                     {t("upcoming")}
                   </h3>
                   <DayTimeline
@@ -246,7 +250,7 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
             <h2 id="ca-semaine" className="font-display text-[1.1rem] font-semibold text-night">
               {t("revenueTitle")}
             </h2>
-            <p className="text-[0.8rem] text-ink-soft">{t("last7")}</p>
+            <p className="text-sm text-ink-soft">{t("last7")}</p>
             <p className="mt-3 flex flex-wrap items-baseline gap-2">
               <span className="font-display text-[1.9rem] font-semibold leading-none tracking-[-0.02em] text-night tabular-nums">
                 {page.fmt.money(stats.weekCents)}
@@ -271,9 +275,9 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
             <h2 id="prestations-mois" className="font-display text-[1.1rem] font-semibold text-night">
               {t("servicesTitle")}
             </h2>
-            <p className="text-[0.8rem] text-ink-soft">{t("thisMonth")}</p>
+            <p className="text-sm text-ink-soft">{t("thisMonth")}</p>
             {servicesTotal === 0 ? (
-              <p className="mt-4 text-[0.9rem] text-ink-soft">{t("noData")}</p>
+              <p className="mt-4 text-[0.9375rem] text-ink-soft">{t("noData")}</p>
             ) : (
               <Donut
                 items={month.topServices.map(([label, value]) => ({ label, value }))}
@@ -288,7 +292,7 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
             <h2 id="canal-mois" className="font-display text-[1.1rem] font-semibold text-night">
               {t("channelTitle")}
             </h2>
-            <p className="text-[0.8rem] text-ink-soft">{t("thisMonth")}</p>
+            <p className="text-sm text-ink-soft">{t("thisMonth")}</p>
             <SplitBar
               left={{ label: t("online"), value: month.online }}
               right={{ label: t("salon"), value: month.manual }}

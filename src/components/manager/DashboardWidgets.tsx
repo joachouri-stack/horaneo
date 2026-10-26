@@ -44,7 +44,7 @@ export function Trend({ value, label }: { value: number | null; label: string })
   const up = value >= 0;
   return (
     <span
-      className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[0.75rem] font-medium tabular-nums ${
+      className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[0.8125rem] font-medium tabular-nums ${
         up ? "bg-[#e7f6ee] text-[#1e7a4c]" : "bg-[#fdecea] text-[#b4372a]"
       }`}
     >
@@ -86,14 +86,14 @@ export function StatCard({
         <DashIcon d={icon} className="h-[22px] w-[22px]" />
       </span>
       <div className="min-w-0">
-        <p className="truncate text-[0.85rem] text-ink-soft">{label}</p>
+        <p className="truncate text-sm text-ink-soft">{label}</p>
         <p className="mt-0.5 flex flex-wrap items-baseline gap-x-2 gap-y-1">
           <span className="font-display text-[1.35rem] font-semibold leading-none tracking-[-0.02em] text-night tabular-nums sm:text-[1.6rem]">
             {value}
           </span>
           {trend}
         </p>
-        {sub && <p className="mt-1.5 line-clamp-2 text-[0.8rem] leading-snug text-ink-soft">{sub}</p>}
+        {sub && <p className="mt-1.5 line-clamp-2 text-sm leading-snug text-ink-soft">{sub}</p>}
       </div>
     </div>
   );
@@ -115,7 +115,7 @@ export function RevenueBars({
           </span>
           <span
             aria-hidden="true"
-            className="pointer-events-none whitespace-nowrap rounded-md bg-night px-1.5 py-0.5 text-[0.7rem] text-white opacity-0 transition group-hover:opacity-100"
+            className="pointer-events-none whitespace-nowrap rounded-md bg-night px-1.5 py-0.5 text-[0.8125rem] text-white opacity-0 transition group-hover:opacity-100"
           >
             {day.value}
           </span>
@@ -128,7 +128,7 @@ export function RevenueBars({
           />
           <span
             aria-hidden="true"
-            className={`text-[0.72rem] first-letter:uppercase ${day.today ? "font-medium text-accent" : "text-ink-soft"}`}
+            className={`text-[0.8125rem] first-letter:uppercase ${day.today ? "font-medium text-accent" : "text-ink-soft"}`}
           >
             {day.label}
           </span>
@@ -178,10 +178,10 @@ export function Donut({
           <span className="font-display text-[1.7rem] font-semibold leading-none text-night tabular-nums">
             {total}
           </span>
-          <span className="mt-1 text-[0.72rem] text-ink-soft">{centerLabel}</span>
+          <span className="mt-1 text-[0.8125rem] text-ink-soft">{centerLabel}</span>
         </span>
       </div>
-      <ul className="w-full min-w-0 space-y-2 text-[0.85rem]">
+      <ul className="w-full min-w-0 space-y-2 text-sm">
         {items.map((item, index) => (
           <li key={item.label} className="flex items-center gap-2.5">
             <span
@@ -215,7 +215,7 @@ export function SplitBar({
       <div className="flex h-3 overflow-hidden rounded-full bg-[#eef1f6]" aria-hidden="true">
         <span className="h-full rounded-full bg-accent" style={{ width: `${share}%` }} />
       </div>
-      <dl className="grid grid-cols-2 gap-3 text-[0.85rem]">
+      <dl className="grid grid-cols-2 gap-3 text-sm">
         <div>
           <dt className="flex items-center gap-2 text-ink-soft">
             <span aria-hidden="true" className="size-2.5 rounded-full bg-accent" />

@@ -213,13 +213,17 @@ export default async function AppointmentPage({
 
       {item.status === "confirmed" && (
         <details className={ui.card}>
-          <summary className="cursor-pointer text-lg font-semibold text-night">
+          {/* Toute la carte se touche pour l'ouvrir. */}
+          <summary className="-m-5 flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 p-5 text-lg font-semibold sm:-m-6 sm:p-6 [&::-webkit-details-marker]:hidden text-night">
             {t("appointment.move")}
+            <span aria-hidden="true" className="text-ink-soft">
+              ▾
+            </span>
           </summary>
           <ActionForm
             action={moveAppointmentAction}
             submitLabel={t("appointment.move")}
-            className="mt-4 space-y-4"
+            className="mt-8 space-y-4"
           >
             <Hidden values={hidden} />
             <div className="grid grid-cols-2 gap-3">
@@ -257,15 +261,18 @@ export default async function AppointmentPage({
 
       {active && (
         <details className={ui.card}>
-          <summary className="cursor-pointer text-lg font-semibold text-[#b4372a]">
+          <summary className="-m-5 flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 p-5 text-lg font-semibold sm:-m-6 sm:p-6 [&::-webkit-details-marker]:hidden text-[#b4372a]">
             {t("appointment.cancel")}
+            <span aria-hidden="true" className="text-ink-soft">
+              ▾
+            </span>
           </summary>
           <ActionForm
             action={cancelAppointmentAction}
             submitLabel={t("appointment.cancel")}
             variant="secondary"
             confirm={t("appointment.cancelConfirm")}
-            className="mt-4 space-y-4"
+            className="mt-8 space-y-4"
           >
             <Hidden values={hidden} />
             <TextField name="reason" label={t("appointment.cancelReason")} />
