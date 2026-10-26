@@ -670,7 +670,7 @@
         },
         "automation": {
           "title": "Automatisations",
-          "text": "Rappels, demandes d'avis et résumés partent tout seuls. Des campagnes automatisées arrivent bientôt."
+          "text": "Rappels, demandes d'avis et résumés partent tout seuls, ainsi que des campagnes marketing automatisées selon votre pack."
         },
         "assistant": {
           "title": "Assistant IA",
@@ -736,7 +736,7 @@
         },
         "commitment": {
           "q": "Y a-t-il un engagement ?",
-          "a": "{months, plural, =0 {Non, les packs payants sont sans engagement.} other {Vous choisissez : sans engagement, résiliable chaque mois, ou avec un engagement de # mois. L'offre tablette du pack Business est réservée à la formule avec engagement.}}"
+          "a": "{months, plural, =0 {Non, les packs payants sont sans engagement.} other {Vous choisissez : sans engagement, résiliable chaque mois, ou avec un engagement de # mois.{tablet, select, yes { L'offre tablette est réservée à la formule avec engagement.} other {}}}}"
         },
         "prices": {
           "q": "Les prix sont-ils HT ou TTC ?",
