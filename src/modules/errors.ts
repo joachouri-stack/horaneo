@@ -56,6 +56,8 @@ export type AppErrorCode =
   | "services_mixed"
   | "manager_already_linked"
   | "primary_business_only"
+  | "site_content_primary_only"
+  | "session_expired"
   | "promo_not_combinable"
   | "gift_card_not_found"
   | "gift_card_expired"

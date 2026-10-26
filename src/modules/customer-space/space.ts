@@ -18,6 +18,7 @@ import {
 import { pickLocalized, type Locale } from "@/i18n/locales";
 import { assignManageToken, manageTokenFor } from "@/modules/booking/create";
 import { addMinutes } from "@/modules/booking/time";
+import { anonymizeCustomer } from "@/modules/customers/customers";
 import { AppError } from "@/modules/errors";
 import { giftCardCodeFor } from "@/modules/giftcards/giftcards";
 import { customerLoyalty } from "@/modules/loyalty/loyalty";
@@ -315,12 +316,17 @@ export async function listDataRequests(tx: Transaction, tenantId: string) {
     .limit(200);
 }
 
+/**
+ * Clôt une demande de données. Une demande de suppression marquée « traitée »
+ * efface aussitôt les données de la cliente (`erasedName` : nom affiché à la place).
+ */
 export async function resolveDataRequest(
   tx: Transaction,
   tenantId: string,
   requestId: string,
   status: "done" | "rejected",
   userId: string | null,
+  erasedName: string,
   now = new Date(),
 ) {
   const [updated] = await tx
@@ -335,5 +341,8 @@ export async function resolveDataRequest(
     )
     .returning();
   if (!updated) throw new AppError("not_found");
+  if (status === "done" && updated.kind === "deletion") {
+    await anonymizeCustomer(tx, tenantId, updated.customerId, erasedName, now);
+  }
   return updated;
 }

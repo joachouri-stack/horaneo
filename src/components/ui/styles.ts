@@ -6,7 +6,7 @@
  */
 export const ui = {
   primaryButton:
-    "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent px-6 py-3 text-base font-medium text-white shadow-[inset_0_1px_0_rgba(255,255,255,.2),0_12px_26px_-16px_var(--color-accent)] transition hover:bg-accent-strong disabled:opacity-60 disabled:shadow-none",
+    "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent px-6 py-3 text-base font-medium text-white shadow-[0_1px_2px_rgba(15,24,48,.08)] transition hover:bg-accent-strong disabled:opacity-60 disabled:shadow-none",
   secondaryButton:
     "inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-hairline bg-white px-6 py-3 text-base font-medium text-night transition hover:border-accent-line hover:text-accent disabled:opacity-60",
   input:

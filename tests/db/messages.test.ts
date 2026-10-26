@@ -332,7 +332,7 @@ describe.skipIf(!hasTestDatabase)("messages automatiques", () => {
       expect(fake.pushes).toHaveLength(1);
       expect(fake.pushes[0]).toMatchObject({
         title: `Belle Époque ${n}`,
-        body: "Annulation : Camille, mardi 6 octobre à 10:00",
+        body: "Annulation : Camille, mardi 6 octobre à 10:00",
         tag: first.appointmentId,
       });
       expect(fake.pushes[0].url).toContain(`/espace/${s.id}/rendez-vous/${first.appointmentId}`);

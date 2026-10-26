@@ -144,7 +144,7 @@ export default async function NotificationsPage({
                   {detail && (
                     <span className="block text-sm first-letter:uppercase text-ink/80">{detail}</span>
                   )}
-                  <span className="mt-0.5 block text-xs text-ink/60">
+                  <span className="mt-0.5 block text-[0.8125rem] text-ink/60">
                     {t("receivedAt", { date: received(item.at) })}
                   </span>
                 </span>

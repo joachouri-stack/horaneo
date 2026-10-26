@@ -58,7 +58,10 @@ export default async function ManagerLayout({
 
   return (
     <>
-      <AppHeader />
+      {/* Sur téléphone, pas de bandeau du logo : plus de place, et « Se déconnecter » passe dans « Plus ». */}
+      <div className="hidden lg:block">
+        <AppHeader />
+      </div>
       {role === "admin" && (
         <div role="status" className="bg-navy px-4 py-2 text-center text-sm text-white">
           {t("impersonating", { name: multiBusiness ? `${tenant.name} · ${business.name}` : tenant.name })}{" "}

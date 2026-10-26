@@ -1,5 +1,5 @@
 import { assertQuota } from "@/modules/quotas";
-import { and, asc, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, isNull, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { CUSTOMER_SEGMENTS } from "@/config/customers";
 import type { Transaction } from "@/db/client";
@@ -30,6 +30,8 @@ export async function searchCustomers(tx: Transaction, tenantId: string, query: 
     .where(
       and(
         eq(customers.tenantId, tenantId),
+        // Fiches effacées à la demande de la cliente : plus proposées.
+        isNull(customers.anonymizedAt),
         q
           ? or(
               ilike(customers.firstName, pattern),
@@ -99,6 +101,21 @@ export async function customerDirectory(
   const digits = q.replace(/\D/g, "").replace(/^0+/, "");
   const segment = input.segment ?? "all";
 
+  const where = and(
+    eq(customers.tenantId, tenantId),
+    isNull(customers.anonymizedAt),
+    segment === "all" ? undefined : segments[segment],
+    q
+      ? or(
+          ilike(customers.firstName, pattern),
+          ilike(customers.lastName, pattern),
+          ilike(customers.email, pattern),
+          sql`${customers.firstName} || ' ' || coalesce(${customers.lastName}, '') ilike ${pattern}`,
+          digits.length >= 3 ? ilike(customers.phone, `%${digits.slice(-9)}%`) : undefined,
+        )
+      : undefined,
+  );
+
   // Requêtes l'une après l'autre : elles partagent la connexion de la transaction.
   const rows = await tx
     .select({
@@ -117,23 +134,15 @@ export async function customerDirectory(
     })
     .from(customers)
     .leftJoin(stats, eq(stats.customerId, customers.id))
-    .where(
-      and(
-        eq(customers.tenantId, tenantId),
-        segment === "all" ? undefined : segments[segment],
-        q
-          ? or(
-              ilike(customers.firstName, pattern),
-              ilike(customers.lastName, pattern),
-              ilike(customers.email, pattern),
-              sql`${customers.firstName} || ' ' || coalesce(${customers.lastName}, '') ilike ${pattern}`,
-              digits.length >= 3 ? ilike(customers.phone, `%${digits.slice(-9)}%`) : undefined,
-            )
-          : undefined,
-      ),
-    )
+    .where(where)
     .orderBy(asc(customers.firstName), asc(customers.lastName))
     .limit(input.limit ?? 200);
+  // Nombre de fiches correspondant au filtre : la liste dit quand elle n'affiche pas tout.
+  const [{ matching }] = await tx
+    .select({ matching: sql<number>`count(*)` })
+    .from(customers)
+    .leftJoin(stats, eq(stats.customerId, customers.id))
+    .where(where);
   const [counts] = await tx
     .select({
       all: sql<number>`count(*)`,
@@ -144,9 +153,10 @@ export async function customerDirectory(
     })
     .from(customers)
     .leftJoin(stats, eq(stats.customerId, customers.id))
-    .where(eq(customers.tenantId, tenantId));
+    .where(and(eq(customers.tenantId, tenantId), isNull(customers.anonymizedAt)));
 
   return {
+    matching: Number(matching),
     customers: rows.map((row) => ({
       ...row,
       visits: Number(row.visits),
@@ -184,6 +194,17 @@ export async function getCustomer(tx: Transaction, tenantId: string, customerId:
     .where(and(eq(appointments.customerId, customer.id), sql`${appointments.status} <> 'expired'`))
     .orderBy(desc(appointments.startsAt))
     .limit(100);
+  // Totaux sur tout l'historique, avec la même règle que la liste des clientes :
+  // une visite est un rendez-vous passé, confirmé ou marqué « venue ».
+  const past = sql`${appointments.status} in ('confirmed','attended') and ${appointments.startsAt} <= now()`;
+  const [totals] = await tx
+    .select({
+      visits: sql<number>`count(*) filter (where ${past})`,
+      noShows: sql<number>`count(*) filter (where ${appointments.status} = 'no_show')`,
+      spentCents: sql<number>`coalesce(sum(${appointments.totalCents}) filter (where ${past}), 0)`,
+    })
+    .from(appointments)
+    .where(eq(appointments.customerId, customer.id));
   const items = history.length
     ? await tx
         .select({ appointmentId: appointmentItems.appointmentId, name: appointmentItems.serviceName })
@@ -200,13 +221,42 @@ export async function getCustomer(tx: Transaction, tenantId: string, customerId:
         .map((item) => pickLocalized(item.name, locale)),
     })),
     stats: {
-      visits: history.filter((row) => row.status === "attended").length,
-      noShows: history.filter((row) => row.status === "no_show").length,
-      spentCents: history
-        .filter((row) => row.status === "attended")
-        .reduce((sum, row) => sum + row.totalCents, 0),
+      visits: Number(totals.visits),
+      noShows: Number(totals.noShows),
+      spentCents: Number(totals.spentCents),
     },
   };
+}
+
+/**
+ * Efface les données d'une cliente à sa demande : nom remplacé par `erasedName`
+ * (texte traduit, ex. « Cliente effacée »), coordonnées, notes et accords retirés.
+ * La fiche reste pour l'historique des rendez-vous et la comptabilité.
+ */
+export async function anonymizeCustomer(
+  tx: Transaction,
+  tenantId: string,
+  customerId: string,
+  erasedName: string,
+  now = new Date(),
+) {
+  const [updated] = await tx
+    .update(customers)
+    .set({
+      firstName: erasedName,
+      lastName: null,
+      email: null,
+      phone: null,
+      notes: null,
+      emailConsent: false,
+      smsConsent: false,
+      consentAt: null,
+      anonymizedAt: now,
+    })
+    .where(and(eq(customers.id, customerId), eq(customers.tenantId, tenantId)))
+    .returning();
+  if (!updated) throw new AppError("not_found");
+  return updated;
 }
 
 export const customerInput = z.object({

@@ -1,3 +1,5 @@
+import { ui } from "@/components/ui/styles";
+import { SignOutButton } from "@/components/auth/SignOutButton";
 import { getTranslations } from "next-intl/server";
 import { DASH_ICONS, DashIcon, panel } from "@/components/manager/DashboardWidgets";
 import { Link } from "@/i18n/navigation";
@@ -115,7 +117,7 @@ export default async function MorePage({ params }: PageProps<"/[locale]/espace/[
           <section key={group.key} aria-labelledby={`more-${group.key}`}>
             <h2
               id={`more-${group.key}`}
-              className="mb-3 text-[0.78rem] font-medium tracking-[0.08em] text-ink-soft uppercase"
+              className="mb-3 text-sm font-medium tracking-[0.08em] text-ink-soft uppercase"
             >
               {t(`groups.${group.key}`)}
             </h2>
@@ -153,13 +155,13 @@ export default async function MorePage({ params }: PageProps<"/[locale]/espace/[
                       </span>
                       <span className="min-w-0">
                         <span className="block font-medium leading-snug text-night">{t(item.key)}</span>
-                        <span className="mt-1 line-clamp-2 block text-[0.82rem] leading-snug text-ink-soft">
+                        <span className="mt-1 line-clamp-2 block text-sm leading-snug text-ink-soft">
                           {t(`desc.${item.key}`)}
                         </span>
                       </span>
                       {count !== null && (
                         <span
-                          className={`mt-auto w-fit rounded-full px-2.5 py-0.5 text-[0.75rem] font-medium tabular-nums ${
+                          className={`mt-auto w-fit rounded-full px-2.5 py-0.5 text-[0.8125rem] font-medium tabular-nums ${
                             urgent
                               ? "bg-[#fdf3e2] text-[#a8661b]"
                               : count > 0
@@ -177,6 +179,10 @@ export default async function MorePage({ params }: PageProps<"/[locale]/espace/[
             </ul>
           </section>
         ))}
+      {/* Déconnexion : ici sur téléphone (le bandeau du haut n'est affiché que sur ordinateur). */}
+      <div className="lg:hidden">
+        <SignOutButton className={ui.secondaryButton} />
+      </div>
     </div>
   );
 }

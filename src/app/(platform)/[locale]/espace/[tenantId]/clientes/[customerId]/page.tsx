@@ -70,7 +70,7 @@ export default async function CustomerPage({
             <dd className="font-display text-lg font-semibold whitespace-nowrap text-night tabular-nums min-[400px]:text-xl">
               {stat.value}
             </dd>
-            <dt className="text-xs text-ink/70">{stat.label}</dt>
+            <dt className="text-[0.8125rem] text-ink/70">{stat.label}</dt>
           </div>
         ))}
       </dl>
@@ -163,13 +163,6 @@ export default async function CustomerPage({
       <Link href={`${page.base}/rendez-vous/nouveau?cliente=${customer.id}`} className={ui.primaryButton}>
         + {t("book")}
       </Link>
-      <section className={ui.card}>
-        <h2 className="mb-4 text-lg font-semibold">{t("contact")}</h2>
-        <ActionForm action={saveCustomerAction} submitLabel={tCommon("save")}>
-          <Hidden values={{ tenantId: page.tenantId, id: customer.id }} />
-          <CustomerFields customer={customer} />
-        </ActionForm>
-      </section>
       <section aria-labelledby="historique" className="space-y-2">
         <h2 id="historique" className="text-lg font-semibold">
           {t("history")}
@@ -200,6 +193,21 @@ export default async function CustomerPage({
           </ul>
         )}
       </section>
+      {/* Coordonnées : repliées, l'historique passe avant (consulté bien plus souvent). */}
+      <details className={`${ui.card} group`}>
+        <summary className="-m-5 flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 p-5 text-lg font-semibold sm:-m-6 sm:p-6 [&::-webkit-details-marker]:hidden">
+          {t("contact")}
+          <span aria-hidden="true" className="text-ink-soft transition group-open:rotate-180">
+            ▾
+          </span>
+        </summary>
+        <div className="mt-8">
+          <ActionForm action={saveCustomerAction} submitLabel={tCommon("save")}>
+            <Hidden values={{ tenantId: page.tenantId, id: customer.id }} />
+            <CustomerFields customer={customer} />
+          </ActionForm>
+        </div>
+      </details>
     </div>
   );
 }

@@ -203,7 +203,7 @@ export default async function StatsPage({
         <section className={`${panel} bg-gradient-to-br from-white to-accent-soft/60`}>
           <h2 className="font-display text-[1.2rem] font-semibold text-night">{t("upgradeTitle")}</h2>
           <p className="mt-2 text-ink-soft">{t("upgradeText")}</p>
-          <p className="mt-3 text-[0.9rem] text-night">
+          <p className="mt-3 text-[0.9375rem] text-night">
             {t("detailed", {
               plan: (await page.db((tx) => firstPlanWith(tx, "stats", page.locale))) ?? "none",
             })}
@@ -218,7 +218,7 @@ export default async function StatsPage({
                 <h2 id="objectifs" className="font-display text-[1.2rem] font-semibold text-night">
                   {t("goals.title")}
                 </h2>
-                <p className="text-[0.85rem] text-ink-soft">{t("goals.intro")}</p>
+                <p className="text-sm text-ink-soft">{t("goals.intro")}</p>
               </div>
             </div>
             {goalRings.length > 0 ? (
@@ -274,7 +274,7 @@ export default async function StatsPage({
                     defaultValue={goals.newCustomers ?? ""}
                   />
                 </div>
-                <p className="text-[0.82rem] text-ink-soft">{t("goals.hint")}</p>
+                <p className="text-sm text-ink-soft">{t("goals.hint")}</p>
               </ActionForm>
             </details>
           </section>
