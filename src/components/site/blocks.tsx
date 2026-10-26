@@ -65,17 +65,30 @@ export async function TestimonialList({ site, limit }: { site: Site; limit?: num
     <ul className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {items.map((item) => (
         <li key={item.id}>
-          <figure className="h-full rounded-site bg-site-panel p-6">
-            {item.rating && (
-              <p className="text-site-accent" aria-label={t("rating", { rating: item.rating })}>
-                <span aria-hidden="true">
-                  {"★".repeat(item.rating)}
-                  {"☆".repeat(5 - item.rating)}
-                </span>
-              </p>
-            )}
-            <blockquote className="mt-2 whitespace-pre-line text-site-text">« {item.text} »</blockquote>
-            <figcaption className="mt-3 font-semibold text-site-muted">{item.authorName}</figcaption>
+          <figure className="flex h-full flex-col rounded-[1.5rem] bg-site-panel p-6">
+            <span aria-hidden="true" className="font-site-display text-5xl leading-none text-site-accent">
+              “
+            </span>
+            <blockquote className="mt-1 flex-1 whitespace-pre-line text-site-text">{item.text}</blockquote>
+            <figcaption className="mt-5 flex items-center gap-3">
+              <span
+                aria-hidden="true"
+                className="flex size-10 shrink-0 items-center justify-center rounded-full bg-site-accent text-sm font-semibold text-site-on-button"
+              >
+                {item.authorName.trim().charAt(0).toUpperCase()}
+              </span>
+              <span>
+                <span className="block font-semibold text-site-text">{item.authorName}</span>
+                {item.rating && (
+                  <span className="text-site-accent" aria-label={t("rating", { rating: item.rating })}>
+                    <span aria-hidden="true">
+                      {"★".repeat(item.rating)}
+                      {"☆".repeat(5 - item.rating)}
+                    </span>
+                  </span>
+                )}
+              </span>
+            </figcaption>
           </figure>
         </li>
       ))}

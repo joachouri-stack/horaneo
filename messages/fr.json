@@ -898,7 +898,14 @@
     "home": {
       "discover": "Découvrir nos prestations",
       "featured": "Nos prestations",
-      "testimonialsTitle": "Ils nous font confiance"
+      "testimonialsTitle": "Ils nous font confiance",
+      "openNow": "Ouvert · ferme à {time}",
+      "opensToday": "Fermé · ouvre à {time}",
+      "opensTomorrow": "Fermé · ouvre demain à {time}",
+      "opensOn": "Fermé · ouvre {day} à {time}",
+      "onlineBooking": "Réservation en ligne 24 h/24",
+      "popular": "Populaire",
+      "teamTitle": "L'équipe"
     },
     "previewBanner": "Aperçu : ce site n'est pas encore en ligne. Aperçu privé, invisible du public.",
     "nav": {
