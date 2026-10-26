@@ -111,6 +111,10 @@ export const updateRequests = pgTable(
     tenantId: uuid()
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
+    /** Entreprise qui a envoyé la demande : seule elle la voit (site à plusieurs entreprises). */
+    businessId: uuid()
+      .notNull()
+      .default(sql`app_current_business()`),
     createdByUserId: uuid().references(() => users.id, { onDelete: "set null" }),
     subject: text().notNull(),
     message: text().notNull(),
@@ -122,7 +126,10 @@ export const updateRequests = pgTable(
     resolvedAt: utc(),
     ...timestamps(),
   },
-  (t) => [index("update_requests_tenant_created_idx").on(t.tenantId, t.createdAt)],
+  (t) => [
+    businessForeignKey("update_requests_business_fk", t, "cascade"),
+    index("update_requests_tenant_created_idx").on(t.tenantId, t.createdAt),
+  ],
 );
 
 /**

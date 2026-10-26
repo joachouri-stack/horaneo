@@ -242,10 +242,18 @@ export async function businessOfServices(tx: Transaction, tenantId: string, serv
   return rows[0].businessId;
 }
 
-/** Abonnement du site : géré seulement par l'entreprise principale (celle qui le règle). */
-export async function assertPrimaryBusiness(tx: Transaction, tenantId: string, businessId: string) {
+/**
+ * Réservé à l'entreprise principale du site : l'abonnement, et ce qui est
+ * commun au site (photos, avis). `code` précise le message affiché.
+ */
+export async function assertPrimaryBusiness(
+  tx: Transaction,
+  tenantId: string,
+  businessId: string,
+  code: "primary_business_only" | "site_content_primary_only" = "primary_business_only",
+) {
   const business = await getBusiness(tx, tenantId, businessId);
-  if (!business.isPrimary) throw new AppError("primary_business_only");
+  if (!business.isPrimary) throw new AppError(code);
 }
 
 const BUSINESS_SLUG = /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/;

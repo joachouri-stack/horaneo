@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { and, asc, desc, eq, gt } from "drizzle-orm";
+import { and, asc, desc, eq, gt, ne } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
 import { assets, tenants } from "@/db/schema";
 import { ImageError, processImage, type ImageKind } from "@/lib/images/process";
@@ -95,6 +95,18 @@ export async function retireAsset(
   return updated;
 }
 
+/**
+ * Photo du site modifiable par la gérante : jamais le logo du site, qui se
+ * change par une demande à l'administratrice.
+ */
+export async function assertSitePhoto(tx: Transaction, tenantId: string, assetId: string) {
+  const [asset] = await tx
+    .select({ kind: assets.kind })
+    .from(assets)
+    .where(and(eq(assets.id, assetId), eq(assets.tenantId, tenantId)));
+  if (!asset || asset.kind === "logo") throw new AppError("not_found");
+}
+
 /** Remet en place une photo mise de côté, dans la limite du pack. */
 export async function restoreAsset(tx: Transaction, tenantId: string, assetId: string) {
   const [asset] = await tx
@@ -120,21 +132,35 @@ export async function restoreAsset(tx: Transaction, tenantId: string, assetId: s
   return restored;
 }
 
-export async function listActiveAssets(tx: Transaction, tenantId: string) {
-  return tx
-    .select()
-    .from(assets)
-    .where(and(eq(assets.tenantId, tenantId), eq(assets.status, "active")))
-    .orderBy(asc(assets.sortOrder), asc(assets.createdAt));
-}
+/** Options des listes : `photosOnly` écarte le logo du site (géré par l'administratrice). */
+type ListOptions = { photosOnly?: boolean };
 
-/** Photos mises de côté encore récupérables. */
-export async function listRetiredAssets(tx: Transaction, tenantId: string) {
+export async function listActiveAssets(tx: Transaction, tenantId: string, options: ListOptions = {}) {
   return tx
     .select()
     .from(assets)
     .where(
-      and(eq(assets.tenantId, tenantId), eq(assets.status, "replaced"), gt(assets.purgeAfter, new Date())),
+      and(
+        eq(assets.tenantId, tenantId),
+        eq(assets.status, "active"),
+        options.photosOnly ? ne(assets.kind, "logo") : undefined,
+      ),
+    )
+    .orderBy(asc(assets.sortOrder), asc(assets.createdAt));
+}
+
+/** Photos mises de côté encore récupérables. */
+export async function listRetiredAssets(tx: Transaction, tenantId: string, options: ListOptions = {}) {
+  return tx
+    .select()
+    .from(assets)
+    .where(
+      and(
+        eq(assets.tenantId, tenantId),
+        eq(assets.status, "replaced"),
+        gt(assets.purgeAfter, new Date()),
+        options.photosOnly ? ne(assets.kind, "logo") : undefined,
+      ),
     )
     .orderBy(desc(assets.updatedAt));
 }

@@ -12,6 +12,10 @@ import {
 } from "@/modules/customers/customers";
 import { formatPhone } from "@/modules/phone";
 
+/** Fiches affichées d'abord, puis ajoutées à chaque « Afficher plus » (plafond pour le téléphone). */
+const PAGE_SIZE = 200;
+const MAX_SHOWN = 1000;
+
 /** Couleurs des pastilles d'initiales : fixes pour une même cliente. */
 const AVATAR_COLORS = [
   "bg-[#e8ebfa] text-[#3a4bb8]",
@@ -48,9 +52,21 @@ export default async function CustomersPage({
   const t = await getTranslations("manager.customers");
   const tCommon = await getTranslations("common");
   const now = new Date();
-  const { customers: list, counts } = await page.db((tx) =>
-    customerDirectory(tx, page.tenantId, { query: q, segment, now }),
-  );
+  // Liste affichée par tranches : « Afficher plus » ajoute la tranche suivante.
+  const shown = Math.min(Math.max(Number(query.n) || PAGE_SIZE, PAGE_SIZE), MAX_SHOWN);
+  const {
+    customers: list,
+    counts,
+    matching,
+  } = await page.db((tx) => customerDirectory(tx, page.tenantId, { query: q, segment, now, limit: shown }));
+
+  const moreHref = () => {
+    const search = new URLSearchParams();
+    if (segment !== "all") search.set("groupe", segment);
+    if (q) search.set("q", q);
+    search.set("n", String(shown + PAGE_SIZE));
+    return `${page.base}/clientes?${search.toString()}`;
+  };
 
   const href = (next: CustomerSegment) => {
     const search = new URLSearchParams();
@@ -262,6 +278,18 @@ export default async function CustomersPage({
               );
             })}
           </ul>
+          {matching > list.length && (
+            <div className="mt-4 space-y-2 text-center">
+              <p className="text-sm text-ink-soft">{t("partial", { shown: list.length, total: matching })}</p>
+              {shown < MAX_SHOWN ? (
+                <Link href={moreHref()} className={`${ui.secondaryButton} sm:w-auto`}>
+                  {t("showMore")}
+                </Link>
+              ) : (
+                <p className="text-sm text-ink-soft">{t("refineSearch")}</p>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

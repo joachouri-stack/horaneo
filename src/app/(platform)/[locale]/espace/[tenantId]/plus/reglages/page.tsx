@@ -69,7 +69,9 @@ export default async function SettingsPage({
             <TextField
               name="minNoticeHours"
               type="number"
-              inputMode="numeric"
+              // Délai réglé en minutes : 30 min s'affiche 0,5 h et doit rester enregistrable.
+              step="any"
+              inputMode="decimal"
               label={t("minNotice")}
               defaultValue={settings.minNoticeMinutes / 60}
               required

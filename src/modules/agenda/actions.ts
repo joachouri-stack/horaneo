@@ -66,7 +66,7 @@ export async function cancelByManager(
   reason?: string,
   payment: { refund: boolean; gateway: PaymentGateway | null } = { refund: false, gateway: null },
 ) {
-  const appointment = await loadAppointment(tx, tenantId, appointmentId);
+  const appointment = await loadAppointment(tx, tenantId, appointmentId, true);
   if (!["confirmed", "pending_payment"].includes(appointment.status))
     throw new AppError("booking_not_modifiable");
   await tx
@@ -125,7 +125,7 @@ export async function moveAppointment(
   appointmentId: string,
   target: { start: Date; staffId: string },
 ) {
-  const appointment = await loadAppointment(tx, tenantId, appointmentId);
+  const appointment = await loadAppointment(tx, tenantId, appointmentId, true);
   if (appointment.status !== "confirmed") throw new AppError("booking_not_modifiable");
   const items = await tx
     .select({ serviceId: appointmentItems.serviceId })

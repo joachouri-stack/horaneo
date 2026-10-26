@@ -53,6 +53,8 @@ export const customers = pgTable(
     emailConsent: boolean().notNull().default(false),
     smsConsent: boolean().notNull().default(false),
     consentAt: utc(),
+    /** Données effacées à sa demande : la fiche reste pour l'historique, sans coordonnées. */
+    anonymizedAt: utc(),
     ...timestamps(),
   },
   (t) => [
@@ -64,7 +66,10 @@ export const customers = pgTable(
       .where(sql`${t.email} is not null`),
     index("customers_tenant_phone_idx").on(t.tenantId, t.phone),
     check("customers_phone_e164", sql`${t.phone} is null or ${t.phone} ~ '^\\+[1-9][0-9]{6,14}$'`),
-    check("customers_contact", sql`${t.email} is not null or ${t.phone} is not null`),
+    check(
+      "customers_contact",
+      sql`${t.email} is not null or ${t.phone} is not null or ${t.anonymizedAt} is not null`,
+    ),
   ],
 );
 

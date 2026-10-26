@@ -114,7 +114,8 @@ export async function managerMutation<T>(
   fn: (tx: Transaction, context: { userId: string; role: ManagerRole; businessId: string }) => Promise<T>,
 ): Promise<ActionResult<T>> {
   const access = await currentAccess(tenantId);
-  if (!access) throw new Error("Accès refusé");
+  // Session expirée ou accès retiré : message à l'écran plutôt qu'une page d'erreur.
+  if (!access) return { ok: false, error: "session_expired" };
   const { session, role, businessId } = access;
   try {
     const data = await withTenant(
@@ -147,7 +148,8 @@ export async function managerPersonalAction<T>(
   fn: (tx: Transaction, context: { userId: string }) => Promise<T>,
 ): Promise<ActionResult<T>> {
   const access = await currentAccess(tenantId);
-  if (!access) throw new Error("Accès refusé");
+  // Session expirée ou accès retiré : message à l'écran plutôt qu'une page d'erreur.
+  if (!access) return { ok: false, error: "session_expired" };
   try {
     if (access.role === "admin") throw new AppError("personal_setting");
     return { ok: true, data: await withPlatform((tx) => fn(tx, { userId: access.session.user.id })) };

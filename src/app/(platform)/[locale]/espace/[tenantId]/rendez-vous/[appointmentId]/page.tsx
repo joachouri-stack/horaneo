@@ -242,7 +242,14 @@ export default async function AppointmentPage({
               name="staffId"
               label={t("appointment.staff")}
               defaultValue={item.staffId}
-              options={staff.map((member) => ({ value: member.id, label: member.name }))}
+              // La personne du rendez-vous reste proposée même désactivée : sans elle, le
+              // rendez-vous passerait sans le dire à la première personne de la liste.
+              options={[
+                ...(staff.some((member) => member.id === item.staffId)
+                  ? []
+                  : [{ value: item.staffId, label: item.staffName }]),
+                ...staff.map((member) => ({ value: member.id, label: member.name })),
+              ]}
             />
           </ActionForm>
         </details>

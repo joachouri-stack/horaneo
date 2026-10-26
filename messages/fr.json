@@ -2100,6 +2100,8 @@
     "services_mixed": "Ces prestations sont réalisées par deux professionnelles différentes : réservez-les séparément.",
     "manager_already_linked": "Cette personne gère déjà une entreprise de ce site.",
     "primary_business_only": "L'abonnement du site est géré par l'entreprise principale.",
+    "session_expired": "Votre session a expiré. Rechargez la page pour vous reconnecter.",
+    "site_content_primary_only": "Les photos et les avis du site se gèrent depuis l'espace de l'établissement principal.",
     "promo_not_combinable": "Ce soin est déjà en promotion : le code promo ne s'y ajoute pas.",
     "gift_card_not_found": "Ce code de carte cadeau est inconnu. Vérifiez-le, ou contactez l'établissement.",
     "gift_card_expired": "Cette carte cadeau a expiré.",
@@ -2413,7 +2415,8 @@
         "customer_cancelled": "Annulation (e-mail)",
         "customer_rescheduled": "Report (e-mail)",
         "customer_moved": "Changement d'horaire (e-mail)",
-        "customer_payment_refunded": "Remboursement (e-mail)"
+        "customer_payment_refunded": "Remboursement (e-mail)",
+        "customer_review_request": "Demande d'avis Google (e-mail)"
       }
     },
     "manual": {
@@ -2535,7 +2538,10 @@
       "visitsCount": "{count, plural, =0 {Aucune visite} one {# visite} other {# visites}}",
       "nextVisit": "Prochaine visite : {date}",
       "noNextVisit": "—",
-      "emptyFilter": "Aucune cliente dans ce groupe."
+      "emptyFilter": "Aucune cliente dans ce groupe.",
+      "partial": "{shown} fiches affichées sur {total}.",
+      "showMore": "Afficher plus",
+      "refineSearch": "Pour trouver une cliente, utilisez la recherche."
     },
     "site": {
       "title": "Mon site",
@@ -2547,7 +2553,8 @@
       "view": "Voir mon site",
       "requestTitle": "Logo, couleurs, textes de présentation",
       "requestText": "Ces éléments sont modifiés par notre équipe. Envoyez-nous votre demande.",
-      "requestCta": "Demander une modification"
+      "requestCta": "Demander une modification",
+      "sharedContent": "Les photos et les avis sont communs à tout le site : ils se gèrent depuis l'espace de l'établissement principal."
     },
     "photos": {
       "choose": "Choisir une photo",
@@ -3006,7 +3013,10 @@
       "markDone": "Marquer comme traitée",
       "markRejected": "Refuser",
       "howExport": "Pour une copie : envoyez-lui par e-mail ses coordonnées et son historique (visibles sur sa fiche).",
-      "howDeletion": "Pour une suppression : effacez ses coordonnées et notes sur sa fiche. Les rendez-vous passés restent dans votre comptabilité."
+      "howDeletion": "Pour une suppression : touchez « Effacer ses données ». Son nom, ses coordonnées et vos notes sont effacés ; ses rendez-vous passés restent dans votre comptabilité, sans son nom.",
+      "eraseData": "Effacer ses données",
+      "eraseConfirm": "Effacer définitivement le nom, les coordonnées et les notes de cette cliente ? Cette action ne peut pas être annulée.",
+      "erasedName": "Cliente effacée"
     },
     "notifications": {
       "title": "Notifications",
