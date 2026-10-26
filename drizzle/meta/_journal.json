@@ -253,6 +253,13 @@
       "when": 1792962818581,
       "tag": "0035_stats_goals",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1793017717942,
+      "tag": "0036_pro_gift_cards",
+      "breakpoints": true
     }
   ]
 }
