@@ -8,7 +8,15 @@ import { BookButton } from "./BookButton";
 import { PriceTag } from "./PriceTag";
 
 /** Une prestation : nom, durée, prix et bouton « Réserver ». */
-async function ServiceRow({ service, locale }: { service: SiteService; locale: string }) {
+async function ServiceRow({
+  service,
+  locale,
+  popular,
+}: {
+  service: SiteService;
+  locale: string;
+  popular: boolean;
+}) {
   const t = await getTranslations("site");
   const tServices = await getTranslations("site.services");
   const tOffers = await getTranslations("site.offers");
@@ -17,7 +25,14 @@ async function ServiceRow({ service, locale }: { service: SiteService; locale: s
   return (
     <li className="flex flex-col gap-3 border-b border-site-border py-4 last:border-b-0 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0">
-        <h3 className="text-lg font-semibold text-site-text">{service.name}</h3>
+        <h3 className="flex flex-wrap items-center gap-2 text-lg font-semibold text-site-text">
+          {service.name}
+          {popular && (
+            <span className="rounded-full bg-site-accent px-2 py-px text-xs font-semibold text-site-on-button">
+              {t("home.popular")}
+            </span>
+          )}
+        </h3>
         {service.description && <p className="mt-1 text-site-muted">{service.description}</p>}
         <p className="mt-1 text-site-muted">
           {formatDuration(
@@ -54,12 +69,15 @@ export async function ServiceList({
   locale,
   linkCategories = true,
   headingLevel = 2,
+  popularIds = [],
 }: {
   categories: SiteCategory[];
   uncategorized: SiteService[];
   locale: string;
   linkCategories?: boolean;
   headingLevel?: 2 | 3;
+  /** Prestations les plus réservées : étiquette « Populaire ». */
+  popularIds?: string[];
 }) {
   const t = await getTranslations("site.services");
   const Heading = headingLevel === 2 ? "h2" : "h3";
@@ -88,7 +106,12 @@ export async function ServiceList({
           {category.description && <p className="mt-2 text-site-muted">{category.description}</p>}
           <ul className="mt-2">
             {category.services.map((service) => (
-              <ServiceRow key={service.id} service={service} locale={locale} />
+              <ServiceRow
+                key={service.id}
+                service={service}
+                locale={locale}
+                popular={popularIds.includes(service.id)}
+              />
             ))}
           </ul>
         </section>
@@ -102,7 +125,12 @@ export async function ServiceList({
           )}
           <ul className="mt-2">
             {uncategorized.map((service) => (
-              <ServiceRow key={service.id} service={service} locale={locale} />
+              <ServiceRow
+                key={service.id}
+                service={service}
+                locale={locale}
+                popular={popularIds.includes(service.id)}
+              />
             ))}
           </ul>
         </section>

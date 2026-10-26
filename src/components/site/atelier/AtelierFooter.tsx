@@ -7,7 +7,7 @@ import { visibleSections } from "@/modules/site/data";
 import { addressParts, directionsUrl, formatClock, summarizeHours } from "@/modules/site/format";
 import { businessPath, SITE_PATHS } from "@/modules/site/paths";
 import { SiteImage } from "../SiteImage";
-import { AtelierBrand } from "./AtelierHeader";
+import { AtelierBrand, logoFit } from "./AtelierHeader";
 import { FacebookIcon, InstagramIcon } from "./icons";
 import { PillLink } from "./ui";
 
@@ -268,7 +268,7 @@ export async function AtelierFooter({ site }: { site: Site }) {
         {site.logo && (
           <div className="mb-6 flex justify-center px-4">
             <span className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full bg-white shadow-[0_14px_34px_rgba(0,0,0,.3)] ring-4 ring-site-bg/15 sm:h-40 sm:w-40">
-              <SiteImage image={site.logo} alt="" sizes="160px" className="h-full w-full object-cover" />
+              <SiteImage image={site.logo} alt="" sizes="160px" className={logoFit(site.logo)} />
             </span>
           </div>
         )}

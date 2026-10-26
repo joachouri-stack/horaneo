@@ -17,6 +17,43 @@ export function isoWeekdayIn(timeZone: string, now = new Date()): number {
   return ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].indexOf(name) + 1;
 }
 
+/** Heure « HH:MM » dans le fuseau de l'établissement. */
+export function localClockIn(timeZone: string, now = new Date()): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).format(now);
+}
+
+export type OpenStatus =
+  | { open: true; closesAt: string }
+  /** `inDays` : 0 aujourd'hui, 1 demain… ; `weekday` : jour de la réouverture (1 = lundi). */
+  | { open: false; opensAt: string; weekday: number; inDays: number };
+
+/** « Ouvert, ferme à 19 h » ou « Fermé, ouvre mardi à 10 h », d'après les horaires ; null sans horaires. */
+export function openStatus(
+  hours: { weekday: number; opensAt: string; closesAt: string }[],
+  timeZone: string,
+  now = new Date(),
+): OpenStatus | null {
+  const today = isoWeekdayIn(timeZone, now);
+  const clock = localClockIn(timeZone, now);
+  const ranges = (day: number) =>
+    hours.filter((range) => range.weekday === day).sort((a, b) => a.opensAt.localeCompare(b.opensAt));
+  const current = ranges(today).find((range) => range.opensAt <= clock && clock < range.closesAt);
+  if (current) return { open: true, closesAt: current.closesAt };
+  const later = ranges(today).find((range) => range.opensAt > clock);
+  if (later) return { open: false, opensAt: later.opensAt, weekday: today, inDays: 0 };
+  for (let inDays = 1; inDays <= 7; inDays += 1) {
+    const weekday = ((today - 1 + inDays) % 7) + 1;
+    const [first] = ranges(weekday);
+    if (first) return { open: false, opensAt: first.opensAt, weekday, inDays };
+  }
+  return null;
+}
+
 /** « 09:00 » → « 9 h » ou « 9:00 » selon la langue. */
 export function formatTime(time: string, locale: string): string {
   const [h, m] = time.split(":").map(Number);
