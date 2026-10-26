@@ -2,7 +2,7 @@ import { ctaLabelKey, siteCta } from "@/modules/site/cta";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { ClockIcon, PhoneIcon } from "@/components/site/atelier/icons";
+import { ClockIcon, FacebookIcon, InstagramIcon, PhoneIcon } from "@/components/site/atelier/icons";
 import { BusinessShop } from "@/components/site/atelier/BusinessShop";
 import { OpenFromHash } from "@/components/site/atelier/OpenFromHash";
 import { ServiceAccordion } from "@/components/site/atelier/ServiceAccordion";
@@ -61,6 +61,37 @@ export default async function BusinessPage({ params }: PageProps<"/sites/[tenant
         {business.role && <p className="mt-1 font-semibold text-site-accent">{business.role}</p>}
         {business.bio && (
           <p className="mt-4 whitespace-pre-line leading-relaxed text-site-muted">{business.bio}</p>
+        )}
+        {/* Ses propres réseaux sociaux (s'ils sont renseignés). */}
+        {(business.social.instagram || business.social.facebook) && (
+          <ul className="mt-5 flex gap-3">
+            {business.social.instagram && (
+              <li>
+                <a
+                  href={business.social.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={t("socialOf", { network: t("instagram"), name: business.name })}
+                  className="flex h-11 w-11 items-center justify-center rounded-full border border-site-border text-site-accent transition-colors hover:bg-site-accent hover:text-white"
+                >
+                  <InstagramIcon className="h-5 w-5" />
+                </a>
+              </li>
+            )}
+            {business.social.facebook && (
+              <li>
+                <a
+                  href={business.social.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={t("socialOf", { network: t("facebook"), name: business.name })}
+                  className="flex h-11 w-11 items-center justify-center rounded-full border border-site-border text-site-accent transition-colors hover:bg-site-accent hover:text-white"
+                >
+                  <FacebookIcon className="h-5 w-5" />
+                </a>
+              </li>
+            )}
+          </ul>
         )}
         <ul className="mt-5 space-y-2 text-sm">
           <li className="flex items-center gap-2">

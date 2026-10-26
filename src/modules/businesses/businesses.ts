@@ -13,6 +13,7 @@ import {
 } from "@/db/schema";
 import { setLocalized } from "@/modules/content/localized";
 import { slugify } from "@/modules/tenants/slug";
+import { socialInput } from "@/modules/tenants/update";
 import { AppError } from "@/modules/errors";
 import { retireAsset } from "@/modules/media/assets";
 import { normalizePhone } from "@/modules/phone";
@@ -259,6 +260,9 @@ export const businessProfileInput = z.object({
   availability: z.string().trim().max(80).optional(),
   photoAssetId: z.uuid().nullable().optional(),
   shopName: z.string().trim().max(80).optional(),
+  /** Ses propres pages Instagram et Facebook (adresses complètes). */
+  instagram: socialInput.shape.instagram,
+  facebook: socialInput.shape.facebook,
 });
 
 /**
@@ -302,6 +306,11 @@ export async function updateBusinessProfile(
     photoAssetId: input.photoAssetId !== undefined ? input.photoAssetId : (previous.photoAssetId ?? null),
     shopName: input.shopName !== undefined ? input.shopName || null : (previous.shopName ?? null),
     logoAssetId: previous.logoAssetId ?? null,
+    // Champs absents : liens inchangés ; champs vides : liens retirés.
+    social:
+      raw.instagram !== undefined || raw.facebook !== undefined
+        ? { instagram: input.instagram, facebook: input.facebook }
+        : (previous.social ?? {}),
   };
   const [updated] = await tx
     .update(businesses)
