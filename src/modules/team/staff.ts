@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { Transaction } from "@/db/client";
 import {
   appointments,
+  assets,
   openingHours,
   services,
   staffMembers,
@@ -33,10 +34,55 @@ export async function listStaff(tx: Transaction, tenantId: string) {
     .where(eq(staffMembers.tenantId, tenantId))
     .orderBy(asc(staffMembers.sortOrder), asc(staffMembers.createdAt));
   const links = await tx.select().from(staffServices).where(eq(staffServices.tenantId, tenantId));
+  const days = await tx
+    .selectDistinct({ staffId: staffSchedules.staffId, weekday: staffSchedules.weekday })
+    .from(staffSchedules)
+    .where(eq(staffSchedules.tenantId, tenantId));
+  const photoIds = members.map((member) => member.photoAssetId).filter((id) => id !== null);
+  const photos = photoIds.length
+    ? await tx
+        .select({ id: assets.id, storageKey: assets.storageKey })
+        .from(assets)
+        .where(and(eq(assets.tenantId, tenantId), eq(assets.status, "active"), inArray(assets.id, photoIds)))
+    : [];
   return members.map((member) => ({
     ...member,
     serviceIds: links.filter((link) => link.staffId === member.id).map((link) => link.serviceId),
+    /** Jours travaillés (1 = lundi), d'après ses horaires. */
+    workDays: days
+      .filter((day) => day.staffId === member.id)
+      .map((day) => day.weekday)
+      .sort((a, b) => a - b),
+    /** Photo en cours (clé de stockage), ou null. */
+    photoKey: photos.find((photo) => photo.id === member.photoAssetId)?.storageKey ?? null,
   }));
+}
+
+/** Photo d'un membre : une photo « équipe » de l'établissement, ou null pour la retirer. */
+export async function setStaffPhoto(
+  tx: Transaction,
+  tenantId: string,
+  staffId: string,
+  assetId: string | null,
+) {
+  const [member] = await tx
+    .select({ id: staffMembers.id })
+    .from(staffMembers)
+    .where(and(eq(staffMembers.id, staffId), eq(staffMembers.tenantId, tenantId)));
+  if (!member) throw new AppError("not_found");
+  if (assetId) {
+    const [asset] = await tx
+      .select({ id: assets.id })
+      .from(assets)
+      .where(and(eq(assets.id, assetId), eq(assets.tenantId, tenantId), eq(assets.kind, "staff")));
+    if (!asset) throw new AppError("not_found");
+  }
+  const [updated] = await tx
+    .update(staffMembers)
+    .set({ photoAssetId: assetId })
+    .where(eq(staffMembers.id, member.id))
+    .returning();
+  return updated;
 }
 
 async function setServices(tx: Transaction, tenantId: string, staffId: string, serviceIds: string[]) {

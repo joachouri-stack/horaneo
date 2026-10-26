@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { withPlatform, withTenant } from "@/db/access";
 import type { Transaction } from "@/db/client";
-import { appointments, authSessions, usageCounters } from "@/db/schema";
+import { appointments, assets, authSessions, usageCounters } from "@/db/schema";
 import { setPlatformAdmin } from "@/db/admin-role";
 import {
   cancelByManager,
@@ -30,7 +30,7 @@ import { getStatsGoals, updateStatsGoals } from "@/modules/stats/goals";
 import { monthDetails, monthStats } from "@/modules/stats/month";
 import { replaceStaffSchedules } from "@/modules/team/schedules";
 import { toolsOverview } from "@/modules/stats/tools";
-import { deleteStaff, saveStaff } from "@/modules/team/staff";
+import { deleteStaff, listStaff, saveStaff, setStaffPhoto } from "@/modules/team/staff";
 import { createTenant } from "@/modules/tenants/create";
 import { changePlan, changeStatus } from "@/modules/tenants/update";
 import { resolveManagerRole } from "@/lib/manager/role";
@@ -258,6 +258,42 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
         listAgenda(tx, s.id, { from: range.start, to: range.end, locale: "fr" }),
       );
       expect(agenda.map((item) => item.staffName)).toEqual(["Léa"]);
+    });
+
+    it("photo d'un membre (photo « équipe » de l'établissement) et jours travaillés", async () => {
+      const s = await setup();
+      const photo = async (tenantId: string, kind: "staff" | "gallery") =>
+        (
+          await owner
+            .insert(assets)
+            .values({
+              tenantId,
+              kind,
+              storageKey: `t/${tenantId}/${kind}.webp`,
+              mimeType: "image/webp",
+              bytes: 1,
+            })
+            .returning()
+        )[0];
+      const staffPhoto = await photo(s.id, "staff");
+      await asManager(s.id, (tx) => setStaffPhoto(tx, s.id, s.lea.id, staffPhoto.id));
+      let lea = (await asManager(s.id, (tx) => listStaff(tx, s.id))).find((m) => m.id === s.lea.id)!;
+      expect(lea.photoKey).toBe(staffPhoto.storageKey);
+      // Les horaires d'ouverture servent d'horaires par défaut.
+      expect(lea.workDays.length).toBeGreaterThan(0);
+      // Une photo de galerie, ou celle d'un autre établissement, est refusée.
+      const gallery = await photo(s.id, "gallery");
+      expect(await errorCode(asManager(s.id, (tx) => setStaffPhoto(tx, s.id, s.lea.id, gallery.id)))).toBe(
+        "not_found",
+      );
+      const other = await setup();
+      const foreign = await photo(other.id, "staff");
+      expect(await errorCode(asManager(s.id, (tx) => setStaffPhoto(tx, s.id, s.lea.id, foreign.id)))).toBe(
+        "not_found",
+      );
+      await asManager(s.id, (tx) => setStaffPhoto(tx, s.id, s.lea.id, null));
+      lea = (await asManager(s.id, (tx) => listStaff(tx, s.id))).find((m) => m.id === s.lea.id)!;
+      expect(lea.photoKey).toBeNull();
     });
   });
 
