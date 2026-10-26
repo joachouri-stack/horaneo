@@ -1,8 +1,11 @@
 import { tenantFeatures } from "@/modules/billing/entitlements";
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, sql } from "drizzle-orm";
+import { POPULAR_SERVICES } from "@/config/site";
 import { planAllowsBooking } from "@/modules/billing/features";
 import type { Transaction } from "@/db/client";
 import {
+  appointmentItems,
+  appointments,
   assets,
   businesses,
   businessSettings,
@@ -96,6 +99,7 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
     domainRows,
     reviewRows,
     settingsRows,
+    popularRows,
   ] = await Promise.all([
     tx
       .select()
@@ -147,6 +151,21 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
       })
       .from(businessSettings)
       .where(eq(businessSettings.tenantId, tenantId)),
+    // Prestations les plus réservées ces derniers temps (étiquette « Populaire »).
+    tx
+      .select({ serviceId: appointmentItems.serviceId, count: sql<number>`count(*)`.mapWith(Number) })
+      .from(appointmentItems)
+      .innerJoin(appointments, eq(appointments.id, appointmentItems.appointmentId))
+      .where(
+        and(
+          eq(appointmentItems.tenantId, tenantId),
+          inArray(appointments.status, ["confirmed", "attended"]),
+          gte(appointments.startsAt, new Date(Date.now() - POPULAR_SERVICES.days * 86_400_000)),
+        ),
+      )
+      .groupBy(appointmentItems.serviceId)
+      .orderBy(desc(sql`count(*)`))
+      .limit(POPULAR_SERVICES.max),
   ]);
   const planFeatures = row.features as PlanFeatures;
   // Réservation en ligne : il faut que le pack l'inclue, puis que l'entreprise l'ait laissée ouverte.
@@ -340,6 +359,10 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
     categories,
     uncategorized,
     services: siteServices,
+    /** Prestations les plus réservées (étiquette « Populaire »). */
+    popularServiceIds: popularRows
+      .filter((row) => row.serviceId && row.count >= POPULAR_SERVICES.minBookings)
+      .map((row) => row.serviceId!),
     /** Entreprises du site : nom affiché, identité légale (mentions légales). */
     businesses: businessRows.map((business) => ({
       id: business.id,

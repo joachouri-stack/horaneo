@@ -19,13 +19,13 @@ export async function OpeningHoursTable({ site }: { site: NonNullable<SiteData> 
           return (
             <tr
               key={day}
-              className={`border-b border-site-border last:border-b-0 ${isToday ? "font-semibold" : ""}`}
+              className={`border-b border-site-border last:border-b-0 ${isToday ? "bg-site-card font-semibold" : ""}`}
             >
-              <th scope="row" className="py-2 pr-4 font-normal">
+              <th scope="row" className="py-2 pl-2 pr-4 font-normal">
                 {tDays(String(day) as "1")}
                 {isToday && <span className="ml-2 text-sm text-site-accent">({t("today")})</span>}
               </th>
-              <td className="py-2 text-right text-site-text">
+              <td className="py-2 pr-2 text-right text-site-text">
                 {ranges.length === 0
                   ? t("closed")
                   : ranges.map((range, index) => (

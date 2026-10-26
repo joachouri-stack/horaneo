@@ -6,6 +6,7 @@ import {
   directionsUrl,
   formatDuration,
   isoWeekdayIn,
+  openStatus,
   osmEmbedUrl,
 } from "@/modules/site/format";
 import { formatMoney } from "@/lib/format";
@@ -163,5 +164,44 @@ describe("montants", () => {
     const nbsp = (text: string) => text.replace(/\s/g, " ");
     expect(nbsp(formatMoney(3600, "EUR", "fr-FR"))).toBe("36 €");
     expect(nbsp(formatMoney(4550, "EUR", "fr-FR"))).toBe("45,50 €");
+  });
+});
+
+describe("ouvert maintenant", () => {
+  // Mardi à samedi 10 h – 19 h, avec une pause le samedi midi.
+  const hours = [2, 3, 4, 5].map((weekday) => ({ weekday, opensAt: "10:00", closesAt: "19:00" }));
+  hours.push(
+    { weekday: 6, opensAt: "09:30", closesAt: "12:30" },
+    { weekday: 6, opensAt: "14:00", closesAt: "18:00" },
+  );
+  const paris = "Europe/Paris";
+  // 2026-10-27 est un mardi ; Paris est alors à UTC+1.
+  const at = (date: string, time: string) => new Date(`${date}T${time}:00+01:00`);
+
+  it("ouvert : heure de fermeture de la plage en cours", () => {
+    expect(openStatus(hours, paris, at("2026-10-27", "11:15"))).toEqual({ open: true, closesAt: "19:00" });
+  });
+  it("fermé avant l'ouverture, pendant une pause, puis jusqu'au prochain jour ouvert", () => {
+    expect(openStatus(hours, paris, at("2026-10-27", "08:00"))).toEqual({
+      open: false,
+      opensAt: "10:00",
+      weekday: 2,
+      inDays: 0,
+    });
+    expect(openStatus(hours, paris, at("2026-10-31", "13:00"))).toMatchObject({
+      opensAt: "14:00",
+      inDays: 0,
+    });
+    // Samedi soir → mardi (dimanche et lundi fermés).
+    expect(openStatus(hours, paris, at("2026-10-31", "19:00"))).toEqual({
+      open: false,
+      opensAt: "10:00",
+      weekday: 2,
+      inDays: 3,
+    });
+    expect(openStatus(hours, paris, at("2026-10-27", "19:00"))).toMatchObject({ weekday: 3, inDays: 1 });
+  });
+  it("sans horaires : rien à afficher", () => {
+    expect(openStatus([], paris)).toBeNull();
   });
 });

@@ -46,6 +46,8 @@ type RowDef = {
   unless?: keyof PlanFeatures;
   /** Ligne détaillée, affichée dans le comparatif mais pas sur les cartes. */
   detail?: boolean;
+  /** Mise en avant : en tête de la carte de chaque pack qui l'inclut (visible sans déplier). */
+  highlight?: boolean;
 };
 
 const ROWS: RowDef[] = [
@@ -88,7 +90,7 @@ const ROWS: RowDef[] = [
   { key: "promoCodes", category: "marketing", feature: "promoCodes" },
   { key: "googleReviews", category: "marketing", feature: "googleReviews" },
   { key: "loyalty", category: "marketing", feature: "loyalty" },
-  { key: "giftCards", category: "marketing", feature: "giftCards" },
+  { key: "giftCards", category: "marketing", feature: "giftCards", highlight: true },
   { key: "marketingAutomation", category: "marketing", feature: "marketingAutomation" },
   // Paiements
   { key: "onlinePayment", category: "payments", feature: "onlinePayment" },
@@ -111,7 +113,7 @@ const ROWS: RowDef[] = [
   { key: "hosting", category: "hosting", feature: "mobileReady" },
   { key: "subdomain", category: "hosting", always: true, detail: true },
   { key: "customDomain", category: "hosting", feature: "customDomain" },
-  { key: "freeDomain", category: "hosting", feature: "freeDomain" },
+  { key: "freeDomain", category: "hosting", feature: "freeDomain", highlight: true },
   { key: "security", category: "hosting", feature: "securityProtection" },
   { key: "maintenance", category: "hosting", feature: "maintenance" },
   // Assistance
@@ -187,8 +189,12 @@ export function gridCard(plan: GridPlan, plans: GridPlan[], soon: ReadonlySet<st
   const added = ROWS.filter((def) => {
     if (def.detail) return false;
     const cell = cellOf(def, plan);
-    return cell.included && (!previous || !sameCell(cell, cellOf(def, previous)));
-  }).map((def) => line(def, plan));
+    // Une ligne mise en avant reste sur la carte des packs suivants qui l'incluent aussi.
+    return cell.included && (def.highlight || !previous || !sameCell(cell, cellOf(def, previous)));
+  })
+    // Lignes mises en avant d'abord, les autres dans l'ordre du catalogue.
+    .sort((a, b) => Number(Boolean(b.highlight)) - Number(Boolean(a.highlight)))
+    .map((def) => line(def, plan));
   const missing = next
     ? ROWS.filter((def) => !def.detail && !cellOf(def, plan).included && cellOf(def, next).included)
         .map((def) => line(def, next))

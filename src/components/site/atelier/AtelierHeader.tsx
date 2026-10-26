@@ -44,6 +44,15 @@ export async function atelierLinks(site: Site) {
   ];
 }
 
+/**
+ * Cadrage du logo dans son médaillon rond : un logo à peu près carré remplit le rond ; un logo
+ * en largeur (nom écrit en entier) est montré en entier, avec une marge, au lieu d'être coupé.
+ */
+export function logoFit(logo: { width: number | null; height: number | null }) {
+  const ratio = logo.width && logo.height ? logo.width / logo.height : 1;
+  return ratio > 0.8 && ratio < 1.25 ? "h-full w-full object-cover" : "h-full w-full object-contain p-[12%]";
+}
+
 /** Logo dans un médaillon rond, suivi du nom en lettres fines. */
 export function AtelierBrand({ site, size = "md" }: { site: Site; size?: "md" | "lg" }) {
   // Rond assez grand pour un logo détaillé (illustration + texte) reste lisible.
@@ -54,11 +63,11 @@ export function AtelierBrand({ site, size = "md" }: { site: Site; size?: "md" | 
         <span
           className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-white shadow-sm ${medal}`}
         >
-          <SiteImage image={site.logo} alt="" sizes="80px" priority className="h-full w-full object-cover" />
+          <SiteImage image={site.logo} alt="" sizes="80px" priority className={logoFit(site.logo)} />
         </span>
       )}
       <span
-        className={`truncate font-site-display text-xl font-medium sm:text-[1.7rem] ${size === "md" ? "lg:text-2xl xl:text-[1.7rem]" : ""}`}
+        className={`font-site-display text-xl font-medium sm:text-[1.7rem] ${size === "md" ? "truncate lg:text-2xl xl:text-[1.7rem]" : "leading-tight"}`}
       >
         {site.tenant.name}
       </span>
