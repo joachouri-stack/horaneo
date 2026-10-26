@@ -25,6 +25,12 @@ function smoothPath(points: [number, number][]) {
   return path;
 }
 
+/**
+ * Taille des libellés des axes, en unités du dessin (720 de large) : le dessin rapetisse
+ * sur téléphone, les libellés gardent environ 13 px à l'écran.
+ */
+const AXIS_TEXT = "text-[30px] sm:text-[18px] lg:text-[14px]";
+
 /** Arrondi « joli » du maximum de l'axe : divisible en 4 graduations rondes (4, 8, 12, 20, 40, 100…). */
 function niceMax(value: number) {
   const small = [4, 8, 12, 20, 40];
@@ -50,8 +56,9 @@ export function LineChart({
   summary: string;
 }) {
   const width = 720;
-  const height = 240;
-  const pad = { top: 16, right: 12, bottom: 28, left: 44 };
+  const height = 300;
+  // Marges larges : sur téléphone le dessin est réduit de moitié, les libellés restent lisibles.
+  const pad = { top: 20, right: 16, bottom: 48, left: 124 };
   const innerW = width - pad.left - pad.right;
   const innerH = height - pad.top - pad.bottom;
   const max = niceMax(Math.max(1, ...series.flatMap((item) => item.values)));
@@ -59,7 +66,7 @@ export function LineChart({
     pad.left + (labels.length > 1 ? (index / (labels.length - 1)) * innerW : innerW / 2);
   const y = (value: number) => pad.top + innerH - (value / max) * innerH;
   const ticks = [0, 0.25, 0.5, 0.75, 1].map((ratio) => ratio * max);
-  const every = Math.max(1, Math.ceil(labels.length / 8));
+  const every = Math.max(1, Math.ceil(labels.length / 6));
   return (
     <figure className="mt-4">
       <svg viewBox={`0 0 ${width} ${height}`} className="h-auto w-full" role="img" aria-label={summary}>
@@ -81,14 +88,21 @@ export function LineChart({
               stroke="#e6e9f0"
               strokeDasharray={tick === 0 ? undefined : "3 4"}
             />
-            <text x={pad.left - 8} y={y(tick) + 4} textAnchor="end" fontSize="11" fill="#5b6275">
+            <text x={pad.left - 10} y={y(tick) + 6} textAnchor="end" className={AXIS_TEXT} fill="#5b6275">
               {format(tick)}
             </text>
           </g>
         ))}
         {labels.map((label, index) =>
           index % every === 0 || index === labels.length - 1 ? (
-            <text key={label} x={x(index)} y={height - 8} textAnchor="middle" fontSize="11" fill="#5b6275">
+            <text
+              key={label}
+              x={x(index)}
+              y={height - 12}
+              textAnchor="middle"
+              className={AXIS_TEXT}
+              fill="#5b6275"
+            >
               {label}
             </text>
           ) : null,
@@ -122,7 +136,7 @@ export function LineChart({
           );
         })}
       </svg>
-      <figcaption className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-[0.82rem] text-ink-soft">
+      <figcaption className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm text-ink-soft">
         {series.map((item) => (
           <span key={item.label} className="inline-flex items-center gap-2">
             <span
@@ -182,17 +196,17 @@ export function GoalRing({
             {percent} %
           </span>
           {ratio >= 1 && (
-            <span className="mt-1 rounded-full bg-[#e7f6ee] px-2 py-px text-[0.68rem] font-medium text-[#1e7a4c]">
+            <span className="mt-1 rounded-full bg-[#e7f6ee] px-2 py-px text-[0.8125rem] font-medium text-[#1e7a4c]">
               ✓
             </span>
           )}
         </span>
       </div>
-      <p className="mt-3 text-[0.85rem] font-medium leading-tight text-night sm:text-base">{label}</p>
-      <p className="text-[0.78rem] text-ink-soft sm:text-[0.85rem]">
+      <p className="mt-3 text-sm font-medium leading-tight text-night sm:text-base">{label}</p>
+      <p className="text-sm text-ink-soft sm:text-sm">
         <span className="font-medium text-night tabular-nums">{valueText}</span> / {goalText}
       </p>
-      <p className="mt-0.5 hidden text-[0.78rem] text-ink-soft sm:block">{remainingText}</p>
+      <p className="mt-0.5 hidden text-sm text-ink-soft sm:block">{remainingText}</p>
     </div>
   );
 }
@@ -229,7 +243,7 @@ export function HourHeat({
                 backgroundColor: `color-mix(in srgb, #3a4bb8 ${Math.round(8 + (count / max) * 82)}%, white)`,
               }}
             />
-            <span aria-hidden="true" className="text-[0.68rem] text-ink-soft tabular-nums">
+            <span aria-hidden="true" className="text-[0.8125rem] text-ink-soft tabular-nums">
               {hour}h
             </span>
           </li>

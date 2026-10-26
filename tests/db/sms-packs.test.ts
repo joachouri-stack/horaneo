@@ -290,7 +290,7 @@ describe.skipIf(!hasTestDatabase)("SMS et engagement", () => {
       const subjects = fake.emails
         .filter((email) => email.to.includes(s.managerEmail))
         .map((email) => email.subject);
-      expect(subjects).toContain("80 % de vos SMS du mois sont utilisés");
+      expect(subjects).toContain("80 % de vos SMS du mois sont utilisés");
       expect(subjects).toContain("Vos SMS du mois sont épuisés");
     });
   });

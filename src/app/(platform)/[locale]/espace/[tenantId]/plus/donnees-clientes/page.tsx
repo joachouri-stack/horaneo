@@ -47,7 +47,12 @@ export default async function CustomerDataPage({
                   <Link href={`${page.base}/clientes/${request.customerId}`} className={ui.secondaryButton}>
                     {t("openCustomer")}
                   </Link>
-                  <ActionForm action={resolveDataRequestAction} submitLabel={t("markDone")} className="">
+                  <ActionForm
+                    action={resolveDataRequestAction}
+                    submitLabel={request.kind === "deletion" ? t("eraseData") : t("markDone")}
+                    confirm={request.kind === "deletion" ? t("eraseConfirm") : undefined}
+                    className=""
+                  >
                     <Hidden values={{ tenantId: page.tenantId, id: request.id, status: "done" }} />
                   </ActionForm>
                   <ActionForm

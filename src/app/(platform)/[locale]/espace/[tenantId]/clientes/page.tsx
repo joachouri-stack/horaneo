@@ -12,6 +12,10 @@ import {
 } from "@/modules/customers/customers";
 import { formatPhone } from "@/modules/phone";
 
+/** Fiches affichées d'abord, puis ajoutées à chaque « Afficher plus » (plafond pour le téléphone). */
+const PAGE_SIZE = 200;
+const MAX_SHOWN = 1000;
+
 /** Couleurs des pastilles d'initiales : fixes pour une même cliente. */
 const AVATAR_COLORS = [
   "bg-[#e8ebfa] text-[#3a4bb8]",
@@ -48,9 +52,21 @@ export default async function CustomersPage({
   const t = await getTranslations("manager.customers");
   const tCommon = await getTranslations("common");
   const now = new Date();
-  const { customers: list, counts } = await page.db((tx) =>
-    customerDirectory(tx, page.tenantId, { query: q, segment, now }),
-  );
+  // Liste affichée par tranches : « Afficher plus » ajoute la tranche suivante.
+  const shown = Math.min(Math.max(Number(query.n) || PAGE_SIZE, PAGE_SIZE), MAX_SHOWN);
+  const {
+    customers: list,
+    counts,
+    matching,
+  } = await page.db((tx) => customerDirectory(tx, page.tenantId, { query: q, segment, now, limit: shown }));
+
+  const moreHref = () => {
+    const search = new URLSearchParams();
+    if (segment !== "all") search.set("groupe", segment);
+    if (q) search.set("q", q);
+    search.set("n", String(shown + PAGE_SIZE));
+    return `${page.base}/clientes?${search.toString()}`;
+  };
 
   const href = (next: CustomerSegment) => {
     const search = new URLSearchParams();
@@ -61,7 +77,8 @@ export default async function CustomersPage({
   };
 
   return (
-    <div className="space-y-6">
+    // Sur téléphone, la recherche et la liste d'abord ; les chiffres clés passent en bas.
+    <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
@@ -71,14 +88,14 @@ export default async function CustomersPage({
         </div>
         <Link
           href={`${page.base}/clientes/nouvelle`}
-          className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-accent px-5 text-[0.95rem] font-medium text-white shadow-[inset_0_1px_0_rgba(255,255,255,.2),0_12px_26px_-16px_var(--color-accent)] transition hover:bg-accent-strong"
+          className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-accent px-5 text-[0.95rem] font-medium text-white shadow-[0_1px_2px_rgba(15,24,48,.08)] transition hover:bg-accent-strong"
         >
           <DashIcon d={DASH_ICONS.plus} className="h-5 w-5" />
           {t("new")}
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+      <div className="order-last grid grid-cols-2 gap-3 lg:order-none lg:grid-cols-4 lg:gap-4">
         <StatCard
           icon={DASH_ICONS.users}
           tone="indigo"
@@ -119,7 +136,7 @@ export default async function CustomersPage({
                 key={key}
                 href={href(key)}
                 aria-current={active ? "page" : undefined}
-                className={`inline-flex min-h-10 min-w-0 items-center justify-center gap-1 whitespace-nowrap rounded-full border px-1 text-[0.78rem] font-medium transition sm:shrink-0 sm:gap-2 sm:px-4 sm:text-[0.9rem] ${
+                className={`inline-flex min-h-10 min-w-0 items-center justify-center gap-1 whitespace-nowrap rounded-full border px-1 text-sm font-medium transition sm:shrink-0 sm:gap-2 sm:px-4 sm:text-[0.9375rem] ${
                   active
                     ? "border-night bg-night text-white"
                     : "border-hairline bg-white text-night hover:border-accent-line"
@@ -127,7 +144,7 @@ export default async function CustomersPage({
               >
                 {t(`filter.${key}`)}
                 <span
-                  className={`hidden rounded-full px-1 text-[0.7rem] tabular-nums min-[360px]:inline sm:px-1.5 sm:text-[0.75rem] ${active ? "bg-white/20" : "bg-mist-50 text-ink-soft"}`}
+                  className={`hidden rounded-full px-1 text-[0.8125rem] tabular-nums min-[360px]:inline sm:px-1.5 sm:text-[0.8125rem] ${active ? "bg-white/20" : "bg-mist-50 text-ink-soft"}`}
                 >
                   {counts[key]}
                 </span>
@@ -176,7 +193,7 @@ export default async function CustomersPage({
           {/* En-têtes du tableau, sur ordinateur seulement. */}
           <div
             aria-hidden="true"
-            className="hidden grid-cols-[minmax(0,2.2fr)_0.8fr_0.9fr_1fr_1fr] gap-4 border-b border-hairline px-6 py-3 text-[0.78rem] font-medium uppercase tracking-[0.06em] text-ink-soft lg:grid"
+            className="hidden grid-cols-[minmax(0,2.2fr)_0.8fr_0.9fr_1fr_1fr] gap-4 border-b border-hairline px-6 py-3 text-sm font-medium uppercase tracking-[0.06em] text-ink-soft lg:grid"
           >
             <span>{t("colCustomer")}</span>
             <span>{t("colVisits")}</span>
@@ -204,7 +221,7 @@ export default async function CustomersPage({
                     <span className="flex min-w-0 items-center gap-3 max-lg:contents">
                       <span
                         aria-hidden="true"
-                        className={`flex size-11 shrink-0 items-center justify-center rounded-full text-[0.85rem] font-semibold ${avatarColor(customer.id)}`}
+                        className={`flex size-11 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${avatarColor(customer.id)}`}
                       >
                         {initials(name)}
                       </span>
@@ -213,20 +230,20 @@ export default async function CustomersPage({
                           <span className="truncate font-medium text-night">{name}</span>
                           {badge && (
                             <span
-                              className={`rounded-full px-2 py-px text-[0.72rem] font-medium ${BADGES[badge]}`}
+                              className={`rounded-full px-2 py-px text-[0.8125rem] font-medium ${BADGES[badge]}`}
                             >
                               {t(`badge.${badge}`)}
                             </span>
                           )}
                         </span>
-                        <span className="block truncate text-[0.85rem] text-ink-soft">
+                        <span className="block truncate text-sm text-ink-soft">
                           {customer.phone ? formatPhone(customer.phone) : customer.email}
                         </span>
                       </span>
                     </span>
 
                     {/* Téléphone : résumé sous le nom. */}
-                    <span className="col-start-2 flex flex-wrap gap-x-3 gap-y-1 text-[0.8rem] text-ink-soft lg:hidden">
+                    <span className="col-start-2 flex flex-wrap gap-x-3 gap-y-1 text-sm text-ink-soft lg:hidden">
                       <span>
                         {t("visitsCount", { count: customer.visits })}
                         {customer.spentCents > 0 && ` · ${page.fmt.money(customer.spentCents)}`}
@@ -245,10 +262,10 @@ export default async function CustomersPage({
                     <span className="hidden text-night tabular-nums lg:block">
                       {page.fmt.money(customer.spentCents)}
                     </span>
-                    <span className="hidden text-[0.9rem] text-ink-soft lg:block">
+                    <span className="hidden text-[0.9375rem] text-ink-soft lg:block">
                       {customer.lastVisit ? page.fmt.short(customer.lastVisit) : t("never")}
                     </span>
-                    <span className="hidden text-[0.9rem] lg:block">
+                    <span className="hidden text-[0.9375rem] lg:block">
                       {customer.nextVisit ? (
                         <span className="rounded-full bg-accent-soft px-2.5 py-1 font-medium text-accent-strong">
                           {page.fmt.short(customer.nextVisit)}
@@ -262,6 +279,18 @@ export default async function CustomersPage({
               );
             })}
           </ul>
+          {matching > list.length && (
+            <div className="mt-4 space-y-2 text-center">
+              <p className="text-sm text-ink-soft">{t("partial", { shown: list.length, total: matching })}</p>
+              {shown < MAX_SHOWN ? (
+                <Link href={moreHref()} className={`${ui.secondaryButton} sm:w-auto`}>
+                  {t("showMore")}
+                </Link>
+              ) : (
+                <p className="text-sm text-ink-soft">{t("refineSearch")}</p>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

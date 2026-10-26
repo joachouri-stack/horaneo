@@ -39,7 +39,7 @@ import { DATE_PATTERN, localToUtc } from "@/modules/booking/time";
 import { deleteCategory, deleteService, saveCategory, saveService } from "@/modules/catalog/services";
 import { deleteTestimonial, saveTestimonial } from "@/modules/content/testimonials";
 import { saveCustomer, searchCustomers } from "@/modules/customers/customers";
-import { restoreAsset, retireAsset, uploadAsset } from "@/modules/media/assets";
+import { assertSitePhoto, restoreAsset, retireAsset, uploadAsset } from "@/modules/media/assets";
 import { parseInterval } from "@/modules/billing/yearly";
 import { AppError } from "@/modules/errors";
 import { refreshAccount, startOnboarding } from "@/modules/payments/connect";
@@ -50,6 +50,7 @@ import { createTimeOff, deleteTimeOff } from "@/modules/schedule/time-off";
 import { updateStatsGoals } from "@/modules/stats/goals";
 import { replaceStaffSchedules } from "@/modules/team/schedules";
 import { deleteStaff, saveStaff } from "@/modules/team/staff";
+import type { Transaction } from "@/db/client";
 import { tenants } from "@/db/schema";
 import { resolveDataRequest } from "@/modules/customer-space/space";
 import { adjustLoyalty, setLoyaltySettings, redeemReward } from "@/modules/loyalty/loyalty";
@@ -72,19 +73,18 @@ const idOf = (data: FormData, key = "id") => {
 };
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
 
-async function tenantTimezone(tenantId: string) {
-  return managerQuery(
-    tenantId,
-    async (tx) =>
-      (await tx.select({ timezone: tenants.timezone }).from(tenants).where(eq(tenants.id, tenantId)))[0]
-        .timezone,
-  );
-}
-
-async function localStart(tenantId: string, data: FormData) {
+/**
+ * Début saisi (date + heure locales de l'établissement), lu dans la transaction de
+ * l'action : une saisie invalide devient un message sur le champ, pas une page d'erreur.
+ */
+async function localStart(tx: Transaction, tenantId: string, data: FormData) {
   const date = z.string().regex(DATE_PATTERN).parse(form.text(data, "date"));
   const time = z.string().regex(TIME).parse(form.text(data, "time"));
-  return localToUtc(date, time, await tenantTimezone(tenantId));
+  const [{ timezone }] = await tx
+    .select({ timezone: tenants.timezone })
+    .from(tenants)
+    .where(eq(tenants.id, tenantId));
+  return localToUtc(date, time, timezone);
 }
 
 // ─── Rendez-vous ──────────────────────────────────────────────────────────────
@@ -113,9 +113,11 @@ export async function cancelAppointmentAction(_previous: Previous, data: FormDat
 
 export async function moveAppointmentAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  const start = await localStart(tenantId, data);
-  return managerMutation(tenantId, "appointment.moved", (tx) =>
-    moveAppointment(tx, tenantId, idOf(data)!, { start, staffId: idOf(data, "staffId")! }),
+  return managerMutation(tenantId, "appointment.moved", async (tx) =>
+    moveAppointment(tx, tenantId, idOf(data)!, {
+      start: await localStart(tx, tenantId, data),
+      staffId: idOf(data, "staffId")!,
+    }),
   );
 }
 
@@ -131,13 +133,12 @@ export async function createManualAction(
   data: FormData,
 ): Promise<ActionResult<unknown>> {
   const tenantId = tenantIdOf(data);
-  const start = await localStart(tenantId, data);
   const customerId = idOf(data, "customerId");
-  const result = await managerMutation(tenantId, "appointment.created", (tx) =>
+  const result = await managerMutation(tenantId, "appointment.created", async (tx) =>
     createManualAppointment(tx, tenantId, {
       serviceIds: form.all(data, "serviceIds"),
       staffId: form.text(data, "staffId"),
-      start,
+      start: await localStart(tx, tenantId, data),
       customerId,
       newCustomer: customerId
         ? undefined
@@ -321,29 +322,33 @@ export async function uploadPhotoAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   const kind = z.enum(["gallery", "cover", "staff", "service", "other"]).parse(form.text(data, "kind"));
   const bytes = (await form.file(data, "file")) ?? new Uint8Array();
-  return managerMutation(tenantId, "asset.uploaded", (tx, context) =>
-    uploadAsset(tx, storage(), tenantId, {
+  return managerMutation(tenantId, "asset.uploaded", async (tx, context) => {
+    await assertPrimaryBusiness(tx, tenantId, context.businessId, "site_content_primary_only");
+    return uploadAsset(tx, storage(), tenantId, {
       bytes,
       kind,
       uploadedByUserId: context.userId,
       alt: form.optional(data, "alt"),
-    }),
-  );
+    });
+  });
 }
 
 export async function photoAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   const id = idOf(data)!;
   const operation = z.enum(["retire", "restore"]).parse(form.text(data, "operation"));
-  return managerMutation(tenantId, `asset.${operation}`, (tx) =>
-    operation === "retire" ? retireAsset(tx, tenantId, id) : restoreAsset(tx, tenantId, id),
-  );
+  return managerMutation(tenantId, `asset.${operation}`, async (tx, context) => {
+    await assertPrimaryBusiness(tx, tenantId, context.businessId, "site_content_primary_only");
+    await assertSitePhoto(tx, tenantId, id);
+    return operation === "retire" ? retireAsset(tx, tenantId, id) : restoreAsset(tx, tenantId, id);
+  });
 }
 
 export async function saveTestimonialAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "testimonial.saved", (tx) =>
-    saveTestimonial(
+  return managerMutation(tenantId, "testimonial.saved", async (tx, context) => {
+    await assertPrimaryBusiness(tx, tenantId, context.businessId, "site_content_primary_only");
+    return saveTestimonial(
       tx,
       tenantId,
       {
@@ -353,15 +358,16 @@ export async function saveTestimonialAction(_previous: Previous, data: FormData)
         isPublished: form.bool(data, "isPublished"),
       },
       idOf(data),
-    ),
-  );
+    );
+  });
 }
 
 export async function deleteTestimonialAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "testimonial.deleted", (tx) =>
-    deleteTestimonial(tx, tenantId, idOf(data)!),
-  );
+  return managerMutation(tenantId, "testimonial.deleted", async (tx, context) => {
+    await assertPrimaryBusiness(tx, tenantId, context.businessId, "site_content_primary_only");
+    return deleteTestimonial(tx, tenantId, idOf(data)!);
+  });
 }
 
 // ─── Plus : équipe, réglages, demandes ───────────────────────────────────────
@@ -686,8 +692,9 @@ export async function useLoyaltyRewardAction(_previous: Previous, data: FormData
 export async function resolveDataRequestAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   const status = z.enum(["done", "rejected"]).parse(form.text(data, "status"));
+  const t = await getTranslations("manager.customerData");
   return managerMutation(tenantId, `customer_data.${status}`, (tx, { userId }) =>
-    resolveDataRequest(tx, tenantId, idOf(data)!, status, userId),
+    resolveDataRequest(tx, tenantId, idOf(data)!, status, userId, t("erasedName")),
   );
 }
 

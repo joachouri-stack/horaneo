@@ -16,6 +16,14 @@ import {
   updateBusinessProfile,
 } from "@/modules/businesses/businesses";
 import { loadSiteData } from "@/modules/site/data";
+import { createUpdateRequest, listTenantRequests } from "@/modules/requests/update-requests";
+import {
+  anonymizeCustomer,
+  customerDirectory,
+  getCustomer,
+  searchCustomers,
+} from "@/modules/customers/customers";
+import { assertPrimaryBusiness } from "@/modules/businesses/businesses";
 import { listServices, saveService } from "@/modules/catalog/services";
 import { AppError } from "@/modules/errors";
 import { countUsage } from "@/modules/quotas";
@@ -456,5 +464,61 @@ describe.skipIf(!hasTestDatabase)("plusieurs entreprises sur un même site", () 
         ),
       ),
     ).toBe("manager_already_linked");
+  });
+
+  it("chaque entreprise ne voit que ses demandes de modification", async () => {
+    await asBusiness(site.laila.id, (tx) =>
+      createUpdateRequest(tx, site.tenantId, site.laila.managerId, {
+        subject: "Photo",
+        message: "Nouvelle photo",
+      }),
+    );
+    await asBusiness(site.natacha.id, (tx) =>
+      createUpdateRequest(tx, site.tenantId, site.natacha.managerId, { subject: "Tarifs", message: "Prix" }),
+    );
+    const subjects = async (businessId: string) =>
+      (await asBusiness(businessId, (tx) => listTenantRequests(tx, site.tenantId))).map((r) => r.subject);
+    expect(await subjects(site.laila.id)).toEqual(["Photo"]);
+    expect(await subjects(site.natacha.id)).toEqual(["Tarifs"]);
+  });
+
+  it("photos et avis du site : réservés à l'entreprise principale", async () => {
+    await platform((tx) =>
+      assertPrimaryBusiness(tx, site.tenantId, site.laila.id, "site_content_primary_only"),
+    );
+    expect(
+      await errorCode(
+        platform((tx) =>
+          assertPrimaryBusiness(tx, site.tenantId, site.natacha.id, "site_content_primary_only"),
+        ),
+      ),
+    ).toBe("site_content_primary_only");
+  });
+
+  it("effacer les données d'une cliente garde ses rendez-vous, sans nom ni coordonnées", async () => {
+    const [camille] = await asBusiness(site.laila.id, (tx) => searchCustomers(tx, site.tenantId, "camille"));
+    expect(camille).toBeDefined();
+    await asBusiness(site.laila.id, (tx) =>
+      anonymizeCustomer(tx, site.tenantId, camille.id, "Cliente effacée"),
+    );
+    const detail = await asBusiness(site.laila.id, (tx) => getCustomer(tx, site.tenantId, camille.id, "fr"));
+    expect(detail?.customer).toMatchObject({
+      firstName: "Cliente effacée",
+      email: null,
+      phone: null,
+      notes: null,
+    });
+    expect(detail?.history.length).toBeGreaterThan(0);
+    // Plus proposée dans la recherche ni dans la liste ; la fiche de l'autre entreprise est intacte.
+    expect(await asBusiness(site.laila.id, (tx) => searchCustomers(tx, site.tenantId, "camille"))).toEqual(
+      [],
+    );
+    const directory = await asBusiness(site.laila.id, (tx) =>
+      customerDirectory(tx, site.tenantId, { now: new Date() }),
+    );
+    expect(directory.customers.some((c) => c.id === camille.id)).toBe(false);
+    expect(
+      await asBusiness(site.natacha.id, (tx) => searchCustomers(tx, site.tenantId, "camille")),
+    ).toHaveLength(1);
   });
 });

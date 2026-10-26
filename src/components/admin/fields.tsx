@@ -19,6 +19,8 @@ export function TextField({
   placeholder?: string;
   inputMode?: "numeric" | "decimal" | "email" | "tel" | "url";
   autoComplete?: string;
+  /** Pas d'un champ nombre (ex. "any" pour accepter 0,5). */
+  step?: string;
 }) {
   const id = props.id ?? `f-${props.name}`;
   return (
@@ -35,6 +37,7 @@ export function TextField({
         placeholder={placeholder}
         inputMode={props.inputMode}
         autoComplete={props.autoComplete}
+        step={props.step}
         className={ui.input}
       />
       <Hint text={props.hint} />
