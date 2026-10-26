@@ -166,7 +166,7 @@ describe.skipIf(!hasTestDatabase)("messages automatiques", () => {
         subject: "Votre rendez-vous du mardi 6 octobre est confirmé",
       });
       expect(confirmation.text).toContain("Massage");
-      expect(confirmation.text).toContain("70,00 €");
+      expect(confirmation.text).toContain("70 €");
       expect(confirmation.text).toContain("jusqu'au lundi 5 octobre à 10:00");
       const token = /\/rendez-vous\/([A-Za-z0-9_-]+)/.exec(confirmation.text)?.[1];
       expect(token).toBe(result.manageToken);
@@ -219,7 +219,7 @@ describe.skipIf(!hasTestDatabase)("messages automatiques", () => {
       await asTenant(s.id, (tx) => syncDeposit(tx, s.id, result.appointmentId, gateway.gateway));
       await dispatch(s.id);
       const [confirmation] = emailsTo(`camille-${n}@example.com`);
-      expect(confirmation.text).toContain("Acompte payé : 21,00 €");
+      expect(plain(confirmation.text)).toContain("Acompte payé : 21 €");
     });
 
     it("pack Basic : la gérante est prévenue à la 4e et à la 5e réservation du mois", async () => {

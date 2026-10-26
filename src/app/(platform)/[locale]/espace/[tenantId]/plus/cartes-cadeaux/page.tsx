@@ -5,9 +5,11 @@ import { ui } from "@/components/ui/styles";
 import { Link } from "@/i18n/navigation";
 import { centsToInput } from "@/lib/format";
 import { managerPage } from "@/lib/manager/page";
+import { paymentGateway } from "@/lib/payments/stripe";
 import { firstPlanWith } from "@/modules/billing/plans";
 import { getBookingSettings } from "@/modules/booking/settings";
 import { listGiftCards, type GiftCardState } from "@/modules/giftcards/giftcards";
+import { paymentSetup } from "@/modules/payments/connect";
 import { redeemGiftCardAction, saveGiftCardSettingsAction } from "../../actions";
 
 const FILTERS = ["all", "active", "used", "expired"] as const;
@@ -43,6 +45,7 @@ export default async function GiftCardsPage({
       </div>
     );
   }
+  const payment = paymentSetup(page.business, page.tenant.features, paymentGateway() !== null);
   const visible = data.cards.filter((card) => filter === "all" || card.state === (filter as GiftCardState));
   const settings = data.settings;
 
@@ -53,7 +56,8 @@ export default async function GiftCardsPage({
       </h1>
       <p className="text-ink/80">{t("intro")}</p>
       {!available && <p className={ui.card}>{t("soldBefore")}</p>}
-      {available && !page.business.stripeChargesEnabled && (
+      {available && payment === "platform_off" && <p className={ui.card}>{t("platformOff")}</p>}
+      {available && payment !== "active" && payment !== "platform_off" && (
         <p className={ui.card}>
           {t("needsStripe")}{" "}
           <Link href={`${page.base}/plus/paiements`} className="font-semibold underline">
