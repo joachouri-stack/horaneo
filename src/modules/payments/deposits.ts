@@ -1,6 +1,7 @@
 import { and, desc, eq } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
 import { appointments, businesses, payments, type PlanFeatures } from "@/db/schema";
+import { adjustHoldUsage } from "@/modules/booking/holds";
 import { AppError } from "@/modules/errors";
 import { queueBookingConfirmed, queueMessage } from "@/modules/messages/queue";
 import { getPlatformSetting } from "@/modules/settings";
@@ -138,6 +139,11 @@ export async function applyPaymentIntent(
   if (appointment.status === "expired") {
     // Paiement arrivé après les 10 minutes : le rendez-vous est repris s'il est
     // encore libre, sinon l'acompte est remboursé automatiquement (décision n° 1).
+    // Un rendez-vous dont l'heure est passée n'est jamais repris.
+    if (appointment.startsAt <= now) {
+      await refundAfterLatePayment(tx, tenantId, appointment, gateway, now);
+      return { outcome: "refunded" as const, appointmentId: appointment.id };
+    }
     try {
       await tx.transaction(async (savepoint) => {
         await savepoint
@@ -145,6 +151,8 @@ export async function applyPaymentIntent(
           .set({ status: "confirmed", holdExpiresAt: null })
           .where(eq(appointments.id, appointment.id));
       });
+      // Le code promo et la réservation du mois, rendus à l'expiration, sont comptés à nouveau.
+      await adjustHoldUsage(tx, tenantId, [appointment], "reclaim", now);
       await queueBookingConfirmed(tx, tenantId, appointment);
       return { outcome: "confirmed" as const, appointmentId: appointment.id };
     } catch (error) {
@@ -191,13 +199,14 @@ export async function syncDeposit(
   tenantId: string,
   appointmentId: string,
   gateway: PaymentGateway | null,
+  now = new Date(),
 ) {
   const payment = await depositOf(tx, tenantId, appointmentId);
   if (!payment || !gateway || payment.status === "succeeded") return payment;
   const intent = await gateway
     .retrievePaymentIntent(payment.stripeAccountId, payment.stripePaymentIntentId)
     .catch(providerError);
-  await applyPaymentIntent(tx, tenantId, intent, gateway);
+  await applyPaymentIntent(tx, tenantId, intent, gateway, { now });
   return depositOf(tx, tenantId, appointmentId);
 }
 

@@ -2096,6 +2096,7 @@
     "booking_not_modifiable": "Ce rendez-vous ne peut plus être modifié.",
     "rate_limited": "Trop de tentatives. Merci de patienter quelques minutes.",
     "promo_code_invalid": "Ce code promo n'est pas valable.",
+    "promo_code_already_used": "Vous avez déjà utilisé ce code promo : il ne peut servir qu'une fois par personne.",
     "promo_code_taken": "Ce code existe déjà.",
     "payments_unavailable": "Le paiement en ligne n'est pas disponible pour le moment.",
     "payment_not_refundable": "Il n'y a pas d'acompte à rembourser.",
