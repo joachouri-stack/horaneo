@@ -210,7 +210,7 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
         maxServices={context.settings.maxServicesPerBooking}
         preselectedServiceId={preselected}
         preselectedStaffId={typeof query.membre === "string" ? query.membre : null}
-        startAtSlot={Boolean(preselected) && query.reprise === "1"}
+        startAtSlot={Boolean(preselected)}
         prefill={prefill}
         initialGiftCode={typeof query.carte === "string" ? query.carte.slice(0, 40) : undefined}
         deposit={{

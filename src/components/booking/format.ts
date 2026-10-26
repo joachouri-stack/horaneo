@@ -1,3 +1,5 @@
+import { formatMoney } from "@/lib/format";
+
 /** Mises en forme du parcours de réservation (dans le fuseau de l'établissement). */
 
 export function formatLongDate(iso: string, locale: string, timeZone: string) {
@@ -26,8 +28,9 @@ export function dayChip(date: string, locale: string) {
   };
 }
 
+/** Même format de prix partout (site, réservation, e-mails) : « 62 € », mais « 45,50 € ». */
 export function money(cents: number, currency: string, locale: string) {
-  return new Intl.NumberFormat(locale, { style: "currency", currency }).format(cents / 100);
+  return formatMoney(cents, currency, locale);
 }
 
 /** Heure de fin (début + durée), dans le fuseau de l'établissement. */

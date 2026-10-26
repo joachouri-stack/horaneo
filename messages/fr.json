@@ -2314,6 +2314,7 @@
       "payNow": "Régler l'acompte pour confirmer le rendez-vous",
       "discount": "Réduction : − {amount}",
       "addToCalendar": "Ajouter à mon agenda",
+      "calendarFileName": "rendez-vous",
       "googleCalendar": "Ou l'ajouter à Google Agenda",
       "cancelFree": "L'annulation est gratuite : vous êtes encore dans le délai.",
       "cancelRefund": "Votre acompte de {amount} vous sera remboursé automatiquement.",
@@ -2891,6 +2892,8 @@
       "monthly": "Bilan du mois, le 1er vers {time}",
       "depositNeedsStripe": "L'acompte ne sera demandé qu'une fois votre compte de paiement (Stripe) activé.",
       "depositStripeLink": "Ouvrir mon compte Stripe",
+      "depositStripeResume": "Compléter mon compte Stripe",
+      "depositPlatformOff": "Le paiement en ligne n'est pas encore disponible sur la plateforme : aucun acompte ne sera demandé pour l'instant. Vous pouvez déjà le régler, il s'appliquera dès l'ouverture.",
       "depositRefundRule": "Remboursé automatiquement si la cliente annule dans le délai ; conservé sinon ou en cas d'absence.",
       "reviewsTitle": "Avis Google",
       "reviewRequest": "Demander un avis Google après chaque rendez-vous",
@@ -2928,12 +2931,13 @@
     },
     "payments": {
       "title": "Paiements en ligne",
-      "intro": "Les acomptes de vos clientes sont versés directement sur votre compte Stripe, puis sur votre compte bancaire. {product} ne touche pas cet argent{percent, plural, =0 { et ne prend aucune commission} other { et prend une commission de # % sur les acomptes}}. Stripe prélève ses propres frais bancaires.",
+      "intro": "Les acomptes de vos clientes sont versés directement sur votre compte Stripe, puis sur votre compte bancaire. {percent, plural, =0 {{product} ne prend aucune commission.} other {{product} prélève une commission de # % sur chaque acompte.}} Stripe prélève ses propres frais bancaires.",
       "state": {
         "unavailable": "Le paiement en ligne n'est pas inclus dans votre pack.",
         "not_started": "Votre compte Stripe n'est pas encore ouvert.",
         "incomplete": "Votre compte Stripe est ouvert mais pas encore validé : il manque des informations.",
-        "active": "✓ Votre compte Stripe est actif : vous pouvez demander un acompte."
+        "active": "✓ Votre compte Stripe est actif : vous pouvez demander un acompte.",
+        "platform_off": "Le paiement en ligne n'est pas encore disponible sur la plateforme. L'équipe vous préviendra."
       },
       "start": "Ouvrir mon compte Stripe",
       "resume": "Compléter mon compte Stripe",
@@ -2943,7 +2947,6 @@
       "depositOff": "L'acompte n'est pas activé. Vous pouvez l'activer dans les réglages.",
       "depositOn": "Acompte activé : {value}.",
       "settingsLink": "Régler l'acompte",
-      "notConfigured": "Le paiement en ligne n'est pas encore disponible sur la plateforme. L'équipe vous préviendra.",
       "fees": "Stripe prélève ses frais sur chaque paiement, directement sur votre compte. En cas de remboursement, Stripe ne rend pas ces frais.",
       "returned": "Vos informations ont bien été transmises à Stripe.",
       "upgrade": "Le paiement en ligne s'ajoute en changeant de pack (page Abonnement)."
@@ -3007,6 +3010,7 @@
       "unavailable": "Les cartes cadeaux sont incluses {plan, select, none {dans un pack supérieur} other {à partir du pack {plan}}}.",
       "soldBefore": "Votre pack actuel ne permet plus de vendre de cartes cadeaux. Les cartes déjà vendues restent valables jusqu'à leur date d'expiration : vos clientes peuvent les utiliser en ligne, et vous pouvez les encaisser ici.",
       "needsStripe": "Pour vendre des cartes, ouvrez d'abord votre compte de paiement (Plus → Paiements en ligne).",
+      "platformOff": "La vente de cartes sur votre site ouvrira dès que le paiement en ligne sera disponible sur la plateforme. Vous pouvez déjà encaisser ici les cartes vendues.",
       "redeemTitle": "Encaisser une carte sur place",
       "code": "Code de la carte",
       "amount": "Montant à déduire (€)",

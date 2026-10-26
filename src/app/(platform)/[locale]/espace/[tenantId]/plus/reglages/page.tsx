@@ -4,7 +4,7 @@ import { CheckboxField, Hidden, Section, SelectField, TextField } from "@/compon
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
 import { paymentGateway } from "@/lib/payments/stripe";
-import { onlinePaymentReady } from "@/modules/payments/deposits";
+import { paymentSetup } from "@/modules/payments/connect";
 import { getBookingSettings, SLOT_INTERVALS } from "@/modules/booking/settings";
 import { planAllowsBooking } from "@/modules/billing/features";
 import { centsToInput } from "@/lib/format";
@@ -40,7 +40,7 @@ export default async function SettingsPage({
     }).format(new Date(Date.UTC(2000, 0, 1, hours, minutes)));
   };
   const paymentAvailable = Boolean(page.tenant.features.onlinePayment);
-  const stripeReady = onlinePaymentReady(page.business, page.tenant.features, paymentGateway());
+  const payment = paymentSetup(page.business, page.tenant.features, paymentGateway() !== null);
   return (
     <div className="space-y-6">
       <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
@@ -129,11 +129,12 @@ export default async function SettingsPage({
                 label={t("depositEnabled")}
                 defaultChecked={settings.depositEnabled}
               />
-              {!stripeReady && (
+              {payment === "platform_off" && <p className="text-ink/80">{t("depositPlatformOff")}</p>}
+              {(payment === "not_started" || payment === "incomplete") && (
                 <p className="text-ink/80">
                   {t("depositNeedsStripe")}{" "}
                   <Link href={`${page.base}/plus/paiements`} className="font-semibold underline">
-                    {t("depositStripeLink")}
+                    {t(payment === "not_started" ? "depositStripeLink" : "depositStripeResume")}
                   </Link>
                 </p>
               )}
