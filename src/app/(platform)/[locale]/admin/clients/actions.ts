@@ -236,6 +236,8 @@ export async function updateBusinessProfileAction(_previous: Previous, data: For
         availability: form.text(data, "availability"),
         photoAssetId: form.optional(data, "photoAssetId") ?? null,
         shopName: form.text(data, "shopName"),
+        instagram: form.text(data, "instagram"),
+        facebook: form.text(data, "facebook"),
       }),
   );
 }

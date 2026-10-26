@@ -69,6 +69,8 @@ export type BusinessProfile = {
   shopName?: string | null;
   /** Son propre logo, à côté de son nom sur sa carte et sa page. */
   logoAssetId?: string | null;
+  /** Ses propres pages Instagram et Facebook, affichées sur sa page. */
+  social?: { instagram?: string; facebook?: string };
 };
 
 export const tenants = pgTable(

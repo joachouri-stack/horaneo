@@ -136,7 +136,7 @@ export async function setLogo(tx: Transaction, tenantId: string, logoAssetId: st
 
 // ─── Réseaux sociaux ──────────────────────────────────────────────────────────
 
-const socialUrl = (host: RegExp) =>
+export const socialUrl = (host: RegExp) =>
   z
     .string()
     .trim()
