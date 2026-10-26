@@ -85,6 +85,15 @@ describe("grille des packs : une seule source pour les cartes et le comparatif",
       20,
     );
     expect(gridCard(pro, GRID, SOON).included.map((line) => line.key)).toContain("setupAssistance");
+    // Cartes cadeaux et nom de domaine : en tête des cartes Pro et Business, absents du Starter.
+    for (const plan of [pro, business])
+      expect(
+        gridCard(plan, GRID, SOON)
+          .included.slice(0, 2)
+          .map((line) => line.key)
+          .sort(),
+      ).toEqual(["freeDomain", "giftCards"]);
+    expect(gridCard(starter, GRID, SOON).included.map((line) => line.key)).not.toContain("freeDomain");
   });
 
   it("chaque ligne a ses textes (comparatif et carte)", () => {
