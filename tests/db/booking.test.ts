@@ -526,6 +526,63 @@ describe.skipIf(!hasTestDatabase)("moteur de réservation", () => {
       );
     });
 
+    it("fiche sans téléphone : une réservation en ligne n'y ajoute ni numéro ni accord pour les offres", async () => {
+      const s = await setup();
+      const email = `sans-tel-${Math.random().toString(36).slice(2, 8)}@example.com`;
+      await book(s.id, { serviceIds: [s.soin.id], start: at("10:00"), customer: customer(email) });
+      // La gérante a retiré le numéro de la fiche (ou l'a créée avec l'e-mail seul).
+      await owner
+        .update(customers)
+        .set({ phone: null })
+        .where(sql`lower(${customers.email}) = ${email}`);
+      await book(s.id, {
+        serviceIds: [s.soin.id],
+        start: at("15:00"),
+        customer: { ...customer(email), phone: "07 99 99 99 99", marketingConsent: true },
+      });
+      const [row] = await owner
+        .select()
+        .from(customers)
+        .where(sql`lower(${customers.email}) = ${email}`);
+      expect(row).toMatchObject({ phone: null, emailConsent: false, smsConsent: false });
+    });
+
+    it("le déplacement reprend la durée actuelle des prestations, et l'ancien lien mène au nouveau", async () => {
+      const s = await setup();
+      const first = await book(s.id, { serviceIds: [s.massage.id], start: at("10:00") });
+      // Le massage passe de 60 à 90 minutes après la réservation.
+      await platform((tx) =>
+        saveService(
+          tx,
+          s.id,
+          { name: "Massage", durationMinutes: 90, bufferMinutes: 15, price: "70" },
+          s.massage.id,
+        ),
+      );
+      const moved = await asSite(s.id, (tx) =>
+        rescheduleByCustomer(tx, s.id, first.manageToken, { start: at("14:00"), staffId: null }, NOW),
+      );
+      const [row] = await owner.select().from(appointments).where(eq(appointments.id, moved.appointmentId));
+      expect(row.endsAt.toISOString()).toBe(at("15:30").toISOString());
+      expect(row.blockedUntil.toISOString()).toBe(at("15:45").toISOString());
+      expect(row.totalCents).toBe(7000);
+      const old = await asSite(s.id, (tx) => findByManageToken(tx, s.id, first.manageToken));
+      expect(old?.movedTo).toMatchObject({ manageToken: moved.manageToken, status: "confirmed" });
+      expect(old?.movedTo?.startsAt.toISOString()).toBe(at("14:00").toISOString());
+    });
+
+    it("double clic sur « Annuler » : une seule annulation, la seconde est refusée", async () => {
+      const s = await setup();
+      const a = await book(s.id, { serviceIds: [s.soin.id], start: at("10:00") });
+      const results = await Promise.allSettled([
+        asSite(s.id, (tx) => cancelByCustomer(tx, s.id, a.manageToken, NOW)),
+        asSite(s.id, (tx) => cancelByCustomer(tx, s.id, a.manageToken, NOW)),
+      ]);
+      expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+      const rejected = results.find((result) => result.status === "rejected");
+      expect((rejected as PromiseRejectedResult).reason).toMatchObject({ code: "booking_not_modifiable" });
+    });
+
     it("refuse un report vers un créneau indisponible", async () => {
       const s = await setup();
       const a = await book(s.id, { serviceIds: [s.massage.id], staffId: s.lea.id, start: at("10:00") });

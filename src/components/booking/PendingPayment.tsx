@@ -15,6 +15,8 @@ export function PendingPayment(props: {
   locale: string;
   holdExpiresAt: string | null;
   returnPath: string;
+  /** Délai de paiement dépassé : « Reprendre la réservation ». */
+  restartHref?: string;
 }) {
   const t = useTranslations("booking");
   const router = useRouter();
@@ -48,6 +50,7 @@ export function PendingPayment(props: {
           holdExpiresAt={props.holdExpiresAt}
           returnPath={props.returnPath}
           onPaid={paid}
+          restartHref={props.restartHref}
         />
       )}
     </section>

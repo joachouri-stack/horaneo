@@ -10,15 +10,17 @@ import {
   stripeEvents,
   businessSettings,
   businesses,
+  usageCounters,
 } from "@/db/schema";
 import { cancelByManager } from "@/modules/agenda/actions";
+import { createBusiness } from "@/modules/businesses/businesses";
 import { createBooking, type BookingInput } from "@/modules/booking/create";
 import { cancelByCustomer, rescheduleByCustomer } from "@/modules/booking/manage";
 import { localToUtc } from "@/modules/booking/time";
 import { saveService } from "@/modules/catalog/services";
 import { AppError } from "@/modules/errors";
 import { refreshAccount, startOnboarding } from "@/modules/payments/connect";
-import { depositCheckout, syncDeposit } from "@/modules/payments/deposits";
+import { applyPaymentIntent, depositCheckout, syncDeposit } from "@/modules/payments/deposits";
 import { refundDeposit } from "@/modules/payments/refunds";
 import { handleEvent } from "@/modules/payments/webhooks";
 import { computeDiscount, deletePromoCode, previewPromo, savePromoCode } from "@/modules/promo/codes";
@@ -142,7 +144,7 @@ describe.skipIf(!hasTestDatabase)("paiements", () => {
   async function payAndSync(s: { id: string }, appointmentId: string) {
     const payment = await paymentOf(appointmentId);
     fake.pay(payment.stripePaymentIntentId);
-    return asTenant(s.id, (tx) => syncDeposit(tx, s.id, appointmentId, fake.gateway));
+    return asTenant(s.id, (tx) => syncDeposit(tx, s.id, appointmentId, fake.gateway, minutesLater(15)));
   }
 
   describe("compte Stripe du professionnel", () => {
@@ -291,6 +293,93 @@ describe.skipIf(!hasTestDatabase)("paiements", () => {
       const rows = await refundsOf(payment!.id);
       expect(rows).toHaveLength(1);
       expect(rows[0]).toMatchObject({ amountCents: 2100, reason: "slot_taken", status: "succeeded" });
+    });
+
+    it("paiement tardif d'un rendez-vous dont l'heure est passée : remboursé, jamais repris", async () => {
+      const s = await setup();
+      const result = await book(s);
+      await book(s, { start: at("14:00") }, minutesLater(11));
+      const payment = await paymentOf(result.appointmentId);
+      fake.pay(payment.stripePaymentIntentId);
+      const event = fake.event("payment_intent.succeeded", s.accountId, {
+        id: payment.stripePaymentIntentId,
+        status: "succeeded",
+      });
+      // L'information n'arrive que le lendemain du rendez-vous.
+      await platform((tx) =>
+        applyPaymentIntent(
+          tx,
+          s.id,
+          { id: payment.stripePaymentIntentId, status: "succeeded" },
+          fake.gateway,
+          {
+            now: at("12:00", "2026-10-07"),
+          },
+        ),
+      );
+      expect(event.type).toBe("payment_intent.succeeded");
+      expect((await appointment(result.appointmentId)).status).toBe("expired");
+      expect(await refundsOf(payment.id)).toMatchObject([{ reason: "slot_taken", amountCents: 2100 }]);
+    });
+
+    it("réservation abandonnée : le code promo et la réservation du mois sont rendus, puis repris si elle paie tard", async () => {
+      const s = await setup();
+      await asTenant(s.id, (tx) =>
+        savePromoCode(tx, s.id, { code: "UNIQUE", discountType: "fixed", discountValue: "5", maxUses: 1 }),
+      );
+      const abandoned = await book(s, { promoCode: "UNIQUE" });
+      const usage = async () => {
+        const [code] = await owner.select().from(promoCodes).where(eq(promoCodes.tenantId, s.id));
+        const [counter] = await owner.select().from(usageCounters).where(eq(usageCounters.tenantId, s.id));
+        return { promo: code.usedCount, bookings: counter.onlineBookings };
+      };
+      expect(await usage()).toEqual({ promo: 1, bookings: 1 });
+      // 11 minutes plus tard, une autre cliente utilise le même code (unique) sur un autre créneau.
+      const other = await book(s, { promoCode: "UNIQUE", start: at("14:00") }, minutesLater(11));
+      expect((await appointment(abandoned.appointmentId)).status).toBe("expired");
+      expect(other.discountCents).toBe(500);
+      expect(await usage()).toEqual({ promo: 1, bookings: 1 });
+      // La première paie finalement : son rendez-vous est repris et compté à nouveau.
+      await payAndSync(s, abandoned.appointmentId);
+      expect((await appointment(abandoned.appointmentId)).status).toBe("confirmed");
+      // Code à usage unique déjà repris : son compteur ne dépasse pas la limite.
+      expect(await usage()).toEqual({ promo: 1, bookings: 2 });
+    });
+
+    it("site à plusieurs entreprises : paiement tardif sur un créneau repris, remboursé par l'événement Stripe", async () => {
+      const s = await setup();
+      const first = await book(s);
+      // Le site accueille une deuxième entreprise : plus d'entreprise « par défaut ».
+      await platform((tx) => createBusiness(tx, s.id, { name: "Seconde", siret: "987 654 321 00019" }));
+      await owner
+        .update(businessSettings)
+        .set({ depositEnabled: false })
+        .where(eq(businessSettings.businessId, s.businessId));
+      const second = await withTenant(
+        s.id,
+        (tx) =>
+          createBooking(
+            tx,
+            s.id,
+            { serviceIds: [s.massage.id], staffId: null, start: at("10:00"), customer: customer() },
+            { now: minutesLater(11), gateway: fake.gateway },
+          ),
+        app,
+        s.businessId,
+      );
+      expect(second.status).toBe("confirmed");
+      const payment = await paymentOf(first.appointmentId);
+      fake.pay(payment.stripePaymentIntentId);
+      const event = fake.event("payment_intent.succeeded", s.accountId, {
+        id: payment.stripePaymentIntentId,
+        status: "succeeded",
+      });
+      expect(await platform((tx) => handleEvent(tx, event, fake.gateway))).toMatchObject({
+        detail: "refunded",
+      });
+      expect(await refundsOf(payment.id)).toMatchObject([
+        { reason: "slot_taken", amountCents: 2100, businessId: s.businessId },
+      ]);
     });
 
     it("un échec de paiement est noté, la cliente peut réessayer", async () => {
@@ -483,6 +572,25 @@ describe.skipIf(!hasTestDatabase)("paiements", () => {
       expect(await errorCode(second)).toBe("promo_code_invalid");
       const [code] = await owner.select().from(promoCodes).where(eq(promoCodes.tenantId, s.id));
       expect(code.usedCount).toBe(1);
+    });
+
+    it("un code promo ne sert qu'une fois par cliente", async () => {
+      const s = await setup({ deposit: false });
+      await asTenant(s.id, (tx) =>
+        savePromoCode(tx, s.id, { code: "MERCI", discountType: "fixed", discountValue: "5" }),
+      );
+      const me = customer();
+      const first = await book(s, { promoCode: "MERCI", customer: me });
+      expect(first.discountCents).toBe(500);
+      expect(await errorCode(book(s, { promoCode: "merci", customer: { ...me }, start: at("14:00") }))).toBe(
+        "promo_code_already_used",
+      );
+      // Une autre cliente peut l'utiliser ; et après une annulation, la cliente peut le réutiliser.
+      expect((await book(s, { promoCode: "MERCI", start: at("12:00") })).discountCents).toBe(500);
+      await asTenant(s.id, (tx) => cancelByManager(tx, s.id, first.appointmentId));
+      expect((await book(s, { promoCode: "MERCI", customer: me, start: at("15:00") })).discountCents).toBe(
+        500,
+      );
     });
 
     it("dates de validité dans le fuseau de l'établissement, « jusqu'au » inclus", async () => {

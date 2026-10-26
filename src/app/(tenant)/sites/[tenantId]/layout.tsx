@@ -15,7 +15,7 @@ import { routing } from "@/i18n/routing";
 import { getSite, isPreview } from "@/lib/site/load";
 import { absoluteImageUrl, siteBaseUrl } from "@/lib/site/urls";
 import { siteCta } from "@/modules/site/cta";
-import { APP_PATHS, SITE_PATHS } from "@/modules/site/paths";
+import { APP_PATHS, businessPath, SITE_PATHS } from "@/modules/site/paths";
 import { homeDescription, localBusinessJsonLd, serializeJsonLd } from "@/modules/site/seo";
 import { buildTheme, themeCssVariables } from "@/modules/site/theme";
 // Polices fournies avec le projet : la construction ne dépend pas du réseau.
@@ -115,6 +115,17 @@ export default async function TenantLayout({ children, params }: LayoutProps<"/s
               phone={site.tenant.contactBar?.phone ?? site.tenant.phone}
               mode={site.tenant.contactBar?.mode ?? "call"}
               cta={siteCta(site)}
+              pages={
+                site.businesses.length > 1
+                  ? site.businesses
+                      .filter((business) => business.slug)
+                      .map((business) => ({
+                        path: businessPath(business.slug!),
+                        phone: business.phone ?? site.tenant.contactBar?.phone ?? site.tenant.phone,
+                        cta: siteCta(site, { businessId: business.id }),
+                      }))
+                  : []
+              }
             />
           )}
           {site.tenant.status === "active" && (

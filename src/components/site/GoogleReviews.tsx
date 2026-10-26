@@ -32,7 +32,7 @@ export async function ReviewsSummary({
           href={reviews.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-semibold underline underline-offset-4"
+          className="inline-flex min-h-11 items-center font-semibold underline underline-offset-4"
         >
           {t("seeOnGoogle")} ↗
         </a>
@@ -50,7 +50,7 @@ export async function ReviewsSummary({
         href={reviews.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="font-semibold underline underline-offset-4"
+        className="inline-flex min-h-11 items-center font-semibold underline underline-offset-4"
       >
         {t("readAll")} ↗
       </a>

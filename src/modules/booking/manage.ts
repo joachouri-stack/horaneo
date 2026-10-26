@@ -8,8 +8,8 @@ import { queueMessage } from "@/modules/messages/queue";
 import { moveDeposit } from "@/modules/payments/deposits";
 import type { PaymentGateway } from "@/modules/payments/gateway";
 import { refundDeposit } from "@/modules/payments/refunds";
-import { getSlotsForRange, loadBookingContext } from "./availability";
-import { assignManageToken, hashManageToken } from "./create";
+import { getSlotsForRange, loadBookingContext, resolveServices } from "./availability";
+import { assignManageToken, expireStaleHolds, hashManageToken, manageTokenFor } from "./create";
 import { addMinutes, utcToLocal } from "./time";
 
 /**
@@ -59,6 +59,7 @@ export async function findByManageToken(tx: Transaction, tenantId: string, token
     .where(eq(appointmentItems.appointmentId, row.appointment.id))
     .orderBy(asc(appointmentItems.position));
   const lang = (locale ?? context.tenant.defaultLocale) as Locale;
+  const movedTo = await latestReschedule(tx, tenantId, row.appointment);
   const deadline = addMinutes(row.appointment.startsAt, -context.settings.cancellationDeadlineHours * 60);
   return {
     appointment: row.appointment,
@@ -71,7 +72,32 @@ export async function findByManageToken(tx: Transaction, tenantId: string, token
     })),
     context,
     deadline,
+    /** Rendez-vous déplacé par la cliente : le nouveau (dernier de la chaîne), avec son lien. */
+    movedTo,
   };
+}
+
+/** Suit les déplacements successifs d'un rendez-vous jusqu'au plus récent. */
+async function latestReschedule(
+  tx: Transaction,
+  tenantId: string,
+  appointment: typeof appointments.$inferSelect,
+): Promise<{ startsAt: Date; status: string; manageToken: string } | null> {
+  if (appointment.cancellationReason !== "rescheduled") return null;
+  let current: { id: string; startsAt: Date; status: string } | null = null;
+  let fromId = appointment.id;
+  for (let depth = 0; depth < 20; depth++) {
+    const [next] = await tx
+      .select({ id: appointments.id, startsAt: appointments.startsAt, status: appointments.status })
+      .from(appointments)
+      .where(and(eq(appointments.tenantId, tenantId), eq(appointments.rescheduledFromId, fromId)));
+    if (!next) break;
+    current = next;
+    fromId = next.id;
+  }
+  return current
+    ? { startsAt: current.startsAt, status: current.status, manageToken: manageTokenFor(current.id) }
+    : null;
 }
 
 export type ManagedAppointment = NonNullable<Awaited<ReturnType<typeof findByManageToken>>>;
@@ -79,6 +105,22 @@ export type ManagedAppointment = NonNullable<Awaited<ReturnType<typeof findByMan
 /** Peut-on encore annuler ou déplacer en ligne ? */
 export function canModify(managed: ManagedAppointment, now: Date) {
   return managed.appointment.status === "confirmed" && now <= managed.deadline;
+}
+
+/**
+ * Retrouve le rendez-vous et le verrouille jusqu'à la fin de la transaction : un double
+ * clic, ou une annulation pendant un déplacement, attend la première action puis voit
+ * son résultat (le rendez-vous n'est plus modifiable).
+ */
+async function findLocked(tx: Transaction, tenantId: string, token: string) {
+  const managed = await findByManageToken(tx, tenantId, token);
+  if (!managed) return null;
+  const [locked] = await tx
+    .select({ status: appointments.status })
+    .from(appointments)
+    .where(eq(appointments.id, managed.appointment.id))
+    .for("update");
+  return locked ? { ...managed, appointment: { ...managed.appointment, status: locked.status } } : null;
 }
 
 function assertModifiable(
@@ -101,7 +143,7 @@ export async function cancelByCustomer(
   now = new Date(),
   gateway: PaymentGateway | null = null,
 ) {
-  const managed = await findByManageToken(tx, tenantId, token);
+  const managed = await findLocked(tx, tenantId, token);
   assertModifiable(managed, now);
   await tx
     .update(appointments)
@@ -140,11 +182,16 @@ export async function rescheduleByCustomer(
   target: { start: Date; staffId: string | null },
   now = new Date(),
 ) {
-  const managed = await findByManageToken(tx, tenantId, token);
+  const managed = await findLocked(tx, tenantId, token);
   assertModifiable(managed, now);
   const old = managed.appointment;
   const serviceIds = managed.items.map((item) => item.serviceId).filter((id): id is string => Boolean(id));
   if (serviceIds.length !== managed.items.length) throw new AppError("booking_not_modifiable");
+  // Les créneaux libres sont calculés avec les durées actuelles des prestations :
+  // le nouveau rendez-vous les reprend (le prix, lui, reste celui de la réservation).
+  const current = resolveServices(managed.context, serviceIds, { onlineOnly: false });
+  // Réservations temporaires expirées : leur créneau est libre, la base doit le savoir.
+  await expireStaleHolds(tx, tenantId, now);
 
   const date = utcToLocal(target.start, managed.context.tenant.timezone).date;
   const slots =
@@ -174,8 +221,8 @@ export async function rescheduleByCustomer(
     })
     .where(eq(appointments.id, old.id));
 
-  const duration = (old.endsAt.getTime() - old.startsAt.getTime()) / 60000;
-  const buffer = (old.blockedUntil.getTime() - old.endsAt.getTime()) / 60000;
+  const duration = current.totals.durationMinutes;
+  const buffer = current.totals.bufferMinutes;
   const [created] = await insertOrSlotTaken(() =>
     tx
       .insert(appointments)
@@ -211,8 +258,12 @@ export async function rescheduleByCustomer(
       serviceId: item.serviceId,
       position: item.position,
       serviceName: item.serviceName,
-      durationMinutes: item.durationMinutes,
-      bufferMinutes: item.bufferMinutes,
+      durationMinutes:
+        current.services.find((service) => service.id === item.serviceId)?.durationMinutes ??
+        item.durationMinutes,
+      bufferMinutes:
+        current.services.find((service) => service.id === item.serviceId)?.bufferMinutes ??
+        item.bufferMinutes,
       priceCents: item.priceCents,
     })),
   );

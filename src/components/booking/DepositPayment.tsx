@@ -1,7 +1,10 @@
 "use client";
 
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
-import { loadStripe, type Appearance, type StripeElementLocale } from "@stripe/stripe-js";
+import type { Appearance, StripeElementLocale } from "@stripe/stripe-js";
+// Version « pure » : le script de Stripe n'est chargé qu'à l'affichage du formulaire.
+import { loadStripe } from "@stripe/stripe-js/pure";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { money } from "./format";
@@ -22,6 +25,9 @@ type Props = {
   /** Page de retour après une validation bancaire hors de la page (chemin sur le site). */
   returnPath: string;
   onPaid: () => Promise<void> | void;
+  /** Délai dépassé : reprendre la réservation (dans la page, ou vers une adresse). */
+  onRestart?: () => void;
+  restartHref?: string;
   /** Textes propres à un autre achat (carte cadeau) : titre, bouton, mention sous le formulaire. */
   labels?: { title?: string; pay?: string; secure?: string };
 };
@@ -82,6 +88,17 @@ export function DepositPayment(props: Props) {
     return (
       <div role="alert" className="rounded-site border border-site-border p-4">
         <p className="font-semibold">{t("expired")}</p>
+        {props.onRestart ? (
+          <button type="button" onClick={props.onRestart} className={`${buttonClass} mt-4`}>
+            {t("restart")}
+          </button>
+        ) : (
+          props.restartHref && (
+            <Link href={props.restartHref} className={`${buttonClass} mt-4`}>
+              {t("restart")}
+            </Link>
+          )
+        )}
       </div>
     );
   }
@@ -89,7 +106,10 @@ export function DepositPayment(props: Props) {
   return (
     <div ref={ref} className="space-y-4">
       <p className="text-lg font-semibold">
-        {props.labels?.title ?? t("title")} : {money(props.amountCents, props.currency, props.locale)}
+        {t("amountLine", {
+          title: props.labels?.title ?? t("title"),
+          amount: money(props.amountCents, props.currency, props.locale),
+        })}
       </p>
       {remaining !== null && (
         <p className="text-site-muted" aria-live="off">

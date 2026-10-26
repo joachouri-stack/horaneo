@@ -99,8 +99,8 @@ export async function ServiceAccordion({
               const was = service.promo
                 ? formatMoney(service.promo.referenceCents, service.currency, site.locale)
                 : null;
-              return (
-                <li key={service.id} className="flex items-center gap-4 py-3">
+              const content = (
+                <>
                   <div className="min-w-0 flex-1">
                     <h3 className="font-semibold">{service.name}</h3>
                     <p className="text-sm text-site-muted">
@@ -115,19 +115,34 @@ export async function ServiceAccordion({
                       wasLabel={was ? tOffers("was", { price: was }) : undefined}
                     />
                   </span>
+                </>
+              );
+              return (
+                <li key={service.id}>
                   {service.bookOnline ? (
+                    // Toute la ligne mène à la réservation (pas seulement la flèche).
                     <Link
                       href={`${SITE_PATHS.booking}?prestation=${service.id}`}
                       aria-label={t("bookService", { service: service.name })}
-                      className="group -my-1 flex size-11 shrink-0 items-center justify-center"
+                      className="group flex min-h-11 items-center gap-4 py-3"
                     >
-                      {/* Rond de 36 px, zone tactile de 44 px. */}
-                      <span className="flex size-9 items-center justify-center rounded-full bg-site-surface text-site-accent transition group-hover:bg-site-button group-hover:text-site-on-button">
-                        <ArrowIcon />
+                      {content}
+                      {/* Rond de 36 px, dans une zone de 44 px. */}
+                      <span className="-my-1 flex size-11 shrink-0 items-center justify-center">
+                        <span className="flex size-9 items-center justify-center rounded-full bg-site-surface text-site-accent transition group-hover:bg-site-button group-hover:text-site-on-button">
+                          <ArrowIcon />
+                        </span>
                       </span>
                     </Link>
-                  ) : service.isOnlineBookable ? null : (
-                    <span className="w-16 shrink-0 text-right text-xs text-site-muted">{t("onRequest")}</span>
+                  ) : (
+                    <div className="flex items-center gap-4 py-3">
+                      {content}
+                      {!service.isOnlineBookable && (
+                        <span className="w-16 shrink-0 text-right text-xs text-site-muted">
+                          {t("onRequest")}
+                        </span>
+                      )}
+                    </div>
                   )}
                 </li>
               );

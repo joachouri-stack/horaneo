@@ -45,6 +45,7 @@ export type AppErrorCode =
   | "booking_not_modifiable"
   | "rate_limited"
   | "promo_code_invalid"
+  | "promo_code_already_used"
   | "promo_code_taken"
   | "payments_unavailable"
   | "payment_not_refundable"
