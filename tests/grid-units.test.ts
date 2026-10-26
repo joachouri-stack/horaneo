@@ -36,7 +36,6 @@ describe("grille des packs : une seule source pour les cartes et le comparatif",
     for (const key of [
       "fullSite",
       "onlinePayment",
-      "freeDomain",
       "whatsappSupport",
       "maintenance",
       "security",
@@ -45,6 +44,9 @@ describe("grille des packs : une seule source pour les cartes et le comparatif",
       "technicalSupport247",
     ])
       expect(row(key), key).toEqual([{ included: true }, { included: true }, { included: true }]);
+    // Pro et Business : cartes cadeaux et nom de domaine inclus.
+    for (const key of ["giftCards", "freeDomain"])
+      expect(row(key), key).toEqual([{ included: false }, { included: true }, { included: true }]);
   });
 
   it("range les lignes dans les douze catégories, Commerce et Formation marquées « Bientôt »", () => {

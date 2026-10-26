@@ -364,13 +364,12 @@ const GRID_BASIC = {
   brandingFooter: true,
 } satisfies PlanFeatures;
 
-/** Starter : site multipage, paiement par carte, nom de domaine pour la création, assistance WhatsApp. */
+/** Starter : site multipage, paiement par carte, assistance WhatsApp. */
 const GRID_STARTER = {
   ...GRID_BASIC,
   fullSite: true,
   sitePages: true,
   onlinePayment: true,
-  freeDomain: true,
   whatsappSupport: true,
   maintenance: true,
   securityProtection: true,
@@ -397,6 +396,8 @@ const GRID_PRO = {
   ticketSupport: true,
   socialBooking: true,
   customerFollowUp: true,
+  giftCards: true,
+  freeDomain: true,
   advancedCrm: false,
   commerce: true,
   formation: true,
@@ -408,7 +409,6 @@ const GRID_BUSINESS = {
   advancedCrm: true,
   marketingAutomation: true,
   loyalty: true,
-  giftCards: true,
   monthlySummary: true,
   advancedSeo: true,
   aiChatbot: true,
