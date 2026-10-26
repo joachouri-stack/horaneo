@@ -2,6 +2,7 @@
 
 import { appointmentEvent, googleCalendarUrl } from "@/lib/calendar/appointment";
 import { appointmentCalendarPath } from "@/modules/site/paths";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -16,9 +17,14 @@ import {
   type GiftPreview,
   type PromoPreview,
 } from "@/app/(tenant)/sites/[tenantId]/reserver/actions";
-import { DepositPayment } from "./DepositPayment";
-import { durationLabel, formatLongDate, formatTimeOf, money } from "./format";
+import { endTimeOf, formatLongDate, formatTimeOf, money } from "./format";
+import { useDurations, useSiteError } from "./hooks";
 import { SlotPicker, type PickedSlot } from "./SlotPicker";
+
+// Formulaire de carte (Stripe) : chargé seulement quand un acompte est à payer.
+const DepositPayment = dynamic(() => import("./DepositPayment").then((module) => module.DepositPayment), {
+  ssr: false,
+});
 
 export type FlowService = {
   id: string;
@@ -40,7 +46,7 @@ type Props = {
   staff: { id: string; name: string; serviceIds: string[] }[];
   maxServices: number;
   preselectedServiceId: string | null;
-  /** « Reprendre ce soin » : praticienne déjà choisie et passage direct au choix du créneau. */
+  /** « Réserver à nouveau » : praticienne déjà choisie et passage direct au choix du créneau. */
   preselectedStaffId?: string | null;
   startAtSlot?: boolean;
   /** Cliente connectée à son espace : coordonnées déjà remplies. */
@@ -51,11 +57,15 @@ type Props = {
   promoEnabled: boolean;
   /** Pack avec cartes cadeaux : la carte peut remplacer l'acompte. */
   giftCardsEnabled?: boolean;
+  /** Rappel par SMS la veille (pack avec SMS) : mentionné sous le téléphone. */
+  smsReminders?: boolean;
   holdMinutes: number;
   cancellationHours: number;
   /** Réservation possible jusqu'à N jours à l'avance. */
   maxAdvanceDays?: number;
   privacyPath: string;
+  /** Page des conditions d'annulation, citée dans le récapitulatif. */
+  conditionsPath?: string;
   managePath: string;
   /** Étapes déjà franchies avant ce parcours (ex. « Avec qui ? » sur un site à plusieurs entreprises). */
   stepOffset?: number;
@@ -72,10 +82,22 @@ type Props = {
 
 type Step = "services" | "slot" | "details" | "done";
 
+const CONTACT_FIELDS = ["firstName", "lastName", "email", "phone", "note", "beneficiaryName"] as const;
+type ContactField = (typeof CONTACT_FIELDS)[number];
+type Contact = Record<ContactField, string> & { marketingConsent: boolean; website: string };
+
 const inputClass =
-  "block min-h-12 w-full rounded-site border border-site-border bg-site-bg px-4 py-3 text-lg text-site-text";
+  "block min-h-12 w-full rounded-site border border-site-border bg-site-bg px-4 py-3 text-lg text-site-text aria-[invalid=true]:border-2 aria-[invalid=true]:border-site-accent";
 const primaryClass =
   "inline-flex min-h-14 w-full items-center justify-center rounded-site bg-site-button px-6 text-lg font-semibold text-site-on-button disabled:opacity-50 sm:w-auto";
+const linkClass = "inline-flex min-h-11 items-center font-semibold text-site-accent underline";
+const headingClass =
+  "scroll-mt-28 font-site-display text-3xl font-semibold text-site-heading focus:outline-none";
+
+/** Le délai d'annulation gratuite est-il déjà passé ? (calculé hors du rendu de React) */
+function isPast(iso: string) {
+  return new Date(iso).getTime() <= Date.now();
+}
 
 /**
  * Parcours de réservation en 4 étapes, sans compte : prestation, créneau,
@@ -83,7 +105,8 @@ const primaryClass =
  */
 export function BookingFlow(props: Props) {
   const t = useTranslations("booking");
-  const tErrors = useTranslations("errors");
+  const siteError = useSiteError();
+  const { duration, withDuration } = useDurations();
   const router = useRouter();
   const [step, setStep] = useState<Step>(
     props.preselectedServiceId && props.startAtSlot ? "slot" : "services",
@@ -93,15 +116,28 @@ export function BookingFlow(props: Props) {
   );
   const [slot, setSlot] = useState<PickedSlot | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [fieldError, setFieldError] = useState<{ field: ContactField; code: string } | null>(null);
   const [pending, setPending] = useState(false);
   const [confirmation, setConfirmation] = useState<BookingConfirmation | null>(null);
   const [promo, setPromo] = useState<PromoPreview | null>(null);
   const [promoCode, setPromoCode] = useState("");
   const [promoError, setPromoError] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
+  const [giftOpen, setGiftOpen] = useState(Boolean(props.initialGiftCode));
   const [giftCode, setGiftCode] = useState(props.initialGiftCode ?? "");
   const [gift, setGift] = useState<GiftPreview | null>(null);
   const [giftError, setGiftError] = useState<string | null>(null);
+  // Champs contrôlés : rien n'est effacé si le serveur refuse la réservation.
+  const [contact, setContact] = useState<Contact>({
+    firstName: props.prefill?.firstName ?? "",
+    lastName: props.prefill?.lastName ?? "",
+    email: props.prefill?.email ?? "",
+    phone: props.prefill?.phone ?? "",
+    note: "",
+    beneficiaryName: "",
+    marketingConsent: false,
+    website: "",
+  });
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   // À chaque étape, le titre reçoit le focus (lecteurs d'écran, navigation au clavier).
@@ -109,7 +145,16 @@ export function BookingFlow(props: Props) {
     headingRef.current?.focus();
   }, [step]);
 
+  // Champ refusé par le serveur : on l'amène à l'écran et on y place le curseur.
+  useEffect(() => {
+    if (!fieldError) return;
+    const input = document.getElementById(`b-${fieldError.field}`);
+    input?.scrollIntoView({ block: "center", behavior: "smooth" });
+    input?.focus({ preventScroll: true });
+  }, [fieldError]);
+
   const chosen = props.services.filter((service) => selected.includes(service.id));
+  const anyPriceFrom = chosen.some((service) => service.priceFrom);
   const totalCents = chosen.reduce((sum, service) => sum + service.priceCents, 0);
   const totalMinutes = chosen.reduce((sum, service) => sum + service.durationMinutes, 0);
   const baseDepositCents = !props.deposit.enabled
@@ -131,6 +176,13 @@ export function BookingFlow(props: Props) {
     details: t("steps.details"),
     done: t("steps.payment"),
   };
+  const price = (cents: number, from = false) => {
+    const amount = money(cents, props.currency, props.locale);
+    return from ? t("priceFrom", { price: amount }) : amount;
+  };
+  const chosenNames = chosen
+    .map((service) => withDuration(service.name, service.durationMinutes))
+    .join(" + ");
 
   const toggle = (id: string) => {
     setError(null);
@@ -147,6 +199,11 @@ export function BookingFlow(props: Props) {
       getAvailabilityAction({ serviceIds: selected, staffId, fromDate, days: 14 }),
     [selected],
   );
+
+  const update = (field: keyof Contact, value: string | boolean) => {
+    setContact((current) => ({ ...current, [field]: value }));
+    if (fieldError?.field === field) setFieldError(null);
+  };
 
   async function applyGiftCard() {
     if (!giftCode.trim()) return;
@@ -194,29 +251,45 @@ export function BookingFlow(props: Props) {
     router.push(`${props.managePath}/${confirmation.manageToken}`);
   }
 
-  async function submit(form: FormData) {
-    if (!slot) return;
+  /** Délai de paiement dépassé : on repart du choix du créneau, prestations gardées. */
+  function restart() {
+    setConfirmation(null);
+    setSlot(null);
+    setError(null);
+    setStep("slot");
+  }
+
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
+    // Envoi géré ici (et non par l'action du formulaire) : React ne vide pas les champs.
+    event.preventDefault();
+    if (!slot || pending) return;
     setPending(true);
     setError(null);
+    setFieldError(null);
     const result = await bookAction({
       serviceIds: selected,
       staffId: slot.staffId,
       start: slot.start,
       promoCode: promo?.code,
       giftCardCode: gift ? giftCode : undefined,
-      website: String(form.get("website") ?? ""),
+      website: contact.website,
       customer: {
-        firstName: String(form.get("firstName") ?? ""),
-        lastName: String(form.get("lastName") ?? ""),
-        email: String(form.get("email") ?? ""),
-        phone: String(form.get("phone") ?? ""),
-        note: String(form.get("note") ?? ""),
-        beneficiaryName: String(form.get("beneficiaryName") ?? ""),
-        marketingConsent: form.get("marketingConsent") === "on",
+        firstName: contact.firstName,
+        lastName: contact.lastName,
+        email: contact.email,
+        phone: contact.phone,
+        note: contact.note,
+        beneficiaryName: contact.beneficiaryName,
+        marketingConsent: contact.marketingConsent,
       },
     });
     setPending(false);
     if (!result.ok) {
+      const field = result.field?.replace(/^customer\./, "") as ContactField | undefined;
+      if (field && CONTACT_FIELDS.includes(field)) {
+        setFieldError({ field, code: result.error });
+        return;
+      }
       setError(result.error);
       if (result.error === "promo_code_invalid") setPromo(null);
       if (result.error === "slot_unavailable") {
@@ -229,12 +302,25 @@ export function BookingFlow(props: Props) {
     setStep("done");
   }
 
+  const fieldLabels: Record<ContactField, string> = {
+    firstName: t("details.firstName"),
+    lastName: t("details.lastName"),
+    email: t("details.email"),
+    phone: t("details.phone"),
+    note: t("details.note"),
+    beneficiaryName: t("details.beneficiary"),
+  };
+  const fieldMessage = (field: ContactField) => {
+    if (fieldError?.field !== field) return undefined;
+    return fieldError.code === "invalid" ? t(`details.fieldErrors.${field}`) : siteError(fieldError.code);
+  };
+
   const errorBox = error && (
     <p
       role="alert"
       className="rounded-site border border-site-border bg-site-surface px-4 py-3 font-semibold text-site-text"
     >
-      {tErrors(error as "invalid")}
+      {siteError(error)}
     </p>
   );
 
@@ -242,19 +328,15 @@ export function BookingFlow(props: Props) {
   if (step === "done" && confirmation) {
     const pendingPayment = confirmation.status === "pending_payment";
     const manageUrl = `${props.managePath}/${confirmation.manageToken}`;
+    const remainingCents = Math.max(0, confirmation.totalCents - confirmation.depositCents);
     return (
       <section aria-labelledby="titre-etape" className="rounded-site bg-site-panel p-6 sm:p-8">
-        <h2
-          id="titre-etape"
-          ref={headingRef}
-          tabIndex={-1}
-          className="scroll-mt-28 font-site-display text-3xl font-semibold text-site-heading"
-        >
+        <h2 id="titre-etape" ref={headingRef} tabIndex={-1} className={headingClass}>
           {pendingPayment ? t("confirmation.pendingTitle") : t("confirmation.title")}
         </h2>
         {!pendingPayment && (
           <div className="mt-6 flex flex-col items-center text-center">
-            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[#2f9e5b] text-white">
+            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-site-button text-site-on-button">
               <svg
                 aria-hidden="true"
                 viewBox="0 0 24 24"
@@ -270,7 +352,7 @@ export function BookingFlow(props: Props) {
           </div>
         )}
         <div className="mt-6 rounded-site border border-site-border bg-site-card p-4">
-          <p className="font-semibold">{chosen.map((service) => service.name).join(" + ")}</p>
+          <p className="font-semibold">{chosenNames}</p>
           <p className="text-site-muted">
             {t("confirmation.summary", {
               date: formatLongDate(confirmation.startsAt, props.locale, props.timezone),
@@ -278,15 +360,31 @@ export function BookingFlow(props: Props) {
               name: confirmation.staffName,
             })}
           </p>
+          <p className="text-site-muted">
+            {t("details.totalDuration", {
+              duration: duration(totalMinutes),
+              time: formatTimeOf(confirmation.endsAt, props.locale, props.timezone),
+            })}
+          </p>
         </div>
         <p className="mt-2 font-semibold">
-          {t("details.total")} : {money(confirmation.totalCents, confirmation.currency, props.locale)}
+          {t(anyPriceFrom ? "details.totalFrom" : "details.total", {
+            amount: money(confirmation.totalCents, confirmation.currency, props.locale),
+          })}
         </p>
         {confirmation.paidWithGiftCard && <p className="text-site-muted">{t("giftCard.paidWith")}</p>}
         {confirmation.discountCents > 0 && (
           <p className="text-site-muted">
-            {t("details.discount")} : −{" "}
-            {money(confirmation.discountCents, confirmation.currency, props.locale)}
+            {t("details.discount", {
+              amount: money(confirmation.discountCents, confirmation.currency, props.locale),
+            })}
+          </p>
+        )}
+        {confirmation.depositCents > 0 && (
+          <p className="text-site-muted">
+            {t(anyPriceFrom ? "details.remainingFrom" : "details.remaining", {
+              amount: money(remainingCents, confirmation.currency, props.locale),
+            })}
           </p>
         )}
         {pendingPayment && (
@@ -297,22 +395,19 @@ export function BookingFlow(props: Props) {
                 {t("payment.checking")}
               </p>
             ) : confirmation.payment ? (
-              <>
-                <DepositPayment
-                  checkout={confirmation.payment}
-                  amountCents={confirmation.depositCents}
-                  currency={confirmation.currency}
-                  locale={props.locale}
-                  holdExpiresAt={confirmation.holdExpiresAt}
-                  returnPath={manageUrl}
-                  onPaid={paid}
-                />
-                {props.payeeName && (
-                  <p className="mt-3 text-center text-sm text-site-muted">
-                    {t("payment.secureTo", { name: props.payeeName })}
-                  </p>
-                )}
-              </>
+              <DepositPayment
+                checkout={confirmation.payment}
+                amountCents={confirmation.depositCents}
+                currency={confirmation.currency}
+                locale={props.locale}
+                holdExpiresAt={confirmation.holdExpiresAt}
+                returnPath={manageUrl}
+                onPaid={paid}
+                onRestart={restart}
+                labels={
+                  props.payeeName ? { secure: t("payment.secureTo", { name: props.payeeName }) } : undefined
+                }
+              />
             ) : (
               <p>{t("payment.unavailable")}</p>
             )}
@@ -341,13 +436,13 @@ export function BookingFlow(props: Props) {
                 )}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-center font-semibold text-site-accent underline"
+                className={`${linkClass} justify-center text-center`}
               >
                 {t("confirmation.googleCalendar")}
               </a>
             </>
           )}
-          <Link href={manageUrl} className="text-center font-semibold text-site-accent underline">
+          <Link href={manageUrl} className={`${linkClass} justify-center text-center`}>
             {t("confirmation.manageLink")}
           </Link>
         </div>
@@ -380,12 +475,7 @@ export function BookingFlow(props: Props) {
       {/* ─── 1. Prestations ─── */}
       {step === "services" && (
         <section aria-labelledby="titre-etape" className="space-y-4">
-          <h2
-            id="titre-etape"
-            ref={headingRef}
-            tabIndex={-1}
-            className="scroll-mt-28 font-site-display text-3xl font-semibold text-site-heading"
-          >
+          <h2 id="titre-etape" ref={headingRef} tabIndex={-1} className={headingClass}>
             {props.maxServices > 1
               ? t("services.chooseMany", { max: props.maxServices })
               : t("services.choose")}
@@ -426,14 +516,14 @@ export function BookingFlow(props: Props) {
                               <s className="mr-2 text-sm font-normal text-site-muted">
                                 {money(service.regularPriceCents, props.currency, props.locale)}
                               </s>
-                              {money(service.priceCents, props.currency, props.locale)}
+                              {price(service.priceCents, service.priceFrom)}
                             </>
                           ) : (
-                            money(service.priceCents, props.currency, props.locale)
+                            price(service.priceCents, service.priceFrom)
                           )}
                         </span>
                         <span className="block text-sm text-site-muted">
-                          {durationLabel(service.durationMinutes)}
+                          {duration(service.durationMinutes)}
                         </span>
                       </span>
                     </label>
@@ -450,8 +540,8 @@ export function BookingFlow(props: Props) {
               <p className="mb-3 text-site-text" aria-live="polite">
                 {t("services.selected", {
                   count: chosen.length,
-                  duration: durationLabel(totalMinutes),
-                  price: money(totalCents, props.currency, props.locale),
+                  duration: duration(totalMinutes),
+                  price: price(totalCents, anyPriceFrom),
                 })}
               </p>
               <button
@@ -465,7 +555,7 @@ export function BookingFlow(props: Props) {
             </div>
           )}
           {props.previousHref && (
-            <Link href={props.previousHref} className="inline-block font-semibold text-site-accent underline">
+            <Link href={props.previousHref} className={linkClass}>
               ← {t("back")}
             </Link>
           )}
@@ -475,21 +565,12 @@ export function BookingFlow(props: Props) {
       {/* ─── 2. Créneau ─── */}
       {step === "slot" && (
         <section aria-labelledby="titre-etape" className="space-y-4">
-          <h2
-            id="titre-etape"
-            ref={headingRef}
-            tabIndex={-1}
-            className="scroll-mt-28 font-site-display text-3xl font-semibold text-site-heading"
-          >
+          <h2 id="titre-etape" ref={headingRef} tabIndex={-1} className={headingClass}>
             {t("steps.slot")}
           </h2>
           <p className="text-site-muted">
-            {chosen.map((service) => service.name).join(" + ")} · {durationLabel(totalMinutes)}{" "}
-            <button
-              type="button"
-              onClick={() => setStep("services")}
-              className="font-semibold text-site-accent underline"
-            >
+            {chosenNames} · {duration(totalMinutes)}{" "}
+            <button type="button" onClick={() => setStep("services")} className={linkClass}>
               {t("change")}
             </button>
           </p>
@@ -508,11 +589,7 @@ export function BookingFlow(props: Props) {
               setStep("details");
             }}
           />
-          <button
-            type="button"
-            onClick={() => setStep("services")}
-            className="font-semibold text-site-accent underline"
-          >
+          <button type="button" onClick={() => setStep("services")} className={linkClass}>
             ← {t("back")}
           </button>
         </section>
@@ -521,46 +598,21 @@ export function BookingFlow(props: Props) {
       {/* ─── 3. Coordonnées ─── */}
       {step === "details" && slot && (
         <section aria-labelledby="titre-etape" className="space-y-6">
-          <h2
-            id="titre-etape"
-            ref={headingRef}
-            tabIndex={-1}
-            className="scroll-mt-28 font-site-display text-3xl font-semibold text-site-heading"
-          >
+          <h2 id="titre-etape" ref={headingRef} tabIndex={-1} className={headingClass}>
             {t("details.title")}
           </h2>
-          <div className="rounded-site bg-site-panel p-4">
-            <h3 className="font-semibold">{t("details.summary")}</h3>
-            <p className="mt-1">
-              {t("slot.chosen", {
-                date: formatLongDate(slot.start, props.locale, props.timezone),
-                time: formatTimeOf(slot.start, props.locale, props.timezone),
-              })}
-              {slot.staffId &&
-                ` ${t("details.with", { name: props.staff.find((m) => m.id === slot.staffId)?.name ?? "" })}`}{" "}
-              <button
-                type="button"
-                onClick={() => setStep("slot")}
-                className="inline-flex min-h-11 items-center font-semibold text-site-accent underline"
-              >
-                {t("change")}
-              </button>
-            </p>
-            <p className="text-site-muted">{chosen.map((service) => service.name).join(" + ")}</p>
-            {promo && (
-              <p className="mt-1 text-site-muted">
-                {t("details.discount")} : − {money(promo.discountCents, props.currency, props.locale)}
-              </p>
-            )}
-            <p className="mt-1 font-semibold">
-              {t("details.total")} : {money(finalTotalCents, props.currency, props.locale)}
-            </p>
-            {depositCents > 0 && (
-              <p className="font-semibold">
-                {t("details.deposit")} : {money(depositCents, props.currency, props.locale)}
-              </p>
-            )}
-          </div>
+          <Summary
+            slot={slot}
+            props={props}
+            chosen={chosen}
+            totalMinutes={totalMinutes}
+            finalTotalCents={finalTotalCents}
+            depositCents={depositCents}
+            anyPriceFrom={anyPriceFrom}
+            promo={promo}
+            price={price}
+            onChangeSlot={() => setStep("slot")}
+          />
           {props.promoEnabled && (
             <div>
               <label htmlFor="b-promo" className="mb-2 block font-semibold text-site-text">
@@ -580,7 +632,7 @@ export function BookingFlow(props: Props) {
                       setPromo(null);
                       setPromoCode("");
                     }}
-                    className="font-semibold text-site-accent underline"
+                    className={linkClass}
                   >
                     {t("details.promoRemove")}
                   </button>
@@ -614,146 +666,203 @@ export function BookingFlow(props: Props) {
               )}
               {promoError && (
                 <p id="b-promo-error" role="alert" className="mt-1 font-semibold text-site-text">
-                  {tErrors(promoError as "invalid")}
+                  {siteError(promoError)}
                 </p>
               )}
             </div>
           )}
-          {props.giftCardsEnabled && (
-            <div>
-              <label htmlFor="b-gift" className="mb-2 block font-semibold text-site-text">
-                {t("giftCard.label")}
-              </label>
-              {gift ? (
-                <p className="flex flex-wrap items-center gap-3" role="status">
-                  <span>
-                    {gift.depositCents > 0
-                      ? t("giftCard.applied", {
-                          last4: gift.last4,
-                          amount: money(gift.depositCents, props.currency, props.locale),
-                          balance: money(gift.balanceCents, props.currency, props.locale),
-                        })
-                      : t("giftCard.appliedNoDeposit", {
-                          last4: gift.last4,
-                          balance: money(gift.balanceCents, props.currency, props.locale),
-                        })}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setGift(null);
-                      setGiftCode("");
-                    }}
-                    className="font-semibold text-site-accent underline"
-                  >
-                    {t("giftCard.remove")}
-                  </button>
-                </p>
-              ) : (
-                <div className="flex gap-2">
-                  <input
-                    id="b-gift"
-                    value={giftCode}
-                    onChange={(event) => setGiftCode(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter") {
-                        event.preventDefault();
-                        void applyGiftCard();
-                      }
-                    }}
-                    maxLength={40}
-                    autoComplete="off"
-                    autoCapitalize="characters"
-                    placeholder="XXXX-XXXX-XXXX"
-                    aria-describedby={giftError ? "b-gift-error" : undefined}
-                    className={`${inputClass} min-w-0 flex-1 uppercase`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => void applyGiftCard()}
-                    className="min-h-12 shrink-0 rounded-site border border-site-button px-4 font-semibold text-site-text"
-                  >
-                    {t("giftCard.apply")}
-                  </button>
-                </div>
-              )}
-              {giftError && (
-                <p id="b-gift-error" role="alert" className="mt-1 font-semibold text-site-text">
-                  {tErrors(giftError as "invalid")}
-                </p>
-              )}
-            </div>
-          )}
-          {errorBox}
-          <form action={submit} className="space-y-4">
+          <form onSubmit={submit} className="space-y-4">
             {/* Champ piège pour les robots : invisible pour les personnes. */}
             <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
               <label>
                 Website
-                <input name="website" tabIndex={-1} autoComplete="off" />
+                <input
+                  name="website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={contact.website}
+                  onChange={(event) => update("website", event.target.value)}
+                />
               </label>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field
                 name="firstName"
-                label={t("details.firstName")}
+                label={fieldLabels.firstName}
                 autoComplete="given-name"
                 required
-                defaultValue={props.prefill?.firstName}
+                value={contact.firstName}
+                onChange={(value) => update("firstName", value)}
+                error={fieldMessage("firstName")}
               />
               <Field
                 name="lastName"
-                label={t("details.lastName")}
+                label={fieldLabels.lastName}
                 autoComplete="family-name"
-                defaultValue={props.prefill?.lastName}
+                value={contact.lastName}
+                onChange={(value) => update("lastName", value)}
+                error={fieldMessage("lastName")}
               />
               <Field
                 name="email"
                 type="email"
-                label={t("details.email")}
+                label={fieldLabels.email}
                 hint={t("details.emailHint")}
                 autoComplete="email"
                 inputMode="email"
                 required
-                defaultValue={props.prefill?.email}
+                value={contact.email}
+                onChange={(value) => update("email", value)}
+                error={fieldMessage("email")}
               />
               <Field
                 name="phone"
                 type="tel"
-                label={t("details.phone")}
-                hint={t("details.phoneHint")}
+                label={fieldLabels.phone}
+                hint={props.smsReminders ? t("details.phoneHintSms") : t("details.phoneHint")}
                 autoComplete="tel"
                 inputMode="tel"
                 required
-                defaultValue={props.prefill?.phone}
+                value={contact.phone}
+                onChange={(value) => update("phone", value)}
+                error={fieldMessage("phone")}
               />
             </div>
+            {props.giftCardsEnabled && (
+              <div>
+                {!giftOpen && !gift ? (
+                  <button
+                    type="button"
+                    aria-expanded={false}
+                    onClick={() => setGiftOpen(true)}
+                    className={linkClass}
+                  >
+                    {t("giftCard.toggle")}
+                  </button>
+                ) : (
+                  <>
+                    <label htmlFor="b-gift" className="mb-2 block font-semibold text-site-text">
+                      {t("giftCard.label")}
+                    </label>
+                    {gift ? (
+                      <p className="flex flex-wrap items-center gap-3" role="status">
+                        <span>
+                          {gift.depositCents > 0
+                            ? t("giftCard.applied", {
+                                last4: gift.last4,
+                                amount: money(gift.depositCents, props.currency, props.locale),
+                                balance: money(gift.balanceCents, props.currency, props.locale),
+                              })
+                            : t("giftCard.appliedNoDeposit", {
+                                last4: gift.last4,
+                                balance: money(gift.balanceCents, props.currency, props.locale),
+                              })}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setGift(null);
+                            setGiftCode("");
+                          }}
+                          className={linkClass}
+                        >
+                          {t("giftCard.remove")}
+                        </button>
+                      </p>
+                    ) : (
+                      <div className="flex gap-2">
+                        <input
+                          id="b-gift"
+                          value={giftCode}
+                          onChange={(event) => setGiftCode(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter") {
+                              event.preventDefault();
+                              void applyGiftCard();
+                            }
+                          }}
+                          maxLength={40}
+                          autoComplete="off"
+                          autoCapitalize="characters"
+                          placeholder="XXXX-XXXX-XXXX"
+                          aria-describedby={giftError ? "b-gift-error" : undefined}
+                          className={`${inputClass} min-w-0 flex-1 uppercase`}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => void applyGiftCard()}
+                          className="min-h-12 shrink-0 rounded-site border border-site-button px-4 font-semibold text-site-text"
+                        >
+                          {t("giftCard.apply")}
+                        </button>
+                      </div>
+                    )}
+                    {giftError && (
+                      <p id="b-gift-error" role="alert" className="mt-1 font-semibold text-site-text">
+                        {siteError(giftError)}
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
             <Field
               name="beneficiaryName"
-              label={t("details.beneficiary")}
+              label={fieldLabels.beneficiaryName}
               hint={t("details.beneficiaryHint")}
               autoComplete="off"
+              value={contact.beneficiaryName}
+              onChange={(value) => update("beneficiaryName", value)}
+              error={fieldMessage("beneficiaryName")}
             />
             <div>
               <label htmlFor="b-note" className="mb-2 block font-semibold text-site-text">
                 {t("details.note")}
               </label>
-              <textarea id="b-note" name="note" rows={2} maxLength={500} className={inputClass} />
+              <textarea
+                id="b-note"
+                name="note"
+                rows={2}
+                maxLength={500}
+                value={contact.note}
+                onChange={(event) => update("note", event.target.value)}
+                aria-invalid={fieldError?.field === "note" || undefined}
+                aria-describedby={fieldError?.field === "note" ? "b-note-error" : undefined}
+                className={inputClass}
+              />
+              {fieldError?.field === "note" && (
+                <p id="b-note-error" className="mt-1 font-semibold text-site-text">
+                  {fieldMessage("note")}
+                </p>
+              )}
             </div>
             <label className="flex items-start gap-3 text-site-text">
               <input
                 type="checkbox"
                 name="marketingConsent"
+                checked={contact.marketingConsent}
+                onChange={(event) => update("marketingConsent", event.target.checked)}
                 className="mt-1 h-5 w-5 accent-[var(--site-button)]"
               />
               <span>{t("details.marketingConsent")}</span>
             </label>
             <p className="text-sm text-site-muted">
               {t("details.privacy")}{" "}
-              <Link href={props.privacyPath} className="underline">
+              <Link href={props.privacyPath} className="inline-flex min-h-11 items-center underline">
                 {t("details.privacyLink")}
               </Link>
             </p>
+            {/* Rappel de l'erreur juste au-dessus du bouton, là où se trouve la cliente. */}
+            {fieldError && (
+              <p
+                role="alert"
+                className="rounded-site border border-site-border bg-site-surface px-4 py-3 font-semibold text-site-text"
+              >
+                {t("details.fixField", { field: fieldLabels[fieldError.field] })}{" "}
+                <span className="font-normal">{fieldMessage(fieldError.field)}</span>
+              </p>
+            )}
+            {errorBox}
             <button type="submit" disabled={pending} className={primaryClass}>
               {pending
                 ? t("details.sending")
@@ -768,6 +877,115 @@ export function BookingFlow(props: Props) {
   );
 }
 
+/** Récapitulatif avant de confirmer : prestations, durée, prix, acompte et conditions d'annulation. */
+function Summary({
+  slot,
+  props,
+  chosen,
+  totalMinutes,
+  finalTotalCents,
+  depositCents,
+  anyPriceFrom,
+  promo,
+  price,
+  onChangeSlot,
+}: {
+  slot: PickedSlot;
+  props: Props;
+  chosen: FlowService[];
+  totalMinutes: number;
+  finalTotalCents: number;
+  depositCents: number;
+  anyPriceFrom: boolean;
+  promo: PromoPreview | null;
+  price: (cents: number, from?: boolean) => string;
+  onChangeSlot: () => void;
+}) {
+  const t = useTranslations("booking");
+  const { duration, withDuration } = useDurations();
+  const { locale, timezone, currency, cancellationHours } = props;
+  const deadline = new Date(new Date(slot.start).getTime() - cancellationHours * 3_600_000).toISOString();
+  const cancellation =
+    cancellationHours === 0
+      ? t("details.freeUntilStart")
+      : isPast(deadline)
+        ? t("details.noFreeCancel", { hours: cancellationHours })
+        : t("details.freeUntil", {
+            date: formatLongDate(deadline, locale, timezone),
+            time: formatTimeOf(deadline, locale, timezone),
+          });
+  const staffName = slot.staffId ? props.staff.find((member) => member.id === slot.staffId)?.name : null;
+
+  return (
+    <div className="rounded-site bg-site-panel p-4">
+      <h3 className="font-semibold">{t("details.summary")}</h3>
+      <p className="mt-1">
+        {t("slot.chosen", {
+          date: formatLongDate(slot.start, locale, timezone),
+          time: formatTimeOf(slot.start, locale, timezone),
+        })}
+        {staffName && ` ${t("details.with", { name: staffName })}`}{" "}
+        <button
+          type="button"
+          onClick={onChangeSlot}
+          className="inline-flex min-h-11 items-center font-semibold text-site-accent underline"
+        >
+          {t("change")}
+        </button>
+      </p>
+      <ul className="text-site-muted">
+        {chosen.map((service) => (
+          <li key={service.id} className="flex justify-between gap-3">
+            <span>{withDuration(service.name, service.durationMinutes)}</span>
+            <span className="shrink-0">{price(service.priceCents, service.priceFrom)}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-1 text-site-muted">
+        {t("details.totalDuration", {
+          duration: duration(totalMinutes),
+          time: endTimeOf(slot.start, totalMinutes, locale, timezone),
+        })}
+      </p>
+      {promo && (
+        <p className="mt-1 text-site-muted">
+          {t("details.discount", { amount: money(promo.discountCents, currency, locale) })}
+        </p>
+      )}
+      <p className="mt-1 font-semibold">
+        {t(anyPriceFrom ? "details.totalFrom" : "details.total", {
+          amount: money(finalTotalCents, currency, locale),
+        })}
+      </p>
+      {depositCents > 0 ? (
+        <>
+          <p className="font-semibold">
+            {t("details.deposit", { amount: money(depositCents, currency, locale) })}
+          </p>
+          <p className="text-site-muted">
+            {t(anyPriceFrom ? "details.remainingFrom" : "details.remaining", {
+              amount: money(Math.max(0, finalTotalCents - depositCents), currency, locale),
+            })}
+          </p>
+          <p className="mt-2 text-sm text-site-muted">
+            {t("details.depositRule", { hours: cancellationHours })}
+          </p>
+        </>
+      ) : (
+        <p className="text-site-muted">{t("details.payOnSite")}</p>
+      )}
+      <p className="mt-2 text-sm text-site-muted">
+        {cancellation}{" "}
+        {props.conditionsPath && (
+          <Link href={props.conditionsPath} className="inline-flex min-h-11 items-center underline">
+            {t("details.conditionsLink")}
+          </Link>
+        )}
+      </p>
+    </div>
+  );
+}
+
 function Field({
   name,
   label,
@@ -776,9 +994,10 @@ function Field({
   required,
   autoComplete,
   inputMode,
-  defaultValue,
+  value,
+  onChange,
+  error,
 }: {
-  defaultValue?: string;
   name: string;
   label: string;
   hint?: string;
@@ -786,7 +1005,14 @@ function Field({
   required?: boolean;
   autoComplete?: string;
   inputMode?: "email" | "tel";
+  value: string;
+  onChange: (value: string) => void;
+  /** Message du serveur pour ce champ : affiché dessous, champ signalé. */
+  error?: string;
 }) {
+  const describedBy = [error ? `b-${name}-error` : null, hint ? `b-${name}-hint` : null]
+    .filter(Boolean)
+    .join(" ");
   return (
     <div>
       <label htmlFor={`b-${name}`} className="mb-2 block font-semibold text-site-text">
@@ -800,10 +1026,17 @@ function Field({
         required={required}
         autoComplete={autoComplete}
         inputMode={inputMode}
-        defaultValue={defaultValue}
-        aria-describedby={hint ? `b-${name}-hint` : undefined}
-        className={inputClass}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={describedBy || undefined}
+        className={`${inputClass} scroll-mt-28`}
       />
+      {error && (
+        <p id={`b-${name}-error`} className="mt-1 font-semibold text-site-text">
+          {error}
+        </p>
+      )}
       {hint && (
         <p id={`b-${name}-hint`} className="mt-1 text-sm text-site-muted">
           {hint}

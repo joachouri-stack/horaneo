@@ -17,6 +17,7 @@ import {
   businessSettings,
   businesses,
   giftCards,
+  giftCardTransactions,
   tenants,
   users,
   type PlanFeatures,
@@ -31,6 +32,7 @@ import { giftCardCodeFor } from "@/modules/giftcards/giftcards";
 import { addMinutes } from "@/modules/booking/time";
 import { depositSummary } from "@/modules/payments/refunds";
 import { formatPhone } from "@/modules/phone";
+import { formatDuration } from "@/modules/site/format";
 import { getPlatformSetting } from "@/modules/settings";
 import { monthStats } from "@/modules/stats/month";
 import { writeReviewUrl } from "@/modules/reviews/google";
@@ -110,13 +112,14 @@ async function loadAppointment(tx: Transaction, tenantId: string, appointmentId:
     .where(and(eq(appointments.tenantId, tenantId), eq(appointments.id, appointmentId)));
   if (!row) return null;
   const items = await tx
-    .select({ name: appointmentItems.serviceName })
+    .select({ name: appointmentItems.serviceName, durationMinutes: appointmentItems.durationMinutes })
     .from(appointmentItems)
     .where(eq(appointmentItems.appointmentId, appointmentId))
     .orderBy(asc(appointmentItems.position));
   return {
     ...row,
     services: items.map((item) => pickLocalized(item.name, locale)),
+    durations: items.map((item) => item.durationMinutes),
     deposit: await depositSummary(tx, tenantId, appointmentId),
   };
 }
@@ -144,6 +147,21 @@ function tenantFooter(tenant: TenantInfo) {
   return [tenant.name, address, tenant.phone ? formatPhone(tenant.phone) : ""].filter(Boolean);
 }
 
+/** Prestations suivies de leur durée : « Massage (1 h), Gommage (30 min) ». */
+function serviceList(t: Translator, info: AppointmentInfo) {
+  return info.services
+    .map((name, index) =>
+      t("booking.serviceDuration", {
+        name,
+        duration: formatDuration(
+          (key, values) => t(`site.services.${key}` as "site.services.durationMinutes", values),
+          info.durations[index] ?? 0,
+        ),
+      }),
+    )
+    .join(", ");
+}
+
 function appointmentDetails(
   t: Translator,
   fmt: ReturnType<typeof formatters>,
@@ -154,7 +172,7 @@ function appointmentDetails(
   const details = [
     { label: t("notifications.common.date"), value: fmt.when(t, a.startsAt) },
     { label: t("notifications.common.with"), value: info.staffName },
-    { label: t("notifications.common.services"), value: info.services.join(", ") },
+    { label: t("notifications.common.services"), value: serviceList(t, info) },
   ];
   if (withMoney) {
     if (a.discountCents > 0)
@@ -163,11 +181,18 @@ function appointmentDetails(
         value: `− ${fmt.money(a.discountCents, a.currency)}`,
       });
     details.push({ label: t("notifications.common.total"), value: fmt.money(a.totalCents, a.currency) });
-    if (info.deposit?.status === "succeeded")
+    if (info.deposit?.status === "succeeded") {
       details.push({
         label: t("notifications.common.depositPaid"),
         value: fmt.money(info.deposit.amountCents, info.deposit.currency),
       });
+      // Ce qui reste à payer au salon, une fois l'acompte versé.
+      if (info.deposit.refundedCents === 0 && a.totalCents > info.deposit.amountCents)
+        details.push({
+          label: t("notifications.common.remaining"),
+          value: fmt.money(a.totalCents - info.deposit.amountCents, a.currency),
+        });
+    }
   }
   return details;
 }
@@ -450,9 +475,14 @@ async function renderCustomer(
   if (!info.customer.email) return { kind: "skip", reason: "no_email" };
   const greeting = t("notifications.common.hello", { name: info.customer.firstName });
   const manageUrl = `${siteUrl}${SITE_PATHS.appointment}/${manageTokenFor(a.id)}`;
-  const contact = tenant.phone
-    ? t("notifications.common.contact", { phone: formatPhone(tenant.phone) })
-    : t("notifications.common.contactEmail");
+  // « Répondez à cet e-mail » seulement si les réponses arrivent bien à l'établissement.
+  const contact = tenant.email
+    ? tenant.phone
+      ? t("notifications.common.contact", { phone: formatPhone(tenant.phone) })
+      : t("notifications.common.contactEmail")
+    : tenant.phone
+      ? t("notifications.common.contactPhone", { phone: formatPhone(tenant.phone) })
+      : null;
   const rebook = { label: t("notifications.common.rebook"), url: `${siteUrl}${SITE_PATHS.booking}` };
   const manageAction = { label: t("notifications.common.manage"), url: manageUrl };
   // Espace des clientes (pack qui l'inclut) : « Retrouvez tous vos rendez-vous sur … ».
@@ -523,6 +553,7 @@ async function renderCustomer(
               when: fmt.when(t, a.startsAt),
             }),
         ...refundLine(data.refundedCents),
+        ...((await creditedBack(tx, tenant.id, a.id)) ? [t("notifications.common.creditedBack")] : []),
         ...(data.depositKept ? [t("notifications.customer.cancelled.depositContact", { business })] : []),
       ];
       details = undefined;
@@ -586,7 +617,7 @@ async function renderCustomer(
     details,
     action,
     links,
-    after: [...after, contact],
+    after: contact ? [...after, contact] : after,
     footer: tenantFooter(tenant),
   });
   return {
@@ -609,14 +640,36 @@ async function manageHint(
   tenant: TenantInfo,
   now: Date,
 ) {
+  // Délai de l'entreprise du rendez-vous (sur un site à plusieurs entreprises, chacune a le sien).
   const [settings] = await tx
     .select({ hours: businessSettings.cancellationDeadlineHours })
     .from(businessSettings)
-    .where(eq(businessSettings.tenantId, tenant.id));
+    .where(
+      and(
+        eq(businessSettings.tenantId, tenant.id),
+        eq(businessSettings.businessId, info.appointment.businessId),
+      ),
+    );
   const deadline = addMinutes(info.appointment.startsAt, -(settings?.hours ?? 24) * 60);
   return deadline > now
     ? t("notifications.common.manageHint", { deadline: fmt.when(t, deadline) })
     : t("notifications.common.tooLateHint");
+}
+
+/** Acompte réglé avec une carte cadeau, remis sur la carte à l'annulation ? */
+async function creditedBack(tx: Transaction, tenantId: string, appointmentId: string) {
+  const [row] = await tx
+    .select({ id: giftCardTransactions.id })
+    .from(giftCardTransactions)
+    .where(
+      and(
+        eq(giftCardTransactions.tenantId, tenantId),
+        eq(giftCardTransactions.appointmentId, appointmentId),
+        eq(giftCardTransactions.kind, "credit_back"),
+      ),
+    )
+    .limit(1);
+  return Boolean(row);
 }
 
 // ─── Messages aux gérantes ────────────────────────────────────────────────────

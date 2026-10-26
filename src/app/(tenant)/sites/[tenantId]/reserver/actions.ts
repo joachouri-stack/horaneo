@@ -145,6 +145,7 @@ export async function bookAction(raw: z.input<typeof bookInput>): Promise<Public
     const site = await currentSiteTenant();
     if (!publicLimits.booking.attempt(site.ip)) throw new AppError("rate_limited");
     return withServicesBusiness(site.tenantId, input.serviceIds, async (tx) => {
+      const context = await loadBookingContext(tx, site.tenantId);
       const result = await createBooking(
         tx,
         site.tenantId,
@@ -153,12 +154,13 @@ export async function bookAction(raw: z.input<typeof bookInput>): Promise<Public
           staffId: input.staffId,
           start: input.start,
           customer: input.customer,
+          // Langue du site : celle des e-mails et SMS envoyés ensuite à la cliente.
+          locale: context.tenant.defaultLocale,
           promoCode: input.promoCode || undefined,
           giftCardCode: input.giftCardCode || undefined,
         },
         { allowDraft: site.preview, gateway: paymentGateway() },
       );
-      const context = await loadBookingContext(tx, site.tenantId);
       sendQueuedSoon();
       return {
         status: result.status as BookingConfirmation["status"],

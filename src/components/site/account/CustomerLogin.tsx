@@ -28,7 +28,9 @@ export function CustomerLogin() {
     return (
       <div className="space-y-5 rounded-site border border-site-border bg-site-card p-5 sm:p-6">
         <p role="status" className="text-lg">
-          {done.channel === "email" ? t("sentEmail", { identifier: done.identifier }) : t("sentSms")}
+          {done.channel === "email"
+            ? t("sentEmail", { identifier: done.identifier, minutes: done.minutes })
+            : t("sentSms", { minutes: done.minutes })}
         </p>
         {done.channel === "sms" && (
           <form action={verifyAction} className="space-y-3">
@@ -56,13 +58,15 @@ export function CustomerLogin() {
             </button>
           </form>
         )}
-        <p className="text-sm text-site-muted">{t("checkSpam")}</p>
+        <p className="text-sm text-site-muted">
+          {done.channel === "sms" ? t("checkSpamSms") : t("checkSpam")}
+        </p>
         <button
           type="button"
           onClick={() => setRestart((value) => value + 1)}
-          className="font-semibold text-site-accent underline underline-offset-4"
+          className="inline-flex min-h-11 items-center font-semibold text-site-accent underline underline-offset-4"
         >
-          {t("other")}
+          {done.channel === "sms" ? t("otherSms") : t("other")}
         </button>
       </div>
     );

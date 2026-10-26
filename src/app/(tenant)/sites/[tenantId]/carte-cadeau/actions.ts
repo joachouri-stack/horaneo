@@ -5,6 +5,7 @@ import { withTenant } from "@/db/access";
 import { sendQueuedSoon } from "@/lib/jobs/tick";
 import { paymentGateway } from "@/lib/payments/stripe";
 import { currentSiteTenant, publicLimits } from "@/lib/site/current";
+import { loadBookingContext } from "@/modules/booking/availability";
 import { AppError, type AppErrorCode } from "@/modules/errors";
 import { purchaseInput, startGiftCardPurchase, syncGiftCardPayment } from "@/modules/giftcards/giftcards";
 
@@ -41,7 +42,11 @@ export async function buyGiftCardAction(
     if (!publicLimits.booking.attempt(site.ip)) throw new AppError("rate_limited");
     return withTenant(
       site.tenantId,
-      (tx) => startGiftCardPurchase(tx, site.tenantId, raw, paymentGateway()),
+      async (tx) => {
+        // Langue du site : celle de la carte et du reçu envoyés par e-mail.
+        const locale = (await loadBookingContext(tx, site.tenantId)).tenant.defaultLocale;
+        return startGiftCardPurchase(tx, site.tenantId, { ...raw, locale }, paymentGateway());
+      },
       undefined,
       businessId.parse(business),
     );

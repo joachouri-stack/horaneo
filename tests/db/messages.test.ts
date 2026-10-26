@@ -382,7 +382,7 @@ describe.skipIf(!hasTestDatabase)("messages automatiques", () => {
       expect(subjects).toContain("Votre rendez-vous du mardi 6 octobre est annulé");
       expect(subjects).toContain("Nouvel horaire pour votre rendez-vous du mardi 6 octobre");
       const moved = fake.emails.find((email) => email.subject.startsWith("Nouvel horaire"))!;
-      expect(moved.text).toContain("ancien créneau : mardi 6 octobre à 14:00");
+      expect(plain(moved.text)).toContain("ancien créneau : mardi 6 octobre à 14:00");
       expect(moved.text).toContain("mardi 6 octobre à 16:00");
       expect(fake.emails.find((email) => email.text.includes("a dû annuler"))).toBeDefined();
     });
@@ -421,7 +421,7 @@ describe.skipIf(!hasTestDatabase)("messages automatiques", () => {
       const result = await dispatch(s.id, dayBefore);
       const reminders = fake.emails.filter((email) => email.subject.startsWith("Rappel"));
       expect(reminders).toHaveLength(1);
-      expect(reminders[0].subject).toBe("Rappel : votre rendez-vous du jeudi 8 octobre à 10:00");
+      expect(plain(reminders[0].subject)).toBe("Rappel : votre rendez-vous du jeudi 8 octobre à 10:00");
       expect(reminders[0].text).toContain(manageTokenFor(far.appointmentId));
       expect(result.skipped).toBe(1);
       const rows = await logOf(s.id);

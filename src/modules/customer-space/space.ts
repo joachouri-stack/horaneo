@@ -106,6 +106,7 @@ export async function loadBusinessSpace(
           appointmentId: appointmentItems.appointmentId,
           serviceId: appointmentItems.serviceId,
           name: appointmentItems.serviceName,
+          durationMinutes: appointmentItems.durationMinutes,
         })
         .from(appointmentItems)
         .where(
@@ -147,6 +148,8 @@ export async function loadBusinessSpace(
       staffName,
       beneficiaryName: a.beneficiaryName,
       services: own.map((item) => pickLocalized(item.name, options.locale)),
+      /** Durée de chaque prestation (même ordre que services) : affichée à côté du nom. */
+      durations: own.map((item) => item.durationMinutes),
       currency: a.currency,
     };
     if (a.status === "confirmed" && a.endsAt > now) {
