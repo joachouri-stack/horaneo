@@ -50,7 +50,7 @@ export async function PlatformHeader({ children }: { children?: React.ReactNode 
             {/* Un peu plus petit sur les très petits téléphones : logo et boutons tiennent sur une ligne. */}
             <Logo productName={product} className="text-[1.5rem] min-[400px]:text-[1.8rem]" />
           </Link>
-          <nav className="flex flex-wrap items-center gap-x-3 text-base text-[#3d4457] min-[400px]:gap-x-6 xl:gap-x-8">
+          <nav className="flex flex-wrap items-center gap-x-3 text-[1.0625rem] text-[#3d4457] min-[400px]:gap-x-6 xl:gap-x-8">
             {!children &&
               NAV.map((item) => (
                 <Link
@@ -72,7 +72,7 @@ export async function PlatformHeader({ children }: { children?: React.ReactNode 
             {!children && (
               <Link
                 href="/commander"
-                className="group/cta inline-flex min-h-11 items-center gap-2 rounded-xl bg-navy px-5 text-base font-medium text-white shadow-[0_6px_16px_-8px_rgba(27,42,74,.6)] transition hover:-translate-y-px hover:bg-[#22345c] max-lg:hidden"
+                className="group/cta inline-flex min-h-11 items-center gap-2 rounded-xl bg-navy px-5 text-[1.0625rem] font-medium text-white shadow-[0_6px_16px_-8px_rgba(27,42,74,.6)] transition hover:-translate-y-px hover:bg-[#22345c] max-lg:hidden"
               >
                 {t("home.cta")}
                 <span aria-hidden="true" className="transition-transform group-hover/cta:translate-x-0.5">

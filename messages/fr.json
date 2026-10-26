@@ -1060,6 +1060,7 @@
       "seeTraining": "Découvrir la formation",
       "instagram": "Instagram",
       "facebook": "Facebook",
+      "socialOf": "{network} de {name}",
       "otherPhotos": "Photo de l'institut",
       "opensAt": "dès {time}"
     },
@@ -1664,7 +1665,12 @@
         "logoReplace": "Remplacer le logo",
         "logoRemove": "Retirer le logo",
         "logoRemoveConfirm": "Retirer ce logo de sa carte et de sa page ?",
-        "logoCurrent": "Logo actuel"
+        "logoCurrent": "Logo actuel",
+        "instagram": "Sa page Instagram (adresse complète)",
+        "facebook": "Sa page Facebook (adresse complète)",
+        "socialHint": "Facultatif. Ses propres pages, affichées sur sa page du site. Copiez l'adresse depuis le navigateur ou « Copier le lien » dans l'application.",
+        "instagramPlaceholder": "https://www.instagram.com/sa-page",
+        "facebookPlaceholder": "https://www.facebook.com/sa-page"
       },
       "previewPage": {
         "title": "Aperçu du site",

@@ -226,6 +226,23 @@ export default async function BusinessesPage({
                   rows={3}
                   defaultValue={pickLocalized(business.profile.quote, locale)}
                 />
+                <TextField
+                  id={`instagram-${business.id}`}
+                  name="instagram"
+                  inputMode="url"
+                  label={t("instagram")}
+                  hint={t("socialHint")}
+                  placeholder={t("instagramPlaceholder")}
+                  defaultValue={business.profile.social?.instagram}
+                />
+                <TextField
+                  id={`facebook-${business.id}`}
+                  name="facebook"
+                  inputMode="url"
+                  label={t("facebook")}
+                  placeholder={t("facebookPlaceholder")}
+                  defaultValue={business.profile.social?.facebook}
+                />
                 <SelectField
                   id={`photo-${business.id}`}
                   name="photoAssetId"

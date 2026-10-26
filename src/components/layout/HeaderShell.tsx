@@ -83,7 +83,7 @@ export function HeaderShell({
                     href={{ pathname: "/", hash: item.hash }}
                     onClick={() => setOpen(false)}
                     tabIndex={open ? undefined : -1}
-                    className="flex min-h-12 items-center rounded-2xl px-3 text-[1.125rem] font-medium text-night hover:bg-white"
+                    className="flex min-h-12 items-center rounded-2xl px-3 text-[1.1875rem] font-medium text-night hover:bg-white"
                   >
                     {item.label}
                   </Link>

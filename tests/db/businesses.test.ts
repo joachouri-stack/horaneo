@@ -325,6 +325,38 @@ describe.skipIf(!hasTestDatabase)("plusieurs entreprises sur un même site", () 
     });
   });
 
+  it("chaque entreprise a ses propres réseaux sociaux (adresses vérifiées)", async () => {
+    await platform((tx) =>
+      updateBusinessProfile(tx, site.tenantId, site.laila.id, {
+        slug: "laila",
+        instagram: "https://www.instagram.com/laila.beaute",
+        facebook: "https://www.facebook.com/laila.beaute",
+      }),
+    );
+    // Un pseudo ou un autre site est refusé : seules les adresses Instagram et Facebook passent.
+    await expect(
+      platform((tx) => updateBusinessProfile(tx, site.tenantId, site.natacha.id, { instagram: "@natacha" })),
+    ).rejects.toThrow();
+    await expect(
+      platform((tx) =>
+        updateBusinessProfile(tx, site.tenantId, site.natacha.id, { facebook: "https://exemple.fr/natacha" }),
+      ),
+    ).rejects.toThrow();
+    // Sans champs réseaux : les liens restent ; champs vides : retirés.
+    await platform((tx) => updateBusinessProfile(tx, site.tenantId, site.laila.id, { slug: "laila" }));
+    let data = await asBusiness(null, (tx) => loadSiteData(tx, site.tenantId));
+    expect(data?.businesses[0].social).toEqual({
+      instagram: "https://www.instagram.com/laila.beaute",
+      facebook: "https://www.facebook.com/laila.beaute",
+    });
+    expect(data?.businesses[1].social).toEqual({});
+    await platform((tx) =>
+      updateBusinessProfile(tx, site.tenantId, site.laila.id, { slug: "laila", instagram: "", facebook: "" }),
+    );
+    data = await asBusiness(null, (tx) => loadSiteData(tx, site.tenantId));
+    expect(data?.businesses[0].social).toEqual({});
+  });
+
   it("une entreprise a son nom de boutique et son logo (l'ancien logo est mis de côté)", async () => {
     const newLogo = (name: string) =>
       platform(async (tx) => {
