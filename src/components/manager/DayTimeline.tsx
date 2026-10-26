@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { AttendanceButtons } from "@/components/manager/AttendanceButtons";
 import { Link } from "@/i18n/navigation";
 import type { AgendaAppointment } from "@/modules/agenda/queries";
 
@@ -25,10 +26,11 @@ export function initials(name: string) {
 /**
  * Rendez-vous d'une journée en frise : heure, trait de la couleur du membre,
  * cliente, prestations, statut. Le prochain est mis en avant ; ceux qui sont
- * passés s'estompent.
+ * passés s'estompent, sauf ceux qui restent à pointer (venue ou absente).
  */
 export async function DayTimeline({
   items,
+  tenantId,
   base,
   time,
   nextId,
@@ -36,6 +38,7 @@ export async function DayTimeline({
   day,
 }: {
   items: AgendaAppointment[];
+  tenantId: string;
   base: string;
   time: (date: Date) => string;
   nextId?: string | null;
@@ -49,14 +52,19 @@ export async function DayTimeline({
       {items.map((item) => {
         const next = item.id === nextId;
         const past = item.endsAt <= now;
+        // Commencé et encore « confirmé » : la gérante peut le pointer d'ici.
+        const toCheck = item.status === "confirmed" && item.startsAt <= now;
         const color = item.staffColor ?? "#3a4bb8";
         return (
-          <li key={item.id}>
+          <li
+            key={item.id}
+            className={`overflow-hidden rounded-2xl border transition hover:border-accent-line ${
+              next ? "border-accent/40 bg-[#f7f8ff] ring-1 ring-accent/20" : "border-hairline bg-white"
+            } ${past && !next && !toCheck ? "opacity-60" : ""}`}
+          >
             <Link
               href={`${base}/rendez-vous/${item.id}`}
-              className={`group flex items-stretch gap-3 rounded-2xl border p-3 transition hover:border-accent-line hover:bg-[#fafbff] sm:gap-4 sm:p-3.5 ${
-                next ? "border-accent/40 bg-[#f7f8ff] ring-1 ring-accent/20" : "border-hairline bg-white"
-              } ${past && !next ? "opacity-60" : ""}`}
+              className="group flex items-stretch gap-3 p-3 transition hover:bg-[#fafbff] sm:gap-4 sm:p-3.5"
             >
               <div className="w-14 shrink-0 pt-0.5 text-right">
                 {day && (
@@ -104,6 +112,11 @@ export async function DayTimeline({
                 {t(`status.${item.status}`)}
               </span>
             </Link>
+            {toCheck && (
+              <div className="border-t border-hairline bg-mist-50/60 px-3 py-2 sm:px-3.5 sm:pl-[6rem]">
+                <AttendanceButtons tenantId={tenantId} appointmentId={item.id} />
+              </div>
+            )}
           </li>
         );
       })}

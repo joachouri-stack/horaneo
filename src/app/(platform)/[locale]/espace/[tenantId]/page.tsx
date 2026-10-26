@@ -219,6 +219,7 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
                   </h3>
                   <DayTimeline
                     items={upcoming}
+                    tenantId={page.tenantId}
                     base={page.base}
                     time={page.fmt.time}
                     now={now}
@@ -230,6 +231,7 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
           ) : (
             <DayTimeline
               items={summary.appointments}
+              tenantId={page.tenantId}
               base={page.base}
               time={page.fmt.time}
               nextId={summary.nextId}
