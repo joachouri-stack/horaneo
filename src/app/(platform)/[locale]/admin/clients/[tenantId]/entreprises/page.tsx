@@ -15,6 +15,7 @@ import {
   setOnlineBookingAdminAction,
   updateBusinessAction,
   updateBusinessProfileAction,
+  updateBusinessShopAction,
   uploadBusinessLogoAction,
 } from "../../actions";
 import { storage } from "@/lib/storage";
@@ -118,6 +119,12 @@ export default async function BusinessesPage({
                 timeZone={overview.tenant.timezone}
               />
             </div>
+            <BusinessShopBox
+              tenantId={tenantId}
+              businessId={business.id}
+              shopName={business.profile.shopName ?? ""}
+              logo={photos.find((photo) => photo.id === business.profile.logoAssetId)}
+            />
             {/* Sans gérante : on donne l'accès ; avec gérante : on la remplace (l'ancienne perd l'accès). */}
             {/* Déjà une gérante : le remplacement reste replié. */}
             <details className="mb-6 rounded-xl bg-navy/5 p-4" open={managers.length === 0}>
@@ -187,13 +194,6 @@ export default async function BusinessesPage({
                   defaultValue={business.slug}
                 />
                 <TextField
-                  id={`shop-${business.id}`}
-                  name="shopName"
-                  label={t("shopName")}
-                  hint={t("shopNameHint")}
-                  defaultValue={business.profile.shopName ?? ""}
-                />
-                <TextField
                   id={`title-${business.id}`}
                   name="title"
                   label={t("pageTitle")}
@@ -251,11 +251,6 @@ export default async function BusinessesPage({
                   defaultValue={business.profile.photoAssetId ?? ""}
                 />
               </ActionForm>
-              <BusinessLogo
-                tenantId={tenantId}
-                businessId={business.id}
-                logo={photos.find((photo) => photo.id === business.profile.logoAssetId)}
-              />
             </details>
           </Section>
         );
@@ -280,60 +275,88 @@ export default async function BusinessesPage({
 }
 
 /** Logo propre à l'entreprise : aperçu, envoi d'une image, retrait. */
-async function BusinessLogo({
+/**
+ * Logo et nom de boutique d'une professionnelle, en haut de sa carte : affichés à côté de son
+ * nom sur sa carte et sa page du site (modèle Atelier). Le logo est gardé entier.
+ */
+async function BusinessShopBox({
   tenantId,
   businessId,
+  shopName,
   logo,
 }: {
   tenantId: string;
   businessId: string;
+  shopName: string;
   logo?: { storageKey: string };
 }) {
   const t = await getTranslations("admin.tenant.businesses");
   return (
-    <div className="mt-6 rounded-xl bg-navy/5 p-4">
-      <h3 className="font-bold">{t("logo")}</h3>
-      <p className="mt-1 mb-3 text-sm text-ink/70">{t("logoHint")}</p>
-      {logo && (
-        <div className="mb-4 flex flex-wrap items-center gap-4">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={storage().publicUrl(logo.storageKey)}
-            alt={t("logoCurrent")}
-            className="h-20 w-20 rounded-full border border-navy/10 bg-white object-contain"
-          />
+    <div className="mb-6 rounded-xl border border-accent-line bg-accent-soft/40 p-4">
+      <h3 className="font-bold text-night">{t("shopTitle")}</h3>
+      <p className="mt-1 mb-4 text-sm text-ink/70">{t("shopHint")}</p>
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+        <div className="flex shrink-0 flex-col items-center gap-2">
+          {logo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={storage().publicUrl(logo.storageKey)}
+              alt={t("logoCurrent")}
+              className="h-24 w-24 rounded-full border border-navy/10 bg-white object-contain"
+            />
+          ) : (
+            <span className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-dashed border-navy/20 bg-white px-2 text-center text-xs text-ink/60">
+              {t("noLogo")}
+            </span>
+          )}
+          {logo && (
+            <ActionForm
+              action={removeBusinessLogoAction}
+              submitLabel={t("logoRemove")}
+              variant="link"
+              confirm={t("logoRemoveConfirm")}
+              className=""
+            >
+              <Hidden values={{ tenantId, businessId }} />
+            </ActionForm>
+          )}
+        </div>
+        <div className="min-w-0 flex-1 space-y-4">
+          <ActionForm action={updateBusinessShopAction} submitLabel={t("shopSave")} className="space-y-3">
+            <Hidden values={{ tenantId, businessId }} />
+            <TextField
+              id={`shop-${businessId}`}
+              name="shopName"
+              label={t("shopName")}
+              hint={t("shopNameHint")}
+              defaultValue={shopName}
+            />
+          </ActionForm>
           <ActionForm
-            action={removeBusinessLogoAction}
-            submitLabel={t("logoRemove")}
+            action={uploadBusinessLogoAction}
+            submitLabel={t(logo ? "logoReplace" : "logoSubmit")}
             variant="secondary"
-            confirm={t("logoRemoveConfirm")}
-            className=""
+            resetOnSuccess
+            className="space-y-3"
           >
             <Hidden values={{ tenantId, businessId }} />
+            <div>
+              <label htmlFor={`business-logo-${businessId}`} className="font-semibold text-night">
+                {t("logoFile")}
+              </label>
+              <p className="text-sm text-ink/70">{t("logoHint")}</p>
+              <input
+                id={`business-logo-${businessId}`}
+                name="file"
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/svg+xml,image/avif"
+                required
+                className="mt-2 block w-full text-sm"
+              />
+            </div>
           </ActionForm>
         </div>
-      )}
-      <ActionForm
-        action={uploadBusinessLogoAction}
-        submitLabel={t(logo ? "logoReplace" : "logoSubmit")}
-        resetOnSuccess
-        className="space-y-3"
-      >
-        <Hidden values={{ tenantId, businessId }} />
-        <div>
-          <label htmlFor={`business-logo-${businessId}`} className="font-semibold text-night">
-            {t("logoFile")}
-          </label>
-          <input
-            id={`business-logo-${businessId}`}
-            name="file"
-            type="file"
-            accept="image/png,image/jpeg,image/webp,image/svg+xml,image/avif"
-            required
-            className="mt-1 block w-full text-sm"
-          />
-        </div>
-      </ActionForm>
+      </div>
     </div>
   );
 }

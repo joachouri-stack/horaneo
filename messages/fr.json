@@ -1687,7 +1687,11 @@
         "facebook": "Sa page Facebook (adresse complète)",
         "socialHint": "Facultatif. Ses propres pages, affichées sur sa page du site. Copiez l'adresse depuis le navigateur ou « Copier le lien » dans l'application.",
         "instagramPlaceholder": "https://www.instagram.com/sa-page",
-        "facebookPlaceholder": "https://www.facebook.com/sa-page"
+        "facebookPlaceholder": "https://www.facebook.com/sa-page",
+        "shopTitle": "Logo et nom de sa boutique",
+        "shopHint": "Affichés à côté de son nom, sur sa carte et sur sa page du site (modèle Atelier).",
+        "shopSave": "Enregistrer le nom",
+        "noLogo": "Pas encore de logo"
       },
       "previewPage": {
         "title": "Aperçu du site",
