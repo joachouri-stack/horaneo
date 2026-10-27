@@ -37,7 +37,7 @@ Règles :
 - **Titres :** Bricolage Grotesque, graisse 600 (jamais 700+), interlettrage -0,025em.
 - **Texte :** Outfit 300 à 500.
 - **Tailles du site commercial :** 8 tailles seulement, via les classes `text-mk-*` (`src/app/globals.css`) :
-  grand titre de l'accueil `text-mk-h1` (36 → 58 px), titre de section et de page `text-mk-h2` (30 → 40 px),
+  grand titre de l'accueil `text-mk-h1` (36 → 58 px ; sur téléphone, il suit la largeur de l'écran, 24 → 36 px, pour tenir une phrase par ligne), titre de section et de page `text-mk-h2` (30 → 40 px),
   titre de carte `text-mk-card` (20 px), prix des packs `text-mk-price` (40 → 48 px), introduction `text-mk-lead`
   (18 → 19 px), texte courant `text-mk-body` (17 px), texte secondaire `text-mk-small` (15 px), mentions et
   étiquettes `text-mk-note` (14 px). Pas d'autre taille sur ces pages.
