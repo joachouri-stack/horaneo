@@ -807,7 +807,10 @@
       "pro": "Espace pro",
       "contact": "Nous écrire",
       "rights": "© {year} {product} · Tous droits réservés",
-      "credit": "Design : Johane A."
+      "credit": "Design : Johane A.",
+      "legalTitle": "Informations légales",
+      "proCardTitle": "Déjà client ?",
+      "proCardText": "Retrouvez votre agenda, vos clientes et votre site dans votre espace professionnel."
     }
   },
   "site": {
