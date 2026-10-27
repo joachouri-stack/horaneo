@@ -137,8 +137,8 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
                 <TextField
                   key={name}
                   name={name}
-                  type="url"
                   inputMode="url"
+                  autoComplete="off"
                   label={t(name)}
                   defaultValue={String(s[name])}
                 />
