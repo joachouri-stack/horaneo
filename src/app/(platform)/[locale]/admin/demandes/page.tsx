@@ -12,7 +12,7 @@ import { pickLocalized } from "@/i18n/locales";
 import { listAllRequests, monthlyRequestCounts, REQUEST_STATUSES } from "@/modules/requests/update-requests";
 import { setRequestStatusAction } from "./actions";
 
-/** Demandes de mise à jour des clientes : statut et compteur mensuel par client. */
+/** Demandes de modification des clients : statut et compteur mensuel par client. */
 export default async function RequestsAdminPage({
   params,
   searchParams,
@@ -91,6 +91,7 @@ export default async function RequestsAdminPage({
                 action={setRequestStatusAction}
                 submitLabel={t("setStatus")}
                 variant="secondary"
+                successMessage={t("statusChanged")}
                 className="mt-4 flex flex-wrap items-end gap-3"
               >
                 <Hidden values={{ id: request.id }} />
@@ -102,6 +103,7 @@ export default async function RequestsAdminPage({
                     options={REQUEST_STATUSES.map((value) => ({ value, label: t(`status.${value}`) }))}
                   />
                 </div>
+                <p className="w-full text-sm text-ink/70">{t("setStatusHint")}</p>
               </ActionForm>
             </li>
           ))}

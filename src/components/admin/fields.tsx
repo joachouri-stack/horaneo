@@ -1,11 +1,34 @@
+"use client";
+
+import { createContext, useContext } from "react";
 import { ui } from "@/components/ui/styles";
 
 /** Champs de formulaire de l'espace admin (gros, lisibles sur téléphone). */
+
+/**
+ * Erreurs du dernier envoi, par nom de champ : fournies par ActionForm, affichées
+ * sous chaque champ concerné.
+ */
+export const FieldErrorsContext = createContext<Record<string, string>>({});
 
 type BaseProps = { name: string; label: string; hint?: string; required?: boolean; id?: string };
 
 function Hint({ text }: { text?: string }) {
   return text ? <p className="mt-1 text-sm text-ink/60">{text}</p> : null;
+}
+
+/** Message d'erreur sous un champ, et attributs à poser sur le champ. */
+function useFieldError(name: string, id: string) {
+  const error = useContext(FieldErrorsContext)[name];
+  const errorId = `${id}-erreur`;
+  return {
+    message: error ? (
+      <p id={errorId} className="mt-1 text-sm font-medium text-[#8f2a20]">
+        {error}
+      </p>
+    ) : null,
+    attributes: error ? { "aria-invalid": true as const, "aria-describedby": errorId } : {},
+  };
 }
 
 export function TextField({
@@ -23,6 +46,7 @@ export function TextField({
   step?: string;
 }) {
   const id = props.id ?? `f-${props.name}`;
+  const error = useFieldError(props.name, id);
   return (
     <div>
       <label htmlFor={id} className={ui.label}>
@@ -39,7 +63,9 @@ export function TextField({
         autoComplete={props.autoComplete}
         step={props.step}
         className={ui.input}
+        {...error.attributes}
       />
+      {error.message}
       <Hint text={props.hint} />
     </div>
   );
@@ -51,6 +77,7 @@ export function TextArea({
   ...props
 }: BaseProps & { defaultValue?: string | null; rows?: number }) {
   const id = props.id ?? `f-${props.name}`;
+  const error = useFieldError(props.name, id);
   return (
     <div>
       <label htmlFor={id} className={ui.label}>
@@ -63,7 +90,9 @@ export function TextArea({
         required={props.required}
         defaultValue={defaultValue ?? undefined}
         className={ui.input}
+        {...error.attributes}
       />
+      {error.message}
       <Hint text={props.hint} />
     </div>
   );
@@ -75,6 +104,7 @@ export function SelectField({
   ...props
 }: BaseProps & { options: { value: string; label: string }[]; defaultValue?: string | null }) {
   const id = props.id ?? `f-${props.name}`;
+  const error = useFieldError(props.name, id);
   return (
     <div>
       <label htmlFor={id} className={ui.label}>
@@ -86,6 +116,7 @@ export function SelectField({
         required={props.required}
         defaultValue={defaultValue ?? undefined}
         className={ui.input}
+        {...error.attributes}
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
@@ -93,6 +124,7 @@ export function SelectField({
           </option>
         ))}
       </select>
+      {error.message}
       <Hint text={props.hint} />
     </div>
   );
@@ -109,8 +141,9 @@ export function CheckboxField({
   defaultChecked?: boolean;
   value?: string;
 }) {
+  // Toute la ligne (au moins 48 px de haut) est cliquable, pas seulement la case.
   return (
-    <label className="flex min-h-12 cursor-pointer items-center gap-3 text-ink">
+    <label className="flex min-h-12 cursor-pointer items-center gap-3 py-1 text-ink">
       <input
         type="checkbox"
         name={name}
@@ -144,12 +177,13 @@ export function Section({
   if (collapsible) {
     return (
       <details className={`${ui.card} group`} open={open}>
-        <summary className="flex cursor-pointer flex-wrap items-baseline justify-between gap-2">
+        <summary className="flex min-h-11 cursor-pointer flex-wrap items-center justify-between gap-2">
           <Heading className="text-xl font-bold">{title}</Heading>
           <span aria-hidden="true" className="text-navy/50 transition group-open:rotate-180">
             ▾
           </span>
         </summary>
+        {aside && <div className="mt-2">{aside}</div>}
         <div className="mt-4">{children}</div>
       </details>
     );

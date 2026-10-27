@@ -54,7 +54,9 @@ export async function adminMutation<T>(
   audit: AuditInfo | ((result: T) => AuditInfo),
   fn: (tx: Transaction, context: AdminContext) => Promise<T>,
 ): Promise<ActionResult<T>> {
-  const context = await requireAdminContext();
+  // Double vérification expirée (12 h) ou déconnexion : message clair au lieu d'une page d'erreur.
+  const context = await requireAdminContext().catch(() => null);
+  if (!context) return { ok: false, error: "session_expired" };
   const businessId = typeof audit === "function" ? undefined : audit.businessId;
   try {
     const data = await withPlatform(

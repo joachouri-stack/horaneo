@@ -6,7 +6,10 @@ import { pickLocalized } from "@/i18n/locales";
 import { resolveLocale } from "@/i18n/translator";
 import { adminQuery } from "@/lib/admin/mutation";
 import { requireAdmin } from "@/lib/auth/session";
+import { PLATFORM_CURRENCY } from "@/config/billing";
 import { formatMoney } from "@/lib/format";
+import { billingGateway } from "@/lib/payments/stripe-billing";
+import { paymentGateway } from "@/lib/payments/stripe";
 import { liveRevenue } from "@/modules/billing/admin";
 import { listPendingOrders } from "@/modules/orders/orders";
 import { salesOpen } from "@/modules/legal/documents";
@@ -71,6 +74,15 @@ export default async function AdminHomePage({ params }: PageProps<"/[locale]/adm
       text: tTodo("salesClosed"),
       href: "/admin/documents",
       action: tTodo("open"),
+      urgent: true,
+    });
+  // Paiement par carte non configuré sur ce serveur : ni abonnement ni acompte possibles.
+  if (!billingGateway() || !paymentGateway())
+    todos.push({
+      key: "payments",
+      text: tTodo("paymentsMissing"),
+      href: "/admin/paiements",
+      action: tTodo("see"),
       urgent: true,
     });
   if (pendingOrders > 0)
@@ -160,25 +172,28 @@ export default async function AdminHomePage({ params }: PageProps<"/[locale]/adm
           <Stat label={t("dashboard.activeClients")} value={stats.activeClients} />
           <Stat
             label={t("dashboard.monthlyRevenue")}
-            value={formatMoney(revenue.monthlyRevenueCents, "EUR", locale)}
+            value={formatMoney(revenue.monthlyRevenueCents, PLATFORM_CURRENCY, locale)}
           />
           <Stat label={t("dashboard.newThisMonth")} value={stats.newThisMonth} />
           <Stat label={t("dashboard.cancelledThisMonth")} value={stats.cancelledThisMonth} />
         </div>
         <details className={ui.card}>
-          <summary className="cursor-pointer font-bold">{t("dashboard.byPlan")}</summary>
+          <summary className="cursor-pointer py-2.5 font-bold">{t("dashboard.byPlan")}</summary>
           <ul className="mt-4 divide-y divide-navy/10">
-            {stats.byPlan.map((plan) => (
-              <li key={plan.code} className="flex justify-between py-3">
-                <Link
-                  href={{ pathname: "/admin/clients", query: { plan: plan.code, status: "active" } }}
-                  className="font-semibold text-night underline"
-                >
-                  {pickLocalized(plan.name, locale)}
-                </Link>
-                <span className="font-bold">{plan.count}</span>
-              </li>
-            ))}
+            {/* Anciens packs qui ne sont plus en vente : seulement s'ils ont encore des clients. */}
+            {stats.byPlan
+              .filter((plan) => plan.isPublic || plan.count > 0)
+              .map((plan) => (
+                <li key={plan.code}>
+                  <Link
+                    href={{ pathname: "/admin/clients", query: { plan: plan.code, status: "active" } }}
+                    className="flex min-h-11 items-center justify-between gap-3 py-2 font-semibold text-night"
+                  >
+                    <span className="underline">{pickLocalized(plan.name, locale)}</span>
+                    <span className="font-bold">{plan.count}</span>
+                  </Link>
+                </li>
+              ))}
           </ul>
         </details>
       </section>

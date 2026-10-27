@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { WizardNav } from "@/components/admin/WizardNav";
 import { ServicesEditor } from "@/components/editors/ServicesEditor";
 import { adminQuery } from "@/lib/admin/mutation";
@@ -24,6 +25,7 @@ export default async function ServicesPage({
   const query = await searchParams;
   const assistant = query.assistant === "1";
   const { overview, businesses, business } = await loadAdminBusiness(tenantId, query);
+  const tPhotos = await getTranslations("admin.tenant.photos");
   const { categories, services, photos } = await adminQuery(
     async (tx) => ({
       categories: await listCategories(tx, tenantId),
@@ -49,7 +51,9 @@ export default async function ServicesPage({
         services={services}
         logoOptions={photos.map((photo, index) => ({
           value: photo.id,
-          label: pickLocalized(photo.alt, overview.tenant.defaultLocale as "fr") || `Photo ${index + 1}`,
+          label:
+            pickLocalized(photo.alt, overview.tenant.defaultLocale as "fr") ||
+            tPhotos("number", { n: index + 1 }),
           src: storage().publicUrl(photo.storageKey),
         }))}
         actions={{

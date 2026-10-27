@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { ScrollToTop } from "@/components/admin/ScrollToTop";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { ManagerMain } from "@/components/manager/ManagerMain";
 import { ManagerTabs } from "@/components/manager/ManagerTabs";
@@ -63,17 +64,27 @@ export default async function ManagerLayout({
         <AppHeader />
       </div>
       {role === "admin" && (
-        <div role="status" className="bg-navy px-4 py-2 text-center text-sm text-white">
-          {t("impersonating", { name: multiBusiness ? `${tenant.name} · ${business.name}` : tenant.name })}{" "}
+        // Toujours visible en haut de l'écran : le chemin du retour vers l'admin.
+        <div role="status" className="sticky top-0 z-50 bg-navy px-4 py-1 text-center text-sm text-white">
+          <ScrollToTop />
+          {t("impersonating", {
+            name: multiBusiness ? `${tenant.name} · ${business.name}` : tenant.name,
+          })}{" "}
           {multiBusiness && (
             <>
-              <Link href={`/admin/clients/${tenantId}/entreprises`} className="font-semibold underline">
+              <Link
+                href={`/admin/clients/${tenantId}/entreprises`}
+                className="inline-flex min-h-11 items-center font-semibold underline"
+              >
                 {t("switchBusiness")}
               </Link>{" "}
               ·{" "}
             </>
           )}
-          <Link href={`/admin/clients/${tenantId}`} className="font-semibold underline">
+          <Link
+            href={`/admin/clients/${tenantId}`}
+            className="inline-flex min-h-11 items-center font-semibold underline"
+          >
             {t("backToAdmin")}
           </Link>
         </div>

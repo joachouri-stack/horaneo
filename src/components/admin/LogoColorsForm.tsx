@@ -74,7 +74,7 @@ export function LogoColorsForm({
             type="file"
             accept="image/png,image/jpeg,image/webp,image/svg+xml"
             required
-            className="block w-full text-sm"
+            className={ui.fileInput}
           />
           <p className="text-sm text-ink/60">{t("uploadHint")}</p>
           <button type="submit" disabled={uploading} className={`${ui.secondaryButton} sm:w-auto`}>

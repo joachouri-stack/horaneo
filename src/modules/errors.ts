@@ -59,6 +59,7 @@ export type AppErrorCode =
   | "primary_business_only"
   | "site_content_primary_only"
   | "session_expired"
+  | "business_has_manager"
   | "promo_not_combinable"
   | "gift_card_not_found"
   | "gift_card_expired"

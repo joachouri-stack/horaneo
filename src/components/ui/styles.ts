@@ -12,6 +12,9 @@ export const ui = {
   input:
     "block min-h-12 w-full rounded-xl border border-hairline bg-white px-4 py-3 text-base text-ink placeholder:text-ink-soft/60 transition focus:border-accent focus:outline-none focus:ring-4 focus:ring-accent/10",
   label: "mb-2 block font-medium text-night",
+  /** Choix d'un fichier : le bouton « Parcourir » fait au moins 44 px de haut. */
+  fileInput:
+    "block w-full text-sm text-ink file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-xl file:border file:border-hairline file:bg-white file:px-4 file:font-medium file:text-night hover:file:border-accent-line",
   card: "rounded-[1.4rem] border border-hairline bg-white p-5 shadow-[0_1px_2px_rgba(15,24,48,.04)] sm:p-6",
   error: "rounded-xl bg-[#fdecea] px-4 py-3 text-[#8f2a20]",
   success: "rounded-xl bg-[#e7f6ee] px-4 py-3 text-[#1b5e3d]",

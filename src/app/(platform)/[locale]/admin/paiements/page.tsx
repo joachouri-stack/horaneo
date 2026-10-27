@@ -5,10 +5,13 @@ import { pickLocalized } from "@/i18n/locales";
 import { resolveLocale } from "@/i18n/translator";
 import { adminQuery } from "@/lib/admin/mutation";
 import { requireAdmin } from "@/lib/auth/session";
+import { PLATFORM_CURRENCY } from "@/config/billing";
 import { formatDate, formatMoney } from "@/lib/format";
+import { paymentGateway } from "@/lib/payments/stripe";
+import { billingGateway } from "@/lib/payments/stripe-billing";
 import { listSubscriptions, liveRevenue, smsMonthlyTotals } from "@/modules/billing/admin";
 
-/** Abonnements des clients : revenu, échéances, échecs de prélèvement. */
+/** Abonnements des clients : revenu, échéances, paiements par carte en échec. */
 export default async function BillingAdminPage({ params }: PageProps<"/[locale]/admin/paiements">) {
   const locale = resolveLocale((await params).locale);
   setRequestLocale(locale);
@@ -24,15 +27,28 @@ export default async function BillingAdminPage({ params }: PageProps<"/[locale]/
   const statusLabel = (status: string) =>
     t.has(`statuses.${status}` as "statuses.active") ? t(`statuses.${status}` as "statuses.active") : status;
   const tIntro = await getTranslations("admin.intro");
+  // Mois « 2026-10 » écrit en toutes lettres (« octobre 2026 »).
+  const monthFormat = new Intl.DateTimeFormat(locale, { month: "long", year: "numeric", timeZone: "UTC" });
+  const monthLabel = (period: string) => {
+    const [year, month] = period.split("-").map(Number);
+    return year && month ? monthFormat.format(new Date(Date.UTC(year, month - 1, 1))) : period;
+  };
   return (
     <main id="contenu" className="mx-auto max-w-5xl space-y-6 px-4 py-8">
       <h1 className="text-3xl font-extrabold">{t("title")}</h1>
       <p className="text-ink/70">{tIntro("billing")}</p>
+      {/* Clés de paiement absentes sur ce serveur : ni abonnement par carte, ni acompte en ligne. */}
+      {(!billingGateway() || !paymentGateway()) && (
+        <div role="status" className={ui.error}>
+          <p className="font-semibold">{t("notConfiguredTitle")}</p>
+          <p className="mt-1">{t("notConfigured")}</p>
+        </div>
+      )}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className={ui.card}>
           <p className="text-sm text-ink/70">{t("revenue")}</p>
           <p className="mt-1 font-display text-3xl font-extrabold text-night">
-            {formatMoney(revenue.monthlyRevenueCents, "EUR", locale)}
+            {formatMoney(revenue.monthlyRevenueCents, PLATFORM_CURRENCY, locale)}
           </p>
         </div>
         <div className={ui.card}>
@@ -67,7 +83,7 @@ export default async function BillingAdminPage({ params }: PageProps<"/[locale]/
               </div>
               <p className="mt-1 text-sm text-ink/70">
                 {[
-                  sub.currentPeriodEnd && `${t("next")} : ${formatDate(sub.currentPeriodEnd, locale)}`,
+                  sub.currentPeriodEnd && t("nextOn", { date: formatDate(sub.currentPeriodEnd, locale) }),
                   sub.commitmentEndsAt && t("commitment", { date: formatDate(sub.commitmentEndsAt, locale) }),
                   scheduledPlanName && t("scheduled", { name: pickLocalized(scheduledPlanName, locale) }),
                   sub.cancelAt && t("cancelAt", { date: formatDate(sub.cancelAt, locale) }),
@@ -78,7 +94,7 @@ export default async function BillingAdminPage({ params }: PageProps<"/[locale]/
               {sub.paymentFailedAt && (
                 <p className="mt-2 font-semibold text-coral-dark">
                   {t("failedOn", { date: formatDate(sub.paymentFailedAt, locale) })}
-                  {sub.lastPaymentError && ` : ${sub.lastPaymentError}`}
+                  {sub.lastPaymentError && ` · ${t("bankReason", { reason: sub.lastPaymentError })}`}
                 </p>
               )}
             </li>
@@ -86,7 +102,7 @@ export default async function BillingAdminPage({ params }: PageProps<"/[locale]/
         </ul>
       )}
 
-      {/* SMS de tous les clients, mois par mois : coût chez le fournisseur et packs vendus. */}
+      {/* SMS de tous les clients, mois par mois : coût chez le fournisseur et recharges vendues. */}
       <section aria-labelledby="titre-sms" className={ui.card}>
         <h2 id="titre-sms" className="text-xl font-bold">
           {t("sms.title")}
@@ -119,14 +135,14 @@ export default async function BillingAdminPage({ params }: PageProps<"/[locale]/
                 {sms.map((row) => (
                   <tr key={row.period}>
                     <th scope="row" className="py-2 pr-3 font-semibold">
-                      {row.period}
+                      {monthLabel(row.period)}
                     </th>
                     <td className="py-2 pr-3 text-right font-bold text-night">{row.total}</td>
                     <td className="py-2 pr-3 text-right">{row.fromQuota}</td>
                     <td className="py-2 pr-3 text-right">{row.fromPacks}</td>
                     <td className="py-2 text-right">
                       {row.packsSold > 0
-                        ? `${row.packsSold} · ${formatMoney(row.packsRevenueCents, "EUR", locale)}`
+                        ? `${row.packsSold} · ${formatMoney(row.packsRevenueCents, PLATFORM_CURRENCY, locale)}`
                         : "0"}
                     </td>
                   </tr>

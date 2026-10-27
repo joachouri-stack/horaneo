@@ -22,9 +22,20 @@ export const DEFAULT_PLATFORM_SETTINGS = {
    * elles portent l'étiquette au lieu d'être promises. Retirer une clé quand la fonction est prête.
    */
   features_soon: [
-    // Grille Starter, Pro, Business : seuls les modules Commerce et Formation sont annoncés.
+    // Grille Starter, Pro, Business : modules Commerce et Formation, et outils pas encore développés.
     "commerce",
     "formation",
+    "aiChatbot",
+    "whatsappAssistant",
+    "aiTexts",
+    "aiImages",
+    "marketingAutomation",
+    "advancedCrm",
+    "advancedSeo",
+    "multilingual",
+    "stockManagement",
+    "accountingExport",
+    "cashRegisterNf525",
     // Anciens packs.
     "advancedBranding",
     "premiumBranding",

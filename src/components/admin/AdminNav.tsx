@@ -27,14 +27,15 @@ export function AdminNav({
   const isActive = (item: (typeof ITEMS)[number]) =>
     item.paths.length === 0 ? pathname === item.href : item.paths.some((path) => pathname.startsWith(path));
   return (
-    <nav aria-label={t("label")} className="mx-auto max-w-6xl overflow-x-auto px-4">
-      <ul className="flex gap-2 border-b border-navy/10">
+    // Sur téléphone, les six entrées tiennent sur deux lignes de trois : aucune n'est cachée.
+    <nav aria-label={t("label")} className="mx-auto max-w-6xl px-4">
+      <ul className="grid grid-cols-3 gap-x-1 border-b border-navy/10 sm:flex sm:gap-2">
         {ITEMS.map((item) => (
           <li key={item.href}>
             <Link
               href={item.href}
               aria-current={isActive(item) ? "page" : undefined}
-              className="inline-block whitespace-nowrap border-b-4 border-transparent px-3 py-3 font-semibold text-navy/70 hover:text-night aria-[current=page]:border-coral aria-[current=page]:text-night"
+              className="flex min-h-11 items-center justify-center whitespace-nowrap border-b-4 border-transparent px-2 py-2 text-[0.9375rem] font-semibold text-navy/70 hover:text-night aria-[current=page]:border-coral aria-[current=page]:text-night sm:px-3 sm:py-3 sm:text-base"
             >
               {t(item.key)}
               {(badges[item.key] ?? 0) > 0 && (

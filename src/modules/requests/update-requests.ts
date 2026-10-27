@@ -100,3 +100,12 @@ export async function monthlyRequestCounts(tx: Transaction, now = new Date()) {
     .groupBy(updateRequests.tenantId);
   return new Map(rows.map((row) => [row.tenantId, row.value]));
 }
+
+/** Demandes reçues et pas encore prises en charge (pastille « À traiter » de l'admin). */
+export async function countNewRequests(tx: Transaction) {
+  const [row] = await tx
+    .select({ value: count() })
+    .from(updateRequests)
+    .where(eq(updateRequests.status, "new"));
+  return row?.value ?? 0;
+}

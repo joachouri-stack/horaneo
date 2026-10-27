@@ -53,8 +53,14 @@ export default async function TenantOverviewPage({
     })),
   ]);
   const { tenant, plan, domains, managers, usage, counts } = overview;
+  // Abonnement payé par carte encore en cours : la carte continue d'être débitée.
+  const liveSubscription =
+    Boolean(subscription?.stripeSubscriptionId) &&
+    !["canceled", "incomplete_expired", "none"].includes(subscription?.status ?? "none");
   const [readiness] = await adminQuery((tx) => siteReadiness(tx, [tenantId]));
   const tReady = await getTranslations("admin.tenant.ready");
+  const tTodo = await getTranslations("admin.dashboard.todo");
+  const list = new Intl.ListFormat(locale, { type: "conjunction" });
   /** Où compléter chaque point de la liste de contrôle. */
   const readyHref: Record<(typeof READINESS_KEYS)[number], string> = {
     logo: `/admin/clients/${tenantId}/logo`,
@@ -64,6 +70,9 @@ export default async function TenantOverviewPage({
     manager: `/admin/clients/${tenantId}/entreprises`,
   };
   const limits = plan.limits;
+  // Pays et devise en toutes lettres plutôt qu'en codes (FR, EUR).
+  const regionName = new Intl.DisplayNames(locale, { type: "region" });
+  const currencyName = new Intl.DisplayNames(locale, { type: "currency" });
   const usageLine = (used: number, limit: number | null | undefined) =>
     t("usageOf", { used, limit: limit === null || limit === undefined ? t("unlimited") : limit });
   const statusActions = (
@@ -111,7 +120,20 @@ export default async function TenantOverviewPage({
           <p className="text-ink/70">
             {readiness.missing.length === 0 ? tReady("allSet") : tReady("notYet")}
           </p>
-          <ActionForm action={changeStatusAction} submitLabel={t("activate")} variant="primary">
+          <ActionForm
+            action={changeStatusAction}
+            submitLabel={t("activate")}
+            variant="primary"
+            successMessage={t("activated")}
+            confirm={
+              readiness.missing.length === 0
+                ? t("activateConfirm", { name: tenant.name })
+                : t("activateConfirmMissing", {
+                    name: tenant.name,
+                    missing: list.format(readiness.missing.map((key) => tTodo(`missing.${key}`))),
+                  })
+            }
+          >
             <Hidden values={{ tenantId, statusAction: "activate" }} />
           </ActionForm>
         </section>
@@ -140,7 +162,12 @@ export default async function TenantOverviewPage({
               key={item.action}
               action={changeStatusAction}
               submitLabel={item.label}
-              confirm={item.action === "suspend" ? t("suspendConfirm", { name: tenant.name }) : undefined}
+              confirm={
+                item.action === "suspend"
+                  ? t(liveSubscription ? "suspendConfirmBilling" : "suspendConfirm", { name: tenant.name })
+                  : undefined
+              }
+              successMessage={item.action === "suspend" ? t("suspended") : t("reactivated")}
               variant={item.action === "suspend" ? "secondary" : "primary"}
             >
               <Hidden values={{ tenantId, statusAction: item.action }} />
@@ -149,9 +176,9 @@ export default async function TenantOverviewPage({
           ))}
           <p className="mt-4 text-sm text-ink/60">
             {t("countryTimezone", {
-              country: tenant.country,
+              country: regionName.of(tenant.country) ?? tenant.country,
               timezone: tenant.timezone,
-              currency: tenant.currency,
+              currency: currencyName.of(tenant.currency) ?? tenant.currency,
             })}
             {tenant.phone ? ` · ${formatPhone(tenant.phone)}` : ""}
           </p>
@@ -162,6 +189,7 @@ export default async function TenantOverviewPage({
             action={changePlanAction}
             submitLabel={t("changePlan")}
             confirm={t("changePlanConfirm", { name: tenant.name })}
+            successMessage={t("planChanged")}
             variant="secondary"
           >
             <Hidden values={{ tenantId }} />
@@ -169,7 +197,12 @@ export default async function TenantOverviewPage({
               name="planCode"
               label={t("plan")}
               defaultValue={plan.code}
-              options={plans.map((item) => ({ value: item.code, label: pickLocalized(item.name, locale) }))}
+              options={plans.map((item) => ({
+                value: item.code,
+                label: item.isPublic
+                  ? pickLocalized(item.name, locale)
+                  : t("planNotOnSale", { name: pickLocalized(item.name, locale) }),
+              }))}
               hint={t("changePlanHint")}
             />
           </ActionForm>
@@ -181,7 +214,7 @@ export default async function TenantOverviewPage({
                   ? tBilling(`statuses.${subscription.status}` as "statuses.active")
                   : subscription.status}
                 {subscription.currentPeriodEnd &&
-                  ` · ${tBilling("next")} : ${formatDate(subscription.currentPeriodEnd, locale)}`}
+                  ` · ${tBilling("nextOn", { date: formatDate(subscription.currentPeriodEnd, locale) })}`}
                 {subscription.commitmentEndsAt &&
                   ` · ${tBilling("commitment", { date: formatDate(subscription.commitmentEndsAt, locale) })}`}
                 {subscription.withCommitment === false && ` · ${tBilling("noCommitment")}`}
@@ -224,7 +257,18 @@ export default async function TenantOverviewPage({
                     action={setTenantOptionAction}
                     submitLabel={row ? t("optionOff") : t("optionOn")}
                     variant={row ? "danger" : "secondary"}
-                    confirm={row ? t("optionOffConfirm", { name, tenant: tenant.name }) : undefined}
+                    confirm={
+                      row
+                        ? t("optionOffConfirm", { name, tenant: tenant.name })
+                        : liveSubscription && option.priceCents !== null
+                          ? t("optionOnConfirm", {
+                              name,
+                              tenant: tenant.name,
+                              amount: formatMoney(option.priceCents, option.currency, locale),
+                            })
+                          : undefined
+                    }
+                    successMessage={row ? t("optionRemoved", { name }) : t("optionAdded", { name })}
                   >
                     <Hidden values={{ tenantId, code: option.code, active: row ? "no" : "yes" }} />
                   </ActionForm>
@@ -235,7 +279,7 @@ export default async function TenantOverviewPage({
         </Section>
 
         <details className={`${ui.card} lg:col-span-2`}>
-          <summary className="cursor-pointer text-xl font-bold">{t("usage")}</summary>
+          <summary className="cursor-pointer py-1.5 text-xl font-bold">{t("usage")}</summary>
           <div className="mt-4">
             <dl className="grid grid-cols-2 gap-4">
               {[
@@ -312,8 +356,16 @@ export default async function TenantOverviewPage({
               <li key={manager.id}>
                 {manager.name && <p className="font-semibold">{manager.name}</p>}
                 <p className={manager.name ? "text-sm text-ink/70" : "font-semibold"}>{manager.email}</p>
+                {overview.businesses.length > 1 && (
+                  <p className="text-sm text-ink/70">
+                    {t("managerOf", {
+                      name:
+                        overview.businesses.find((business) => business.id === manager.businessId)?.name ??
+                        t("allBusinesses"),
+                    })}
+                  </p>
+                )}
                 <p className="text-sm text-ink/70">
-                  {" "}
                   {manager.lastLoginAt
                     ? t("lastLogin", { date: formatDateTime(manager.lastLoginAt, locale, tenant.timezone) })
                     : t("neverLoggedIn")}
@@ -343,6 +395,7 @@ export default async function TenantOverviewPage({
                       action={domainAction}
                       submitLabel={t("markActive")}
                       confirm={t("markActiveConfirm", { host: domain.hostname })}
+                      successMessage={t("domainActivated", { host: domain.hostname })}
                       variant="link"
                       className=""
                     >
@@ -353,6 +406,7 @@ export default async function TenantOverviewPage({
                     <ActionForm
                       action={domainAction}
                       submitLabel={t("makePrimary")}
+                      successMessage={t("primaryChanged", { host: domain.hostname })}
                       variant="link"
                       className=""
                     >
@@ -362,6 +416,7 @@ export default async function TenantOverviewPage({
                   <ActionForm
                     action={domainAction}
                     submitLabel={t("removeDomain")}
+                    successMessage={t("domainRemoved", { host: domain.hostname })}
                     variant="danger"
                     className=""
                     confirm={t("removeDomainConfirm", { host: domain.hostname })}
@@ -371,7 +426,13 @@ export default async function TenantOverviewPage({
                 </div>
               )}
               {domain.type === "subdomain" && !domain.isPrimary && (
-                <ActionForm action={domainAction} submitLabel={t("makePrimary")} variant="link" className="">
+                <ActionForm
+                  action={domainAction}
+                  submitLabel={t("makePrimary")}
+                  successMessage={t("primaryChanged", { host: domain.hostname })}
+                  variant="link"
+                  className=""
+                >
                   <Hidden values={{ tenantId, domainId: domain.id, operation: "primary" }} />
                 </ActionForm>
               )}
@@ -382,6 +443,7 @@ export default async function TenantOverviewPage({
           <ActionForm
             action={addDomainAction}
             submitLabel={t("addDomain")}
+            successMessage={t("domainAdded")}
             variant="secondary"
             resetOnSuccess
             className="mt-4 space-y-3"

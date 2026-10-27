@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 
-/** Pages regroupées sous une même entrée du menu (« À traiter », « Packs », « Paramètres »). */
+/** Pages regroupées sous une même entrée du menu (« À traiter », « Packs », « Réglages »). */
 const GROUPS = {
   todo: [
     { href: "/admin/commandes", key: "orders" },
@@ -31,13 +31,13 @@ export async function AdminSubNav({
   const t = await getTranslations("admin.nav");
   return (
     <div className="space-y-3">
-      <div className="flex w-fit gap-1 rounded-full bg-white p-1 shadow-sm">
+      <div className="flex w-fit max-w-full flex-wrap gap-1 rounded-3xl bg-white p-1 shadow-sm">
         {GROUPS[group].map((item) => (
           <Link
             key={item.href}
             href={item.href}
             aria-current={item.href === current ? "page" : undefined}
-            className="rounded-full px-4 py-2 text-sm font-semibold text-night aria-[current=page]:bg-navy aria-[current=page]:text-white"
+            className="inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold text-night aria-[current=page]:bg-navy aria-[current=page]:text-white"
           >
             {t(item.key)}
           </Link>

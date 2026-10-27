@@ -42,11 +42,11 @@ export default async function OrdersPage({ params }: PageProps<"/[locale]/admin/
             </p>
             <dl className="mt-3 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
               <div>
-                <dt className="inline text-ink/60">{t("activity")} : </dt>
+                <dt className="inline text-ink/60">{t("label", { label: t("activity") })} </dt>
                 <dd className="inline">{order.activity}</dd>
               </div>
               <div>
-                <dt className="inline text-ink/60">{t("phone")} : </dt>
+                <dt className="inline text-ink/60">{t("label", { label: t("phone") })} </dt>
                 <dd className="inline">
                   <a href={`tel:${order.phone}`} className="underline">
                     {formatPhone(order.phone) || order.phone}
@@ -54,7 +54,7 @@ export default async function OrdersPage({ params }: PageProps<"/[locale]/admin/
                 </dd>
               </div>
               <div>
-                <dt className="inline text-ink/60">{t("email")} : </dt>
+                <dt className="inline text-ink/60">{t("label", { label: t("email") })} </dt>
                 <dd className="inline">
                   <a href={`mailto:${email}`} className="underline">
                     {userName ? `${userName} · ` : ""}
@@ -64,7 +64,7 @@ export default async function OrdersPage({ params }: PageProps<"/[locale]/admin/
               </div>
               {order.currentWebsite && (
                 <div>
-                  <dt className="inline text-ink/60">{t("website")} : </dt>
+                  <dt className="inline text-ink/60">{t("label", { label: t("website") })} </dt>
                   <dd className="inline">
                     <a
                       href={order.currentWebsite}
@@ -94,7 +94,9 @@ export default async function OrdersPage({ params }: PageProps<"/[locale]/admin/
             </div>
             {order.status !== "in_creation" && (
               <details className="mt-4">
-                <summary className="cursor-pointer font-semibold text-coral-dark">{t("reject")}</summary>
+                <summary className="cursor-pointer py-2.5 font-semibold text-coral-dark">
+                  {t("reject")}
+                </summary>
                 <ActionForm
                   action={rejectOrderAction}
                   submitLabel={t("reject")}
