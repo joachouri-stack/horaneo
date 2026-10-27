@@ -269,7 +269,10 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   </span>
                   <span className="truncate">{t("hero.badge")}</span>
                 </p>
-                <h1 className={`${TITLE} hn-balance hn-up-2 mt-6 text-mk-h1 leading-[1.04]`}>
+                {/* Sur téléphone, le titre suit la largeur de l'écran : une phrase par ligne. */}
+                <h1
+                  className={`${TITLE} hn-balance hn-up-2 mt-6 text-[clamp(1.5rem,7.6vw,2.25rem)] leading-[1.08] sm:text-mk-h1 sm:leading-[1.04]`}
+                >
                   {t("hero.title")} <span className="hn-shimmer block">{t("hero.titleAccent")}</span>
                 </h1>
                 <p className="hn-up-3 mt-5 max-w-[34rem] text-mk-lead leading-relaxed text-ink-soft">
