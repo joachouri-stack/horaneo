@@ -240,6 +240,11 @@ export const settingsInput = z.object({
   solutions_available: z.array(z.enum(["booking", "commerce", "formation"])).default(["booking"]),
   /** Adresse de la démonstration (vide : bouton masqué). */
   demo_url: z.union([z.literal(""), z.url().max(300)]).default(""),
+  /** Pages de la marque sur les réseaux sociaux (vide : non affiché). */
+  social_youtube: z.union([z.literal(""), z.url().max(300)]).default(""),
+  social_tiktok: z.union([z.literal(""), z.url().max(300)]).default(""),
+  social_instagram: z.union([z.literal(""), z.url().max(300)]).default(""),
+  social_facebook: z.union([z.literal(""), z.url().max(300)]).default(""),
   go_live_delay_days: z.coerce.number().int().min(0).max(60),
   deposit_commission_percent: z.coerce.number().min(0).max(20),
   retention_days_after_cancel: z.coerce.number().int().min(0).max(365),
@@ -248,6 +253,8 @@ export const settingsInput = z.object({
   email_reminder_hours_before: z.coerce.number().int().min(2).max(72),
   daily_summary_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
   monthly_summary_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+  /** Heure locale de l'e-mail d'anniversaire (offre des entreprises qui l'ont activée). */
+  birthday_message_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
   legal_infrastructure: z.string().trim().min(5).max(300),
 });
 

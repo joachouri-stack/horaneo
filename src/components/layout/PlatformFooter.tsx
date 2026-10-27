@@ -2,8 +2,13 @@ import { getTranslations } from "next-intl/server";
 import { Logo } from "@/components/brand/Logo";
 import { NAV } from "@/components/layout/PlatformHeader";
 import { ArrowLine, MailLine } from "@/components/marketing/line-icons";
+import { SocialCards, socialHandle, type SocialNetwork } from "@/components/marketing/SocialCards";
 import { env } from "@/config/env";
+import { withPlatform } from "@/db/access";
 import { Link } from "@/i18n/navigation";
+import { getPlatformSetting } from "@/modules/settings";
+
+const NETWORKS: SocialNetwork[] = ["youtube", "tiktok", "instagram", "facebook"];
 
 const LINK =
   "inline-flex min-h-11 items-center text-[#c8d0e4] transition-colors hover:text-white focus-visible:outline-white";
@@ -28,6 +33,17 @@ export async function PlatformFooter() {
     { href: "/confidentialite", label: t("privacy") },
     { href: "/conditions", label: t("terms") },
   ] as const;
+  // Réseaux renseignés dans l'admin (Réglages → Réseaux sociaux) ; les autres sont masqués.
+  const urls = await withPlatform(async (tx) =>
+    Promise.all(NETWORKS.map(async (network) => String(await getPlatformSetting(tx, `social_${network}`)))),
+  );
+  const socials = NETWORKS.flatMap((network, index) => {
+    const url = urls[index];
+    if (!url) return [];
+    const name = t(`networks.${network}`);
+    const handle = socialHandle(url);
+    return [{ network, url, name, handle, label: t("socialLink", { network: name, handle }) }];
+  });
   return (
     <footer className="relative overflow-hidden bg-[#0e1526] text-[#c8d0e4]">
       {/* Filet champagne en haut, halos flous qui dérivent doucement. */}
@@ -81,6 +97,17 @@ export async function PlatformFooter() {
             </Link>
           </div>
         </div>
+
+        {socials.length > 0 && (
+          <section aria-labelledby="pied-reseaux" className="mt-14">
+            <p id="pied-reseaux" className={HEADING}>
+              {t("socialTitle")}
+            </p>
+            <div className="mt-3">
+              <SocialCards cards={socials} />
+            </div>
+          </section>
+        )}
 
         <div className="mt-14 grid grid-cols-2 gap-x-6 gap-y-10 border-t border-white/10 pt-10 sm:grid-cols-3">
           <nav aria-labelledby="pied-decouvrir">

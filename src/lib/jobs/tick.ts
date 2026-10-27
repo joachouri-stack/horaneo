@@ -12,6 +12,7 @@ import { purgeReplacedAssets } from "@/modules/media/purge";
 import { dispatchMessages } from "@/modules/messages/dispatch";
 import {
   expireAllHolds,
+  queueBirthdayOffers,
   queueEmailReminders,
   queueSmsReminders,
   queueSummaries,
@@ -19,8 +20,9 @@ import {
 
 /**
  * Tâche planifiée, lancée toutes les 5 minutes (voir README) :
- * libère les créneaux non payés, prépare les rappels et les résumés, envoie
- * les messages en attente et supprime les photos remplacées depuis plus de 7 jours.
+ * libère les créneaux non payés, prépare les rappels, les résumés et les e-mails
+ * d'anniversaire, envoie les messages en attente et supprime les photos
+ * remplacées depuis plus de 7 jours.
  * Chaque étape peut être rejouée sans risque de doublon.
  */
 
@@ -40,6 +42,8 @@ export async function runTick(now = new Date()) {
     const emailReminders = await platform((tx) => queueEmailReminders(tx, now));
     const smsReminders = await platform((tx) => queueSmsReminders(tx, now));
     const summaries = await platform((tx) => queueSummaries(tx, now));
+    // Anniversaires du jour (offre de l'entreprise), à l'heure réglée dans l'admin.
+    const birthdays = await platform((tx) => queueBirthdayOffers(tx, now));
     const purged = await purgeReplacedAssets(platform, storage(), now);
     // Avis Google : chaque fiche relue une fois par jour au plus.
     const reviews = await platform((tx) => refreshGoogleReviews(tx, googlePlacesProvider(), now));
@@ -58,6 +62,7 @@ export async function runTick(now = new Date()) {
       emailReminders,
       smsReminders,
       summaries,
+      birthdays,
       purged,
       reviews,
       prices,

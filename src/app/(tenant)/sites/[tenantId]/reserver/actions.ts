@@ -116,6 +116,8 @@ const bookInput = z.object({
     note: z.string().optional(),
     beneficiaryName: z.string().max(80).optional(),
     marketingConsent: z.boolean(),
+    birthMonth: z.number().int().optional(),
+    birthDay: z.number().int().optional(),
   }),
   promoCode: z.string().max(30).optional(),
   giftCardCode: z.string().max(40).optional(),

@@ -18,12 +18,13 @@ import {
 import { pickLocalized, type Locale } from "@/i18n/locales";
 import { assignManageToken, manageTokenFor } from "@/modules/booking/create";
 import { addMinutes } from "@/modules/booking/time";
-import { anonymizeCustomer } from "@/modules/customers/customers";
+import { anonymizeCustomer, birthdayInput } from "@/modules/customers/customers";
 import { AppError } from "@/modules/errors";
 import { giftCardCodeFor } from "@/modules/giftcards/giftcards";
 import { customerLoyalty } from "@/modules/loyalty/loyalty";
 import { queueMessage } from "@/modules/messages/queue";
 import { depositSummary } from "@/modules/payments/refunds";
+import { birthdayOfferConfig } from "@/modules/promo/birthday";
 import type { CustomerIdentity } from "./auth";
 
 /**
@@ -224,6 +225,9 @@ export async function loadBusinessSpace(
         )
     : [];
   const contact = owners[0] ?? null;
+  // Offre d'anniversaire de l'entreprise : la cliente peut donner ou changer sa date.
+  const birthdayOffer = (await birthdayOfferConfig(tx, tenantId, businessId)).active;
+  const dated = owners.find((row) => row.birthMonth !== null);
 
   return {
     businessId,
@@ -237,6 +241,7 @@ export async function loadBusinessSpace(
           phone: contact.phone ?? "",
         }
       : null,
+    birthday: birthdayOffer ? { month: dated?.birthMonth ?? null, day: dated?.birthDay ?? null } : null,
     upcoming,
     past,
     giftCards: cards,
@@ -258,6 +263,29 @@ export async function contactForBooking(tx: Transaction, tenantId: string, ident
         phone: contact.phone ?? "",
       }
     : null;
+}
+
+/**
+ * Anniversaire donné (ou changé, ou effacé) par la cliente connectée, sur ses
+ * fiches de l'entreprise déclarée. Seulement si l'entreprise propose l'offre
+ * d'anniversaire : la date n'est pas demandée sans raison.
+ */
+export async function setCustomerBirthday(
+  tx: Transaction,
+  tenantId: string,
+  identity: CustomerIdentity,
+  raw: { birthMonth?: unknown; birthDay?: unknown },
+) {
+  const birthday = birthdayInput.parse(raw);
+  const offer = await birthdayOfferConfig(tx, tenantId);
+  if (!offer.active) throw new AppError("feature_unavailable");
+  const updated = await tx
+    .update(customers)
+    .set(birthday)
+    .where(and(eq(customers.tenantId, tenantId), matches(identity), isNull(customers.anonymizedAt)))
+    .returning({ id: customers.id });
+  if (updated.length === 0) throw new AppError("not_found");
+  return birthday;
 }
 
 /**

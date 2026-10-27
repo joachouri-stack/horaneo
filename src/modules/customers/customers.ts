@@ -7,6 +7,7 @@ import { appointmentItems, appointments, customers, staffMembers, tenants } from
 import { pickLocalized, type Locale } from "@/i18n/locales";
 import { AppError } from "@/modules/errors";
 import { normalizePhone } from "@/modules/phone";
+import { isValidBirthday } from "./birthday";
 
 /** Fiches clientes de l'établissement : recherche, historique, notes. */
 
@@ -251,6 +252,8 @@ export async function anonymizeCustomer(
       emailConsent: false,
       smsConsent: false,
       consentAt: null,
+      birthMonth: null,
+      birthDay: null,
       anonymizedAt: now,
     })
     .where(and(eq(customers.id, customerId), eq(customers.tenantId, tenantId)))
@@ -258,6 +261,24 @@ export async function anonymizeCustomer(
   if (!updated) throw new AppError("not_found");
   return updated;
 }
+
+/** Champ de formulaire : vide (« » ou absent) = pas d'anniversaire. */
+const part = (max: number) =>
+  z.preprocess(
+    (value) => (value === "" || value === undefined ? null : value),
+    z.coerce.number().int().min(1).max(max).nullable(),
+  );
+
+/** Jour et mois saisis : les deux, ou aucun ; une date qui existe (29 février permis). */
+export const birthdayInput = z
+  .object({ birthMonth: part(12), birthDay: part(31) })
+  .refine(
+    (value) =>
+      value.birthMonth === null
+        ? value.birthDay === null
+        : value.birthDay !== null && isValidBirthday(value.birthMonth, value.birthDay),
+    { path: ["birthDay"] },
+  );
 
 export const customerInput = z.object({
   firstName: z.string().trim().min(1).max(80),
@@ -271,9 +292,12 @@ export const customerInput = z.object({
     .transform((value) => value || null)
     .pipe(z.email().nullable()),
   notes: z.string().trim().max(2000).optional(),
+  /** Anniversaire (jour et mois) : vide pour l'effacer. */
+  birthMonth: z.union([z.string(), z.number()]).nullish(),
+  birthDay: z.union([z.string(), z.number()]).nullish(),
 });
 
-/** Crée ou modifie une fiche (au moins un téléphone ou un e-mail). */
+/** Crée ou modifie une fiche (au moins un téléphone ou un e-mail). La gérante peut fixer ou changer l'anniversaire. */
 export async function saveCustomer(
   tx: Transaction,
   tenantId: string,
@@ -281,6 +305,11 @@ export async function saveCustomer(
   customerId?: string,
 ) {
   const input = customerInput.parse(raw);
+  // Champs absents (autre appel que le formulaire) : l'anniversaire n'est pas touché.
+  const birthday =
+    input.birthMonth === undefined && input.birthDay === undefined
+      ? {}
+      : birthdayInput.parse({ birthMonth: input.birthMonth, birthDay: input.birthDay });
   const [tenant] = await tx
     .select({ country: tenants.country, locale: tenants.defaultLocale })
     .from(tenants)
@@ -294,6 +323,7 @@ export async function saveCustomer(
     phone,
     email: input.email,
     notes: input.notes || null,
+    ...birthday,
   };
   try {
     if (customerId) {

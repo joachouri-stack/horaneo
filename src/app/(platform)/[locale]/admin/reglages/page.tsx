@@ -41,7 +41,12 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
       "email_reminder_hours_before",
       "daily_summary_time",
       "monthly_summary_time",
+      "birthday_message_time",
       "legal_infrastructure",
+      "social_youtube",
+      "social_tiktok",
+      "social_instagram",
+      "social_facebook",
     ] as const;
     return Object.fromEntries(
       await Promise.all(keys.map(async (key) => [key, await getPlatformSetting(tx, key)])),
@@ -123,6 +128,24 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
             />
           </div>
         </Section>
+        {/* Pages de la marque, affichées dans le pied de page du site commercial. */}
+        <Section title={t("social")} collapsible>
+          <p className="mb-3 text-sm text-ink/70">{t("socialHint")}</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {(["social_youtube", "social_tiktok", "social_instagram", "social_facebook"] as const).map(
+              (name) => (
+                <TextField
+                  key={name}
+                  name={name}
+                  type="url"
+                  inputMode="url"
+                  label={t(name)}
+                  defaultValue={String(s[name])}
+                />
+              ),
+            )}
+          </div>
+        </Section>
         {/* Rachat du site par le client à sa sortie : désactivé par défaut, prix fixe. */}
         <Section title={t("buyout")} collapsible>
           <p className="mb-3 text-sm text-ink/70">{t("buyoutHint")}</p>
@@ -174,6 +197,7 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
             />
             {field("sms_warning_percent", "number", t("smsWarningHint"))}
             {field("sms_reminder_time", "time")}
+            {field("birthday_message_time", "time")}
             {field("email_reminder_hours_before")}
             {field("daily_summary_time", "time")}
             {field("monthly_summary_time", "time")}

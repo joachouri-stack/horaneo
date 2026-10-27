@@ -810,7 +810,15 @@
       "credit": "Design : Johane A.",
       "legalTitle": "Informations légales",
       "proCardTitle": "Déjà client ?",
-      "proCardText": "Retrouvez votre agenda, vos clientes et votre site dans votre espace professionnel."
+      "proCardText": "Retrouvez votre agenda, vos clientes et votre site dans votre espace professionnel.",
+      "socialTitle": "Suivez-nous",
+      "socialLink": "{network} : {handle} (nouvel onglet)",
+      "networks": {
+        "youtube": "YouTube",
+        "tiktok": "TikTok",
+        "instagram": "Instagram",
+        "facebook": "Facebook"
+      }
     }
   },
   "site": {
@@ -889,7 +897,14 @@
       },
       "addToCalendar": "Ajouter à mon agenda",
       "otherSms": "Utiliser un autre numéro ou une adresse e-mail",
-      "checkSpamSms": "Rien reçu ? Vérifiez le numéro saisi, ou réessayez dans quelques minutes."
+      "checkSpamSms": "Rien reçu ? Vérifiez le numéro saisi, ou réessayez dans quelques minutes.",
+      "birthdayTitle": "Mon anniversaire",
+      "birthdayIntro": "Pour recevoir une attention de notre part le jour de votre anniversaire (jour et mois seulement).",
+      "birthdayAt": "Chez {name}",
+      "birthdayDay": "Jour",
+      "birthdayMonth": "Mois",
+      "birthdaySave": "Enregistrer",
+      "birthdaySaved": "C'est noté, merci !"
     },
     "suspended": "Ce site est temporairement indisponible. Merci de contacter l'établissement par téléphone.",
     "book": "Réserver",
@@ -1947,9 +1962,16 @@
       },
       "demo_url": "Adresse de la démonstration",
       "demoHint": "Vide : le bouton « Voir la démonstration » n'apparaît pas.",
+      "social": "Réseaux sociaux",
+      "socialHint": "Adresses complètes de vos pages. Elles apparaissent dans le pied de page du site, avec leur logo ; un champ vide masque le réseau.",
+      "social_youtube": "Chaîne YouTube",
+      "social_tiktok": "Compte TikTok",
+      "social_instagram": "Compte Instagram",
+      "social_facebook": "Page Facebook",
       "yearly_billing_enabled": "Proposer le paiement à l'année",
       "yearly_free_months": "Mois offerts pour le paiement à l'année",
-      "yearlyHint": "2 = 10 mois payés pour 12. Un nouveau prix annuel est créé chez Stripe ; les abonnés gardent le leur."
+      "yearlyHint": "2 = 10 mois payés pour 12. Un nouveau prix annuel est créé chez Stripe ; les abonnés gardent le leur.",
+      "birthday_message_time": "Heure de l'e-mail d'anniversaire aux clientes"
     },
     "billing": {
       "title": "Paiements des abonnements",
@@ -2247,8 +2269,13 @@
         "email": "Vérifiez votre adresse e-mail : il manque peut-être une lettre, le « @ » ou la fin de l'adresse.",
         "phone": "Vérifiez votre numéro de téléphone : il doit compter au moins 6 chiffres.",
         "note": "Votre message est trop long (500 caractères au plus).",
-        "beneficiaryName": "Ce prénom est trop long (80 caractères au plus)."
-      }
+        "beneficiaryName": "Ce prénom est trop long (80 caractères au plus).",
+        "birthDay": "Choisissez le jour et le mois, ou laissez les deux vides."
+      },
+      "birthday": "Date d'anniversaire (facultatif)",
+      "birthdayHint": "Pour recevoir une attention de notre part le jour de votre anniversaire.",
+      "birthdayDay": "Jour",
+      "birthdayMonth": "Mois"
     },
     "payment": {
       "title": "Acompte à régler",
@@ -2483,7 +2510,8 @@
         "customer_rescheduled": "Déplacé par la cliente (e-mail)",
         "customer_moved": "Déplacé par vous (e-mail)",
         "customer_payment_refunded": "Remboursement (e-mail)",
-        "customer_review_request": "Demande d'avis Google (e-mail)"
+        "customer_review_request": "Demande d'avis Google (e-mail)",
+        "customer_birthday": "Joyeux anniversaire (e-mail)"
       }
     },
     "manual": {
@@ -2612,7 +2640,14 @@
       "emptyFilter": "Aucune cliente dans ce groupe.",
       "partial": "{shown} fiches affichées sur {total}.",
       "showMore": "Afficher plus",
-      "refineSearch": "Pour trouver une cliente, utilisez la recherche."
+      "refineSearch": "Pour trouver une cliente, utilisez la recherche.",
+      "birthday": "Anniversaire",
+      "birthdayDay": "Jour",
+      "birthdayMonth": "Mois",
+      "birthdayHint": "Jour et mois seulement, sans l'année. Laissez vide si vous ne le connaissez pas.",
+      "birthdayUnknown": "Anniversaire non renseigné",
+      "birthdayEmpty": "—",
+      "birthdayOn": "Anniversaire : {date}"
     },
     "site": {
       "title": "Mon site",
@@ -3080,6 +3115,17 @@
         "visit_reverted": "Rendez-vous corrigé",
         "manual_adjustment": "Ajustement",
         "reward_used": "Bon utilisé ou expiré"
+      },
+      "birthday": {
+        "title": "Anniversaire de vos clientes",
+        "intro": "Le jour de son anniversaire, chaque cliente qui a donné sa date reçoit un e-mail à votre nom avec un code de réduction personnel, valable une seule fois sur la prestation de son choix. Elle donne sa date en réservant en ligne ou depuis son espace ; vous pouvez aussi la noter sur sa fiche.",
+        "enabled": "Souhaiter l'anniversaire de mes clientes avec une réduction",
+        "percent": "Réduction offerte (%)",
+        "days": "Validité du code (jours)",
+        "daysHint": "Entre 1 et 90 jours à partir du jour de l'anniversaire.",
+        "preview": "Aperçu du message",
+        "sampleName": "Camille",
+        "unavailable": "Les souhaits d'anniversaire avec réduction sont inclus {plan, select, none {dans un pack supérieur} other {à partir du pack {plan}}}."
       }
     },
     "customerData": {
@@ -3256,6 +3302,14 @@
         "ask": "Si c'est le cas, un petit avis sur Google nous aiderait beaucoup : il ne prend qu'une minute et aide d'autres personnes à nous découvrir.",
         "action": "Laisser un avis",
         "once": "Vous ne recevrez ce message qu'une seule fois."
+      },
+      "birthday": {
+        "subject": "Joyeux anniversaire {firstName} !",
+        "title": "Joyeux anniversaire {firstName} !",
+        "intro": "Toute l'équipe de {business} vous souhaite un très joyeux anniversaire. Pour l'occasion, profitez de {percent} % de réduction sur la prestation de votre choix avec votre code personnel :",
+        "action": "Réserver",
+        "validity": "Valable jusqu'au {date}, une seule fois, en réservant en ligne ou sur place.",
+        "codePrefix": "ANNIV"
       }
     },
     "manager": {

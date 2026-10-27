@@ -1,15 +1,21 @@
 import { tenantFeatures, tenantLimits } from "@/modules/billing/entitlements";
-import { and, eq, gte, lt, lte, sql } from "drizzle-orm";
+import { and, eq, gte, isNotNull, isNull, lt, lte, or, sql } from "drizzle-orm";
+import { declareBusiness } from "@/db/access";
 import type { Transaction } from "@/db/client";
 import {
   appointments,
+  customers,
+  messageLog,
   plans,
   businessSettings,
   tenants,
   type PlanFeatures,
   type PlanLimits,
 } from "@/db/schema";
+import { getTranslator, resolveLocale } from "@/i18n/translator";
 import { addDays, localToUtc, timeToMinutes, utcToLocal } from "@/modules/booking/time";
+import { birthdaysCelebratedOn } from "@/modules/customers/birthday";
+import { createPersonalPromoCode } from "@/modules/promo/codes";
 import { getPlatformSetting } from "@/modules/settings";
 import { queueMessage } from "./queue";
 
@@ -172,6 +178,86 @@ export async function queueSummaries(tx: Transaction, now: Date) {
       count += 1;
     }
   }
+  return count;
+}
+
+/** Clé unique de l'e-mail d'anniversaire : un seul par cliente et par an. */
+export function birthdayDedupeKey(customerId: string, year: string) {
+  return `customer.birthday:${customerId}:${year}`;
+}
+
+/**
+ * Anniversaires du jour (heure réglée dans l'admin, fuseau de chaque site) : pour
+ * chaque entreprise qui a activé l'offre, sur un site en ligne dont le pack a les
+ * codes promo, chaque cliente née ce jour-là (le 28 février fête aussi les 29 février
+ * les années non bissextiles) reçoit un e-mail avec un code personnel. Ni cliente
+ * effacée, ni cliente sans e-mail (pas de SMS : aucun SMS du pack n'est utilisé).
+ * Le code n'est créé que si le message de l'année n'existe pas encore : rejouer la
+ * tâche le même jour ne crée rien.
+ */
+export async function queueBirthdayOffers(tx: Transaction, now: Date) {
+  const time = await getPlatformSetting(tx, "birthday_message_time");
+  const rows = await tx
+    .select({
+      id: businessSettings.businessId,
+      tenantId: tenants.id,
+      timezone: tenants.timezone,
+      defaultLocale: tenants.defaultLocale,
+      features: tenantFeatures,
+      discountPercent: businessSettings.birthdayDiscountPercent,
+      validityDays: businessSettings.birthdayOfferDays,
+    })
+    .from(businessSettings)
+    .innerJoin(tenants, eq(tenants.id, businessSettings.tenantId))
+    .innerJoin(plans, eq(plans.id, tenants.planId))
+    .where(and(eq(tenants.status, "active"), eq(businessSettings.birthdayOfferEnabled, true)));
+  let count = 0;
+  for (const business of rows) {
+    if (!(business.features as PlanFeatures).promoCodes) continue;
+    const { open, local } = inWindow(now, business.timezone, time);
+    if (!open) continue;
+    const year = local.date.slice(0, 4);
+    // Une entreprise à la fois : ses clientes et ses codes seuls sont visibles.
+    await declareBusiness(tx, business.id);
+    // Deux tâches simultanées ne créent pas deux codes pour la même cliente.
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`birthday:${business.id}`}))`);
+    const days = birthdaysCelebratedOn(local.date);
+    const celebrated = await tx
+      .select({ id: customers.id, locale: customers.locale })
+      .from(customers)
+      .where(
+        and(
+          eq(customers.tenantId, business.tenantId),
+          eq(customers.businessId, business.id),
+          isNull(customers.anonymizedAt),
+          isNotNull(customers.email),
+          or(...days.map((day) => and(eq(customers.birthMonth, day.month), eq(customers.birthDay, day.day)))),
+          sql`not exists (select 1 from ${messageLog} m where m.dedupe_key = 'customer.birthday:' || ${customers.id} || ':' || ${year})`,
+        ),
+      );
+    if (celebrated.length === 0) continue;
+    const t = await getTranslator(resolveLocale(business.defaultLocale));
+    for (const customer of celebrated) {
+      const code = await createPersonalPromoCode(tx, business.tenantId, {
+        businessId: business.id,
+        customerId: customer.id,
+        discountPercent: business.discountPercent,
+        validityDays: business.validityDays,
+        prefix: t("notifications.customer.birthday.codePrefix"),
+        now,
+      });
+      await queueMessage(tx, {
+        tenantId: business.tenantId,
+        businessId: business.id,
+        template: "customer.birthday",
+        locale: customer.locale,
+        data: { promoCodeId: code.id },
+        dedupeKey: birthdayDedupeKey(customer.id, year),
+      });
+      count += 1;
+    }
+  }
+  await declareBusiness(tx, null);
   return count;
 }
 
