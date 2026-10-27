@@ -261,7 +261,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             </div>
             <div className="relative mx-auto max-w-[56rem] px-4 pb-10 pt-12 text-center sm:px-6 lg:pb-12 lg:pt-20">
               <p
-                className={`${EYEBROW} hn-up !text-coral-dark max-sm:items-start max-sm:rounded-2xl max-sm:text-left max-sm:[text-wrap:balance]`}
+                className={`${EYEBROW} hn-up !text-coral-dark max-sm:max-w-[16rem] max-sm:items-start max-sm:rounded-2xl max-sm:text-left max-sm:[text-wrap:balance]`}
               >
                 {/* Sur téléphone, le badge tient sur deux lignes : le point reste à côté de la première. */}
                 <span aria-hidden="true" className="relative flex size-2 flex-none max-sm:mt-[0.47rem]">
