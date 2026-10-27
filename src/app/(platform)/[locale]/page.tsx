@@ -243,7 +243,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
       />
       <PlatformHeader />
       <RevealOnScroll />
-      <main id="contenu">
+      <main id="contenu" className="overflow-x-clip">
         <SolutionScope>
           {/* Accroche */}
           <section className="relative overflow-hidden">
@@ -252,7 +252,10 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               className="pointer-events-none absolute inset-x-0 top-0 h-[34rem] bg-[radial-gradient(60rem_26rem_at_50%_-6rem,var(--accent-soft),transparent_70%)]"
             />
             {/* Halos qui dérivent lentement derrière l'accroche. */}
-            <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 overflow-hidden [mask-image:linear-gradient(to_bottom,#000_55%,transparent)]"
+            >
               <div className="hn-drift absolute -left-24 top-10 size-[24rem] rounded-full bg-accent/15 blur-[90px] max-sm:size-[16rem]" />
               <div className="hn-drift-slow absolute -right-20 top-32 size-[22rem] rounded-full bg-champagne/25 blur-[90px] max-sm:size-[14rem]" />
             </div>
@@ -296,7 +299,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
 
           {/* Choisissez votre solution */}
           <section id="solutions" aria-labelledby="titre-solutions" className="scroll-mt-20 px-4 sm:px-6">
-            <div className="mx-auto max-w-[72rem]">
+            <div className="mx-auto max-w-[72rem] 2xl:max-w-[85rem]">
               <h2 id="titre-solutions" className="sr-only">
                 {t("solutions.title")}
               </h2>
@@ -411,13 +414,13 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           <section
             data-only="booking"
             aria-labelledby="titre-tableau"
-            className="relative isolate overflow-hidden px-4 pt-20 sm:px-6 lg:pt-28"
+            className="relative isolate px-4 pt-20 sm:px-6 lg:pt-28"
           >
             <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-40 -z-10 h-[40rem]">
               <div className="hn-drift absolute left-[10%] top-20 size-[26rem] rounded-full bg-accent/15 blur-[100px]" />
               <div className="hn-drift-slow absolute right-[8%] top-40 size-[22rem] rounded-full bg-champagne/25 blur-[100px]" />
             </div>
-            <div className="mx-auto max-w-[72rem]">
+            <div className="mx-auto max-w-[72rem] 2xl:max-w-[85rem]">
               <div className="mx-auto max-w-[46rem] text-center">
                 <p data-reveal className={EYEBROW}>
                   {t("dashboard.badge")}
@@ -454,7 +457,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     width={1536}
                     height={1024}
                     alt={t("dashboard.alt")}
-                    sizes="(min-width: 1152px) 72rem, 100vw"
+                    sizes="(min-width: 1536px) 85rem, (min-width: 1152px) 72rem, 100vw"
                     className="h-auto w-full rounded-[1rem] lg:rounded-[1.3rem]"
                   />
                 </div>
@@ -469,12 +472,12 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           <section
             id="tarifs"
             aria-labelledby="titre-tarifs"
-            className="relative isolate mx-auto max-w-[75rem] scroll-mt-20 px-4 pt-20 sm:px-6 lg:pt-28"
+            className="relative isolate mx-auto max-w-[75rem] 2xl:max-w-[88rem] scroll-mt-20 px-4 pt-20 sm:px-6 lg:pt-28"
           >
             {/* Fond des packs : trame de points et halos doux de l'accent et du champagne. */}
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute inset-x-0 top-40 -z-10 h-[46rem] overflow-hidden"
+              className="pointer-events-none absolute left-1/2 top-40 -z-10 h-[46rem] w-screen -translate-x-1/2 overflow-hidden"
             >
               <div className="hn-dots absolute inset-0" />
               <div className="hn-drift absolute left-[8%] top-24 size-[22rem] rounded-full bg-accent/10 blur-[90px]" />
@@ -540,7 +543,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           <section
             id="fonctionnalites"
             aria-labelledby="titre-benefices"
-            className="mx-auto max-w-[75rem] scroll-mt-20 px-4 pt-20 sm:px-6 lg:pt-28"
+            className="mx-auto max-w-[75rem] 2xl:max-w-[88rem] scroll-mt-20 px-4 pt-20 sm:px-6 lg:pt-28"
           >
             <p data-reveal className={EYEBROW}>
               {t("benefits.badge")}
@@ -581,7 +584,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           <section
             id="comparatif"
             aria-labelledby="titre-comparatif"
-            className="mx-auto max-w-[75rem] scroll-mt-20 px-4 pt-20 sm:px-6 lg:pt-28"
+            className="mx-auto max-w-[75rem] 2xl:max-w-[88rem] scroll-mt-20 px-4 pt-20 sm:px-6 lg:pt-28"
           >
             <h2 id="titre-comparatif" data-reveal className={`${TITLE} mb-8 text-mk-h2 leading-[1.1]`}>
               {t("comparison.title")}
@@ -604,7 +607,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
         {/* Réassurance : seulement des engagements vérifiés */}
         <section
           aria-labelledby="titre-confiance"
-          className="mx-auto max-w-[75rem] px-4 pt-20 sm:px-6 lg:pt-28"
+          className="mx-auto max-w-[75rem] 2xl:max-w-[88rem] px-4 pt-20 sm:px-6 lg:pt-28"
         >
           <h2 id="titre-confiance" data-reveal className={`${TITLE} text-center text-mk-h2`}>
             {t("trust.title")}
@@ -648,7 +651,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           aria-labelledby="titre-questions"
           className="scroll-mt-20 px-4 py-20 sm:px-6 lg:py-28"
         >
-          <div className="mx-auto grid max-w-[72rem] gap-8 lg:grid-cols-[1fr_2fr] lg:gap-14">
+          <div className="mx-auto grid max-w-[72rem] 2xl:max-w-[85rem] gap-8 lg:grid-cols-[1fr_2fr] lg:gap-14">
             <div data-reveal>
               <h2 id="titre-questions" className={`${TITLE} text-mk-h2 leading-[1.1]`}>
                 {t("faq.title")}
@@ -679,7 +682,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
         <section className="px-4 pb-16 sm:px-6">
           <div
             data-reveal
-            className="relative mx-auto max-w-[72rem] overflow-hidden rounded-[1.75rem] bg-[linear-gradient(120deg,#1b2a4a,#24366a_60%,#2f3f86)] px-6 py-14 text-center lg:py-16"
+            className="relative mx-auto max-w-[72rem] 2xl:max-w-[85rem] overflow-hidden rounded-[1.75rem] bg-[linear-gradient(120deg,#1b2a4a,#24366a_60%,#2f3f86)] px-6 py-14 text-center lg:py-16"
           >
             <div
               aria-hidden="true"
