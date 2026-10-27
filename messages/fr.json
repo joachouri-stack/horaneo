@@ -91,11 +91,26 @@
             "text": "SMS et e-mail"
           },
           "strip": [
-            "Agenda",
-            "Rappels automatiques",
-            "Paiements sécurisés",
-            "Fichier clients",
-            "Statistiques"
+            {
+              "title": "Agenda",
+              "text": "Tous vos rendez-vous, sur ordinateur et téléphone."
+            },
+            {
+              "title": "Rappels automatiques",
+              "text": "Moins d'oublis, sans lever le petit doigt."
+            },
+            {
+              "title": "Paiements sécurisés",
+              "text": "Acomptes et paiements en ligne, versés sur votre compte."
+            },
+            {
+              "title": "Fichier clients",
+              "text": "L'historique et les notes de chaque client."
+            },
+            {
+              "title": "Statistiques",
+              "text": "Chiffre d'affaires et réservations en un coup d'œil."
+            }
           ],
           "mock": {
             "today": "Aujourd'hui",
@@ -132,7 +147,28 @@
             "title": "Paiements sécurisés",
             "text": "Stripe"
           },
-          "strip": ["Boutique en ligne", "Catalogue", "Commandes et stocks", "Codes promo", "Cartes cadeaux"],
+          "strip": [
+            {
+              "title": "Boutique en ligne",
+              "text": "Vos produits en vente, jour et nuit."
+            },
+            {
+              "title": "Catalogue",
+              "text": "Photos, prix et variantes, simples à mettre à jour."
+            },
+            {
+              "title": "Commandes et stocks",
+              "text": "Chaque commande suivie, les stocks à jour."
+            },
+            {
+              "title": "Codes promo",
+              "text": "Des réductions à partager pour relancer les ventes."
+            },
+            {
+              "title": "Cartes cadeaux",
+              "text": "Un cadeau à offrir, payé en ligne."
+            }
+          ],
           "mock": {
             "today": "Boutique",
             "week": "Nouveautés",
@@ -161,7 +197,28 @@
             "title": "Espace apprenant",
             "text": "Sécurisé"
           },
-          "strip": ["Cours vidéo", "Documents", "Espace apprenant", "Certificats", "Suivi des apprenants"],
+          "strip": [
+            {
+              "title": "Cours vidéo",
+              "text": "Vos cours en ligne, à suivre à son rythme."
+            },
+            {
+              "title": "Documents",
+              "text": "Supports et fiches à télécharger."
+            },
+            {
+              "title": "Espace apprenant",
+              "text": "Un espace personnel pour chaque apprenant."
+            },
+            {
+              "title": "Certificats",
+              "text": "Une attestation remise à la fin du parcours."
+            },
+            {
+              "title": "Suivi des apprenants",
+              "text": "La progression de chacun, leçon après leçon."
+            }
+          ],
           "mock": {
             "today": "Mes formations",
             "week": "Module 2",
