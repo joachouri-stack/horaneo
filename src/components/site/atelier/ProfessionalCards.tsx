@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import type { SiteData } from "@/modules/site/data";
 import { ctaLabelKey, siteCta } from "@/modules/site/cta";
@@ -14,7 +15,10 @@ export function presentedBusinesses(site: Site) {
   return site.businesses.filter((business) => business.slug && (business.role || business.bio));
 }
 
-/** Cartes des professionnelles : photo, métier, présentation, sa phrase, ses avis Google, « Réserver » et « Tous ses soins ». */
+/**
+ * Cartes des professionnelles : photo, métier, présentation, sa phrase, ses avis Google, « Réserver » et « Tous ses soins ».
+ * Toute la carte mène à la page de ses soins (lien étiré depuis son nom) ; les autres liens restent au-dessus.
+ */
 export async function ProfessionalCards({
   site,
   businesses,
@@ -32,7 +36,7 @@ export async function ProfessionalCards({
         return (
           <li
             key={business.id}
-            className="group overflow-hidden rounded-[1.75rem] border border-site-border bg-site-bg transition-shadow duration-300 hover:shadow-[0_20px_40px_-20px_rgba(0,0,0,0.25)]"
+            className="group relative overflow-hidden rounded-[1.75rem] border border-site-border bg-site-bg transition-shadow duration-300 hover:shadow-[0_20px_40px_-20px_rgba(0,0,0,0.25)]"
           >
             {business.photo && (
               <SiteImage
@@ -45,7 +49,14 @@ export async function ProfessionalCards({
             <div className="p-6 sm:p-8">
               {business.title && <Tag>{business.title}</Tag>}
               <BusinessShop business={business} className="mt-4" />
-              <h3 className="mt-3 font-site-display text-4xl font-medium">{business.name}</h3>
+              <h3 className="mt-3 font-site-display text-4xl font-medium">
+                <Link
+                  href={businessPath(business.slug!)}
+                  className="after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:after:rounded-[1.75rem] focus-visible:after:ring-2 focus-visible:after:ring-inset focus-visible:after:ring-site-accent"
+                >
+                  {business.name}
+                </Link>
+              </h3>
               {business.role && <p className="mt-1 font-semibold text-site-accent">{business.role}</p>}
               {business.bio && <p className="mt-3 whitespace-pre-line text-site-muted">{business.bio}</p>}
               {business.quote && (
@@ -67,11 +78,16 @@ export async function ProfessionalCards({
               {reviews && <BusinessReviews reviews={reviews} locale={site.locale} />}
               <div className="mt-6 flex flex-wrap gap-3">
                 {cta && (
-                  <PillLink href={cta.href} size="sm">
+                  <PillLink href={cta.href} size="sm" className="relative z-10">
                     {tSite(ctaLabelKey(cta))}
                   </PillLink>
                 )}
-                <PillLink href={businessPath(business.slug!)} variant="outline" size="sm">
+                <PillLink
+                  href={businessPath(business.slug!)}
+                  variant="outline"
+                  size="sm"
+                  className="relative z-10"
+                >
                   {t("allTheirServices")}
                 </PillLink>
               </div>
@@ -87,7 +103,7 @@ export async function ProfessionalCards({
 async function BusinessReviews({ reviews, locale }: { reviews: Site["reviews"][number]; locale: string }) {
   const t = await getTranslations("site.reviews");
   const link =
-    "inline-flex min-h-11 items-center font-semibold underline underline-offset-4 hover:opacity-80";
+    "relative z-10 inline-flex min-h-11 items-center font-semibold underline underline-offset-4 hover:opacity-80";
   if (reviews.rating === null) {
     return (
       <p className="mt-5 text-sm">
