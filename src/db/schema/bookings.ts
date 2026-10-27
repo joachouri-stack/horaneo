@@ -55,6 +55,9 @@ export const customers = pgTable(
     consentAt: utc(),
     /** Données effacées à sa demande : la fiche reste pour l'historique, sans coordonnées. */
     anonymizedAt: utc(),
+    /** Anniversaire : mois (1 à 12) et jour seulement, jamais l'année (minimisation des données). */
+    birthMonth: smallint(),
+    birthDay: smallint(),
     ...timestamps(),
   },
   (t) => [
@@ -70,6 +73,14 @@ export const customers = pgTable(
       "customers_contact",
       sql`${t.email} is not null or ${t.phone} is not null or ${t.anonymizedAt} is not null`,
     ),
+    // Les deux vides, ou une date qui existe (le 29 février est permis).
+    check(
+      "customers_birthday",
+      sql`(${t.birthMonth} is null and ${t.birthDay} is null) or (${t.birthMonth} between 1 and 12 and ${t.birthDay} between 1 and (case when ${t.birthMonth} = 2 then 29 when ${t.birthMonth} in (4, 6, 9, 11) then 30 else 31 end))`,
+    ),
+    index("customers_birthday_idx")
+      .on(t.businessId, t.birthMonth, t.birthDay)
+      .where(sql`${t.birthMonth} is not null`),
   ],
 );
 
@@ -94,10 +105,20 @@ export const promoCodes = pgTable(
     maxUses: integer(),
     usedCount: integer().notNull().default(0),
     isActive: boolean().notNull().default(true),
+    /** Code personnel (ex. anniversaire) : seule cette cliente peut l'utiliser ; absent de la liste de la gérante. */
+    customerId: uuid(),
     ...timestamps(),
   },
   (t) => [
     businessForeignKey("promo_codes_business_fk", t, "cascade"),
+    foreignKey({
+      name: "promo_codes_customer_fk",
+      columns: [t.businessId, t.customerId],
+      foreignColumns: [customers.businessId, customers.id],
+    }).onDelete("cascade"),
+    index("promo_codes_customer_idx")
+      .on(t.businessId, t.customerId)
+      .where(sql`${t.customerId} is not null`),
     unique("promo_codes_tenant_id_key").on(t.tenantId, t.id),
     uniqueIndex("promo_codes_business_code_key").on(t.businessId, sql`upper(${t.code})`),
     check("promo_codes_value", sql`${t.discountValue} > 0`),

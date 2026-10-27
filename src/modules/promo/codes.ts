@@ -1,10 +1,12 @@
-import { and, asc, eq, sql } from "drizzle-orm";
+import { randomInt } from "node:crypto";
+import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
 import { promoCodes, tenants } from "@/db/schema";
 import { addDays, DATE_PATTERN, localToUtc, utcToLocal } from "@/modules/booking/time";
 import { AppError } from "@/modules/errors";
 import { assertFeature } from "@/modules/quotas";
+import { DEFAULT_BIRTHDAY_OFFER } from "@/config/defaults";
 
 /**
  * Codes promo (packs avec l'option « codes promo »), saisis par la cliente au
@@ -71,7 +73,8 @@ export async function listPromoCodes(tx: Transaction, tenantId: string) {
   const rows = await tx
     .select()
     .from(promoCodes)
-    .where(eq(promoCodes.tenantId, tenantId))
+    // Codes personnels (anniversaire…) : créés automatiquement, ni listés ni modifiables ici.
+    .where(and(eq(promoCodes.tenantId, tenantId), isNull(promoCodes.customerId)))
     .orderBy(asc(promoCodes.code));
   // Dates affichées dans le fuseau de l'établissement ; « jusqu'au » est inclusif.
   return rows.map((row) => ({
@@ -114,7 +117,9 @@ export async function savePromoCode(
     const [updated] = await tx
       .update(promoCodes)
       .set(values)
-      .where(and(eq(promoCodes.id, promoCodeId), eq(promoCodes.tenantId, tenantId)))
+      .where(
+        and(eq(promoCodes.id, promoCodeId), eq(promoCodes.tenantId, tenantId), isNull(promoCodes.customerId)),
+      )
       .returning();
     if (!updated) throw new AppError("not_found");
     if (updated.maxUses !== null && updated.usedCount > updated.maxUses)
@@ -132,7 +137,9 @@ export async function deletePromoCode(tx: Transaction, tenantId: string, promoCo
   const [code] = await tx
     .select()
     .from(promoCodes)
-    .where(and(eq(promoCodes.id, promoCodeId), eq(promoCodes.tenantId, tenantId)));
+    .where(
+      and(eq(promoCodes.id, promoCodeId), eq(promoCodes.tenantId, tenantId), isNull(promoCodes.customerId)),
+    );
   if (!code) throw new AppError("not_found");
   // Un code déjà utilisé reste lié à ses rendez-vous : il est seulement désactivé.
   if (code.usedCount > 0) {
@@ -143,7 +150,10 @@ export async function deletePromoCode(tx: Transaction, tenantId: string, promoCo
   return { deleted: true };
 }
 
-/** Le champ « code promo » n'est affiché que s'il existe au moins un code actif. */
+/**
+ * Le champ « code promo » n'est affiché que s'il existe au moins un code actif
+ * (codes personnels compris : la cliente fêtée doit pouvoir saisir le sien).
+ */
 export async function hasActivePromoCodes(tx: Transaction, tenantId: string) {
   const rows = await tx
     .select({ id: promoCodes.id })
@@ -177,7 +187,7 @@ export async function previewPromo(
   const row = await findCode(tx, tenantId, code);
   const discountCents = row ? computeDiscount(row, totalCents, now) : null;
   if (!row || discountCents === null) throw new AppError("promo_code_invalid", "promoCode");
-  return { promoCodeId: row.id, code: row.code, discountCents };
+  return { promoCodeId: row.id, code: row.code, discountCents, customerId: row.customerId };
 }
 
 /**
@@ -204,4 +214,66 @@ export async function redeemPromo(
     .returning({ id: promoCodes.id });
   if (rows.length === 0) throw new AppError("promo_code_invalid", "promoCode");
   return preview;
+}
+
+/** Caractères des codes générés : sans ceux qui se confondent (0/O, 1/I/L). */
+const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+
+function randomCode(prefix: string) {
+  const random = Array.from(
+    { length: DEFAULT_BIRTHDAY_OFFER.codeLength },
+    () => CODE_ALPHABET[randomInt(CODE_ALPHABET.length)],
+  ).join("");
+  // Préfixe lisible (traduit), ramené aux caractères permis d'un code promo.
+  const clean = prefix
+    .normalize("NFD")
+    .replace(/[^A-Za-z0-9]/g, "")
+    .toUpperCase()
+    .slice(0, 12);
+  return clean ? `${clean}-${random}` : random;
+}
+
+/**
+ * Code promo personnel d'une cliente (ex. anniversaire) : une seule utilisation,
+ * par elle seule, valable d'aujourd'hui 0 h (heure de l'établissement) jusqu'au
+ * soir du jour `today + validityDays` (fin exclusive : minuit le lendemain,
+ * comme les codes saisis par la gérante). Unique dans l'entreprise. L'entreprise
+ * est celle de la cliente (déclarée par l'appelant, ou donnée).
+ */
+export async function createPersonalPromoCode(
+  tx: Transaction,
+  tenantId: string,
+  input: {
+    businessId: string;
+    customerId: string;
+    discountPercent: number;
+    validityDays: number;
+    /** Début du code (ex. « ANNIV »), suivi de caractères aléatoires. */
+    prefix: string;
+    now?: Date;
+  },
+) {
+  const timezone = await tenantTimezone(tx, tenantId);
+  const today = utcToLocal(input.now ?? new Date(), timezone).date;
+  const values = {
+    tenantId,
+    businessId: input.businessId,
+    customerId: input.customerId,
+    discountType: "percent" as const,
+    discountValue: input.discountPercent,
+    validFrom: localToUtc(today, "00:00", timezone),
+    validUntil: localToUtc(addDays(today, input.validityDays + 1), "00:00", timezone),
+    maxUses: 1,
+    isActive: true,
+  };
+  // Un code déjà pris dans l'entreprise (index promo_codes_business_code_key) : on en tire un autre.
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const [created] = await tx
+      .insert(promoCodes)
+      .values({ ...values, code: randomCode(input.prefix) })
+      .onConflictDoNothing()
+      .returning();
+    if (created) return created;
+  }
+  throw new Error("Aucun code promo libre après plusieurs essais.");
 }

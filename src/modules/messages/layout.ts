@@ -13,6 +13,8 @@ export type EmailContent = {
   color?: string | null;
   title: string;
   paragraphs: string[];
+  /** Valeur mise en avant sous les paragraphes (ex. un code promo personnel). */
+  highlight?: string;
   details?: { label: string; value: string }[];
   list?: string[];
   action?: { label: string; url: string } | null;
@@ -41,6 +43,12 @@ export function renderEmail(content: EmailContent) {
               `<tr><td style="font-size:14px;color:#6b6b6b;padding:4px 12px 4px 0;vertical-align:top;white-space:nowrap">${escapeHtml(item.label)}</td><td style="font-size:16px;padding:4px 0;font-weight:bold">${escapeHtml(item.value)}</td></tr>`,
           )
           .join("")}</table>`,
+        "padding:4px 0 16px",
+      )
+    : "";
+  const highlight = content.highlight
+    ? row(
+        `<div style="border:2px dashed ${color};border-radius:10px;padding:16px;text-align:center;font-family:'Courier New',Courier,monospace;font-size:26px;font-weight:bold;letter-spacing:3px;color:${color}">${escapeHtml(content.highlight)}</div>`,
         "padding:4px 0 16px",
       )
     : "";
@@ -77,6 +85,7 @@ export function renderEmail(content: EmailContent) {
         ${row(escapeHtml(content.brandName), `font-size:22px;font-weight:bold;color:${color};padding-bottom:24px`)}
         ${row(escapeHtml(content.title), "font-size:20px;font-weight:bold;color:#2B2B2B;padding-bottom:16px")}
         ${content.paragraphs.map((text) => row(escapeHtml(text))).join("\n        ")}
+        ${highlight}
         ${details}
         ${list}
         ${action}
@@ -93,6 +102,7 @@ export function renderEmail(content: EmailContent) {
     content.title,
     "",
     ...content.paragraphs,
+    ...(content.highlight ? ["", content.highlight] : []),
     ...(content.details?.length
       ? ["", ...content.details.map((item) => `${item.label} : ${item.value}`)]
       : []),

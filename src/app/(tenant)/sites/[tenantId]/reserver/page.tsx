@@ -222,6 +222,8 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
           value: context.settings.depositValue,
         }}
         promoEnabled={promoEnabled}
+        // Date d'anniversaire demandée seulement si l'entreprise a l'offre (et le pack les codes promo).
+        birthdayEnabled={context.settings.birthdayOfferEnabled && Boolean(context.features.promoCodes)}
         giftCardsEnabled={giftCardsEnabled}
         // Rappel SMS la veille : seulement si le pack comprend des SMS (comme l'envoi des rappels).
         smsReminders={(context.limits.smsPerMonth ?? 1) > 0}

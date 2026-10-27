@@ -274,6 +274,13 @@
       "when": 1793019477152,
       "tag": "0038_customer_anonymized",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1793096273102,
+      "tag": "0039_customer_birthday",
+      "breakpoints": true
     }
   ]
 }

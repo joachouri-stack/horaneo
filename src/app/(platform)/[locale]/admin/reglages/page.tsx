@@ -41,6 +41,7 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
       "email_reminder_hours_before",
       "daily_summary_time",
       "monthly_summary_time",
+      "birthday_message_time",
       "legal_infrastructure",
       "social_youtube",
       "social_tiktok",
@@ -196,6 +197,7 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
             />
             {field("sms_warning_percent", "number", t("smsWarningHint"))}
             {field("sms_reminder_time", "time")}
+            {field("birthday_message_time", "time")}
             {field("email_reminder_hours_before")}
             {field("daily_summary_time", "time")}
             {field("monthly_summary_time", "time")}

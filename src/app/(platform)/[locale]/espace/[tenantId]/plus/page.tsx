@@ -32,8 +32,8 @@ const ICONS = {
 
 type Key = keyof typeof ICONS;
 
-/** `feature` : rubrique affichée seulement si le pack de l'établissement la comprend. */
-type Item = { key: Key; href: string; feature?: keyof PlanFeatures };
+/** `feature` : rubrique affichée seulement si le pack de l'établissement la comprend (l'une d'elles, pour une liste). */
+type Item = { key: Key; href: string; feature?: keyof PlanFeatures | (keyof PlanFeatures)[] };
 
 const GROUPS: { key: "activity" | "sell" | "account" | "support"; items: Item[] }[] = [
   {
@@ -51,7 +51,8 @@ const GROUPS: { key: "activity" | "sell" | "account" | "support"; items: Item[] 
       { key: "promotions", href: "/plus/promotions", feature: "promotions" },
       { key: "promo", href: "/plus/codes-promo", feature: "promoCodes" },
       { key: "giftCards", href: "/plus/cartes-cadeaux", feature: "giftCards" },
-      { key: "loyalty", href: "/plus/fidelite", feature: "loyalty" },
+      // Fidélité et anniversaire des clientes (offert avec les codes promo).
+      { key: "loyalty", href: "/plus/fidelite", feature: ["loyalty", "promoCodes"] },
     ],
   },
   {
@@ -110,7 +111,9 @@ export default async function MorePage({ params }: PageProps<"/[locale]/espace/[
       {GROUPS.map((group) => ({
         ...group,
         // Pas de rubrique pour une fonction que le pack ne comprend pas : le menu reste court.
-        items: group.items.filter((item) => !item.feature || page.tenant.features[item.feature]),
+        items: group.items.filter(
+          (item) => !item.feature || [item.feature].flat().some((feature) => page.tenant.features[feature]),
+        ),
       }))
         .filter((group) => group.items.length > 0)
         .map((group) => (

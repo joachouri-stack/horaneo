@@ -23,7 +23,11 @@ import {
   signInWithLink,
   smsLoginAvailable,
 } from "@/modules/customer-space/auth";
-import { customerSpaceFeatures, requestDataAction } from "@/modules/customer-space/space";
+import {
+  customerSpaceFeatures,
+  requestDataAction,
+  setCustomerBirthday,
+} from "@/modules/customer-space/space";
 import { AppError } from "@/modules/errors";
 import { SITE_PATHS } from "@/modules/site/paths";
 import { currentPeriod } from "@/modules/tenants/queries";
@@ -155,6 +159,32 @@ export async function requestDataExportAction(_previous: Previous, data: FormDat
         businessId,
       );
     sendQueuedSoon();
+    return { ok: true };
+  } catch (error) {
+    return toActionError(error);
+  }
+}
+
+/** Anniversaire (jour et mois) donné ou changé par la cliente, pour une entreprise où elle est connue. */
+export async function saveBirthdayAction(_previous: Previous, data: FormData): Promise<ActionResult> {
+  try {
+    const { tenantId, ip } = await siteWithSpace();
+    if (!publicLimits.manage.attempt(ip)) throw new AppError("rate_limited");
+    const businessId = z.uuid().parse(data.get("businessId"));
+    const session = await customerSession(tenantId);
+    if (!session) throw new AppError("login_invalid");
+    const known = await withTenant(tenantId, (tx) => knownBusinesses(tx, tenantId, session), undefined, null);
+    if (!known.includes(businessId)) throw new AppError("not_found");
+    await withTenant(
+      tenantId,
+      (tx) =>
+        setCustomerBirthday(tx, tenantId, session, {
+          birthMonth: data.get("birthMonth") ?? "",
+          birthDay: data.get("birthDay") ?? "",
+        }),
+      undefined,
+      businessId,
+    );
     return { ok: true };
   } catch (error) {
     return toActionError(error);
