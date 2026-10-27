@@ -662,3 +662,76 @@ form:has(input[name="billing"][value="year"]:checked) [data-monthly-only] {
     width: 66%;
   }
 }
+
+/*
+ * Cartes des solutions (Réservation, Commerce, Formation) : sur écran tactile,
+ * les cartes non choisies s'allument tour à tour dans la couleur de leur
+ * solution (icône, filet, halo), doucement (coupé si moins de mouvement est demandé).
+ */
+@media (hover: none) and (prefers-reduced-motion: no-preference) {
+  .hn-sol[aria-pressed="false"],
+  .hn-sol[aria-pressed="false"] .hn-sol-halo,
+  .hn-sol[aria-pressed="false"] .hn-sol-icon,
+  .hn-sol[aria-pressed="false"] .hn-sol-bar {
+    animation-duration: 6s;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    animation-delay: calc(var(--i, 0) * 2s);
+  }
+  .hn-sol[aria-pressed="false"] {
+    animation-name: hn-sol-card;
+  }
+  .hn-sol[aria-pressed="false"] .hn-sol-halo {
+    animation-name: hn-sol-halo;
+  }
+  .hn-sol[aria-pressed="false"] .hn-sol-icon {
+    animation-name: hn-sol-icon;
+  }
+  .hn-sol[aria-pressed="false"] .hn-sol-bar {
+    animation-name: hn-sol-bar;
+  }
+}
+@keyframes hn-sol-card {
+  0%,
+  33%,
+  100% {
+    border-color: var(--color-hairline);
+  }
+  12%,
+  22% {
+    border-color: var(--accent);
+  }
+}
+@keyframes hn-sol-halo {
+  0%,
+  33%,
+  100% {
+    opacity: 0;
+  }
+  12%,
+  22% {
+    opacity: 1;
+  }
+}
+@keyframes hn-sol-icon {
+  0%,
+  33%,
+  100% {
+    transform: none;
+  }
+  12%,
+  22% {
+    transform: rotate(-6deg) scale(1.1);
+  }
+}
+@keyframes hn-sol-bar {
+  0%,
+  33%,
+  100% {
+    width: 0;
+  }
+  12%,
+  22% {
+    width: calc(100% - 2rem);
+  }
+}
