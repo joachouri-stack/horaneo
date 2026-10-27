@@ -24,11 +24,13 @@ export function TenantTabs({ tenantId }: { tenantId: string }) {
   const base = `/admin/clients/${tenantId}`;
   const href = (section: string) => (section ? `${base}/${section}` : base);
   const current = GROUPS.find((group) => group.sections.some((section) => pathname === href(section)));
+  // Un seul style pour l'onglet choisi, aux deux niveaux ; les onglets passent à la ligne
+  // sur téléphone plutôt que de défiler (aucun n'est caché).
   const pill =
-    "inline-block whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold text-night hover:bg-navy/5 aria-[current=page]:bg-navy aria-[current=page]:text-white";
+    "inline-flex min-h-11 items-center whitespace-nowrap rounded-full px-4 text-sm font-semibold text-night hover:bg-navy/5 aria-[current=page]:bg-navy aria-[current=page]:text-white aria-[current=page]:hover:bg-navy";
   return (
     <nav aria-label={t("overview")} className="space-y-2">
-      <ul className="-mx-4 flex gap-1 overflow-x-auto px-4">
+      <ul className="flex flex-wrap gap-1">
         {GROUPS.map((group) => (
           <li key={group.key}>
             <Link
@@ -42,13 +44,13 @@ export function TenantTabs({ tenantId }: { tenantId: string }) {
         ))}
       </ul>
       {current && current.sections.length > 1 && (
-        <ul className="-mx-4 flex gap-1 overflow-x-auto border-t border-navy/10 px-4 pt-2">
+        <ul className="flex flex-wrap gap-1 border-t border-navy/10 pt-2">
           {current.sections.map((section) => (
             <li key={section}>
               <Link
                 href={href(section)}
                 aria-current={pathname === href(section) ? "page" : undefined}
-                className="inline-block whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold text-night/80 hover:bg-navy/5 aria-[current=page]:bg-blush aria-[current=page]:text-coral-dark"
+                className={pill}
               >
                 {t(section as TenantSection)}
               </Link>

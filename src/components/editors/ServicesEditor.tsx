@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { ui } from "@/components/ui/styles";
 import { ActionForm } from "@/components/admin/ActionForm";
 import { CheckboxField, Hidden, Section, SelectField, TextArea, TextField } from "@/components/admin/fields";
 import { ServiceFields } from "@/components/admin/ServiceFields";
@@ -166,7 +167,7 @@ export async function ServicesEditor({
                           type="file"
                           accept="image/png,image/jpeg,image/webp,image/svg+xml,image/avif"
                           required
-                          className="mt-1 block w-full text-sm"
+                          className={`mt-1 ${ui.fileInput}`}
                         />
                         <p className="mt-1 text-sm text-ink/60">{t("addLogoHint")}</p>
                       </div>
@@ -214,7 +215,7 @@ export async function ServicesEditor({
           {services.map((service) => (
             <li key={service.id}>
               <details className="rounded-lg border border-navy/10 p-4">
-                <summary className="flex cursor-pointer list-none items-center gap-3 [&::-webkit-details-marker]:hidden">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 [&::-webkit-details-marker]:hidden">
                   <span className="min-w-0">
                     <span className="block font-semibold text-night">
                       {text(service.name)}

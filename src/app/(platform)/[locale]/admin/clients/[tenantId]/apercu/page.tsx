@@ -39,7 +39,13 @@ export default async function PreviewPage({
         <SitePreview
           src={src}
           title={t("frameTitle", { name: overview.tenant.name })}
-          labels={{ phone: t("phone"), desktop: t("desktop"), open: t("open"), device: t("device") }}
+          labels={{
+            phone: t("phone"),
+            desktop: t("desktop"),
+            open: t("open"),
+            device: t("device"),
+            loading: t("loading"),
+          }}
         />
       ) : (
         <p className={ui.card}>{t("noDomain")}</p>

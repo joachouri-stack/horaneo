@@ -36,7 +36,13 @@ export default async function IdentityPage({
           <TextField name="postalCode" label={t("postalCode")} defaultValue={tenant.postalCode} />
           <TextField name="city" label={t("city")} defaultValue={tenant.city} />
           <TextField name="country" label={t("country")} defaultValue={tenant.country} required />
-          <TextField name="timezone" label={t("timezone")} defaultValue={tenant.timezone} required />
+          <TextField
+            name="timezone"
+            label={t("timezone")}
+            hint={t("timezoneHint")}
+            defaultValue={tenant.timezone}
+            required
+          />
           <TextField
             name="latitude"
             inputMode="decimal"

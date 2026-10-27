@@ -98,7 +98,7 @@ export async function TeamEditor({
         {staff.map((member) => (
           <li key={member.id}>
             <details className="rounded-lg border border-navy/10 p-4">
-              <summary className="flex cursor-pointer list-none items-center gap-3 font-semibold text-night [&::-webkit-details-marker]:hidden">
+              <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 font-semibold text-night [&::-webkit-details-marker]:hidden">
                 <span
                   className="inline-block h-4 w-4 shrink-0 rounded-full"
                   style={{ background: member.color ?? "#6b8f71" }}

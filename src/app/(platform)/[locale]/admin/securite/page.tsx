@@ -1,5 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import QRCode from "qrcode";
+import { CopyButton } from "@/components/admin/CopyButton";
 import { CodeForm } from "@/components/auth/CodeForm";
 import { ui } from "@/components/ui/styles";
 import { env } from "@/config/env";
@@ -19,7 +20,7 @@ export default async function AdminSecurityPage({ params }: PageProps<"/[locale]
 
   const t = await getTranslations("admin.security");
   const secret = await beginTwoFactorSetup(session.user.id);
-  const uri = totpUri(secret, session.user.email, `${env().PRODUCT_NAME} admin`);
+  const uri = totpUri(secret, session.user.email, t("issuer", { product: env().PRODUCT_NAME }));
   const qr = await QRCode.toDataURL(uri, {
     margin: 1,
     width: 240,
@@ -38,10 +39,17 @@ export default async function AdminSecurityPage({ params }: PageProps<"/[locale]
             {/* QR code généré sur le serveur : la clé ne transite par aucun service externe. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={qr} alt={t("qrAlt")} width={240} height={240} className="mt-3 rounded-lg border" />
+            {/* Sur le téléphone qui porte l'application, le QR code ne peut pas être scanné : lien direct. */}
+            <a href={uri} className={`${ui.secondaryButton} mt-3`}>
+              {t("openInApp")}
+            </a>
             <p className="mt-3 text-sm">{t("manualKey")}</p>
             <code className="mt-1 block break-all rounded bg-ivory p-2 font-mono text-sm">
               {secret.match(/.{1,4}/g)?.join(" ")}
             </code>
+            <div className="mt-2">
+              <CopyButton value={secret} label={t("copyKey")} copiedLabel={t("copied")} />
+            </div>
           </li>
           <li>{t("step3")}</li>
         </ol>
