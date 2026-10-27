@@ -48,6 +48,11 @@ export const DEFAULT_PLATFORM_SETTINGS = {
   ] as SolutionSetting[],
   /** Adresse d'une démonstration en ligne ; vide : le bouton « Voir la démonstration » est masqué. */
   demo_url: "",
+  /** Pages de la marque sur les réseaux sociaux (vide : réseau non affiché dans le pied de page). */
+  social_youtube: "",
+  social_tiktok: "",
+  social_instagram: "",
+  social_facebook: "",
   /**
    * Formule sans engagement proposée à la commande (avec frais de création du pack).
    * false : seule la formule avec engagement (commitment_months), création offerte.

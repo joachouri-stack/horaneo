@@ -42,6 +42,10 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
       "daily_summary_time",
       "monthly_summary_time",
       "legal_infrastructure",
+      "social_youtube",
+      "social_tiktok",
+      "social_instagram",
+      "social_facebook",
     ] as const;
     return Object.fromEntries(
       await Promise.all(keys.map(async (key) => [key, await getPlatformSetting(tx, key)])),
@@ -121,6 +125,24 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
               hint={t("demoHint")}
               defaultValue={demoUrl}
             />
+          </div>
+        </Section>
+        {/* Pages de la marque, affichées dans le pied de page du site commercial. */}
+        <Section title={t("social")} collapsible>
+          <p className="mb-3 text-sm text-ink/70">{t("socialHint")}</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {(["social_youtube", "social_tiktok", "social_instagram", "social_facebook"] as const).map(
+              (name) => (
+                <TextField
+                  key={name}
+                  name={name}
+                  type="url"
+                  inputMode="url"
+                  label={t(name)}
+                  defaultValue={String(s[name])}
+                />
+              ),
+            )}
           </div>
         </Section>
         {/* Rachat du site par le client à sa sortie : désactivé par défaut, prix fixe. */}
