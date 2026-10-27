@@ -32,7 +32,7 @@ export default async function ComparePage({ params }: PageProps<"/[locale]/compa
     solutions: await getPlatformSetting(tx, "solutions"),
   }));
   return (
-    <div className="bg-white font-light text-[#3d4457]">
+    <div className="bg-white text-mk-body font-light text-[#3d4457]">
       <PlatformHeader />
       <main id="contenu" className="mx-auto max-w-[75rem] px-4 pb-20 pt-8 sm:px-6 lg:pt-12">
         <Link
@@ -43,7 +43,7 @@ export default async function ComparePage({ params }: PageProps<"/[locale]/compa
           {tHome("plans.title")}
         </Link>
         <SolutionScope>
-          <h1 className="mb-6 mt-4 font-display text-[clamp(1.8rem,3.4vw,2.5rem)] font-semibold tracking-[-0.025em] text-night">
+          <h1 className="mb-6 mt-4 font-display text-mk-h2 font-semibold tracking-[-0.025em] text-night">
             {t("title")}
           </h1>
           <div className="mb-8">

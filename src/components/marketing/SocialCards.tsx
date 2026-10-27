@@ -95,7 +95,7 @@ export function SocialCards({ cards }: { cards: SocialCard[] }) {
             <span className="relative text-[0.9375rem] font-semibold uppercase tracking-[0.18em] text-[#aab4cc] transition-colors group-hover:text-white">
               {card.name}
             </span>
-            <span className="relative max-w-full truncate font-mono text-[0.8125rem] text-[#8b95ad]">
+            <span className="relative max-w-full truncate font-mono text-mk-note text-[#8b95ad]">
               {card.handle}
             </span>
             <span

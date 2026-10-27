@@ -264,13 +264,11 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 </span>
                 {t("hero.badge")}
               </p>
-              <h1
-                className={`${TITLE} hn-balance hn-up-2 mt-5 text-[clamp(2.1rem,5vw,3.6rem)] leading-[1.06]`}
-              >
+              <h1 className={`${TITLE} hn-balance hn-up-2 mt-5 text-mk-h1 leading-[1.06]`}>
                 {t("hero.title")} <br />
                 <span className="hn-shimmer">{t("hero.titleAccent")}</span>
               </h1>
-              <p className="hn-up-3 mx-auto mt-5 max-w-[38rem] text-[1.1875rem] text-ink-soft lg:text-[1.25rem]">
+              <p className="hn-up-3 mx-auto mt-5 max-w-[38rem] text-mk-lead text-ink-soft">
                 {t("hero.subtitle")}
               </p>
               <div className="hn-up-4 mt-8 flex flex-wrap items-center justify-center gap-3">
@@ -317,22 +315,20 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                       <p className={EYEBROW}>
                         {t(`solutions.items.${code}.badge`)}
                         {isSoon(code) && (
-                          <span className="rounded-full bg-white px-2 py-px text-[0.8125rem] normal-case tracking-normal text-ink-soft">
+                          <span className="rounded-full bg-white px-2 py-px text-mk-note normal-case tracking-normal text-ink-soft">
                             {t("solutions.soon")}
                           </span>
                         )}
                       </p>
-                      <h3
-                        className={`${TITLE} hn-balance mt-4 text-[clamp(1.7rem,3vw,2.35rem)] leading-[1.1]`}
-                      >
+                      <h3 className={`${TITLE} hn-balance mt-4 text-mk-h2 leading-[1.1]`}>
                         {t(`solutions.items.${code}.title`)}
                         <br />
                         <span className="text-accent">{t(`solutions.items.${code}.titleAccent`)}</span>
                       </h3>
-                      <p className="mt-4 max-w-[32rem] text-[1.125rem] text-ink-soft">
+                      <p className="mt-4 max-w-[32rem] text-mk-lead text-ink-soft">
                         {t(`solutions.items.${code}.text`)}
                       </p>
-                      <ul className="mt-6 grid gap-2.5 text-[1.125rem] text-[#2d3446]">
+                      <ul className="mt-6 grid gap-2.5 text-mk-body text-[#2d3446]">
                         {(t.raw(`solutions.items.${code}.bullets`) as string[]).map((item) => (
                           <li key={item} className="flex items-center gap-3">
                             <span className="flex size-6 flex-none items-center justify-center rounded-full bg-accent text-white">
@@ -415,11 +411,11 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 <h2
                   id="titre-tableau"
                   data-reveal
-                  className={`${TITLE} hn-balance mt-4 text-[clamp(1.8rem,3.4vw,2.5rem)] leading-[1.1]`}
+                  className={`${TITLE} hn-balance mt-4 text-mk-h2 leading-[1.1]`}
                 >
                   {t("dashboard.title")} <span className="text-accent">{t("dashboard.titleAccent")}</span>
                 </h2>
-                <p data-reveal className="mt-4 text-[1.125rem] text-ink-soft">
+                <p data-reveal className="mt-4 text-mk-lead text-ink-soft">
                   {t("dashboard.text")}
                 </p>
               </div>
@@ -428,7 +424,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   <li
                     key={point}
                     data-reveal
-                    className="flex items-center gap-2 rounded-full border border-accent-line bg-white/80 px-3.5 py-1.5 text-base text-night backdrop-blur"
+                    className="flex items-center gap-2 rounded-full border border-accent-line bg-white/80 px-3.5 py-1.5 text-mk-small text-night backdrop-blur"
                   >
                     <span className="flex size-5 flex-none items-center justify-center rounded-full bg-accent text-white">
                       <CheckLine className="size-3" />
@@ -474,7 +470,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             </div>
             <div className="mb-10 flex flex-wrap items-end justify-between gap-4 lg:mb-12">
               <div data-reveal>
-                <h2 id="titre-tarifs" className={`${TITLE} text-[clamp(1.8rem,3.4vw,2.5rem)] leading-[1.1]`}>
+                <h2 id="titre-tarifs" className={`${TITLE} text-mk-h2 leading-[1.1]`}>
                   {t("plans.title")}
                   {SOLUTIONS.map((code) => (
                     <span key={code} data-only={code} className="text-accent">
@@ -538,7 +534,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             <h2
               id="titre-benefices"
               data-reveal
-              className={`${TITLE} mt-4 max-w-[44rem] text-[clamp(1.8rem,3.4vw,2.5rem)] leading-[1.1]`}
+              className={`${TITLE} mt-4 max-w-[44rem] text-mk-h2 leading-[1.1]`}
             >
               {t("benefits.title")} <span className="text-accent">{t("benefits.titleAccent")}</span>
             </h2>
@@ -550,10 +546,10 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     <span className="flex size-11 items-center justify-center rounded-xl border border-accent-line bg-accent-soft text-accent transition duration-300 group-hover:-translate-y-1 group-hover:-rotate-6 group-hover:bg-accent group-hover:text-white group-hover:shadow-[0_10px_20px_-10px_var(--accent)] motion-reduce:transition-none">
                       <item.Icon className="size-[22px]" />
                     </span>
-                    <h3 className="mt-4 flex flex-wrap items-center gap-2 font-display text-[1.1875rem] font-semibold text-night">
+                    <h3 className="mt-4 flex flex-wrap items-center gap-2 font-display text-mk-card font-semibold text-night">
                       {t(`benefits.items.${item.key}.title`)}
                       {later && (
-                        <span className="rounded-full bg-mist-50 px-2 py-px font-sans text-[0.8125rem] font-normal text-ink-soft">
+                        <span className="rounded-full bg-mist-50 px-2 py-px font-sans text-mk-note font-normal text-ink-soft">
                           {t("plans.soonTag")}
                         </span>
                       )}
@@ -573,11 +569,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             aria-labelledby="titre-comparatif"
             className="mx-auto max-w-[75rem] scroll-mt-20 px-4 pt-20 sm:px-6 lg:pt-28"
           >
-            <h2
-              id="titre-comparatif"
-              data-reveal
-              className={`${TITLE} mb-8 text-[clamp(1.6rem,3vw,2.2rem)] leading-[1.1]`}
-            >
+            <h2 id="titre-comparatif" data-reveal className={`${TITLE} mb-8 text-mk-h2 leading-[1.1]`}>
               {t("comparison.title")}
               {SOLUTIONS.map((code) => (
                 <span key={code} data-only={code} className="text-accent">
@@ -600,11 +592,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           aria-labelledby="titre-confiance"
           className="mx-auto max-w-[75rem] px-4 pt-20 sm:px-6 lg:pt-28"
         >
-          <h2
-            id="titre-confiance"
-            data-reveal
-            className={`${TITLE} text-center text-[clamp(1.5rem,2.6vw,1.9rem)]`}
-          >
+          <h2 id="titre-confiance" data-reveal className={`${TITLE} text-center text-mk-h2`}>
             {t("trust.title")}
           </h2>
           <ul className="mt-8 grid gap-px overflow-hidden rounded-2xl border border-hairline bg-hairline sm:grid-cols-2 lg:grid-cols-5">
@@ -648,7 +636,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
         >
           <div className="mx-auto grid max-w-[72rem] gap-8 lg:grid-cols-[1fr_2fr] lg:gap-14">
             <div data-reveal>
-              <h2 id="titre-questions" className={`${TITLE} text-[clamp(1.6rem,3vw,2.2rem)] leading-[1.1]`}>
+              <h2 id="titre-questions" className={`${TITLE} text-mk-h2 leading-[1.1]`}>
                 {t("faq.title")}
               </h2>
               <p className="mt-3 text-ink-soft">{t("faq.intro")}</p>
@@ -695,7 +683,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               aria-hidden="true"
               className="hn-float-late pointer-events-none absolute -bottom-32 -left-16 size-80 rounded-full border border-white/10"
             />
-            <h2 className="relative font-display text-[clamp(1.6rem,3vw,2.3rem)] font-semibold tracking-[-0.02em] text-white">
+            <h2 className="relative font-display text-mk-h2 font-semibold tracking-[-0.02em] text-white">
               {t("final.title")}
             </h2>
             <p className="relative mx-auto mt-3 max-w-[32rem] text-[#c8d0e4]">{t("final.text")}</p>

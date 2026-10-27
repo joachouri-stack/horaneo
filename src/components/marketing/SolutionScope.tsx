@@ -85,7 +85,7 @@ export function SolutionTabs({
             </span>
             <span className="min-w-0">
               <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                <span className="font-display text-[1.1875rem] font-semibold tracking-[-0.01em]">
+                <span className="font-display text-mk-card font-semibold tracking-[-0.01em]">
                   {item.name}
                 </span>
                 {item.soon && (
@@ -163,7 +163,7 @@ export function BillingToggle({
       type="button"
       aria-pressed={context.billing === value}
       onClick={() => context.setBilling(value)}
-      className={`relative z-10 flex min-h-11 items-center justify-center gap-2 rounded-full px-3 text-base sm:px-4 sm:text-[1.0625rem] font-medium transition-colors ${
+      className={`relative z-10 flex min-h-11 items-center justify-center gap-2 rounded-full px-3 text-mk-body sm:px-4 font-medium transition-colors ${
         context.billing === value ? "text-night" : "text-ink-soft hover:text-night"
       }`}
     >

@@ -44,9 +44,9 @@ export default async function ThanksPage({ params, searchParams }: PageProps<"/[
   return (
     <>
       <PlatformHeader />
-      <main id="contenu" className="mx-auto max-w-2xl px-4 py-12">
+      <main id="contenu" className="text-mk-body mx-auto max-w-2xl px-4 py-12">
         <section className={ui.card}>
-          <h1 className="text-3xl font-extrabold">
+          <h1 className="font-display text-mk-h2 font-semibold tracking-[-0.025em]">
             {pending ? t("pendingTitle") : review ? t("reviewTitle") : `✓ ${t("paidTitle")}`}
           </h1>
           {pending ? (
