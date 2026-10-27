@@ -23,6 +23,9 @@ import { createLinkToken, loginCodeFor } from "./login-code";
 
 export const MAGIC_LINK_TTL_SECONDS = 15 * 60;
 
+/** Durée d'une connexion sans visite : 400 jours, la limite des navigateurs pour un cookie. */
+export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 400;
+
 /** Langue choisie par le visiteur (cookie posé par le site commercial). */
 function localeFromRequest(request: Request | undefined) {
   const cookie = request?.headers.get("cookie") ?? "";
@@ -79,8 +82,11 @@ export function createAuth(database: Database) {
         locale: { type: "string", input: false, required: false },
       },
     },
+    // Connexion gardée jusqu'à la déconnexion : la durée repart à chaque visite (une fois par jour),
+    // au maximum que les navigateurs acceptent pour un cookie (400 jours). L'espace admin garde en
+    // plus sa double vérification toutes les 12 heures.
     session: {
-      expiresIn: 60 * 60 * 24 * 30,
+      expiresIn: SESSION_MAX_AGE_SECONDS,
       updateAge: 60 * 60 * 24,
       additionalFields: {
         twoFactorVerifiedAt: { type: "date", input: false, required: false },
