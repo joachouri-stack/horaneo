@@ -33,16 +33,16 @@ export async function PlatformFooter() {
     { href: "/confidentialite", label: t("privacy") },
     { href: "/conditions", label: t("terms") },
   ] as const;
-  // Réseaux renseignés dans l'admin (Réglages → Réseaux sociaux) ; les autres sont masqués.
+  // Les quatre réseaux sont toujours affichés ; ceux dont l'adresse n'est pas encore
+  // renseignée (Admin → Réglages → Réseaux sociaux) portent « Bientôt » et ne s'ouvrent pas.
   const urls = await withPlatform(async (tx) =>
     Promise.all(NETWORKS.map(async (network) => String(await getPlatformSetting(tx, `social_${network}`)))),
   );
-  const socials = NETWORKS.flatMap((network, index) => {
-    const url = urls[index];
-    if (!url) return [];
+  const socials = NETWORKS.map((network, index) => {
+    const url = urls[index] || null;
     const name = t(`networks.${network}`);
-    const handle = socialHandle(url);
-    return [{ network, url, name, handle, label: t("socialLink", { network: name, handle }) }];
+    const handle = url ? socialHandle(url) : t("socialSoon");
+    return { network, url, name, handle, label: url ? t("socialLink", { network: name, handle }) : name };
   });
   return (
     <footer className="relative overflow-hidden bg-[#0e1526] text-[#c8d0e4]">

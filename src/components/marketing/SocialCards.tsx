@@ -1,12 +1,19 @@
 /**
  * Réseaux sociaux de la marque (pied de page du site commercial) : une carte par
- * réseau renseigné dans l'admin. Au survol, la carte prend la couleur du logo
- * (filet, halo, barre du bas), comme une vitrine de créateur.
+ * réseau, cliquable dès que son adresse est renseignée dans l'admin (sinon
+ * « Bientôt »). Au survol, la carte prend la couleur du logo (filet, halo, barre du bas).
  */
 
 export type SocialNetwork = "youtube" | "tiktok" | "instagram" | "facebook";
 
-export type SocialCard = { network: SocialNetwork; url: string; name: string; label: string; handle: string };
+/** url null : compte pas encore renseigné (carte affichée, sans lien). */
+export type SocialCard = {
+  network: SocialNetwork;
+  url: string | null;
+  name: string;
+  label: string;
+  handle: string;
+};
 
 /** Couleur de chaque logo (halo et filet au survol). */
 const BRAND: Record<SocialNetwork, string> = {
@@ -67,19 +74,16 @@ export function socialHandle(url: string): string {
   }
 }
 
+const CARD =
+  "group relative flex h-full min-h-44 flex-col items-center justify-center gap-3 overflow-hidden rounded-[1.4rem] border border-white/10 bg-white/[0.03] px-3 py-7 text-center transition duration-300 hover:-translate-y-1 hover:border-[var(--brand)] hover:shadow-[0_18px_40px_-20px_var(--brand)] focus-visible:border-[var(--brand)] focus-visible:outline-white motion-reduce:transition-none motion-reduce:hover:translate-y-0";
+
 export function SocialCards({ cards }: { cards: SocialCard[] }) {
   return (
     <ul className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-      {cards.map((card) => (
-        <li key={card.network}>
-          <a
-            href={card.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={card.label}
-            style={{ "--brand": BRAND[card.network] } as React.CSSProperties}
-            className="group relative flex h-full min-h-44 flex-col items-center justify-center gap-3 overflow-hidden rounded-[1.4rem] border border-white/10 bg-white/[0.03] px-3 py-7 text-center transition duration-300 hover:-translate-y-1 hover:border-[var(--brand)] hover:shadow-[0_18px_40px_-20px_var(--brand)] focus-visible:border-[var(--brand)] focus-visible:outline-white motion-reduce:transition-none motion-reduce:hover:translate-y-0"
-          >
+      {cards.map((card) => {
+        const style = { "--brand": BRAND[card.network] } as React.CSSProperties;
+        const content = (
+          <>
             {/* Halo de la couleur du logo : discret au repos, il monte du bas au survol. */}
             <span
               aria-hidden="true"
@@ -102,9 +106,29 @@ export function SocialCards({ cards }: { cards: SocialCard[] }) {
               aria-hidden="true"
               className="absolute bottom-0 left-1/2 h-[3px] w-0 -translate-x-1/2 rounded-full bg-[var(--brand)] transition-all duration-300 group-hover:w-2/3"
             />
-          </a>
-        </li>
-      ))}
+          </>
+        );
+        return (
+          <li key={card.network}>
+            {card.url ? (
+              <a
+                href={card.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={card.label}
+                style={style}
+                className={CARD}
+              >
+                {content}
+              </a>
+            ) : (
+              <div style={style} className={CARD}>
+                {content}
+              </div>
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }
