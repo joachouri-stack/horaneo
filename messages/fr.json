@@ -60,7 +60,15 @@
       "titleAccent": "prêt à remplir votre agenda.",
       "subtitle": "Un site professionnel, la prise de rendez-vous 24 h/24, des rappels automatiques et des acomptes : vos clients réservent seuls, vous vous concentrez sur votre métier.",
       "demo": "Voir la démonstration",
-      "pricing": "Voir les tarifs"
+      "pricing": "Voir les tarifs",
+      "points": ["Réservation en ligne 24 h/24", "Rappels automatiques", "Paiements sécurisés"],
+      "visualAlt": "Capture de l'espace de gestion sur téléphone : rendez-vous du jour (données d'exemple)",
+      "float": {
+        "bookingTitle": "Nouvelle réservation",
+        "bookingText": "Soin du visage · samedi 10:00",
+        "reminderTitle": "Rappel envoyé",
+        "reminderText": "La veille du rendez-vous"
+      }
     },
     "solutions": {
       "title": "Choisissez votre solution",
@@ -706,8 +714,8 @@
         "Fiches clients et historique",
         "Rappels et paiements en ligne"
       ],
-      "alt": "Aperçu du tableau de bord : agenda du jour, chiffre d'affaires, nouveaux clients et avis",
-      "note": "Image d'illustration : les fonctions disponibles dépendent de votre pack."
+      "alt": "Captures de l'espace de gestion sur ordinateur et sur téléphone : accueil avec l'agenda du jour, le chiffre d'affaires et les statistiques, agenda du jour sur téléphone",
+      "note": "Captures de l'espace de gestion, avec des données d'exemple. Les fonctions disponibles dépendent de votre pack."
     },
     "benefits": {
       "badge": "Fonctionnalités",
