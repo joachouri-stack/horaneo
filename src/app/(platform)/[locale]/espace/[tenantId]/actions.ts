@@ -43,6 +43,7 @@ import { assertSitePhoto, restoreAsset, retireAsset, uploadAsset } from "@/modul
 import { parseInterval } from "@/modules/billing/yearly";
 import { AppError } from "@/modules/errors";
 import { refreshAccount, startOnboarding } from "@/modules/payments/connect";
+import { setBirthdayOffer } from "@/modules/promo/birthday";
 import { deletePromoCode, savePromoCode } from "@/modules/promo/codes";
 import { createUpdateRequest } from "@/modules/requests/update-requests";
 import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
@@ -248,6 +249,9 @@ export async function saveCustomerAction(
         phone: form.optional(data, "phone"),
         email: form.optional(data, "email"),
         notes: form.optional(data, "notes"),
+        // Jour et mois : vides tous les deux pour effacer l'anniversaire.
+        birthMonth: form.text(data, "birthMonth"),
+        birthDay: form.text(data, "birthDay"),
       },
       id,
     ),
@@ -682,6 +686,17 @@ export async function saveLoyaltySettingsAction(_previous: Previous, data: FormD
       rewardLabel: form.optional(data, "rewardLabel"),
       rewardCents: amount ? parseMoney(amount) : undefined,
       validityDays: form.text(data, "validityDays") as unknown as number,
+    }),
+  );
+}
+
+export async function saveBirthdayOfferAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "birthday_offer.settings", (tx) =>
+    setBirthdayOffer(tx, tenantId, {
+      enabled: form.bool(data, "enabled"),
+      discountPercent: form.text(data, "discountPercent"),
+      validityDays: form.text(data, "validityDays"),
     }),
   );
 }

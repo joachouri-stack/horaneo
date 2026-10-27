@@ -6,6 +6,7 @@ import { CustomerFields } from "@/components/manager/CustomerFields";
 import { ui } from "@/components/ui/styles";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
+import { formatBirthday } from "@/modules/customers/birthday";
 import { getCustomer } from "@/modules/customers/customers";
 import { loyaltyForManager } from "@/modules/loyalty/loyalty";
 import { formatPhone } from "@/modules/phone";
@@ -38,6 +39,11 @@ export default async function CustomerPage({
         <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">{name}</h1>
         <p className="text-ink/70">
           {[customer.phone && formatPhone(customer.phone), customer.email].filter(Boolean).join(" · ")}
+        </p>
+        <p className="text-ink/70">
+          {customer.birthMonth && customer.birthDay
+            ? t("birthdayOn", { date: formatBirthday(customer.birthMonth, customer.birthDay, page.locale) })
+            : t("birthdayUnknown")}
         </p>
       </div>
       <div className="flex gap-2">

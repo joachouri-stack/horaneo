@@ -253,6 +253,8 @@ export const settingsInput = z.object({
   email_reminder_hours_before: z.coerce.number().int().min(2).max(72),
   daily_summary_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
   monthly_summary_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+  /** Heure locale de l'e-mail d'anniversaire (offre des entreprises qui l'ont activée). */
+  birthday_message_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
   legal_infrastructure: z.string().trim().min(5).max(300),
 });
 

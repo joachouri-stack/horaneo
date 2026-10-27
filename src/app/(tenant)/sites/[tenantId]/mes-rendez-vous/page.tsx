@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { formatLongDate, formatTimeOf } from "@/components/booking/format";
+import { BirthdayForm } from "@/components/site/account/BirthdayForm";
 import { CustomerLogin } from "@/components/site/account/CustomerLogin";
 import { DataRequests } from "@/components/site/account/DataRequests";
 import { PageTitle } from "@/components/site/blocks";
@@ -112,6 +113,8 @@ export default async function CustomerSpacePage({ params }: PageProps<"/sites/[t
     .sort((a, b) => b.startsAt.getTime() - a.startsAt.getTime());
   const perks = spaces.filter((space) => space.loyalty || (space.giftCards && space.giftCards.length > 0));
   const pending = [...new Set(spaces.flatMap((space) => space.pendingRequests))];
+  // Entreprises qui souhaitent l'anniversaire de leurs clientes : la date se donne ou se change ici.
+  const birthdays = spaces.filter((space) => space.birthday);
 
   const who = (item: { staffName: string; businessName: string }) =>
     [
@@ -375,6 +378,27 @@ export default async function CustomerSpacePage({ params }: PageProps<"/sites/[t
           </ul>
         )}
       </section>
+
+      {/* ─── Anniversaire ─── */}
+      {birthdays.length > 0 && (
+        <section aria-labelledby="anniversaire" className="mt-10 space-y-3">
+          <h2 id="anniversaire" className="font-site-display text-2xl font-semibold text-site-heading">
+            {t("birthdayTitle")}
+          </h2>
+          <p className="text-site-muted">{t("birthdayIntro")}</p>
+          {birthdays.map((space) => (
+            <div key={space.businessId} className={card}>
+              <BirthdayForm
+                businessId={space.businessId}
+                locale={locale}
+                month={space.birthday?.month ?? null}
+                day={space.birthday?.day ?? null}
+                label={multi && birthdays.length > 1 ? space.businessName : undefined}
+              />
+            </div>
+          ))}
+        </section>
+      )}
 
       {/* ─── Données personnelles ─── */}
       <section aria-labelledby="donnees" className="mt-10 space-y-3">

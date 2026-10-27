@@ -19,6 +19,7 @@ import {
   businesses,
   giftCards,
   giftCardTransactions,
+  promoCodes,
   tenants,
   users,
   type PlanFeatures,
@@ -266,6 +267,7 @@ export async function renderMessage(
     return renderGiftCard(tx, row, template, tenant, options);
   if (template === "customer.login_link" || template === "customer.login_code")
     return renderLogin(tx, row, tenant, options);
+  if (template === "customer.birthday") return renderBirthday(tx, row, tenant, options);
   if (template.startsWith("manager.")) return renderManager(tx, row, template, tenant, options);
   return renderCustomer(tx, row, template, tenant, options);
 }
@@ -411,6 +413,78 @@ async function renderLogin(
     kind: "email",
     to: [code.identifier],
     subject: t("notifications.customer.login_link.subject", { business: tenant.name }),
+    html,
+    text,
+    fromName: tenant.name,
+    replyTo: tenant.email,
+  };
+}
+
+// ─── Anniversaire ─────────────────────────────────────────────────────────────
+
+/**
+ * E-mail d'anniversaire (offre de l'entreprise) avec le code personnel de la
+ * cliente. Rien si le code n'est plus utilisable ou si la cliente n'a plus d'e-mail.
+ */
+async function renderBirthday(
+  tx: Transaction,
+  row: MessageRow,
+  tenant: TenantInfo,
+  options: RenderOptions,
+): Promise<Rendered> {
+  const promoCodeId = (row.data as { promoCodeId?: string }).promoCodeId;
+  if (!promoCodeId) return { kind: "skip", reason: "no_code" };
+  const [found] = await tx
+    .select({
+      code: promoCodes,
+      customer: customers,
+      businessName: businesses.name,
+      multi: sql<boolean>`(select count(*) > 1 from ${businesses} b where b.tenant_id = ${promoCodes.tenantId})`,
+    })
+    .from(promoCodes)
+    .innerJoin(customers, eq(customers.id, promoCodes.customerId))
+    .innerJoin(businesses, eq(businesses.id, promoCodes.businessId))
+    .where(and(eq(promoCodes.tenantId, tenant.id), eq(promoCodes.id, promoCodeId)));
+  if (!found) return { kind: "skip", reason: "no_code" };
+  const { code, customer } = found;
+  if (
+    !code.isActive ||
+    (code.validUntil && code.validUntil <= options.now) ||
+    (code.maxUses !== null && code.usedCount >= code.maxUses)
+  )
+    return { kind: "skip", reason: "code_unusable" };
+  if (customer.anonymizedAt || !customer.email) return { kind: "skip", reason: "no_email" };
+  const locale = resolveLocale(row.locale);
+  const t = await getTranslator(locale);
+  const siteUrl = tenant.siteUrl ?? options.appUrl;
+  // Site à plusieurs entreprises : l'entreprise de la cliente, présélectionnée à la réservation.
+  const business = found.multi ? found.businessName : tenant.name;
+  const bookingUrl = `${siteUrl}${SITE_PATHS.booking}${found.multi ? `?avec=${code.businessId}` : ""}`;
+  // Fin exclusive (minuit le lendemain) : dernier jour de validité affiché.
+  const lastDay = code.validUntil ? new Date(code.validUntil.getTime() - 60_000) : null;
+  const until = lastDay
+    ? new Intl.DateTimeFormat(locale, {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        timeZone: tenant.timezone,
+      }).format(lastDay)
+    : "";
+  const { html, text } = renderEmail({
+    locale,
+    brandName: tenant.name,
+    color: tenant.color,
+    title: t("notifications.customer.birthday.title", { firstName: customer.firstName }),
+    paragraphs: [t("notifications.customer.birthday.intro", { business, percent: code.discountValue })],
+    highlight: code.code,
+    action: { label: t("notifications.customer.birthday.action"), url: bookingUrl },
+    after: until ? [t("notifications.customer.birthday.validity", { date: until })] : [],
+    footer: tenantFooter(tenant),
+  });
+  return {
+    kind: "email",
+    to: [customer.email],
+    subject: t("notifications.customer.birthday.subject", { firstName: customer.firstName }),
     html,
     text,
     fromName: tenant.name,

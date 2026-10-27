@@ -93,6 +93,8 @@ export const DEFAULT_PLATFORM_SETTINGS = {
   daily_summary_time: "19:00",
   /** Heure locale du résumé mensuel, le 1er du mois. */
   monthly_summary_time: "08:00",
+  /** Heure locale de l'e-mail d'anniversaire envoyé aux clientes (offre de l'entreprise). */
+  birthday_message_time: "09:00",
   /** Demande d'avis Google : heures après la fin du rendez-vous. */
   review_request_delay_hours: 3,
   /** Pas de demande si le rendez-vous est marqué « venue » plus de ce nombre de jours après. */
@@ -109,6 +111,22 @@ export const DEFAULT_PLATFORM_SETTINGS = {
   legal_infrastructure: "Hostinger International Ltd, 61 Lordou Vironos Street, 6023 Larnaca, Chypre",
   /** Bloc « Ils nous font confiance » de l'accueil (vide = bloc caché), rempli depuis l'admin. */
   showcase: [] as ShowcaseEntry[],
+} as const;
+
+/**
+ * Offre d'anniversaire d'une entreprise (réglages de départ, modifiables par la
+ * gérante dans Plus → Fidélité). ATTENTION : ces valeurs sont aussi les valeurs
+ * par défaut des colonnes `birthday_discount_percent` et `birthday_offer_days`
+ * (drizzle/0039_customer_birthday.sql, et le schéma qui les lit d'ici) : changer
+ * l'une sans l'autre ferait diverger les nouvelles entreprises et la base.
+ */
+export const DEFAULT_BIRTHDAY_OFFER = {
+  /** Réduction offerte, en pourcentage (1 à 100). */
+  discountPercent: 20,
+  /** Durée de validité du code personnel, en jours (1 à 90). */
+  validityDays: 30,
+  /** Caractères aléatoires du code personnel (après le préfixe traduit). */
+  codeLength: 6,
 } as const;
 
 export type SolutionSetting = { code: "booking" | "commerce" | "formation"; status: "available" | "soon" };

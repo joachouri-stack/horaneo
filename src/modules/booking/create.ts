@@ -10,6 +10,7 @@ import { AppError } from "@/modules/errors";
 import { createDepositIntent, onlinePaymentReady } from "@/modules/payments/deposits";
 import type { PaymentGateway } from "@/modules/payments/gateway";
 import { queueBookingConfirmed, queueMessage } from "@/modules/messages/queue";
+import { isValidBirthday } from "@/modules/customers/birthday";
 import { normalizePhone } from "@/modules/phone";
 import { redeemPromo } from "@/modules/promo/codes";
 import { currentPeriod } from "@/modules/tenants/queries";
@@ -40,6 +41,9 @@ export const customerInput = z.object({
   /** Prénom de la personne qui reçoit le soin, si ce n'est pas la cliente qui réserve. */
   beneficiaryName: z.string().trim().max(80).optional(),
   marketingConsent: z.boolean().default(false),
+  /** Anniversaire facultatif (jour et mois), proposé si l'entreprise a l'offre d'anniversaire. */
+  birthMonth: z.number().int().min(1).max(12).nullish(),
+  birthDay: z.number().int().min(1).max(31).nullish(),
 });
 
 export const bookingInput = z.object({
@@ -172,19 +176,34 @@ async function upsertCustomer(
     .from(customers)
     .where(and(eq(customers.tenantId, context.tenant.id), sql`lower(${customers.email}) = ${input.email}`));
   const consent = input.marketingConsent ? { emailConsent: true, smsConsent: true, consentAt: now } : {};
+  // Anniversaire saisi : les deux ou rien, une date qui existe. En ligne, il n'est demandé (et
+  // gardé) que si l'entreprise propose l'offre d'anniversaire : rien de plus que nécessaire.
+  const wanted =
+    source === "manual" || (context.settings.birthdayOfferEnabled && Boolean(context.features.promoCodes));
+  const given = input.birthMonth != null || input.birthDay != null;
+  if (wanted && given && !isValidBirthday(input.birthMonth ?? 0, input.birthDay ?? 0))
+    throw new AppError("invalid", "customer.birthDay");
+  const birthday =
+    wanted && given ? { birthMonth: input.birthMonth as number, birthDay: input.birthDay as number } : null;
   if (existing) {
     await tx
       .update(customers)
       .set(
         source === "online"
-          ? // Écrit même sans changement : verrouille la fiche (code promo « une fois par cliente »).
-            { lastName: existing.lastName ?? (input.lastName || null) }
+          ? {
+              // Écrit même sans changement : verrouille la fiche (code promo « une fois par cliente »).
+              lastName: existing.lastName ?? (input.lastName || null),
+              // Comme le téléphone : en ligne, l'anniversaire n'est jamais remplacé (n'importe qui
+              // peut saisir l'e-mail d'une autre et changer la date de son offre). Seulement ajouté s'il manque.
+              ...(birthday && existing.birthMonth === null ? birthday : {}),
+            }
           : {
               firstName: input.firstName,
               lastName: input.lastName || existing.lastName,
               phone,
               locale,
               ...consent,
+              ...(birthday ?? {}),
             },
       )
       .where(eq(customers.id, existing.id));
@@ -207,6 +226,7 @@ async function upsertCustomer(
       phone,
       locale,
       ...consent,
+      ...(birthday ?? {}),
     })
     .onConflictDoNothing()
     .returning({ id: customers.id });
@@ -312,7 +332,12 @@ export async function createBooking(
   if (giftCardCode) await checkGiftCard(tx, tenantId, giftCardCode, depositCents, now);
 
   const customerId = await upsertCustomer(tx, context, input.customer, input.locale, now, source);
-  if (promo) await assertPromoUnusedBy(tx, tenantId, promo.promoCodeId, customerId);
+  if (promo) {
+    // Code personnel (ex. anniversaire) : réservé à sa cliente, refusé pour toute autre fiche.
+    if (promo.customerId && promo.customerId !== customerId)
+      throw new AppError("promo_code_invalid", "promoCode");
+    await assertPromoUnusedBy(tx, tenantId, promo.promoCodeId, customerId);
+  }
   const endsAt = addMinutes(input.start, totals.durationMinutes);
   const pending = depositCents > 0 && !giftCardCode;
 

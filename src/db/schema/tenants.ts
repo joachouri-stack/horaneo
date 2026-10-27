@@ -19,6 +19,7 @@ import {
 } from "drizzle-orm/pg-core";
 import type { LocalizedText } from "@/i18n/locales";
 import { currency, id, timestamps, utc } from "./_helpers";
+import { DEFAULT_BIRTHDAY_OFFER } from "../../config/defaults";
 import { plans } from "./platform";
 
 /**
@@ -266,6 +267,12 @@ export const businessSettings = pgTable(
     /** Ou un montant offert, en centimes. */
     loyaltyRewardCents: integer(),
     loyaltyRewardValidityDays: smallint().notNull().default(90),
+    // Anniversaire des clientes (pack avec les codes promo) : e-mail et code personnel le jour J.
+    birthdayOfferEnabled: boolean().notNull().default(false),
+    /** Réduction du code personnel, en pourcentage (valeur de départ : config/defaults.ts). */
+    birthdayDiscountPercent: smallint().notNull().default(DEFAULT_BIRTHDAY_OFFER.discountPercent),
+    /** Validité du code personnel, en jours. */
+    birthdayOfferDays: smallint().notNull().default(DEFAULT_BIRTHDAY_OFFER.validityDays),
     ...timestamps(),
   },
   (t) => [
@@ -285,6 +292,8 @@ export const businessSettings = pgTable(
       "business_settings_loyalty_reward",
       sql`${t.loyaltyRewardCents} is null or ${t.loyaltyRewardCents} > 0`,
     ),
+    check("business_settings_birthday_percent", sql`${t.birthdayDiscountPercent} between 1 and 100`),
+    check("business_settings_birthday_days", sql`${t.birthdayOfferDays} between 1 and 90`),
     check(
       "business_settings_gift_range",
       sql`${t.giftCardMinCents} > 0 and ${t.giftCardMinCents} <= ${t.giftCardMaxCents}`,

@@ -38,6 +38,8 @@ export async function toolsOverview(tx: Transaction, tenantId: string, timezone:
     .where(
       and(
         eq(promoCodes.tenantId, tenantId),
+        // Codes de la page « Codes promo » seulement (pas les codes personnels d'anniversaire).
+        isNull(promoCodes.customerId),
         eq(promoCodes.isActive, true),
         or(isNull(promoCodes.validUntil), gt(promoCodes.validUntil, now)),
       ),

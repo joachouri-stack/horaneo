@@ -1,6 +1,7 @@
 "use client";
 
 import { appointmentEvent, googleCalendarUrl } from "@/lib/calendar/appointment";
+import { birthMonthNames } from "@/modules/customers/birthday";
 import { appointmentCalendarPath } from "@/modules/site/paths";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -55,6 +56,8 @@ type Props = {
   initialGiftCode?: string;
   deposit: { enabled: boolean; type: "percent" | "fixed"; value: number };
   promoEnabled: boolean;
+  /** Offre d'anniversaire de l'entreprise : date d'anniversaire demandée (facultative). */
+  birthdayEnabled?: boolean;
   /** Pack avec cartes cadeaux : la carte peut remplacer l'acompte. */
   giftCardsEnabled?: boolean;
   /** Rappel par SMS la veille (pack avec SMS) : mentionné sous le téléphone. */
@@ -82,9 +85,21 @@ type Props = {
 
 type Step = "services" | "slot" | "details" | "done";
 
-const CONTACT_FIELDS = ["firstName", "lastName", "email", "phone", "note", "beneficiaryName"] as const;
+const CONTACT_FIELDS = [
+  "firstName",
+  "lastName",
+  "email",
+  "phone",
+  "note",
+  "beneficiaryName",
+  "birthDay",
+] as const;
 type ContactField = (typeof CONTACT_FIELDS)[number];
-type Contact = Record<ContactField, string> & { marketingConsent: boolean; website: string };
+type Contact = Record<ContactField, string> & {
+  marketingConsent: boolean;
+  website: string;
+  birthMonth: string;
+};
 
 const inputClass =
   "block min-h-12 w-full rounded-site border border-site-border bg-site-bg px-4 py-3 text-lg text-site-text aria-[invalid=true]:border-2 aria-[invalid=true]:border-site-accent";
@@ -135,6 +150,8 @@ export function BookingFlow(props: Props) {
     phone: props.prefill?.phone ?? "",
     note: "",
     beneficiaryName: "",
+    birthDay: "",
+    birthMonth: "",
     marketingConsent: false,
     website: "",
   });
@@ -202,7 +219,9 @@ export function BookingFlow(props: Props) {
 
   const update = (field: keyof Contact, value: string | boolean) => {
     setContact((current) => ({ ...current, [field]: value }));
-    if (fieldError?.field === field) setFieldError(null);
+    // Le jour et le mois de l'anniversaire forment un seul champ (erreur portée par le jour).
+    const errorField = field === "birthMonth" ? "birthDay" : field;
+    if (fieldError?.field === errorField) setFieldError(null);
   };
 
   async function applyGiftCard() {
@@ -281,6 +300,10 @@ export function BookingFlow(props: Props) {
         note: contact.note,
         beneficiaryName: contact.beneficiaryName,
         marketingConsent: contact.marketingConsent,
+        // Anniversaire : seulement si l'entreprise le demande, jour et mois choisis.
+        ...(props.birthdayEnabled && (contact.birthDay || contact.birthMonth)
+          ? { birthDay: Number(contact.birthDay) || 0, birthMonth: Number(contact.birthMonth) || 0 }
+          : {}),
       },
     });
     setPending(false);
@@ -309,6 +332,7 @@ export function BookingFlow(props: Props) {
     phone: t("details.phone"),
     note: t("details.note"),
     beneficiaryName: t("details.beneficiary"),
+    birthDay: t("details.birthday"),
   };
   const fieldMessage = (field: ContactField) => {
     if (fieldError?.field !== field) return undefined;
@@ -730,6 +754,59 @@ export function BookingFlow(props: Props) {
                 error={fieldMessage("phone")}
               />
             </div>
+            {props.birthdayEnabled && (
+              <fieldset aria-describedby="b-birthday-hint">
+                <legend className="mb-2 block font-semibold text-site-text">{t("details.birthday")}</legend>
+                <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-3">
+                  <div>
+                    <label htmlFor="b-birthDay" className="sr-only">
+                      {t("details.birthdayDay")}
+                    </label>
+                    <select
+                      id="b-birthDay"
+                      name="birthDay"
+                      value={contact.birthDay}
+                      onChange={(event) => update("birthDay", event.target.value)}
+                      aria-invalid={fieldError?.field === "birthDay" || undefined}
+                      className={`${inputClass} scroll-mt-28`}
+                    >
+                      <option value="">{t("details.birthdayDay")}</option>
+                      {Array.from({ length: 31 }, (_, i) => (
+                        <option key={i + 1} value={String(i + 1)}>
+                          {i + 1}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="b-birthMonth" className="sr-only">
+                      {t("details.birthdayMonth")}
+                    </label>
+                    <select
+                      id="b-birthMonth"
+                      name="birthMonth"
+                      value={contact.birthMonth}
+                      onChange={(event) => update("birthMonth", event.target.value)}
+                      aria-invalid={fieldError?.field === "birthDay" || undefined}
+                      className={inputClass}
+                    >
+                      <option value="">{t("details.birthdayMonth")}</option>
+                      {birthMonthNames(props.locale).map((item) => (
+                        <option key={item.month} value={String(item.month)}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                {fieldError?.field === "birthDay" && (
+                  <p className="mt-1 font-semibold text-site-text">{fieldMessage("birthDay")}</p>
+                )}
+                <p id="b-birthday-hint" className="mt-1 text-sm text-site-muted">
+                  {t("details.birthdayHint")}
+                </p>
+              </fieldset>
+            )}
             {props.giftCardsEnabled && (
               <div>
                 {!giftOpen && !gift ? (
