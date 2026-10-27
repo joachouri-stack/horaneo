@@ -810,7 +810,15 @@
       "credit": "Design : Johane A.",
       "legalTitle": "Informations légales",
       "proCardTitle": "Déjà client ?",
-      "proCardText": "Retrouvez votre agenda, vos clientes et votre site dans votre espace professionnel."
+      "proCardText": "Retrouvez votre agenda, vos clientes et votre site dans votre espace professionnel.",
+      "socialTitle": "Suivez-nous",
+      "socialLink": "{network} : {handle} (nouvel onglet)",
+      "networks": {
+        "youtube": "YouTube",
+        "tiktok": "TikTok",
+        "instagram": "Instagram",
+        "facebook": "Facebook"
+      }
     }
   },
   "site": {
@@ -1947,6 +1955,12 @@
       },
       "demo_url": "Adresse de la démonstration",
       "demoHint": "Vide : le bouton « Voir la démonstration » n'apparaît pas.",
+      "social": "Réseaux sociaux",
+      "socialHint": "Adresses complètes de vos pages. Elles apparaissent dans le pied de page du site, avec leur logo ; un champ vide masque le réseau.",
+      "social_youtube": "Chaîne YouTube",
+      "social_tiktok": "Compte TikTok",
+      "social_instagram": "Compte Instagram",
+      "social_facebook": "Page Facebook",
       "yearly_billing_enabled": "Proposer le paiement à l'année",
       "yearly_free_months": "Mois offerts pour le paiement à l'année",
       "yearlyHint": "2 = 10 mois payés pour 12. Un nouveau prix annuel est créé chez Stripe ; les abonnés gardent le leur."
