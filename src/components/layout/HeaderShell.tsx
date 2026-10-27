@@ -76,7 +76,7 @@ export function HeaderShell({
           className={`grid overflow-hidden transition-[grid-template-rows] duration-300 ease-out lg:hidden ${open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
         >
           <div className="min-h-0">
-            <ul className="mx-auto flex max-w-[75rem] flex-col gap-1 px-4 pb-5 sm:px-6">
+            <ul className="mx-auto flex max-w-[75rem] 2xl:max-w-[88rem] flex-col gap-1 px-4 pb-5 sm:px-6">
               {menu.items.map((item) => (
                 <li key={item.hash}>
                   <Link
