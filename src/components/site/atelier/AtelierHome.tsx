@@ -177,6 +177,8 @@ export async function AtelierHome({ site }: { site: Site }) {
                 name: business.name,
                 subtitle: business.title ?? "",
                 initial: business.name.charAt(0),
+                shopName: business.shopName,
+                // Photo de la professionnelle ; sans photo, le logo de sa boutique (gardé entier).
                 avatar: business.photo ? (
                   <SiteImage
                     image={business.photo}
@@ -184,7 +186,23 @@ export async function AtelierHome({ site }: { site: Site }) {
                     sizes="56px"
                     className="h-full w-full object-cover"
                   />
+                ) : business.logo ? (
+                  <SiteImage
+                    image={business.logo}
+                    alt=""
+                    sizes="56px"
+                    className="h-full w-full bg-white object-contain p-1"
+                  />
                 ) : null,
+                badge:
+                  business.photo && business.logo ? (
+                    <SiteImage
+                      image={business.logo}
+                      alt=""
+                      sizes="28px"
+                      className="h-full w-full object-contain p-0.5"
+                    />
+                  ) : null,
               }))}
             cards={site.categories.map((category) => {
               const slug = pageOf(category.businessId);

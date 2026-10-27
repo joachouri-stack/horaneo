@@ -55,9 +55,13 @@ export type CategoryGroup = {
   name: string;
   /** Spécialité affichée sous le titre (facultative). */
   subtitle: string;
-  /** Photo ronde (rendue côté serveur) ; sinon l'initiale. */
+  /** Photo ronde (rendue côté serveur) ; sinon le logo de sa boutique ; sinon l'initiale. */
   avatar: ReactNode | null;
   initial: string;
+  /** Nom de sa boutique (facultatif), affiché sous son prénom. */
+  shopName?: string | null;
+  /** Logo de sa boutique en pastille sur la photo (quand elle a aussi une photo). */
+  badge?: ReactNode | null;
 };
 
 /**
@@ -185,15 +189,29 @@ export function CategoryGrid({
                     "border-site-accent/60 bg-site-card text-site-text shadow-[0_10px_24px_-18px_rgba(0,0,0,0.45)] hover:border-site-accent motion-safe:animate-[pro-hint_1.8s_ease-in-out_0.8s_2]"
               }`}
             >
-              <span
-                className={`flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-site-surface font-site-display text-xl text-site-accent ring-2 sm:h-14 sm:w-14 ${active ? "ring-site-bg/40" : "ring-site-border"}`}
-              >
-                {group.avatar ?? group.initial}
+              <span className="relative shrink-0">
+                <span
+                  className={`flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-site-surface font-site-display text-xl text-site-accent ring-2 sm:h-14 sm:w-14 ${active ? "ring-site-bg/40" : "ring-site-border"}`}
+                >
+                  {group.avatar ?? group.initial}
+                </span>
+                {group.badge && (
+                  <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center overflow-hidden rounded-full bg-white ring-2 ring-site-bg sm:h-7 sm:w-7">
+                    {group.badge}
+                  </span>
+                )}
               </span>
               <span className="min-w-0">
                 <span className="block truncate font-site-display text-[1.25rem] font-medium leading-tight sm:text-[1.5rem]">
                   {group.name}
                 </span>
+                {group.shopName && (
+                  <span
+                    className={`block truncate font-site-display text-sm italic sm:text-base ${active ? "opacity-90" : "text-site-accent"}`}
+                  >
+                    {group.shopName}
+                  </span>
+                )}
                 {group.subtitle && (
                   <span
                     className={`block truncate text-xs sm:text-sm ${active ? "opacity-80" : "text-site-muted"}`}

@@ -11,19 +11,21 @@ export function BusinessShop({
 }) {
   if (!business.shopName && !business.logo) return null;
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
+    <div className={`flex items-center gap-4 ${className}`}>
       {business.logo && (
-        <span className="h-14 w-14 shrink-0 overflow-hidden rounded-full border border-site-border bg-white">
+        <span className="h-20 w-20 shrink-0 overflow-hidden rounded-full border border-site-border bg-white p-1.5 shadow-sm sm:h-24 sm:w-24">
           <SiteImage
             image={business.logo}
             alt={business.shopName ? "" : business.logo.alt}
-            sizes="56px"
+            sizes="96px"
             className="h-full w-full object-contain"
           />
         </span>
       )}
       {business.shopName && (
-        <p className="font-site-display text-xl font-medium italic text-site-accent">{business.shopName}</p>
+        <p className="font-site-display text-2xl font-medium italic leading-tight text-site-accent sm:text-3xl">
+          {business.shopName}
+        </p>
       )}
     </div>
   );
