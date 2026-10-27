@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useActionState } from "react";
 import type { CodeFormState } from "@/app/(platform)/[locale]/admin/actions";
+import { CopyButton } from "@/components/admin/CopyButton";
 import { ui } from "@/components/ui/styles";
 import { Link } from "@/i18n/navigation";
 
@@ -29,6 +30,11 @@ export function CodeForm({ action, label, submitLabel, allowBackupCode = false }
             <li key={code}>{code}</li>
           ))}
         </ul>
+        <CopyButton
+          value={state.backupCodes.join("\n")}
+          label={t("security.copyCodes")}
+          copiedLabel={t("security.copied")}
+        />
         <Link href="/admin" className={ui.primaryButton}>
           {t("security.continue")}
         </Link>

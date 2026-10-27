@@ -9,6 +9,7 @@ import { adminQuery } from "@/lib/admin/mutation";
 import { requireAdmin } from "@/lib/auth/session";
 import { formatDate } from "@/lib/format";
 import { listClaims, listLaunchOffers } from "@/modules/billing/launch-offers";
+import { listPlans } from "@/modules/tenants/queries";
 import { saveLaunchOfferAction, setClaimStatusAction } from "./actions";
 
 const NEXT = {
@@ -20,17 +21,22 @@ const NEXT = {
   cancelled: [],
 } as const;
 
-/** Offres de lancement (tablette offerte) : places réelles, conditions, suivi des bénéficiaires. */
+/** Offres de lancement (cadeau aux premiers abonnés) : places réelles, conditions, suivi des bénéficiaires. */
 export default async function LaunchOffersPage({ params }: PageProps<"/[locale]/admin/offres">) {
   const locale = resolveLocale((await params).locale);
   setRequestLocale(locale);
   await requireAdmin(locale);
   const [t, tCommon] = await Promise.all([getTranslations("admin.launchOffers"), getTranslations("common")]);
-  const offers = await adminQuery(async (tx) =>
-    Promise.all(
+  const { offers, plans } = await adminQuery(async (tx) => ({
+    offers: await Promise.all(
       (await listLaunchOffers(tx)).map(async (offer) => ({ offer, claims: await listClaims(tx, offer.id) })),
     ),
-  );
+    plans: await listPlans(tx),
+  }));
+  const planName = (code: string) => {
+    const plan = plans.find((item) => item.code === code);
+    return plan ? pickLocalized(plan.name, locale) : null;
+  };
   return (
     <main id="contenu" className="mx-auto max-w-4xl space-y-6 px-4 py-8">
       <h1 className="text-3xl font-extrabold">{t("title")}</h1>
@@ -40,9 +46,11 @@ export default async function LaunchOffersPage({ params }: PageProps<"/[locale]/
       {offers.map(({ offer, claims }) => (
         <section key={offer.id} className={ui.card} aria-labelledby={`offre-${offer.id}`}>
           <h2 id={`offre-${offer.id}`} className="text-xl font-bold text-night">
-            {pickLocalized(offer.title, locale)}{" "}
-            <span className="text-sm font-normal text-ink/60">({offer.planCode})</span>
+            {pickLocalized(offer.title, locale)}
           </h2>
+          {planName(offer.planCode) && (
+            <p className="text-sm text-ink/70">{t("forPlan", { plan: planName(offer.planCode) ?? "" })}</p>
+          )}
           <p className="mb-4 mt-1 text-sm font-semibold">
             {t("places", { taken: offer.taken, quota: offer.quota, remaining: offer.remaining })} ·{" "}
             {offer.open ? t("open") : t("closed")}
@@ -116,6 +124,13 @@ export default async function LaunchOffersPage({ params }: PageProps<"/[locale]/
                         action={setClaimStatusAction}
                         submitLabel={t(`actions.${status}`)}
                         variant={status === "refused" || status === "cancelled" ? "danger" : "secondary"}
+                        // Refuser, libérer ou expédier : sans retour possible, on demande confirmation.
+                        confirm={
+                          status === "eligible"
+                            ? undefined
+                            : t(`confirm.${status}`, { name: tenantName ?? businessName ?? email ?? "" })
+                        }
+                        successMessage={t(`done.${status}`)}
                       >
                         <Hidden values={{ claimId: claim.id, status, note: "" }} />
                       </ActionForm>

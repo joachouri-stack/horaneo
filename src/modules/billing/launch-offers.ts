@@ -140,7 +140,8 @@ export async function releaseOrderClaim(tx: Transaction, orderId: string) {
     .where(
       and(
         eq(launchOfferClaims.orderId, orderId),
-        inArray(launchOfferClaims.status, ["reserved", "pending_review"]),
+        // Une place déjà jugée éligible mais pas encore expédiée est rendue aussi.
+        inArray(launchOfferClaims.status, ["reserved", "pending_review", "eligible"]),
       ),
     );
 }
@@ -197,7 +198,11 @@ export async function setClaimStatus(
 export const launchOfferInput = z.object({
   title: z.string().trim().min(3).max(80),
   conditions: z.string().trim().min(10).max(1000),
-  quota: z.coerce.number().int().min(0).max(100_000),
+  // Case vide refusée (jamais lue comme 0, ce qui fermerait l'offre sans prévenir).
+  quota: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.coerce.number().int().min(0).max(100_000),
+  ),
   isActive: z.boolean(),
   requiresCommitment: z.boolean(),
   /** Date de fin (AAAA-MM-JJ) ; vide : sans date de fin. */

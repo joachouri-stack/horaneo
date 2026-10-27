@@ -1,5 +1,6 @@
 "use server";
 
+import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 import type { ActionResult } from "@/lib/actions/result";
 import { adminMutation, form } from "@/lib/admin/mutation";
@@ -11,9 +12,14 @@ type Previous = ActionResult<unknown> | null;
 
 export async function rejectOrderAction(_previous: Previous, data: FormData) {
   const orderId = z.uuid().parse(form.text(data, "orderId"));
-  return adminMutation({ action: "order.rejected", targetType: "order", targetId: orderId }, (tx) =>
-    rejectOrder(tx, orderId, form.text(data, "reason"), billingGateway()),
+  const result = await adminMutation(
+    { action: "order.rejected", targetType: "order", targetId: orderId },
+    (tx) => rejectOrder(tx, orderId, form.text(data, "reason"), billingGateway()),
   );
+  if (!result.ok) return result;
+  // Commande payée : rappel du remboursement, à faire à la main.
+  const t = await getTranslations("admin.orders");
+  return { ...result, message: t(result.data?.refundNeeded ? "rejectedRefund" : "rejected") };
 }
 
 export async function publishLegalAction(_previous: Previous, data: FormData) {

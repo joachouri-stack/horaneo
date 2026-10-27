@@ -1,5 +1,5 @@
 import { tenantFeatures, tenantLimits } from "@/modules/billing/entitlements";
-import { and, asc, count, desc, eq, gte, ilike, inArray, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, inArray, or, sql, type AnyColumn, type SQL } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
 import {
   businesses,
@@ -29,18 +29,36 @@ export function currentPeriod(timezone: string, now = new Date()): string {
   return `${parts.find((p) => p.type === "year")!.value}-${parts.find((p) => p.type === "month")!.value}`;
 }
 
-export async function listTenants(tx: Transaction, filters: TenantFilters = {}) {
+/** Lettres accentuées et leur version sans accent (recherche insensible aux accents). */
+const ACCENTED = "àâäáãåçéèêëíìîïñóòôöõúùûüýÿ";
+const PLAIN = "aaaaaaceeeeiiiinooooouuuuyy";
+
+/** Texte en minuscules et sans accents, côté base (sans extension). */
+const fold = (value: SQL | AnyColumn) => sql`translate(lower(${value}), ${ACCENTED}, ${PLAIN})`;
+
+/** Même transformation, côté application, pour le texte recherché. */
+export function foldSearch(value: string) {
+  return value.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+}
+
+/**
+ * Conditions de la liste des clients : recherche (nom, adresse, e-mail, ville, domaine,
+ * entreprises du site et e-mails de leurs gérantes, sans tenir compte des accents), pack, statut.
+ */
+function tenantConditions(filters: TenantFilters) {
   const conditions: SQL[] = [];
   const q = filters.q?.trim();
   if (q) {
-    const pattern = `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+    const pattern = `%${foldSearch(q).replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
     conditions.push(
       or(
-        ilike(tenants.name, pattern),
-        ilike(tenants.slug, pattern),
-        ilike(tenants.email, pattern),
-        ilike(tenants.city, pattern),
-        sql`exists (select 1 from ${tenantDomains} d where d.tenant_id = ${tenants.id} and d.hostname ilike ${pattern})`,
+        sql`${fold(tenants.name)} like ${pattern}`,
+        sql`${fold(tenants.slug)} like ${pattern}`,
+        sql`${fold(tenants.email)} like ${pattern}`,
+        sql`${fold(tenants.city)} like ${pattern}`,
+        sql`exists (select 1 from ${tenantDomains} d where d.tenant_id = ${tenants.id} and lower(d.hostname) like ${pattern})`,
+        sql`exists (select 1 from ${businesses} b where b.tenant_id = ${tenants.id} and (${fold(sql`b.name`)} like ${pattern} or ${fold(sql`b.email`)} like ${pattern}))`,
+        sql`exists (select 1 from ${memberships} m join ${users} u on u.id = m.user_id where m.tenant_id = ${tenants.id} and (${fold(sql`u.email`)} like ${pattern} or ${fold(sql`u.name`)} like ${pattern}))`,
       )!,
     );
   }
@@ -50,7 +68,11 @@ export async function listTenants(tx: Transaction, filters: TenantFilters = {}) 
   } else {
     conditions.push(inArray(tenants.status, ["draft", "active", "suspended", "cancelled"]));
   }
+  return and(...conditions);
+}
 
+/** Clients correspondant aux filtres, les plus récents d'abord (`limit` : taille de la tranche affichée). */
+export async function listTenants(tx: Transaction, filters: TenantFilters = {}, limit = 200) {
   return tx
     .select({
       id: tenants.id,
@@ -67,9 +89,19 @@ export async function listTenants(tx: Transaction, filters: TenantFilters = {}) 
     })
     .from(tenants)
     .innerJoin(plans, eq(plans.id, tenants.planId))
-    .where(and(...conditions))
+    .where(tenantConditions(filters))
     .orderBy(desc(tenants.createdAt))
-    .limit(200);
+    .limit(limit);
+}
+
+/** Nombre total de clients correspondant aux filtres (la liste dit quand elle n'affiche pas tout). */
+export async function countTenants(tx: Transaction, filters: TenantFilters = {}) {
+  const [row] = await tx
+    .select({ value: count() })
+    .from(tenants)
+    .innerJoin(plans, eq(plans.id, tenants.planId))
+    .where(tenantConditions(filters));
+  return row?.value ?? 0;
 }
 
 export async function getTenantOverview(tx: Transaction, tenantId: string) {
@@ -135,7 +167,13 @@ export async function listPlans(tx: Transaction) {
 export async function getDashboardStats(tx: Transaction, now = new Date()) {
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
   const byPlan = await tx
-    .select({ code: plans.code, name: plans.name, priceCents: plans.priceCents, count: count(tenants.id) })
+    .select({
+      code: plans.code,
+      name: plans.name,
+      priceCents: plans.priceCents,
+      isPublic: plans.isPublic,
+      count: count(tenants.id),
+    })
     .from(plans)
     .leftJoin(tenants, and(eq(tenants.planId, plans.id), eq(tenants.status, "active")))
     .groupBy(plans.id)

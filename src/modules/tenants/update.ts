@@ -72,10 +72,14 @@ export async function updateIdentity(tx: Transaction, tenantId: string, raw: z.i
       .set({ hostname })
       .where(and(eq(tenantDomains.tenantId, tenantId), eq(tenantDomains.type, "subdomain")));
   }
+  // Coordonnées GPS : modifiées seulement si le formulaire les envoie (jamais effacées par oubli).
+  const { latitude, longitude, ...rest } = input;
+  const gps = "latitude" in raw || "longitude" in raw ? { latitude, longitude } : {};
   const [updated] = await tx
     .update(tenants)
     .set({
-      ...input,
+      ...rest,
+      ...gps,
       country: input.country.toUpperCase(),
       phone: normalizePhone(input.phone, input.country),
     })

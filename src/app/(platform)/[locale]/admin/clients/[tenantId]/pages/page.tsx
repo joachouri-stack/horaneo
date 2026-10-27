@@ -17,8 +17,9 @@ import { savePageAction } from "../../actions";
 /** Textes des pages du site (dans la langue principale du client). */
 export default async function PagesPage({ params }: PageProps<"/[locale]/admin/clients/[tenantId]/pages">) {
   const { tenantId } = await params;
-  const [t, tCommon, tLanguages, overview, { pages, photos }] = await Promise.all([
+  const [t, tPhotos, tCommon, tLanguages, overview, { pages, photos }] = await Promise.all([
     getTranslations("admin.tenant.pages"),
+    getTranslations("admin.tenant.photos"),
     getTranslations("common"),
     getTranslations("languages"),
     loadTenantOverview(tenantId),
@@ -34,7 +35,7 @@ export default async function PagesPage({ params }: PageProps<"/[locale]/admin/c
       .filter((photo) => photo.kind !== "logo")
       .map((photo, index) => ({
         value: photo.id,
-        label: pickLocalized(photo.alt, locale) || `Photo ${index + 1}`,
+        label: pickLocalized(photo.alt, locale) || tPhotos("number", { n: index + 1 }),
       })),
   ];
 

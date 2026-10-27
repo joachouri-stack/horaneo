@@ -231,18 +231,25 @@ function socialLink(network: keyof typeof SOCIAL_PROFILE_URLS) {
     .pipe(z.union([z.literal(""), z.url()]));
 }
 
+/** Nombre d'un réglage : une case vide est refusée (jamais lue comme 0). */
+const settingNumber = (schema: z.ZodNumber) =>
+  z.preprocess(
+    (value) => (value === "" || value === null ? undefined : value),
+    z.coerce.number().pipe(schema),
+  );
+
 export const settingsInput = z.object({
   prices_display: z.enum(["TTC", "HT"]),
-  vat_rate_percent: z.coerce.number().min(0).max(50),
-  commitment_months: z.coerce.number().int().min(0).max(36),
-  sms_pack_size: z.coerce.number().int().min(1).max(10000),
+  vat_rate_percent: settingNumber(z.number().min(0).max(50)),
+  commitment_months: settingNumber(z.number().int().min(0).max(36)),
+  sms_pack_size: settingNumber(z.number().int().min(1).max(10000)),
   /** Prix du pack de SMS, en euros. */
   sms_pack_price: z
     .string()
     .trim()
     .regex(/^\d{1,5}([.,]\d{1,2})?$/),
-  sms_warning_percent: z.coerce.number().int().min(1).max(99),
-  price_change_notice_days: z.coerce.number().int().min(0).max(180),
+  sms_warning_percent: settingNumber(z.number().int().min(1).max(99)),
+  price_change_notice_days: settingNumber(z.number().int().min(0).max(180)),
   /** Rachat du site à la sortie : activé ou non, et son prix en euros. */
   site_buyout_enabled: z.boolean(),
   site_buyout_price: z
@@ -255,22 +262,22 @@ export const settingsInput = z.object({
   offer_no_commitment: z.boolean().default(false),
   /** Paiement à l'année proposé, et sa réduction en mois offerts. */
   yearly_billing_enabled: z.boolean().default(true),
-  yearly_free_months: z.coerce.number().int().min(0).max(6).default(2),
+  yearly_free_months: settingNumber(z.number().int().min(0).max(6)),
   /** Solutions ouvertes à la souscription (les autres : « Disponible bientôt »). */
   solutions_available: z.array(z.enum(["booking", "commerce", "formation"])).default(["booking"]),
   /** Adresse de la démonstration (vide : bouton masqué). */
-  demo_url: z.union([z.literal(""), z.url().max(300)]).default(""),
+  demo_url: z.union([z.literal(""), z.url({ protocol: /^https?$/ }).max(300)]).default(""),
   /** Pages de la marque sur les réseaux sociaux (vide : non affiché). */
   social_youtube: socialLink("youtube"),
   social_tiktok: socialLink("tiktok"),
   social_instagram: socialLink("instagram"),
   social_facebook: socialLink("facebook"),
-  go_live_delay_days: z.coerce.number().int().min(0).max(60),
-  deposit_commission_percent: z.coerce.number().min(0).max(20),
-  retention_days_after_cancel: z.coerce.number().int().min(0).max(365),
-  replaced_asset_retention_days: z.coerce.number().int().min(1).max(90),
+  go_live_delay_days: settingNumber(z.number().int().min(0).max(60)),
+  deposit_commission_percent: settingNumber(z.number().min(0).max(20)),
+  retention_days_after_cancel: settingNumber(z.number().int().min(0).max(365)),
+  replaced_asset_retention_days: settingNumber(z.number().int().min(1).max(90)),
   sms_reminder_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
-  email_reminder_hours_before: z.coerce.number().int().min(2).max(72),
+  email_reminder_hours_before: settingNumber(z.number().int().min(2).max(72)),
   daily_summary_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
   monthly_summary_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
   /** Heure locale de l'e-mail d'anniversaire (offre des entreprises qui l'ont activée). */
@@ -278,8 +285,30 @@ export const settingsInput = z.object({
   legal_infrastructure: z.string().trim().min(5).max(300),
 });
 
-export async function updatePlatformSettings(tx: Transaction, raw: z.input<typeof settingsInput>) {
-  const input = settingsInput.parse(raw);
+/**
+ * Valeur actuelle d'un réglage sous la forme attendue par le formulaire : un champ
+ * absent du formulaire garde sa valeur (au lieu d'être vidé ou mis à 0).
+ */
+async function currentSettingValue(tx: Transaction, key: keyof typeof settingsInput.shape) {
+  const euros = (cents: unknown) => (Number(cents) / 100).toFixed(2);
+  if (key === "sms_pack_price") return euros(await getPlatformSetting(tx, "sms_pack_price_cents"));
+  if (key === "site_buyout_price") return euros(await getPlatformSetting(tx, "site_buyout_price_cents"));
+  if (key === "solutions_available")
+    return (await getPlatformSetting(tx, "solutions"))
+      .filter((item) => item.status === "available")
+      .map((item) => item.code);
+  return getPlatformSetting(tx, key);
+}
+
+export async function updatePlatformSettings(
+  tx: Transaction,
+  raw: Partial<Record<keyof typeof settingsInput.shape, unknown>>,
+) {
+  const complete: Record<string, unknown> = { ...raw };
+  for (const key of Object.keys(settingsInput.shape) as (keyof typeof settingsInput.shape)[]) {
+    if (complete[key] === undefined) complete[key] = await currentSettingValue(tx, key);
+  }
+  const input = settingsInput.parse(complete);
   const { sms_pack_price, site_buyout_price, solutions_available, ...rest } = input;
   await setPlatformSetting(
     tx,

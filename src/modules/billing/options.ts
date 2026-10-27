@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, notInArray } from "drizzle-orm";
+import { and, asc, eq, inArray, isNotNull, notInArray } from "drizzle-orm";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
 import { planOptions, tenantOptions } from "@/db/schema";
@@ -97,9 +97,12 @@ export async function syncTenantOptions(
         )
     : [];
   const valid = items.filter((item) => known.some((row) => row.id === item.optionId));
+  // Seules les options facturées par l'abonnement suivent Stripe : une option offerte
+  // à la main (sans ligne d'abonnement) reste active.
   await tx.delete(tenantOptions).where(
     and(
       eq(tenantOptions.tenantId, tenantId),
+      isNotNull(tenantOptions.stripeSubscriptionItemId),
       valid.length
         ? notInArray(
             tenantOptions.optionId,

@@ -74,16 +74,32 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
     <main id="contenu" className="mx-auto max-w-3xl space-y-6 px-4 py-8">
       <h1 className="text-3xl font-extrabold">{t("title")}</h1>
       <AdminSubNav group="settings" current="/admin/reglages" intro={tIntro("settings")} />
-      <ActionForm action={saveSettingsAction} submitLabel={tCommon("save")} className="space-y-6">
+      <ActionForm
+        action={saveSettingsAction}
+        submitLabel={tCommon("save")}
+        successMessage={t("saved")}
+        stickySubmit
+        className="space-y-6"
+      >
+        {/* Réglages sans effet pour l'instant (durée en ligne après résiliation, rachat du site) :
+            masqués, mais renvoyés tels quels pour que l'enregistrement ne les change pas. */}
+        <Hidden
+          values={{
+            retention_days_after_cancel: String(s.retention_days_after_cancel),
+            site_buyout_enabled: buyoutEnabled ? "true" : undefined,
+            site_buyout_price: centsToInput(Number(s.site_buyout_price_cents)),
+          }}
+        />
         <Section title={t("pricing")} collapsible open>
           <div className="grid gap-4 sm:grid-cols-2">
             <SelectField
               name="prices_display"
               label={t("prices_display")}
               defaultValue={String(s.prices_display)}
+              hint={t("pricesDisplayHint")}
               options={[
-                { value: "TTC", label: "TTC" },
-                { value: "HT", label: "HT" },
+                { value: "TTC", label: t("pricesTtc") },
+                { value: "HT", label: t("pricesHt") },
               ]}
             />
             {field("vat_rate_percent", "number", t("vatHint"))}
@@ -102,6 +118,15 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
               defaultChecked={yearlyEnabled}
             />
             {field("yearly_free_months", "number", t("yearlyHint"))}
+            {/* Recharges de SMS achetées par les clients en plus de leur pack. */}
+            {field("sms_pack_size")}
+            <TextField
+              name="sms_pack_price"
+              inputMode="decimal"
+              label={t("sms_pack_price")}
+              defaultValue={centsToInput(Number(s.sms_pack_price_cents))}
+              required
+            />
           </div>
         </Section>
         {/* Solutions : ouvertes à la souscription, ou « Disponible bientôt ». */}
@@ -146,24 +171,6 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
             )}
           </div>
         </Section>
-        {/* Rachat du site par le client à sa sortie : désactivé par défaut, prix fixe. */}
-        <Section title={t("buyout")} collapsible>
-          <p className="mb-3 text-sm text-ink/70">{t("buyoutHint")}</p>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <CheckboxField
-              name="site_buyout_enabled"
-              label={t("site_buyout_enabled")}
-              defaultChecked={buyoutEnabled}
-            />
-            <TextField
-              name="site_buyout_price"
-              inputMode="decimal"
-              label={t("site_buyout_price")}
-              defaultValue={centsToInput(Number(s.site_buyout_price_cents))}
-              required
-            />
-          </div>
-        </Section>
         {/* Fonctions pas encore livrées : étiquette « Bientôt » sur le site commercial. */}
         <Section title={t("soon")} collapsible>
           <p className="mb-3 text-sm text-ink/70">{t("soonHint")}</p>
@@ -180,21 +187,13 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
         </Section>
         <Section title={t("payments")} collapsible>
           <div className="grid gap-4 sm:grid-cols-2">
-            {field("deposit_commission_percent")}
-            {field("retention_days_after_cancel")}
+            {field("deposit_commission_percent", "number", t("depositCommissionHint"))}
             {field("replaced_asset_retention_days")}
           </div>
         </Section>
         <Section title={t("messages")} collapsible>
+          <p className="mb-3 text-sm text-ink/70">{t("messagesHint")}</p>
           <div className="grid gap-4 sm:grid-cols-2">
-            {field("sms_pack_size")}
-            <TextField
-              name="sms_pack_price"
-              inputMode="decimal"
-              label={t("sms_pack_price")}
-              defaultValue={centsToInput(Number(s.sms_pack_price_cents))}
-              required
-            />
             {field("sms_warning_percent", "number", t("smsWarningHint"))}
             {field("sms_reminder_time", "time")}
             {field("birthday_message_time", "time")}
@@ -204,18 +203,19 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
           </div>
         </Section>
         <Section title={t("legal")} collapsible>
-          {field("legal_infrastructure", "text")}
+          {field("legal_infrastructure", "text", t("legalInfrastructureHint"))}
         </Section>
       </ActionForm>
 
-      {/* Bloc « Ils nous font confiance » de l'accueil : caché tant qu'il est vide. */}
-      <Section title={t("showcase.title")} collapsible>
+      {/* Bloc « Ils nous font confiance » de l'accueil : un formulaire à part, sous son propre titre. */}
+      <h2 className="border-t border-navy/10 pt-8 text-2xl font-extrabold">{t("showcase.title")}</h2>
+      <Section title={t("showcase.manage")} collapsible>
         <p className="mb-4 text-sm text-ink/70">{t("showcase.intro", { max: SHOWCASE_MAX })}</p>
         {showcase.length > 0 && (
           <ul className="mb-6 space-y-3">
             {showcase.map((entry) => (
               <li key={entry.id} className="rounded-[var(--radius-card)] border-2 border-line bg-white p-4">
-                <p className="text-ink">« {entry.quote} »</p>
+                <p className="text-ink">{tCommon("quoted", { text: entry.quote })}</p>
                 <p className="mt-2 text-sm font-semibold text-night">
                   {entry.author} · {entry.name}
                 </p>

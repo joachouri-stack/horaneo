@@ -53,7 +53,7 @@ export async function WizardNav({
       <div className="mt-3">
         {next ? (
           <Link href={href(next)} className={`${ui.secondaryButton} sm:w-auto`}>
-            {t("next")} : {t(`steps.${next}`)} →
+            {t("nextStep", { step: t(`steps.${next}`) })} →
           </Link>
         ) : (
           <Link href={`/admin/clients/${tenantId}`} className={`${ui.secondaryButton} sm:w-auto`}>

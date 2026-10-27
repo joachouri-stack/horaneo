@@ -186,6 +186,16 @@ describe.skipIf(!hasTestDatabase)("options à la carte", () => {
     expect(await codesOf(tenant.id)).toEqual([]);
   });
 
+  it("une option offerte à la main reste active quand Stripe resynchronise l'abonnement", async () => {
+    const { tenant, subscription } = await orderedSite("pro", []);
+    // Option offerte avant l'abonnement : enregistrée sans ligne d'abonnement (aucun prélèvement).
+    const [option] = await owner.select().from(planOptions).where(eq(planOptions.code, "booking"));
+    await owner.insert(tenantOptions).values({ tenantId: tenant.id, optionId: option.id });
+    expect(await codesOf(tenant.id)).toEqual(["booking"]);
+    await platform((tx) => applySubscription(tx, billing.setStatus(subscription.id, "active")));
+    expect(await codesOf(tenant.id)).toEqual(["booking"]);
+  });
+
   it("admin : sans abonnement, option offerte activée à la main ; la gérante ne peut pas l'écrire", async () => {
     n += 1;
     const { tenant } = await platform((tx) =>

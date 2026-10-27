@@ -51,8 +51,11 @@ export async function savePlanAction(_previous: Previous, data: FormData) {
 }
 
 export async function saveSettingsAction(_previous: Previous, data: FormData) {
+  // Seuls les champs envoyés par le formulaire sont modifiés ; les autres gardent leur valeur.
   const raw: Record<string, unknown> = Object.fromEntries(
-    Object.keys(settingsInput.shape).map((key) => [key, form.text(data, key)]),
+    Object.keys(settingsInput.shape)
+      .filter((key) => data.has(key))
+      .map((key) => [key, form.text(data, key)]),
   );
   // Case à cocher et liste de fonctions « Bientôt ».
   raw.site_buyout_enabled = form.bool(data, "site_buyout_enabled");

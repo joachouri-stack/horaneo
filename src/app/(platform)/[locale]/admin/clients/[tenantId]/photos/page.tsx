@@ -36,7 +36,9 @@ export default async function PhotosPage({ params }: PageProps<"/[locale]/admin/
         <div className="space-y-6">
           <PhotoCropUpload tenantId={tenantId} action={uploadPhotoAction} />
           <details>
-            <summary className="cursor-pointer text-sm font-semibold text-night">{t("uploadNoCrop")}</summary>
+            <summary className="cursor-pointer py-3 text-sm font-semibold text-night">
+              {t("uploadNoCrop")}
+            </summary>
             <ActionForm
               action={uploadPhotoAction}
               submitLabel={t("upload")}
@@ -54,7 +56,7 @@ export default async function PhotosPage({ params }: PageProps<"/[locale]/admin/
                   type="file"
                   accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/avif"
                   required
-                  className="block w-full text-sm"
+                  className={ui.fileInput}
                 />
               </div>
               <div className="grid gap-4 sm:grid-cols-2">

@@ -7,7 +7,12 @@ import { resolveLocale } from "@/i18n/translator";
 import { adminQuery } from "@/lib/admin/mutation";
 import { requireAdmin } from "@/lib/auth/session";
 import { formatDate } from "@/lib/format";
-import { listPlans, listTenants } from "@/modules/tenants/queries";
+import { FiltersDisclosure } from "@/components/admin/FiltersDisclosure";
+import { countTenants, listPlans, listTenants } from "@/modules/tenants/queries";
+
+/** Liste affichée par tranches : « Afficher plus » ajoute la tranche suivante. */
+const PAGE_SIZE = 50;
+const MAX_SHOWN = 1000;
 
 /** Liste des clients avec recherche et filtres (pack, statut). */
 export default async function ClientsPage({ params, searchParams }: PageProps<"/[locale]/admin/clients">) {
@@ -17,13 +22,33 @@ export default async function ClientsPage({ params, searchParams }: PageProps<"/
   const query = await searchParams;
   const value = (key: string) => (typeof query[key] === "string" ? (query[key] as string) : "");
   const filters = { q: value("q"), plan: value("plan"), status: value("status") };
+  const shown = Math.min(Math.max(Number(value("n")) || PAGE_SIZE, PAGE_SIZE), MAX_SHOWN);
 
-  const [t, tStatus, tCommon, { rows, plans }] = await Promise.all([
+  const [t, tStatus, tCommon, { rows, total, plans }] = await Promise.all([
     getTranslations("admin.clients"),
     getTranslations("status"),
     getTranslations("common"),
-    adminQuery(async (tx) => ({ rows: await listTenants(tx, filters), plans: await listPlans(tx) })),
+    // Requêtes l'une après l'autre : elles partagent la connexion de la transaction.
+    adminQuery(async (tx) => ({
+      rows: await listTenants(tx, filters, shown),
+      total: await countTenants(tx, filters),
+      plans: await listPlans(tx),
+    })),
   ]);
+  const moreHref = {
+    pathname: "/admin/clients",
+    query: {
+      ...Object.fromEntries(Object.entries(filters).filter(([, item]) => item)),
+      n: String(shown + PAGE_SIZE),
+    },
+  };
+  // Packs en vente d'abord ; les anciens packs à part (ils peuvent encore avoir des clients).
+  const planOption = (plan: (typeof plans)[number]) => (
+    <option key={plan.code} value={plan.code}>
+      {pickLocalized(plan.name, locale)}
+    </option>
+  );
+  const oldPlans = plans.filter((plan) => !plan.isPublic);
 
   const tIntro = await getTranslations("admin.intro");
   return (
@@ -36,45 +61,56 @@ export default async function ClientsPage({ params, searchParams }: PageProps<"/
       </div>
       <p className="text-ink/70">{tIntro("clients")}</p>
 
-      <form method="get" className={`${ui.card} grid gap-4 sm:grid-cols-[2fr_1fr_1fr_auto] sm:items-end`}>
-        <div>
-          <label htmlFor="q" className={ui.label}>
-            {t("searchPlaceholder")}
-          </label>
-          <input id="q" name="q" type="search" defaultValue={filters.q} className={ui.input} />
+      <form method="get" className={`${ui.card} space-y-4`}>
+        <div className="flex items-end gap-3">
+          <div className="min-w-0 flex-1">
+            <label htmlFor="q" className={ui.label}>
+              {t("searchPlaceholder")}
+            </label>
+            <input id="q" name="q" type="search" defaultValue={filters.q} className={ui.input} />
+          </div>
+          <button type="submit" className={`${ui.secondaryButton} w-auto shrink-0`}>
+            {tCommon("search")}
+          </button>
         </div>
-        <div>
-          <label htmlFor="plan" className={ui.label}>
-            {t("plan")}
-          </label>
-          <select id="plan" name="plan" defaultValue={filters.plan} className={ui.input}>
-            <option value="">—</option>
-            {plans.map((plan) => (
-              <option key={plan.code} value={plan.code}>
-                {pickLocalized(plan.name, locale)}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="status" className={ui.label}>
-            {t("status")}
-          </label>
-          <select id="status" name="status" defaultValue={filters.status} className={ui.input}>
-            <option value="">{t("activeOnly")}</option>
-            {(["draft", "active", "suspended", "cancelled", "deleted"] as const).map((status) => (
-              <option key={status} value={status}>
-                {tStatus(status)}
-              </option>
-            ))}
-          </select>
-        </div>
-        <button type="submit" className={`${ui.secondaryButton} sm:w-auto`}>
-          {tCommon("search")}
-        </button>
+        <FiltersDisclosure summary={t("filters")} active={Boolean(filters.plan || filters.status)}>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor="plan" className={ui.label}>
+                {t("plan")}
+              </label>
+              <select id="plan" name="plan" defaultValue={filters.plan} className={ui.input}>
+                <option value="">{t("allPlans")}</option>
+                {oldPlans.length === 0 ? (
+                  plans.map(planOption)
+                ) : (
+                  <>
+                    <optgroup label={t("plansOnSale")}>
+                      {plans.filter((plan) => plan.isPublic).map(planOption)}
+                    </optgroup>
+                    <optgroup label={t("plansOld")}>{oldPlans.map(planOption)}</optgroup>
+                  </>
+                )}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="status" className={ui.label}>
+                {t("status")}
+              </label>
+              <select id="status" name="status" defaultValue={filters.status} className={ui.input}>
+                <option value="">{t("activeOnly")}</option>
+                {(["draft", "active", "suspended", "cancelled", "deleted"] as const).map((status) => (
+                  <option key={status} value={status}>
+                    {tStatus(status)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </FiltersDisclosure>
       </form>
 
-      <p className="text-ink/70">{t("count", { count: rows.length })}</p>
+      <p className="text-ink/70">{t("count", { count: total })}</p>
       {rows.length === 0 ? (
         <p className={ui.card}>{t("empty")}</p>
       ) : (
@@ -101,6 +137,18 @@ export default async function ClientsPage({ params, searchParams }: PageProps<"/
             </li>
           ))}
         </ul>
+      )}
+      {total > rows.length && (
+        <div className="space-y-2 text-center">
+          <p className="text-sm text-ink/70">{t("partial", { shown: rows.length, total })}</p>
+          {shown < MAX_SHOWN ? (
+            <Link href={moreHref} className={`${ui.secondaryButton} sm:w-auto`}>
+              {t("showMore")}
+            </Link>
+          ) : (
+            <p className="text-sm text-ink/70">{t("refineSearch")}</p>
+          )}
+        </div>
       )}
     </main>
   );

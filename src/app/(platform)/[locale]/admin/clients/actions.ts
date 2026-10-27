@@ -2,7 +2,6 @@
 
 import { queueStripeInvite } from "@/modules/payments/connect";
 
-import { setOnlineBooking } from "@/modules/booking/settings";
 import { categoryFields } from "@/modules/catalog/icons";
 import { billingGateway } from "@/lib/payments/stripe-billing";
 import { changePlanManually } from "@/modules/billing/subscriptions";
@@ -30,9 +29,6 @@ import {
   replaceBusinessManager,
   createBusiness,
   setBusinessLogo,
-  updateBusiness,
-  updateBusinessProfile,
-  updateBusinessShop,
 } from "@/modules/businesses/businesses";
 import { createTenant } from "@/modules/tenants/create";
 import {
@@ -179,6 +175,8 @@ export async function updateIdentityAction(_previous: Previous, data: FormData) 
     "city",
     "country",
     "timezone",
+    "latitude",
+    "longitude",
   ] as const;
   const input = Object.fromEntries(keys.map((key) => [key, form.text(data, key)])) as Record<
     (typeof keys)[number],
@@ -203,55 +201,6 @@ const businessFields = (data: FormData) => ({
   city: form.optional(data, "city"),
   ...(data.has("googlePlaceId") ? { googlePlaceId: form.text(data, "googlePlaceId") } : {}),
 });
-
-export async function updateBusinessAction(_previous: Previous, data: FormData) {
-  const tenantId = tenantIdOf(data);
-  const businessId = businessIdOf(data);
-  return adminMutation(
-    { action: "business.updated", tenantId, targetType: "business", targetId: businessId },
-    (tx) => updateBusiness(tx, tenantId, businessId, businessFields(data)),
-  );
-}
-
-export async function setOnlineBookingAdminAction(_previous: Previous, data: FormData) {
-  const tenantId = tenantIdOf(data);
-  const businessId = businessIdOf(data);
-  return adminMutation(
-    { action: "business.online_booking", tenantId, targetType: "business", targetId: businessId, businessId },
-    (tx) => setOnlineBooking(tx, tenantId, form.bool(data, "onlineBookingEnabled"), businessId),
-  );
-}
-
-export async function updateBusinessProfileAction(_previous: Previous, data: FormData) {
-  const tenantId = tenantIdOf(data);
-  const businessId = businessIdOf(data);
-  return adminMutation(
-    { action: "business.profile_updated", tenantId, targetType: "business", targetId: businessId },
-    (tx) =>
-      updateBusinessProfile(tx, tenantId, businessId, {
-        slug: form.optional(data, "slug"),
-        title: form.text(data, "title"),
-        role: form.text(data, "role"),
-        bio: form.text(data, "bio"),
-        quote: form.text(data, "quote"),
-        availability: form.text(data, "availability"),
-        // Nom de boutique : enregistré à part (encadré « Logo et nom de sa boutique »).
-        photoAssetId: form.optional(data, "photoAssetId") ?? null,
-        instagram: form.text(data, "instagram"),
-        facebook: form.text(data, "facebook"),
-      }),
-  );
-}
-
-/** Nom de boutique d'une entreprise, seul (encadré « Logo et nom de sa boutique »). */
-export async function updateBusinessShopAction(_previous: Previous, data: FormData) {
-  const tenantId = tenantIdOf(data);
-  const businessId = businessIdOf(data);
-  return adminMutation(
-    { action: "business.shop_updated", tenantId, targetType: "business", targetId: businessId },
-    (tx) => updateBusinessShop(tx, tenantId, businessId, { shopName: form.text(data, "shopName") }),
-  );
-}
 
 /** Logo propre à une entreprise : image gardée entière (type « Autre »). */
 export async function uploadBusinessLogoAction(_previous: Previous, data: FormData) {
@@ -335,7 +284,7 @@ export async function addBusinessManagerAction(_previous: Previous, data: FormDa
     }),
     (tx) =>
       addBusinessManager(tx, tenantId, {
-        businessId: form.text(data, "businessId"),
+        businessId: businessIdOf(data),
         email: form.text(data, "managerEmail"),
         name: form.optional(data, "managerName") ?? null,
       }),
@@ -359,7 +308,7 @@ export async function replaceBusinessManagerAction(_previous: Previous, data: Fo
     }),
     (tx) =>
       replaceBusinessManager(tx, tenantId, {
-        businessId: form.text(data, "businessId"),
+        businessId: businessIdOf(data),
         email: form.text(data, "managerEmail"),
         name: form.optional(data, "managerName") ?? null,
       }),

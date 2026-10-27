@@ -163,6 +163,19 @@ export async function addBusinessManager(
   const email = z.email().safeParse(input.email.trim());
   if (!email.success) throw new AppError("invalid", "managerEmail");
   const business = await getBusiness(tx, tenantId, input.businessId);
+  // Une entreprise a une seule gérante : pour en changer, « Remplacer la gérante ».
+  const [current] = await tx
+    .select({ userId: memberships.userId })
+    .from(memberships)
+    .where(
+      and(
+        eq(memberships.tenantId, tenantId),
+        eq(memberships.businessId, business.id),
+        eq(memberships.role, "owner"),
+      ),
+    )
+    .limit(1);
+  if (current) throw new AppError("business_has_manager", "managerEmail");
   const managerId = await linkManager(tx, tenantId, business.id, email.data, input.name?.trim() || null);
   return { business, managerId };
 }
@@ -170,6 +183,8 @@ export async function addBusinessManager(
 /**
  * Remplace la gérante d'une entreprise : l'ancienne perd aussitôt l'accès à son
  * espace (son compte est conservé), la nouvelle se connecte avec son e-mail.
+ * Le lien d'agenda du téléphone de l'ancienne gérante est coupé aussi (la nouvelle
+ * le réactive depuis son espace si elle le souhaite).
  */
 export async function replaceBusinessManager(
   tx: Transaction,
@@ -178,7 +193,13 @@ export async function replaceBusinessManager(
 ) {
   const email = z.email().safeParse(input.email.trim());
   if (!email.success) throw new AppError("invalid", "managerEmail");
-  const business = await getBusiness(tx, tenantId, input.businessId);
+  // Verrou sur l'entreprise : deux remplacements simultanés ne laissent pas deux gérantes.
+  const [business] = await tx
+    .select()
+    .from(businesses)
+    .where(and(eq(businesses.tenantId, tenantId), eq(businesses.id, input.businessId)))
+    .for("update");
+  if (!business) throw new AppError("not_found");
   const removed = await tx
     .delete(memberships)
     .where(
@@ -189,6 +210,10 @@ export async function replaceBusinessManager(
       ),
     )
     .returning({ userId: memberships.userId });
+  await tx
+    .update(businessSettings)
+    .set({ calendarFeedVersion: 0 })
+    .where(and(eq(businessSettings.tenantId, tenantId), eq(businessSettings.businessId, business.id)));
   const managerId = await linkManager(tx, tenantId, business.id, email.data, input.name?.trim() || null);
   return { business, managerId, removedIds: removed.map((row) => row.userId) };
 }
