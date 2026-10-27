@@ -72,7 +72,7 @@ export async function PlanCards({
       <span
         className={`font-display font-semibold leading-none tracking-[-0.035em] tabular-nums ${gold ? "hn-gold" : className}`}
       >
-        <span className="text-[3rem]">{lead}</span>
+        <span className="text-mk-price">{lead}</span>
         <span className={`text-[1.5rem] tracking-[-0.02em] ${tailClass}`}>{tail}</span>
       </span>
     );
@@ -218,7 +218,7 @@ export async function PlanCards({
                 <Icon className="size-[22px]" />
               </span>
               <div>
-                <h3 className={`font-display text-[1.3rem] font-semibold tracking-[-0.015em] ${strong}`}>
+                <h3 className={`font-display text-mk-card font-semibold tracking-[-0.015em] ${strong}`}>
                   {name}
                 </h3>
                 {plan.description && (

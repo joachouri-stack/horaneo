@@ -38,7 +38,7 @@ export function HeaderShell({
   return (
     <div
       data-scrolled={scrolled}
-      className={`group/hdr sticky top-0 z-40 bg-white/90 backdrop-blur-md transition-shadow duration-300 ${
+      className={`group/hdr sticky top-0 z-40 text-mk-body bg-white/90 backdrop-blur-md transition-shadow duration-300 ${
         scrolled || open ? "shadow-[0_1px_0_#e6e9f0,0_8px_24px_rgba(15,24,48,.05)]" : ""
       }`}
     >

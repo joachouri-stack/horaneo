@@ -50,10 +50,12 @@ export default async function LoginPage({ params, searchParams }: PageProps<"/[l
       <PlatformHeader>
         <span />
       </PlatformHeader>
-      <main id="contenu" className="mx-auto max-w-md px-4 py-10 sm:py-16">
+      <main id="contenu" className="text-mk-body mx-auto max-w-md px-4 py-10 sm:py-16">
         <div className={ui.card}>
           {/* Depuis « Commander » : la même page sert à créer son compte. */}
-          <h1 className="text-3xl font-extrabold">{signup ? t("signupTitle") : t("title")}</h1>
+          <h1 className="font-display text-mk-h2 font-semibold tracking-[-0.025em]">
+            {signup ? t("signupTitle") : t("title")}
+          </h1>
           {pack && (
             <p className="mt-3 font-semibold">
               {t("chosenPack", { name: pickLocalized(pack.name, locale) })}

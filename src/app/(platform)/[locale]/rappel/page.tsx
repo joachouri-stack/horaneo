@@ -34,9 +34,9 @@ export default async function CallbackPage({ params, searchParams }: PageProps<"
   return (
     <>
       <PlatformHeader />
-      <main id="contenu" className="mx-auto max-w-2xl space-y-6 px-4 py-8">
+      <main id="contenu" className="text-mk-body mx-auto max-w-2xl space-y-6 px-4 py-8">
         <div>
-          <h1 className="text-3xl font-extrabold">{t("title")}</h1>
+          <h1 className="font-display text-mk-h2 font-semibold tracking-[-0.025em]">{t("title")}</h1>
           <p className="mt-2 text-ink/80">
             {plan ? t("introPlan", { plan: pickLocalized(plan.name, locale) }) : t("intro")}
           </p>

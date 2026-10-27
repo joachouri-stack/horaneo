@@ -12,7 +12,7 @@ const NETWORKS: SocialNetwork[] = ["youtube", "tiktok", "instagram", "facebook"]
 
 const LINK =
   "inline-flex min-h-11 items-center text-[#c8d0e4] transition-colors hover:text-white focus-visible:outline-white";
-const HEADING = "mb-2 text-[0.8125rem] font-medium uppercase tracking-[0.16em] text-champagne";
+const HEADING = "mb-2 text-mk-note font-medium uppercase tracking-[0.16em] text-champagne";
 
 /**
  * Pied de page du site commercial, en bleu nuit profond (même univers que la carte
@@ -84,13 +84,13 @@ export async function PlatformFooter() {
 
           {/* Déjà client : accès direct à l'espace pro. */}
           <div className="self-start rounded-[1.4rem] border border-white/10 bg-white/[0.04] p-6 backdrop-blur-sm lg:p-7">
-            <p className="font-display text-[1.25rem] font-semibold tracking-[-0.02em] text-white">
+            <p className="font-display text-mk-card font-semibold tracking-[-0.02em] text-white">
               {t("proCardTitle")}
             </p>
             <p className="mt-2 text-[0.9375rem] leading-relaxed text-[#aab4cc]">{t("proCardText")}</p>
             <Link
               href="/connexion"
-              className="hn-shine group mt-5 inline-flex min-h-12 items-center gap-2 rounded-xl bg-[linear-gradient(135deg,#d9c08e,#e4cfa2)] px-5 font-medium text-[#121a2c] transition hover:-translate-y-px focus-visible:outline-white"
+              className="hn-shine group mt-5 inline-flex min-h-12 items-center gap-2 rounded-xl bg-[linear-gradient(135deg,#d9c08e,#e4cfa2)] px-5 text-mk-body font-medium text-[#121a2c] transition hover:-translate-y-px focus-visible:outline-white"
             >
               {tCommon("login")}
               <ArrowLine className="size-[18px] transition-transform group-hover:translate-x-0.5" />
@@ -114,7 +114,7 @@ export async function PlatformFooter() {
             <p id="pied-decouvrir" className={HEADING}>
               {t("discover")}
             </p>
-            <ul className="text-[1rem]">
+            <ul className="text-mk-small">
               {NAV.map((item) => (
                 <li key={item.hash}>
                   <Link href={{ pathname: "/", hash: item.hash }} className={LINK}>
@@ -128,7 +128,7 @@ export async function PlatformFooter() {
             <p id="pied-pro" className={HEADING}>
               {t("pro")}
             </p>
-            <ul className="text-[1rem]">
+            <ul className="text-mk-small">
               <li>
                 <Link href="/connexion" className={LINK}>
                   {tCommon("login")}
@@ -145,7 +145,7 @@ export async function PlatformFooter() {
             <p id="pied-legal" className={HEADING}>
               {t("legalTitle")}
             </p>
-            <ul className="text-[1rem]">
+            <ul className="text-mk-small">
               {legal.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className={LINK}>

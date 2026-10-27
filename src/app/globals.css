@@ -519,3 +519,39 @@ form:has(input[name="billing"][value="year"]:checked) [data-monthly-only] {
     animation: hn-up 0.7s ease 0.36s both;
   }
 }
+
+/*
+ * Site commercial : échelle typographique unique (8 tailles), la même sur toutes ses pages.
+ * Titres : page d'accueil (h1), section (h2), carte ; prix des packs ; textes : introduction,
+ * courant, secondaire, mentions.
+ */
+@utility text-mk-h1 {
+  font-size: clamp(2.25rem, 5vw, 3.6rem);
+}
+@utility text-mk-h2 {
+  font-size: clamp(1.875rem, 3.4vw, 2.5rem);
+}
+@utility text-mk-card {
+  font-size: 1.25rem;
+}
+@utility text-mk-price {
+  font-size: 2.5rem;
+  @media (width >= 40rem) {
+    font-size: 3rem;
+  }
+}
+@utility text-mk-lead {
+  font-size: 1.125rem;
+  @media (width >= 64rem) {
+    font-size: 1.1875rem;
+  }
+}
+@utility text-mk-body {
+  font-size: 1.0625rem;
+}
+@utility text-mk-small {
+  font-size: 0.9375rem;
+}
+@utility text-mk-note {
+  font-size: 0.875rem;
+}

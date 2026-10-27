@@ -26,8 +26,10 @@ export async function LegalPage({ docKey, locale }: { docKey: LegalKey; locale: 
   return (
     <>
       <PlatformHeader />
-      <main id="contenu" className="mx-auto max-w-3xl px-4 py-12">
-        <h1 className="text-3xl font-extrabold">{doc?.title ?? t(`titles.${docKey}`)}</h1>
+      <main id="contenu" className="text-mk-body mx-auto max-w-3xl px-4 py-12">
+        <h1 className="font-display text-mk-h2 font-semibold tracking-[-0.025em]">
+          {doc?.title ?? t(`titles.${docKey}`)}
+        </h1>
         {facts.length > 0 && (
           <section
             aria-labelledby="identite"

@@ -93,7 +93,7 @@ export async function Comparison({
                   data-col={index}
                   className={`w-[22%] p-4 text-center align-bottom md:w-[17%] ${col(index)}`}
                 >
-                  <span className="block font-display text-[1.125rem] font-semibold text-night">
+                  <span className="block font-display text-mk-card font-semibold text-night">
                     {pickLocalized(plan.name, locale)}
                   </span>
                   <span
