@@ -320,7 +320,8 @@ export async function linkOrderToTenant(
   tenantId: string,
   gateway: BillingGateway | null,
 ) {
-  const [order] = await tx.select().from(orders).where(eq(orders.id, orderId));
+  // Verrou : deux clics (ou deux onglets) ne traitent pas la même commande deux fois.
+  const [order] = await tx.select().from(orders).where(eq(orders.id, orderId)).for("update");
   if (!order) throw new AppError("not_found");
   if (!["awaiting_review", "paid"].includes(order.status)) throw new AppError("order_not_pending");
   await tx.update(orders).set({ status: "in_creation", tenantId }).where(eq(orders.id, order.id));
@@ -363,12 +364,16 @@ export async function rejectOrder(
   reason: string,
   gateway: BillingGateway | null,
 ) {
-  const [order] = await tx.select().from(orders).where(eq(orders.id, orderId));
+  // Verrou : deux clics (ou deux onglets) ne traitent pas la même commande deux fois.
+  const [order] = await tx.select().from(orders).where(eq(orders.id, orderId)).for("update");
   if (!order) throw new AppError("not_found");
   if (!["awaiting_review", "paid"].includes(order.status)) throw new AppError("order_not_pending");
   if (order.stripeSubscriptionId) {
     if (!gateway) throw new AppError("payments_unavailable");
-    await gateway.cancelNow(order.stripeSubscriptionId).catch(providerError);
+    // Déjà arrêté (nouvel essai après un échec) : pas de second arrêt chez Stripe.
+    const remote = await gateway.retrieveSubscription(order.stripeSubscriptionId).catch(providerError);
+    if (remote.status !== "canceled")
+      await gateway.cancelNow(order.stripeSubscriptionId).catch(providerError);
   }
   await tx
     .update(orders)

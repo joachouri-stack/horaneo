@@ -2,7 +2,16 @@ import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { withPlatform, withTenant } from "@/db/access";
 import type { Transaction } from "@/db/client";
-import { appointments, assets, customers, messageLog, services, staffMembers, users } from "@/db/schema";
+import {
+  appointments,
+  assets,
+  businessSettings,
+  customers,
+  messageLog,
+  services,
+  staffMembers,
+  users,
+} from "@/db/schema";
 import { resolveManagerAccess } from "@/lib/manager/role";
 import { createBooking } from "@/modules/booking/create";
 import { businessOfManageToken, findByManageToken } from "@/modules/booking/manage";
@@ -450,7 +459,7 @@ describe.skipIf(!hasTestDatabase)("plusieurs entreprises sur un même site", () 
           addBusinessManager(tx, site.tenantId, { businessId: business.id, email: laila.email }),
         ),
       ),
-    ).toBe("manager_already_linked");
+    ).toBe("business_has_manager");
     expect(
       await errorCode(
         platform((tx) =>
@@ -465,10 +474,20 @@ describe.skipIf(!hasTestDatabase)("plusieurs entreprises sur un même site", () 
     const { managerId: before } = await platform((tx) =>
       addBusinessManager(tx, site.tenantId, { businessId: business.id, email: "avant@exemple.fr" }),
     );
+    await owner
+      .update(businessSettings)
+      .set({ calendarFeedVersion: 3 })
+      .where(eq(businessSettings.businessId, business.id));
     const { managerId: after, removedIds } = await platform((tx) =>
       replaceBusinessManager(tx, site.tenantId, { businessId: business.id, email: "apres@exemple.fr" }),
     );
     expect(removedIds).toEqual([before]);
+    // Le lien d'agenda du téléphone de l'ancienne gérante est coupé.
+    const [settings] = await owner
+      .select({ version: businessSettings.calendarFeedVersion })
+      .from(businessSettings)
+      .where(eq(businessSettings.businessId, business.id));
+    expect(settings.version).toBe(0);
     const access = (userId: string) =>
       resolveManagerAccess({ user: { id: userId }, session: {} }, site.tenantId, business.id, app);
     expect(await access(after)).toEqual({ role: "owner", businessId: business.id });

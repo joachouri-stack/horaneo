@@ -2146,6 +2146,7 @@
     "manager_already_linked": "Cette personne gère déjà une entreprise de ce site.",
     "primary_business_only": "L'abonnement du site se gère depuis l'espace de l'établissement principal.",
     "session_expired": "Votre session a expiré. Rechargez la page pour vous reconnecter.",
+    "business_has_manager": "Cette entreprise a déjà une gérante : utilisez « Remplacer la gérante ».",
     "site_content_primary_only": "Les photos et les avis du site se gèrent depuis l'espace de l'établissement principal.",
     "promo_not_combinable": "Cette prestation est déjà en promotion : le code promo ne s'y ajoute pas.",
     "gift_card_not_found": "Ce code de carte cadeau est inconnu. Vérifiez-le, ou contactez l'établissement.",

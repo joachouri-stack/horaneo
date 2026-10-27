@@ -281,6 +281,13 @@
       "when": 1793096273102,
       "tag": "0039_customer_birthday",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1793104774536,
+      "tag": "0040_features_soon_again",
+      "breakpoints": true
     }
   ]
 }

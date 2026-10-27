@@ -27,7 +27,9 @@ import {
 } from "@/modules/catalog/services";
 import { updatePage } from "@/modules/content/pages";
 import { saveTestimonial } from "@/modules/content/testimonials";
+import { updatePlatformSettings } from "@/modules/billing/admin";
 import { AppError } from "@/modules/errors";
+import { getPlatformSetting } from "@/modules/settings";
 import {
   listActiveAssets,
   listRetiredAssets,
@@ -180,6 +182,32 @@ describe.skipIf(!hasTestDatabase)("espace admin : modules", () => {
       );
       const [domain] = await owner.select().from(tenantDomains).where(eq(tenantDomains.tenantId, tenant.id));
       expect(domain.hostname).toBe(`${slug}.horaneo.com`);
+    });
+
+    it("enregistrer les coordonnées sans les champs GPS ne les efface pas ; avec, les modifie", async () => {
+      const tenant = await newTenant();
+      const base = { name: "Salon GPS", slug: tenant.slug, country: "FR", timezone: "Europe/Paris" };
+      await platform((tx) =>
+        updateIdentity(tx, tenant.id, { ...base, latitude: "45,764", longitude: "4.8357" }),
+      );
+      await platform((tx) => updateIdentity(tx, tenant.id, { ...base, phone: "0478000000" }));
+      const [kept] = await owner.select().from(tenants).where(eq(tenants.id, tenant.id));
+      expect([kept.latitude, kept.longitude].map(Number)).toEqual([45.764, 4.8357]);
+      await platform((tx) => updateIdentity(tx, tenant.id, { ...base, latitude: "", longitude: "" }));
+      const [cleared] = await owner.select().from(tenants).where(eq(tenants.id, tenant.id));
+      expect([cleared.latitude, cleared.longitude]).toEqual([null, null]);
+    });
+
+    it("réglages : un champ absent garde sa valeur, une case vide est refusée", async () => {
+      const before = await platform((tx) => getPlatformSetting(tx, "vat_rate_percent"));
+      const demo = String(await platform((tx) => getPlatformSetting(tx, "demo_url")));
+      await platform((tx) => updatePlatformSettings(tx, { demo_url: demo }));
+      expect(await platform((tx) => getPlatformSetting(tx, "vat_rate_percent"))).toBe(before);
+      await expect(platform((tx) => updatePlatformSettings(tx, { vat_rate_percent: "" }))).rejects.toThrow();
+      await expect(
+        platform((tx) => updatePlatformSettings(tx, { demo_url: "javascript:alert(1)" })),
+      ).rejects.toThrow();
+      expect(await platform((tx) => getPlatformSetting(tx, "vat_rate_percent"))).toBe(before);
     });
 
     it("enregistre modèle, ambiance et couleurs", async () => {

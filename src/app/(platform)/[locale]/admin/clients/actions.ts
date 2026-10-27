@@ -179,6 +179,8 @@ export async function updateIdentityAction(_previous: Previous, data: FormData) 
     "city",
     "country",
     "timezone",
+    "latitude",
+    "longitude",
   ] as const;
   const input = Object.fromEntries(keys.map((key) => [key, form.text(data, key)])) as Record<
     (typeof keys)[number],
@@ -335,7 +337,7 @@ export async function addBusinessManagerAction(_previous: Previous, data: FormDa
     }),
     (tx) =>
       addBusinessManager(tx, tenantId, {
-        businessId: form.text(data, "businessId"),
+        businessId: businessIdOf(data),
         email: form.text(data, "managerEmail"),
         name: form.optional(data, "managerName") ?? null,
       }),
@@ -359,7 +361,7 @@ export async function replaceBusinessManagerAction(_previous: Previous, data: Fo
     }),
     (tx) =>
       replaceBusinessManager(tx, tenantId, {
-        businessId: form.text(data, "businessId"),
+        businessId: businessIdOf(data),
         email: form.text(data, "managerEmail"),
         name: form.optional(data, "managerName") ?? null,
       }),
