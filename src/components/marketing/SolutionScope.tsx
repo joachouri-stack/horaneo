@@ -60,7 +60,7 @@ export function SolutionTabs({
   if (!context) return null;
   return (
     <div role="group" aria-label={label} className="grid gap-3 sm:grid-cols-3 sm:gap-4">
-      {items.map((item) => {
+      {items.map((item, index) => {
         const Icon = ICONS[item.code];
         const active = context.solution === item.code;
         return (
@@ -70,20 +70,40 @@ export function SolutionTabs({
             aria-pressed={active}
             onClick={() => context.choose(item.code)}
             data-solution={item.code}
-            className={`group flex min-h-[4.75rem] items-center gap-3.5 rounded-2xl border px-4 py-3.5 text-left transition duration-300 motion-reduce:transition-none ${
+            // --i : rang de la carte, pour qu'elles s'allument tour à tour sur écran tactile (globals.css).
+            style={{ "--i": index } as React.CSSProperties}
+            className={`hn-sol hn-shine group relative flex min-h-[4.75rem] items-center gap-3.5 overflow-hidden rounded-2xl border px-4 py-3.5 text-left transition duration-300 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 ${
               active
                 ? "border-transparent bg-accent text-white shadow-[0_18px_36px_-20px_var(--accent)]"
-                : "border-hairline bg-white text-night hover:-translate-y-0.5 hover:border-accent-line hover:shadow-[0_14px_30px_-22px_rgba(15,24,48,.4)]"
+                : "border-hairline bg-white text-night hover:-translate-y-1 hover:border-accent hover:shadow-[0_18px_36px_-20px_var(--accent)]"
             }`}
           >
+            {/* Halo de la couleur de la solution : il monte du coin au survol. */}
             <span
-              className={`flex size-11 flex-none items-center justify-center rounded-xl transition ${
-                active ? "bg-white/15 text-white" : "bg-accent-soft text-accent"
+              aria-hidden="true"
+              className={`hn-sol-halo pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 ${
+                active
+                  ? "bg-[radial-gradient(ellipse_at_0%_100%,rgb(255_255_255/0.22),transparent_65%)]"
+                  : "bg-[radial-gradient(ellipse_at_0%_100%,var(--accent-soft),transparent_70%)]"
+              }`}
+            />
+            <span
+              className={`hn-sol-icon relative flex size-11 flex-none items-center justify-center rounded-xl transition duration-300 group-hover:-rotate-6 group-hover:scale-110 motion-reduce:transition-none motion-reduce:group-hover:rotate-0 motion-reduce:group-hover:scale-100 ${
+                active
+                  ? "bg-white/15 text-white"
+                  : "bg-accent-soft text-accent group-hover:bg-accent group-hover:text-white"
               }`}
             >
               <Icon className="size-6" />
             </span>
-            <span className="min-w-0">
+            {/* Filet du bas, de la couleur de la solution : il s'étire au survol. */}
+            <span
+              aria-hidden="true"
+              className={`hn-sol-bar absolute bottom-0 left-4 h-[3px] rounded-full transition-all duration-300 motion-reduce:transition-none ${
+                active ? "w-[calc(100%-2rem)] bg-white/40" : "w-0 bg-accent group-hover:w-[calc(100%-2rem)]"
+              }`}
+            />
+            <span className="relative min-w-0">
               <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                 <span className="font-display text-mk-card font-semibold tracking-[-0.01em]">
                   {item.name}
