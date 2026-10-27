@@ -372,21 +372,32 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     </div>
                   </div>
 
-                  {/* Bandeau des fonctions de la solution */}
-                  <ul className="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-hairline bg-hairline sm:grid-cols-3 lg:mt-12 lg:grid-cols-5">
-                    {(t.raw(`solutions.items.${code}.strip`) as string[]).map((item, index) => {
-                      const Icon = STRIP[code][index] ?? CheckLine;
-                      return (
-                        <li
-                          key={item}
-                          data-reveal
-                          className="group flex flex-col items-center gap-2 bg-white px-3 py-5 text-center text-[0.9375rem] text-[#2d3446] max-sm:last:col-span-2"
-                        >
-                          <Icon className="size-6 text-accent transition-transform duration-300 group-hover:-translate-y-1 group-hover:scale-110 motion-reduce:transition-none" />
-                          {item}
-                        </li>
-                      );
-                    })}
+                  {/* Fonctions de la solution : une carte par fonction, avec son bénéfice. */}
+                  <ul className="mt-10 grid gap-3 sm:grid-cols-2 lg:mt-12 lg:grid-cols-5 lg:gap-4">
+                    {(t.raw(`solutions.items.${code}.strip`) as { title: string; text: string }[]).map(
+                      (item, index) => {
+                        const Icon = STRIP[code][index] ?? CheckLine;
+                        return (
+                          <li
+                            key={item.title}
+                            data-reveal
+                            className="group flex items-start gap-4 rounded-2xl border border-hairline bg-white p-4 shadow-[0_1px_2px_rgba(15,24,48,.04)] transition duration-300 hover:-translate-y-1 hover:border-coral/40 hover:shadow-[0_14px_30px_-18px_rgba(232,80,63,.45)] motion-reduce:transition-none sm:max-lg:last:col-span-2 lg:flex-col lg:gap-3 lg:p-5"
+                          >
+                            <span className="flex size-11 flex-none items-center justify-center rounded-xl bg-accent-soft text-accent transition-colors duration-300 group-hover:bg-coral/10 group-hover:text-coral-dark">
+                              <Icon className="size-[1.375rem]" />
+                            </span>
+                            <span className="min-w-0">
+                              <span className="block font-display text-mk-body font-semibold leading-snug text-night">
+                                {item.title}
+                              </span>
+                              <span className="mt-1 block text-mk-small leading-snug text-ink-soft">
+                                {item.text}
+                              </span>
+                            </span>
+                          </li>
+                        );
+                      },
+                    )}
                   </ul>
                 </div>
               ))}
