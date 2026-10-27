@@ -257,10 +257,10 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               <div className="hn-drift-slow absolute -right-20 top-32 size-[22rem] rounded-full bg-champagne/25 blur-[90px] max-sm:size-[14rem]" />
             </div>
             <div className="relative mx-auto max-w-[56rem] px-4 pb-10 pt-12 text-center sm:px-6 lg:pb-12 lg:pt-20">
-              <p className={`${EYEBROW} hn-up`}>
+              <p className={`${EYEBROW} hn-up !text-coral-dark`}>
                 <span aria-hidden="true" className="relative flex size-2">
-                  <span className="hn-ping absolute inset-0 rounded-full bg-accent" />
-                  <span className="relative size-2 rounded-full bg-accent" />
+                  <span className="hn-ping absolute inset-0 rounded-full bg-coral" />
+                  <span className="relative size-2 rounded-full bg-coral" />
                 </span>
                 {t("hero.badge")}
               </p>
