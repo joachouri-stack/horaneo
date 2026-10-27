@@ -128,7 +128,7 @@ const SECONDARY =
   "inline-flex min-h-12 items-center gap-2 rounded-xl border border-hairline bg-white px-5 text-[1.0625rem] font-medium text-night transition hover:border-accent-line hover:text-accent-strong";
 
 /**
- * Site commercial : site de réservation en ligne, prêt à remplir l'agenda.
+ * Site commercial : « Votre agenda se remplit. Vous, vous travaillez. »
  * Une marque, trois solutions (Réservation, Commerce, Formation) qui
  * partagent les mêmes packs (Starter, Pro, Business). Le choix d'une solution
  * change l'accent, les textes, les visuels et le comparatif ; les tarifs ne
@@ -270,7 +270,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   <span className="truncate">{t("hero.badge")}</span>
                 </p>
                 <h1 className={`${TITLE} hn-balance hn-up-2 mt-6 text-mk-h1 leading-[1.04]`}>
-                  {t("hero.title")} <span className="hn-shimmer">{t("hero.titleAccent")}</span>
+                  {t("hero.title")} <span className="hn-shimmer block">{t("hero.titleAccent")}</span>
                 </h1>
                 <p className="hn-up-3 mt-5 max-w-[34rem] text-mk-lead leading-relaxed text-ink-soft">
                   {t("hero.subtitle")}

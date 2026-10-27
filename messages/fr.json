@@ -56,9 +56,9 @@
     "cta": "Créer mon site",
     "hero": {
       "badge": "Site, réservations et paiements en ligne",
-      "title": "Votre site de réservation en ligne,",
-      "titleAccent": "prêt à remplir votre agenda.",
-      "subtitle": "Un site professionnel, la prise de rendez-vous 24 h/24, des rappels automatiques et des acomptes : vos clients réservent seuls, vous vous concentrez sur votre métier.",
+      "title": "Votre agenda se remplit.",
+      "titleAccent": "Vous, vous travaillez.",
+      "subtitle": "Un site professionnel où vos clients réservent seuls, 24 h/24, avec rappels automatiques et acomptes en ligne.",
       "demo": "Voir la démonstration",
       "pricing": "Voir les tarifs",
       "points": ["Réservation en ligne 24 h/24", "Rappels automatiques", "Paiements sécurisés"],
