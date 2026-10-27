@@ -1963,7 +1963,7 @@
       "demo_url": "Adresse de la démonstration",
       "demoHint": "Vide : le bouton « Voir la démonstration » n'apparaît pas.",
       "social": "Réseaux sociaux",
-      "socialHint": "Adresses complètes de vos pages. Elles apparaissent dans le pied de page du site, avec leur logo ; un champ vide masque le réseau.",
+      "socialHint": "L'adresse de votre page, ou simplement votre nom de compte (ex. @moncompte). Chaque réseau rempli apparaît dans le pied de page du site, avec son logo ; un champ vide le masque.",
       "social_youtube": "Chaîne YouTube",
       "social_tiktok": "Compte TikTok",
       "social_instagram": "Compte Instagram",

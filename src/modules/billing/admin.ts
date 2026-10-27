@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, inArray, isNotNull, ne, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { z } from "zod";
+import { SOCIAL_PROFILE_URLS } from "@/config/defaults";
 import type { Transaction } from "@/db/client";
 import {
   planOptions,
@@ -211,6 +212,25 @@ export async function savePlan(
   return { priceChanged, before: plan.priceCents, after: priceCents };
 }
 
+/**
+ * Page d'un réseau social : adresse complète, adresse sans « https:// », ou simple
+ * nom de compte (« @moncompte »), transformé en adresse de la page.
+ */
+function socialLink(network: keyof typeof SOCIAL_PROFILE_URLS) {
+  return z
+    .string()
+    .trim()
+    .max(300)
+    .default("")
+    .transform((value) => {
+      if (!value) return "";
+      if (/^@?[\w.-]+$/.test(value) && !/\.(com|fr|net|org)$/i.test(value))
+        return `${SOCIAL_PROFILE_URLS[network]}${value.replace(/^@/, "")}`;
+      return /^https?:\/\//i.test(value) ? value : `https://${value}`;
+    })
+    .pipe(z.union([z.literal(""), z.url()]));
+}
+
 export const settingsInput = z.object({
   prices_display: z.enum(["TTC", "HT"]),
   vat_rate_percent: z.coerce.number().min(0).max(50),
@@ -241,10 +261,10 @@ export const settingsInput = z.object({
   /** Adresse de la démonstration (vide : bouton masqué). */
   demo_url: z.union([z.literal(""), z.url().max(300)]).default(""),
   /** Pages de la marque sur les réseaux sociaux (vide : non affiché). */
-  social_youtube: z.union([z.literal(""), z.url().max(300)]).default(""),
-  social_tiktok: z.union([z.literal(""), z.url().max(300)]).default(""),
-  social_instagram: z.union([z.literal(""), z.url().max(300)]).default(""),
-  social_facebook: z.union([z.literal(""), z.url().max(300)]).default(""),
+  social_youtube: socialLink("youtube"),
+  social_tiktok: socialLink("tiktok"),
+  social_instagram: socialLink("instagram"),
+  social_facebook: socialLink("facebook"),
   go_live_delay_days: z.coerce.number().int().min(0).max(60),
   deposit_commission_percent: z.coerce.number().min(0).max(20),
   retention_days_after_cancel: z.coerce.number().int().min(0).max(365),

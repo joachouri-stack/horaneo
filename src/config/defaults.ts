@@ -690,3 +690,14 @@ export const DEFAULT_PLAN_OPTIONS: PlanOptionSeed[] = [
     sortOrder: 9,
   },
 ];
+
+/**
+ * Adresse d'un compte sur chaque réseau social : l'admin peut saisir « @moncompte »
+ * au lieu de l'adresse complète de la page.
+ */
+export const SOCIAL_PROFILE_URLS = {
+  youtube: "https://www.youtube.com/@",
+  tiktok: "https://www.tiktok.com/@",
+  instagram: "https://www.instagram.com/",
+  facebook: "https://www.facebook.com/",
+} as const;
