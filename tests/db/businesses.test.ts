@@ -14,6 +14,7 @@ import {
   replaceBusinessManager,
   setBusinessLogo,
   updateBusinessProfile,
+  updateBusinessShop,
 } from "@/modules/businesses/businesses";
 import { loadSiteData } from "@/modules/site/data";
 import { createUpdateRequest, listTenantRequests } from "@/modules/requests/update-requests";
@@ -331,6 +332,23 @@ describe.skipIf(!hasTestDatabase)("plusieurs entreprises sur un même site", () 
       role: "Esthéticienne, spécialiste du regard",
       availability: "Du lundi au samedi",
     });
+  });
+
+  it("nom de boutique enregistré seul : le reste de sa page ne bouge pas", async () => {
+    await platform((tx) =>
+      updateBusinessProfile(tx, site.tenantId, site.natacha.id, { slug: "natacha-zen", title: "Massages" }),
+    );
+    await platform((tx) => updateBusinessShop(tx, site.tenantId, site.natacha.id, { shopName: "Serenity" }));
+    // Enregistrer sa page (sans le champ boutique) garde le nom de boutique.
+    await platform((tx) =>
+      updateBusinessProfile(tx, site.tenantId, site.natacha.id, { slug: "natacha-zen", title: "Soins" }),
+    );
+    let data = await asBusiness(null, (tx) => loadSiteData(tx, site.tenantId));
+    const natacha = () => data?.businesses.find((business) => business.id === site.natacha.id);
+    expect(natacha()).toMatchObject({ slug: "natacha-zen", title: "Soins", shopName: "Serenity" });
+    await platform((tx) => updateBusinessShop(tx, site.tenantId, site.natacha.id, { shopName: "" }));
+    data = await asBusiness(null, (tx) => loadSiteData(tx, site.tenantId));
+    expect(natacha()).toMatchObject({ slug: "natacha-zen", shopName: null });
   });
 
   it("chaque entreprise a ses propres réseaux sociaux (adresses vérifiées)", async () => {

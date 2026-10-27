@@ -32,6 +32,7 @@ import {
   setBusinessLogo,
   updateBusiness,
   updateBusinessProfile,
+  updateBusinessShop,
 } from "@/modules/businesses/businesses";
 import { createTenant } from "@/modules/tenants/create";
 import {
@@ -234,11 +235,21 @@ export async function updateBusinessProfileAction(_previous: Previous, data: For
         bio: form.text(data, "bio"),
         quote: form.text(data, "quote"),
         availability: form.text(data, "availability"),
+        // Nom de boutique : enregistré à part (encadré « Logo et nom de sa boutique »).
         photoAssetId: form.optional(data, "photoAssetId") ?? null,
-        shopName: form.text(data, "shopName"),
         instagram: form.text(data, "instagram"),
         facebook: form.text(data, "facebook"),
       }),
+  );
+}
+
+/** Nom de boutique d'une entreprise, seul (encadré « Logo et nom de sa boutique »). */
+export async function updateBusinessShopAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const businessId = businessIdOf(data);
+  return adminMutation(
+    { action: "business.shop_updated", tenantId, targetType: "business", targetId: businessId },
+    (tx) => updateBusinessShop(tx, tenantId, businessId, { shopName: form.text(data, "shopName") }),
   );
 }
 

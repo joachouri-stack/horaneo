@@ -277,6 +277,24 @@ export const businessProfileInput = z.object({
  * Présentation publique d'une entreprise (sa page sur le site). Les textes
  * sont rangés sous la langue principale du site, sans effacer les traductions.
  */
+/** Nom de boutique d'une professionnelle (affiché avec son logo) ; vide : retiré. Le reste de sa page est inchangé. */
+export async function updateBusinessShop(
+  tx: Transaction,
+  tenantId: string,
+  businessId: string,
+  raw: { shopName?: string },
+) {
+  const { shopName } = businessProfileInput.pick({ shopName: true }).parse(raw);
+  const business = await getBusiness(tx, tenantId, businessId);
+  const profile: BusinessProfile = { ...(business.profile ?? {}), shopName: shopName || null };
+  const [updated] = await tx
+    .update(businesses)
+    .set({ profile })
+    .where(and(eq(businesses.tenantId, tenantId), eq(businesses.id, businessId)))
+    .returning();
+  return updated;
+}
+
 export async function updateBusinessProfile(
   tx: Transaction,
   tenantId: string,
