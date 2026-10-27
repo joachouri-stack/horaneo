@@ -60,7 +60,7 @@ export async function PlatformFooter() {
         className="hn-drift-slow pointer-events-none absolute -bottom-40 -right-16 size-96 rounded-full bg-champagne/15 blur-[100px]"
       />
 
-      <div className="relative mx-auto max-w-[75rem] px-4 pb-8 pt-16 sm:px-6 lg:pt-20">
+      <div className="relative mx-auto max-w-[75rem] 2xl:max-w-[88rem] px-4 pb-8 pt-16 sm:px-6 lg:pt-20">
         <div className="grid gap-12 lg:grid-cols-[1.4fr_1fr] lg:gap-16">
           <div>
             <Link

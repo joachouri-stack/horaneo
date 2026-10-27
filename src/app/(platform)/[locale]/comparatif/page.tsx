@@ -34,7 +34,7 @@ export default async function ComparePage({ params }: PageProps<"/[locale]/compa
   return (
     <div className="bg-white text-mk-body font-light text-[#3d4457]">
       <PlatformHeader />
-      <main id="contenu" className="mx-auto max-w-[75rem] px-4 pb-20 pt-8 sm:px-6 lg:pt-12">
+      <main id="contenu" className="mx-auto max-w-[75rem] 2xl:max-w-[88rem] px-4 pb-20 pt-8 sm:px-6 lg:pt-12">
         <Link
           href={{ pathname: "/", hash: "tarifs" }}
           className="inline-flex min-h-11 items-center gap-1.5 font-medium text-navy underline underline-offset-4"
