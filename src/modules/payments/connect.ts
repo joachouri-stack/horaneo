@@ -26,6 +26,23 @@ export function connectState(
   return tenant.stripeChargesEnabled ? "active" : "incomplete";
 }
 
+/**
+ * État du paiement en ligne tel que la gérante le voit, le même sur toutes ses pages
+ * (Paiements, Réglages, Cartes cadeaux) : « platform_off » tant que le paiement
+ * n'est pas configuré sur la plateforme, même si le compte Stripe est actif.
+ */
+export type PaymentSetup = ConnectState | "platform_off";
+
+export function paymentSetup(
+  business: { stripeAccountId: string | null; stripeChargesEnabled: boolean },
+  features: PlanFeatures,
+  gatewayConfigured: boolean,
+): PaymentSetup {
+  const state = connectState(business, features);
+  if (state === "unavailable") return state;
+  return gatewayConfigured ? state : "platform_off";
+}
+
 async function loadBusiness(tx: Transaction, tenantId: string, businessId: string) {
   const [row] = await tx
     .select({ business: businesses, tenant: tenants, features: tenantFeatures })

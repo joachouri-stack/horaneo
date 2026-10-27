@@ -2,6 +2,7 @@ import { tenantFeatures, tenantLimits } from "@/modules/billing/entitlements";
 import { appointmentEvent, googleCalendarUrl } from "@/lib/calendar/appointment";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { declareBusiness } from "@/db/access";
+import { formatMoney } from "@/lib/format";
 import type { Transaction } from "@/db/client";
 import {
   appointmentItems,
@@ -134,8 +135,7 @@ function formatters(locale: Locale, timeZone: string) {
     time: (value: Date) => time.format(value),
     when: (t: Translator, value: Date) =>
       t("notifications.common.when", { date: date.format(value), time: time.format(value) }),
-    money: (cents: number, currency: string) =>
-      new Intl.NumberFormat(locale, { style: "currency", currency }).format(cents / 100),
+    money: (cents: number, currency: string) => formatMoney(cents, currency, locale),
   };
 }
 

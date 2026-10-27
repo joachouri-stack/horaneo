@@ -569,7 +569,9 @@ export function BookingFlow(props: Props) {
             {t("steps.slot")}
           </h2>
           <p className="text-site-muted">
-            {chosenNames} · {duration(totalMinutes)}{" "}
+            {/* Une seule prestation : sa durée est déjà dans son nom. */}
+            {chosenNames}
+            {chosen.length > 1 && <> · {duration(totalMinutes)}</>}{" "}
             <button type="button" onClick={() => setStep("services")} className={linkClass}>
               {t("change")}
             </button>

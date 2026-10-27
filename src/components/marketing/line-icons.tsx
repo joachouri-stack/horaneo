@@ -123,6 +123,7 @@ export const RefreshLine = icon(
 export const CheckLine = icon(<path d="m5 12.5 4.5 4.5L19 7.5" />);
 export const DashLine = icon(<path d="M7 12h10" />);
 export const ArrowLine = icon(<path d="M5 12h14M13.5 6.5 19 12l-5.5 5.5" />);
+export const MailLine = icon(<path d="M3.5 6.5h17v11h-17zM4 7l8 6 8-6" />);
 export const PlusLine = icon(<path d="M12 5v14M5 12h14" />);
 export const LeafLine = icon(<path d="M5 19c0-8 5-13 14-14 0 9-5 14-13 14M5 19c3-4 6-6.5 9.5-8" />);
 export const CrownLine = icon(<path d="M4 18h16M4.5 15 3 7l5 3.5L12 5l4 5.5L21 7l-1.5 8z" />);

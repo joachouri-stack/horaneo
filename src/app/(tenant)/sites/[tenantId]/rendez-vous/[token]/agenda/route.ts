@@ -1,5 +1,6 @@
 import { env } from "@/config/env";
 import { appointmentEvent } from "@/lib/calendar/appointment";
+import { getTranslator } from "@/i18n/translator";
 import { buildIcs } from "@/lib/calendar/ics";
 import { withTokenBusiness } from "@/lib/site/business";
 import { getSite } from "@/lib/site/load";
@@ -37,10 +38,12 @@ export async function GET(
     manageUrl: `${siteUrl}${SITE_PATHS.appointment}/${token}`,
     host,
   });
+  const t = await getTranslator(site.locale);
+  const fileName = `${t("booking.manage.calendarFileName")}.ics`;
   return new Response(buildIcs({ name: site.tenant.name, productId: host, events: [event] }), {
     headers: {
       "content-type": "text/calendar; charset=utf-8",
-      "content-disposition": 'inline; filename="rendez-vous.ics"',
+      "content-disposition": `inline; filename*=UTF-8''${encodeURIComponent(fileName)}`,
       "cache-control": "private, no-store",
       "x-robots-tag": "noindex",
     },

@@ -6,7 +6,7 @@ import { managerPage } from "@/lib/manager/page";
 import { paymentGateway } from "@/lib/payments/stripe";
 import { getBookingSettings } from "@/modules/booking/settings";
 import type { AppErrorCode } from "@/modules/errors";
-import { connectState } from "@/modules/payments/connect";
+import { paymentSetup } from "@/modules/payments/connect";
 import { getPlatformSetting } from "@/modules/settings";
 import { refreshStripeAccount, startStripeOnboardingAction } from "../../actions";
 
@@ -21,7 +21,7 @@ export default async function PaymentsPage({
   const configured = paymentGateway() !== null;
 
   // Retour des étapes guidées de Stripe : l'état du compte est relu.
-  let state = connectState(page.business, page.tenant.features);
+  let state = paymentSetup(page.business, page.tenant.features, configured);
   const returned = query.retour === "1";
   if (returned && configured && page.business.stripeAccountId) {
     state = await refreshStripeAccount(page.tenantId).catch(() => state);
@@ -50,11 +50,9 @@ export default async function PaymentsPage({
 
       <section className={ui.card}>
         {/* Paiement en ligne pas encore configuré sur la plateforme : un seul message, jamais « compte actif ». */}
-        {(configured || state === "unavailable") && (
-          <p className={`text-lg font-semibold ${state === "active" ? "text-success" : "text-night"}`}>
-            {t(`state.${state}`)}
-          </p>
-        )}
+        <p className={`text-lg font-semibold ${state === "active" ? "text-success" : "text-night"}`}>
+          {t(`state.${state}`)}
+        </p>
 
         {state === "unavailable" && (
           <p className="mt-3">
@@ -65,11 +63,7 @@ export default async function PaymentsPage({
           </p>
         )}
 
-        {state !== "unavailable" && !configured && (
-          <p className="text-lg font-semibold text-night">{t("notConfigured")}</p>
-        )}
-
-        {(state === "not_started" || state === "incomplete") && configured && (
+        {(state === "not_started" || state === "incomplete") && (
           <form action={startStripeOnboardingAction} className="mt-4 space-y-3">
             <input type="hidden" name="tenantId" value={page.tenantId} />
             <p className="text-ink/80">{t("steps")}</p>
@@ -79,7 +73,7 @@ export default async function PaymentsPage({
           </form>
         )}
 
-        {state === "active" && configured && (
+        {state === "active" && (
           <div className="mt-4 space-y-3">
             <p>{settings.depositEnabled ? t("depositOn", { value: depositValue }) : t("depositOff")}</p>
             <Link href={`${page.base}/plus/reglages`} className={`${ui.secondaryButton} w-full sm:w-auto`}>
