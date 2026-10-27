@@ -812,6 +812,7 @@
       "proCardTitle": "Déjà client ?",
       "proCardText": "Retrouvez votre agenda, vos clientes et votre site dans votre espace professionnel.",
       "socialTitle": "Suivez-nous",
+      "socialSoon": "Bientôt",
       "socialLink": "{network} : {handle} (nouvel onglet)",
       "networks": {
         "youtube": "YouTube",
