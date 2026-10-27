@@ -60,7 +60,15 @@
       "titleAccent": "prêt à remplir votre agenda.",
       "subtitle": "Un site professionnel, la prise de rendez-vous 24 h/24, des rappels automatiques et des acomptes : vos clients réservent seuls, vous vous concentrez sur votre métier.",
       "demo": "Voir la démonstration",
-      "pricing": "Voir les tarifs"
+      "pricing": "Voir les tarifs",
+      "points": ["Réservation en ligne 24 h/24", "Rappels automatiques", "Paiements sécurisés"],
+      "visualAlt": "Capture de l'espace de gestion sur téléphone : rendez-vous du jour (données d'exemple)",
+      "float": {
+        "bookingTitle": "Nouvelle réservation",
+        "bookingText": "Soin du visage · samedi 10:00",
+        "reminderTitle": "Rappel envoyé",
+        "reminderText": "La veille du rendez-vous"
+      }
     },
     "solutions": {
       "title": "Choisissez votre solution",

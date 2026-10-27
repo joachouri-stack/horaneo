@@ -259,40 +259,97 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               <div className="hn-drift absolute -left-24 top-10 size-[24rem] rounded-full bg-accent/15 blur-[90px] max-sm:size-[16rem]" />
               <div className="hn-drift-slow absolute -right-20 top-32 size-[22rem] rounded-full bg-champagne/25 blur-[90px] max-sm:size-[14rem]" />
             </div>
-            <div className="relative mx-auto max-w-[56rem] px-4 pb-10 pt-12 text-center sm:px-6 lg:pb-12 lg:pt-20">
-              <p
-                className={`${EYEBROW} hn-up !text-coral-dark max-sm:items-start max-sm:rounded-2xl max-sm:text-left max-sm:[text-wrap:balance]`}
-              >
-                {/* Sur téléphone, le badge tient sur deux lignes : le point reste à côté de la première. */}
-                <span aria-hidden="true" className="relative flex size-2 flex-none max-sm:mt-[0.47rem]">
-                  <span className="hn-ping absolute inset-0 rounded-full bg-coral" />
-                  <span className="relative size-2 rounded-full bg-coral" />
-                </span>
-                {t("hero.badge")}
-              </p>
-              <h1 className={`${TITLE} hn-balance hn-up-2 mt-5 text-mk-h1 leading-[1.06]`}>
-                {t("hero.title")} <br />
-                <span className="hn-shimmer">{t("hero.titleAccent")}</span>
-              </h1>
-              <p className="hn-up-3 mx-auto mt-5 max-w-[38rem] text-mk-lead text-ink-soft">
-                {t("hero.subtitle")}
-              </p>
-              <div className="hn-up-4 mt-8 flex flex-wrap items-center justify-center gap-3">
-                <Link href={startHref} className={PRIMARY}>
-                  {t("cta")}
-                  <ArrowLine className="size-[18px] transition-transform group-hover:translate-x-0.5" />
-                </Link>
-                {/* La démonstration n'apparaît que si une adresse est réglée dans l'admin. */}
-                {data.demoUrl ? (
-                  <a href={data.demoUrl} target="_blank" rel="noopener" className={SECONDARY}>
-                    <PlayCircleLine className="size-[18px] text-accent" />
-                    {t("hero.demo")}
-                  </a>
-                ) : (
-                  <a href="#tarifs" className={SECONDARY}>
-                    {t("hero.pricing")}
-                  </a>
-                )}
+            <div className="relative mx-auto grid max-w-[75rem] items-center gap-10 px-4 pb-12 pt-8 sm:px-6 sm:pt-12 lg:grid-cols-[1.08fr_0.92fr] lg:gap-8 lg:pb-16 lg:pt-16 2xl:max-w-[88rem]">
+              <div>
+                {/* Petite annonce : une ligne, casse normale, point lumineux. */}
+                <p className="hn-up inline-flex max-w-full items-center gap-2.5 rounded-full border border-hairline bg-white/80 py-1.5 pl-2.5 pr-4 text-mk-note font-medium text-night shadow-[0_6px_18px_-12px_rgba(15,24,48,.35)] backdrop-blur">
+                  <span aria-hidden="true" className="relative flex size-2 flex-none">
+                    <span className="hn-ping absolute inset-0 rounded-full bg-coral" />
+                    <span className="relative size-2 rounded-full bg-coral" />
+                  </span>
+                  <span className="truncate">{t("hero.badge")}</span>
+                </p>
+                <h1 className={`${TITLE} hn-balance hn-up-2 mt-6 text-mk-h1 leading-[1.04]`}>
+                  {t("hero.title")} <span className="hn-shimmer">{t("hero.titleAccent")}</span>
+                </h1>
+                <p className="hn-up-3 mt-5 max-w-[34rem] text-mk-lead leading-relaxed text-ink-soft">
+                  {t("hero.subtitle")}
+                </p>
+                <div className="hn-up-4 mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <Link href={startHref} className={`${PRIMARY} justify-center`}>
+                    {t("cta")}
+                    <ArrowLine className="size-[18px] transition-transform group-hover:translate-x-0.5" />
+                  </Link>
+                  {/* La démonstration n'apparaît que si une adresse est réglée dans l'admin. */}
+                  {data.demoUrl ? (
+                    <a
+                      href={data.demoUrl}
+                      target="_blank"
+                      rel="noopener"
+                      className={`${SECONDARY} justify-center`}
+                    >
+                      <PlayCircleLine className="size-[18px] text-accent" />
+                      {t("hero.demo")}
+                    </a>
+                  ) : (
+                    <a href="#tarifs" className={`${SECONDARY} justify-center`}>
+                      {t("hero.pricing")}
+                    </a>
+                  )}
+                </div>
+                <ul className="hn-up-4 mt-7 grid gap-2 text-mk-small text-ink-soft sm:flex sm:flex-wrap sm:gap-x-5">
+                  {(t.raw("hero.points") as string[]).map((point) => (
+                    <li key={point} className="flex items-center gap-2">
+                      <span className="flex size-5 flex-none items-center justify-center rounded-full bg-accent-soft text-accent">
+                        <CheckLine className="size-3" />
+                      </span>
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Vraie capture de l'espace sur téléphone (données d'exemple), deux notifications qui flottent. */}
+              <div className="hn-up-3 relative mx-auto w-full max-w-[24rem] lg:max-w-[28rem]">
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-x-6 top-10 bottom-6 rounded-[3rem] bg-[radial-gradient(closest-side,var(--accent),transparent)] opacity-20 blur-3xl"
+                />
+                <div className="relative mx-auto w-[14rem] sm:w-[17rem] lg:w-[18.5rem]">
+                  <div className="rounded-[2.6rem] border border-[#2a3043] bg-[#1d2333] p-2 shadow-[0_40px_70px_-30px_rgba(15,24,48,.6)]">
+                    <Image
+                      src="/images/espace-telephone.webp"
+                      width={780}
+                      height={1688}
+                      alt={t("hero.visualAlt")}
+                      priority
+                      sizes="(min-width: 1024px) 18.5rem, (min-width: 640px) 17rem, 14rem"
+                      className="h-auto w-full rounded-[2.1rem]"
+                    />
+                  </div>
+                </div>
+                <div className="hn-float absolute left-0 top-[14%] flex items-center gap-3 rounded-2xl border border-hairline bg-white/95 py-2.5 pl-2.5 pr-4 shadow-[0_18px_36px_-20px_rgba(15,24,48,.5)] backdrop-blur sm:-left-4">
+                  <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-accent-soft text-accent">
+                    <CalendarLine className="size-[18px]" />
+                  </span>
+                  <span className="leading-tight">
+                    <span className="block text-mk-small font-medium text-night">
+                      {t("hero.float.bookingTitle")}
+                    </span>
+                    <span className="block text-mk-note text-ink-soft">{t("hero.float.bookingText")}</span>
+                  </span>
+                </div>
+                <div className="hn-float-late absolute right-0 top-[58%] flex items-center gap-3 rounded-2xl border border-hairline bg-white/95 py-2.5 pl-2.5 pr-4 shadow-[0_18px_36px_-20px_rgba(15,24,48,.5)] backdrop-blur sm:-right-4">
+                  <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-[#e7f6ee] text-[#1f7a4d]">
+                    <BellLine className="size-[18px]" />
+                  </span>
+                  <span className="leading-tight">
+                    <span className="block text-mk-small font-medium text-night">
+                      {t("hero.float.reminderTitle")}
+                    </span>
+                    <span className="block text-mk-note text-ink-soft">{t("hero.float.reminderText")}</span>
+                  </span>
+                </div>
               </div>
             </div>
           </section>
