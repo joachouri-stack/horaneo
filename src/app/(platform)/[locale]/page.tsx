@@ -684,19 +684,34 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           aria-labelledby="titre-confiance"
           className="mx-auto max-w-[75rem] 2xl:max-w-[88rem] px-4 pt-20 sm:px-6 lg:pt-28"
         >
-          <h2 id="titre-confiance" data-reveal className={`${TITLE} text-center text-mk-h2`}>
+          <h2 id="titre-confiance" data-reveal className={`${TITLE} text-center text-mk-h2 leading-[1.1]`}>
             {t("trust.title")}
           </h2>
-          <ul className="mt-8 grid gap-px overflow-hidden rounded-2xl border border-hairline bg-hairline sm:grid-cols-2 lg:grid-cols-5">
+          <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-6 lg:gap-4">
             {TRUST.map(({ key, Icon }) => (
-              <li key={key} data-reveal className="group bg-white p-5">
-                <Icon className="size-6 text-navy transition-transform duration-300 group-hover:-translate-y-1 group-hover:scale-110 motion-reduce:transition-none" />
-                <p className="mt-3 font-medium text-night">
-                  {t(`trust.items.${key}.title`, { percent: data.commission })}
-                </p>
-                <p className="mt-1 text-[0.9375rem] leading-snug text-ink-soft">
-                  {t(`trust.items.${key}.text`)}
-                </p>
+              <li
+                key={key}
+                data-reveal
+                className="group flex items-start gap-4 rounded-2xl border border-hairline bg-white p-4 shadow-[0_1px_2px_rgba(15,24,48,.04)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_14px_30px_-18px_rgba(15,24,48,.35)] motion-reduce:transition-none sm:max-lg:last:col-span-2 lg:col-span-2 lg:p-5 lg:[&:nth-child(n+4)]:col-span-3"
+              >
+                {/* Pastille verte (confiance) et petit ✓ : l'engagement est tenu. */}
+                <span className="relative flex size-11 flex-none items-center justify-center rounded-xl bg-success/10 text-success">
+                  <Icon className="size-[1.375rem]" />
+                  <span
+                    aria-hidden="true"
+                    className="absolute -bottom-1 -right-1 flex size-4 items-center justify-center rounded-full bg-success text-white ring-2 ring-white"
+                  >
+                    <CheckLine className="size-2.5" />
+                  </span>
+                </span>
+                <span className="min-w-0">
+                  <span className="block font-display text-mk-body font-semibold leading-snug text-night">
+                    {t(`trust.items.${key}.title`, { percent: data.commission })}
+                  </span>
+                  <span className="mt-1 block text-mk-small leading-snug text-ink-soft">
+                    {t(`trust.items.${key}.text`)}
+                  </span>
+                </span>
               </li>
             ))}
           </ul>
