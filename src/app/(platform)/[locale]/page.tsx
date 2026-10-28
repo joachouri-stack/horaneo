@@ -543,6 +543,103 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             </div>
           </section>
 
+          {/* Les bénéfices */}
+          <section
+            id="fonctionnalites"
+            aria-labelledby="titre-benefices"
+            className="mx-auto max-w-[75rem] 2xl:max-w-[88rem] scroll-mt-20 px-4 pt-20 sm:px-6 lg:pt-28"
+          >
+            <p data-reveal className={EYEBROW}>
+              {t("benefits.badge")}
+            </p>
+            <h2
+              id="titre-benefices"
+              data-reveal
+              className={`${TITLE} mt-4 max-w-[44rem] text-mk-h2 leading-[1.1]`}
+            >
+              {t("benefits.title")} <span className="text-accent">{t("benefits.titleAccent")}</span>
+            </h2>
+            <ul className="mt-10 grid gap-x-8 gap-y-9 sm:grid-cols-2 lg:grid-cols-4">
+              {BENEFITS.map((item) => {
+                const later = "feature" in item && soon.has(item.feature);
+                return (
+                  <li key={item.key} data-reveal className="group">
+                    <span className="flex size-11 items-center justify-center rounded-xl border border-accent-line bg-accent-soft text-accent transition duration-300 group-hover:-translate-y-1 group-hover:-rotate-6 group-hover:bg-accent group-hover:text-white group-hover:shadow-[0_10px_20px_-10px_var(--accent)] motion-reduce:transition-none">
+                      <item.Icon className="size-[22px]" />
+                    </span>
+                    <h3 className="mt-4 flex flex-wrap items-center gap-2 font-display text-mk-card font-semibold text-night">
+                      {t(`benefits.items.${item.key}.title`)}
+                      {later && (
+                        <span className="rounded-full bg-mist-50 px-2 py-px font-sans text-mk-note font-normal text-ink-soft">
+                          {t("plans.soonTag")}
+                        </span>
+                      )}
+                    </h3>
+                    <p className="mt-1.5 text-[1.0625rem] text-ink-soft">
+                      {t(`benefits.items.${item.key}.text`)}
+                    </p>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+
+          {/* Réassurance : seulement des engagements vérifiés */}
+          <section
+            aria-labelledby="titre-confiance"
+            className="mx-auto max-w-[75rem] 2xl:max-w-[88rem] px-4 pt-20 sm:px-6 lg:pt-28"
+          >
+            <h2 id="titre-confiance" data-reveal className={`${TITLE} text-center text-mk-h2 leading-[1.1]`}>
+              {t("trust.title")}
+            </h2>
+            <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-6 lg:gap-4">
+              {TRUST.map(({ key, Icon }) => (
+                <li
+                  key={key}
+                  data-reveal
+                  className="group flex items-start gap-4 rounded-2xl border border-hairline bg-white p-4 shadow-[0_1px_2px_rgba(15,24,48,.04)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_14px_30px_-18px_rgba(15,24,48,.35)] motion-reduce:transition-none sm:max-lg:last:col-span-2 lg:col-span-2 lg:p-5 lg:[&:nth-child(n+4)]:col-span-3"
+                >
+                  {/* Pastille verte (confiance) et petit ✓ : l'engagement est tenu. */}
+                  <span className="relative flex size-11 flex-none items-center justify-center rounded-xl bg-success/10 text-success">
+                    <Icon className="size-[1.375rem]" />
+                    <span
+                      aria-hidden="true"
+                      className="absolute -bottom-1 -right-1 flex size-4 items-center justify-center rounded-full bg-success text-white ring-2 ring-white"
+                    >
+                      <CheckLine className="size-2.5" />
+                    </span>
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block font-display text-mk-body font-semibold leading-snug text-night">
+                      {t(`trust.items.${key}.title`, { percent: data.commission })}
+                    </span>
+                    <span className="mt-1 block text-mk-small leading-snug text-ink-soft">
+                      {t(`trust.items.${key}.text`)}
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+            {/* Témoignages réels saisis dans l'admin (bloc caché s'il n'y en a pas). */}
+            {data.showcase.length > 0 && (
+              <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {data.showcase.map((entry) => (
+                  <li key={entry.id} data-reveal>
+                    <figure className="flex h-full flex-col rounded-2xl border border-hairline bg-white p-6">
+                      <blockquote className="flex-1 text-night">
+                        {t("showcase.quote", { quote: entry.quote })}
+                      </blockquote>
+                      <figcaption className="mt-4 text-[1.0625rem] text-ink-soft">
+                        <span className="font-medium text-night">{entry.author}</span> · {entry.name} ·{" "}
+                        {entry.activity}
+                      </figcaption>
+                    </figure>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
           {/* Choisissez votre pack */}
           <section
             id="tarifs"
@@ -614,47 +711,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             <p className="mt-6 text-center text-[0.9375rem] text-ink-soft">{t("plans.quotaNote")}</p>
           </section>
 
-          {/* Les bénéfices */}
-          <section
-            id="fonctionnalites"
-            aria-labelledby="titre-benefices"
-            className="mx-auto max-w-[75rem] 2xl:max-w-[88rem] scroll-mt-20 px-4 pt-20 sm:px-6 lg:pt-28"
-          >
-            <p data-reveal className={EYEBROW}>
-              {t("benefits.badge")}
-            </p>
-            <h2
-              id="titre-benefices"
-              data-reveal
-              className={`${TITLE} mt-4 max-w-[44rem] text-mk-h2 leading-[1.1]`}
-            >
-              {t("benefits.title")} <span className="text-accent">{t("benefits.titleAccent")}</span>
-            </h2>
-            <ul className="mt-10 grid gap-x-8 gap-y-9 sm:grid-cols-2 lg:grid-cols-4">
-              {BENEFITS.map((item) => {
-                const later = "feature" in item && soon.has(item.feature);
-                return (
-                  <li key={item.key} data-reveal className="group">
-                    <span className="flex size-11 items-center justify-center rounded-xl border border-accent-line bg-accent-soft text-accent transition duration-300 group-hover:-translate-y-1 group-hover:-rotate-6 group-hover:bg-accent group-hover:text-white group-hover:shadow-[0_10px_20px_-10px_var(--accent)] motion-reduce:transition-none">
-                      <item.Icon className="size-[22px]" />
-                    </span>
-                    <h3 className="mt-4 flex flex-wrap items-center gap-2 font-display text-mk-card font-semibold text-night">
-                      {t(`benefits.items.${item.key}.title`)}
-                      {later && (
-                        <span className="rounded-full bg-mist-50 px-2 py-px font-sans text-mk-note font-normal text-ink-soft">
-                          {t("plans.soonTag")}
-                        </span>
-                      )}
-                    </h3>
-                    <p className="mt-1.5 text-[1.0625rem] text-ink-soft">
-                      {t(`benefits.items.${item.key}.text`)}
-                    </p>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-
           {/* Comparatif détaillé */}
           <section
             id="comparatif"
@@ -678,62 +734,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             />
           </section>
         </SolutionScope>
-
-        {/* Réassurance : seulement des engagements vérifiés */}
-        <section
-          aria-labelledby="titre-confiance"
-          className="mx-auto max-w-[75rem] 2xl:max-w-[88rem] px-4 pt-20 sm:px-6 lg:pt-28"
-        >
-          <h2 id="titre-confiance" data-reveal className={`${TITLE} text-center text-mk-h2 leading-[1.1]`}>
-            {t("trust.title")}
-          </h2>
-          <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-6 lg:gap-4">
-            {TRUST.map(({ key, Icon }) => (
-              <li
-                key={key}
-                data-reveal
-                className="group flex items-start gap-4 rounded-2xl border border-hairline bg-white p-4 shadow-[0_1px_2px_rgba(15,24,48,.04)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_14px_30px_-18px_rgba(15,24,48,.35)] motion-reduce:transition-none sm:max-lg:last:col-span-2 lg:col-span-2 lg:p-5 lg:[&:nth-child(n+4)]:col-span-3"
-              >
-                {/* Pastille verte (confiance) et petit ✓ : l'engagement est tenu. */}
-                <span className="relative flex size-11 flex-none items-center justify-center rounded-xl bg-success/10 text-success">
-                  <Icon className="size-[1.375rem]" />
-                  <span
-                    aria-hidden="true"
-                    className="absolute -bottom-1 -right-1 flex size-4 items-center justify-center rounded-full bg-success text-white ring-2 ring-white"
-                  >
-                    <CheckLine className="size-2.5" />
-                  </span>
-                </span>
-                <span className="min-w-0">
-                  <span className="block font-display text-mk-body font-semibold leading-snug text-night">
-                    {t(`trust.items.${key}.title`, { percent: data.commission })}
-                  </span>
-                  <span className="mt-1 block text-mk-small leading-snug text-ink-soft">
-                    {t(`trust.items.${key}.text`)}
-                  </span>
-                </span>
-              </li>
-            ))}
-          </ul>
-          {/* Témoignages réels saisis dans l'admin (bloc caché s'il n'y en a pas). */}
-          {data.showcase.length > 0 && (
-            <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {data.showcase.map((entry) => (
-                <li key={entry.id} data-reveal>
-                  <figure className="flex h-full flex-col rounded-2xl border border-hairline bg-white p-6">
-                    <blockquote className="flex-1 text-night">
-                      {t("showcase.quote", { quote: entry.quote })}
-                    </blockquote>
-                    <figcaption className="mt-4 text-[1.0625rem] text-ink-soft">
-                      <span className="font-medium text-night">{entry.author}</span> · {entry.name} ·{" "}
-                      {entry.activity}
-                    </figcaption>
-                  </figure>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
 
         {/* Questions */}
         <section
