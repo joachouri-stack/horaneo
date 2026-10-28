@@ -101,6 +101,9 @@ const STRIP: Record<Solution, (typeof CheckLine)[]> = {
   formation: [PlayLine, FileLine, CapLine, AwardLine, TrendLine],
 };
 
+/** Pictogrammes des quatre usages de l'espace de gestion (dans l'ordre des textes). */
+const DASHBOARD_ICONS = [CalendarLine, ChartLine, UsersLine, BellLine];
+
 const BENEFITS = [
   { key: "sales", Icon: CalendarLine },
   { key: "payments", Icon: CardLine },
@@ -490,27 +493,14 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   data-reveal
                   className={`${TITLE} hn-balance mt-4 text-mk-h2 leading-[1.1]`}
                 >
-                  {t("dashboard.title")} <span className="text-accent">{t("dashboard.titleAccent")}</span>
+                  {t("dashboard.title")}{" "}
+                  <span className="block text-accent">{t("dashboard.titleAccent")}</span>
                 </h2>
                 <p data-reveal className="mt-4 text-mk-lead text-ink-soft">
                   {t("dashboard.text")}
                 </p>
               </div>
-              <ul className="mx-auto mt-7 flex max-w-[52rem] flex-wrap justify-center gap-2.5">
-                {(t.raw("dashboard.points") as string[]).map((point) => (
-                  <li
-                    key={point}
-                    data-reveal
-                    className="flex items-center gap-2 rounded-full border border-accent-line bg-white/80 px-3.5 py-1.5 text-mk-small text-night backdrop-blur"
-                  >
-                    <span className="flex size-5 flex-none items-center justify-center rounded-full bg-accent text-white">
-                      <CheckLine className="size-3" />
-                    </span>
-                    {point}
-                  </li>
-                ))}
-              </ul>
-              <figure data-reveal className="mt-10 lg:mt-14">
+              <figure data-reveal className="mt-10 lg:mt-12">
                 <div className="rounded-[1.4rem] border border-hairline bg-white/70 p-1.5 shadow-[0_40px_90px_-40px_rgba(15,24,48,.45),0_0_0_1px_rgba(255,255,255,.6)_inset] backdrop-blur sm:p-2.5 lg:rounded-[1.8rem]">
                   <Image
                     src="/images/espace-de-gestion.webp"
@@ -525,6 +515,31 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   {t("dashboard.note")}
                 </figcaption>
               </figure>
+              {/* Quatre usages clés de l'espace, en cartes fines. */}
+              <ul className="mt-10 grid gap-3 sm:grid-cols-2 sm:gap-4 lg:mt-12 lg:grid-cols-4">
+                {(t.raw("dashboard.points") as { title: string; text: string }[]).map((point, index) => {
+                  const Icon = DASHBOARD_ICONS[index] ?? CheckLine;
+                  return (
+                    <li
+                      key={point.title}
+                      data-reveal
+                      className="group flex items-start gap-3.5 rounded-[1.4rem] border border-hairline bg-white/80 p-4 backdrop-blur sm:gap-4 sm:p-5 transition duration-300 hover:-translate-y-1 hover:border-accent-line hover:shadow-[0_18px_36px_-24px_rgba(15,24,48,.35)] motion-reduce:transition-none motion-reduce:hover:translate-y-0 lg:flex-col lg:gap-5 lg:p-6"
+                    >
+                      <span className="flex size-11 flex-none items-center justify-center rounded-xl bg-accent-soft text-accent transition-transform duration-300 group-hover:-translate-y-0.5 motion-reduce:transition-none">
+                        <Icon className="size-[22px]" />
+                      </span>
+                      <span>
+                        <span className="block font-display text-mk-body font-semibold tracking-[-0.01em] text-night sm:text-mk-card">
+                          {point.title}
+                        </span>
+                        <span className="mt-1.5 block text-mk-small leading-relaxed text-ink-soft">
+                          {point.text}
+                        </span>
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
           </section>
 
