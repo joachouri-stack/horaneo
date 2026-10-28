@@ -764,22 +764,22 @@
       "items": {
         "stripe": {
           "title": "Paiements sécurisés",
-          "text": "Cartes traitées par Stripe, jamais stockées chez nous."
+          "text": "Les cartes bancaires sont traitées par Stripe ; nous ne voyons ni ne gardons jamais leurs numéros."
         },
         "commission": {
           "title": "{percent, plural, =0 {0 % de commission} other {# % de commission}}",
-          "text": "Sur vos acomptes et paiements : seuls les frais Stripe s'appliquent."
+          "text": "Vos acomptes et paiements vous reviennent en entier ; seuls les frais Stripe s'appliquent."
         },
         "hosting": {
-          "title": "Hébergement et SSL inclus",
-          "text": "Votre site est hébergé, sécurisé et maintenu par nos soins."
+          "title": "Hébergement et sécurité inclus",
+          "text": "Votre site est hébergé, protégé (https) et mis à jour par nos soins."
         },
         "data": {
           "title": "Vos données vous appartiennent",
-          "text": "Fichier clients, rendez-vous et contenus exportables sur simple demande."
+          "text": "Clients, rendez-vous et contenus : vous les récupérez sur simple demande."
         },
         "noOverage": {
-          "title": "Aucun dépassement facturé",
+          "title": "Pas de mauvaise surprise",
           "text": "À la limite d'un quota, l'outil se met en pause. Rien n'est facturé sans votre accord."
         }
       }
