@@ -60,7 +60,7 @@ export async function PlatformFooter() {
         className="hn-drift-slow pointer-events-none absolute -bottom-40 -right-16 size-96 rounded-full bg-champagne/15 blur-[100px]"
       />
 
-      <div className="relative mx-auto max-w-[75rem] 2xl:max-w-[88rem] px-4 pb-8 pt-16 sm:px-6 lg:pt-20">
+      <div className="relative mx-auto max-w-[75rem] 2xl:max-w-[88rem] px-4 pb-0 pt-16 sm:px-6 lg:pt-20">
         <div className="grid gap-12 lg:grid-cols-[1.4fr_1fr] lg:gap-16">
           <div>
             <Link
@@ -157,9 +157,16 @@ export async function PlatformFooter() {
           </nav>
         </div>
 
-        <div className="mt-10 flex flex-col gap-2 border-t border-white/10 pt-6 text-[0.9375rem] text-[#8b95ad] sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-10 border-t border-white/10 pt-6 text-[0.9375rem] text-[#8b95ad]">
           <p>{t("rights", { year: new Date().getFullYear(), product: product.toLocaleUpperCase() })}</p>
-          <p>{t("credit")}</p>
+        </div>
+
+        {/* La marque en très grand, qui s'estompe vers le bas : signature du pied de page. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none mt-8 flex select-none justify-center [mask-image:linear-gradient(to_bottom,#000_35%,transparent_95%)] lg:mt-10"
+        >
+          <Logo productName={product} light className="text-[clamp(3rem,14.5vw,11.5rem)] leading-[0.9]" />
         </div>
       </div>
     </footer>
