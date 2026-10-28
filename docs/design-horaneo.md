@@ -62,14 +62,17 @@ Cartes des packs (validé en octobre 2026) : lumière douce qui suit la souris, 
 
 ## 8. La page d'accueil, section par section
 
-1. **En-tête :** logo, Solutions, Tarifs, Fonctionnalités, Ressources, Connexion, bouton « Essayer gratuitement ».
-2. **Accroche :** promesse, sous-titre, « Essayer gratuitement » et « Voir la démonstration » (seulement si une adresse de démonstration est réglée dans l'admin ; sinon « Voir les tarifs »). Aucun chiffre de performance inventé.
-3. **Choisissez votre solution :** trois cartes (Réservation, Commerce, Formation) ; la solution choisie change l'accent, le titre, les bénéfices, l'aperçu (ordinateur et téléphone dessinés en HTML/CSS) et le bandeau de cinq fonctions. Une solution pas encore ouverte porte « Disponible bientôt » et propose « Être prévenu du lancement », jamais une souscription.
-4. **Choisissez votre pack {solution} :** Basic, Pro, Business ; mêmes prix pour toutes les solutions. Chaque carte : pictogramme, nom, phrase, prix (HT), ce que le pack ajoute, « Bientôt inclus » à part, « Non inclus » (3 lignes), bouton, conditions. Offre tablette sur le Business avec les places restantes réelles et ses conditions dépliables.
+1. **En-tête :** logo, Solutions, Fonctionnalités, Tarifs, Questions, Connexion, bouton « Créer mon site » (même ordre que la page).
+2. **Accroche :** promesse, sous-titre, bouton principal et « Voir la démonstration » (seulement si une adresse de démonstration est réglée dans l'admin ; sinon « Voir les tarifs »). Aucun chiffre de performance inventé.
+3. **Choisissez votre solution :** trois cartes (Réservation, Commerce, Formation) ; la solution choisie change l'accent, le titre, les bénéfices, l'aperçu et le bandeau de fonctions. Une solution pas encore ouverte porte « Disponible bientôt » et propose « Être prévenu du lancement », jamais une souscription.
+4. **Votre espace de gestion :** vraies captures (données d'exemple) et quatre usages clés.
 5. **Fonctionnalités :** sept bénéfices, « Bientôt » quand c'est le cas.
-6. **Comparatif :** douze catégories, mêmes données que les cartes et les droits ; sur téléphone, un pack à la fois.
-7. **Réassurance :** seulement des engagements vérifiés ; témoignages réels s'il y en a.
-8. **Questions, bandeau final, pied de page.**
+6. **Réassurance :** seulement des engagements vérifiés ; témoignages réels s'il y en a. Placée juste avant les prix, pour lever les doutes avant la décision.
+7. **Choisissez votre pack {solution} :** mêmes prix pour toutes les solutions. Chaque carte : pictogramme, nom, phrase, prix (HT), ce que le pack ajoute, « Bientôt inclus » à part, « Non inclus » (3 lignes), bouton, conditions.
+8. **Comparatif :** juste sous les packs, pour qui hésite entre deux ; mêmes données que les cartes et les droits ; sur téléphone, un pack à la fois.
+9. **Questions, bandeau final, pied de page.**
+
+Parcours voulu : découvrir ce que fait l'outil, en voir la valeur, être rassuré, puis choisir son pack ; « Voir les tarifs » en haut de page reste un raccourci direct.
 
 Les prix, quotas, fonctions, disponibilités et l'offre tablette viennent des réglages (admin), jamais du code.
 
