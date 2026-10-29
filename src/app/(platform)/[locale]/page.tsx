@@ -262,7 +262,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               <div className="hn-drift absolute -left-24 top-10 size-[24rem] rounded-full bg-accent/15 blur-[90px] max-sm:size-[16rem]" />
               <div className="hn-drift-slow absolute -right-20 top-32 size-[22rem] rounded-full bg-champagne/25 blur-[90px] max-sm:size-[14rem]" />
             </div>
-            <div className="relative mx-auto grid max-w-[75rem] items-center gap-10 px-4 pb-12 pt-8 sm:px-6 sm:pt-12 lg:grid-cols-[1.08fr_0.92fr] lg:gap-8 lg:pb-16 lg:pt-16 2xl:max-w-[88rem]">
+            <div className="relative mx-auto grid max-w-[75rem] items-center gap-10 px-4 pb-12 pt-6 sm:px-6 sm:pt-12 lg:grid-cols-[1.08fr_0.92fr] lg:gap-8 lg:pb-16 lg:pt-16 2xl:max-w-[88rem]">
               <div>
                 {/* Petite annonce : une ligne, casse normale, point lumineux. */}
                 <p className="hn-up inline-flex max-w-full items-center gap-2.5 rounded-full border border-hairline bg-white/80 py-1.5 pl-2.5 pr-4 text-mk-note font-medium text-night shadow-[0_6px_18px_-12px_rgba(15,24,48,.35)] backdrop-blur">
@@ -274,36 +274,69 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 </p>
                 {/* Sur téléphone, le titre suit la largeur de l'écran : une phrase par ligne. */}
                 <h1
-                  className={`${TITLE} hn-balance hn-up-2 mt-6 text-[clamp(1.5rem,7.6vw,2.25rem)] leading-[1.08] sm:text-mk-h1 sm:leading-[1.04]`}
+                  className={`${TITLE} hn-balance hn-up-2 mt-5 text-[clamp(1.5rem,7.6vw,2.25rem)] leading-[1.08] sm:text-mk-h1 sm:leading-[1.04]`}
                 >
                   {t("hero.title")} <span className="hn-shimmer block">{t("hero.titleAccent")}</span>
                 </h1>
-                <p className="hn-up-3 mt-5 max-w-[34rem] text-mk-lead leading-relaxed text-ink-soft">
+                <p className="hn-up-3 mt-4 max-w-[34rem] text-mk-lead leading-normal text-ink-soft sm:mt-5 sm:leading-relaxed">
                   {t("hero.subtitle")}
                 </p>
-                <div className="hn-up-4 mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="hn-up-4 mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:items-center">
                   <Link href={startHref} className={`${PRIMARY} justify-center`}>
                     {t("cta")}
                     <ArrowLine className="size-[18px] transition-transform group-hover:translate-x-0.5" />
                   </Link>
-                  {/* La démonstration n'apparaît que si une adresse est réglée dans l'admin. */}
+                  {/* Prix d'entrée et délai de mise en ligne (réglages), juste sous le bouton sur téléphone. */}
+                  {first && (
+                    <p className="-mt-1 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-mk-small text-ink-soft sm:hidden">
+                      <span className="font-medium text-night">
+                        {t("hero.offer", { price: faqValues.price, display: data.display })}
+                      </span>
+                      {data.goLiveDays > 0 && (
+                        <>
+                          <span aria-hidden="true">·</span>
+                          <span>{t("hero.goLive", { days: data.goLiveDays })}</span>
+                        </>
+                      )}
+                    </p>
+                  )}
+                  {/* La démonstration n'apparaît que si une adresse est réglée dans l'admin.
+                      Sur téléphone, l'action secondaire est un simple lien : un seul gros bouton. */}
                   {data.demoUrl ? (
                     <a
                       href={data.demoUrl}
                       target="_blank"
                       rel="noopener"
-                      className={`${SECONDARY} justify-center`}
+                      className={`${SECONDARY} justify-center max-sm:min-h-11 max-sm:border-0 max-sm:bg-transparent max-sm:text-accent-strong`}
                     >
                       <PlayCircleLine className="size-[18px] text-accent" />
                       {t("hero.demo")}
                     </a>
                   ) : (
-                    <a href="#tarifs" className={`${SECONDARY} justify-center`}>
+                    <a
+                      href="#tarifs"
+                      className={`${SECONDARY} justify-center max-sm:min-h-11 max-sm:border-0 max-sm:bg-transparent max-sm:text-accent-strong`}
+                    >
                       {t("hero.pricing")}
+                      <ArrowLine className="size-4 sm:hidden" />
                     </a>
                   )}
                 </div>
-                <ul className="hn-up-4 mt-7 grid gap-2 text-mk-small text-ink-soft sm:flex sm:flex-wrap sm:gap-x-5">
+                {/* Prix d'entrée et délai de mise en ligne, tirés des réglages. */}
+                {first && (
+                  <p className="hn-up-4 mt-4 hidden flex-wrap items-center gap-x-2 gap-y-1 text-mk-small text-ink-soft sm:flex">
+                    <span className="font-medium text-night">
+                      {t("hero.offer", { price: faqValues.price, display: data.display })}
+                    </span>
+                    {data.goLiveDays > 0 && (
+                      <>
+                        <span aria-hidden="true">·</span>
+                        <span>{t("hero.goLive", { days: data.goLiveDays })}</span>
+                      </>
+                    )}
+                  </p>
+                )}
+                <ul className="hn-up-4 mt-7 hidden flex-wrap gap-x-5 gap-y-2 text-mk-small text-ink-soft sm:flex">
                   {(t.raw("hero.points") as string[]).map((point) => (
                     <li key={point} className="flex items-center gap-2">
                       <span className="flex size-5 flex-none items-center justify-center rounded-full bg-accent-soft text-accent">
