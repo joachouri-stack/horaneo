@@ -2423,6 +2423,7 @@
       },
       "birthday": "Date d'anniversaire (facultatif)",
       "birthdayHint": "Pour recevoir une attention de notre part le jour de votre anniversaire.",
+      "birthdayHintPlain": "Jour et mois seulement, sans l'année.",
       "birthdayDay": "Jour",
       "birthdayMonth": "Mois"
     },
