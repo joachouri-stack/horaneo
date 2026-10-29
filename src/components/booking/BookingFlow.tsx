@@ -57,7 +57,8 @@ type Props = {
   deposit: { enabled: boolean; type: "percent" | "fixed"; value: number };
   promoEnabled: boolean;
   /** Offre d'anniversaire de l'entreprise : date d'anniversaire demandée (facultative). */
-  birthdayEnabled?: boolean;
+  /** Offre d'anniversaire active : le texte d'aide l'annonce. La date est toujours demandée (facultative). */
+  birthdayOffer?: boolean;
   /** Pack avec cartes cadeaux : la carte peut remplacer l'acompte. */
   giftCardsEnabled?: boolean;
   /** Rappel par SMS la veille (pack avec SMS) : mentionné sous le téléphone. */
@@ -301,7 +302,7 @@ export function BookingFlow(props: Props) {
         beneficiaryName: contact.beneficiaryName,
         marketingConsent: contact.marketingConsent,
         // Anniversaire : seulement si l'entreprise le demande, jour et mois choisis.
-        ...(props.birthdayEnabled && (contact.birthDay || contact.birthMonth)
+        ...(contact.birthDay || contact.birthMonth
           ? { birthDay: Number(contact.birthDay) || 0, birthMonth: Number(contact.birthMonth) || 0 }
           : {}),
       },
@@ -754,7 +755,7 @@ export function BookingFlow(props: Props) {
                 error={fieldMessage("phone")}
               />
             </div>
-            {props.birthdayEnabled && (
+            {
               <fieldset aria-describedby="b-birthday-hint">
                 <legend className="mb-2 block font-semibold text-site-text">{t("details.birthday")}</legend>
                 <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-3">
@@ -803,10 +804,10 @@ export function BookingFlow(props: Props) {
                   <p className="mt-1 font-semibold text-site-text">{fieldMessage("birthDay")}</p>
                 )}
                 <p id="b-birthday-hint" className="mt-1 text-sm text-site-muted">
-                  {t("details.birthdayHint")}
+                  {t(props.birthdayOffer ? "details.birthdayHint" : "details.birthdayHintPlain")}
                 </p>
               </fieldset>
-            )}
+            }
             {props.giftCardsEnabled && (
               <div>
                 {!giftOpen && !gift ? (
