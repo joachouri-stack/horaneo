@@ -122,6 +122,8 @@ export type PlanFeatures = {
   technicalSupport247?: boolean;
   staffPlanning?: boolean;
   customerFile?: boolean;
+  /** Export des données de l'entreprise (clientes, rendez-vous, paiements) en tableaux. */
+  dataExport?: boolean;
   advancedCrm?: boolean;
   marketingAutomation?: boolean;
   aiChatbot?: boolean;

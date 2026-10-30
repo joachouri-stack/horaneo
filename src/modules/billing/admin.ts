@@ -86,6 +86,7 @@ export const FEATURE_KEYS = [
   "technicalSupport247",
   "staffPlanning",
   "customerFile",
+  "dataExport",
   "advancedCrm",
   "marketingAutomation",
   "aiChatbot",

@@ -536,10 +536,16 @@ export default async function SubscriptionPage({
       {/* Avant de changer de pack ou de résilier : la gérante récupère ses données. */}
       <section className={`${ui.card} space-y-2`}>
         <h2 className="text-lg font-semibold text-night">{t("exportTitle")}</h2>
-        <p className="text-sm text-ink/70">{t("exportHint")}</p>
-        <Link href={`${page.base}/plus/exporter`} className={`${ui.secondaryButton} sm:w-auto`}>
-          {t("exportLink")}
-        </Link>
+        {page.tenant.features.dataExport ? (
+          <>
+            <p className="text-sm text-ink/70">{t("exportHint")}</p>
+            <Link href={`${page.base}/plus/exporter`} className={`${ui.secondaryButton} sm:w-auto`}>
+              {t("exportLink")}
+            </Link>
+          </>
+        ) : (
+          <p className="text-sm text-ink/70">{t("exportLocked")}</p>
+        )}
       </section>
     </div>
   );

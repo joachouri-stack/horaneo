@@ -433,6 +433,7 @@ const GRID_PRO = {
   customerFollowUp: true,
   giftCards: true,
   freeDomain: true,
+  dataExport: true,
   advancedCrm: false,
   commerce: true,
   formation: true,

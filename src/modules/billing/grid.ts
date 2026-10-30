@@ -85,6 +85,7 @@ const ROWS: RowDef[] = [
   { key: "members", category: "crm", limit: "members", always: true },
   { key: "customerFollowUp", category: "crm", feature: "customerFollowUp" },
   { key: "advancedCrm", category: "crm", feature: "advancedCrm" },
+  { key: "dataExport", category: "crm", feature: "dataExport" },
   // Marketing et fidélisation
   { key: "promoCodes", category: "marketing", feature: "promoCodes" },
   { key: "birthdayOffer", category: "marketing", feature: "promoCodes" },
