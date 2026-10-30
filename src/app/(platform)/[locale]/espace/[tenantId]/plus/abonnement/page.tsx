@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { splitPlans } from "@/modules/billing/showcase";
 import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { SubmitButton } from "@/components/ui/SubmitButton";
 import { ui } from "@/components/ui/styles";
 import { withPlatform } from "@/db/access";
@@ -531,6 +532,14 @@ export default async function SubscriptionPage({
             </SubmitButton>
           </form>
         )}
+      </section>
+      {/* Avant de changer de pack ou de résilier : la gérante récupère ses données. */}
+      <section className={`${ui.card} space-y-2`}>
+        <h2 className="text-lg font-semibold text-night">{t("exportTitle")}</h2>
+        <p className="text-sm text-ink/70">{t("exportHint")}</p>
+        <Link href={`${page.base}/plus/exporter`} className={`${ui.secondaryButton} sm:w-auto`}>
+          {t("exportLink")}
+        </Link>
       </section>
     </div>
   );

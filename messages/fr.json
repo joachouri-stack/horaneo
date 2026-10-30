@@ -2804,7 +2804,8 @@
         "settings": "Réservation en ligne, horaires et informations.",
         "requests": "Logo, couleurs, textes : demandez un changement.",
         "customerData": "Copies et suppressions demandées par vos clientes.",
-        "help": "Questions fréquentes et contact du support."
+        "help": "Questions fréquentes et contact du support.",
+        "export": "Clientes, rendez-vous et paiements en tableaux."
       },
       "badge": {
         "team": "{count, plural, =0 {Aucun membre} one {# membre} other {# membres}}",
@@ -2814,7 +2815,8 @@
         "giftCards": "{count, plural, =0 {Aucune active} one {# active} other {# actives}}",
         "requests": "{count, plural, =0 {Aucune en cours} one {# en cours} other {# en cours}}",
         "customerData": "{count, plural, =0 {Aucune à traiter} one {# à traiter} other {# à traiter}}"
-      }
+      },
+      "export": "Exporter mes données"
     },
     "stats": {
       "title": "Statistiques",
@@ -2998,7 +3000,10 @@
       "billing": "Paiement",
       "billingMonthly": "Chaque mois : {amount} {display} par mois",
       "billingYearly": "À l'année : {amount} {display} par an{months, plural, =0 {} one { (# mois offert)} other { (# mois offerts)}}",
-      "interval": "{interval, select, year {Facturation annuelle} other {Facturation mensuelle}}"
+      "interval": "{interval, select, year {Facturation annuelle} other {Facturation mensuelle}}",
+      "exportTitle": "Vos données vous appartiennent",
+      "exportHint": "Avant de changer de pack ou de résilier, vous pouvez télécharger toutes vos données : clientes, rendez-vous, prestations et paiements.",
+      "exportLink": "Exporter mes données"
     },
     "settings": {
       "title": "Réglages",
@@ -3310,6 +3315,117 @@
         "with": "Avec {name}",
         "pending": "paiement en attente",
         "noShow": "absente"
+      }
+    },
+    "export": {
+      "title": "Exporter mes données",
+      "subtitle": "Récupérez toutes les données de votre entreprise, à tout moment.",
+      "intro": "Vous téléchargez un fichier .zip avec vos tableaux, à ouvrir dans Excel, Numbers ou Google Sheets :",
+      "contents": [
+        "Clientes : coordonnées, anniversaire, visites, total dépensé et notes",
+        "Rendez-vous : date, cliente, prestations, membre de l'équipe, statut et montant",
+        "Prestations : catégorie, durée et prix",
+        "Paiements en ligne et acomptes",
+        "Cartes cadeaux et codes promo"
+      ],
+      "download": "Télécharger mes données (.zip)",
+      "note": "Vos données vous appartiennent : téléchargez-les aussi souvent que vous le souhaitez, y compris avant de résilier.",
+      "fileName": "donnees-{date}",
+      "files": {
+        "customers": "clientes",
+        "appointments": "rendez-vous",
+        "services": "prestations",
+        "payments": "paiements",
+        "giftCards": "cartes-cadeaux",
+        "promoCodes": "codes-promo"
+      },
+      "columns": {
+        "customers": [
+          "Prénom",
+          "Nom",
+          "E-mail",
+          "Téléphone",
+          "Anniversaire",
+          "Visites",
+          "Total dépensé",
+          "Notes",
+          "Accord e-mail",
+          "Accord SMS",
+          "Fiche créée le",
+          "Remarque"
+        ],
+        "appointments": [
+          "Date",
+          "Début",
+          "Fin",
+          "Cliente",
+          "Prestations",
+          "Membre de l'équipe",
+          "Statut",
+          "Réservation",
+          "Montant",
+          "Remise",
+          "Acompte",
+          "Devise",
+          "Note de la cliente",
+          "Note interne"
+        ],
+        "services": [
+          "Prestation",
+          "Catégorie",
+          "Durée (min)",
+          "Prix",
+          "Prix « à partir de »",
+          "Devise",
+          "Active",
+          "Réservable en ligne"
+        ],
+        "payments": ["Date", "Montant", "Devise", "Statut", "Cliente", "Rendez-vous du"],
+        "giftCards": [
+          "Code (4 derniers caractères)",
+          "Statut",
+          "Montant initial",
+          "Solde",
+          "Devise",
+          "Acheteur",
+          "E-mail de l'acheteur",
+          "Bénéficiaire",
+          "Payée le",
+          "Expire le"
+        ],
+        "promoCodes": [
+          "Code",
+          "Type de remise",
+          "Valeur",
+          "Valide du",
+          "Valide jusqu'au",
+          "Utilisations maximum",
+          "Utilisations",
+          "Actif"
+        ]
+      },
+      "yes": "Oui",
+      "no": "Non",
+      "anonymized": "Coordonnées effacées à sa demande",
+      "source": {
+        "online": "En ligne",
+        "manual": "Ajouté par vous"
+      },
+      "payment": {
+        "requires_payment": "En attente",
+        "processing": "En cours",
+        "succeeded": "Payé",
+        "canceled": "Annulé",
+        "failed": "Échoué"
+      },
+      "giftCard": {
+        "pending_payment": "En attente de paiement",
+        "active": "Active",
+        "cancelled": "Annulée"
+      },
+      "discount": {
+        "percent": "Pourcentage",
+        "fixed": "Montant"
       }
     }
   },
