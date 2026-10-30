@@ -116,8 +116,8 @@ export async function PlatformFooter() {
             </p>
             <ul className="text-mk-small">
               {NAV.map((item) => (
-                <li key={item.hash}>
-                  <Link href={{ pathname: "/", hash: item.hash }} className={LINK}>
+                <li key={item.key}>
+                  <Link href={item.href} className={LINK}>
                     {tNav(item.key)}
                   </Link>
                 </li>

@@ -2,6 +2,7 @@
 
 import { type ReactNode, useEffect, useState } from "react";
 import { Link } from "@/i18n/navigation";
+import type { NavHref } from "./PlatformHeader";
 
 /**
  * Bandeau d'en-tête du site commercial : reste en haut de l'écran pendant le
@@ -14,7 +15,7 @@ export function HeaderShell({
 }: {
   children: ReactNode;
   menu?: {
-    items: { hash: string; label: string }[];
+    items: { key: string; href: NavHref; label: string }[];
     cta: string;
     open: string;
     close: string;
@@ -78,9 +79,9 @@ export function HeaderShell({
           <div className="min-h-0">
             <ul className="mx-auto flex max-w-[75rem] 2xl:max-w-[88rem] flex-col gap-1 px-4 pb-5 sm:px-6">
               {menu.items.map((item) => (
-                <li key={item.hash}>
+                <li key={item.key}>
                   <Link
-                    href={{ pathname: "/", hash: item.hash }}
+                    href={item.href}
                     onClick={() => setOpen(false)}
                     tabIndex={open ? undefined : -1}
                     className="flex min-h-12 items-center rounded-2xl px-3 text-[1.1875rem] font-medium text-night hover:bg-white"
