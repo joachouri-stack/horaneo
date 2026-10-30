@@ -725,36 +725,24 @@
     },
     "benefits": {
       "badge": "Fonctionnalités",
-      "title": "Tout ce qu'il faut pour gérer votre activité,",
-      "titleAccent": "au même endroit.",
+      "title": "Pour aller plus loin",
+      "titleAccent": "et faire revenir vos clients.",
       "items": {
-        "sales": {
-          "title": "Réservations en ligne",
-          "text": "Vos clients réservent en ligne, à toute heure. La vente en ligne arrive avec la solution Commerce."
+        "marketing": {
+          "title": "Marketing et fidélité",
+          "text": "Codes promo, promotions et programme de fidélité pour faire revenir vos clients."
         },
-        "payments": {
-          "title": "Paiements sécurisés",
-          "text": "Acomptes et paiements par carte via Stripe, versés directement sur votre compte."
-        },
-        "clients": {
-          "title": "Gestion des clients",
-          "text": "Fiches clients, historique des rendez-vous et notes, au même endroit."
+        "reviews": {
+          "title": "Avis Google",
+          "text": "Vos avis affichés sur votre site, et une demande d'avis envoyée après chaque rendez-vous."
         },
         "automation": {
-          "title": "Automatisations",
-          "text": "Rappels, demandes d'avis et résumés partent tout seuls, ainsi que des campagnes marketing automatisées selon votre pack."
+          "title": "Campagnes automatiques",
+          "text": "Relances et campagnes marketing qui partent toutes seules, selon votre pack."
         },
         "assistant": {
           "title": "Assistant IA",
           "text": "Un assistant qui répond à vos clients et prépare vos actions, avec votre accord."
-        },
-        "marketing": {
-          "title": "Marketing",
-          "text": "Codes promo, promotions, avis Google et fidélisation pour faire revenir vos clients."
-        },
-        "stats": {
-          "title": "Statistiques",
-          "text": "Rendez-vous, chiffre d'affaires et prestations phares, mois après mois."
         }
       }
     },
@@ -768,13 +756,9 @@
     "trust": {
       "title": "Nos engagements, noir sur blanc",
       "items": {
-        "stripe": {
-          "title": "Paiements sécurisés",
-          "text": "Les cartes bancaires sont traitées par Stripe ; nous ne voyons ni ne gardons jamais leurs numéros."
-        },
-        "commission": {
-          "title": "{percent, plural, =0 {0 % de commission} other {# % de commission}}",
-          "text": "Vos acomptes et paiements vous reviennent en entier ; seuls les frais Stripe s'appliquent."
+        "payments": {
+          "title": "Paiements sécurisés, {percent} % de commission",
+          "text": "Cartes traitées par Stripe, jamais par nous ; vos paiements vous reviennent en entier, hors frais Stripe."
         },
         "hosting": {
           "title": "Hébergement et sécurité inclus",

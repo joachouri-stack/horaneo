@@ -205,3 +205,4 @@ export const CameraLine = icon(
 export const ForkKnifeLine = icon(
   <path d="M7 3.5v17M5 3.5v4a2 2 0 0 0 4 0v-4M16.5 20.5v-17c-2 1-3.5 3.5-3.5 7h3.5" />,
 );
+export const StarLine = icon(<path d="m12 3.8 2.5 5.1 5.6.8-4 3.9.9 5.6-5-2.6-5 2.6.9-5.6-4-3.9 5.6-.8z" />);

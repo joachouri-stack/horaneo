@@ -16,6 +16,7 @@ import {
   ChartLine,
   CheckLine,
   ClockLine,
+  StarLine,
   FileLine,
   GiftLine,
   LockLine,
@@ -138,19 +139,16 @@ const STRIP: Record<Solution, (typeof CheckLine)[]> = {
 
 /** Pictogrammes des quatre usages de l'espace de gestion (dans l'ordre des textes). */
 
+/** « Pour aller plus loin » : seulement ce que les cartes des solutions ne présentent pas déjà. */
 const BENEFITS = [
-  { key: "sales", Icon: CalendarLine },
-  { key: "payments", Icon: CardLine },
-  { key: "clients", Icon: UsersLine },
+  { key: "marketing", Icon: MegaphoneLine },
+  { key: "reviews", Icon: StarLine },
   { key: "automation", Icon: RefreshLine, feature: "marketingAutomation" },
   { key: "assistant", Icon: SparkleLine, feature: "aiChatbot" },
-  { key: "marketing", Icon: MegaphoneLine },
-  { key: "stats", Icon: ChartLine },
 ] as const;
 
 const TRUST = [
-  { key: "stripe", Icon: LockLine },
-  { key: "commission", Icon: CardLine },
+  { key: "payments", Icon: LockLine },
   { key: "hosting", Icon: ServerLine },
   { key: "data", Icon: ShieldLine },
   { key: "noOverage", Icon: CheckLine },
@@ -623,25 +621,33 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             >
               {t("benefits.title")} <span className="text-accent">{t("benefits.titleAccent")}</span>
             </h2>
-            <ul className="mt-10 grid gap-x-8 gap-y-9 sm:grid-cols-2 lg:grid-cols-4">
+            <ul className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
               {BENEFITS.map((item) => {
                 const later = "feature" in item && soon.has(item.feature);
                 return (
-                  <li key={item.key} data-reveal className="group">
-                    <span className="flex size-11 items-center justify-center rounded-xl border border-accent-line bg-accent-soft text-accent transition duration-300 group-hover:-translate-y-1 group-hover:-rotate-6 group-hover:bg-accent group-hover:text-white group-hover:shadow-[0_10px_20px_-10px_var(--accent)] motion-reduce:transition-none">
-                      <item.Icon className="size-[22px]" />
+                  <li
+                    key={item.key}
+                    data-reveal
+                    className={`group flex items-start gap-4 rounded-2xl border border-hairline p-4 transition duration-300 motion-reduce:transition-none lg:flex-col lg:gap-3 lg:p-5 ${later ? "bg-mist-50/60" : "bg-white shadow-[0_1px_2px_rgba(15,24,48,.04)] hover:-translate-y-1 hover:border-coral/40 hover:shadow-[0_14px_30px_-18px_rgba(232,80,63,.45)]"}`}
+                  >
+                    <span
+                      className={`flex size-11 flex-none items-center justify-center rounded-xl transition-colors duration-300 ${later ? "bg-white text-ink-soft" : "bg-accent-soft text-accent group-hover:bg-coral/10 group-hover:text-coral-dark"}`}
+                    >
+                      <item.Icon className="size-[1.375rem]" />
                     </span>
-                    <h3 className="mt-4 flex flex-wrap items-center gap-2 font-display text-mk-card font-semibold text-night">
-                      {t(`benefits.items.${item.key}.title`)}
-                      {later && (
-                        <span className="rounded-full bg-mist-50 px-2 py-px font-sans text-mk-note font-normal text-ink-soft">
-                          {t("plans.soonTag")}
-                        </span>
-                      )}
-                    </h3>
-                    <p className="mt-1.5 text-[1.0625rem] text-ink-soft">
-                      {t(`benefits.items.${item.key}.text`)}
-                    </p>
+                    <span className="min-w-0">
+                      <span className="flex flex-wrap items-center gap-2 font-display text-mk-body font-semibold leading-snug text-night">
+                        {t(`benefits.items.${item.key}.title`)}
+                        {later && (
+                          <span className="rounded-full bg-white px-2 py-px font-sans text-mk-note font-normal text-ink-soft">
+                            {t("plans.soonTag")}
+                          </span>
+                        )}
+                      </span>
+                      <span className="mt-1 block text-mk-small leading-snug text-ink-soft">
+                        {t(`benefits.items.${item.key}.text`)}
+                      </span>
+                    </span>
                   </li>
                 );
               })}
@@ -656,12 +662,12 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             <h2 id="titre-confiance" data-reveal className={`${TITLE} text-center text-mk-h2 leading-[1.1]`}>
               {t("trust.title")}
             </h2>
-            <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-6 lg:gap-4">
+            <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
               {TRUST.map(({ key, Icon }) => (
                 <li
                   key={key}
                   data-reveal
-                  className="group flex items-start gap-4 rounded-2xl border border-hairline bg-white p-4 shadow-[0_1px_2px_rgba(15,24,48,.04)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_14px_30px_-18px_rgba(15,24,48,.35)] motion-reduce:transition-none sm:max-lg:last:col-span-2 lg:col-span-2 lg:p-5 lg:[&:nth-child(n+4)]:col-span-3"
+                  className="group flex items-start gap-4 rounded-2xl border border-hairline bg-white p-4 shadow-[0_1px_2px_rgba(15,24,48,.04)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_14px_30px_-18px_rgba(15,24,48,.35)] motion-reduce:transition-none lg:flex-col lg:gap-3 lg:p-5"
                 >
                   {/* Pastille verte (confiance) et petit ✓ : l'engagement est tenu. */}
                   <span className="relative flex size-11 flex-none items-center justify-center rounded-xl bg-success/10 text-success">
