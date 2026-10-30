@@ -288,6 +288,13 @@
       "when": 1793104774536,
       "tag": "0040_features_soon_again",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1793371631502,
+      "tag": "0041_starter_email_support",
+      "breakpoints": true
     }
   ]
 }

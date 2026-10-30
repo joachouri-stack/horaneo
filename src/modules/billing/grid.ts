@@ -83,11 +83,11 @@ const ROWS: RowDef[] = [
   // Clients et collaborateurs
   { key: "customers", category: "crm", limit: "customers", always: true },
   { key: "members", category: "crm", limit: "members", always: true },
-  { key: "customerFile", category: "crm", feature: "customerFile", detail: true },
   { key: "customerFollowUp", category: "crm", feature: "customerFollowUp" },
   { key: "advancedCrm", category: "crm", feature: "advancedCrm" },
   // Marketing et fidélisation
   { key: "promoCodes", category: "marketing", feature: "promoCodes" },
+  { key: "birthdayOffer", category: "marketing", feature: "promoCodes" },
   { key: "googleReviews", category: "marketing", feature: "googleReviews" },
   { key: "loyalty", category: "marketing", feature: "loyalty" },
   { key: "giftCards", category: "marketing", feature: "giftCards", highlight: true },
@@ -114,7 +114,6 @@ const ROWS: RowDef[] = [
   { key: "subdomain", category: "hosting", always: true, detail: true },
   { key: "customDomain", category: "hosting", feature: "customDomain" },
   { key: "freeDomain", category: "hosting", feature: "freeDomain", highlight: true },
-  { key: "security", category: "hosting", feature: "securityProtection" },
   { key: "maintenance", category: "hosting", feature: "maintenance" },
   // Assistance
   { key: "helpCenter", category: "support", feature: "helpCenter", detail: true },

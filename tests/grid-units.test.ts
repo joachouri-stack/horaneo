@@ -38,14 +38,15 @@ describe("grille des packs : une seule source pour les cartes et le comparatif",
       "onlinePayment",
       "whatsappSupport",
       "maintenance",
-      "security",
+      "hosting",
       "favicon",
       "responsive",
       "technicalSupport247",
+      "ticketSupport",
     ])
       expect(row(key), key).toEqual([{ included: true }, { included: true }, { included: true }]);
-    // Pro et Business : cartes cadeaux et nom de domaine inclus.
-    for (const key of ["giftCards", "freeDomain"])
+    // Pro et Business : cartes cadeaux, nom de domaine et e-mail d'anniversaire inclus.
+    for (const key of ["giftCards", "freeDomain", "birthdayOffer"])
       expect(row(key), key).toEqual([{ included: false }, { included: true }, { included: true }]);
   });
 

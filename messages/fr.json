@@ -575,7 +575,7 @@
           "card": "Module Formation"
         },
         "customers": {
-          "label": "Fiches clients",
+          "label": "Fichier clients : fiches, historique et notes",
           "card": "{count} contacts clients",
           "cardUnlimited": "Fichier clients illimité"
         },
@@ -588,10 +588,6 @@
           "card": "{count, plural, one {# utilisateur} other {Jusqu'à # collaborateurs}}",
           "cardUnlimited": "Collaborateurs illimités"
         },
-        "customerFile": {
-          "label": "Historique des rendez-vous et notes clients",
-          "card": "Historique des rendez-vous"
-        },
         "advancedCrm": {
           "label": "Suivi clients et relances automatiques avancés",
           "card": "Suivi clients et relances avancés"
@@ -599,6 +595,10 @@
         "promoCodes": {
           "label": "Codes promo et promotions",
           "card": "Codes promo et promotions"
+        },
+        "birthdayOffer": {
+          "label": "E-mail d'anniversaire avec code promo",
+          "card": "E-mail d'anniversaire avec code promo"
         },
         "googleReviews": {
           "label": "Avis Google : affichage et demandes d'avis",
@@ -629,12 +629,12 @@
           "card": "Logiciel de caisse certifié NF525"
         },
         "chatbotQuestions": {
-          "label": "Chatbot (questions et réponses)",
+          "label": "Chatbot : réponses préparées (questions)",
           "card": "Chatbot ({count} questions et réponses)",
           "cardUnlimited": "Chatbot (questions et réponses illimitées)"
         },
         "aiChatbot": {
-          "label": "Chatbot IA sur le site (conversations par mois)",
+          "label": "Chatbot IA : conversations libres par mois",
           "card": "Chatbot IA ({count} conversations/mois)"
         },
         "aiTexts": {
@@ -670,7 +670,7 @@
           "card": "Rapports détaillés"
         },
         "hosting": {
-          "label": "Hébergement et connexion sécurisée (HTTPS)",
+          "label": "Hébergement sécurisé (HTTPS, pare-feu)",
           "card": "Hébergement et connexion sécurisée inclus"
         },
         "subdomain": {
@@ -684,10 +684,6 @@
         "freeDomain": {
           "label": "Nom de domaine inclus pour la création du site (sous conditions)",
           "card": "Nom de domaine inclus pour la création"
-        },
-        "security": {
-          "label": "Protection contre les cyberattaques (pare-feu, HTTPS)",
-          "card": "Protection contre les cyberattaques"
         },
         "maintenance": {
           "label": "Maintenance du site incluse pendant l'abonnement",
