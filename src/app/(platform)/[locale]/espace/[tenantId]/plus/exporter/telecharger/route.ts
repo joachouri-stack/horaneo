@@ -23,7 +23,8 @@ export async function GET(
     return new Response(null, { status: 404 });
   }
   const { tenant, data } = loaded;
-  if (!tenant) return new Response(null, { status: 404 });
+  // Fonction des packs Pro et Business.
+  if (!tenant || !tenant.features.dataExport) return new Response(null, { status: 404 });
   const [t, tStatus] = await Promise.all([
     getTranslations({ locale, namespace: "manager.export" }),
     getTranslations({ locale, namespace: "manager.status" }),

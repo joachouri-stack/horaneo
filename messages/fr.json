@@ -592,6 +592,10 @@
           "label": "Suivi clients et relances automatiques avancés",
           "card": "Suivi clients et relances avancés"
         },
+        "dataExport": {
+          "label": "Export de vos données (clientes, rendez-vous, paiements)",
+          "card": "Export de vos données"
+        },
         "promoCodes": {
           "label": "Codes promo et promotions",
           "card": "Codes promo et promotions"
@@ -739,6 +743,10 @@
         "assistant": {
           "title": "Assistant IA",
           "text": "Un assistant qui répond à vos clients et prépare vos actions, avec votre accord."
+        },
+        "dataExport": {
+          "title": "Export de vos données",
+          "text": "Clientes, rendez-vous et paiements en tableaux, à télécharger quand vous voulez. Dès le pack Pro."
         }
       }
     },
@@ -1884,6 +1892,7 @@
         "technicalSupport247": "Service technique 24 h/24, 7 j/7",
         "staffPlanning": "Gestion des plannings des collaborateurs",
         "customerFile": "Fichier clients : historique et notes",
+        "dataExport": "Export des données (clientes, rendez-vous, paiements)",
         "advancedCrm": "CRM et automatisations avancées",
         "marketingAutomation": "Campagnes marketing automatisées",
         "aiChatbot": "Chatbot IA sur le site",
@@ -3003,7 +3012,8 @@
       "interval": "{interval, select, year {Facturation annuelle} other {Facturation mensuelle}}",
       "exportTitle": "Vos données vous appartiennent",
       "exportHint": "Avant de changer de pack ou de résilier, vous pouvez télécharger toutes vos données : clientes, rendez-vous, prestations et paiements.",
-      "exportLink": "Exporter mes données"
+      "exportLink": "Exporter mes données",
+      "exportLocked": "L'export de vos données (clientes, rendez-vous, paiements) est inclus dans les packs Pro et Business."
     },
     "settings": {
       "title": "Réglages",
@@ -3426,7 +3436,9 @@
       "discount": {
         "percent": "Pourcentage",
         "fixed": "Montant"
-      }
+      },
+      "locked": "L'export de vos données est inclus dans les packs Pro et Business.",
+      "lockedLink": "Voir les packs"
     }
   },
   "notifications": {

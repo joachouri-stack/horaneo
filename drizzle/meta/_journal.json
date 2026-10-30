@@ -295,6 +295,13 @@
       "when": 1793371631502,
       "tag": "0041_starter_email_support",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1793401784370,
+      "tag": "0042_pro_data_export",
+      "breakpoints": true
     }
   ]
 }

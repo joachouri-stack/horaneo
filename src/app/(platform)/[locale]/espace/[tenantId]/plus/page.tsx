@@ -62,7 +62,7 @@ const GROUPS: { key: "activity" | "sell" | "account" | "support"; items: Item[] 
       { key: "payments", href: "/plus/paiements", feature: "onlinePayment" },
       { key: "subscription", href: "/plus/abonnement" },
       { key: "settings", href: "/plus/reglages" },
-      { key: "export", href: "/plus/exporter" },
+      { key: "export", href: "/plus/exporter", feature: "dataExport" },
     ],
   },
   {
