@@ -189,7 +189,7 @@ export function BillingToggle({
     >
       {text}
       {value === "year" && labels.badge && (
-        <span className="whitespace-nowrap rounded-full bg-accent px-2 py-px text-[0.875rem] font-medium text-white">
+        <span className="whitespace-nowrap rounded-full bg-coral-dark px-2 py-px text-[0.875rem] font-medium text-white">
           {labels.badge}
         </span>
       )}

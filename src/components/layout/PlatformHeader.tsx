@@ -11,7 +11,6 @@ export const NAV = [
   { key: "solutions", href: { pathname: "/", hash: "solutions" } },
   { key: "features", href: { pathname: "/comparatif" } },
   { key: "pricing", href: { pathname: "/", hash: "tarifs" } },
-  { key: "resources", href: { pathname: "/", hash: "questions" } },
 ] as const;
 
 export type NavHref = (typeof NAV)[number]["href"];

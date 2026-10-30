@@ -158,3 +158,51 @@ export const PercentLine = icon(
 export const StoreLine = icon(
   <path d="M4 9.5 5.5 4h13L20 9.5M4 9.5c0 1.7 1.3 3 2.7 3s2.6-1.3 2.6-3c0 1.7 1.2 3 2.7 3s2.7-1.3 2.7-3c0 1.7 1.2 3 2.6 3S20 11.2 20 9.5M5.5 12.3V20h13v-7.7M10 20v-4.5h4V20" />,
 );
+
+/* Métiers des solutions (étiquettes « Pensé pour… »). */
+export const ScissorsLine = icon(
+  <>
+    <circle cx="6" cy="7" r="2.5" />
+    <circle cx="6" cy="17" r="2.5" />
+    <path d="M8.2 8.3 20 17M8.2 15.7 20 7" />
+  </>,
+);
+export const WrenchLine = icon(
+  <path d="M14 3.5a4.5 4.5 0 0 0-4.2 6.2L3.5 16l4 4 6.3-6.3A4.5 4.5 0 0 0 20 9.5l-2.8 2.8-2.7-.8-.8-2.7 2.8-2.8A4.5 4.5 0 0 0 14 3.5z" />,
+);
+export const HammerLine = icon(
+  <path d="M12 4.5h2l5.5 5.5-2 2-1.5-1.5-8.5 8.5a1.6 1.6 0 0 1-2.3-2.3l8.5-8.5L12 6.5z" />,
+);
+export const BriefcaseLine = icon(
+  <>
+    <rect x="3.5" y="7.5" width="17" height="12" rx="2" />
+    <path d="M9 7.5v-2h6v2M3.5 12.5h17" />
+  </>,
+);
+export const PartyLine = icon(
+  <path d="M4 20 8.5 9l6.5 6.5zM14 3.5v2M19.5 9h2M18 5.5 16.5 7M12.5 9.5c1-2 3-3 5-2" />,
+);
+export const PaletteLine = icon(
+  <>
+    <path d="M12 3.5a8.5 8.5 0 0 0 0 17c1.2 0 1.8-.8 1.8-1.7 0-1.3-1-1.6-1-2.6 0-.9.7-1.5 1.7-1.5H17a3.5 3.5 0 0 0 3.5-3.5c0-4.3-3.8-7.7-8.5-7.7z" />
+    <circle cx="8" cy="10" r="1" />
+    <circle cx="12" cy="7.5" r="1" />
+    <circle cx="16" cy="10" r="1" />
+  </>,
+);
+export const BreadLine = icon(
+  <path d="M5 19c-1.5-1.5-.5-4.5 3-8l3-3c3.5-3.5 6.5-4.5 8-3s.5 4.5-3 8l-3 3c-3.5 3.5-6.5 4.5-8 3zM9 12l2 2M12 9l2 2M15 6.5l1.8 1.8" />,
+);
+export const ScaleLine = icon(
+  <path d="M12 4v16M8 20h8M5 7h14M5 7l-2.5 6a2.5 2.5 0 0 0 5 0zM19 7l-2.5 6a2.5 2.5 0 0 0 5 0z" />,
+);
+export const CameraLine = icon(
+  <>
+    <path d="M4 8.5h3L8.5 6h7L17 8.5h3v10H4z" />
+    <circle cx="12" cy="13" r="3.5" />
+  </>,
+);
+export const ForkKnifeLine = icon(
+  <path d="M7 3.5v17M5 3.5v4a2 2 0 0 0 4 0v-4M16.5 20.5v-17c-2 1-3.5 3.5-3.5 7h3.5" />,
+);
+export const StarLine = icon(<path d="m12 3.8 2.5 5.1 5.6.8-4 3.9.9 5.6-5-2.6-5 2.6.9-5.6-4-3.9 5.6-.8z" />);

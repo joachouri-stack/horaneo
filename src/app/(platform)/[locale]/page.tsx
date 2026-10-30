@@ -6,7 +6,6 @@ import { connection } from "next/server";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PlatformFooter } from "@/components/layout/PlatformFooter";
 import { PlatformHeader } from "@/components/layout/PlatformHeader";
-import { Comparison } from "@/components/marketing/Comparison";
 import {
   ArrowLine,
   BellLine,
@@ -15,6 +14,8 @@ import {
   CardLine,
   ChartLine,
   CheckLine,
+  ClockLine,
+  StarLine,
   FileLine,
   GiftLine,
   LockLine,
@@ -23,8 +24,6 @@ import {
   PlayLine,
   PlusLine,
   RefreshLine,
-  ServerLine,
-  ShieldLine,
   SparkleLine,
   StoreLine,
   TagLine,
@@ -32,6 +31,17 @@ import {
   UsersLine,
   AwardLine,
   CapLine,
+  BreadLine,
+  BriefcaseLine,
+  CameraLine,
+  ForkKnifeLine,
+  HammerLine,
+  LeafLine,
+  PaletteLine,
+  PartyLine,
+  ScaleLine,
+  ScissorsLine,
+  WrenchLine,
 } from "@/components/marketing/line-icons";
 import { PlanCards } from "@/components/marketing/PlanCards";
 import { RevealOnScroll } from "@/components/marketing/RevealOnScroll";
@@ -46,7 +56,6 @@ import { SOLUTIONS, type Solution } from "@/modules/billing/grid";
 import { listLaunchOffers } from "@/modules/billing/launch-offers";
 import { listPublicPlans } from "@/modules/billing/plans";
 import { getPlatformSetting } from "@/modules/settings";
-import { listShowcase } from "@/modules/showcase/showcase";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]">): Promise<Metadata> {
   const locale = resolveLocale((await params).locale);
@@ -94,35 +103,61 @@ const FAQ = [
 /** Fonctions d'IA : la question de la FAQ à leur sujet ne s'affiche que si l'une est encore « Bientôt ». */
 const AI_FEATURES = ["aiChatbot", "aiTexts", "aiImages", "whatsappAssistant"];
 
+/** Pictogramme de chaque métier visé (clés de `solutions.items.*.targets`). */
+const TARGET_ICONS: Record<string, typeof CheckLine> = {
+  beauty: SparkleLine,
+  hair: ScissorsLine,
+  wellness: LeafLine,
+  garage: WrenchLine,
+  craft: HammerLine,
+  consulting: BriefcaseLine,
+  events: PartyLine,
+  artists: PaletteLine,
+  bakery: BreadLine,
+  liberal: ScaleLine,
+  coaching: AwardLine,
+  photo: CameraLine,
+  shops: StoreLine,
+  makers: PaletteLine,
+  food: ForkKnifeLine,
+  trainers: CapLine,
+  experts: BriefcaseLine,
+  organizations: UsersLine,
+  courseCreators: PlayLine,
+};
+
 /** Pictogrammes du bandeau de fonctions de chaque solution (dans l'ordre des textes). */
 const STRIP: Record<Solution, (typeof CheckLine)[]> = {
-  booking: [CalendarLine, BellLine, LockLine, UsersLine, ChartLine],
-  commerce: [StoreLine, BoxLine, FileLine, TagLine, GiftLine],
-  formation: [PlayLine, FileLine, CapLine, AwardLine, TrendLine],
+  booking: [ClockLine, BellLine, CardLine, CalendarLine, UsersLine, ChartLine],
+  commerce: [StoreLine, BoxLine, LockLine, FileLine, TagLine, GiftLine],
+  formation: [PlayLine, FileLine, CapLine, AwardLine, TrendLine, CardLine],
 };
 
 /** Pictogrammes des quatre usages de l'espace de gestion (dans l'ordre des textes). */
-const DASHBOARD_ICONS = [CalendarLine, ChartLine, UsersLine, BellLine];
 
+/** « Pour aller plus loin » : seulement ce que les cartes des solutions ne présentent pas déjà. */
 const BENEFITS = [
-  { key: "sales", Icon: CalendarLine },
-  { key: "payments", Icon: CardLine },
-  { key: "clients", Icon: UsersLine },
+  { key: "marketing", Icon: MegaphoneLine },
+  { key: "reviews", Icon: StarLine },
   { key: "automation", Icon: RefreshLine, feature: "marketingAutomation" },
   { key: "assistant", Icon: SparkleLine, feature: "aiChatbot" },
-  { key: "marketing", Icon: MegaphoneLine },
-  { key: "stats", Icon: ChartLine },
-] as const;
-
-const TRUST = [
-  { key: "stripe", Icon: LockLine },
-  { key: "commission", Icon: CardLine },
-  { key: "hosting", Icon: ServerLine },
-  { key: "data", Icon: ShieldLine },
-  { key: "noOverage", Icon: CheckLine },
 ] as const;
 
 const TITLE = "font-display font-semibold tracking-[-0.025em] text-night";
+
+/** Point corail devant les badges de section : le rappel du point du « o » de la marque. */
+const EYEBROW_DOT = <span aria-hidden="true" className="size-1.5 flex-none rounded-full bg-coral" />;
+
+/** Titre dont le point final passe en corail, comme le point du logo. */
+function coralStop(text: string) {
+  if (!text.endsWith(".")) return text;
+  return (
+    <>
+      {text.slice(0, -1)}
+      <span className="text-coral">.</span>
+    </>
+  );
+}
 const EYEBROW =
   "inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1 text-[0.875rem] font-medium uppercase tracking-[0.08em] text-accent-strong";
 const PRIMARY =
@@ -147,7 +182,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
   const data = await withPlatform(async (tx) => ({
     plans: await listPublicPlans(tx),
     display: String(await getPlatformSetting(tx, "prices_display")),
-    commission: Number(await getPlatformSetting(tx, "deposit_commission_percent")),
     commitment: Number(await getPlatformSetting(tx, "commitment_months")),
     yearly: {
       enabled: Boolean(await getPlatformSetting(tx, "yearly_billing_enabled")),
@@ -159,7 +193,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     solutions: await getPlatformSetting(tx, "solutions"),
     demoUrl: String(await getPlatformSetting(tx, "demo_url")),
     offers: await listLaunchOffers(tx, { openOnly: true }),
-    showcase: await listShowcase(tx),
   }));
   const soon = new Set<string>(data.soon);
   const isSoon = (solution: Solution) =>
@@ -415,6 +448,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-14">
                     <div data-reveal>
                       <p className={EYEBROW}>
+                        {EYEBROW_DOT}
                         {t(`solutions.items.${code}.badge`)}
                         {isSoon(code) && (
                           <span className="rounded-full bg-white px-2 py-px text-mk-note normal-case tracking-normal text-ink-soft">
@@ -425,25 +459,35 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                       <h3 className={`${TITLE} hn-balance mt-4 text-mk-h2 leading-[1.1]`}>
                         {t(`solutions.items.${code}.title`)}
                         <br />
-                        <span className="text-accent">{t(`solutions.items.${code}.titleAccent`)}</span>
+                        <span className="text-accent">
+                          {coralStop(t(`solutions.items.${code}.titleAccent`))}
+                        </span>
                       </h3>
                       <p className="mt-4 max-w-[32rem] text-mk-lead text-ink-soft">
                         {t(`solutions.items.${code}.text`)}
                       </p>
-                      <ul className="mt-6 grid gap-2.5 text-mk-body text-[#2d3446]">
-                        {(t.raw(`solutions.items.${code}.bullets`) as string[]).map((item) => (
-                          <li key={item} className="flex items-center gap-3">
-                            <span className="flex size-6 flex-none items-center justify-center rounded-full bg-accent text-white">
-                              <CheckLine className="size-3.5" />
-                            </span>
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                      <p className="mt-5 text-[0.9375rem] text-ink-soft">
-                        <span className="font-medium text-night">{t("solutions.for")} : </span>
-                        {(t.raw(`solutions.items.${code}.targets`) as string[]).join(" · ")}
+                      {/* Métiers visés, chacun avec son pictogramme : le visiteur repère le sien d'un coup d'œil. */}
+                      <p className="mt-6 text-mk-small font-medium text-night">
+                        {t(`solutions.items.${code}.targetsTitle`)}
                       </p>
+                      <ul className="mt-3 flex flex-wrap gap-2" aria-label={t("solutions.for")}>
+                        {Object.entries(
+                          t.raw(`solutions.items.${code}.targets`) as Record<string, string>,
+                        ).map(([key, label]) => {
+                          const Icon = TARGET_ICONS[key] ?? CheckLine;
+                          return (
+                            <li
+                              key={key}
+                              className="group inline-flex items-center gap-2 rounded-full border border-accent-line/60 bg-accent-soft/60 py-1.5 pl-2 pr-3.5 text-mk-small font-medium text-night transition-colors duration-300 hover:border-coral/40 hover:bg-coral/10 hover:text-coral-dark"
+                            >
+                              <span className="flex size-6 flex-none items-center justify-center rounded-full bg-white text-accent transition-colors duration-300 group-hover:text-coral-dark">
+                                <Icon className="size-3.5" />
+                              </span>
+                              {label}
+                            </li>
+                          );
+                        })}
+                      </ul>
                       {isSoon(code) ? (
                         <div className="mt-7">
                           <Link href={{ pathname: "/rappel", query: { solution: code } }} className={PRIMARY}>
@@ -460,10 +504,14 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                             {t("cta")}
                             <ArrowLine className="size-[18px] transition-transform group-hover:translate-x-0.5" />
                           </Link>
-                          {data.demoUrl && (
+                          {data.demoUrl ? (
                             <a href={data.demoUrl} target="_blank" rel="noopener" className={SECONDARY}>
                               <PlayCircleLine className="size-[18px] text-accent" />
                               {t("hero.demo")}
+                            </a>
+                          ) : (
+                            <a href="#tarifs" className={SECONDARY}>
+                              {t("hero.pricing")}
                             </a>
                           )}
                         </div>
@@ -474,32 +522,42 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     </div>
                   </div>
 
-                  {/* Fonctions de la solution : une carte par fonction, avec son bénéfice. */}
-                  <ul className="mt-10 grid gap-3 sm:grid-cols-2 lg:mt-12 lg:grid-cols-5 lg:gap-4">
-                    {(t.raw(`solutions.items.${code}.strip`) as { title: string; text: string }[]).map(
-                      (item, index) => {
-                        const Icon = STRIP[code][index] ?? CheckLine;
-                        return (
-                          <li
-                            key={item.title}
-                            data-reveal
-                            className="group flex items-start gap-4 rounded-2xl border border-hairline bg-white p-4 shadow-[0_1px_2px_rgba(15,24,48,.04)] transition duration-300 hover:-translate-y-1 hover:border-coral/40 hover:shadow-[0_14px_30px_-18px_rgba(232,80,63,.45)] motion-reduce:transition-none sm:max-lg:last:col-span-2 lg:flex-col lg:gap-3 lg:p-5"
-                          >
-                            <span className="flex size-11 flex-none items-center justify-center rounded-xl bg-accent-soft text-accent transition-colors duration-300 group-hover:bg-coral/10 group-hover:text-coral-dark">
-                              <Icon className="size-[1.375rem]" />
+                  {/* Fonctions de la solution : chaque information une seule fois, avec son bénéfice
+                      et, s'il y a lieu, le pack qui la débloque. */}
+                  <ul className="mt-8 grid overflow-hidden rounded-2xl border border-hairline bg-white max-sm:divide-y max-sm:divide-hairline sm:mt-10 sm:gap-3 sm:overflow-visible sm:rounded-none sm:border-0 sm:bg-transparent sm:grid-cols-2 lg:mt-12 lg:grid-cols-3 lg:gap-4">
+                    {(
+                      t.raw(`solutions.items.${code}.strip`) as {
+                        title: string;
+                        text: string;
+                        tag?: string;
+                      }[]
+                    ).map((item, index) => {
+                      const Icon = STRIP[code][index] ?? CheckLine;
+                      return (
+                        <li
+                          key={item.title}
+                          data-reveal
+                          className="group flex items-start gap-3.5 px-4 py-3.5 transition duration-300 motion-reduce:transition-none sm:gap-4 sm:rounded-2xl sm:border sm:border-hairline sm:bg-white sm:p-4 sm:shadow-[0_1px_2px_rgba(15,24,48,.04)] sm:hover:-translate-y-1 sm:hover:border-coral/40 sm:hover:shadow-[0_14px_30px_-18px_rgba(232,80,63,.45)] lg:p-5"
+                        >
+                          <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-accent-soft text-accent transition-colors duration-300 group-hover:bg-coral/10 group-hover:text-coral-dark sm:size-11">
+                            <Icon className="size-5 sm:size-[1.375rem]" />
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block font-display text-mk-body font-semibold leading-snug text-night">
+                              {item.title}
                             </span>
-                            <span className="min-w-0">
-                              <span className="block font-display text-mk-body font-semibold leading-snug text-night">
-                                {item.title}
-                              </span>
-                              <span className="mt-1 block text-mk-small leading-snug text-ink-soft">
-                                {item.text}
-                              </span>
+                            <span className="mt-1 block text-mk-small leading-snug text-ink-soft">
+                              {item.text}
                             </span>
-                          </li>
-                        );
-                      },
-                    )}
+                            {item.tag && (
+                              <span className="mt-1.5 inline-flex rounded-full bg-champagne-soft px-2.5 py-0.5 text-mk-note font-medium text-copper">
+                                {item.tag}
+                              </span>
+                            )}
+                          </span>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               ))}
@@ -519,6 +577,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             <div className="mx-auto max-w-[72rem] 2xl:max-w-[85rem]">
               <div className="mx-auto max-w-[46rem] text-center">
                 <p data-reveal className={EYEBROW}>
+                  {EYEBROW_DOT}
                   {t("dashboard.badge")}
                 </p>
                 <h2
@@ -527,7 +586,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   className={`${TITLE} hn-balance mt-4 text-mk-h2 leading-[1.1]`}
                 >
                   {t("dashboard.title")}{" "}
-                  <span className="block text-accent">{t("dashboard.titleAccent")}</span>
+                  <span className="block text-accent">{coralStop(t("dashboard.titleAccent"))}</span>
                 </h2>
                 <p data-reveal className="mt-4 text-mk-lead text-ink-soft">
                   {t("dashboard.text")}
@@ -548,31 +607,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   {t("dashboard.note")}
                 </figcaption>
               </figure>
-              {/* Quatre usages clés de l'espace, en cartes fines. */}
-              <ul className="mt-10 grid gap-3 sm:grid-cols-2 sm:gap-4 lg:mt-12 lg:grid-cols-4">
-                {(t.raw("dashboard.points") as { title: string; text: string }[]).map((point, index) => {
-                  const Icon = DASHBOARD_ICONS[index] ?? CheckLine;
-                  return (
-                    <li
-                      key={point.title}
-                      data-reveal
-                      className="group flex items-start gap-3.5 rounded-[1.4rem] border border-hairline bg-white/80 p-4 backdrop-blur sm:gap-4 sm:p-5 transition duration-300 hover:-translate-y-1 hover:border-accent-line hover:shadow-[0_18px_36px_-24px_rgba(15,24,48,.35)] motion-reduce:transition-none motion-reduce:hover:translate-y-0 lg:flex-col lg:gap-5 lg:p-6"
-                    >
-                      <span className="flex size-11 flex-none items-center justify-center rounded-xl bg-accent-soft text-accent transition-transform duration-300 group-hover:-translate-y-0.5 motion-reduce:transition-none">
-                        <Icon className="size-[22px]" />
-                      </span>
-                      <span>
-                        <span className="block font-display text-mk-body font-semibold tracking-[-0.01em] text-night sm:text-mk-card">
-                          {point.title}
-                        </span>
-                        <span className="mt-1.5 block text-mk-small leading-relaxed text-ink-soft">
-                          {point.text}
-                        </span>
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
             </div>
           </section>
 
@@ -583,6 +617,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             className="mx-auto max-w-[75rem] 2xl:max-w-[88rem] scroll-mt-20 px-4 pt-20 sm:px-6 lg:pt-28"
           >
             <p data-reveal className={EYEBROW}>
+              {EYEBROW_DOT}
               {t("benefits.badge")}
             </p>
             <h2
@@ -590,87 +625,40 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               data-reveal
               className={`${TITLE} mt-4 max-w-[44rem] text-mk-h2 leading-[1.1]`}
             >
-              {t("benefits.title")} <span className="text-accent">{t("benefits.titleAccent")}</span>
+              {t("benefits.title")}{" "}
+              <span className="text-accent">{coralStop(t("benefits.titleAccent"))}</span>
             </h2>
-            <ul className="mt-10 grid gap-x-8 gap-y-9 sm:grid-cols-2 lg:grid-cols-4">
+            <ul className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
               {BENEFITS.map((item) => {
                 const later = "feature" in item && soon.has(item.feature);
                 return (
-                  <li key={item.key} data-reveal className="group">
-                    <span className="flex size-11 items-center justify-center rounded-xl border border-accent-line bg-accent-soft text-accent transition duration-300 group-hover:-translate-y-1 group-hover:-rotate-6 group-hover:bg-accent group-hover:text-white group-hover:shadow-[0_10px_20px_-10px_var(--accent)] motion-reduce:transition-none">
-                      <item.Icon className="size-[22px]" />
+                  <li
+                    key={item.key}
+                    data-reveal
+                    className={`group flex items-start gap-4 rounded-2xl border border-hairline p-4 transition duration-300 motion-reduce:transition-none lg:flex-col lg:gap-3 lg:p-5 ${later ? "bg-mist-50/60" : "bg-white shadow-[0_1px_2px_rgba(15,24,48,.04)] hover:-translate-y-1 hover:border-coral/40 hover:shadow-[0_14px_30px_-18px_rgba(232,80,63,.45)]"}`}
+                  >
+                    <span
+                      className={`flex size-11 flex-none items-center justify-center rounded-xl transition-colors duration-300 ${later ? "bg-white text-ink-soft" : "bg-accent-soft text-accent group-hover:bg-coral/10 group-hover:text-coral-dark"}`}
+                    >
+                      <item.Icon className="size-[1.375rem]" />
                     </span>
-                    <h3 className="mt-4 flex flex-wrap items-center gap-2 font-display text-mk-card font-semibold text-night">
-                      {t(`benefits.items.${item.key}.title`)}
-                      {later && (
-                        <span className="rounded-full bg-mist-50 px-2 py-px font-sans text-mk-note font-normal text-ink-soft">
-                          {t("plans.soonTag")}
-                        </span>
-                      )}
-                    </h3>
-                    <p className="mt-1.5 text-[1.0625rem] text-ink-soft">
-                      {t(`benefits.items.${item.key}.text`)}
-                    </p>
+                    <span className="min-w-0">
+                      <span className="flex flex-wrap items-center gap-2 font-display text-mk-body font-semibold leading-snug text-night">
+                        {t(`benefits.items.${item.key}.title`)}
+                        {later && (
+                          <span className="rounded-full bg-white px-2 py-px font-sans text-mk-note font-normal text-ink-soft">
+                            {t("plans.soonTag")}
+                          </span>
+                        )}
+                      </span>
+                      <span className="mt-1 block text-mk-small leading-snug text-ink-soft">
+                        {t(`benefits.items.${item.key}.text`)}
+                      </span>
+                    </span>
                   </li>
                 );
               })}
             </ul>
-          </section>
-
-          {/* Réassurance : seulement des engagements vérifiés */}
-          <section
-            aria-labelledby="titre-confiance"
-            className="mx-auto max-w-[75rem] 2xl:max-w-[88rem] px-4 pt-20 sm:px-6 lg:pt-28"
-          >
-            <h2 id="titre-confiance" data-reveal className={`${TITLE} text-center text-mk-h2 leading-[1.1]`}>
-              {t("trust.title")}
-            </h2>
-            <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-6 lg:gap-4">
-              {TRUST.map(({ key, Icon }) => (
-                <li
-                  key={key}
-                  data-reveal
-                  className="group flex items-start gap-4 rounded-2xl border border-hairline bg-white p-4 shadow-[0_1px_2px_rgba(15,24,48,.04)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_14px_30px_-18px_rgba(15,24,48,.35)] motion-reduce:transition-none sm:max-lg:last:col-span-2 lg:col-span-2 lg:p-5 lg:[&:nth-child(n+4)]:col-span-3"
-                >
-                  {/* Pastille verte (confiance) et petit ✓ : l'engagement est tenu. */}
-                  <span className="relative flex size-11 flex-none items-center justify-center rounded-xl bg-success/10 text-success">
-                    <Icon className="size-[1.375rem]" />
-                    <span
-                      aria-hidden="true"
-                      className="absolute -bottom-1 -right-1 flex size-4 items-center justify-center rounded-full bg-success text-white ring-2 ring-white"
-                    >
-                      <CheckLine className="size-2.5" />
-                    </span>
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block font-display text-mk-body font-semibold leading-snug text-night">
-                      {t(`trust.items.${key}.title`, { percent: data.commission })}
-                    </span>
-                    <span className="mt-1 block text-mk-small leading-snug text-ink-soft">
-                      {t(`trust.items.${key}.text`)}
-                    </span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-            {/* Témoignages réels saisis dans l'admin (bloc caché s'il n'y en a pas). */}
-            {data.showcase.length > 0 && (
-              <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {data.showcase.map((entry) => (
-                  <li key={entry.id} data-reveal>
-                    <figure className="flex h-full flex-col rounded-2xl border border-hairline bg-white p-6">
-                      <blockquote className="flex-1 text-night">
-                        {t("showcase.quote", { quote: entry.quote })}
-                      </blockquote>
-                      <figcaption className="mt-4 text-[1.0625rem] text-ink-soft">
-                        <span className="font-medium text-night">{entry.author}</span> · {entry.name} ·{" "}
-                        {entry.activity}
-                      </figcaption>
-                    </figure>
-                  </li>
-                ))}
-              </ul>
-            )}
           </section>
 
           {/* Choisissez votre pack */}
@@ -700,6 +688,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                       {t(`solutions.items.${code}.name`)}
                     </span>
                   ))}
+                  <span className="text-coral">.</span>
                 </h2>
                 <p className="mt-2 max-w-[36rem] text-ink-soft">{t("plans.subtitle")}</p>
               </div>
@@ -743,29 +732,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             />
             <p className="mt-6 text-center text-[0.9375rem] text-ink-soft">{t("plans.quotaNote")}</p>
           </section>
-
-          {/* Comparatif détaillé */}
-          <section
-            id="comparatif"
-            aria-labelledby="titre-comparatif"
-            className="mx-auto max-w-[75rem] 2xl:max-w-[88rem] scroll-mt-20 px-4 pt-20 sm:px-6 lg:pt-28"
-          >
-            <h2 id="titre-comparatif" data-reveal className={`${TITLE} mb-8 text-mk-h2 leading-[1.1]`}>
-              {t("comparison.title")}
-              {SOLUTIONS.map((code) => (
-                <span key={code} data-only={code} className="text-accent">
-                  {t("comparison.forSolution", { solution: t(`solutions.items.${code}.name`) })}
-                </span>
-              ))}
-            </h2>
-            <Comparison
-              plans={data.plans}
-              locale={locale}
-              soon={data.soon}
-              display={data.display}
-              yearly={data.yearly}
-            />
-          </section>
         </SolutionScope>
 
         {/* Questions */}
@@ -792,7 +758,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 <details key={item.key} open={index === 0} className="group">
                   <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 py-4 font-medium text-night [&::-webkit-details-marker]:hidden">
                     {item.q}
-                    <PlusLine className="size-5 flex-none text-ink-soft transition-transform group-open:rotate-45 motion-reduce:transition-none" />
+                    <PlusLine className="size-5 flex-none text-coral transition-transform group-open:rotate-45 motion-reduce:transition-none" />
                   </summary>
                   <p className="pb-5 pr-8 text-[1.0625rem] text-ink-soft">{item.a}</p>
                 </details>

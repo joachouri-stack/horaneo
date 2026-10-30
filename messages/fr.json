@@ -89,29 +89,29 @@
           "badge": "Solution Réservation",
           "title": "Simplifiez vos rendez-vous.",
           "titleAccent": "Gagnez du temps.",
-          "text": "Un site professionnel avec réservation en ligne, agenda, fichier clients, rappels automatiques et paiements : tout ce qu'il faut pour remplir votre planning.",
-          "bullets": [
-            "Réservation en ligne 24 h/24",
-            "Rappels automatiques par e-mail (et SMS dès le pack Pro)",
-            "Acomptes et paiements en ligne",
-            "Plusieurs collaborateurs dès le pack Pro"
-          ],
+          "text": "Un site où vos clients réservent seuls, et un espace simple pour gérer tout le reste.",
           "floating": {
             "title": "Rappels automatiques",
             "text": "SMS et e-mail"
           },
           "strip": [
             {
-              "title": "Agenda",
-              "text": "Tous vos rendez-vous, sur ordinateur et téléphone."
+              "title": "Réservation en ligne 24 h/24",
+              "text": "Vos clients réservent seuls, même le soir et le dimanche."
             },
             {
               "title": "Rappels automatiques",
-              "text": "Moins d'oublis, sans lever le petit doigt."
+              "text": "Moins de rendez-vous oubliés : e-mail inclus, SMS en plus.",
+              "tag": "SMS dès le pack Pro"
             },
             {
-              "title": "Paiements sécurisés",
-              "text": "Acomptes et paiements en ligne, versés sur votre compte."
+              "title": "Acomptes et paiements en ligne",
+              "text": "Moins de rendez-vous manqués, l'argent arrive sur votre compte."
+            },
+            {
+              "title": "Agenda d'équipe",
+              "text": "Vos rendez-vous et ceux de vos collaborateurs, sur ordinateur et téléphone.",
+              "tag": "Plusieurs collaborateurs dès le pack Pro"
             },
             {
               "title": "Fichier clients",
@@ -131,14 +131,21 @@
             "phoneCta": "Réserver",
             "business": "Votre établissement"
           },
-          "targets": [
-            "Instituts de beauté",
-            "Coiffeurs et barbiers",
-            "Bien-être",
-            "Garages",
-            "Artisans",
-            "Consultants"
-          ]
+          "targets": {
+            "beauty": "Instituts de beauté",
+            "hair": "Coiffeurs et barbiers",
+            "wellness": "Bien-être",
+            "garage": "Garages",
+            "craft": "Artisans",
+            "consulting": "Consultants",
+            "events": "Événementiel",
+            "artists": "Artistes",
+            "bakery": "Boulangeries",
+            "liberal": "Professions libérales",
+            "coaching": "Coachs",
+            "photo": "Photographes"
+          },
+          "targetsTitle": "Pensé pour les pros qui travaillent sur rendez-vous"
         },
         "commerce": {
           "name": "Commerce",
@@ -146,25 +153,23 @@
           "badge": "Solution Commerce",
           "title": "Vendez vos produits",
           "titleAccent": "en toute simplicité.",
-          "text": "Une boutique en ligne pour vendre vos produits et services : catalogue, commandes, paiements sécurisés et gestion des stocks.",
-          "bullets": [
-            "Boutique en ligne clé en main",
-            "Paiements sécurisés par Stripe",
-            "Commandes et stocks",
-            "Codes promo et cartes cadeaux"
-          ],
+          "text": "Une boutique en ligne prête à vendre, et un espace simple pour suivre vos commandes.",
           "floating": {
             "title": "Paiements sécurisés",
             "text": "Stripe"
           },
           "strip": [
             {
-              "title": "Boutique en ligne",
+              "title": "Boutique en ligne clé en main",
               "text": "Vos produits en vente, jour et nuit."
             },
             {
               "title": "Catalogue",
               "text": "Photos, prix et variantes, simples à mettre à jour."
+            },
+            {
+              "title": "Paiements sécurisés",
+              "text": "Paiement par carte via Stripe, versé sur votre compte."
             },
             {
               "title": "Commandes et stocks",
@@ -188,7 +193,13 @@
             "phoneCta": "Ajouter au panier",
             "business": "Votre boutique"
           },
-          "targets": ["Commerces", "Créateurs", "Restaurants et traiteurs", "Artisans"]
+          "targets": {
+            "shops": "Commerces",
+            "makers": "Créateurs",
+            "food": "Restaurants et traiteurs",
+            "craft": "Artisans"
+          },
+          "targetsTitle": "Pensé pour ceux qui vendent leurs produits"
         },
         "formation": {
           "name": "Formation",
@@ -196,13 +207,7 @@
           "badge": "Solution Formation",
           "title": "Créez et vendez",
           "titleAccent": "vos formations en ligne.",
-          "text": "Diffusez vos cours et ateliers, gérez vos apprenants et vendez vos formations depuis le même espace.",
-          "bullets": [
-            "Cours vidéo et documents",
-            "Espace apprenant sécurisé",
-            "Quiz et certificats",
-            "Paiements en ligne et abonnements"
-          ],
+          "text": "Vendez vos formations en ligne et suivez vos apprenants depuis le même espace.",
           "floating": {
             "title": "Espace apprenant",
             "text": "Sécurisé"
@@ -217,16 +222,20 @@
               "text": "Supports et fiches à télécharger."
             },
             {
-              "title": "Espace apprenant",
+              "title": "Espace apprenant sécurisé",
               "text": "Un espace personnel pour chaque apprenant."
             },
             {
-              "title": "Certificats",
-              "text": "Une attestation remise à la fin du parcours."
+              "title": "Quiz et certificats",
+              "text": "Des quiz pour valider les acquis, une attestation à la fin."
             },
             {
               "title": "Suivi des apprenants",
               "text": "La progression de chacun, leçon après leçon."
+            },
+            {
+              "title": "Paiements et abonnements",
+              "text": "Vendez à l'unité ou par abonnement, payé en ligne."
             }
           ],
           "mock": {
@@ -238,12 +247,13 @@
             "phoneCta": "Continuer",
             "business": "Votre académie"
           },
-          "targets": [
-            "Formateurs indépendants",
-            "Consultants et experts",
-            "Organismes de formation",
-            "Créateurs de cours"
-          ]
+          "targets": {
+            "trainers": "Formateurs indépendants",
+            "experts": "Consultants et experts",
+            "organizations": "Organismes de formation",
+            "courseCreators": "Créateurs de cours"
+          },
+          "targetsTitle": "Pensé pour ceux qui transmettent leur savoir"
         }
       }
     },
@@ -710,59 +720,29 @@
       "title": "Toute votre activité,",
       "titleAccent": "dans un seul tableau de bord.",
       "text": "Votre site est relié à un espace de gestion simple, pensé pour le téléphone comme pour l'ordinateur.",
-      "points": [
-        {
-          "title": "Agenda du jour",
-          "text": "Les rendez-vous de la journée en un coup d'œil, à pointer en un geste."
-        },
-        {
-          "title": "Chiffre d'affaires",
-          "text": "Vos recettes de la semaine et vos prestations les plus demandées."
-        },
-        {
-          "title": "Fiches clients",
-          "text": "Les visites, l'historique et les notes de chaque client."
-        },
-        {
-          "title": "Rappels et paiements",
-          "text": "Rappels automatiques avant chaque rendez-vous, acomptes en ligne."
-        }
-      ],
       "alt": "Captures de l'espace de gestion sur ordinateur et sur téléphone : accueil avec l'agenda du jour, le chiffre d'affaires et les statistiques, agenda du jour sur téléphone",
       "note": "Captures de l'espace de gestion, avec des données d'exemple. Les fonctions disponibles dépendent de votre pack."
     },
     "benefits": {
       "badge": "Fonctionnalités",
-      "title": "Tout ce qu'il faut pour gérer votre activité,",
-      "titleAccent": "au même endroit.",
+      "title": "Pour aller plus loin",
+      "titleAccent": "et faire revenir vos clients.",
       "items": {
-        "sales": {
-          "title": "Réservations en ligne",
-          "text": "Vos clients réservent en ligne, à toute heure. La vente en ligne arrive avec la solution Commerce."
+        "marketing": {
+          "title": "Marketing et fidélité",
+          "text": "Codes promo, promotions et programme de fidélité pour faire revenir vos clients."
         },
-        "payments": {
-          "title": "Paiements sécurisés",
-          "text": "Acomptes et paiements par carte via Stripe, versés directement sur votre compte."
-        },
-        "clients": {
-          "title": "Gestion des clients",
-          "text": "Fiches clients, historique des rendez-vous et notes, au même endroit."
+        "reviews": {
+          "title": "Avis Google",
+          "text": "Vos avis affichés sur votre site, et une demande d'avis envoyée après chaque rendez-vous."
         },
         "automation": {
-          "title": "Automatisations",
-          "text": "Rappels, demandes d'avis et résumés partent tout seuls, ainsi que des campagnes marketing automatisées selon votre pack."
+          "title": "Campagnes automatiques",
+          "text": "Relances et campagnes marketing qui partent toutes seules, selon votre pack."
         },
         "assistant": {
           "title": "Assistant IA",
           "text": "Un assistant qui répond à vos clients et prépare vos actions, avec votre accord."
-        },
-        "marketing": {
-          "title": "Marketing",
-          "text": "Codes promo, promotions, avis Google et fidélisation pour faire revenir vos clients."
-        },
-        "stats": {
-          "title": "Statistiques",
-          "text": "Rendez-vous, chiffre d'affaires et prestations phares, mois après mois."
         }
       }
     },
@@ -772,38 +752,6 @@
       "titleFor": "Comparatif des fonctionnalités – {solution}",
       "feature": "Fonctionnalité",
       "pickPack": "Pack affiché"
-    },
-    "trust": {
-      "title": "Nos engagements, noir sur blanc",
-      "items": {
-        "stripe": {
-          "title": "Paiements sécurisés",
-          "text": "Les cartes bancaires sont traitées par Stripe ; nous ne voyons ni ne gardons jamais leurs numéros."
-        },
-        "commission": {
-          "title": "{percent, plural, =0 {0 % de commission} other {# % de commission}}",
-          "text": "Vos acomptes et paiements vous reviennent en entier ; seuls les frais Stripe s'appliquent."
-        },
-        "hosting": {
-          "title": "Hébergement et sécurité inclus",
-          "text": "Votre site est hébergé, protégé (https) et mis à jour par nos soins."
-        },
-        "data": {
-          "title": "Vos données vous appartiennent",
-          "text": "Clients, rendez-vous et contenus : vous les récupérez sur simple demande."
-        },
-        "noOverage": {
-          "title": "Pas de mauvaise surprise",
-          "text": "À la limite d'un quota, l'outil se met en pause. Rien n'est facturé sans votre accord."
-        }
-      }
-    },
-    "showcase": {
-      "badge": "Ils nous font confiance",
-      "title": "Des professionnels",
-      "titleAccent": "comme vous.",
-      "quote": "« {quote} »",
-      "visit": "Voir le site de {name}"
     },
     "faq": {
       "title": "Questions fréquentes",
