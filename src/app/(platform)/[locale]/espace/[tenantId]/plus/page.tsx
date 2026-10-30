@@ -27,6 +27,7 @@ const ICONS = {
   settings: "M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M16 4v4M10 10v4M16 16v4",
   requests: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
   customerData: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10",
+  export: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3",
   help: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01",
 } as const;
 
@@ -61,6 +62,7 @@ const GROUPS: { key: "activity" | "sell" | "account" | "support"; items: Item[] 
       { key: "payments", href: "/plus/paiements", feature: "onlinePayment" },
       { key: "subscription", href: "/plus/abonnement" },
       { key: "settings", href: "/plus/reglages" },
+      { key: "export", href: "/plus/exporter" },
     ],
   },
   {
