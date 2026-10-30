@@ -155,6 +155,20 @@ const TRUST = [
 ] as const;
 
 const TITLE = "font-display font-semibold tracking-[-0.025em] text-night";
+
+/** Point corail devant les badges de section : le rappel du point du « o » de la marque. */
+const EYEBROW_DOT = <span aria-hidden="true" className="size-1.5 flex-none rounded-full bg-coral" />;
+
+/** Titre dont le point final passe en corail, comme le point du logo. */
+function coralStop(text: string) {
+  if (!text.endsWith(".")) return text;
+  return (
+    <>
+      {text.slice(0, -1)}
+      <span className="text-coral">.</span>
+    </>
+  );
+}
 const EYEBROW =
   "inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1 text-[0.875rem] font-medium uppercase tracking-[0.08em] text-accent-strong";
 const PRIMARY =
@@ -447,6 +461,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-14">
                     <div data-reveal>
                       <p className={EYEBROW}>
+                        {EYEBROW_DOT}
                         {t(`solutions.items.${code}.badge`)}
                         {isSoon(code) && (
                           <span className="rounded-full bg-white px-2 py-px text-mk-note normal-case tracking-normal text-ink-soft">
@@ -457,7 +472,9 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                       <h3 className={`${TITLE} hn-balance mt-4 text-mk-h2 leading-[1.1]`}>
                         {t(`solutions.items.${code}.title`)}
                         <br />
-                        <span className="text-accent">{t(`solutions.items.${code}.titleAccent`)}</span>
+                        <span className="text-accent">
+                          {coralStop(t(`solutions.items.${code}.titleAccent`))}
+                        </span>
                       </h3>
                       <p className="mt-4 max-w-[32rem] text-mk-lead text-ink-soft">
                         {t(`solutions.items.${code}.text`)}
@@ -573,6 +590,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             <div className="mx-auto max-w-[72rem] 2xl:max-w-[85rem]">
               <div className="mx-auto max-w-[46rem] text-center">
                 <p data-reveal className={EYEBROW}>
+                  {EYEBROW_DOT}
                   {t("dashboard.badge")}
                 </p>
                 <h2
@@ -581,7 +599,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   className={`${TITLE} hn-balance mt-4 text-mk-h2 leading-[1.1]`}
                 >
                   {t("dashboard.title")}{" "}
-                  <span className="block text-accent">{t("dashboard.titleAccent")}</span>
+                  <span className="block text-accent">{coralStop(t("dashboard.titleAccent"))}</span>
                 </h2>
                 <p data-reveal className="mt-4 text-mk-lead text-ink-soft">
                   {t("dashboard.text")}
@@ -612,6 +630,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             className="mx-auto max-w-[75rem] 2xl:max-w-[88rem] scroll-mt-20 px-4 pt-20 sm:px-6 lg:pt-28"
           >
             <p data-reveal className={EYEBROW}>
+              {EYEBROW_DOT}
               {t("benefits.badge")}
             </p>
             <h2
@@ -619,7 +638,8 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               data-reveal
               className={`${TITLE} mt-4 max-w-[44rem] text-mk-h2 leading-[1.1]`}
             >
-              {t("benefits.title")} <span className="text-accent">{t("benefits.titleAccent")}</span>
+              {t("benefits.title")}{" "}
+              <span className="text-accent">{coralStop(t("benefits.titleAccent"))}</span>
             </h2>
             <ul className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
               {BENEFITS.map((item) => {
@@ -737,6 +757,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                       {t(`solutions.items.${code}.name`)}
                     </span>
                   ))}
+                  <span className="text-coral">.</span>
                 </h2>
                 <p className="mt-2 max-w-[36rem] text-ink-soft">{t("plans.subtitle")}</p>
               </div>
@@ -829,7 +850,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 <details key={item.key} open={index === 0} className="group">
                   <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 py-4 font-medium text-night [&::-webkit-details-marker]:hidden">
                     {item.q}
-                    <PlusLine className="size-5 flex-none text-ink-soft transition-transform group-open:rotate-45 motion-reduce:transition-none" />
+                    <PlusLine className="size-5 flex-none text-coral transition-transform group-open:rotate-45 motion-reduce:transition-none" />
                   </summary>
                   <p className="pb-5 pr-8 text-[1.0625rem] text-ink-soft">{item.a}</p>
                 </details>
