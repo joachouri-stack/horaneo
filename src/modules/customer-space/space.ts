@@ -24,7 +24,6 @@ import { giftCardCodeFor } from "@/modules/giftcards/giftcards";
 import { customerLoyalty } from "@/modules/loyalty/loyalty";
 import { queueMessage } from "@/modules/messages/queue";
 import { depositSummary } from "@/modules/payments/refunds";
-import { birthdayOfferConfig } from "@/modules/promo/birthday";
 import type { CustomerIdentity } from "./auth";
 
 /**
@@ -225,8 +224,7 @@ export async function loadBusinessSpace(
         )
     : [];
   const contact = owners[0] ?? null;
-  // Offre d'anniversaire de l'entreprise : la cliente peut donner ou changer sa date.
-  const birthdayOffer = (await birthdayOfferConfig(tx, tenantId, businessId)).active;
+  // La cliente peut toujours donner ou changer sa date (facultative).
   const dated = owners.find((row) => row.birthMonth !== null);
 
   return {
@@ -241,7 +239,7 @@ export async function loadBusinessSpace(
           phone: contact.phone ?? "",
         }
       : null,
-    birthday: birthdayOffer ? { month: dated?.birthMonth ?? null, day: dated?.birthDay ?? null } : null,
+    birthday: { month: dated?.birthMonth ?? null, day: dated?.birthDay ?? null },
     upcoming,
     past,
     giftCards: cards,
@@ -267,8 +265,7 @@ export async function contactForBooking(tx: Transaction, tenantId: string, ident
 
 /**
  * Anniversaire donné (ou changé, ou effacé) par la cliente connectée, sur ses
- * fiches de l'entreprise déclarée. Seulement si l'entreprise propose l'offre
- * d'anniversaire : la date n'est pas demandée sans raison.
+ * fiches de l'entreprise déclarée. Toujours possible : la date est facultative.
  */
 export async function setCustomerBirthday(
   tx: Transaction,
@@ -277,8 +274,6 @@ export async function setCustomerBirthday(
   raw: { birthMonth?: unknown; birthDay?: unknown },
 ) {
   const birthday = birthdayInput.parse(raw);
-  const offer = await birthdayOfferConfig(tx, tenantId);
-  if (!offer.active) throw new AppError("feature_unavailable");
   const updated = await tx
     .update(customers)
     .set(birthday)

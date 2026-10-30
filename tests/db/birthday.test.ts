@@ -294,10 +294,10 @@ describe.skipIf(!hasTestDatabase)("offre d'anniversaire", () => {
       ).toBe("invalid");
     });
 
-    it("sans l'offre, la date n'est pas gardée ; la gérante peut la fixer ou la changer", async () => {
+    it("sans l'offre, la date est quand même gardée ; la gérante peut la fixer ou la changer", async () => {
       const s = await setup({ offer: false });
       await book(s, { email: "sans@example.com", birthMonth: 6, birthDay: 1 });
-      expect(await birthdayOf(s.id, "sans@example.com")).toEqual({ month: null, day: null });
+      expect(await birthdayOf(s.id, "sans@example.com")).toEqual({ month: 6, day: 1 });
       const [row] = await owner.select().from(customers).where(eq(customers.email, "sans@example.com"));
       await asTenant(s.id, (tx) =>
         saveCustomer(

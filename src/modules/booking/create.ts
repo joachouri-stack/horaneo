@@ -176,15 +176,14 @@ async function upsertCustomer(
     .from(customers)
     .where(and(eq(customers.tenantId, context.tenant.id), sql`lower(${customers.email}) = ${input.email}`));
   const consent = input.marketingConsent ? { emailConsent: true, smsConsent: true, consentAt: now } : {};
-  // Anniversaire saisi : les deux ou rien, une date qui existe. En ligne, il n'est demandé (et
-  // gardé) que si l'entreprise propose l'offre d'anniversaire : rien de plus que nécessaire.
-  const wanted =
-    source === "manual" || (context.settings.birthdayOfferEnabled && Boolean(context.features.promoCodes));
+  // Anniversaire saisi (facultatif) : les deux ou rien, une date qui existe. Gardé même sans
+  // offre d'anniversaire active, pour que l'entreprise puisse la proposer plus tard.
   const given = input.birthMonth != null || input.birthDay != null;
-  if (wanted && given && !isValidBirthday(input.birthMonth ?? 0, input.birthDay ?? 0))
+  if (given && !isValidBirthday(input.birthMonth ?? 0, input.birthDay ?? 0))
     throw new AppError("invalid", "customer.birthDay");
-  const birthday =
-    wanted && given ? { birthMonth: input.birthMonth as number, birthDay: input.birthDay as number } : null;
+  const birthday = given
+    ? { birthMonth: input.birthMonth as number, birthDay: input.birthDay as number }
+    : null;
   if (existing) {
     await tx
       .update(customers)

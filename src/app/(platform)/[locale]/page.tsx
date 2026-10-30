@@ -262,7 +262,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               <div className="hn-drift absolute -left-24 top-10 size-[24rem] rounded-full bg-accent/15 blur-[90px] max-sm:size-[16rem]" />
               <div className="hn-drift-slow absolute -right-20 top-32 size-[22rem] rounded-full bg-champagne/25 blur-[90px] max-sm:size-[14rem]" />
             </div>
-            <div className="relative mx-auto grid max-w-[75rem] items-center gap-10 px-4 pb-12 pt-8 sm:px-6 sm:pt-12 lg:grid-cols-[1.08fr_0.92fr] lg:gap-8 lg:pb-16 lg:pt-16 2xl:max-w-[88rem]">
+            <div className="relative mx-auto grid max-w-[75rem] items-center gap-10 px-4 pb-12 pt-6 sm:px-6 sm:pt-12 lg:grid-cols-[1.08fr_0.92fr] lg:gap-8 lg:pb-16 lg:pt-16 2xl:max-w-[88rem]">
               <div>
                 {/* Petite annonce : une ligne, casse normale, point lumineux. */}
                 <p className="hn-up inline-flex max-w-full items-center gap-2.5 rounded-full border border-hairline bg-white/80 py-1.5 pl-2.5 pr-4 text-mk-note font-medium text-night shadow-[0_6px_18px_-12px_rgba(15,24,48,.35)] backdrop-blur">
@@ -274,36 +274,69 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 </p>
                 {/* Sur téléphone, le titre suit la largeur de l'écran : une phrase par ligne. */}
                 <h1
-                  className={`${TITLE} hn-balance hn-up-2 mt-6 text-[clamp(1.5rem,7.6vw,2.25rem)] leading-[1.08] sm:text-mk-h1 sm:leading-[1.04]`}
+                  className={`${TITLE} hn-balance hn-up-2 mt-5 text-[clamp(1.5rem,7.6vw,2.25rem)] leading-[1.08] sm:text-mk-h1 sm:leading-[1.04]`}
                 >
                   {t("hero.title")} <span className="hn-shimmer block">{t("hero.titleAccent")}</span>
                 </h1>
-                <p className="hn-up-3 mt-5 max-w-[34rem] text-mk-lead leading-relaxed text-ink-soft">
+                <p className="hn-up-3 mt-4 max-w-[34rem] text-mk-lead leading-normal text-ink-soft sm:mt-5 sm:leading-relaxed">
                   {t("hero.subtitle")}
                 </p>
-                <div className="hn-up-4 mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="hn-up-4 mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:items-center">
                   <Link href={startHref} className={`${PRIMARY} justify-center`}>
                     {t("cta")}
                     <ArrowLine className="size-[18px] transition-transform group-hover:translate-x-0.5" />
                   </Link>
-                  {/* La démonstration n'apparaît que si une adresse est réglée dans l'admin. */}
+                  {/* Prix d'entrée et délai de mise en ligne (réglages), juste sous le bouton sur téléphone. */}
+                  {first && (
+                    <p className="-mt-1 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-mk-small text-ink-soft sm:hidden">
+                      <span className="font-medium text-night">
+                        {t("hero.offer", { price: faqValues.price, display: data.display })}
+                      </span>
+                      {data.goLiveDays > 0 && (
+                        <>
+                          <span aria-hidden="true">·</span>
+                          <span>{t("hero.goLive", { days: data.goLiveDays })}</span>
+                        </>
+                      )}
+                    </p>
+                  )}
+                  {/* La démonstration n'apparaît que si une adresse est réglée dans l'admin.
+                      Sur téléphone, l'action secondaire est un simple lien : un seul gros bouton. */}
                   {data.demoUrl ? (
                     <a
                       href={data.demoUrl}
                       target="_blank"
                       rel="noopener"
-                      className={`${SECONDARY} justify-center`}
+                      className={`${SECONDARY} justify-center max-sm:min-h-11 max-sm:border-0 max-sm:bg-transparent max-sm:text-accent-strong`}
                     >
                       <PlayCircleLine className="size-[18px] text-accent" />
                       {t("hero.demo")}
                     </a>
                   ) : (
-                    <a href="#tarifs" className={`${SECONDARY} justify-center`}>
+                    <a
+                      href="#tarifs"
+                      className={`${SECONDARY} justify-center max-sm:min-h-11 max-sm:border-0 max-sm:bg-transparent max-sm:text-accent-strong`}
+                    >
                       {t("hero.pricing")}
+                      <ArrowLine className="size-4 sm:hidden" />
                     </a>
                   )}
                 </div>
-                <ul className="hn-up-4 mt-7 grid gap-2 text-mk-small text-ink-soft sm:flex sm:flex-wrap sm:gap-x-5">
+                {/* Prix d'entrée et délai de mise en ligne, tirés des réglages. */}
+                {first && (
+                  <p className="hn-up-4 mt-4 hidden flex-wrap items-center gap-x-2 gap-y-1 text-mk-small text-ink-soft sm:flex">
+                    <span className="font-medium text-night">
+                      {t("hero.offer", { price: faqValues.price, display: data.display })}
+                    </span>
+                    {data.goLiveDays > 0 && (
+                      <>
+                        <span aria-hidden="true">·</span>
+                        <span>{t("hero.goLive", { days: data.goLiveDays })}</span>
+                      </>
+                    )}
+                  </p>
+                )}
+                <ul className="hn-up-4 mt-7 hidden flex-wrap gap-x-5 gap-y-2 text-mk-small text-ink-soft sm:flex">
                   {(t.raw("hero.points") as string[]).map((point) => (
                     <li key={point} className="flex items-center gap-2">
                       <span className="flex size-5 flex-none items-center justify-center rounded-full bg-accent-soft text-accent">
@@ -543,6 +576,103 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             </div>
           </section>
 
+          {/* Les bénéfices */}
+          <section
+            id="fonctionnalites"
+            aria-labelledby="titre-benefices"
+            className="mx-auto max-w-[75rem] 2xl:max-w-[88rem] scroll-mt-20 px-4 pt-20 sm:px-6 lg:pt-28"
+          >
+            <p data-reveal className={EYEBROW}>
+              {t("benefits.badge")}
+            </p>
+            <h2
+              id="titre-benefices"
+              data-reveal
+              className={`${TITLE} mt-4 max-w-[44rem] text-mk-h2 leading-[1.1]`}
+            >
+              {t("benefits.title")} <span className="text-accent">{t("benefits.titleAccent")}</span>
+            </h2>
+            <ul className="mt-10 grid gap-x-8 gap-y-9 sm:grid-cols-2 lg:grid-cols-4">
+              {BENEFITS.map((item) => {
+                const later = "feature" in item && soon.has(item.feature);
+                return (
+                  <li key={item.key} data-reveal className="group">
+                    <span className="flex size-11 items-center justify-center rounded-xl border border-accent-line bg-accent-soft text-accent transition duration-300 group-hover:-translate-y-1 group-hover:-rotate-6 group-hover:bg-accent group-hover:text-white group-hover:shadow-[0_10px_20px_-10px_var(--accent)] motion-reduce:transition-none">
+                      <item.Icon className="size-[22px]" />
+                    </span>
+                    <h3 className="mt-4 flex flex-wrap items-center gap-2 font-display text-mk-card font-semibold text-night">
+                      {t(`benefits.items.${item.key}.title`)}
+                      {later && (
+                        <span className="rounded-full bg-mist-50 px-2 py-px font-sans text-mk-note font-normal text-ink-soft">
+                          {t("plans.soonTag")}
+                        </span>
+                      )}
+                    </h3>
+                    <p className="mt-1.5 text-[1.0625rem] text-ink-soft">
+                      {t(`benefits.items.${item.key}.text`)}
+                    </p>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+
+          {/* Réassurance : seulement des engagements vérifiés */}
+          <section
+            aria-labelledby="titre-confiance"
+            className="mx-auto max-w-[75rem] 2xl:max-w-[88rem] px-4 pt-20 sm:px-6 lg:pt-28"
+          >
+            <h2 id="titre-confiance" data-reveal className={`${TITLE} text-center text-mk-h2 leading-[1.1]`}>
+              {t("trust.title")}
+            </h2>
+            <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-6 lg:gap-4">
+              {TRUST.map(({ key, Icon }) => (
+                <li
+                  key={key}
+                  data-reveal
+                  className="group flex items-start gap-4 rounded-2xl border border-hairline bg-white p-4 shadow-[0_1px_2px_rgba(15,24,48,.04)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_14px_30px_-18px_rgba(15,24,48,.35)] motion-reduce:transition-none sm:max-lg:last:col-span-2 lg:col-span-2 lg:p-5 lg:[&:nth-child(n+4)]:col-span-3"
+                >
+                  {/* Pastille verte (confiance) et petit ✓ : l'engagement est tenu. */}
+                  <span className="relative flex size-11 flex-none items-center justify-center rounded-xl bg-success/10 text-success">
+                    <Icon className="size-[1.375rem]" />
+                    <span
+                      aria-hidden="true"
+                      className="absolute -bottom-1 -right-1 flex size-4 items-center justify-center rounded-full bg-success text-white ring-2 ring-white"
+                    >
+                      <CheckLine className="size-2.5" />
+                    </span>
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block font-display text-mk-body font-semibold leading-snug text-night">
+                      {t(`trust.items.${key}.title`, { percent: data.commission })}
+                    </span>
+                    <span className="mt-1 block text-mk-small leading-snug text-ink-soft">
+                      {t(`trust.items.${key}.text`)}
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+            {/* Témoignages réels saisis dans l'admin (bloc caché s'il n'y en a pas). */}
+            {data.showcase.length > 0 && (
+              <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {data.showcase.map((entry) => (
+                  <li key={entry.id} data-reveal>
+                    <figure className="flex h-full flex-col rounded-2xl border border-hairline bg-white p-6">
+                      <blockquote className="flex-1 text-night">
+                        {t("showcase.quote", { quote: entry.quote })}
+                      </blockquote>
+                      <figcaption className="mt-4 text-[1.0625rem] text-ink-soft">
+                        <span className="font-medium text-night">{entry.author}</span> · {entry.name} ·{" "}
+                        {entry.activity}
+                      </figcaption>
+                    </figure>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
           {/* Choisissez votre pack */}
           <section
             id="tarifs"
@@ -614,47 +744,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             <p className="mt-6 text-center text-[0.9375rem] text-ink-soft">{t("plans.quotaNote")}</p>
           </section>
 
-          {/* Les bénéfices */}
-          <section
-            id="fonctionnalites"
-            aria-labelledby="titre-benefices"
-            className="mx-auto max-w-[75rem] 2xl:max-w-[88rem] scroll-mt-20 px-4 pt-20 sm:px-6 lg:pt-28"
-          >
-            <p data-reveal className={EYEBROW}>
-              {t("benefits.badge")}
-            </p>
-            <h2
-              id="titre-benefices"
-              data-reveal
-              className={`${TITLE} mt-4 max-w-[44rem] text-mk-h2 leading-[1.1]`}
-            >
-              {t("benefits.title")} <span className="text-accent">{t("benefits.titleAccent")}</span>
-            </h2>
-            <ul className="mt-10 grid gap-x-8 gap-y-9 sm:grid-cols-2 lg:grid-cols-4">
-              {BENEFITS.map((item) => {
-                const later = "feature" in item && soon.has(item.feature);
-                return (
-                  <li key={item.key} data-reveal className="group">
-                    <span className="flex size-11 items-center justify-center rounded-xl border border-accent-line bg-accent-soft text-accent transition duration-300 group-hover:-translate-y-1 group-hover:-rotate-6 group-hover:bg-accent group-hover:text-white group-hover:shadow-[0_10px_20px_-10px_var(--accent)] motion-reduce:transition-none">
-                      <item.Icon className="size-[22px]" />
-                    </span>
-                    <h3 className="mt-4 flex flex-wrap items-center gap-2 font-display text-mk-card font-semibold text-night">
-                      {t(`benefits.items.${item.key}.title`)}
-                      {later && (
-                        <span className="rounded-full bg-mist-50 px-2 py-px font-sans text-mk-note font-normal text-ink-soft">
-                          {t("plans.soonTag")}
-                        </span>
-                      )}
-                    </h3>
-                    <p className="mt-1.5 text-[1.0625rem] text-ink-soft">
-                      {t(`benefits.items.${item.key}.text`)}
-                    </p>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-
           {/* Comparatif détaillé */}
           <section
             id="comparatif"
@@ -678,62 +767,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             />
           </section>
         </SolutionScope>
-
-        {/* Réassurance : seulement des engagements vérifiés */}
-        <section
-          aria-labelledby="titre-confiance"
-          className="mx-auto max-w-[75rem] 2xl:max-w-[88rem] px-4 pt-20 sm:px-6 lg:pt-28"
-        >
-          <h2 id="titre-confiance" data-reveal className={`${TITLE} text-center text-mk-h2 leading-[1.1]`}>
-            {t("trust.title")}
-          </h2>
-          <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-6 lg:gap-4">
-            {TRUST.map(({ key, Icon }) => (
-              <li
-                key={key}
-                data-reveal
-                className="group flex items-start gap-4 rounded-2xl border border-hairline bg-white p-4 shadow-[0_1px_2px_rgba(15,24,48,.04)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_14px_30px_-18px_rgba(15,24,48,.35)] motion-reduce:transition-none sm:max-lg:last:col-span-2 lg:col-span-2 lg:p-5 lg:[&:nth-child(n+4)]:col-span-3"
-              >
-                {/* Pastille verte (confiance) et petit ✓ : l'engagement est tenu. */}
-                <span className="relative flex size-11 flex-none items-center justify-center rounded-xl bg-success/10 text-success">
-                  <Icon className="size-[1.375rem]" />
-                  <span
-                    aria-hidden="true"
-                    className="absolute -bottom-1 -right-1 flex size-4 items-center justify-center rounded-full bg-success text-white ring-2 ring-white"
-                  >
-                    <CheckLine className="size-2.5" />
-                  </span>
-                </span>
-                <span className="min-w-0">
-                  <span className="block font-display text-mk-body font-semibold leading-snug text-night">
-                    {t(`trust.items.${key}.title`, { percent: data.commission })}
-                  </span>
-                  <span className="mt-1 block text-mk-small leading-snug text-ink-soft">
-                    {t(`trust.items.${key}.text`)}
-                  </span>
-                </span>
-              </li>
-            ))}
-          </ul>
-          {/* Témoignages réels saisis dans l'admin (bloc caché s'il n'y en a pas). */}
-          {data.showcase.length > 0 && (
-            <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {data.showcase.map((entry) => (
-                <li key={entry.id} data-reveal>
-                  <figure className="flex h-full flex-col rounded-2xl border border-hairline bg-white p-6">
-                    <blockquote className="flex-1 text-night">
-                      {t("showcase.quote", { quote: entry.quote })}
-                    </blockquote>
-                    <figcaption className="mt-4 text-[1.0625rem] text-ink-soft">
-                      <span className="font-medium text-night">{entry.author}</span> · {entry.name} ·{" "}
-                      {entry.activity}
-                    </figcaption>
-                  </figure>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
 
         {/* Questions */}
         <section

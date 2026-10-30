@@ -8,8 +8,8 @@ import { HeaderShell } from "./HeaderShell";
 
 export const NAV = [
   { hash: "solutions", key: "solutions" },
-  { hash: "tarifs", key: "pricing" },
   { hash: "fonctionnalites", key: "features" },
+  { hash: "tarifs", key: "pricing" },
   { hash: "questions", key: "resources" },
 ] as const;
 
