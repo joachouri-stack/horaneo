@@ -398,7 +398,7 @@ const GRID_BASIC = {
   brandingFooter: true,
 } satisfies PlanFeatures;
 
-/** Starter : site multipage, paiement par carte, assistance WhatsApp. */
+/** Starter : site multipage, paiement par carte, assistance WhatsApp et par e-mail. */
 const GRID_STARTER = {
   ...GRID_BASIC,
   fullSite: true,
@@ -409,6 +409,7 @@ const GRID_STARTER = {
   securityProtection: true,
   logoCreation: true,
   technicalSupport247: true,
+  ticketSupport: true,
 } satisfies PlanFeatures;
 
 const GRID_PRO = {
