@@ -6,7 +6,6 @@ import { connection } from "next/server";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PlatformFooter } from "@/components/layout/PlatformFooter";
 import { PlatformHeader } from "@/components/layout/PlatformHeader";
-import { Comparison } from "@/components/marketing/Comparison";
 import {
   ArrowLine,
   BellLine,
@@ -25,8 +24,6 @@ import {
   PlayLine,
   PlusLine,
   RefreshLine,
-  ServerLine,
-  ShieldLine,
   SparkleLine,
   StoreLine,
   TagLine,
@@ -59,7 +56,6 @@ import { SOLUTIONS, type Solution } from "@/modules/billing/grid";
 import { listLaunchOffers } from "@/modules/billing/launch-offers";
 import { listPublicPlans } from "@/modules/billing/plans";
 import { getPlatformSetting } from "@/modules/settings";
-import { listShowcase } from "@/modules/showcase/showcase";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]">): Promise<Metadata> {
   const locale = resolveLocale((await params).locale);
@@ -147,13 +143,6 @@ const BENEFITS = [
   { key: "assistant", Icon: SparkleLine, feature: "aiChatbot" },
 ] as const;
 
-const TRUST = [
-  { key: "payments", Icon: LockLine },
-  { key: "hosting", Icon: ServerLine },
-  { key: "data", Icon: ShieldLine },
-  { key: "noOverage", Icon: CheckLine },
-] as const;
-
 const TITLE = "font-display font-semibold tracking-[-0.025em] text-night";
 
 /** Point corail devant les badges de section : le rappel du point du « o » de la marque. */
@@ -193,7 +182,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
   const data = await withPlatform(async (tx) => ({
     plans: await listPublicPlans(tx),
     display: String(await getPlatformSetting(tx, "prices_display")),
-    commission: Number(await getPlatformSetting(tx, "deposit_commission_percent")),
     commitment: Number(await getPlatformSetting(tx, "commitment_months")),
     yearly: {
       enabled: Boolean(await getPlatformSetting(tx, "yearly_billing_enabled")),
@@ -205,7 +193,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     solutions: await getPlatformSetting(tx, "solutions"),
     demoUrl: String(await getPlatformSetting(tx, "demo_url")),
     offers: await listLaunchOffers(tx, { openOnly: true }),
-    showcase: await listShowcase(tx),
   }));
   const soon = new Set<string>(data.soon);
   const isSoon = (solution: Solution) =>
@@ -674,62 +661,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             </ul>
           </section>
 
-          {/* Réassurance : seulement des engagements vérifiés */}
-          <section
-            aria-labelledby="titre-confiance"
-            className="mx-auto max-w-[75rem] 2xl:max-w-[88rem] px-4 pt-20 sm:px-6 lg:pt-28"
-          >
-            <h2 id="titre-confiance" data-reveal className={`${TITLE} text-center text-mk-h2 leading-[1.1]`}>
-              {t("trust.title")}
-            </h2>
-            <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
-              {TRUST.map(({ key, Icon }) => (
-                <li
-                  key={key}
-                  data-reveal
-                  className="group flex items-start gap-4 rounded-2xl border border-hairline bg-white p-4 shadow-[0_1px_2px_rgba(15,24,48,.04)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_14px_30px_-18px_rgba(15,24,48,.35)] motion-reduce:transition-none lg:flex-col lg:gap-3 lg:p-5"
-                >
-                  {/* Pastille verte (confiance) et petit ✓ : l'engagement est tenu. */}
-                  <span className="relative flex size-11 flex-none items-center justify-center rounded-xl bg-success/10 text-success">
-                    <Icon className="size-[1.375rem]" />
-                    <span
-                      aria-hidden="true"
-                      className="absolute -bottom-1 -right-1 flex size-4 items-center justify-center rounded-full bg-success text-white ring-2 ring-white"
-                    >
-                      <CheckLine className="size-2.5" />
-                    </span>
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block font-display text-mk-body font-semibold leading-snug text-night">
-                      {t(`trust.items.${key}.title`, { percent: data.commission })}
-                    </span>
-                    <span className="mt-1 block text-mk-small leading-snug text-ink-soft">
-                      {t(`trust.items.${key}.text`)}
-                    </span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-            {/* Témoignages réels saisis dans l'admin (bloc caché s'il n'y en a pas). */}
-            {data.showcase.length > 0 && (
-              <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {data.showcase.map((entry) => (
-                  <li key={entry.id} data-reveal>
-                    <figure className="flex h-full flex-col rounded-2xl border border-hairline bg-white p-6">
-                      <blockquote className="flex-1 text-night">
-                        {t("showcase.quote", { quote: entry.quote })}
-                      </blockquote>
-                      <figcaption className="mt-4 text-[1.0625rem] text-ink-soft">
-                        <span className="font-medium text-night">{entry.author}</span> · {entry.name} ·{" "}
-                        {entry.activity}
-                      </figcaption>
-                    </figure>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
           {/* Choisissez votre pack */}
           <section
             id="tarifs"
@@ -800,29 +731,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               yearly={data.yearly}
             />
             <p className="mt-6 text-center text-[0.9375rem] text-ink-soft">{t("plans.quotaNote")}</p>
-          </section>
-
-          {/* Comparatif détaillé */}
-          <section
-            id="comparatif"
-            aria-labelledby="titre-comparatif"
-            className="mx-auto max-w-[75rem] 2xl:max-w-[88rem] scroll-mt-20 px-4 pt-20 sm:px-6 lg:pt-28"
-          >
-            <h2 id="titre-comparatif" data-reveal className={`${TITLE} mb-8 text-mk-h2 leading-[1.1]`}>
-              {t("comparison.title")}
-              {SOLUTIONS.map((code) => (
-                <span key={code} data-only={code} className="text-accent">
-                  {t("comparison.forSolution", { solution: t(`solutions.items.${code}.name`) })}
-                </span>
-              ))}
-            </h2>
-            <Comparison
-              plans={data.plans}
-              locale={locale}
-              soon={data.soon}
-              display={data.display}
-              yearly={data.yearly}
-            />
           </section>
         </SolutionScope>
 

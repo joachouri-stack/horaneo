@@ -10,7 +10,6 @@ export const NAV = [
   { hash: "solutions", key: "solutions" },
   { hash: "fonctionnalites", key: "features" },
   { hash: "tarifs", key: "pricing" },
-  { hash: "questions", key: "resources" },
 ] as const;
 
 const LINK = "inline-flex min-h-11 items-center transition-colors hover:text-navy";

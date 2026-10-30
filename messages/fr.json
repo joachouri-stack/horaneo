@@ -753,34 +753,6 @@
       "feature": "Fonctionnalité",
       "pickPack": "Pack affiché"
     },
-    "trust": {
-      "title": "Nos engagements, noir sur blanc",
-      "items": {
-        "payments": {
-          "title": "Paiements sécurisés, {percent} % de commission",
-          "text": "Cartes traitées par Stripe, jamais par nous ; vos paiements vous reviennent en entier, hors frais Stripe."
-        },
-        "hosting": {
-          "title": "Hébergement et sécurité inclus",
-          "text": "Votre site est hébergé, protégé (https) et mis à jour par nos soins."
-        },
-        "data": {
-          "title": "Vos données vous appartiennent",
-          "text": "Clients, rendez-vous et contenus : vous les récupérez sur simple demande."
-        },
-        "noOverage": {
-          "title": "Pas de mauvaise surprise",
-          "text": "À la limite d'un quota, l'outil se met en pause. Rien n'est facturé sans votre accord."
-        }
-      }
-    },
-    "showcase": {
-      "badge": "Ils nous font confiance",
-      "title": "Des professionnels",
-      "titleAccent": "comme vous.",
-      "quote": "« {quote} »",
-      "visit": "Voir le site de {name}"
-    },
     "faq": {
       "title": "Questions fréquentes",
       "intro": "Une autre question ? Écrivez-nous, nous vous répondons.",
