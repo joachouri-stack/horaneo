@@ -89,29 +89,29 @@
           "badge": "Solution Réservation",
           "title": "Simplifiez vos rendez-vous.",
           "titleAccent": "Gagnez du temps.",
-          "text": "Un site professionnel avec réservation en ligne, agenda, fichier clients, rappels automatiques et paiements : tout ce qu'il faut pour remplir votre planning.",
-          "bullets": [
-            "Réservation en ligne 24 h/24",
-            "Rappels automatiques par e-mail (et SMS dès le pack Pro)",
-            "Acomptes et paiements en ligne",
-            "Plusieurs collaborateurs dès le pack Pro"
-          ],
+          "text": "Un site où vos clients réservent seuls, et un espace simple pour gérer tout le reste.",
           "floating": {
             "title": "Rappels automatiques",
             "text": "SMS et e-mail"
           },
           "strip": [
             {
-              "title": "Agenda",
-              "text": "Tous vos rendez-vous, sur ordinateur et téléphone."
+              "title": "Réservation en ligne 24 h/24",
+              "text": "Vos clients réservent seuls, même le soir et le dimanche."
             },
             {
               "title": "Rappels automatiques",
-              "text": "Moins d'oublis, sans lever le petit doigt."
+              "text": "Moins de rendez-vous oubliés : e-mail inclus, SMS en plus.",
+              "tag": "SMS dès le pack Pro"
             },
             {
-              "title": "Paiements sécurisés",
-              "text": "Acomptes et paiements en ligne, versés sur votre compte."
+              "title": "Acomptes et paiements en ligne",
+              "text": "Moins de rendez-vous manqués, l'argent arrive sur votre compte."
+            },
+            {
+              "title": "Agenda d'équipe",
+              "text": "Vos rendez-vous et ceux de vos collaborateurs, sur ordinateur et téléphone.",
+              "tag": "Plusieurs collaborateurs dès le pack Pro"
             },
             {
               "title": "Fichier clients",
@@ -146,25 +146,23 @@
           "badge": "Solution Commerce",
           "title": "Vendez vos produits",
           "titleAccent": "en toute simplicité.",
-          "text": "Une boutique en ligne pour vendre vos produits et services : catalogue, commandes, paiements sécurisés et gestion des stocks.",
-          "bullets": [
-            "Boutique en ligne clé en main",
-            "Paiements sécurisés par Stripe",
-            "Commandes et stocks",
-            "Codes promo et cartes cadeaux"
-          ],
+          "text": "Une boutique en ligne prête à vendre, et un espace simple pour suivre vos commandes.",
           "floating": {
             "title": "Paiements sécurisés",
             "text": "Stripe"
           },
           "strip": [
             {
-              "title": "Boutique en ligne",
+              "title": "Boutique en ligne clé en main",
               "text": "Vos produits en vente, jour et nuit."
             },
             {
               "title": "Catalogue",
               "text": "Photos, prix et variantes, simples à mettre à jour."
+            },
+            {
+              "title": "Paiements sécurisés",
+              "text": "Paiement par carte via Stripe, versé sur votre compte."
             },
             {
               "title": "Commandes et stocks",
@@ -196,13 +194,7 @@
           "badge": "Solution Formation",
           "title": "Créez et vendez",
           "titleAccent": "vos formations en ligne.",
-          "text": "Diffusez vos cours et ateliers, gérez vos apprenants et vendez vos formations depuis le même espace.",
-          "bullets": [
-            "Cours vidéo et documents",
-            "Espace apprenant sécurisé",
-            "Quiz et certificats",
-            "Paiements en ligne et abonnements"
-          ],
+          "text": "Vendez vos formations en ligne et suivez vos apprenants depuis le même espace.",
           "floating": {
             "title": "Espace apprenant",
             "text": "Sécurisé"
@@ -217,16 +209,20 @@
               "text": "Supports et fiches à télécharger."
             },
             {
-              "title": "Espace apprenant",
+              "title": "Espace apprenant sécurisé",
               "text": "Un espace personnel pour chaque apprenant."
             },
             {
-              "title": "Certificats",
-              "text": "Une attestation remise à la fin du parcours."
+              "title": "Quiz et certificats",
+              "text": "Des quiz pour valider les acquis, une attestation à la fin."
             },
             {
               "title": "Suivi des apprenants",
               "text": "La progression de chacun, leçon après leçon."
+            },
+            {
+              "title": "Paiements et abonnements",
+              "text": "Vendez à l'unité ou par abonnement, payé en ligne."
             }
           ],
           "mock": {

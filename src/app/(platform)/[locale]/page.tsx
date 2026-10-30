@@ -15,6 +15,7 @@ import {
   CardLine,
   ChartLine,
   CheckLine,
+  ClockLine,
   FileLine,
   GiftLine,
   LockLine,
@@ -96,9 +97,9 @@ const AI_FEATURES = ["aiChatbot", "aiTexts", "aiImages", "whatsappAssistant"];
 
 /** Pictogrammes du bandeau de fonctions de chaque solution (dans l'ordre des textes). */
 const STRIP: Record<Solution, (typeof CheckLine)[]> = {
-  booking: [CalendarLine, BellLine, LockLine, UsersLine, ChartLine],
-  commerce: [StoreLine, BoxLine, FileLine, TagLine, GiftLine],
-  formation: [PlayLine, FileLine, CapLine, AwardLine, TrendLine],
+  booking: [ClockLine, BellLine, CardLine, CalendarLine, UsersLine, ChartLine],
+  commerce: [StoreLine, BoxLine, LockLine, FileLine, TagLine, GiftLine],
+  formation: [PlayLine, FileLine, CapLine, AwardLine, TrendLine, CardLine],
 };
 
 /** Pictogrammes des quatre usages de l'espace de gestion (dans l'ordre des textes). */
@@ -430,20 +431,17 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                       <p className="mt-4 max-w-[32rem] text-mk-lead text-ink-soft">
                         {t(`solutions.items.${code}.text`)}
                       </p>
-                      <ul className="mt-6 grid gap-2.5 text-mk-body text-[#2d3446]">
-                        {(t.raw(`solutions.items.${code}.bullets`) as string[]).map((item) => (
-                          <li key={item} className="flex items-center gap-3">
-                            <span className="flex size-6 flex-none items-center justify-center rounded-full bg-accent text-white">
-                              <CheckLine className="size-3.5" />
-                            </span>
-                            {item}
+                      {/* Métiers visés : le visiteur repère le sien d'un coup d'œil. */}
+                      <ul className="mt-6 flex flex-wrap gap-2" aria-label={t("solutions.for")}>
+                        {(t.raw(`solutions.items.${code}.targets`) as string[]).map((target) => (
+                          <li
+                            key={target}
+                            className="rounded-full border border-hairline bg-white px-3 py-1 text-mk-note text-night"
+                          >
+                            {target}
                           </li>
                         ))}
                       </ul>
-                      <p className="mt-5 text-[0.9375rem] text-ink-soft">
-                        <span className="font-medium text-night">{t("solutions.for")} : </span>
-                        {(t.raw(`solutions.items.${code}.targets`) as string[]).join(" · ")}
-                      </p>
                       {isSoon(code) ? (
                         <div className="mt-7">
                           <Link href={{ pathname: "/rappel", query: { solution: code } }} className={PRIMARY}>
@@ -460,10 +458,14 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                             {t("cta")}
                             <ArrowLine className="size-[18px] transition-transform group-hover:translate-x-0.5" />
                           </Link>
-                          {data.demoUrl && (
+                          {data.demoUrl ? (
                             <a href={data.demoUrl} target="_blank" rel="noopener" className={SECONDARY}>
                               <PlayCircleLine className="size-[18px] text-accent" />
                               {t("hero.demo")}
+                            </a>
+                          ) : (
+                            <a href="#tarifs" className={SECONDARY}>
+                              {t("hero.pricing")}
                             </a>
                           )}
                         </div>
@@ -474,32 +476,42 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     </div>
                   </div>
 
-                  {/* Fonctions de la solution : une carte par fonction, avec son bénéfice. */}
-                  <ul className="mt-10 grid gap-3 sm:grid-cols-2 lg:mt-12 lg:grid-cols-5 lg:gap-4">
-                    {(t.raw(`solutions.items.${code}.strip`) as { title: string; text: string }[]).map(
-                      (item, index) => {
-                        const Icon = STRIP[code][index] ?? CheckLine;
-                        return (
-                          <li
-                            key={item.title}
-                            data-reveal
-                            className="group flex items-start gap-4 rounded-2xl border border-hairline bg-white p-4 shadow-[0_1px_2px_rgba(15,24,48,.04)] transition duration-300 hover:-translate-y-1 hover:border-coral/40 hover:shadow-[0_14px_30px_-18px_rgba(232,80,63,.45)] motion-reduce:transition-none sm:max-lg:last:col-span-2 lg:flex-col lg:gap-3 lg:p-5"
-                          >
-                            <span className="flex size-11 flex-none items-center justify-center rounded-xl bg-accent-soft text-accent transition-colors duration-300 group-hover:bg-coral/10 group-hover:text-coral-dark">
-                              <Icon className="size-[1.375rem]" />
+                  {/* Fonctions de la solution : chaque information une seule fois, avec son bénéfice
+                      et, s'il y a lieu, le pack qui la débloque. */}
+                  <ul className="mt-8 grid overflow-hidden rounded-2xl border border-hairline bg-white max-sm:divide-y max-sm:divide-hairline sm:mt-10 sm:gap-3 sm:overflow-visible sm:rounded-none sm:border-0 sm:bg-transparent sm:grid-cols-2 lg:mt-12 lg:grid-cols-3 lg:gap-4">
+                    {(
+                      t.raw(`solutions.items.${code}.strip`) as {
+                        title: string;
+                        text: string;
+                        tag?: string;
+                      }[]
+                    ).map((item, index) => {
+                      const Icon = STRIP[code][index] ?? CheckLine;
+                      return (
+                        <li
+                          key={item.title}
+                          data-reveal
+                          className="group flex items-start gap-3.5 px-4 py-3.5 transition duration-300 motion-reduce:transition-none sm:gap-4 sm:rounded-2xl sm:border sm:border-hairline sm:bg-white sm:p-4 sm:shadow-[0_1px_2px_rgba(15,24,48,.04)] sm:hover:-translate-y-1 sm:hover:border-coral/40 sm:hover:shadow-[0_14px_30px_-18px_rgba(232,80,63,.45)] lg:p-5"
+                        >
+                          <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-accent-soft text-accent transition-colors duration-300 group-hover:bg-coral/10 group-hover:text-coral-dark sm:size-11">
+                            <Icon className="size-5 sm:size-[1.375rem]" />
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block font-display text-mk-body font-semibold leading-snug text-night">
+                              {item.title}
                             </span>
-                            <span className="min-w-0">
-                              <span className="block font-display text-mk-body font-semibold leading-snug text-night">
-                                {item.title}
-                              </span>
-                              <span className="mt-1 block text-mk-small leading-snug text-ink-soft">
-                                {item.text}
-                              </span>
+                            <span className="mt-1 block text-mk-small leading-snug text-ink-soft">
+                              {item.text}
                             </span>
-                          </li>
-                        );
-                      },
-                    )}
+                            {item.tag && (
+                              <span className="mt-1.5 inline-flex rounded-full bg-champagne-soft px-2.5 py-0.5 text-mk-note font-medium text-copper">
+                                {item.tag}
+                              </span>
+                            )}
+                          </span>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               ))}
