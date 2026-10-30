@@ -720,24 +720,6 @@
       "title": "Toute votre activité,",
       "titleAccent": "dans un seul tableau de bord.",
       "text": "Votre site est relié à un espace de gestion simple, pensé pour le téléphone comme pour l'ordinateur.",
-      "points": [
-        {
-          "title": "Agenda du jour",
-          "text": "Les rendez-vous de la journée en un coup d'œil, à pointer en un geste."
-        },
-        {
-          "title": "Chiffre d'affaires",
-          "text": "Vos recettes de la semaine et vos prestations les plus demandées."
-        },
-        {
-          "title": "Fiches clients",
-          "text": "Les visites, l'historique et les notes de chaque client."
-        },
-        {
-          "title": "Rappels et paiements",
-          "text": "Rappels automatiques avant chaque rendez-vous, acomptes en ligne."
-        }
-      ],
       "alt": "Captures de l'espace de gestion sur ordinateur et sur téléphone : accueil avec l'agenda du jour, le chiffre d'affaires et les statistiques, agenda du jour sur téléphone",
       "note": "Captures de l'espace de gestion, avec des données d'exemple. Les fonctions disponibles dépendent de votre pack."
     },
