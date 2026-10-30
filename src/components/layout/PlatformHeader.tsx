@@ -6,11 +6,14 @@ import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { HeaderShell } from "./HeaderShell";
 
+/** Liens du menu : sections de l'accueil, sauf « Fonctionnalités » qui ouvre la page du tableau. */
 export const NAV = [
-  { hash: "solutions", key: "solutions" },
-  { hash: "fonctionnalites", key: "features" },
-  { hash: "tarifs", key: "pricing" },
+  { key: "solutions", href: { pathname: "/", hash: "solutions" } },
+  { key: "features", href: { pathname: "/comparatif" } },
+  { key: "pricing", href: { pathname: "/", hash: "tarifs" } },
 ] as const;
+
+export type NavHref = (typeof NAV)[number]["href"];
 
 const LINK = "inline-flex min-h-11 items-center transition-colors hover:text-navy";
 
@@ -35,7 +38,11 @@ export async function PlatformHeader({ children }: { children?: React.ReactNode 
           children
             ? undefined
             : {
-                items: NAV.map((item) => ({ hash: item.hash, label: t(`home.nav.${item.key}`) })),
+                items: NAV.map((item) => ({
+                  key: item.key,
+                  href: item.href,
+                  label: t(`home.nav.${item.key}`),
+                })),
                 cta: t("home.cta"),
                 open: t("home.nav.menu"),
                 close: t("home.nav.closeMenu"),
@@ -52,11 +59,7 @@ export async function PlatformHeader({ children }: { children?: React.ReactNode 
           <nav className="flex flex-wrap items-center gap-x-3 text-[1.0625rem] text-[#3d4457] min-[400px]:gap-x-6 xl:gap-x-8">
             {!children &&
               NAV.map((item) => (
-                <Link
-                  key={item.hash}
-                  href={{ pathname: "/", hash: item.hash }}
-                  className={`${LINK} max-lg:hidden`}
-                >
+                <Link key={item.key} href={item.href} className={`${LINK} max-lg:hidden`}>
                   {t(`home.nav.${item.key}`)}
                 </Link>
               ))}
