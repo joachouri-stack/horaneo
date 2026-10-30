@@ -33,6 +33,17 @@ import {
   UsersLine,
   AwardLine,
   CapLine,
+  BreadLine,
+  BriefcaseLine,
+  CameraLine,
+  ForkKnifeLine,
+  HammerLine,
+  LeafLine,
+  PaletteLine,
+  PartyLine,
+  ScaleLine,
+  ScissorsLine,
+  WrenchLine,
 } from "@/components/marketing/line-icons";
 import { PlanCards } from "@/components/marketing/PlanCards";
 import { RevealOnScroll } from "@/components/marketing/RevealOnScroll";
@@ -94,6 +105,29 @@ const FAQ = [
 
 /** Fonctions d'IA : la question de la FAQ à leur sujet ne s'affiche que si l'une est encore « Bientôt ». */
 const AI_FEATURES = ["aiChatbot", "aiTexts", "aiImages", "whatsappAssistant"];
+
+/** Pictogramme de chaque métier visé (clés de `solutions.items.*.targets`). */
+const TARGET_ICONS: Record<string, typeof CheckLine> = {
+  beauty: SparkleLine,
+  hair: ScissorsLine,
+  wellness: LeafLine,
+  garage: WrenchLine,
+  craft: HammerLine,
+  consulting: BriefcaseLine,
+  events: PartyLine,
+  artists: PaletteLine,
+  bakery: BreadLine,
+  liberal: ScaleLine,
+  coaching: AwardLine,
+  photo: CameraLine,
+  shops: StoreLine,
+  makers: PaletteLine,
+  food: ForkKnifeLine,
+  trainers: CapLine,
+  experts: BriefcaseLine,
+  organizations: UsersLine,
+  courseCreators: PlayLine,
+};
 
 /** Pictogrammes du bandeau de fonctions de chaque solution (dans l'ordre des textes). */
 const STRIP: Record<Solution, (typeof CheckLine)[]> = {
@@ -431,16 +465,27 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                       <p className="mt-4 max-w-[32rem] text-mk-lead text-ink-soft">
                         {t(`solutions.items.${code}.text`)}
                       </p>
-                      {/* Métiers visés : le visiteur repère le sien d'un coup d'œil. */}
-                      <ul className="mt-6 flex flex-wrap gap-2" aria-label={t("solutions.for")}>
-                        {(t.raw(`solutions.items.${code}.targets`) as string[]).map((target) => (
-                          <li
-                            key={target}
-                            className="rounded-full border border-hairline bg-white px-3 py-1 text-mk-note text-night"
-                          >
-                            {target}
-                          </li>
-                        ))}
+                      {/* Métiers visés, chacun avec son pictogramme : le visiteur repère le sien d'un coup d'œil. */}
+                      <p className="mt-6 text-mk-small font-medium text-night">
+                        {t(`solutions.items.${code}.targetsTitle`)}
+                      </p>
+                      <ul className="mt-3 flex flex-wrap gap-2" aria-label={t("solutions.for")}>
+                        {Object.entries(
+                          t.raw(`solutions.items.${code}.targets`) as Record<string, string>,
+                        ).map(([key, label]) => {
+                          const Icon = TARGET_ICONS[key] ?? CheckLine;
+                          return (
+                            <li
+                              key={key}
+                              className="group inline-flex items-center gap-2 rounded-full border border-accent-line/60 bg-accent-soft/60 py-1.5 pl-2 pr-3.5 text-mk-small font-medium text-night transition-colors duration-300 hover:border-coral/40 hover:bg-coral/10 hover:text-coral-dark"
+                            >
+                              <span className="flex size-6 flex-none items-center justify-center rounded-full bg-white text-accent transition-colors duration-300 group-hover:text-coral-dark">
+                                <Icon className="size-3.5" />
+                              </span>
+                              {label}
+                            </li>
+                          );
+                        })}
                       </ul>
                       {isSoon(code) ? (
                         <div className="mt-7">
