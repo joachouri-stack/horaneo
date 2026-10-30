@@ -137,7 +137,12 @@
             "Bien-être",
             "Garages",
             "Artisans",
-            "Consultants"
+            "Consultants",
+            "Événementiel",
+            "Artistes",
+            "Boulangeries",
+            "Professions libérales",
+            "Coachs"
           ]
         },
         "commerce": {
