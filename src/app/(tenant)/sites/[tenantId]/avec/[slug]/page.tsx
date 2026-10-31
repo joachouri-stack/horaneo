@@ -10,6 +10,7 @@ import { PillLink, Tag } from "@/components/site/atelier/ui";
 import { GoogleReviewCards, ReviewsSummary } from "@/components/site/GoogleReviews";
 import { SiteImage } from "@/components/site/SiteImage";
 import { getSite } from "@/lib/site/load";
+import { absoluteImageUrl, shareImage } from "@/lib/site/urls";
 import { formatPhone } from "@/modules/phone";
 import { businessPath } from "@/modules/site/paths";
 
@@ -30,7 +31,12 @@ export async function generateMetadata({
     title,
     description: [business.role, business.bio].filter(Boolean).join(" — ").slice(0, 160) || undefined,
     alternates: { canonical: businessPath(business.slug!) },
-    openGraph: { siteName: site.tenant.name, title },
+    // Remplace l'aperçu du site entier : on y remet une image (la photo de la professionnelle).
+    openGraph: {
+      siteName: site.tenant.name,
+      title,
+      images: [absoluteImageUrl(site, business.photo ?? shareImage(site))].filter((url) => url !== null),
+    },
   };
 }
 

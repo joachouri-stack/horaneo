@@ -45,6 +45,8 @@ export type TenantBrand = {
     background?: string;
     text?: string;
   };
+  /** Couleurs du site avant la première palette choisie par la gérante (pour y revenir). */
+  originalColors?: { primary?: string; secondary?: string };
   /** Pages des réseaux sociaux (adresses complètes). */
   social?: { instagram?: string; facebook?: string };
   /**

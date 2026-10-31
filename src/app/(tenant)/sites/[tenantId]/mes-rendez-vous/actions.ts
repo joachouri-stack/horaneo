@@ -170,21 +170,24 @@ export async function saveBirthdayAction(_previous: Previous, data: FormData): P
   try {
     const { tenantId, ip } = await siteWithSpace();
     if (!publicLimits.manage.attempt(ip)) throw new AppError("rate_limited");
-    const businessId = z.uuid().parse(data.get("businessId"));
+    // Une seule date pour la cliente : enregistrée dans chaque entreprise où elle est connue.
+    const businessIds = z.array(z.uuid()).min(1).max(20).parse(data.getAll("businessId"));
     const session = await customerSession(tenantId);
     if (!session) throw new AppError("login_invalid");
     const known = await withTenant(tenantId, (tx) => knownBusinesses(tx, tenantId, session), undefined, null);
-    if (!known.includes(businessId)) throw new AppError("not_found");
-    await withTenant(
-      tenantId,
-      (tx) =>
-        setCustomerBirthday(tx, tenantId, session, {
-          birthMonth: data.get("birthMonth") ?? "",
-          birthDay: data.get("birthDay") ?? "",
-        }),
-      undefined,
-      businessId,
-    );
+    if (businessIds.some((businessId) => !known.includes(businessId))) throw new AppError("not_found");
+    for (const businessId of businessIds) {
+      await withTenant(
+        tenantId,
+        (tx) =>
+          setCustomerBirthday(tx, tenantId, session, {
+            birthMonth: data.get("birthMonth") ?? "",
+            birthDay: data.get("birthDay") ?? "",
+          }),
+        undefined,
+        businessId,
+      );
+    }
     return { ok: true };
   } catch (error) {
     return toActionError(error);

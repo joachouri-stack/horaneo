@@ -13,7 +13,7 @@ import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { routing } from "@/i18n/routing";
 import { getSite, isPreview } from "@/lib/site/load";
-import { absoluteImageUrl, siteBaseUrl } from "@/lib/site/urls";
+import { absoluteImageUrl, shareImage, siteBaseUrl } from "@/lib/site/urls";
 import { siteCta } from "@/modules/site/cta";
 import { APP_PATHS, businessPath, SITE_PATHS } from "@/modules/site/paths";
 import { homeDescription, localBusinessJsonLd, serializeJsonLd } from "@/modules/site/seo";
@@ -38,6 +38,7 @@ export async function generateMetadata({ params }: LayoutProps<"/sites/[tenantId
   const preview = await isPreview();
   const noindex = preview || site.tenant.status !== "active";
   const logoUrl = absoluteImageUrl(site, site.logo);
+  const share = absoluteImageUrl(site, shareImage(site));
   return {
     metadataBase: new URL(siteBaseUrl(site)),
     title: {
@@ -50,7 +51,13 @@ export async function generateMetadata({ params }: LayoutProps<"/sites/[tenantId
     // Installable sur l'écran d'accueil de la cliente, comme une application.
     manifest: APP_PATHS.manifest,
     appleWebApp: { capable: true, title: site.tenant.name, statusBarStyle: "default" },
-    openGraph: { siteName: site.tenant.name, type: "website", locale: site.locale },
+    openGraph: {
+      siteName: site.tenant.name,
+      type: "website",
+      locale: site.locale,
+      ...(share ? { images: [{ url: share }] } : {}),
+    },
+    twitter: { card: share ? "summary_large_image" : "summary" },
   };
 }
 
