@@ -773,7 +773,8 @@
       },
       "brand": {
         "title": "Mise en page sur mesure",
-        "text": "Une simple demande depuis votre espace : notre équipe s'en occupe pour vous."
+        "text": "Une simple demande depuis votre espace : notre équipe s'en occupe pour vous.",
+        "tag": "Sur demande"
       },
       "panel": {
         "title": "Mon site",
@@ -782,7 +783,8 @@
         "saved": "Modification enregistrée",
         "savedText": "Votre site est à jour"
       },
-      "note": "Les fonctions disponibles dépendent de votre pack."
+      "note": "Les fonctions disponibles dépendent de votre pack.",
+      "noteLink": "Comparer les packs"
     },
     "benefits": {
       "badge": "Fonctionnalités",

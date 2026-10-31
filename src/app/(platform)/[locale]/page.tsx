@@ -647,17 +647,18 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 <p data-reveal className="mt-4 max-w-[36rem] text-mk-lead text-ink-soft">
                   {t("selfService.text")}
                 </p>
-                <ul className="mt-8 grid gap-3 sm:grid-cols-2">
+                {/* Téléphone : une seule carte en liste (moins long à faire défiler) ; ordinateur : grille de cartes. */}
+                <ul className="mt-8 divide-y divide-hairline overflow-hidden rounded-2xl border border-hairline bg-white shadow-[0_1px_2px_rgba(15,24,48,.04)] sm:grid sm:grid-cols-2 sm:gap-3 sm:divide-y-0 sm:overflow-visible sm:rounded-none sm:border-0 sm:bg-transparent sm:shadow-none">
                   {SELF_SERVICE.map(({ key, Icon }) => (
                     <li
                       key={key}
                       data-reveal
-                      className="group flex items-start gap-3.5 rounded-2xl border border-hairline bg-white p-4 shadow-[0_1px_2px_rgba(15,24,48,.04)] transition duration-300 hover:-translate-y-1 hover:border-coral/40 hover:shadow-[0_14px_30px_-18px_rgba(232,80,63,.45)] motion-reduce:transition-none"
+                      className="group flex items-start gap-3.5 px-4 py-3.5 sm:rounded-2xl sm:border sm:border-hairline sm:bg-white sm:p-4 sm:shadow-[0_1px_2px_rgba(15,24,48,.04)] sm:transition sm:duration-300 sm:hover:-translate-y-1 sm:hover:border-coral/40 sm:hover:shadow-[0_14px_30px_-18px_rgba(232,80,63,.45)] motion-reduce:transition-none"
                     >
                       <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-coral/10 text-coral-dark transition-colors duration-300 group-hover:bg-coral group-hover:text-white">
                         <Icon className="size-5" />
                       </span>
-                      <span>
+                      <span className="min-w-0">
                         {key === "catalog" ? (
                           SOLUTIONS.map((code) => (
                             <span key={code} data-only={code} className="block">
@@ -671,17 +672,19 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                           ))
                         ) : (
                           <>
-                            <span className="block font-semibold text-night">
-                              {t(`selfService.items.${key}.title`)}
+                            <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                              <span className="font-semibold text-night">
+                                {t(`selfService.items.${key}.title`)}
+                              </span>
+                              {(key === "testimonials" || key === "promotions") && (
+                                <span className="rounded-full bg-champagne-soft px-2 py-px text-[0.8125rem] font-medium text-copper">
+                                  {t(`selfService.items.${key}.tag`)}
+                                </span>
+                              )}
                             </span>
                             <span className="mt-0.5 block text-mk-small text-ink-soft">
                               {t(`selfService.items.${key}.text`)}
                             </span>
-                            {(key === "testimonials" || key === "promotions") && (
-                              <span className="mt-2 inline-block rounded-full bg-champagne-soft px-2.5 py-0.5 text-[0.875rem] font-medium text-copper">
-                                {t(`selfService.items.${key}.tag`)}
-                              </span>
-                            )}
                           </>
                         )}
                       </span>
@@ -690,20 +693,37 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   {/* Ce que notre équipe modifie sur demande. */}
                   <li
                     data-reveal
-                    className="flex items-start gap-3.5 rounded-2xl border border-dashed border-coral/40 bg-coral/[0.04] p-4"
+                    className="flex items-start gap-3.5 bg-coral/[0.05] px-4 py-3.5 sm:rounded-2xl sm:border sm:border-dashed sm:border-coral/40 sm:bg-coral/[0.04] sm:p-4"
                   >
-                    <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-white text-coral-dark">
+                    <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-coral text-white">
                       <PaletteLine className="size-5" />
                     </span>
-                    <span>
-                      <span className="block font-semibold text-night">{t("selfService.brand.title")}</span>
+                    <span className="min-w-0">
+                      <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className="font-semibold text-night">{t("selfService.brand.title")}</span>
+                        <span className="rounded-full bg-white px-2 py-px text-[0.8125rem] font-medium text-coral-dark ring-1 ring-coral/30">
+                          {t("selfService.brand.tag")}
+                        </span>
+                      </span>
                       <span className="mt-0.5 block text-mk-small text-ink-soft">
                         {t("selfService.brand.text")}
                       </span>
                     </span>
                   </li>
                 </ul>
-                <p className="mt-4 text-[0.875rem] text-ink-soft">{t("selfService.note")}</p>
+                <p className="mt-4 flex items-start gap-2 text-mk-small text-ink-soft">
+                  <SparkleLine className="mt-1 size-4 flex-none text-coral" />
+                  <span>
+                    {t("selfService.note")}{" "}
+                    <Link
+                      href={{ pathname: "/", hash: "tarifs" }}
+                      className="inline-flex items-center gap-1 whitespace-nowrap font-medium text-navy underline-offset-4 hover:underline"
+                    >
+                      {t("selfService.noteLink")}
+                      <ArrowLine className="size-3.5" />
+                    </Link>
+                  </span>
+                </p>
               </div>
 
               {/* Aperçu de l'écran « Mon site » de l'espace de gestion (ordinateur : sur téléphone, la liste suffit). */}
