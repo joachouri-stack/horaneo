@@ -796,13 +796,14 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                       <item.Icon className="size-[1.375rem]" />
                     </span>
                     <span className="min-w-0">
-                      <span className="flex flex-wrap items-center gap-2 font-display text-mk-body font-semibold leading-snug text-night">
+                      {/* « Bientôt » au-dessus du titre : même place sur toutes les cartes, quelle que soit la largeur. */}
+                      {later && (
+                        <span className="mb-1 inline-block rounded-full bg-white px-2 py-px text-mk-note text-ink-soft">
+                          {t("plans.soonTag")}
+                        </span>
+                      )}
+                      <span className="block font-display text-mk-body font-semibold leading-snug text-night">
                         {t(`benefits.items.${item.key}.title`)}
-                        {later && (
-                          <span className="rounded-full bg-white px-2 py-px font-sans text-mk-note font-normal text-ink-soft">
-                            {t("plans.soonTag")}
-                          </span>
-                        )}
                       </span>
                       <span className="mt-1 block text-mk-small leading-snug text-ink-soft">
                         {t(`benefits.items.${item.key}.text`)}
