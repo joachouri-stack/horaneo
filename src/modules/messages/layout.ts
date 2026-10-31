@@ -9,6 +9,8 @@ import { escapeHtml } from "@/lib/email/layout";
 export type EmailContent = {
   locale: string;
   brandName: string;
+  /** Logo de l'établissement (adresse complète), affiché à la place du nom en tête d'e-mail. */
+  logoUrl?: string | null;
   /** Couleur principale (titres, bouton). Rendue assez foncée pour rester lisible. */
   color?: string | null;
   title: string;
@@ -82,7 +84,17 @@ export function renderEmail(content: EmailContent) {
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px">
     <tr><td align="center">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:12px;padding:32px">
-        ${row(escapeHtml(content.brandName), `font-size:22px;font-weight:bold;color:${color};padding-bottom:24px`)}
+        ${
+          content.logoUrl
+            ? row(
+                `<img src="${escapeHtml(content.logoUrl)}" alt="${escapeHtml(content.brandName)}" height="64" style="display:block;height:64px;width:auto;max-width:240px;border:0">`,
+                "padding-bottom:24px",
+              )
+            : row(
+                escapeHtml(content.brandName),
+                `font-size:22px;font-weight:bold;color:${color};padding-bottom:24px`,
+              )
+        }
         ${row(escapeHtml(content.title), "font-size:20px;font-weight:bold;color:#2B2B2B;padding-bottom:16px")}
         ${content.paragraphs.map((text) => row(escapeHtml(text))).join("\n        ")}
         ${highlight}

@@ -3537,7 +3537,7 @@
       "contactEmail": "Une question ? Répondez simplement à cet e-mail.",
       "managerFooter": "Message automatique envoyé par {product}.",
       "openSpace": "Ouvrir mon espace",
-      "spaceHint": "Retrouvez tous vos rendez-vous et vos avantages sur {url}",
+      "spaceHint": "Retrouvez tous vos rendez-vous et vos avantages dans votre espace.",
       "summaryFooter": "Vous pouvez couper les résumés dans Plus → Réglages.",
       "addToCalendar": "Ajouter à mon agenda",
       "googleCalendar": "Google Agenda",
@@ -3549,7 +3549,7 @@
       "confirmation": {
         "subject": "Votre rendez-vous du {date} est confirmé",
         "title": "Rendez-vous confirmé",
-        "intro": "Votre rendez-vous chez {business} est bien enregistré."
+        "intro": "Merci pour votre réservation ! Votre rendez-vous chez {business} est bien enregistré."
       },
       "reminder_email": {
         "subject": "Rappel : votre rendez-vous du {date} à {time}",

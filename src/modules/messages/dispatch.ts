@@ -199,7 +199,14 @@ async function processOne(
 export async function dispatchMessages(
   platform: PlatformRunner,
   senders: MessageSenders,
-  options: { productName: string; appUrl: string; now?: Date; limit?: number; ids?: string[] },
+  options: {
+    productName: string;
+    appUrl: string;
+    now?: Date;
+    limit?: number;
+    ids?: string[];
+    mediaUrl?: (key: string) => string;
+  },
 ): Promise<DispatchResult> {
   const now = options.now ?? new Date();
   const maxAttempts = await platform((tx) => getPlatformSetting(tx, "message_max_attempts"));

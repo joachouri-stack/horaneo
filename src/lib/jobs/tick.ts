@@ -29,7 +29,12 @@ import {
 const platform = <T>(fn: Parameters<typeof withPlatform<T>>[0]) => withPlatform(fn);
 
 function dispatchOptions(now: Date) {
-  return { productName: env().PRODUCT_NAME, appUrl: publicAppUrl(), now };
+  return {
+    productName: env().PRODUCT_NAME,
+    appUrl: publicAppUrl(),
+    now,
+    mediaUrl: (key: string) => storage().publicUrl(key),
+  };
 }
 
 let running = false;
