@@ -210,6 +210,14 @@ describe.skipIf(!hasTestDatabase)("espace admin : modules", () => {
       expect(await platform((tx) => getPlatformSetting(tx, "vat_rate_percent"))).toBe(before);
     });
 
+    it("réglages : numéro WhatsApp mis au format international, numéro invalide refusé", async () => {
+      await platform((tx) => updatePlatformSettings(tx, { whatsapp_number: "06 12 34 56 78" }));
+      expect(await platform((tx) => getPlatformSetting(tx, "whatsapp_number"))).toBe("+33612345678");
+      await expect(platform((tx) => updatePlatformSettings(tx, { whatsapp_number: "12" }))).rejects.toThrow();
+      await platform((tx) => updatePlatformSettings(tx, { whatsapp_number: "" }));
+      expect(await platform((tx) => getPlatformSetting(tx, "whatsapp_number"))).toBe("");
+    });
+
     it("enregistre modèle, ambiance et couleurs", async () => {
       const tenant = await newTenant();
       const updated = await platform((tx) =>
