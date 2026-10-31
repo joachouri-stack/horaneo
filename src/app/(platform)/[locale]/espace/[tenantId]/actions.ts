@@ -148,6 +148,8 @@ export async function createManualAction(
             lastName: form.optional(data, "lastName"),
             phone: form.optional(data, "phone"),
             email: form.optional(data, "email"),
+            birthMonth: Number(form.optional(data, "birthMonth")) || null,
+            birthDay: Number(form.optional(data, "birthDay")) || null,
           },
       internalNote: form.optional(data, "internalNote"),
     }),

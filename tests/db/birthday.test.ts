@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { withPlatform, withTenant } from "@/db/access";
 import type { Transaction } from "@/db/client";
 import { businessSettings, customers, messageLog, promoCodes } from "@/db/schema";
+import { createManualAppointment } from "@/modules/agenda/actions";
 import { createBusiness } from "@/modules/businesses/businesses";
 import { createBooking, type BookingInput } from "@/modules/booking/create";
 import { localToUtc } from "@/modules/booking/time";
@@ -76,14 +77,14 @@ describe.skipIf(!hasTestDatabase)("offre d'anniversaire", () => {
     const massage = await platform((tx) =>
       saveService(tx, id, { name: "Massage", durationMinutes: 60, price: "70" }),
     );
-    await platform((tx) => saveStaff(tx, id, { name: "Léa", serviceIds: [massage.id] }));
+    const lea = await platform((tx) => saveStaff(tx, id, { name: "Léa", serviceIds: [massage.id] }));
     await platform((tx) => changeStatus(tx, id, "activate"));
     if (offer)
       await owner
         .update(businessSettings)
         .set({ birthdayOfferEnabled: true })
         .where(eq(businessSettings.businessId, business.id));
-    return { id, slug, name: tenant.name, businessId: business.id, massage };
+    return { id, slug, name: tenant.name, businessId: business.id, massage, lea };
   }
 
   type Setup = Awaited<ReturnType<typeof setup>>;
@@ -319,6 +320,27 @@ describe.skipIf(!hasTestDatabase)("offre d'anniversaire", () => {
       await expect(
         owner.update(customers).set({ birthMonth: 4, birthDay: 31 }).where(eq(customers.id, row.id)),
       ).rejects.toThrow();
+    });
+  });
+
+  describe("date d'anniversaire au rendez-vous ajouté par la gérante", () => {
+    const manual = (s: Setup, birthMonth: number | null, birthDay: number | null, hour = "10:00") =>
+      asTenant(s.id, (tx) =>
+        createManualAppointment(tx, s.id, {
+          serviceIds: [s.massage.id],
+          staffId: s.lea.id,
+          start: localToUtc("2026-10-06", hour, TZ),
+          newCustomer: { firstName: "Inès", phone: "06 11 22 33 44", birthMonth, birthDay },
+        }),
+      );
+
+    it("enregistrée sur la nouvelle fiche ; une date impossible est refusée", async () => {
+      const s = await setup();
+      await manual(s, 3, 14);
+      const [row] = await owner.select().from(customers).where(eq(customers.tenantId, s.id));
+      expect([row.birthMonth, row.birthDay]).toEqual([3, 14]);
+      expect(await errorCode(manual(s, 2, 31, "12:00"))).toBe("invalid");
+      expect(await errorCode(manual(s, 2, null, "12:00"))).toBe("invalid");
     });
   });
 
