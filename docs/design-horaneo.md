@@ -16,7 +16,8 @@ Promesse : « Votre activité. Un seul outil. Plus de liberté. »
 
 | Rôle | Couleur |
 |---|---|
-| Marque (logo, bouton d'en-tête, bouton du bandeau final) | Bleu nuit `#1B2A4A` (logo), avec sa touche corail `#E8503F` réservée au logo |
+| Marque (logo, bouton d'en-tête, bouton du bandeau final) | Bleu nuit `#1B2A4A` (logo), avec sa touche corail `#E8503F` |
+| Touches corail (rappel du point du logo) | Petites touches seulement, jamais sur un bouton : étiquettes de section, point final des titres, coches, pictogrammes des métiers, halos très légers, filet du pied de page, survols des cartes |
 | Fond | Blanc `#FFFFFF`, sections claires `#F6F8FC` |
 | Titres | `#16181D` ; texte courant `#3D4457` ; texte secondaire `#5B6275` |
 | Filets et bordures | `#E6E9F0` |
