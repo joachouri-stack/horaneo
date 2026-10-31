@@ -234,15 +234,54 @@ describe.skipIf(!hasTestDatabase)("espace des clientes", () => {
         .select()
         .from(customers)
         .where(and(eq(customers.tenantId, tenantId), eq(customers.email, "camille@example.com")));
-      expect(fiche).toMatchObject({ firstName: "camille", phone: "+33612345678" });
+      expect(fiche).toMatchObject({ firstName: "camille", phone: "+33612345678", phoneDisputed: true });
       // …et ne peut donc pas se connecter par SMS à l'espace de Camille.
       const intrus = { channel: "sms" as const, identifier: "+33799999999" };
       expect(await asBusiness(null, (tx) => knownBusinesses(tx, tenantId, intrus))).toEqual([]);
-      // (Rendez-vous retiré pour ne pas fausser les tests suivants.)
+      // On ne sait pas quel numéro est le bon : celui de la fiche ne sert plus par SMS non plus,
+      // tant que la gérante n'a pas vérifié la fiche (l'e-mail, lui, marche toujours).
+      const sms = { channel: "sms" as const, identifier: "+33612345678" };
+      expect(await asBusiness(null, (tx) => knownBusinesses(tx, tenantId, sms))).toEqual([]);
+      expect(await asBusiness(null, (tx) => knownBusinesses(tx, tenantId, camille))).toContain(laila.id);
+      // (Rendez-vous retiré et fiche vérifiée pour ne pas fausser les tests suivants.)
       await owner
         .update(appointments)
         .set({ status: "cancelled" })
         .where(eq(appointments.id, booked.appointmentId));
+      await owner.update(customers).set({ phoneDisputed: false }).where(eq(customers.id, fiche.id));
+    });
+
+    it("une fiche créée en ligne avec l'e-mail d'une autre ne donne pas accès à ses rendez-vous par SMS", async () => {
+      const email = "future.cliente@example.com";
+      const reserve = (phone: string, time: string) =>
+        asBusiness(laila.id, (tx) =>
+          createBooking(
+            tx,
+            tenantId,
+            {
+              serviceIds: [laila.serviceId],
+              staffId: null,
+              start: at("2026-10-06", time),
+              customer: { firstName: "Cliente", email, phone },
+            },
+            { now: NOW },
+          ),
+        );
+      // Une inconnue réserve la première avec l'e-mail de la future cliente et son propre numéro…
+      const first = await reserve("07 88 88 88 88", "17:00");
+      const intrus = { channel: "sms" as const, identifier: "+33788888888" };
+      expect(await asBusiness(null, (tx) => knownBusinesses(tx, tenantId, intrus))).toEqual([laila.id]);
+      // …puis la vraie cliente réserve avec son numéro : la fiche est la même, le numéro diffère.
+      const second = await reserve("06 55 55 55 55", "18:00");
+      expect(await asBusiness(null, (tx) => knownBusinesses(tx, tenantId, intrus))).toEqual([]);
+      await owner
+        .update(appointments)
+        .set({ status: "cancelled" })
+        .where(eq(appointments.id, first.appointmentId));
+      await owner
+        .update(appointments)
+        .set({ status: "cancelled" })
+        .where(eq(appointments.id, second.appointmentId));
     });
 
     it("la recherche d'une cliente reste limitée au site déclaré", async () => {

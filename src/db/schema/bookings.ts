@@ -48,6 +48,12 @@ export const customers = pgTable(
     email: text(),
     /** Format international E.164 : +33612345678. */
     phone: text(),
+    /**
+     * Téléphone contesté : une réservation en ligne a donné un autre numéro pour la même
+     * adresse e-mail. Il ne sert plus à se connecter par SMS tant que la gérante n'a pas
+     * vérifié la fiche (l'enregistrer remet ce drapeau à faux).
+     */
+    phoneDisputed: boolean().notNull().default(false),
     locale: text().notNull().default("fr"),
     notes: text(),
     emailConsent: boolean().notNull().default(false),

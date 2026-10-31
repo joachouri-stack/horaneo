@@ -40,6 +40,7 @@ export async function verifyCodeAction(_previous: CodeFormState, formData: FormD
   const session = await adminSession();
   if (!codeAttempts.attempt(session.user.id)) return { error: "tooManyAttempts" };
   const ok = await verifyAdminCode(session.user.id, session.session.id, String(formData.get("code") ?? ""));
+  if (ok === "locked") return { error: "tooManyAttempts" };
   if (!ok) return { error: "invalidCode" };
   codeAttempts.reset(session.user.id);
   redirect({ href: "/admin", locale: resolveLocale(await getLocale()) });

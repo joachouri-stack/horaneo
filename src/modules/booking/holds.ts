@@ -58,3 +58,18 @@ export async function adjustHoldUsage(
       .where(and(eq(usageCounters.tenantId, tenantId), eq(usageCounters.period, period)));
   }
 }
+
+/**
+ * Rendez-vous annulé : son code promo est rendu (un code « une fois » ou limité
+ * redevient utilisable). La réservation du mois, elle, reste comptée.
+ */
+export async function releasePromoUse(tx: Transaction, tenantId: string, promoCodeId: string | null) {
+  if (!promoCodeId) return;
+  await adjustHoldUsage(
+    tx,
+    tenantId,
+    [{ promoCodeId, createdAt: new Date(), source: "cancelled" }],
+    "release",
+    new Date(),
+  );
+}

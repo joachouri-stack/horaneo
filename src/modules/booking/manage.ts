@@ -1,3 +1,4 @@
+import { releasePromoUse } from "@/modules/booking/holds";
 import { and, asc, eq, sql } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
 import { appointmentItems, appointments, staffMembers } from "@/db/schema";
@@ -8,7 +9,7 @@ import { queueMessage } from "@/modules/messages/queue";
 import { moveDeposit } from "@/modules/payments/deposits";
 import type { PaymentGateway } from "@/modules/payments/gateway";
 import { refundDeposit } from "@/modules/payments/refunds";
-import { getSlotsForRange, loadBookingContext, resolveServices } from "./availability";
+import { getSlotsForRange, loadBookingContext, rescheduleContext, resolveServices } from "./availability";
 import { assignManageToken, expireStaleHolds, hashManageToken, manageTokenFor } from "./create";
 import { addMinutes, utcToLocal } from "./time";
 
@@ -149,6 +150,7 @@ export async function cancelByCustomer(
     .update(appointments)
     .set({ status: "cancelled", cancelledAt: now, cancelledBy: "customer" })
     .where(eq(appointments.id, managed.appointment.id));
+  await releasePromoUse(tx, tenantId, managed.appointment.promoCodeId);
   // Acompte réglé avec une carte cadeau : le montant est remis sur la carte.
   await creditBackForAppointment(tx, tenantId, managed.appointment.id);
   const refund = await refundDeposit(tx, tenantId, managed.appointment.id, gateway, {
@@ -196,7 +198,7 @@ export async function rescheduleByCustomer(
   const date = utcToLocal(target.start, managed.context.tenant.timezone).date;
   const slots =
     (
-      await getSlotsForRange(tx, managed.context, {
+      await getSlotsForRange(tx, rescheduleContext(managed.context, old.staffId), {
         serviceIds,
         staffId: target.staffId,
         fromDate: date,

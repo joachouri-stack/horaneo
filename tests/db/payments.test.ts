@@ -574,6 +574,18 @@ describe.skipIf(!hasTestDatabase)("paiements", () => {
       expect(code.usedCount).toBe(1);
     });
 
+    it("un rendez-vous annulé rend son code promo (code à usage unique de nouveau utilisable)", async () => {
+      const s = await setup({ deposit: false });
+      await asTenant(s.id, (tx) =>
+        savePromoCode(tx, s.id, { code: "RENDU", discountType: "fixed", discountValue: "5", maxUses: 1 }),
+      );
+      const result = await book(s, { promoCode: "RENDU" });
+      await asTenant(s.id, (tx) => cancelByCustomer(tx, s.id, result.manageToken, NOW, fake.gateway));
+      const [code] = await owner.select().from(promoCodes).where(eq(promoCodes.tenantId, s.id));
+      expect(code.usedCount).toBe(0);
+      expect((await book(s, { promoCode: "RENDU", start: at("14:00") })).discountCents).toBe(500);
+    });
+
     it("un code promo ne sert qu'une fois par cliente", async () => {
       const s = await setup({ deposit: false });
       await asTenant(s.id, (tx) =>

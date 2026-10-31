@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { rescheduleContext } from "@/modules/booking/availability";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { formatLongDate, formatTimeOf } from "@/components/booking/format";
@@ -68,8 +69,8 @@ export default async function ManageAppointmentPage({
   const now = new Date();
   const modifiable = canModify(managed, now);
   const serviceIds = managed.items.map((item) => item.serviceId).filter((id): id is string => Boolean(id));
-  const staffOptions = context.staff
-    .filter((member) => serviceIds.every((id) => member.serviceIds.includes(id)))
+  const staffOptions = rescheduleContext(context, appointment.staffId)
+    .staff.filter((member) => serviceIds.every((id) => member.serviceIds.includes(id)))
     .map((member) => ({ id: member.id, name: member.name }));
   const iso = appointment.startsAt.toISOString();
   const siteUrl = site.primaryHostname ? tenantSiteUrl(site.primaryHostname) : "";

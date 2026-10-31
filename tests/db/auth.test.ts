@@ -292,6 +292,15 @@ describe.skipIf(!hasTestDatabase)("connexion", () => {
       expect(await verifyAdminCode(userId, sessionId, backupCodes![0], options)).toBe(false);
       expect((await getAdminSecurityState(userId, options)).backupCodesLeft).toBe(7);
 
+      // Trop d'erreurs depuis la dernière connexion (10, dont le code de secours déjà utilisé) :
+      // même le bon code est refusé (compté en base, commun à tous les serveurs).
+      for (let i = 0; i < 9; i += 1)
+        expect(await verifyAdminCode(userId, sessionId, "000000", options)).toBe(false);
+      const t2 = t1 + 30_000;
+      expect(
+        await verifyAdminCode(userId, sessionId, totpCodeAt(secret, t2), { ...options, now: () => t2 }),
+      ).toBe("locked");
+
       // Tout est journalisé.
       const actions = (await owner.select().from(auditLog).where(eq(auditLog.actorUserId, userId))).map(
         (e) => e.action,

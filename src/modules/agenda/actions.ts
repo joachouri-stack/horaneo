@@ -1,3 +1,4 @@
+import { releasePromoUse } from "@/modules/booking/holds";
 import { assertQuota } from "@/modules/quotas";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -79,6 +80,7 @@ export async function cancelByManager(
       cancellationReason: reason?.slice(0, 300) || null,
     })
     .where(eq(appointments.id, appointment.id));
+  await releasePromoUse(tx, tenantId, appointment.promoCodeId);
   const refund = payment.refund
     ? await refundDeposit(tx, tenantId, appointment.id, payment.gateway, { reason: "manager_cancelled" })
     : null;

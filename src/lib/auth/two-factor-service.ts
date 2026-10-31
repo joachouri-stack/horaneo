@@ -1,8 +1,8 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, gt, sql } from "drizzle-orm";
 import { authSecret } from "@/config/env";
 import { withPlatform } from "@/db/access";
 import type { Database } from "@/db/client";
-import { adminTwoFactors, authSessions, users } from "@/db/schema";
+import { adminTwoFactors, auditLog, authSessions, users } from "@/db/schema";
 import { recordAudit } from "@/lib/audit";
 import {
   consumeBackupCode,
@@ -91,13 +91,20 @@ export async function confirmTwoFactorSetup(
   }, database);
 }
 
-/** Vérifie un code (ou un code de secours) pour la session en cours. */
+/** Erreurs de code tolérées sur la période avant blocage (compté en base : commun à tous les serveurs). */
+const MAX_FAILED_CODES = 10;
+const FAILED_CODES_WINDOW_MS = 15 * 60 * 1000;
+
+/**
+ * Vérifie un code (ou un code de secours) pour la session en cours.
+ * « locked » : trop d'erreurs récentes (depuis la dernière connexion réussie), essai refusé.
+ */
 export async function verifyAdminCode(
   userId: string,
   sessionId: string,
   code: string,
   { database, now = Date.now }: Options = {},
-): Promise<boolean> {
+): Promise<boolean | "locked"> {
   return withPlatform(async (tx) => {
     // Verrou de la ligne : deux saisies simultanées du même code ne passent pas toutes les deux.
     const [record] = await tx
@@ -106,6 +113,19 @@ export async function verifyAdminCode(
       .where(eq(adminTwoFactors.userId, userId))
       .for("update");
     if (!record?.confirmedAt) return false;
+
+    const [failures] = await tx
+      .select({ count: sql<number>`count(*)::int` })
+      .from(auditLog)
+      .where(
+        and(
+          eq(auditLog.actorUserId, userId),
+          eq(auditLog.action, "admin.login_failed"),
+          gt(auditLog.createdAt, new Date(Date.now() - FAILED_CODES_WINDOW_MS)),
+          sql`${auditLog.createdAt} > coalesce((SELECT max(created_at) FROM audit_log WHERE actor_user_id = ${userId} AND action = 'admin.login'), '-infinity')`,
+        ),
+      );
+    if ((failures?.count ?? 0) >= MAX_FAILED_CODES) return "locked";
 
     const step = verifyTotp(
       decryptSecret(record.secretEncrypted, authSecret()),

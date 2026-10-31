@@ -30,6 +30,8 @@ const nextConfig: NextConfig = {
   experimental: {
     // Envoi de photos jusqu'à 10 Mo (plus la marge du formulaire).
     serverActions: { bodySizeLimit: "12mb" },
+    // Même limite au niveau du proxy (10 Mo par défaut : au-delà, l'envoi échouait en erreur 500).
+    proxyClientMaxBodySize: "12mb",
   },
   env: {
     NEXT_PUBLIC_ENABLED_LOCALES: enabledLocales.join(","),
