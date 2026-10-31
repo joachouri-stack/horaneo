@@ -198,6 +198,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     plans: await listPublicPlans(tx),
     display: String(await getPlatformSetting(tx, "prices_display")),
     commitment: Number(await getPlatformSetting(tx, "commitment_months")),
+    noCommitment: Boolean(await getPlatformSetting(tx, "offer_no_commitment")),
     yearly: {
       enabled: Boolean(await getPlatformSetting(tx, "yearly_billing_enabled")),
       freeMonths: Number(await getPlatformSetting(tx, "yearly_free_months")),
@@ -232,18 +233,29 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     bookings: first ? (first.limits.onlineBookingsPerMonth ?? -1) : 0,
     customers: first ? (first.limits.customers ?? -1) : 0,
     tablet: data.offers.length > 0 ? "yes" : "no",
+    // Formule sans engagement proposée à côté de l'engagement (réglage admin).
+    choice: data.noCommitment ? "yes" : "no",
+    // Premier pack (le moins cher) qui inclut un nom de domaine pour la création.
+    domainPlan: (() => {
+      const plan = [...data.plans]
+        .sort((a, b) => a.priceCents - b.priceCents)
+        .find((item) => item.features.freeDomain);
+      return plan ? pickLocalized(plan.name, locale) : "none";
+    })(),
   };
   // Questions affichées seulement quand elles s'appliquent : outils d'IA encore annoncés
   // « Bientôt », offre de lancement ouverte.
   const aiSoon = AI_FEATURES.some((key) => soon.has(key));
   const hasOffer = data.offers.length > 0;
-  const faq = FAQ.filter((key) => (key === "ai" ? aiSoon : key === "tablet" ? hasOffer : true)).map(
-    (key) => ({
-      key,
-      q: t(`faq.items.${key}.q`, faqValues),
-      a: t(`faq.items.${key}.a`, faqValues),
-    }),
-  );
+  // « Commerce et Formation sont-ils disponibles ? » : tant qu'une solution est en préparation.
+  const solutionSoon = SOLUTIONS.some(isSoon);
+  const faq = FAQ.filter((key) =>
+    key === "ai" ? aiSoon : key === "tablet" ? hasOffer : key === "solutions" ? solutionSoon : true,
+  ).map((key) => ({
+    key,
+    q: t(`faq.items.${key}.q`, faqValues),
+    a: t(`faq.items.${key}.a`, faqValues),
+  }));
   const structuredData = [
     {
       "@context": "https://schema.org",
@@ -953,6 +965,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               soon={data.soon}
               display={data.display}
               commitmentMonths={data.commitment}
+              noCommitment={data.noCommitment}
               offers={data.offers}
               yearly={data.yearly}
             />

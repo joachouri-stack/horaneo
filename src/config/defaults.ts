@@ -59,7 +59,7 @@ export const DEFAULT_PLATFORM_SETTINGS = {
   ] as SolutionSetting[],
   /** Adresse d'une démonstration en ligne ; vide : le bouton « Voir la démonstration » est masqué. */
   demo_url: "",
-  /** Numéro WhatsApp du site commercial (format international) ; vide : pas de bulle WhatsApp. */
+  /** Numéro WhatsApp du site commercial (format international) ; vide : la bulle mène au formulaire « Être rappelé ». */
   whatsapp_number: "",
   /** Message déjà écrit à l'ouverture de WhatsApp ; vide : message par défaut des traductions. */
   whatsapp_message: "",

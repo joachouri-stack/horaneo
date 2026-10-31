@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
 import { plans } from "@/db/schema";
+import { SOLUTIONS } from "@/modules/billing/grid";
 import { AppError } from "@/modules/errors";
 import { queueMessage } from "@/modules/messages/queue";
 import { normalizePhone } from "@/modules/phone";
@@ -18,6 +19,12 @@ export const callbackInput = z.object({
   phone: z.string().trim().min(6).max(40),
   email: z.union([z.literal(""), z.email().max(200)]).default(""),
   planCode: z.string().trim().max(40).default(""),
+  /** Solution en préparation dont le visiteur veut être prévenu du lancement (vide : aucune). */
+  solution: z
+    .string()
+    .max(20)
+    .default("")
+    .transform((value) => SOLUTIONS.find((code) => code === value) ?? ""),
   message: z.string().trim().max(1000).default(""),
   locale: z.string().min(2).max(5).default("fr"),
 });

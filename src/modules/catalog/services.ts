@@ -242,15 +242,20 @@ export async function deleteService(tx: Transaction, tenantId: string, serviceId
     .from(services)
     .where(and(eq(services.id, serviceId), eq(services.tenantId, tenantId)));
   if (!existing) throw new AppError("not_found");
-  await tx
-    .delete(staffServices)
-    .where(and(eq(staffServices.tenantId, tenantId), eq(staffServices.serviceId, serviceId)));
   try {
+    // Membres retirés seulement si la suppression aboutit : une prestation désactivée garde son
+    // équipe (si elle est réactivée, elle reste réservable).
     await tx.transaction(async (savepoint) => {
+      await savepoint
+        .delete(staffServices)
+        .where(and(eq(staffServices.tenantId, tenantId), eq(staffServices.serviceId, serviceId)));
       await savepoint.delete(services).where(eq(services.id, serviceId));
     });
     return { deleted: true };
-  } catch {
+  } catch (error) {
+    // Seulement si des rendez-vous y sont rattachés (clé étrangère) : désactivée à la place.
+    const err = error as { code?: string; cause?: { code?: string } };
+    if ((err.code ?? err.cause?.code) !== "23503") throw error;
     await tx.update(services).set({ isActive: false }).where(eq(services.id, serviceId));
     return { deleted: false };
   }

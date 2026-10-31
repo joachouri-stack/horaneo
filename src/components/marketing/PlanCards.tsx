@@ -51,6 +51,7 @@ export async function PlanCards({
   soon,
   display,
   commitmentMonths,
+  noCommitment = true,
   offers,
   yearly,
 }: {
@@ -59,6 +60,8 @@ export async function PlanCards({
   soon: string[];
   display: string;
   commitmentMonths: number;
+  /** Formule sans engagement proposée à côté de l'engagement (réglage admin). */
+  noCommitment?: boolean;
   offers: LaunchOfferView[];
   /** Paiement à l'année proposé, et ses mois offerts (réglages). */
   yearly: { enabled: boolean; freeMonths: number };
@@ -427,7 +430,13 @@ export async function PlanCards({
                 data-billing-only={withYearly ? "month" : undefined}
                 className={`mt-3 text-center text-[0.875rem] leading-snug ${muted}`}
               >
-                {paid ? t("contractPaid", { months: commitmentMonths, display }) : t("contractFree")}
+                {paid
+                  ? t("contractPaid", {
+                      months: commitmentMonths,
+                      display,
+                      choice: noCommitment ? "yes" : "no",
+                    })
+                  : t("contractFree")}
               </p>
               {withYearly && (
                 <p

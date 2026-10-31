@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PlatformHeader } from "@/components/layout/PlatformHeader";
 import { ui } from "@/components/ui/styles";
@@ -38,7 +39,10 @@ export default async function ThanksPage({ params, searchParams }: PageProps<"/[
     }),
     days: Number(await getPlatformSetting(tx, "go_live_delay_days")),
   }));
-  const pending = !order || order.status === "awaiting_payment";
+  // Sans commande (adresse incomplète ou numéro inconnu) : rien à confirmer, page introuvable
+  // (au lieu de « paiement en cours de validation » sans fin).
+  if (!order) notFound();
+  const pending = order.status === "awaiting_payment";
   const review = order?.status === "awaiting_review";
 
   return (

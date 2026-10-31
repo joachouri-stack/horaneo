@@ -1,4 +1,5 @@
 import { and, eq } from "drizzle-orm";
+import { assertFeature } from "@/modules/quotas";
 import { z } from "zod";
 import { currentBusinessId } from "@/db/access";
 import type { Transaction } from "@/db/client";
@@ -65,6 +66,8 @@ export async function updateStatsGoals(
   raw: z.input<typeof statsGoalsInput>,
   businessId?: string,
 ) {
+  // Objectifs du mois : avec les statistiques détaillées du pack seulement.
+  await assertFeature(tx, tenantId, "stats");
   const parsed = statsGoalsInput.safeParse(raw);
   if (!parsed.success) throw new AppError("invalid", String(parsed.error.issues[0]?.path[0] ?? ""));
   const id = await targetBusiness(tx, businessId);

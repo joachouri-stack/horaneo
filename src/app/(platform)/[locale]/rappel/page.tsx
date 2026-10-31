@@ -9,6 +9,7 @@ import { ui } from "@/components/ui/styles";
 import { withPlatform } from "@/db/access";
 import { pickLocalized } from "@/i18n/locales";
 import { resolveLocale } from "@/i18n/translator";
+import { SOLUTIONS, type Solution } from "@/modules/billing/grid";
 import { listPublicPlans } from "@/modules/billing/plans";
 import { requestCallbackAction } from "./actions";
 
@@ -30,6 +31,9 @@ export default async function CallbackPage({ params, searchParams }: PageProps<"
   const t = await getTranslations("callback");
   const plans = await withPlatform((tx) => listPublicPlans(tx));
   const plan = plans.find((item) => item.code === query.pack);
+  // « Être prévenu du lancement » d'une solution en préparation (Commerce, Formation…).
+  const solution = SOLUTIONS.find((code) => code === query.solution) as Solution | undefined;
+  const tHome = await getTranslations("home.solutions.items");
 
   return (
     <>
@@ -38,7 +42,11 @@ export default async function CallbackPage({ params, searchParams }: PageProps<"
         <div>
           <h1 className="font-display text-mk-h2 font-semibold tracking-[-0.025em]">{t("title")}</h1>
           <p className="mt-2 text-ink/80">
-            {plan ? t("introPlan", { plan: pickLocalized(plan.name, locale) }) : t("intro")}
+            {solution
+              ? t("introSolution", { solution: tHome(`${solution}.name`) })
+              : plan
+                ? t("introPlan", { plan: pickLocalized(plan.name, locale) })
+                : t("intro")}
           </p>
         </div>
         <div className={ui.card}>
@@ -48,7 +56,7 @@ export default async function CallbackPage({ params, searchParams }: PageProps<"
             resetOnSuccess
             className="space-y-5"
           >
-            <Hidden values={{ planCode: plan?.code ?? "" }} />
+            <Hidden values={{ planCode: plan?.code ?? "", solution: solution ?? "" }} />
             {/* Piège à robots : invisible et ignoré par les personnes. */}
             <div aria-hidden="true" className="hidden">
               <input type="text" name="website" tabIndex={-1} autoComplete="off" />

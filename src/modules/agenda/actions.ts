@@ -51,6 +51,9 @@ export async function setAttendance(
   const appointment = await loadAppointment(tx, tenantId, appointmentId, true);
   if (!["confirmed", "attended", "no_show"].includes(appointment.status))
     throw new AppError("booking_not_modifiable");
+  // Venue ou absente : seulement une fois le rendez-vous commencé (sinon point de fidélité et
+  // demande d'avis envoyés trop tôt).
+  if (status !== "confirmed" && appointment.startsAt > now) throw new AppError("booking_not_modifiable");
   await tx.update(appointments).set({ status }).where(eq(appointments.id, appointment.id));
   // Fidélité : un point par rendez-vous honoré (retiré si la gérante corrige).
   await trackAttendance(tx, tenantId, appointment, appointment.status, status);

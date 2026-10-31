@@ -199,6 +199,8 @@ export async function createTimeOffAction(
 ): Promise<ActionResult<unknown>> {
   const tenantId = tenantIdOf(data);
   const kind = form.text(data, "kind");
+  // Type inconnu : refusé (et non traité comme une fermeture de tout l'établissement).
+  if (!["block", "leave", "closure"].includes(kind)) return { ok: false, error: "invalid", field: "kind" };
   const reason = form.optional(data, "reason");
   const input =
     kind === "block"

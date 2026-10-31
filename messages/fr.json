@@ -278,7 +278,7 @@
       "choose": "Choisir le pack {plan}",
       "callback": "Être rappelé",
       "contractFree": "Gratuit, sans carte bancaire. Évoluez quand vous voulez.",
-      "contractPaid": "{months, plural, =0 {Sans engagement, résiliable chaque mois} other {Au choix : sans engagement (résiliable chaque mois) ou engagement de # mois}}. Prix {display}, facturé chaque mois.",
+      "contractPaid": "{months, plural, =0 {Sans engagement, résiliable chaque mois} other {{choice, select, yes {Au choix : sans engagement (résiliable chaque mois) ou engagement de # mois} other {Engagement de # mois}}}}. Prix {display}, facturé chaque mois.",
       "tablet": {
         "badge": "Offre limitée",
         "title": "Tablette offerte",
@@ -831,7 +831,7 @@
         },
         "commitment": {
           "q": "Y a-t-il un engagement ?",
-          "a": "{months, plural, =0 {Non, les packs payants sont sans engagement.} other {Vous choisissez : sans engagement, résiliable chaque mois, ou avec un engagement de # mois.{tablet, select, yes { L'offre tablette est réservée à la formule avec engagement.} other {}}}}"
+          "a": "{months, plural, =0 {Non, les packs payants sont sans engagement.} other {{choice, select, yes {Vous choisissez : sans engagement, résiliable chaque mois, ou avec un engagement de # mois.} other {Les packs payants sont proposés avec un engagement de # mois.}}{tablet, select, yes { L'offre tablette est réservée à la formule avec engagement.} other {}}}}"
         },
         "prices": {
           "q": "Les prix sont-ils HT ou TTC ?",
@@ -839,7 +839,7 @@
         },
         "domain": {
           "q": "Puis-je utiliser mon propre nom de domaine ?",
-          "a": "Oui, dès le premier pack vous pouvez connecter un domaine existant. Pour la création de votre site, un nom de domaine est inclus, sous conditions de coût et de renouvellement."
+          "a": "Oui, dès le premier pack vous pouvez connecter un domaine existant.{domainPlan, select, none {} other { À partir du pack {domainPlan}, un nom de domaine est inclus pour la création de votre site, sous conditions de coût et de renouvellement.}}"
         },
         "quotas": {
           "q": "Que se passe-t-il si j'atteins un quota ?",
@@ -3826,6 +3826,7 @@
         "business": "Établissement",
         "email": "E-mail",
         "plan": "Pack qui l'intéresse",
+        "solution": "Lancement attendu",
         "message": "Message"
       }
     },
@@ -3939,6 +3940,7 @@
     "title": "Être rappelé",
     "intro": "Laissez-nous vos coordonnées : nous vous rappelons pour parler de votre projet et choisir le pack qui vous convient.",
     "introPlan": "Le pack {plan} vous intéresse ? Laissez-nous vos coordonnées : nous vous rappelons pour en parler et le mettre en place avec vous.",
+    "introSolution": "La solution {solution} vous intéresse ? Elle est en préparation : laissez-nous vos coordonnées, nous vous prévenons dès son lancement et nous vous rappelons pour en parler.",
     "name": "Votre nom",
     "businessName": "Nom de votre entreprise",
     "phone": "Téléphone",
