@@ -309,6 +309,13 @@
       "when": 1793401844370,
       "tag": "0043_manager_logo",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1793401904370,
+      "tag": "0044_manager_page_texts",
+      "breakpoints": true
     }
   ]
 }

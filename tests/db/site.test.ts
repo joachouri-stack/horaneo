@@ -5,12 +5,12 @@ import sharp from "sharp";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
 import { withPlatform, withTenant } from "@/db/access";
-import { tenants } from "@/db/schema";
+import { sitePages, tenants } from "@/db/schema";
 import type { Transaction } from "@/db/client";
 import { createLocalStorage } from "@/lib/storage/local";
 import type { FileStorage } from "@/lib/storage/types";
 import { saveCategory, saveService } from "@/modules/catalog/services";
-import { updatePage } from "@/modules/content/pages";
+import { updatePage, updatePageTexts } from "@/modules/content/pages";
 import { saveTestimonial } from "@/modules/content/testimonials";
 import { retireAsset, uploadAsset, uploadLogo } from "@/modules/media/assets";
 import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
@@ -183,6 +183,36 @@ describe.skipIf(!hasTestDatabase)("site d'un client : données affichées", () =
         withTenant(
           tenant.id,
           (tx) => tx.update(tenants).set({ name: "Autre nom" }).where(eq(tenants.id, tenant.id)),
+          app,
+        ),
+      ),
+    ).toBe("42501");
+  });
+
+  it("textes de présentation : la gérante les modifie, sans toucher au référencement ni à la publication", async () => {
+    const tenant = await newTenant("serenite");
+    await withTenant(
+      tenant.id,
+      (tx) =>
+        updatePageTexts(tx, tenant.id, { pageKey: "home", texts: { tagline: "Votre parenthèse beauté" } }),
+      app,
+    );
+    const site = (await load(tenant.id))!;
+    expect(JSON.stringify(site)).toContain("Votre parenthèse beauté");
+    // Mentions légales : pas depuis l'espace gérante.
+    await expect(
+      withTenant(
+        tenant.id,
+        (tx) => updatePageTexts(tx, tenant.id, { pageKey: "legal" as "home", texts: {} }),
+        app,
+      ),
+    ).rejects.toThrow();
+    // La publication d'une page reste à l'administratrice.
+    expect(
+      await pgErrorCode(
+        withTenant(
+          tenant.id,
+          (tx) => tx.update(sitePages).set({ isPublished: false }).where(eq(sitePages.tenantId, tenant.id)),
           app,
         ),
       ),
