@@ -1,4 +1,4 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { WhatsAppBubble } from "@/components/marketing/WhatsAppBubble";
 import { Logo } from "@/components/brand/Logo";
 import { NAV } from "@/components/layout/PlatformHeader";
@@ -39,7 +39,8 @@ export async function PlatformFooter() {
   const urls = await withPlatform(async (tx) =>
     Promise.all(NETWORKS.map(async (network) => String(await getPlatformSetting(tx, `social_${network}`)))),
   );
-  // Bulle WhatsApp (Admin → Réglages → WhatsApp) : seulement si un numéro est renseigné.
+  // Bulle WhatsApp (Admin → Réglages → WhatsApp), toujours affichée : sans numéro renseigné,
+  // elle mène à la demande de rappel.
   const whatsapp = await withPlatform(async (tx) => ({
     phone: String(await getPlatformSetting(tx, "whatsapp_number")),
     message: String(await getPlatformSetting(tx, "whatsapp_message")),
@@ -53,13 +54,15 @@ export async function PlatformFooter() {
   });
   return (
     <>
-      {whatsapp.phone && (
-        <WhatsAppBubble
-          phone={whatsapp.phone}
-          message={whatsapp.message || tWhatsapp("defaultMessage")}
-          label={tWhatsapp("label")}
-        />
-      )}
+      <WhatsAppBubble
+        href={
+          whatsapp.phone
+            ? `https://wa.me/${whatsapp.phone.replace(/\D/g, "")}?text=${encodeURIComponent(whatsapp.message || tWhatsapp("defaultMessage"))}`
+            : `/${await getLocale()}/rappel`
+        }
+        external={Boolean(whatsapp.phone)}
+        label={whatsapp.phone ? tWhatsapp("label") : tWhatsapp("fallbackLabel")}
+      />
       <footer className="relative overflow-hidden bg-[linear-gradient(180deg,#121a2c,#0b1120)] text-[#c8d0e4]">
         {/* Filet champagne et corail en haut, halos flous qui dérivent doucement. */}
         <div

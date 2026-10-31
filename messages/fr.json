@@ -915,7 +915,8 @@
     },
     "whatsapp": {
       "label": "Nous écrire sur WhatsApp",
-      "defaultMessage": "Bonjour, j'ai une question."
+      "defaultMessage": "Bonjour, j'ai une question.",
+      "fallbackLabel": "Nous contacter"
     }
   },
   "site": {
