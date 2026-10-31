@@ -16,7 +16,7 @@ Promesse : « Votre activité. Un seul outil. Plus de liberté. »
 
 | Rôle | Couleur |
 |---|---|
-| Marque (logo, bouton d'en-tête, bandeau final) | Bleu nuit `#1B2A4A` (logo), avec sa touche corail `#E8503F` réservée au logo |
+| Marque (logo, bouton d'en-tête, bouton du bandeau final) | Bleu nuit `#1B2A4A` (logo), avec sa touche corail `#E8503F` réservée au logo |
 | Fond | Blanc `#FFFFFF`, sections claires `#F6F8FC` |
 | Titres | `#16181D` ; texte courant `#3D4457` ; texte secondaire `#5B6275` |
 | Filets et bordures | `#E6E9F0` |
@@ -70,7 +70,7 @@ Cartes des packs (validé en octobre 2026) : lumière douce qui suit la souris, 
 6. **Réassurance :** seulement des engagements vérifiés ; témoignages réels s'il y en a. Placée juste avant les prix, pour lever les doutes avant la décision.
 7. **Choisissez votre pack {solution} :** mêmes prix pour toutes les solutions. Chaque carte : pictogramme, nom, phrase, prix (HT), ce que le pack ajoute, « Bientôt inclus » à part, « Non inclus » (3 lignes), bouton, conditions.
 8. **Comparatif :** juste sous les packs, pour qui hésite entre deux ; mêmes données que les cartes et les droits ; sur téléphone, un pack à la fois.
-9. **Questions, bandeau final, pied de page.**
+9. **Questions, bandeau final, pied de page.** Le bandeau final est une carte claire nacrée (blanc vers champagne pâle, filet champagne) : prix de départ et délai de mise en ligne, titre, bouton bleu nuit « Créer mon site », lien vers les tarifs, trois garanties. Il tranche ainsi avec le pied de page bleu nuit, dont les textes restent bien lisibles (blanc cassé, gris clairs).
 
 Parcours voulu : découvrir ce que fait l'outil, en voir la valeur, être rassuré, puis choisir son pack ; « Voir les tarifs » en haut de page reste un raccourci direct.
 

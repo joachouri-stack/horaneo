@@ -769,39 +769,65 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           </div>
         </section>
 
-        {/* Bandeau final */}
-        <section className="px-4 pb-16 sm:px-6">
+        {/* Bandeau final : carte claire nacrée, pour trancher avec le pied de page sombre. */}
+        <section className="px-4 pb-16 sm:px-6 lg:pb-24">
           <div
             data-reveal
-            className="relative mx-auto max-w-[72rem] 2xl:max-w-[85rem] overflow-hidden rounded-[1.75rem] bg-[linear-gradient(120deg,#1b2a4a,#24366a_60%,#2f3f86)] px-6 py-14 text-center lg:py-16"
+            className="relative mx-auto max-w-[72rem] overflow-hidden rounded-[1.75rem] border border-champagne/50 bg-[linear-gradient(160deg,#ffffff,#fbf6ec_55%,#f5ecda)] px-6 py-12 text-center shadow-[0_30px_60px_-40px_rgba(27,42,74,0.45)] sm:py-14 lg:py-16 2xl:max-w-[85rem]"
           >
             <div
               aria-hidden="true"
-              className="hn-drift pointer-events-none absolute -left-10 -top-20 size-80 rounded-full bg-[#5b6fd6]/30 blur-[80px]"
+              className="hn-drift pointer-events-none absolute -left-16 -top-24 size-80 rounded-full bg-[#5b6fd6]/10 blur-[80px]"
             />
             <div
               aria-hidden="true"
-              className="hn-drift-slow pointer-events-none absolute -bottom-24 right-0 size-80 rounded-full bg-champagne/20 blur-[80px]"
+              className="hn-drift-slow pointer-events-none absolute -bottom-24 -right-10 size-80 rounded-full bg-champagne/40 blur-[80px]"
             />
-            <div
-              aria-hidden="true"
-              className="hn-float pointer-events-none absolute -right-24 -top-24 size-72 rounded-full border border-white/10"
-            />
-            <div
-              aria-hidden="true"
-              className="hn-float-late pointer-events-none absolute -bottom-32 -left-16 size-80 rounded-full border border-white/10"
-            />
-            <h2 className="relative font-display text-mk-h2 font-semibold tracking-[-0.02em] text-white">
+            <p className="relative inline-flex flex-col items-center gap-0.5 rounded-2xl border border-champagne/60 bg-white/80 px-4 py-1.5 text-mk-small font-medium text-navy sm:flex-row sm:gap-2 sm:rounded-full">
+              <span className="inline-flex items-center gap-2">
+                {EYEBROW_DOT}
+                {t("hero.offer", { price: faqValues.price, display: data.display })}
+              </span>
+              {data.goLiveDays > 0 && (
+                <>
+                  <span aria-hidden="true" className="hidden text-champagne sm:inline">
+                    ·
+                  </span>
+                  <span>{t("hero.goLive", { days: data.goLiveDays })}</span>
+                </>
+              )}
+            </p>
+            <h2 className="relative mx-auto mt-5 max-w-[40rem] font-display text-mk-h2 font-semibold tracking-[-0.025em] text-night">
               {t("final.title")}
             </h2>
-            <p className="relative mx-auto mt-3 max-w-[32rem] text-[#c8d0e4]">{t("final.text")}</p>
-            <Link
-              href={startHref}
-              className="hn-shine group relative mt-7 inline-flex min-h-12 items-center gap-2 rounded-xl bg-white px-6 font-medium text-navy transition hover:-translate-y-px focus-visible:outline-white"
-            >
-              {t("final.cta")}
-              <ArrowLine className="size-[18px] transition-transform group-hover:translate-x-0.5" />
-            </Link>
+            <p className="relative mx-auto mt-3 max-w-[32rem] text-[1.0625rem] text-ink-soft">
+              {t("final.text")}
+            </p>
+            <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Link
+                href={startHref}
+                className="hn-shine group inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-navy px-6 text-[1.0625rem] font-medium text-white shadow-[0_14px_28px_-14px_rgba(27,42,74,0.8)] transition hover:-translate-y-px hover:bg-navy-light motion-reduce:transition-none sm:w-auto"
+              >
+                {t("final.cta")}
+                <ArrowLine className="size-[18px] transition-transform group-hover:translate-x-0.5" />
+              </Link>
+              <Link
+                href={{ pathname: "/", hash: "tarifs" }}
+                className="inline-flex min-h-12 items-center gap-2 rounded-xl px-5 text-[1.0625rem] font-medium text-navy underline-offset-4 transition hover:underline"
+              >
+                {t("hero.pricing")}
+              </Link>
+            </div>
+            <ul className="relative mx-auto mt-8 flex w-fit flex-col items-start gap-x-6 gap-y-2 text-mk-small text-ink-soft sm:flex-row sm:flex-wrap sm:justify-center">
+              {(t.raw("hero.points") as string[]).map((point) => (
+                <li key={point} className="flex items-center gap-2">
+                  <span className="flex size-5 flex-none items-center justify-center rounded-full bg-navy/10 text-navy">
+                    <CheckLine className="size-3" />
+                  </span>
+                  {point}
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
       </main>
