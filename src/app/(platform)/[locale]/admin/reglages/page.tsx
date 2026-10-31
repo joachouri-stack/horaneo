@@ -47,6 +47,8 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
       "social_tiktok",
       "social_instagram",
       "social_facebook",
+      "whatsapp_number",
+      "whatsapp_message",
     ] as const;
     return Object.fromEntries(
       await Promise.all(keys.map(async (key) => [key, await getPlatformSetting(tx, key)])),
@@ -169,6 +171,27 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
                 />
               ),
             )}
+          </div>
+        </Section>
+        {/* Bulle WhatsApp en bas à droite du site commercial (masquée sans numéro). */}
+        <Section title={t("whatsapp")} collapsible>
+          <p className="mb-3 text-sm text-ink/70">{t("whatsappHint")}</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <TextField
+              name="whatsapp_number"
+              type="tel"
+              inputMode="tel"
+              autoComplete="off"
+              label={t("whatsapp_number")}
+              defaultValue={String(s.whatsapp_number)}
+            />
+            <TextField
+              name="whatsapp_message"
+              autoComplete="off"
+              label={t("whatsapp_message")}
+              hint={t("whatsappMessageHint")}
+              defaultValue={String(s.whatsapp_message)}
+            />
           </div>
         </Section>
         {/* Fonctions pas encore livrées : étiquette « Bientôt » sur le site commercial. */}

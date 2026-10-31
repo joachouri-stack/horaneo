@@ -908,6 +908,10 @@
         "instagram": "Instagram",
         "facebook": "Facebook"
       }
+    },
+    "whatsapp": {
+      "label": "Nous écrire sur WhatsApp",
+      "defaultMessage": "Bonjour, j'ai une question."
     }
   },
   "site": {
@@ -2103,7 +2107,12 @@
       "pricesHt": "HT (hors taxes)",
       "depositCommissionHint": "Prélevée sur chaque nouvel acompte payé en ligne (20 % maximum). Le taux est aussi annoncé sur le site commercial et dans l'espace des clients.",
       "messagesHint": "Heures à l'heure locale de chaque salon.",
-      "legalInfrastructureHint": "Nom, adresse et téléphone de l'hébergeur."
+      "legalInfrastructureHint": "Nom, adresse et téléphone de l'hébergeur.",
+      "whatsapp": "WhatsApp",
+      "whatsappHint": "Une bulle WhatsApp apparaît en bas à droite du site commercial. Les visiteurs vous écrivent en un clic. Laissez le numéro vide pour la masquer.",
+      "whatsapp_number": "Numéro WhatsApp",
+      "whatsapp_message": "Message déjà écrit",
+      "whatsappMessageHint": "Facultatif. Vide : « Bonjour, j'ai une question. »"
     },
     "billing": {
       "title": "Paiements des abonnements",

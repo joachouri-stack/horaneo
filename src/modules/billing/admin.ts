@@ -15,6 +15,7 @@ import {
   type PlanLimits,
 } from "@/db/schema";
 import { AppError } from "@/modules/errors";
+import { normalizePhone } from "@/modules/phone";
 import { getPlatformSetting, setPlatformSetting } from "@/modules/settings";
 import type { BillingGateway } from "./gateway";
 import { EVERYTHING_IN, HIGHLIGHT_KEYS, MAX_HIGHLIGHTS, twinRuleViolations } from "./showcase";
@@ -268,6 +269,14 @@ export const settingsInput = z.object({
   solutions_available: z.array(z.enum(["booking", "commerce", "formation"])).default(["booking"]),
   /** Adresse de la démonstration (vide : bouton masqué). */
   demo_url: z.union([z.literal(""), z.url({ protocol: /^https?$/ }).max(300)]).default(""),
+  /** WhatsApp du site commercial : numéro (mis au format international) et message de départ. */
+  whatsapp_number: z
+    .string()
+    .trim()
+    .max(30)
+    .default("")
+    .transform((value) => normalizePhone(value, "FR", "whatsapp_number") ?? ""),
+  whatsapp_message: z.string().trim().max(200).default(""),
   /** Pages de la marque sur les réseaux sociaux (vide : non affiché). */
   social_youtube: socialLink("youtube"),
   social_tiktok: socialLink("tiktok"),
