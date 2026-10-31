@@ -97,7 +97,7 @@ export async function retireAsset(
 
 /**
  * Photo du site modifiable par la gérante : jamais le logo du site, qui se
- * change par une demande à l'administratrice.
+ * change à part (`uploadLogo`).
  */
 export async function assertSitePhoto(tx: Transaction, tenantId: string, assetId: string) {
   const [asset] = await tx
@@ -132,7 +132,7 @@ export async function restoreAsset(tx: Transaction, tenantId: string, assetId: s
   return restored;
 }
 
-/** Options des listes : `photosOnly` écarte le logo du site (géré par l'administratrice). */
+/** Options des listes : `photosOnly` écarte le logo du site (géré à part). */
 type ListOptions = { photosOnly?: boolean };
 
 export async function listActiveAssets(tx: Transaction, tenantId: string, options: ListOptions = {}) {

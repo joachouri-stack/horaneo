@@ -302,6 +302,13 @@
       "when": 1793401784370,
       "tag": "0042_pro_data_export",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1793401844370,
+      "tag": "0043_manager_logo",
+      "breakpoints": true
     }
   ]
 }

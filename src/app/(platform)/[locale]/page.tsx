@@ -131,6 +131,7 @@ const TARGET_ICONS: Record<string, typeof CheckLine> = {
 const SELF_SERVICE = [
   { key: "catalog", Icon: TagLine },
   { key: "photos", Icon: CameraLine },
+  { key: "logo", Icon: SparkleLine },
   { key: "hours", Icon: ClockLine },
   { key: "testimonials", Icon: StarLine },
   { key: "promotions", Icon: PercentLine },
@@ -688,7 +689,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   {/* Ce que notre équipe modifie sur demande. */}
                   <li
                     data-reveal
-                    className="flex items-start gap-3.5 rounded-2xl border border-dashed border-coral/40 bg-coral/[0.04] p-4"
+                    className="flex items-start gap-3.5 rounded-2xl border border-dashed border-coral/40 bg-coral/[0.04] p-4 sm:col-span-2"
                   >
                     <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-white text-coral-dark">
                       <PaletteLine className="size-5" />
