@@ -724,6 +724,58 @@
       "alt": "Captures de l'espace de gestion sur ordinateur et sur téléphone : accueil avec l'agenda du jour, le chiffre d'affaires et les statistiques, agenda du jour sur téléphone",
       "note": "Captures de l'espace de gestion, avec des données d'exemple. Les fonctions disponibles dépendent de votre pack."
     },
+    "selfService": {
+      "badge": "Votre site, en autonomie",
+      "title": "Votre site évolue avec vous,",
+      "titleAccent": "sans attendre personne.",
+      "text": "Depuis votre espace de gestion, sur téléphone comme sur ordinateur, vous mettez votre site à jour vous-même, en quelques secondes.",
+      "items": {
+        "photos": {
+          "title": "Photos",
+          "text": "Ajoutez, retirez ou changez les photos de votre galerie."
+        },
+        "catalog": {
+          "booking": {
+            "title": "Prestations et prix",
+            "text": "Créez vos prestations, changez une durée ou un prix."
+          },
+          "commerce": {
+            "title": "Produits et prix",
+            "text": "Ajoutez vos produits, changez un prix ou une description."
+          },
+          "formation": {
+            "title": "Cours et tarifs",
+            "text": "Ajoutez vos cours et ateliers, changez une date ou un tarif."
+          }
+        },
+        "hours": {
+          "title": "Horaires d'ouverture",
+          "text": "Vos jours et heures d'ouverture, mis à jour en un clic."
+        },
+        "testimonials": {
+          "title": "Témoignages",
+          "text": "Ajoutez les mots de vos clients sur votre site.",
+          "tag": "Dès le pack Pro"
+        },
+        "promotions": {
+          "title": "Promotions et codes promo",
+          "text": "Lancez une offre quand vous le décidez.",
+          "tag": "Dès le pack Pro"
+        }
+      },
+      "brand": {
+        "title": "Logo, couleurs et textes de présentation",
+        "text": "Une simple demande depuis votre espace : notre équipe s'en occupe pour vous."
+      },
+      "panel": {
+        "title": "Mon site",
+        "intro": "Tout se modifie depuis votre espace.",
+        "edit": "Modifier",
+        "saved": "Modification enregistrée",
+        "savedText": "Votre site est à jour"
+      },
+      "note": "Les fonctions disponibles dépendent de votre pack."
+    },
     "benefits": {
       "badge": "Fonctionnalités",
       "title": "Pour aller plus loin",

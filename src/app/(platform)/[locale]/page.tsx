@@ -39,6 +39,7 @@ import {
   LeafLine,
   PaletteLine,
   PartyLine,
+  PercentLine,
   ScaleLine,
   ScissorsLine,
   WrenchLine,
@@ -125,6 +126,15 @@ const TARGET_ICONS: Record<string, typeof CheckLine> = {
   organizations: UsersLine,
   courseCreators: PlayLine,
 };
+
+/** Ce que la gérante modifie elle-même sur son site (clés de `selfService.items`). */
+const SELF_SERVICE = [
+  { key: "catalog", Icon: TagLine },
+  { key: "photos", Icon: CameraLine },
+  { key: "hours", Icon: ClockLine },
+  { key: "testimonials", Icon: StarLine },
+  { key: "promotions", Icon: PercentLine },
+] as const;
 
 /** Pictogrammes du bandeau de fonctions de chaque solution (dans l'ordre des textes). */
 const STRIP: Record<Solution, (typeof CheckLine)[]> = {
@@ -610,6 +620,144 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   {t("dashboard.note")}
                 </figcaption>
               </figure>
+            </div>
+          </section>
+
+          {/* Autonomie : la gérante met son site à jour elle-même depuis son espace. */}
+          <section
+            aria-labelledby="titre-autonomie"
+            className="mx-auto max-w-[75rem] px-4 pt-20 sm:px-6 lg:pt-28 2xl:max-w-[88rem]"
+          >
+            <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14">
+              <div>
+                <p data-reveal className={EYEBROW}>
+                  {EYEBROW_DOT}
+                  {t("selfService.badge")}
+                </p>
+                <h2
+                  id="titre-autonomie"
+                  data-reveal
+                  className={`${TITLE} hn-balance mt-4 text-mk-h2 leading-[1.1]`}
+                >
+                  {t("selfService.title")}{" "}
+                  <span className="text-accent">{coralStop(t("selfService.titleAccent"))}</span>
+                </h2>
+                <p data-reveal className="mt-4 max-w-[36rem] text-mk-lead text-ink-soft">
+                  {t("selfService.text")}
+                </p>
+                <ul className="mt-8 grid gap-3 sm:grid-cols-2">
+                  {SELF_SERVICE.map(({ key, Icon }) => (
+                    <li
+                      key={key}
+                      data-reveal
+                      className="group flex items-start gap-3.5 rounded-2xl border border-hairline bg-white p-4 shadow-[0_1px_2px_rgba(15,24,48,.04)] transition duration-300 hover:-translate-y-1 hover:border-coral/40 hover:shadow-[0_14px_30px_-18px_rgba(232,80,63,.45)] motion-reduce:transition-none"
+                    >
+                      <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-coral/10 text-coral-dark transition-colors duration-300 group-hover:bg-coral group-hover:text-white">
+                        <Icon className="size-5" />
+                      </span>
+                      <span>
+                        {key === "catalog" ? (
+                          SOLUTIONS.map((code) => (
+                            <span key={code} data-only={code} className="block">
+                              <span className="block font-semibold text-night">
+                                {t(`selfService.items.catalog.${code}.title`)}
+                              </span>
+                              <span className="mt-0.5 block text-mk-small text-ink-soft">
+                                {t(`selfService.items.catalog.${code}.text`)}
+                              </span>
+                            </span>
+                          ))
+                        ) : (
+                          <>
+                            <span className="block font-semibold text-night">
+                              {t(`selfService.items.${key}.title`)}
+                            </span>
+                            <span className="mt-0.5 block text-mk-small text-ink-soft">
+                              {t(`selfService.items.${key}.text`)}
+                            </span>
+                            {(key === "testimonials" || key === "promotions") && (
+                              <span className="mt-2 inline-block rounded-full bg-champagne-soft px-2.5 py-0.5 text-[0.875rem] font-medium text-copper">
+                                {t(`selfService.items.${key}.tag`)}
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </span>
+                    </li>
+                  ))}
+                  {/* Ce que notre équipe modifie sur demande. */}
+                  <li
+                    data-reveal
+                    className="flex items-start gap-3.5 rounded-2xl border border-dashed border-coral/40 bg-coral/[0.04] p-4"
+                  >
+                    <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-white text-coral-dark">
+                      <PaletteLine className="size-5" />
+                    </span>
+                    <span>
+                      <span className="block font-semibold text-night">{t("selfService.brand.title")}</span>
+                      <span className="mt-0.5 block text-mk-small text-ink-soft">
+                        {t("selfService.brand.text")}
+                      </span>
+                    </span>
+                  </li>
+                </ul>
+                <p className="mt-4 text-[0.875rem] text-ink-soft">{t("selfService.note")}</p>
+              </div>
+
+              {/* Aperçu de l'écran « Mon site » de l'espace de gestion (ordinateur : sur téléphone, la liste suffit). */}
+              <div data-reveal className="relative mx-auto hidden w-full max-w-[26rem] lg:block">
+                <div
+                  aria-hidden="true"
+                  className="absolute -inset-6 rounded-[2.5rem] bg-[radial-gradient(closest-side,rgba(232,80,63,.16),transparent)] blur-2xl"
+                />
+                <div
+                  aria-hidden="true"
+                  className="relative rounded-[1.6rem] border border-hairline bg-white p-5 shadow-[0_40px_80px_-40px_rgba(15,24,48,.45)] sm:p-6"
+                >
+                  <p className="font-display text-mk-card font-semibold text-night">
+                    {t("selfService.panel.title")}
+                  </p>
+                  <p className="mt-1 text-mk-small text-ink-soft">{t("selfService.panel.intro")}</p>
+                  <ul className="mt-5 divide-y divide-hairline rounded-2xl border border-hairline">
+                    {SELF_SERVICE.slice(0, 4).map(({ key, Icon }) => (
+                      <li key={key} className="flex items-center gap-3 px-4 py-3.5">
+                        <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-coral/10 text-coral-dark">
+                          <Icon className="size-[18px]" />
+                        </span>
+                        <span className="min-w-0 flex-1 truncate font-medium text-night">
+                          {key === "catalog"
+                            ? SOLUTIONS.map((code) => (
+                                <span key={code} data-only={code}>
+                                  {t(`selfService.items.catalog.${code}.title`)}
+                                </span>
+                              ))
+                            : t(`selfService.items.${key}.title`)}
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-[0.875rem] font-medium text-accent-strong">
+                          {t("selfService.panel.edit")}
+                          <ArrowLine className="size-3.5" />
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div
+                  aria-hidden="true"
+                  className="hn-float absolute -bottom-5 right-2 flex items-center gap-3 rounded-2xl border border-hairline bg-white/95 py-2.5 pl-2.5 pr-5 shadow-[0_18px_36px_-20px_rgba(15,24,48,.5)] backdrop-blur sm:-right-6"
+                >
+                  <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-[#e7f6ee] text-[#1f8a55]">
+                    <CheckLine className="size-[18px]" />
+                  </span>
+                  <span className="leading-tight">
+                    <span className="block text-mk-small font-semibold text-night">
+                      {t("selfService.panel.saved")}
+                    </span>
+                    <span className="block text-[0.875rem] text-ink-soft">
+                      {t("selfService.panel.savedText")}
+                    </span>
+                  </span>
+                </div>
+              </div>
             </div>
           </section>
 

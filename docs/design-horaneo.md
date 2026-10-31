@@ -67,6 +67,7 @@ Cartes des packs (validé en octobre 2026) : lumière douce qui suit la souris, 
 2. **Accroche :** promesse, sous-titre, bouton principal et « Voir la démonstration » (seulement si une adresse de démonstration est réglée dans l'admin ; sinon « Voir les tarifs »). Aucun chiffre de performance inventé.
 3. **Choisissez votre solution :** trois cartes (Réservation, Commerce, Formation) ; la solution choisie change l'accent, le titre, les bénéfices, l'aperçu et le bandeau de fonctions. Une solution pas encore ouverte porte « Disponible bientôt » et propose « Être prévenu du lancement », jamais une souscription.
 4. **Votre espace de gestion :** vraies captures (données d'exemple) et quatre usages clés.
+4 bis. **Votre site, en autonomie :** pour les trois solutions, ce que la gérante modifie elle-même depuis son espace (prestations, produits ou cours selon la solution, photos, horaires, témoignages et promotions dès le pack Pro). Logo, couleurs et textes de présentation : sur demande, par notre équipe (jamais présentés comme modifiables seule). Aperçu de l'écran « Mon site » sur ordinateur seulement.
 5. **Fonctionnalités :** sept bénéfices, « Bientôt » quand c'est le cas.
 6. **Réassurance :** seulement des engagements vérifiés ; témoignages réels s'il y en a. Placée juste avant les prix, pour lever les doutes avant la décision.
 7. **Choisissez votre pack {solution} :** mêmes prix pour toutes les solutions. Chaque carte : pictogramme, nom, phrase, prix (HT), ce que le pack ajoute, « Bientôt inclus » à part, « Non inclus » (3 lignes), bouton, conditions.
