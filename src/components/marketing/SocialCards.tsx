@@ -77,9 +77,16 @@ export function socialHandle(url: string): string {
 const CARD =
   "hn-social group relative flex h-full min-h-32 flex-col items-center justify-center gap-2 overflow-hidden rounded-[1.4rem] border border-white/15 bg-white/[0.06] px-3 py-5 sm:min-h-44 sm:gap-3 sm:py-7 text-center transition duration-300 hover:-translate-y-1 hover:border-[var(--brand)] hover:shadow-[0_18px_40px_-20px_var(--brand)] focus-visible:border-[var(--brand)] focus-visible:outline-white motion-reduce:transition-none motion-reduce:hover:translate-y-0";
 
+/** Une colonne par réseau affiché sur ordinateur (jusqu'à quatre). */
+const COLUMNS: Record<number, string> = {
+  1: "sm:grid-cols-1 sm:max-w-xs",
+  2: "sm:grid-cols-2 sm:max-w-xl",
+  3: "sm:grid-cols-3",
+};
+
 export function SocialCards({ cards }: { cards: SocialCard[] }) {
   return (
-    <ul className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+    <ul className={`grid grid-cols-2 gap-4 ${COLUMNS[cards.length] ?? "sm:grid-cols-4"}`}>
       {cards.map((card, index) => {
         // --i : rang de la carte, pour qu'elles s'allument tour à tour sur écran tactile (globals.css).
         const style = { "--brand": BRAND[card.network], "--i": index } as React.CSSProperties;
@@ -100,9 +107,7 @@ export function SocialCards({ cards }: { cards: SocialCard[] }) {
             <span className="hn-social-name relative text-[0.9375rem] font-semibold uppercase tracking-[0.18em] text-[#d5dbea] transition-colors group-hover:text-white">
               {card.name}
             </span>
-            <span className="relative max-w-full truncate font-mono text-mk-note text-[#a3adc4]">
-              {card.handle}
-            </span>
+            <span className="relative max-w-full truncate text-mk-note text-[#a3adc4]">{card.handle}</span>
             <span
               aria-hidden="true"
               className="hn-social-bar absolute bottom-0 left-1/2 h-[3px] w-0 -translate-x-1/2 rounded-full bg-[var(--brand)] transition-all duration-300 group-hover:w-2/3"

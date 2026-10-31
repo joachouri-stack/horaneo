@@ -34,8 +34,8 @@ export async function PlatformFooter() {
     { href: "/confidentialite", label: t("privacy") },
     { href: "/conditions", label: t("terms") },
   ] as const;
-  // Les quatre réseaux sont toujours affichés ; ceux dont l'adresse n'est pas encore
-  // renseignée (Admin → Réglages → Réseaux sociaux) portent « Bientôt » et ne s'ouvrent pas.
+  // Seuls les réseaux dont l'adresse est renseignée (Admin → Réglages → Réseaux sociaux)
+  // sont affichés ; sans aucun, le bloc « Suivez-nous » est masqué.
   const urls = await withPlatform(async (tx) =>
     Promise.all(NETWORKS.map(async (network) => String(await getPlatformSetting(tx, `social_${network}`)))),
   );
@@ -46,11 +46,12 @@ export async function PlatformFooter() {
     message: String(await getPlatformSetting(tx, "whatsapp_message")),
   }));
   const tWhatsapp = await getTranslations("home.whatsapp");
-  const socials = NETWORKS.map((network, index) => {
-    const url = urls[index] || null;
+  const socials = NETWORKS.flatMap((network, index) => {
+    const url = urls[index];
+    if (!url) return [];
     const name = t(`networks.${network}`);
-    const handle = url ? socialHandle(url) : t("socialSoon");
-    return { network, url, name, handle, label: url ? t("socialLink", { network: name, handle }) : name };
+    const handle = socialHandle(url);
+    return [{ network, url, name, handle, label: t("socialLink", { network: name, handle }) }];
   });
   return (
     <>
