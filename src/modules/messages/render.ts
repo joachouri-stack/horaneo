@@ -2,7 +2,7 @@ import { tenantFeatures, tenantLimits } from "@/modules/billing/entitlements";
 import { appointmentEvent, googleCalendarUrl } from "@/lib/calendar/appointment";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { declareBusiness } from "@/db/access";
-import { formatMoney } from "@/lib/format";
+import { dateFormatter, formatMoney } from "@/lib/format";
 import type { Transaction } from "@/db/client";
 import {
   appointmentItems,
@@ -147,7 +147,9 @@ async function loadAppointment(tx: Transaction, tenantId: string, appointmentId:
 type AppointmentInfo = NonNullable<Awaited<ReturnType<typeof loadAppointment>>>;
 
 function formatters(locale: Locale, timeZone: string) {
-  const date = new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long", timeZone });
+  const date = {
+    format: dateFormatter(locale, { weekday: "long", day: "numeric", month: "long", timeZone }),
+  };
   const time = new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "2-digit", timeZone });
   return {
     date: (value: Date) => date.format(value),

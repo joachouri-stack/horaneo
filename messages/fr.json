@@ -1039,9 +1039,9 @@
       "categoryMetaTitle": "{category}{city, select, none {} other { à {city}}}",
       "categoryMetaDescription": "{category} chez {name}{city, select, none {} other { à {city}}} : prestations, durées et tarifs. Réservez en ligne.",
       "otherCategories": "Autres prestations",
-      "durationMinutes": "{minutes} min",
-      "durationHours": "{hours} h",
-      "durationHoursMinutes": "{hours} h {minutes}"
+      "durationMinutes": "{minutes} min",
+      "durationHours": "{hours} h",
+      "durationHoursMinutes": "{hours} h {minutes}"
     },
     "about": {
       "title": "L'établissement",

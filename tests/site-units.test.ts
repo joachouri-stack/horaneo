@@ -9,7 +9,7 @@ import {
   openStatus,
   osmEmbedUrl,
 } from "@/modules/site/format";
-import { formatMoney } from "@/lib/format";
+import { dateFormatter, formatMoney } from "@/lib/format";
 import { homeDescription, renderSitemap, serializeJsonLd } from "@/modules/site/seo";
 import { buildTheme, themeCssVariables } from "@/modules/site/theme";
 
@@ -164,6 +164,15 @@ describe("montants", () => {
     const nbsp = (text: string) => text.replace(/\s/g, " ");
     expect(nbsp(formatMoney(3600, "EUR", "fr-FR"))).toBe("36 €");
     expect(nbsp(formatMoney(4550, "EUR", "fr-FR"))).toBe("45,50 €");
+  });
+});
+
+describe("dates", () => {
+  it("écrit « 1er » pour le premier du mois en français, et rien ne change ailleurs", () => {
+    const long = { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" } as const;
+    expect(dateFormatter("fr", long)(new Date(Date.UTC(2026, 10, 1, 12)))).toBe("dimanche 1er novembre");
+    expect(dateFormatter("fr", long)(new Date(Date.UTC(2026, 10, 2, 12)))).toBe("lundi 2 novembre");
+    expect(dateFormatter("en", long)(new Date(Date.UTC(2026, 10, 1, 12)))).toBe("Sunday, November 1");
   });
 });
 

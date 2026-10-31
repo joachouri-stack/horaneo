@@ -1,11 +1,9 @@
-import { formatMoney } from "@/lib/format";
+import { dateFormatter, formatMoney } from "@/lib/format";
 
 /** Mises en forme du parcours de réservation (dans le fuseau de l'établissement). */
 
 export function formatLongDate(iso: string, locale: string, timeZone: string) {
-  return new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long", timeZone }).format(
-    new Date(iso),
-  );
+  return dateFormatter(locale, { weekday: "long", day: "numeric", month: "long", timeZone })(new Date(iso));
 }
 
 export function formatTimeOf(iso: string, locale: string, timeZone: string) {
@@ -24,7 +22,7 @@ export function dayChip(date: string, locale: string) {
     weekday: format({ weekday: "short" }),
     day: format({ day: "numeric" }),
     month: format({ month: "short" }),
-    full: format({ weekday: "long", day: "numeric", month: "long" }),
+    full: dateFormatter(locale, { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" })(value),
   };
 }
 
