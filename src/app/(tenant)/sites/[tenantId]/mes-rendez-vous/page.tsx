@@ -352,9 +352,10 @@ export default async function CustomerSpacePage({ params }: PageProps<"/sites/[t
                     {date(item.startsAt)} · {who(item)}
                     {item.beneficiaryName && ` · ${t("for", { name: item.beneficiaryName })}`}
                   </p>
-                  {item.status !== "attended" && (
+                  {/* Seul un rendez-vous manqué est signalé : les autres sont passés, c'est l'historique. */}
+                  {item.status === "no_show" && (
                     <p className="text-xs font-semibold uppercase tracking-wide text-site-muted">
-                      {t(`status.${item.status as "no_show" | "confirmed"}`)}
+                      {t("status.no_show")}
                     </p>
                   )}
                 </div>
@@ -386,17 +387,15 @@ export default async function CustomerSpacePage({ params }: PageProps<"/sites/[t
             {t("birthdayTitle")}
           </h2>
           <p className="text-site-muted">{t("birthdayIntro")}</p>
-          {birthdays.map((space) => (
-            <div key={space.businessId} className={card}>
-              <BirthdayForm
-                businessId={space.businessId}
-                locale={locale}
-                month={space.birthday?.month ?? null}
-                day={space.birthday?.day ?? null}
-                label={multi && birthdays.length > 1 ? space.businessName : undefined}
-              />
-            </div>
-          ))}
+          {/* Une seule date, enregistrée partout : celle déjà connue d'une des entreprises est proposée. */}
+          <div className={card}>
+            <BirthdayForm
+              businessIds={birthdays.map((space) => space.businessId)}
+              locale={locale}
+              month={birthdays.find((space) => space.birthday?.month)?.birthday?.month ?? null}
+              day={birthdays.find((space) => space.birthday?.month)?.birthday?.day ?? null}
+            />
+          </div>
         </section>
       )}
 

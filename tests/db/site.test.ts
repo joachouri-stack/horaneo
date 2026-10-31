@@ -20,7 +20,8 @@ import { loadSiteData, visibleSections } from "@/modules/site/data";
 import { sitemapPaths } from "@/modules/site/seo";
 import { categoryPath, SITE_PATHS } from "@/modules/site/paths";
 import { createTenant } from "@/modules/tenants/create";
-import { changePlan } from "@/modules/tenants/update";
+import { changePlan, setBrandPalette } from "@/modules/tenants/update";
+import { BRAND_PALETTES } from "@/config/site";
 import { hasTestDatabase, openAppDb, openTestDb, pgErrorCode, type TestDb } from "../setup/db";
 
 /** Ce qu'affiche le site d'un client, lu avec le rôle du tenant (comme en vrai). */
@@ -217,6 +218,28 @@ describe.skipIf(!hasTestDatabase)("site d'un client : données affichées", () =
         ),
       ),
     ).toBe("42501");
+  });
+
+  it("couleurs : la gérante choisit une palette proposée, rien d'autre", async () => {
+    const tenant = await newTenant("serenite");
+    const start = { primary: "#a0525e", secondary: "#f2d9dc" };
+    await platform((tx) =>
+      tx
+        .update(tenants)
+        .set({ brand: { colors: start } })
+        .where(eq(tenants.id, tenant.id)),
+    );
+    const colorsOf = async () =>
+      (await platform((tx) => tx.select().from(tenants).where(eq(tenants.id, tenant.id))))[0].brand.colors;
+    await withTenant(tenant.id, (tx) => setBrandPalette(tx, tenant.id, { palette: "sage" }), app);
+    await withTenant(tenant.id, (tx) => setBrandPalette(tx, tenant.id, { palette: "navy" }), app);
+    expect(await colorsOf()).toMatchObject(BRAND_PALETTES.navy);
+    // Les couleurs de départ restent proposées : on peut toujours y revenir.
+    await withTenant(tenant.id, (tx) => setBrandPalette(tx, tenant.id, { palette: "original" }), app);
+    expect(await colorsOf()).toMatchObject(start);
+    await expect(
+      withTenant(tenant.id, (tx) => setBrandPalette(tx, tenant.id, { palette: "#ff00ff" }), app),
+    ).rejects.toThrow();
   });
 
   it("fiche Basic : une seule page, pas d'avis, signature du SaaS", async () => {

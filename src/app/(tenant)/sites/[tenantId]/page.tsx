@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { AtelierHome } from "@/components/site/atelier/AtelierHome";
@@ -8,6 +9,9 @@ import { ServiceList } from "@/components/site/ServiceList";
 import { BookBanner, CategoryCards, HomeHero, TeamCards } from "@/components/site/WellnessHome";
 import { getSite } from "@/lib/site/load";
 import { siteReviews, visibleSections } from "@/modules/site/data";
+
+/** Adresse officielle de l'accueil pour Google (les autres pages ont la leur). */
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 import { ctaLabelKey, siteCta } from "@/modules/site/cta";
 import { SITE_PATHS } from "@/modules/site/paths";
 

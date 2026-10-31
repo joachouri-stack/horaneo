@@ -53,11 +53,16 @@ export default async function OrdersPage({ params }: PageProps<"/[locale]/admin/
                   </a>
                 </dd>
               </div>
+              {userName && (
+                <div>
+                  <dt className="inline text-ink/60">{t("label", { label: t("contact") })} </dt>
+                  <dd className="inline">{userName}</dd>
+                </div>
+              )}
               <div>
                 <dt className="inline text-ink/60">{t("label", { label: t("email") })} </dt>
                 <dd className="inline">
                   <a href={`mailto:${email}`} className="underline">
-                    {userName ? `${userName} · ` : ""}
                     {email}
                   </a>
                 </dd>

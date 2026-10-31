@@ -1,5 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
+import { BRAND_PALETTES, type BrandPaletteKey } from "@/config/site";
 import { env } from "@/config/env";
 import type { Transaction } from "@/db/client";
 import { plans, tenantDomains, tenants, type TenantBrand } from "@/db/schema";
@@ -128,6 +129,26 @@ export async function updateAppearance(
     .where(eq(tenants.id, tenantId))
     .returning();
   return updated;
+}
+
+/** Palette proposée, ou « original » : les couleurs d'avant la première palette choisie. */
+export const paletteInput = z.object({
+  palette: z.string().refine((key) => key === "original" || key in BRAND_PALETTES),
+});
+
+/** Couleurs choisies par la gérante parmi les palettes proposées (le reste de l'apparence ne change pas). */
+export async function setBrandPalette(tx: Transaction, tenantId: string, raw: z.input<typeof paletteInput>) {
+  const { palette } = paletteInput.parse(raw);
+  const tenant = await loadTenant(tx, tenantId);
+  const { colors: current, originalColors } = tenant.brand;
+  // Première palette : les couleurs de départ sont gardées pour pouvoir y revenir.
+  const original = originalColors ?? { primary: current?.primary, secondary: current?.secondary };
+  const colors = palette === "original" ? original : BRAND_PALETTES[palette as BrandPaletteKey];
+  await tx
+    .update(tenants)
+    .set({ brand: { ...tenant.brand, originalColors: original, colors: { ...current, ...colors } } })
+    .where(eq(tenants.id, tenantId));
+  return colors;
 }
 
 export async function setLogo(tx: Transaction, tenantId: string, logoAssetId: string | null) {

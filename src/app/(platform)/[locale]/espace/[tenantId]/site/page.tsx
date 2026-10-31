@@ -30,6 +30,7 @@ export default async function MySitePage({ params }: PageProps<"/[locale]/espace
     { href: "/site/horaires", label: t("hours") },
     { href: "/site/photos", label: t("photos") },
     { href: "/site/textes", label: t("texts.link") },
+    { href: "/site/couleurs", label: t("colors.link") },
     ...(page.tenant.features.testimonials ? [{ href: "/site/temoignages", label: t("testimonials") }] : []),
   ];
   return (

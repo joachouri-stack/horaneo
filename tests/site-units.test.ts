@@ -10,6 +10,8 @@ import {
   osmEmbedUrl,
 } from "@/modules/site/format";
 import { dateFormatter, formatMoney } from "@/lib/format";
+import { shareImage } from "@/lib/site/urls";
+import type { SiteData } from "@/modules/site/data";
 import { homeDescription, renderSitemap, serializeJsonLd } from "@/modules/site/seo";
 import { buildTheme, themeCssVariables } from "@/modules/site/theme";
 
@@ -164,6 +166,18 @@ describe("montants", () => {
     const nbsp = (text: string) => text.replace(/\s/g, " ");
     expect(nbsp(formatMoney(3600, "EUR", "fr-FR"))).toBe("36 €");
     expect(nbsp(formatMoney(4550, "EUR", "fr-FR"))).toBe("45,50 €");
+  });
+});
+
+describe("image de partage", () => {
+  it("photo de l'accueil, puis de L'établissement, puis la galerie, puis le logo", () => {
+    const img = (key: string) => ({ key, alt: "", width: 1, height: 1 });
+    const site = (parts: object) =>
+      ({ pages: {}, gallery: [], logo: img("logo"), ...parts }) as unknown as NonNullable<SiteData>;
+    expect(shareImage(site({ pages: { home: { photo: img("cover") } } }))?.key).toBe("cover");
+    expect(shareImage(site({ pages: { about: { photo: img("about") } } }))?.key).toBe("about");
+    expect(shareImage(site({ gallery: [img("g1")] }))?.key).toBe("g1");
+    expect(shareImage(site({}))?.key).toBe("logo");
   });
 });
 
