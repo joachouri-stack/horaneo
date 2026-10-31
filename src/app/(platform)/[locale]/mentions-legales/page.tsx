@@ -8,7 +8,11 @@ export async function generateMetadata({
   params,
 }: PageProps<"/[locale]/mentions-legales">): Promise<Metadata> {
   const t = await getTranslations({ locale: resolveLocale((await params).locale), namespace: "legal" });
-  return { title: t("titles.legal_notice") };
+  // Adresse de référence (relative : complétée par metadataBase du layout).
+  return {
+    title: t("titles.legal_notice"),
+    alternates: { canonical: `/${(await params).locale}/mentions-legales` },
+  };
 }
 
 export default async function LegalNoticePage({ params }: PageProps<"/[locale]/mentions-legales">) {

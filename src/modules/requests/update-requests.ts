@@ -6,8 +6,9 @@ import { plans, tenants, updateRequests, users } from "@/db/schema";
 import { AppError } from "@/modules/errors";
 
 /**
- * Demandes de mise à jour : la gérante ne modifie pas elle-même logo, couleurs,
- * mise en page et textes de présentation ; elle envoie une demande à l'administratrice.
+ * Demandes de mise à jour : logo, couleurs et textes de présentation se modifient
+ * depuis l'espace gérante ; pour le reste (mise en page sur mesure…), la gérante
+ * envoie une demande à l'administratrice.
  */
 
 export const updateRequestInput = z.object({

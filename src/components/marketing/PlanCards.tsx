@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { PLATFORM_CURRENCY } from "@/config/billing";
 import { Link } from "@/i18n/navigation";
 import { pickLocalized, type Locale, type LocalizedText } from "@/i18n/locales";
 import { formatMoney, moneyParts } from "@/lib/format";
@@ -69,10 +70,10 @@ export async function PlanCards({
   const t = await getTranslations("home.plans");
   const tGrid = await getTranslations("home.grid");
   const soonSet = new Set(soon);
-  const money = (cents: number) => formatMoney(cents, "EUR", locale);
+  const money = (cents: number) => formatMoney(cents, PLATFORM_CURRENCY, locale);
   // Prix des cartes : partie entière en grand, centimes et devise en petit.
   const bigPrice = (cents: number, gold: boolean, className: string, tailClass = "") => {
-    const { lead, tail } = moneyParts(cents, "EUR", locale);
+    const { lead, tail } = moneyParts(cents, PLATFORM_CURRENCY, locale);
     return (
       <span
         className={`font-display font-semibold leading-none tracking-[-0.035em] tabular-nums ${gold ? "hn-gold" : className}`}
@@ -391,6 +392,7 @@ export async function PlanCards({
               <Link
                 data-billing-only={withYearly ? "month" : undefined}
                 href={hrefFor("month")}
+                aria-label={t("choose", { plan: name })}
                 className={`group flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-[1.0625rem] font-medium transition duration-200 motion-reduce:transition-none ${
                   featured
                     ? "hn-shine bg-gradient-to-r from-[#c9a96a] via-[#e4cfa2] to-[#d2b47c] text-deep focus-visible:outline-white shadow-[0_12px_30px_-14px_rgba(217,192,142,.7)] hover:brightness-105"
@@ -410,6 +412,7 @@ export async function PlanCards({
                 <Link
                   data-billing-only="year"
                   href={hrefFor("year")}
+                  aria-label={t("choose", { plan: name })}
                   className={`group flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-[1.0625rem] font-medium transition duration-200 motion-reduce:transition-none ${
                     featured
                       ? "hn-shine bg-gradient-to-r from-[#c9a96a] via-[#e4cfa2] to-[#d2b47c] text-deep focus-visible:outline-white shadow-[0_12px_30px_-14px_rgba(217,192,142,.7)] hover:brightness-105"

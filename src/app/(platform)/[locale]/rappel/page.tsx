@@ -61,10 +61,24 @@ export default async function CallbackPage({ params, searchParams }: PageProps<"
             <div aria-hidden="true" className="hidden">
               <input type="text" name="website" tabIndex={-1} autoComplete="off" />
             </div>
-            <TextField name="name" label={t("name")} required />
-            <TextField name="businessName" label={t("businessName")} />
-            <TextField name="phone" type="tel" inputMode="tel" label={t("phone")} required />
-            <TextField name="email" type="email" inputMode="email" label={t("email")} hint={t("emailHint")} />
+            <TextField name="name" label={t("name")} autoComplete="name" required />
+            <TextField name="businessName" label={t("businessName")} autoComplete="organization" />
+            <TextField
+              name="phone"
+              type="tel"
+              inputMode="tel"
+              label={t("phone")}
+              autoComplete="tel"
+              required
+            />
+            <TextField
+              name="email"
+              type="email"
+              inputMode="email"
+              label={t("email")}
+              hint={t("emailHint")}
+              autoComplete="email"
+            />
             <TextArea name="message" label={t("message")} rows={4} />
           </ActionForm>
         </div>

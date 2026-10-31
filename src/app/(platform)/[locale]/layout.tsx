@@ -23,7 +23,8 @@ export async function generateMetadata({ params }: LayoutProps<"/[locale]">): Pr
   const product = env().PRODUCT_NAME;
   return {
     metadataBase: new URL(publicAppUrl()),
-    title: t("title", { product }),
+    // Pages secondaires : « Mentions légales · Horaneo » (le nom du produit est ajouté).
+    title: { default: t("title", { product }), template: `%s · ${product}` },
     description: t("description"),
   };
 }

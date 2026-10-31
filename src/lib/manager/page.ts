@@ -1,6 +1,7 @@
 import "server-only";
 import { resolveLocale } from "@/i18n/translator";
 import { withTenant } from "@/db/access";
+import { currencySymbol } from "@/lib/format";
 import { requireManager } from "./access";
 
 /** Contexte commun des pages de l'espace gérante (droits vérifiés). */
@@ -28,6 +29,8 @@ export async function managerPage(params: Promise<{ locale: string; tenantId: st
       }).format(date),
     money: (cents: number, currency = access.tenant.currency) =>
       new Intl.NumberFormat(locale, { style: "currency", currency }).format(cents / 100),
+    /** Symbole de la devise de l'entreprise (libellés des champs de montant). */
+    currency: currencySymbol(access.tenant.currency, locale),
   };
   /** Données de l'entreprise de la gérante (ses clientes, son agenda…), jamais celles d'une autre. */
   const db = <T>(fn: Parameters<typeof withTenant<T>>[1]) =>

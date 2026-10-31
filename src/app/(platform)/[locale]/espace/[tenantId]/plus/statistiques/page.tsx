@@ -86,7 +86,7 @@ export default async function StatsPage({
   const goalRings = [
     goals.revenueCents && {
       key: "revenue",
-      label: t("goals.revenue").replace(/\s*\(.*\)$/, ""),
+      label: t("goals.revenueShort"),
       value: stats.revenueCents,
       goal: goals.revenueCents,
       color: REVENUE,
@@ -258,7 +258,7 @@ export default async function StatsPage({
                   <TextField
                     name="revenue"
                     inputMode="decimal"
-                    label={t("goals.revenue")}
+                    label={t("goals.revenue", { currency: page.fmt.currency })}
                     defaultValue={goals.revenueCents ? centsToInput(goals.revenueCents) : ""}
                   />
                   <TextField

@@ -21,7 +21,13 @@ import { appointmentEvent, googleCalendarUrl } from "@/lib/calendar/appointment"
 import { tenantSiteUrl } from "@/lib/tenancy/urls";
 
 // Lien personnel : jamais indexé, jamais transmis aux sites externes.
-export const metadata: Metadata = { robots: { index: false, follow: false }, referrer: "no-referrer" };
+export async function generateMetadata({
+  params,
+}: PageProps<"/sites/[tenantId]/rendez-vous/[token]">): Promise<Metadata> {
+  const site = await getSite((await params).tenantId);
+  const t = await getTranslations({ locale: site.locale, namespace: "booking.manage" });
+  return { title: t("title"), robots: { index: false, follow: false }, referrer: "no-referrer" };
+}
 
 /** Page de gestion d'un rendez-vous, ouverte avec le lien reçu (sans compte). */
 export default async function ManageAppointmentPage({

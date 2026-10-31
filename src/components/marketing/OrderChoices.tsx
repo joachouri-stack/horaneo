@@ -1,5 +1,6 @@
 "use client";
 
+import { PLATFORM_CURRENCY } from "@/config/billing";
 import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { formatMoney } from "@/lib/format";
@@ -53,7 +54,7 @@ export function OrderChoices({
 }) {
   const t = useTranslations("home.options");
   const locale = useLocale();
-  const money = (cents: number) => formatMoney(cents, "EUR", locale);
+  const money = (cents: number) => formatMoney(cents, PLATFORM_CURRENCY, locale);
   const [planCode, setPlanCode] = useState(initialPlan);
   const [billing, setBilling] = useState<BillingInterval>(yearly.enabled ? initialBilling : "month");
   const annual = billing === "year";

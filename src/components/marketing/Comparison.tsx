@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { PLATFORM_CURRENCY } from "@/config/billing";
 import { pickLocalized, type Locale, type LocalizedText } from "@/i18n/locales";
 import { formatMoney } from "@/lib/format";
 import type { PlanFeatures, PlanLimits } from "@/db/schema";
@@ -71,7 +72,7 @@ export async function Comparison({
     getTranslations("home.plans"),
   ]);
   const groups = gridComparison(plans, new Set(soon));
-  const money = (cents: number) => formatMoney(cents, "EUR", locale);
+  const money = (cents: number) => formatMoney(cents, PLATFORM_CURRENCY, locale);
   // Même pack mis en avant que sur les cartes : celui du milieu dans une grille de trois, sinon le dernier.
   const featured = plans.length >= 3 ? Math.floor(plans.length / 2) : plans.length - 1;
   const col = (index: number) => (index === featured ? "bg-champagne-soft/50" : "");

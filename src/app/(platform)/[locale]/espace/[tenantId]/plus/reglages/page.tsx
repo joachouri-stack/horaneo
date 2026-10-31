@@ -152,7 +152,7 @@ export default async function SettingsPage({
                 <TextField
                   name="depositValue"
                   inputMode="decimal"
-                  label={t("depositValue")}
+                  label={t("depositValue", { currency: page.fmt.currency })}
                   defaultValue={
                     settings.depositType === "percent"
                       ? String(settings.depositValue)

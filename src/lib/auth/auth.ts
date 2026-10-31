@@ -1,4 +1,5 @@
 import "server-only";
+import { MAGIC_LINK_TTL_MINUTES } from "@/config/auth";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
@@ -21,7 +22,7 @@ import { createLinkToken, loginCodeFor } from "./login-code";
  * statut d'administratrice (voir drizzle/0005_auth_access.sql).
  */
 
-export const MAGIC_LINK_TTL_SECONDS = 15 * 60;
+export const MAGIC_LINK_TTL_SECONDS = MAGIC_LINK_TTL_MINUTES * 60;
 
 /** Durée d'une connexion sans visite : 400 jours, la limite des navigateurs pour un cookie. */
 export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 400;
