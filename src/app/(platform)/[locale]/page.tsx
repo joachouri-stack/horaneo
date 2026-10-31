@@ -32,7 +32,6 @@ import {
   UsersLine,
   AwardLine,
   CapLine,
-  BreadLine,
   BriefcaseLine,
   CameraLine,
   ForkKnifeLine,
@@ -114,7 +113,7 @@ const TARGET_ICONS: Record<string, typeof CheckLine> = {
   consulting: BriefcaseLine,
   events: PartyLine,
   artists: PaletteLine,
-  bakery: BreadLine,
+  lessons: CapLine,
   liberal: ScaleLine,
   coaching: AwardLine,
   photo: CameraLine,
@@ -402,7 +401,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     />
                   </div>
                 </div>
-                <div className="hn-float absolute left-0 top-[14%] flex items-center gap-3 rounded-2xl border border-hairline bg-white/95 py-2.5 pl-2.5 pr-4 shadow-[0_18px_36px_-20px_rgba(15,24,48,.5)] backdrop-blur sm:-left-4">
+                <div className="hn-float absolute left-0 top-[10%] flex items-center gap-3 rounded-2xl border border-hairline bg-white/95 py-2.5 pl-2.5 pr-8 shadow-[0_18px_36px_-20px_rgba(15,24,48,.5)] backdrop-blur sm:-left-4">
                   <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-accent-soft text-accent">
                     <CalendarLine className="size-[18px]" />
                   </span>
