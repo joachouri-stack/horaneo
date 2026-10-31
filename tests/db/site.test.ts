@@ -12,7 +12,7 @@ import type { FileStorage } from "@/lib/storage/types";
 import { saveCategory, saveService } from "@/modules/catalog/services";
 import { updatePage } from "@/modules/content/pages";
 import { saveTestimonial } from "@/modules/content/testimonials";
-import { retireAsset, uploadAsset } from "@/modules/media/assets";
+import { retireAsset, uploadAsset, uploadLogo } from "@/modules/media/assets";
 import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
 import { setOnlineBooking } from "@/modules/booking/settings";
 import { siteCta } from "@/modules/site/cta";
@@ -21,7 +21,7 @@ import { sitemapPaths } from "@/modules/site/seo";
 import { categoryPath, SITE_PATHS } from "@/modules/site/paths";
 import { createTenant } from "@/modules/tenants/create";
 import { changePlan } from "@/modules/tenants/update";
-import { hasTestDatabase, openAppDb, openTestDb, type TestDb } from "../setup/db";
+import { hasTestDatabase, openAppDb, openTestDb, pgErrorCode, type TestDb } from "../setup/db";
 
 /** Ce qu'affiche le site d'un client, lu avec le rôle du tenant (comme en vrai). */
 describe.skipIf(!hasTestDatabase)("site d'un client : données affichées", () => {
@@ -160,6 +160,33 @@ describe.skipIf(!hasTestDatabase)("site d'un client : données affichées", () =
     await platform((tx) => updatePage(tx, tenant.id, { pageKey: "gallery", texts: {}, isPublished: false }));
     site = (await load(tenant.id))!;
     expect(visibleSections(site).gallery).toBe(false);
+  });
+
+  it("logo : la gérante le change elle-même, sans pouvoir toucher au reste de la fiche", async () => {
+    const tenant = await newTenant("serenite");
+    const first = await withTenant(
+      tenant.id,
+      async (tx) => uploadLogo(tx, store, tenant.id, await png(), null),
+      app,
+    );
+    const second = await withTenant(
+      tenant.id,
+      async (tx) => uploadLogo(tx, store, tenant.id, await png(), null),
+      app,
+    );
+    const [row] = await platform((tx) => tx.select().from(tenants).where(eq(tenants.id, tenant.id)));
+    expect(row.brand.logoAssetId).toBe(second.assetId);
+    expect(second.assetId).not.toBe(first.assetId);
+    // Seule l'apparence est modifiable avec le rôle du tenant.
+    expect(
+      await pgErrorCode(
+        withTenant(
+          tenant.id,
+          (tx) => tx.update(tenants).set({ name: "Autre nom" }).where(eq(tenants.id, tenant.id)),
+          app,
+        ),
+      ),
+    ).toBe("42501");
   });
 
   it("fiche Basic : une seule page, pas d'avis, signature du SaaS", async () => {

@@ -1,12 +1,15 @@
 import { getTranslations } from "next-intl/server";
+import { LogoUpload } from "@/components/manager/LogoUpload";
 import { ui } from "@/components/ui/styles";
-import { tenantDomains } from "@/db/schema";
+import { assets, tenantDomains } from "@/db/schema";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
+import { storage } from "@/lib/storage";
 import { tenantSiteUrl } from "@/lib/tenancy/urls";
 import { and, eq } from "drizzle-orm";
+import { uploadLogoAction } from "../actions";
 
-/** « Mon site » : ce que la gérante modifie elle-même, et le reste par demande. */
+/** « Mon site » : ce que la gérante modifie elle-même (dont le logo), et le reste par demande. */
 export default async function MySitePage({ params }: PageProps<"/[locale]/espace/[tenantId]/site">) {
   const page = await managerPage(params);
   const t = await getTranslations("manager.site");
@@ -16,6 +19,12 @@ export default async function MySitePage({ params }: PageProps<"/[locale]/espace
       .from(tenantDomains)
       .where(and(eq(tenantDomains.tenantId, page.tenantId), eq(tenantDomains.isPrimary, true))),
   );
+  const logoId = page.tenant.brand.logoAssetId;
+  const [logo] = logoId
+    ? await page.db((tx) =>
+        tx.select({ storageKey: assets.storageKey }).from(assets).where(eq(assets.id, logoId)),
+      )
+    : [];
   const links = [
     { href: "/site/prestations", label: t("services") },
     { href: "/site/horaires", label: t("hours") },
@@ -49,6 +58,19 @@ export default async function MySitePage({ params }: PageProps<"/[locale]/espace
           {t("view")} ↗
         </a>
       )}
+      {/* Logo commun à tout le site : changé depuis l'établissement principal. */}
+      <section className={ui.card}>
+        <h2 className="text-lg font-semibold">{t("logo.title")}</h2>
+        {page.business.isPrimary ? (
+          <LogoUpload
+            tenantId={page.tenantId}
+            logoUrl={logo ? storage().publicUrl(logo.storageKey) : null}
+            action={uploadLogoAction}
+          />
+        ) : (
+          <p className="mt-1 text-ink/70">{t("sharedContent")}</p>
+        )}
+      </section>
       <section className={ui.card}>
         <h2 className="text-lg font-semibold">{t("requestTitle")}</h2>
         <p className="mt-1 text-ink/70">{t("requestText")}</p>

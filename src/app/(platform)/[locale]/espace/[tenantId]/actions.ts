@@ -39,7 +39,7 @@ import { DATE_PATTERN, localToUtc } from "@/modules/booking/time";
 import { deleteCategory, deleteService, saveCategory, saveService } from "@/modules/catalog/services";
 import { deleteTestimonial, saveTestimonial } from "@/modules/content/testimonials";
 import { saveCustomer, searchCustomers } from "@/modules/customers/customers";
-import { assertSitePhoto, restoreAsset, retireAsset, uploadAsset } from "@/modules/media/assets";
+import { assertSitePhoto, restoreAsset, retireAsset, uploadAsset, uploadLogo } from "@/modules/media/assets";
 import { parseInterval } from "@/modules/billing/yearly";
 import { AppError } from "@/modules/errors";
 import { refreshAccount, startOnboarding } from "@/modules/payments/connect";
@@ -334,6 +334,17 @@ export async function uploadPhotoAction(_previous: Previous, data: FormData) {
       uploadedByUserId: context.userId,
       alt: form.optional(data, "alt"),
     });
+  });
+}
+
+/** Nouveau logo du site, envoyé par la gérante (l'ancien reste récupérable quelques jours). */
+export async function uploadLogoAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const bytes = (await form.file(data, "file")) ?? new Uint8Array();
+  return managerMutation(tenantId, "logo.uploaded", async (tx, context) => {
+    await assertPrimaryBusiness(tx, tenantId, context.businessId, "site_content_primary_only");
+    const { assetId } = await uploadLogo(tx, storage(), tenantId, bytes, context.userId);
+    return { assetId };
   });
 }
 
