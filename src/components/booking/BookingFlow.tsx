@@ -225,14 +225,11 @@ export function BookingFlow(props: Props) {
     if (fieldError?.field === errorField) setFieldError(null);
   };
 
-  async function applyGiftCard() {
+  /** `promoCode` : le code promo à prendre en compte (l'acompte change avec lui). */
+  async function applyGiftCard(promoCode = promo?.code) {
     if (!giftCode.trim()) return;
     setGiftError(null);
-    const result = await checkGiftCardAction({
-      code: giftCode,
-      serviceIds: selected,
-      promoCode: promo?.code,
-    });
+    const result = await checkGiftCardAction({ code: giftCode, serviceIds: selected, promoCode });
     if (!result.ok) {
       setGift(null);
       setGiftError(result.error);
@@ -251,6 +248,8 @@ export function BookingFlow(props: Props) {
       return;
     }
     setPromo(result.data);
+    // Carte cadeau déjà appliquée : l'acompte a changé, il est recalculé.
+    if (gift) void applyGiftCard(result.data.code);
   }
 
   async function paid() {
@@ -658,6 +657,7 @@ export function BookingFlow(props: Props) {
                     onClick={() => {
                       setPromo(null);
                       setPromoCode("");
+                      if (gift) void applyGiftCard(undefined);
                     }}
                     className={linkClass}
                   >
@@ -702,7 +702,6 @@ export function BookingFlow(props: Props) {
             {/* Champ piège pour les robots : invisible pour les personnes. */}
             <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
               <label>
-                Website
                 <input
                   name="website"
                   tabIndex={-1}

@@ -48,7 +48,7 @@ Règles :
 
 - Coins arrondis modérés (0,75rem), hauteur 48px, texte en graisse 500, flèche fine à droite.
 - **Principal :** fond de l'accent de la solution (Business : champagne sur fond sombre). Un seul par bloc ; l'action secondaire est un bouton blanc à filet.
-- **En-tête :** « Essayer gratuitement », bleu nuit.
+- **En-tête :** « Créer mon site », bleu nuit (même libellé que le bouton principal de la page).
 
 ## 6. Les cartes
 

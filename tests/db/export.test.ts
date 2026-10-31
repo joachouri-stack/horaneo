@@ -131,5 +131,9 @@ describe.skipIf(!hasTestDatabase)("export des données", () => {
     );
     expect(csv.startsWith("﻿")).toBe(true);
     expect(csv).toBe('﻿Nom;Note\r\nCamille;"dit ""bonjour""; merci"\r\n\'=SOMME(A1);+33612345678\r\n');
+    // Formules déguisées derrière + ou - : neutralisées aussi ; un nombre négatif reste un nombre.
+    expect(toCsv(["A", "B", "C"], [["-1+1+cmd|' /C calc'!A0", "+1+HYPERLINK(1)", "-12,5"]])).toBe(
+      "\uFEFFA;B;C\r\n'-1+1+cmd|' /C calc'!A0;'+1+HYPERLINK(1);-12,5\r\n",
+    );
   });
 });

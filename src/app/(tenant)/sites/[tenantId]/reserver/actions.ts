@@ -10,6 +10,7 @@ import {
   getSlotsForRange,
   isOnlineQuotaReached,
   loadBookingContext,
+  rescheduleContext,
   resolveServices,
 } from "@/modules/booking/availability";
 import { createBooking } from "@/modules/booking/create";
@@ -70,7 +71,7 @@ export async function getAvailabilityAction(
       if (input.manageToken) {
         const managed = await findByManageToken(tx, site.tenantId, input.manageToken);
         if (!managed) throw new AppError("not_found");
-        context = managed.context;
+        context = rescheduleContext(managed.context, managed.appointment.staffId);
         excludeAppointmentId = managed.appointment.id;
         serviceIds = managed.items.map((item) => item.serviceId).filter((id): id is string => Boolean(id));
       } else if (!context.settings.onlineBookingEnabled) {
@@ -274,7 +275,8 @@ export async function rescheduleAction(
 }
 
 const giftInput = z.object({
-  code: z.string().trim().min(4).max(40),
+  // Code trop court : « carte introuvable » (et non une erreur sur l'e-mail ou le téléphone).
+  code: z.string().trim().min(1).max(40),
   serviceIds: z.array(z.uuid()).min(1).max(10),
   promoCode: z.string().max(30).optional(),
 });
@@ -295,7 +297,9 @@ export async function checkGiftCardAction(
       const { totals } = resolveServices(context, input.serviceIds);
       const ready = onlinePaymentReady(context.business, context.features, paymentGateway());
       const promo = input.promoCode
-        ? await previewPromo(tx, site.tenantId, input.promoCode, totals.totalCents)
+        ? // Code promo devenu invalide : l'erreur ne doit pas s'afficher sous la carte cadeau
+          // (elle sera signalée à la réservation, sous le code promo).
+          await previewPromo(tx, site.tenantId, input.promoCode, totals.totalCents).catch(() => null)
         : null;
       const depositCents = computeDeposit(
         totals.totalCents - (promo?.discountCents ?? 0),

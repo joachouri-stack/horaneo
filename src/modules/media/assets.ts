@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { and, asc, desc, eq, gt, ne } from "drizzle-orm";
+import { and, asc, desc, eq, gt, notInArray } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
 import { assets, tenants } from "@/db/schema";
 import { ImageError, processImage, type ImageKind } from "@/lib/images/process";
@@ -132,7 +132,7 @@ export async function restoreAsset(tx: Transaction, tenantId: string, assetId: s
   return restored;
 }
 
-/** Options des listes : `photosOnly` écarte le logo du site (géré à part). */
+/** Options des listes : `photosOnly` écarte le logo du site et les photos de l'équipe (gérés à part). */
 type ListOptions = { photosOnly?: boolean };
 
 export async function listActiveAssets(tx: Transaction, tenantId: string, options: ListOptions = {}) {
@@ -143,7 +143,7 @@ export async function listActiveAssets(tx: Transaction, tenantId: string, option
       and(
         eq(assets.tenantId, tenantId),
         eq(assets.status, "active"),
-        options.photosOnly ? ne(assets.kind, "logo") : undefined,
+        options.photosOnly ? notInArray(assets.kind, ["logo", "staff"]) : undefined,
       ),
     )
     .orderBy(asc(assets.sortOrder), asc(assets.createdAt));
@@ -159,7 +159,7 @@ export async function listRetiredAssets(tx: Transaction, tenantId: string, optio
         eq(assets.tenantId, tenantId),
         eq(assets.status, "replaced"),
         gt(assets.purgeAfter, new Date()),
-        options.photosOnly ? ne(assets.kind, "logo") : undefined,
+        options.photosOnly ? notInArray(assets.kind, ["logo", "staff"]) : undefined,
       ),
     )
     .orderBy(desc(assets.updatedAt));

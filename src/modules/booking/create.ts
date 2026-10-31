@@ -192,6 +192,9 @@ async function upsertCustomer(
           ? {
               // Écrit même sans changement : verrouille la fiche (code promo « une fois par cliente »).
               lastName: existing.lastName ?? (input.lastName || null),
+              // Autre numéro que celui de la fiche : on ne sait pas lequel est le bon, donc ce
+              // numéro ne permet plus de se connecter par SMS à l'espace de la cliente.
+              ...(phone && existing.phone && phone !== existing.phone ? { phoneDisputed: true } : {}),
               // Comme le téléphone : en ligne, l'anniversaire n'est jamais remplacé (n'importe qui
               // peut saisir l'e-mail d'une autre et changer la date de son offre). Seulement ajouté s'il manque.
               ...(birthday && existing.birthMonth === null ? birthday : {}),
@@ -200,6 +203,7 @@ async function upsertCustomer(
               firstName: input.firstName,
               lastName: input.lastName || existing.lastName,
               phone,
+              phoneDisputed: false,
               locale,
               ...consent,
               ...(birthday ?? {}),

@@ -1,5 +1,6 @@
 "use client";
 
+import { MAGIC_LINK_TTL_MINUTES } from "@/config/auth";
 import { useTranslations } from "next-intl";
 import { useState, type FormEvent } from "react";
 import { ui } from "@/components/ui/styles";
@@ -91,7 +92,7 @@ export function LoginForm({ providers, callbackPath, errorPath }: Props) {
       <div className="mt-8">
         <div role="status">
           <h2 className="text-xl font-bold">{t("sentTitle")}</h2>
-          <p className="mt-3">{t("sentBody", { email: state.email })}</p>
+          <p className="mt-3">{t("sentBody", { email: state.email, minutes: MAGIC_LINK_TTL_MINUTES })}</p>
         </div>
         <form onSubmit={signInWithCode} noValidate className="mt-6 space-y-3 rounded-2xl bg-navy/5 p-4">
           <label htmlFor="code" className={ui.label}>

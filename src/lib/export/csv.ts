@@ -9,8 +9,10 @@ type Cell = string | number | null | undefined;
 export function toCsv(headers: string[], rows: Cell[][]) {
   const cell = (value: Cell) => {
     let text = value === null || value === undefined ? "" : String(value);
-    // Pas de formule exécutée à l'ouverture (valeur commençant par =, @, +texte ou -texte).
-    if (/^[=@\t\r]/.test(text) || /^[+-][^\d\s]/.test(text)) text = `'${text}`;
+    // Pas de formule exécutée à l'ouverture : toute valeur commençant par =, +, -, @, tabulation
+    // ou retour est neutralisée, sauf un simple numéro de téléphone (+33 6…) ou un nombre (-12,5).
+    if (/^[=+\-@\t\r]/.test(text) && !/^\+\d[\d ]*$/.test(text) && !/^-?\d+([.,]\d+)?$/.test(text))
+      text = `'${text}`;
     return /[";\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
   };
   const lines = [headers, ...rows].map((row) => row.map(cell).join(";"));

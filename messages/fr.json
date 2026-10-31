@@ -60,7 +60,7 @@
       "titleAccent": "Vous, vous travaillez.",
       "subtitle": "Un site pro avec réservation 24 h/24, rappels automatiques et acomptes : tout est prêt, sans rien installer.",
       "offer": "Dès {price} {display} par mois",
-      "goLive": "{days, plural, =0 {} one {Site en ligne en # jour} other {Site en ligne en # jours}}",
+      "goLive": "{days, plural, =0 {} one {Site en ligne en # jour ouvré} other {Site en ligne en # jours ouvrés}}",
       "demo": "Voir la démonstration",
       "pricing": "Voir les tarifs",
       "points": ["Réservation en ligne 24 h/24", "Rappels automatiques", "Paiements sécurisés"],
@@ -278,7 +278,7 @@
       "choose": "Choisir le pack {plan}",
       "callback": "Être rappelé",
       "contractFree": "Gratuit, sans carte bancaire. Évoluez quand vous voulez.",
-      "contractPaid": "{months, plural, =0 {Sans engagement, résiliable chaque mois} other {Au choix : sans engagement (résiliable chaque mois) ou engagement de # mois}}. Prix {display}, facturé chaque mois.",
+      "contractPaid": "{months, plural, =0 {Sans engagement, résiliable chaque mois} other {{choice, select, yes {Au choix : sans engagement (résiliable chaque mois) ou engagement de # mois} other {Engagement de # mois}}}}. Prix {display}, facturé chaque mois.",
       "tablet": {
         "badge": "Offre limitée",
         "title": "Tablette offerte",
@@ -594,7 +594,7 @@
           "card": "Suivi clients et relances avancés"
         },
         "dataExport": {
-          "label": "Export de vos données (clientes, rendez-vous, paiements)",
+          "label": "Export de vos données (clients, rendez-vous, paiements)",
           "card": "Export de vos données"
         },
         "promoCodes": {
@@ -762,13 +762,11 @@
         },
         "testimonials": {
           "title": "Témoignages",
-          "text": "Ajoutez les mots de vos clients sur votre site.",
-          "tag": "Dès le pack Pro"
+          "text": "Ajoutez les mots de vos clients sur votre site."
         },
         "promotions": {
           "title": "Promotions et codes promo",
-          "text": "Lancez une offre quand vous le décidez.",
-          "tag": "Dès le pack Pro"
+          "text": "Lancez une offre quand vous le décidez."
         }
       },
       "brand": {
@@ -783,6 +781,7 @@
         "saved": "Modification enregistrée",
         "savedText": "Votre site est à jour"
       },
+      "fromPlan": "Dès le pack {plan}",
       "note": "Les fonctions disponibles dépendent de votre pack.",
       "noteLink": "Comparer les packs"
     },
@@ -793,11 +792,11 @@
       "items": {
         "marketing": {
           "title": "Marketing et fidélité",
-          "text": "Codes promo, promotions et programme de fidélité pour faire revenir vos clients."
+          "text": "Codes promo, promotions et programme de fidélité pour faire revenir vos clients.{plan, select, none {} other { Fidélité dès le pack {plan}.}}"
         },
         "reviews": {
           "title": "Avis Google",
-          "text": "Vos avis affichés sur votre site, et une demande d'avis envoyée après chaque rendez-vous."
+          "text": "Vos avis affichés sur votre site et, si vous l'activez, une demande d'avis envoyée après le rendez-vous.{plan, select, none {} other { Dès le pack {plan}.}}"
         },
         "automation": {
           "title": "Campagnes automatiques",
@@ -809,7 +808,7 @@
         },
         "dataExport": {
           "title": "Export de vos données",
-          "text": "Clients, rendez-vous et paiements en tableaux, à télécharger quand vous voulez. Dès le pack Pro."
+          "text": "Clients, rendez-vous et paiements en tableaux, à télécharger quand vous voulez.{plan, select, none {} other { Dès le pack {plan}.}}"
         }
       }
     },
@@ -831,7 +830,7 @@
         },
         "commitment": {
           "q": "Y a-t-il un engagement ?",
-          "a": "{months, plural, =0 {Non, les packs payants sont sans engagement.} other {Vous choisissez : sans engagement, résiliable chaque mois, ou avec un engagement de # mois.{tablet, select, yes { L'offre tablette est réservée à la formule avec engagement.} other {}}}}"
+          "a": "{months, plural, =0 {Non, les packs payants sont sans engagement.} other {{choice, select, yes {Vous choisissez : sans engagement, résiliable chaque mois, ou avec un engagement de # mois.} other {Les packs payants sont proposés avec un engagement de # mois.}}{tablet, select, yes { L'offre tablette est réservée à la formule avec engagement.} other {}}}}"
         },
         "prices": {
           "q": "Les prix sont-ils HT ou TTC ?",
@@ -839,7 +838,7 @@
         },
         "domain": {
           "q": "Puis-je utiliser mon propre nom de domaine ?",
-          "a": "Oui, dès le premier pack vous pouvez connecter un domaine existant. Pour la création de votre site, un nom de domaine est inclus, sous conditions de coût et de renouvellement."
+          "a": "Oui, dès le premier pack vous pouvez connecter un domaine existant.{domainPlan, select, none {} other { À partir du pack {domainPlan}, un nom de domaine est inclus pour la création de votre site, sous conditions de coût et de renouvellement.}}"
         },
         "quotas": {
           "q": "Que se passe-t-il si j'atteins un quota ?",
@@ -863,7 +862,7 @@
         },
         "setup": {
           "q": "Combien de temps pour mettre mon site en ligne ?",
-          "a": "En général {days} jours ouvrés après votre commande et l'envoi de vos informations (textes, photos, prestations, horaires)."
+          "a": "En général {days, plural, one {# jour ouvré} other {# jours ouvrés}} après votre commande et l'envoi de vos informations (textes, photos, prestations, horaires)."
         },
         "creation": {
           "q": "Qui crée mon site ?",
@@ -879,7 +878,7 @@
         },
         "data": {
           "q": "Mes données m'appartiennent-elles ?",
-          "a": "Oui. Dès le pack Pro, vous téléchargez vous-même en un clic, depuis votre espace, votre fichier clients, vos rendez-vous et vos paiements. Sur les autres packs, ils vous sont remis sur simple demande, y compris si vous quittez {product}."
+          "a": "Oui. {exportPlan, select, none {Vous téléchargez vous-même en un clic, depuis votre espace, votre fichier clients, vos rendez-vous et vos paiements, y compris si vous quittez {product}.} other {Dès le pack {exportPlan}, vous téléchargez vous-même en un clic, depuis votre espace, votre fichier clients, vos rendez-vous et vos paiements. Sur les autres packs, ils vous sont remis sur simple demande, y compris si vous quittez {product}.}}"
         }
       }
     },
@@ -1302,7 +1301,7 @@
     "sendLink": "Recevoir un lien de connexion",
     "sending": "Envoi…",
     "sentTitle": "Vérifiez votre boîte de réception",
-    "sentBody": "Un e-mail vient d'être envoyé à {email}, avec un bouton et un code de connexion. Ils sont valables 15 minutes.",
+    "sentBody": "Un e-mail vient d'être envoyé à {email}, avec un bouton et un code de connexion. Ils sont valables {minutes} minutes.",
     "codeLabel": "Code reçu par e-mail",
     "codeHint": "Vous lisez vos e-mails sur un autre appareil ? Saisissez ici le code à 6 chiffres.",
     "codeSubmit": "Me connecter avec le code",
@@ -2977,7 +2976,8 @@
         "empty": "Aucun objectif pour l'instant.",
         "edit": "Modifier mes objectifs",
         "set": "Fixer mes objectifs",
-        "revenue": "Chiffre d'affaires (€)",
+        "revenue": "Chiffre d'affaires ({currency})",
+        "revenueShort": "Chiffre d'affaires",
         "appointments": "Rendez-vous",
         "newCustomers": "Nouvelles clientes",
         "hint": "Laissez vide pour ne pas suivre cet objectif.",
@@ -3161,7 +3161,7 @@
       "depositType": "Type d'acompte",
       "percent": "Pourcentage du prix",
       "fixed": "Montant fixe",
-      "depositValue": "Valeur (% ou €)",
+      "depositValue": "Valeur (% ou {currency})",
       "depositUnavailable": "L'acompte en ligne n'est pas inclus dans votre pack.",
       "summaries": "Résumés par e-mail",
       "daily": "Résumé du lendemain, chaque soir vers {time}",
@@ -3826,6 +3826,7 @@
         "business": "Établissement",
         "email": "E-mail",
         "plan": "Pack qui l'intéresse",
+        "solution": "Lancement attendu",
         "message": "Message"
       }
     },
@@ -3882,13 +3883,13 @@
     "email": "Adresse e-mail",
     "emailHint": "Vous y recevrez la confirmation et le lien d'accès à votre espace. Aucun mot de passe à créer.",
     "orderingAs": "Commande au nom de {email}.",
-    "businessName": "Nom de votre établissement",
+    "businessName": "Nom de votre entreprise",
     "activity": "Votre activité",
     "activityHint": "Par exemple : institut de beauté, garage, consultant, coach sportif…",
     "phone": "Téléphone",
     "currentWebsite": "Site actuel (facultatif)",
     "currentWebsitePlaceholder": "www.exemple.fr",
-    "terms": "J'ai lu et j'accepte les <link>conditions générales de vente</link>.",
+    "terms": "J'ai lu et j'accepte les <link>conditions générales de vente et d'utilisation</link> (s'ouvrent dans un nouvel onglet).",
     "paidHint": "Paiement par carte sur la page sécurisée de Stripe. Votre site est ensuite créé par notre équipe.",
     "freeHint": "Les demandes du pack gratuit sont validées par notre équipe.",
     "thanks": {
@@ -3939,6 +3940,7 @@
     "title": "Être rappelé",
     "intro": "Laissez-nous vos coordonnées : nous vous rappelons pour parler de votre projet et choisir le pack qui vous convient.",
     "introPlan": "Le pack {plan} vous intéresse ? Laissez-nous vos coordonnées : nous vous rappelons pour en parler et le mettre en place avec vous.",
+    "introSolution": "La solution {solution} vous intéresse ? Elle est en préparation : laissez-nous vos coordonnées, nous vous prévenons dès son lancement et nous vous rappelons pour en parler.",
     "name": "Votre nom",
     "businessName": "Nom de votre entreprise",
     "phone": "Téléphone",

@@ -1,12 +1,12 @@
 "use client";
 
+import { MAX_UPLOAD_BYTES } from "@/config/uploads";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import Cropper, { type Area } from "react-easy-crop";
 import { ui } from "@/components/ui/styles";
 import type { ActionResult } from "@/lib/actions/result";
 
-const MAX_BYTES = 10 * 1024 * 1024;
 const ASPECTS: Record<string, number> = {
   gallery: 4 / 3,
   cover: 16 / 9,
@@ -75,7 +75,7 @@ export function PhotoCropUpload({ tenantId, action }: Props) {
   function choose(selected: File | undefined) {
     setMessage(null);
     if (!selected) return;
-    if (selected.size > MAX_BYTES) {
+    if (selected.size > MAX_UPLOAD_BYTES) {
       setMessage({ ok: false, text: t("tooLarge") });
       return;
     }

@@ -28,6 +28,15 @@ export function moneyParts(cents: number, currency: string, locale: string): { l
   return { lead: join(parts.slice(0, last + 1)), tail: join(parts.slice(last + 1)) };
 }
 
+/** Symbole de la devise (« € », « CHF »…), pour les libellés des champs de montant. */
+export function currencySymbol(currency: string, locale: string): string {
+  return (
+    new Intl.NumberFormat(locale, { style: "currency", currency })
+      .formatToParts(0)
+      .find((part) => part.type === "currency")?.value ?? currency
+  );
+}
+
 /** Montant en centimes → texte à modifier dans un champ (« 45,50 »). */
 export function centsToInput(cents: number): string {
   return (cents / 100).toFixed(2).replace(".", ",").replace(/,00$/, "");

@@ -307,6 +307,8 @@ export async function adjustLoyalty(
   const customer = await assertCustomer(tx, tenantId, customerId);
   const config = await loyaltyConfig(tx, tenantId, customer.businessId);
   if (!config.included) throw new AppError("feature_unavailable");
+  // Fiche verrouillée : deux retraits simultanés ne font pas passer le compteur sous zéro.
+  await tx.select({ id: customers.id }).from(customers).where(eq(customers.id, customerId)).for("update");
   const balance = await balanceOf(tx, [customerId]);
   if (balance + input.points < 0) throw new AppError("invalid", "points");
   await tx.insert(loyaltyEvents).values({

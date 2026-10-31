@@ -8,7 +8,11 @@ export async function generateMetadata({
   params,
 }: PageProps<"/[locale]/confidentialite">): Promise<Metadata> {
   const t = await getTranslations({ locale: resolveLocale((await params).locale), namespace: "legal" });
-  return { title: t("titles.privacy") };
+  // Adresse de référence (relative : complétée par metadataBase du layout).
+  return {
+    title: t("titles.privacy"),
+    alternates: { canonical: `/${(await params).locale}/confidentialite` },
+  };
 }
 
 export default async function PrivacyPage({ params }: PageProps<"/[locale]/confidentialite">) {

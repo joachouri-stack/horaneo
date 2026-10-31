@@ -152,7 +152,7 @@ export default async function SettingsPage({
                 <TextField
                   name="depositValue"
                   inputMode="decimal"
-                  label={t("depositValue")}
+                  label={t("depositValue", { currency: page.fmt.currency })}
                   defaultValue={
                     settings.depositType === "percent"
                       ? String(settings.depositValue)
@@ -181,11 +181,14 @@ export default async function SettingsPage({
             label={t("daily", { time: hourLabel(String(dailyTime)) })}
             defaultChecked={settings.dailySummaryEnabled}
           />
-          <CheckboxField
-            name="monthlySummaryEnabled"
-            label={t("monthly", { time: hourLabel(String(monthlyTime)) })}
-            defaultChecked={settings.monthlySummaryEnabled}
-          />
+          {/* Bilan du mois : seulement si le pack l'envoie. */}
+          {page.tenant.features.monthlySummary && (
+            <CheckboxField
+              name="monthlySummaryEnabled"
+              label={t("monthly", { time: hourLabel(String(monthlyTime)) })}
+              defaultChecked={settings.monthlySummaryEnabled}
+            />
+          )}
         </Section>
         {/* Demande d'avis Google : seulement si le pack inclut les avis Google. */}
         {page.tenant.features.googleReviews && (

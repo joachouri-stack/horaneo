@@ -51,7 +51,7 @@ export async function customerSpaceFeatures(tx: Transaction, tenantId: string) {
 function matches(identity: CustomerIdentity) {
   return identity.channel === "email"
     ? sql`lower(${customers.email}) = ${identity.identifier}`
-    : eq(customers.phone, identity.identifier);
+    : and(eq(customers.phone, identity.identifier), eq(customers.phoneDisputed, false));
 }
 
 /** Fiches de la cliente dans l'entreprise déclarée. */

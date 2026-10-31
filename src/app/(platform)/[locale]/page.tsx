@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { PlanFeatures } from "@/db/schema";
 import { pickLocalized } from "@/i18n/locales";
 import { formatMoney } from "@/lib/format";
 import Image from "next/image";
@@ -64,7 +65,7 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">): Prom
   const t = await getTranslations({ locale, namespace: "metadata" });
   const base = publicAppUrl();
   return {
-    title: t("title", { product: env().PRODUCT_NAME }),
+    title: { absolute: t("title", { product: env().PRODUCT_NAME }) },
     description: t("description"),
     alternates: {
       canonical: `${base}/${locale}`,
@@ -135,8 +136,8 @@ const SELF_SERVICE = [
   { key: "logo", Icon: SparkleLine },
   { key: "texts", Icon: FileLine },
   { key: "hours", Icon: ClockLine },
-  { key: "testimonials", Icon: StarLine },
-  { key: "promotions", Icon: PercentLine },
+  { key: "testimonials", Icon: StarLine, pack: "testimonials" },
+  { key: "promotions", Icon: PercentLine, pack: "promotions" },
 ] as const;
 
 /** Pictogrammes du bandeau de fonctions de chaque solution (dans l'ordre des textes). */
@@ -149,10 +150,11 @@ const STRIP: Record<Solution, (typeof CheckLine)[]> = {
 /** Pictogrammes des quatre usages de l'espace de gestion (dans l'ordre des textes). */
 
 /** « Pour aller plus loin » : seulement ce que les cartes des solutions ne présentent pas déjà. */
+// `pack` : fonction du pack dont dépend la carte (« Dès le pack … » si le premier pack ne l'a pas).
 const BENEFITS = [
-  { key: "marketing", Icon: MegaphoneLine },
-  { key: "reviews", Icon: StarLine },
-  { key: "dataExport", Icon: DownloadLine },
+  { key: "marketing", Icon: MegaphoneLine, pack: "loyalty" },
+  { key: "reviews", Icon: StarLine, pack: "googleReviews" },
+  { key: "dataExport", Icon: DownloadLine, pack: "dataExport" },
   { key: "automation", Icon: RefreshLine, feature: "marketingAutomation" },
   { key: "assistant", Icon: SparkleLine, feature: "aiChatbot" },
 ] as const;
@@ -198,6 +200,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     plans: await listPublicPlans(tx),
     display: String(await getPlatformSetting(tx, "prices_display")),
     commitment: Number(await getPlatformSetting(tx, "commitment_months")),
+    noCommitment: Boolean(await getPlatformSetting(tx, "offer_no_commitment")),
     yearly: {
       enabled: Boolean(await getPlatformSetting(tx, "yearly_billing_enabled")),
       freeMonths: Number(await getPlatformSetting(tx, "yearly_free_months")),
@@ -217,6 +220,15 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
   const first = [...data.plans].sort((a, b) => a.priceCents - b.priceCents)[0];
   const contact = config.SUPPORT_EMAIL ?? `support@${config.MAIN_DOMAIN}`;
   const startHref = { pathname: "/commander" as const, query: first ? { pack: first.code } : {} };
+  // Nom du premier pack qui inclut une fonction (« Dès le pack … ») ; « none » si le premier
+  // pack l'inclut déjà ou si aucun ne l'inclut.
+  const firstPlanWith = (feature: keyof PlanFeatures) => {
+    if (!first || first.features[feature]) return "none";
+    const plan = [...data.plans]
+      .sort((a, b) => a.priceCents - b.priceCents)
+      .find((item) => item.features[feature]);
+    return plan ? pickLocalized(plan.name, locale) : "none";
+  };
 
   const faqValues = {
     months: data.commitment,
@@ -232,18 +244,30 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     bookings: first ? (first.limits.onlineBookingsPerMonth ?? -1) : 0,
     customers: first ? (first.limits.customers ?? -1) : 0,
     tablet: data.offers.length > 0 ? "yes" : "no",
+    // Formule sans engagement proposée à côté de l'engagement (réglage admin).
+    choice: data.noCommitment ? "yes" : "no",
+    // Premier pack (le moins cher) qui inclut un nom de domaine pour la création.
+    exportPlan: firstPlanWith("dataExport"),
+    domainPlan: (() => {
+      const plan = [...data.plans]
+        .sort((a, b) => a.priceCents - b.priceCents)
+        .find((item) => item.features.freeDomain);
+      return plan ? pickLocalized(plan.name, locale) : "none";
+    })(),
   };
   // Questions affichées seulement quand elles s'appliquent : outils d'IA encore annoncés
   // « Bientôt », offre de lancement ouverte.
   const aiSoon = AI_FEATURES.some((key) => soon.has(key));
   const hasOffer = data.offers.length > 0;
-  const faq = FAQ.filter((key) => (key === "ai" ? aiSoon : key === "tablet" ? hasOffer : true)).map(
-    (key) => ({
-      key,
-      q: t(`faq.items.${key}.q`, faqValues),
-      a: t(`faq.items.${key}.a`, faqValues),
-    }),
-  );
+  // « Commerce et Formation sont-ils disponibles ? » : tant qu'une solution est en préparation.
+  const solutionSoon = SOLUTIONS.some(isSoon);
+  const faq = FAQ.filter((key) =>
+    key === "ai" ? aiSoon : key === "tablet" ? hasOffer : key === "solutions" ? solutionSoon : true,
+  ).map((key) => ({
+    key,
+    q: t(`faq.items.${key}.q`, faqValues),
+    a: t(`faq.items.${key}.a`, faqValues),
+  }));
   const structuredData = [
     {
       "@context": "https://schema.org",
@@ -411,7 +435,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                       width={780}
                       height={1688}
                       alt={t("hero.visualAlt")}
-                      priority
+                      preload
                       sizes="(min-width: 1024px) 18.5rem, (min-width: 640px) 17rem, 14rem"
                       className="h-auto w-full rounded-[2.1rem]"
                     />
@@ -651,7 +675,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 </p>
                 {/* Téléphone : une seule carte en liste (moins long à faire défiler) ; ordinateur : grille de cartes. */}
                 <ul className="mt-8 divide-y divide-hairline overflow-hidden rounded-2xl border border-hairline bg-white shadow-[0_1px_2px_rgba(15,24,48,.04)] sm:grid sm:grid-cols-2 sm:gap-3 sm:divide-y-0 sm:overflow-visible sm:rounded-none sm:border-0 sm:bg-transparent sm:shadow-none">
-                  {SELF_SERVICE.map(({ key, Icon }) => (
+                  {SELF_SERVICE.map(({ key, Icon, ...item }) => (
                     <li
                       key={key}
                       data-reveal
@@ -678,9 +702,9 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                               <span className="font-semibold text-night">
                                 {t(`selfService.items.${key}.title`)}
                               </span>
-                              {(key === "testimonials" || key === "promotions") && (
+                              {"pack" in item && firstPlanWith(item.pack) !== "none" && (
                                 <span className="rounded-full bg-champagne-soft px-2 py-px text-[0.8125rem] font-medium text-copper">
-                                  {t(`selfService.items.${key}.tag`)}
+                                  {t("selfService.fromPlan", { plan: firstPlanWith(item.pack) })}
                                 </span>
                               )}
                             </span>
@@ -718,8 +742,8 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   <span>
                     {t("selfService.note")}{" "}
                     <Link
-                      href={{ pathname: "/", hash: "tarifs" }}
-                      className="inline-flex items-center gap-1 whitespace-nowrap font-medium text-navy underline-offset-4 hover:underline"
+                      href="/comparatif"
+                      className="inline-flex min-h-11 items-center gap-1 whitespace-nowrap font-medium text-navy underline-offset-4 hover:underline"
                     >
                       {t("selfService.noteLink")}
                       <ArrowLine className="size-3.5" />
@@ -828,7 +852,9 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                         {t(`benefits.items.${item.key}.title`)}
                       </span>
                       <span className="mt-1 block text-mk-small leading-snug text-ink-soft">
-                        {t(`benefits.items.${item.key}.text`)}
+                        {t(`benefits.items.${item.key}.text`, {
+                          plan: "pack" in item ? firstPlanWith(item.pack) : "none",
+                        })}
                       </span>
                     </span>
                   </li>
@@ -953,6 +979,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               soon={data.soon}
               display={data.display}
               commitmentMonths={data.commitment}
+              noCommitment={data.noCommitment}
               offers={data.offers}
               yearly={data.yearly}
             />

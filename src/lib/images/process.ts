@@ -1,3 +1,4 @@
+import { MAX_UPLOAD_BYTES } from "@/config/uploads";
 import sharp, { type Metadata } from "sharp";
 
 /**
@@ -8,7 +9,7 @@ import sharp, { type Metadata } from "sharp";
  * - redimensionnement et conversion en WebP, léger et net.
  */
 
-export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+export { MAX_UPLOAD_BYTES };
 
 export type ImageKind = "logo" | "cover" | "gallery" | "staff" | "service" | "other";
 

@@ -20,7 +20,13 @@ import { appointmentCalendarPath, SITE_PATHS } from "@/modules/site/paths";
 import { logoutAction } from "./actions";
 
 // Espace personnel : jamais indexé.
-export const metadata: Metadata = { robots: { index: false, follow: false }, referrer: "no-referrer" };
+export async function generateMetadata({
+  params,
+}: PageProps<"/sites/[tenantId]/mes-rendez-vous">): Promise<Metadata> {
+  const site = await getSite((await params).tenantId);
+  const t = await getTranslations({ locale: site.locale, namespace: "site.account" });
+  return { title: t("title"), robots: { index: false, follow: false }, referrer: "no-referrer" };
+}
 
 const card = "rounded-site border border-site-border bg-site-card p-5 sm:p-6";
 const pill =
@@ -49,7 +55,7 @@ export default async function CustomerSpacePage({ params }: PageProps<"/sites/[t
           {t("optional")}{" "}
           <Link
             href={SITE_PATHS.booking}
-            className="font-semibold text-site-accent underline underline-offset-4"
+            className="inline-flex min-h-11 items-center font-semibold text-site-accent underline underline-offset-4"
           >
             {t("book")}
           </Link>

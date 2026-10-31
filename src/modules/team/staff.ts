@@ -1,4 +1,5 @@
 import { and, asc, count, eq, gt, inArray } from "drizzle-orm";
+import { retireAsset } from "@/modules/media/assets";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
 import {
@@ -66,7 +67,7 @@ export async function setStaffPhoto(
   assetId: string | null,
 ) {
   const [member] = await tx
-    .select({ id: staffMembers.id })
+    .select({ id: staffMembers.id, photoAssetId: staffMembers.photoAssetId })
     .from(staffMembers)
     .where(and(eq(staffMembers.id, staffId), eq(staffMembers.tenantId, tenantId)));
   if (!member) throw new AppError("not_found");
@@ -82,6 +83,9 @@ export async function setStaffPhoto(
     .set({ photoAssetId: assetId })
     .where(eq(staffMembers.id, member.id))
     .returning();
+  // Ancienne photo mise de côté : elle ne compte plus dans les photos du pack.
+  if (member.photoAssetId && member.photoAssetId !== assetId)
+    await retireAsset(tx, tenantId, member.photoAssetId, assetId);
   return updated;
 }
 
@@ -185,6 +189,7 @@ export async function deleteStaff(tx: Transaction, tenantId: string, staffId: st
     await tx.transaction(async (savepoint) => {
       await savepoint.delete(staffMembers).where(eq(staffMembers.id, staffId));
     });
+    if (existing.photoAssetId) await retireAsset(tx, tenantId, existing.photoAssetId);
     return { deleted: true, upcoming: 0 };
   } catch (error) {
     // Seulement si des rendez-vous y sont rattachés (clé étrangère) : désactivé à la place.

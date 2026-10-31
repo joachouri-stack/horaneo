@@ -33,6 +33,7 @@ export async function requestCallbackAction(
         phone: form.text(data, "phone"),
         email: form.text(data, "email"),
         planCode: form.text(data, "planCode"),
+        solution: form.text(data, "solution"),
         message: form.text(data, "message"),
         locale,
       }),

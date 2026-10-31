@@ -102,6 +102,7 @@ export default async function LoyaltyPage({
                 label={t("birthday.days")}
                 hint={t("birthday.daysHint")}
                 defaultValue={String(birthday.validityDays)}
+                id="f-birthday-validityDays"
                 required
               />
             </div>

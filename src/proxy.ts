@@ -51,7 +51,24 @@ function platformOrigin(request: NextRequest): string {
     : request.nextUrl.origin.replace(/\/\/[^/:]+/, "//localhost");
 }
 
+/**
+ * En-têtes de sécurité sur chaque page : aucune page ne peut être affichée dans le cadre d'un
+ * autre site (détournement de clic) ; les sites clients, seulement par le domaine principal
+ * (aperçu dans l'admin et l'espace gérante).
+ */
 export async function proxy(request: NextRequest) {
+  const response = await route(request);
+  const kind = classifyHost(request.headers.get("host"), request.nextUrl, hostConfig).kind;
+  const ancestors = kind === "tenant" ? `'self' ${platformOrigin(request)}` : "'self'";
+  response.headers.set("Content-Security-Policy", `frame-ancestors ${ancestors}`);
+  if (kind !== "tenant") response.headers.set("X-Frame-Options", "SAMEORIGIN");
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  if (isProduction) response.headers.set("Strict-Transport-Security", "max-age=31536000");
+  return response;
+}
+
+async function route(request: NextRequest): Promise<NextResponse> {
   const url = request.nextUrl;
   // Appels internes du serveur (tâche planifiée, vérification de santé) : Coolify les fait
   // sur http://localhost, qui n'est le domaine de personne. La tâche vérifie CRON_SECRET.

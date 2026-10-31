@@ -6,7 +6,8 @@ import { resolveLocale } from "@/i18n/translator";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/conditions">): Promise<Metadata> {
   const t = await getTranslations({ locale: resolveLocale((await params).locale), namespace: "legal" });
-  return { title: t("titles.terms") };
+  // Adresse de référence (relative : complétée par metadataBase du layout).
+  return { title: t("titles.terms"), alternates: { canonical: `/${(await params).locale}/conditions` } };
 }
 
 export default async function TermsPage({ params }: PageProps<"/[locale]/conditions">) {

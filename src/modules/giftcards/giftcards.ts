@@ -5,7 +5,7 @@ import { authSecret } from "@/config/env";
 import type { Transaction } from "@/db/client";
 import { businessSettings, giftCards, giftCardTransactions, type PlanFeatures } from "@/db/schema";
 import { loadBookingContext } from "@/modules/booking/availability";
-import { DATE_PATTERN, localToUtc, utcToLocal } from "@/modules/booking/time";
+import { addDays, DATE_PATTERN, localToUtc, utcToLocal } from "@/modules/booking/time";
 import { AppError } from "@/modules/errors";
 import { queueMessage } from "@/modules/messages/queue";
 import { parseMoney } from "@/modules/money";
@@ -130,7 +130,12 @@ export async function startGiftCardPurchase(
   }
   const timezone = offer.tenant.timezone;
   const today = utcToLocal(now, timezone).date;
-  if (input.sendOn && input.sendOn < today) throw new AppError("invalid", "sendOn");
+  // Date d'envoi : entre aujourd'hui et dans un an, et qui existe (pas de 31 février).
+  if (
+    input.sendOn &&
+    (input.sendOn < today || input.sendOn > addDays(today, 365) || addDays(input.sendOn, 0) !== input.sendOn)
+  )
+    throw new AppError("invalid", "sendOn");
   // Envoi programmé : 9 h le jour choisi (heure de l'établissement) ; sinon tout de suite.
   const sendAt = input.sendOn && input.sendOn > today ? localToUtc(input.sendOn, "09:00", timezone) : now;
   const id = crypto.randomUUID();

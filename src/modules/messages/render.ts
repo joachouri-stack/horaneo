@@ -1071,6 +1071,7 @@ async function renderCallback(tx: Transaction, row: MessageRow, options: RenderO
     phone?: string;
     email?: string;
     planCode?: string;
+    solution?: "booking" | "commerce" | "formation" | "";
     message?: string;
   };
   const locale = resolveLocale("fr");
@@ -1088,6 +1089,14 @@ async function renderCallback(tx: Transaction, row: MessageRow, options: RenderO
     ...(data.email ? [{ label: t("notifications.admin.callback_request.email"), value: data.email }] : []),
     ...(plan
       ? [{ label: t("notifications.admin.callback_request.plan"), value: pickLocalized(plan.name, locale) }]
+      : []),
+    ...(data.solution
+      ? [
+          {
+            label: t("notifications.admin.callback_request.solution"),
+            value: t(`home.solutions.items.${data.solution}.name`),
+          },
+        ]
       : []),
     ...(data.message
       ? [{ label: t("notifications.admin.callback_request.message"), value: data.message }]

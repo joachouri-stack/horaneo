@@ -127,6 +127,18 @@ export function onlineStaff(context: BookingContext) {
   return limit === null || limit === undefined ? context.staff : context.staff.slice(0, Math.max(0, limit));
 }
 
+/**
+ * Contexte pour déplacer un rendez-vous : seulement les membres proposés en ligne par le
+ * pack, plus celui du rendez-vous (la cliente peut toujours garder sa praticienne).
+ */
+export function rescheduleContext(context: BookingContext, currentStaffId: string | null): BookingContext {
+  const online = new Set(onlineStaff(context).map((member) => member.id));
+  return {
+    ...context,
+    staff: context.staff.filter((member) => online.has(member.id) || member.id === currentStaffId),
+  };
+}
+
 /** Membres capables de réaliser TOUTES les prestations choisies (décision n° 3). */
 export function eligibleStaff(context: BookingContext, serviceIds: string[], staffId: string | null) {
   return context.staff.filter(

@@ -13,7 +13,8 @@ import { getPlatformSetting } from "@/modules/settings";
 export async function generateMetadata({ params }: PageProps<"/[locale]/comparatif">): Promise<Metadata> {
   const locale = resolveLocale((await params).locale);
   const t = await getTranslations({ locale, namespace: "home.comparison" });
-  return { title: t("title") };
+  // Adresse de référence (relative : complétée par metadataBase du layout).
+  return { title: t("title"), alternates: { canonical: `/${(await params).locale}/comparatif` } };
 }
 
 /**

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PLATFORM_CURRENCY } from "@/config/billing";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
 import { TextField } from "@/components/admin/fields";
@@ -70,7 +71,7 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
     orderable.find((plan) => plan.code === pack) ??
     orderable.find((plan) => plan.priceCents > 0) ??
     orderable[0];
-  const money = (cents: number) => formatMoney(cents, "EUR", locale);
+  const money = (cents: number) => formatMoney(cents, PLATFORM_CURRENCY, locale);
 
   // Vente fermée et aucun pack gratuit : on propose d'être rappelée.
   if (orderable.length === 0) {

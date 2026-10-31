@@ -259,6 +259,11 @@ export async function anonymizeCustomer(
     .where(and(eq(customers.id, customerId), eq(customers.tenantId, tenantId)))
     .returning();
   if (!updated) throw new AppError("not_found");
+  // Notes libres de ses rendez-vous (souvent des détails personnels ou de santé) : effacées aussi.
+  await tx
+    .update(appointments)
+    .set({ customerNote: null, internalNote: null })
+    .where(and(eq(appointments.customerId, customerId), eq(appointments.tenantId, tenantId)));
   return updated;
 }
 
@@ -321,6 +326,8 @@ export async function saveCustomer(
     firstName: input.firstName,
     lastName: input.lastName || null,
     phone,
+    // Fiche vérifiée par la gérante : le numéro sert de nouveau à la connexion par SMS.
+    phoneDisputed: false,
     email: input.email,
     notes: input.notes || null,
     ...birthday,

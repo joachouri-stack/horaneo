@@ -52,7 +52,11 @@ export async function PlatformHeader({ children }: { children?: React.ReactNode 
         <header
           className={`mx-auto flex max-w-[75rem] 2xl:max-w-[88rem] flex-wrap items-center justify-between gap-3 py-3 pl-4 min-[400px]:gap-4 sm:pl-6 lg:py-4 ${children ? "pr-4 sm:pr-6" : "pr-16 lg:pr-6"}`}
         >
-          <Link href="/" aria-label={t("common.homeLink", { product })}>
+          <Link
+            href="/"
+            aria-label={t("common.homeLink", { product })}
+            className="inline-flex min-h-11 items-center"
+          >
             {/* Un peu plus petit sur les très petits téléphones : logo et boutons tiennent sur une ligne. */}
             <Logo productName={product} className="text-[1.5rem] min-[400px]:text-[1.8rem]" />
           </Link>

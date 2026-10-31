@@ -1,3 +1,4 @@
+import { releasePromoUse } from "@/modules/booking/holds";
 import { assertQuota } from "@/modules/quotas";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -50,6 +51,9 @@ export async function setAttendance(
   const appointment = await loadAppointment(tx, tenantId, appointmentId, true);
   if (!["confirmed", "attended", "no_show"].includes(appointment.status))
     throw new AppError("booking_not_modifiable");
+  // Venue ou absente : seulement une fois le rendez-vous commencé (sinon point de fidélité et
+  // demande d'avis envoyés trop tôt).
+  if (status !== "confirmed" && appointment.startsAt > now) throw new AppError("booking_not_modifiable");
   await tx.update(appointments).set({ status }).where(eq(appointments.id, appointment.id));
   // Fidélité : un point par rendez-vous honoré (retiré si la gérante corrige).
   await trackAttendance(tx, tenantId, appointment, appointment.status, status);
@@ -79,6 +83,7 @@ export async function cancelByManager(
       cancellationReason: reason?.slice(0, 300) || null,
     })
     .where(eq(appointments.id, appointment.id));
+  await releasePromoUse(tx, tenantId, appointment.promoCodeId);
   const refund = payment.refund
     ? await refundDeposit(tx, tenantId, appointment.id, payment.gateway, { reason: "manager_cancelled" })
     : null;
