@@ -48,6 +48,7 @@ import { PlanCards } from "@/components/marketing/PlanCards";
 import { RevealOnScroll } from "@/components/marketing/RevealOnScroll";
 import { BillingToggle, SolutionScope, SolutionTabs } from "@/components/marketing/SolutionScope";
 import { SolutionVisual } from "@/components/marketing/SolutionVisual";
+import { listShowcase } from "@/modules/showcase/showcase";
 import { env, publicAppUrl } from "@/config/env";
 import { withPlatform } from "@/db/access";
 import { ENABLED_LOCALES } from "@/i18n/enabled";
@@ -207,6 +208,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     solutions: await getPlatformSetting(tx, "solutions"),
     demoUrl: String(await getPlatformSetting(tx, "demo_url")),
     offers: await listLaunchOffers(tx, { openOnly: true }),
+    showcase: await listShowcase(tx),
   }));
   const soon = new Set<string>(data.soon);
   const isSoon = (solution: Solution) =>
@@ -814,6 +816,56 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               })}
             </ul>
           </section>
+
+          {/* Témoignages réels saisis dans l'admin (section masquée s'il n'y en a pas). */}
+          {data.showcase.length > 0 && (
+            <section
+              aria-labelledby="titre-temoignages"
+              className="mx-auto max-w-[75rem] 2xl:max-w-[88rem] px-4 pt-20 sm:px-6 lg:pt-28"
+            >
+              <p data-reveal className={EYEBROW}>
+                {EYEBROW_DOT}
+                {t("showcase.badge")}
+              </p>
+              <h2
+                id="titre-temoignages"
+                data-reveal
+                className={`${TITLE} mt-4 max-w-[44rem] text-mk-h2 leading-[1.1]`}
+              >
+                {t("showcase.title")}{" "}
+                <span className="text-accent">{coralStop(t("showcase.titleAccent"))}</span>
+              </h2>
+              <ul className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
+                {data.showcase.map((entry) => (
+                  <li key={entry.id} data-reveal>
+                    <figure className="flex h-full flex-col rounded-2xl border border-hairline bg-white p-5 shadow-[0_1px_2px_rgba(15,24,48,.04)] lg:p-6">
+                      <span aria-hidden="true" className="font-display text-4xl leading-none text-coral">
+                        “
+                      </span>
+                      <blockquote className="mt-2 flex-1 text-mk-body leading-relaxed text-night">
+                        {entry.quote}
+                      </blockquote>
+                      <figcaption className="mt-5 border-t border-hairline pt-4 text-mk-small text-ink-soft">
+                        <span className="block font-semibold text-night">{entry.author}</span>
+                        {entry.name} · {entry.activity}
+                        {entry.url && (
+                          <a
+                            href={entry.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-2 flex w-fit items-center gap-1 font-medium text-accent-strong underline-offset-4 hover:underline"
+                          >
+                            {t("showcase.visit", { name: entry.name })}
+                            <ArrowLine className="size-4" />
+                          </a>
+                        )}
+                      </figcaption>
+                    </figure>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           {/* Choisissez votre pack */}
           <section

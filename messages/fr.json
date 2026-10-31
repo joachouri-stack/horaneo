@@ -916,6 +916,12 @@
       "label": "Nous écrire sur WhatsApp",
       "defaultMessage": "Bonjour, j'ai une question.",
       "fallbackLabel": "Nous contacter"
+    },
+    "showcase": {
+      "badge": "Ils nous font confiance",
+      "title": "Des professionnels",
+      "titleAccent": "comme vous.",
+      "visit": "Voir le site de {name}"
     }
   },
   "site": {
@@ -3129,7 +3135,8 @@
       "exportTitle": "Vos données vous appartiennent",
       "exportHint": "Avant de changer de pack ou de résilier, vous pouvez télécharger toutes vos données : clientes, rendez-vous, prestations et paiements.",
       "exportLink": "Exporter mes données",
-      "exportLocked": "L'export de vos données (clientes, rendez-vous, paiements) est inclus dans les packs Pro et Business."
+      "exportLocked": "L'export de vos données (clientes, rendez-vous, paiements) est inclus dans les packs Pro et Business. Si vous résiliez, il s'ouvre pour vous jusqu'à la fin de votre abonnement.",
+      "exportBeforeLeaving": "Avant de partir, téléchargez vos données : clientes, rendez-vous, prestations et paiements. L'export reste ouvert jusqu'à la fin de votre abonnement, quel que soit votre pack."
     },
     "settings": {
       "title": "Réglages",

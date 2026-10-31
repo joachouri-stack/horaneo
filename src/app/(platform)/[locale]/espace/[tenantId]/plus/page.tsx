@@ -5,6 +5,7 @@ import { DASH_ICONS, DashIcon, panel } from "@/components/manager/DashboardWidge
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
 import type { PlanFeatures } from "@/db/schema";
+import { dataExportAllowed } from "@/modules/export/business-data";
 import { toolsOverview } from "@/modules/stats/tools";
 
 /** Pictogrammes des rubriques (traits, même style que les onglets du bas). */
@@ -62,7 +63,7 @@ const GROUPS: { key: "activity" | "sell" | "account" | "support"; items: Item[] 
       { key: "payments", href: "/plus/paiements", feature: "onlinePayment" },
       { key: "subscription", href: "/plus/abonnement" },
       { key: "settings", href: "/plus/reglages" },
-      { key: "export", href: "/plus/exporter", feature: "dataExport" },
+      { key: "export", href: "/plus/exporter" },
     ],
   },
   {
@@ -102,6 +103,8 @@ export default async function MorePage({ params }: PageProps<"/[locale]/espace/[
   const page = await managerPage(params);
   const t = await getTranslations("manager.more");
   const counts = await page.db((tx) => toolsOverview(tx, page.tenantId, page.tenant.timezone));
+  // Export : packs qui le comprennent, ou abonnement en cours de résiliation.
+  const canExport = await page.db((tx) => dataExportAllowed(tx, page.tenantId, page.tenant.features));
   return (
     <div className="space-y-8">
       <div>
@@ -114,7 +117,9 @@ export default async function MorePage({ params }: PageProps<"/[locale]/espace/[
         ...group,
         // Pas de rubrique pour une fonction que le pack ne comprend pas : le menu reste court.
         items: group.items.filter(
-          (item) => !item.feature || [item.feature].flat().some((feature) => page.tenant.features[feature]),
+          (item) =>
+            (item.key !== "export" || canExport) &&
+            (!item.feature || [item.feature].flat().some((feature) => page.tenant.features[feature])),
         ),
       }))
         .filter((group) => group.items.length > 0)
