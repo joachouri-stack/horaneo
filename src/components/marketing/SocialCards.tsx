@@ -24,7 +24,7 @@ const BRAND: Record<SocialNetwork, string> = {
 };
 
 function NetworkLogo({ network }: { network: SocialNetwork }) {
-  const common = { viewBox: "0 0 48 48", "aria-hidden": true, className: "size-12" } as const;
+  const common = { viewBox: "0 0 48 48", "aria-hidden": true, className: "size-10 sm:size-12" } as const;
   switch (network) {
     case "youtube":
       return (
@@ -75,7 +75,7 @@ export function socialHandle(url: string): string {
 }
 
 const CARD =
-  "hn-social group relative flex h-full min-h-44 flex-col items-center justify-center gap-3 overflow-hidden rounded-[1.4rem] border border-white/10 bg-white/[0.03] px-3 py-7 text-center transition duration-300 hover:-translate-y-1 hover:border-[var(--brand)] hover:shadow-[0_18px_40px_-20px_var(--brand)] focus-visible:border-[var(--brand)] focus-visible:outline-white motion-reduce:transition-none motion-reduce:hover:translate-y-0";
+  "hn-social group relative flex h-full min-h-32 flex-col items-center justify-center gap-2 overflow-hidden rounded-[1.4rem] border border-white/15 bg-white/[0.06] px-3 py-5 sm:min-h-44 sm:gap-3 sm:py-7 text-center transition duration-300 hover:-translate-y-1 hover:border-[var(--brand)] hover:shadow-[0_18px_40px_-20px_var(--brand)] focus-visible:border-[var(--brand)] focus-visible:outline-white motion-reduce:transition-none motion-reduce:hover:translate-y-0";
 
 export function SocialCards({ cards }: { cards: SocialCard[] }) {
   return (
@@ -97,10 +97,10 @@ export function SocialCards({ cards }: { cards: SocialCard[] }) {
             <span className="relative text-[var(--brand)] transition-transform duration-300 group-hover:scale-110 motion-reduce:transition-none motion-reduce:group-hover:scale-100">
               <NetworkLogo network={card.network} />
             </span>
-            <span className="hn-social-name relative text-[0.9375rem] font-semibold uppercase tracking-[0.18em] text-[#aab4cc] transition-colors group-hover:text-white">
+            <span className="hn-social-name relative text-[0.9375rem] font-semibold uppercase tracking-[0.18em] text-[#d5dbea] transition-colors group-hover:text-white">
               {card.name}
             </span>
-            <span className="relative max-w-full truncate font-mono text-mk-note text-[#8b95ad]">
+            <span className="relative max-w-full truncate font-mono text-mk-note text-[#a3adc4]">
               {card.handle}
             </span>
             <span

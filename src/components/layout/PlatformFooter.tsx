@@ -11,7 +11,7 @@ import { getPlatformSetting } from "@/modules/settings";
 const NETWORKS: SocialNetwork[] = ["youtube", "tiktok", "instagram", "facebook"];
 
 const LINK =
-  "inline-flex min-h-11 items-center text-[#c8d0e4] transition-colors hover:text-white focus-visible:outline-white";
+  "inline-flex min-h-11 items-center text-white/85 transition-colors hover:text-white focus-visible:outline-white";
 const HEADING = "mb-2 text-mk-note font-medium uppercase tracking-[0.16em] text-champagne";
 
 /**
@@ -45,7 +45,7 @@ export async function PlatformFooter() {
     return { network, url, name, handle, label: url ? t("socialLink", { network: name, handle }) : name };
   });
   return (
-    <footer className="relative overflow-hidden bg-[#0e1526] text-[#c8d0e4]">
+    <footer className="relative overflow-hidden bg-[linear-gradient(180deg,#121a2c,#0b1120)] text-[#c8d0e4]">
       {/* Filet champagne en haut, halos flous qui dérivent doucement. */}
       <div
         aria-hidden="true"
@@ -70,12 +70,12 @@ export async function PlatformFooter() {
             >
               <Logo productName={product} light className="text-[2rem]" />
             </Link>
-            <p className="mt-4 max-w-[26rem] text-[1.0625rem] leading-relaxed text-[#aab4cc]">
+            <p className="mt-4 max-w-[26rem] text-[1.0625rem] leading-relaxed text-[#d5dbea]">
               {t("tagline")}
             </p>
             <a
               href={`mailto:${contact}`}
-              className="mt-6 inline-flex min-h-11 items-center gap-2.5 rounded-full border border-white/15 bg-white/[0.04] px-5 text-[0.9375rem] text-white transition hover:border-champagne/60 hover:bg-white/[0.07] focus-visible:outline-white"
+              className="mt-6 inline-flex min-h-11 items-center gap-2.5 rounded-full border border-white/20 bg-white/[0.07] px-5 text-[0.9375rem] text-white transition hover:border-champagne/60 hover:bg-white/[0.07] focus-visible:outline-white"
             >
               <MailLine className="size-[18px] text-champagne" />
               {contact}
@@ -83,11 +83,11 @@ export async function PlatformFooter() {
           </div>
 
           {/* Déjà client : accès direct à l'espace pro. */}
-          <div className="self-start rounded-[1.4rem] border border-white/10 bg-white/[0.04] p-6 backdrop-blur-sm lg:p-7">
+          <div className="self-start rounded-[1.4rem] border border-champagne/35 bg-[linear-gradient(160deg,rgba(255,255,255,0.09),rgba(255,255,255,0.03))] shadow-[0_24px_50px_-30px_rgba(0,0,0,0.8)] p-6 backdrop-blur-sm lg:p-7">
             <p className="font-display text-mk-card font-semibold tracking-[-0.02em] text-white">
               {t("proCardTitle")}
             </p>
-            <p className="mt-2 text-[0.9375rem] leading-relaxed text-[#aab4cc]">{t("proCardText")}</p>
+            <p className="mt-2 text-[0.9375rem] leading-relaxed text-[#c8d0e4]">{t("proCardText")}</p>
             <Link
               href="/connexion"
               className="hn-shine group mt-5 inline-flex min-h-12 items-center gap-2 rounded-xl bg-[linear-gradient(135deg,#d9c08e,#e4cfa2)] px-5 text-mk-body font-medium text-[#121a2c] transition hover:-translate-y-px focus-visible:outline-white"
@@ -157,7 +157,7 @@ export async function PlatformFooter() {
           </nav>
         </div>
 
-        <div className="mt-10 border-t border-white/10 pt-6 text-[0.9375rem] text-[#8b95ad]">
+        <div className="mt-10 border-t border-white/10 pt-6 text-[0.9375rem] text-[#a3adc4]">
           <p>{t("rights", { year: new Date().getFullYear(), product: product.toLocaleUpperCase() })}</p>
         </div>
 
