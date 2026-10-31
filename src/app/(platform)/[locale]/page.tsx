@@ -149,18 +149,19 @@ const TITLE = "font-display font-semibold tracking-[-0.025em] text-night";
 /** Point corail devant les badges de section : le rappel du point du « o » de la marque. */
 const EYEBROW_DOT = <span aria-hidden="true" className="size-1.5 flex-none rounded-full bg-coral" />;
 
-/** Titre dont le point final passe en corail, comme le point du logo. */
+/** Titre dont le point (ou le point d'interrogation) final passe en corail, comme le point du logo. */
 function coralStop(text: string) {
-  if (!text.endsWith(".")) return text;
+  const stop = text.at(-1);
+  if (stop !== "." && stop !== "?") return text;
   return (
     <>
       {text.slice(0, -1)}
-      <span className="text-coral">.</span>
+      <span className="text-coral">{stop}</span>
     </>
   );
 }
 const EYEBROW =
-  "inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1 text-[0.875rem] font-medium uppercase tracking-[0.08em] text-accent-strong";
+  "inline-flex items-center gap-2 rounded-full bg-coral/10 px-3 py-1 text-[0.875rem] font-medium uppercase tracking-[0.08em] text-coral-dark";
 const PRIMARY =
   "hn-shine group inline-flex min-h-12 items-center gap-2 rounded-xl bg-accent px-5 text-[1.0625rem] font-medium text-white shadow-[0_12px_24px_-14px_var(--accent)] transition hover:-translate-y-px hover:bg-accent-strong motion-reduce:transition-none";
 const SECONDARY =
@@ -295,11 +296,12 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             >
               <div className="hn-drift absolute -left-24 top-10 size-[24rem] rounded-full bg-accent/15 blur-[90px] max-sm:size-[16rem]" />
               <div className="hn-drift-slow absolute -right-20 top-32 size-[22rem] rounded-full bg-champagne/25 blur-[90px] max-sm:size-[14rem]" />
+              <div className="hn-drift absolute right-[22%] top-[26rem] size-[18rem] rounded-full bg-coral/10 blur-[90px] max-sm:right-0 max-sm:top-[34rem] max-sm:size-[12rem]" />
             </div>
             <div className="relative mx-auto grid max-w-[75rem] items-center gap-10 px-4 pb-12 pt-6 sm:px-6 sm:pt-12 lg:grid-cols-[1.08fr_0.92fr] lg:gap-8 lg:pb-16 lg:pt-16 2xl:max-w-[88rem]">
               <div>
                 {/* Petite annonce : une ligne, casse normale, point lumineux. */}
-                <p className="hn-up inline-flex max-w-full items-center gap-2.5 rounded-full border border-hairline bg-white/80 py-1.5 pl-2.5 pr-4 text-mk-note font-medium text-night shadow-[0_6px_18px_-12px_rgba(15,24,48,.35)] backdrop-blur">
+                <p className="hn-up inline-flex max-w-full items-center gap-2.5 rounded-full border border-coral/25 bg-white/80 py-1.5 pl-2.5 pr-4 text-mk-note font-medium text-night shadow-[0_6px_18px_-12px_rgba(15,24,48,.35)] backdrop-blur">
                   <span aria-hidden="true" className="relative flex size-2 flex-none">
                     <span className="hn-ping absolute inset-0 rounded-full bg-coral" />
                     <span className="relative size-2 rounded-full bg-coral" />
@@ -373,7 +375,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 <ul className="hn-up-4 mt-7 hidden flex-wrap gap-x-5 gap-y-2 text-mk-small text-ink-soft sm:flex">
                   {(t.raw("hero.points") as string[]).map((point) => (
                     <li key={point} className="flex items-center gap-2">
-                      <span className="flex size-5 flex-none items-center justify-center rounded-full bg-accent-soft text-accent">
+                      <span className="flex size-5 flex-none items-center justify-center rounded-full bg-coral/10 text-coral-dark">
                         <CheckLine className="size-3" />
                       </span>
                       {point}
@@ -402,7 +404,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   </div>
                 </div>
                 <div className="hn-float absolute left-0 top-[10%] flex items-center gap-3 rounded-2xl border border-hairline bg-white/95 py-2.5 pl-2.5 pr-8 shadow-[0_18px_36px_-20px_rgba(15,24,48,.5)] backdrop-blur sm:-left-4">
-                  <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-accent-soft text-accent">
+                  <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-coral/10 text-coral-dark">
                     <CalendarLine className="size-[18px]" />
                   </span>
                   <span className="leading-tight">
@@ -481,7 +483,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                               key={key}
                               className="group inline-flex items-center gap-2 rounded-full border border-accent-line/60 bg-accent-soft/60 py-1.5 pl-2 pr-3.5 text-mk-small font-medium text-night transition-colors duration-300 hover:border-coral/40 hover:bg-coral/10 hover:text-coral-dark"
                             >
-                              <span className="flex size-6 flex-none items-center justify-center rounded-full bg-white text-accent transition-colors duration-300 group-hover:text-coral-dark">
+                              <span className="flex size-6 flex-none items-center justify-center rounded-full bg-white text-coral transition-colors duration-300 group-hover:text-coral-dark">
                                 <Icon className="size-3.5" />
                               </span>
                               {label}
@@ -540,7 +542,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                           data-reveal
                           className="group flex items-start gap-3.5 px-4 py-3.5 transition duration-300 motion-reduce:transition-none sm:gap-4 sm:rounded-2xl sm:border sm:border-hairline sm:bg-white sm:p-4 sm:shadow-[0_1px_2px_rgba(15,24,48,.04)] sm:hover:-translate-y-1 sm:hover:border-coral/40 sm:hover:shadow-[0_14px_30px_-18px_rgba(232,80,63,.45)] lg:p-5"
                         >
-                          <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-accent-soft text-accent transition-colors duration-300 group-hover:bg-coral/10 group-hover:text-coral-dark sm:size-11">
+                          <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-coral/10 text-coral-dark transition-colors duration-300 group-hover:bg-coral group-hover:text-white sm:size-11">
                             <Icon className="size-5 sm:size-[1.375rem]" />
                           </span>
                           <span className="min-w-0">
@@ -573,7 +575,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           >
             <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-40 -z-10 h-[40rem]">
               <div className="hn-drift absolute left-[10%] top-20 size-[26rem] rounded-full bg-accent/15 blur-[100px]" />
-              <div className="hn-drift-slow absolute right-[8%] top-40 size-[22rem] rounded-full bg-champagne/25 blur-[100px]" />
+              <div className="hn-drift-slow absolute right-[8%] top-40 size-[22rem] rounded-full bg-coral/10 blur-[100px]" />
             </div>
             <div className="mx-auto max-w-[72rem] 2xl:max-w-[85rem]">
               <div className="mx-auto max-w-[46rem] text-center">
@@ -639,7 +641,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     className={`group flex items-start gap-4 rounded-2xl border border-hairline p-4 transition duration-300 motion-reduce:transition-none sm:max-lg:last:col-span-2 lg:col-span-2 lg:p-5 lg:[&:nth-child(n+4)]:col-span-3 ${later ? "bg-mist-50/60" : "bg-white shadow-[0_1px_2px_rgba(15,24,48,.04)] hover:-translate-y-1 hover:border-coral/40 hover:shadow-[0_14px_30px_-18px_rgba(232,80,63,.45)]"}`}
                   >
                     <span
-                      className={`flex size-11 flex-none items-center justify-center rounded-xl transition-colors duration-300 ${later ? "bg-white text-ink-soft" : "bg-accent-soft text-accent group-hover:bg-coral/10 group-hover:text-coral-dark"}`}
+                      className={`flex size-11 flex-none items-center justify-center rounded-xl transition-colors duration-300 ${later ? "bg-white text-ink-soft" : "bg-coral/10 text-coral-dark group-hover:bg-coral group-hover:text-white"}`}
                     >
                       <item.Icon className="size-[1.375rem]" />
                     </span>
@@ -749,7 +751,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               <p className="mt-3 text-ink-soft">{t("faq.intro")}</p>
               <a
                 href={`mailto:${contact}`}
-                className="mt-4 inline-flex min-h-11 items-center font-medium text-navy underline underline-offset-4"
+                className="mt-4 inline-flex min-h-11 items-center font-medium text-navy underline decoration-coral decoration-2 underline-offset-4 transition-colors hover:text-coral-dark"
               >
                 {t("faq.contact")}
               </a>
@@ -776,7 +778,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           >
             <div
               aria-hidden="true"
-              className="hn-drift pointer-events-none absolute -left-16 -top-24 size-80 rounded-full bg-[#5b6fd6]/10 blur-[80px]"
+              className="hn-drift pointer-events-none absolute -left-16 -top-24 size-80 rounded-full bg-coral/10 blur-[80px]"
             />
             <div
               aria-hidden="true"
@@ -797,7 +799,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               )}
             </p>
             <h2 className="relative mx-auto mt-5 max-w-[40rem] font-display text-mk-h2 font-semibold tracking-[-0.025em] text-night">
-              {t("final.title")}
+              {coralStop(t("final.title"))}
             </h2>
             <p className="relative mx-auto mt-3 max-w-[32rem] text-[1.0625rem] text-ink-soft">
               {t("final.text")}
@@ -820,7 +822,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             <ul className="relative mx-auto mt-8 flex w-fit flex-col items-start gap-x-6 gap-y-2 text-mk-small text-ink-soft sm:flex-row sm:flex-wrap sm:justify-center">
               {(t.raw("hero.points") as string[]).map((point) => (
                 <li key={point} className="flex items-center gap-2">
-                  <span className="flex size-5 flex-none items-center justify-center rounded-full bg-navy/10 text-navy">
+                  <span className="flex size-5 flex-none items-center justify-center rounded-full bg-coral/10 text-coral-dark">
                     <CheckLine className="size-3" />
                   </span>
                   {point}

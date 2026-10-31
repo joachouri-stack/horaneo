@@ -46,10 +46,10 @@ export async function PlatformFooter() {
   });
   return (
     <footer className="relative overflow-hidden bg-[linear-gradient(180deg,#121a2c,#0b1120)] text-[#c8d0e4]">
-      {/* Filet champagne en haut, halos flous qui dérivent doucement. */}
+      {/* Filet champagne et corail en haut, halos flous qui dérivent doucement. */}
       <div
         aria-hidden="true"
-        className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,#d9c08e_30%,#e4cfa2_50%,#d9c08e_70%,transparent)] opacity-70"
+        className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,#d9c08e_25%,var(--color-coral)_50%,#d9c08e_75%,transparent)] opacity-80"
       />
       <div
         aria-hidden="true"
@@ -77,7 +77,7 @@ export async function PlatformFooter() {
               href={`mailto:${contact}`}
               className="mt-6 inline-flex min-h-11 items-center gap-2.5 rounded-full border border-white/20 bg-white/[0.07] px-5 text-[0.9375rem] text-white transition hover:border-champagne/60 hover:bg-white/[0.07] focus-visible:outline-white"
             >
-              <MailLine className="size-[18px] text-champagne" />
+              <MailLine className="size-[18px] text-coral" />
               {contact}
             </a>
           </div>
