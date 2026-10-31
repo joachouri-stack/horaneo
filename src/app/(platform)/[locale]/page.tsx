@@ -301,7 +301,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             <div className="relative mx-auto grid max-w-[75rem] items-center gap-10 px-4 pb-12 pt-6 sm:px-6 sm:pt-12 lg:grid-cols-[1.08fr_0.92fr] lg:gap-8 lg:pb-16 lg:pt-16 2xl:max-w-[88rem]">
               <div>
                 {/* Petite annonce : une ligne, casse normale, point lumineux. */}
-                <p className="hn-up inline-flex max-w-full items-center gap-2.5 rounded-full border border-hairline bg-white/80 py-1.5 pl-2.5 pr-4 text-mk-note font-medium text-night shadow-[0_6px_18px_-12px_rgba(15,24,48,.35)] backdrop-blur">
+                <p className="hn-up inline-flex max-w-full items-center gap-2.5 rounded-full border border-coral/25 bg-white/80 py-1.5 pl-2.5 pr-4 text-mk-note font-medium text-night shadow-[0_6px_18px_-12px_rgba(15,24,48,.35)] backdrop-blur">
                   <span aria-hidden="true" className="relative flex size-2 flex-none">
                     <span className="hn-ping absolute inset-0 rounded-full bg-coral" />
                     <span className="relative size-2 rounded-full bg-coral" />
@@ -404,7 +404,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   </div>
                 </div>
                 <div className="hn-float absolute left-0 top-[10%] flex items-center gap-3 rounded-2xl border border-hairline bg-white/95 py-2.5 pl-2.5 pr-8 shadow-[0_18px_36px_-20px_rgba(15,24,48,.5)] backdrop-blur sm:-left-4">
-                  <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-accent-soft text-accent">
+                  <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-coral/10 text-coral-dark">
                     <CalendarLine className="size-[18px]" />
                   </span>
                   <span className="leading-tight">
@@ -542,7 +542,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                           data-reveal
                           className="group flex items-start gap-3.5 px-4 py-3.5 transition duration-300 motion-reduce:transition-none sm:gap-4 sm:rounded-2xl sm:border sm:border-hairline sm:bg-white sm:p-4 sm:shadow-[0_1px_2px_rgba(15,24,48,.04)] sm:hover:-translate-y-1 sm:hover:border-coral/40 sm:hover:shadow-[0_14px_30px_-18px_rgba(232,80,63,.45)] lg:p-5"
                         >
-                          <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-accent-soft text-accent transition-colors duration-300 group-hover:bg-coral/10 group-hover:text-coral-dark sm:size-11">
+                          <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-coral/10 text-coral-dark transition-colors duration-300 group-hover:bg-coral group-hover:text-white sm:size-11">
                             <Icon className="size-5 sm:size-[1.375rem]" />
                           </span>
                           <span className="min-w-0">
@@ -641,7 +641,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     className={`group flex items-start gap-4 rounded-2xl border border-hairline p-4 transition duration-300 motion-reduce:transition-none sm:max-lg:last:col-span-2 lg:col-span-2 lg:p-5 lg:[&:nth-child(n+4)]:col-span-3 ${later ? "bg-mist-50/60" : "bg-white shadow-[0_1px_2px_rgba(15,24,48,.04)] hover:-translate-y-1 hover:border-coral/40 hover:shadow-[0_14px_30px_-18px_rgba(232,80,63,.45)]"}`}
                   >
                     <span
-                      className={`flex size-11 flex-none items-center justify-center rounded-xl transition-colors duration-300 ${later ? "bg-white text-ink-soft" : "bg-accent-soft text-accent group-hover:bg-coral/10 group-hover:text-coral-dark"}`}
+                      className={`flex size-11 flex-none items-center justify-center rounded-xl transition-colors duration-300 ${later ? "bg-white text-ink-soft" : "bg-coral/10 text-coral-dark group-hover:bg-coral group-hover:text-white"}`}
                     >
                       <item.Icon className="size-[1.375rem]" />
                     </span>
@@ -751,7 +751,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               <p className="mt-3 text-ink-soft">{t("faq.intro")}</p>
               <a
                 href={`mailto:${contact}`}
-                className="mt-4 inline-flex min-h-11 items-center font-medium text-navy underline underline-offset-4"
+                className="mt-4 inline-flex min-h-11 items-center font-medium text-navy underline decoration-coral decoration-2 underline-offset-4 transition-colors hover:text-coral-dark"
               >
                 {t("faq.contact")}
               </a>

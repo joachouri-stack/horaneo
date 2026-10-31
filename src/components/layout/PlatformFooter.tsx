@@ -77,7 +77,7 @@ export async function PlatformFooter() {
               href={`mailto:${contact}`}
               className="mt-6 inline-flex min-h-11 items-center gap-2.5 rounded-full border border-white/20 bg-white/[0.07] px-5 text-[0.9375rem] text-white transition hover:border-champagne/60 hover:bg-white/[0.07] focus-visible:outline-white"
             >
-              <MailLine className="size-[18px] text-champagne" />
+              <MailLine className="size-[18px] text-coral" />
               {contact}
             </a>
           </div>
