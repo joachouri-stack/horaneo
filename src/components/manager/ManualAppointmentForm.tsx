@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import {
   createManualAction,
@@ -9,6 +9,7 @@ import {
 } from "@/app/(platform)/[locale]/espace/[tenantId]/actions";
 import { ActionForm } from "@/components/admin/ActionForm";
 import { ui } from "@/components/ui/styles";
+import { birthMonthNames } from "@/modules/customers/birthday";
 
 type Props = {
   tenantId: string;
@@ -47,6 +48,8 @@ const fold = (value: string) =>
  */
 export function ManualAppointmentForm({ tenantId, services, staff, defaults }: Props) {
   const t = useTranslations("manager.manual");
+  const tCustomers = useTranslations("manager.customers");
+  const locale = useLocale();
   const [serviceIds, setServiceIds] = useState<string[]>([]);
   const eligible = staff.filter((member) => serviceIds.every((id) => member.serviceIds.includes(id)));
   const [staffId, setStaffId] = useState<string>(defaults.staffId ?? staff[0]?.id ?? "");
@@ -192,6 +195,35 @@ export function ManualAppointmentForm({ tenantId, services, staff, defaults }: P
                 </div>
               ))}
             </div>
+            {/* Anniversaire (jour et mois, sans l'année) : facultatif, pour l'offre anniversaire. */}
+            <fieldset>
+              <legend className={ui.label}>{tCustomers("birthday")}</legend>
+              <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-3">
+                <label htmlFor="m-birthDay" className="sr-only">
+                  {tCustomers("birthdayDay")}
+                </label>
+                <select id="m-birthDay" name="birthDay" defaultValue="" className={ui.input}>
+                  <option value="">{tCustomers("birthdayDay")}</option>
+                  {Array.from({ length: 31 }, (_, i) => (
+                    <option key={i + 1} value={i + 1}>
+                      {i + 1}
+                    </option>
+                  ))}
+                </select>
+                <label htmlFor="m-birthMonth" className="sr-only">
+                  {tCustomers("birthdayMonth")}
+                </label>
+                <select id="m-birthMonth" name="birthMonth" defaultValue="" className={ui.input}>
+                  <option value="">{tCustomers("birthdayMonth")}</option>
+                  {birthMonthNames(locale).map((item) => (
+                    <option key={item.month} value={item.month}>
+                      {item.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <p className="mt-1 text-sm text-ink/60">{tCustomers("birthdayHint")}</p>
+            </fieldset>
             <button
               type="button"
               onClick={() => setMode("existing")}

@@ -37,6 +37,7 @@ import { setOnlineBooking, updateBookingSettings } from "@/modules/booking/setti
 import { disableCalendarFeed, renewCalendarFeed } from "@/modules/agenda/calendar-feed";
 import { DATE_PATTERN, localToUtc } from "@/modules/booking/time";
 import { deleteCategory, deleteService, saveCategory, saveService } from "@/modules/catalog/services";
+import { MANAGER_PAGE_KEYS, PAGE_TEXT_FIELDS, updatePageTexts } from "@/modules/content/pages";
 import { deleteTestimonial, saveTestimonial } from "@/modules/content/testimonials";
 import { saveCustomer, searchCustomers } from "@/modules/customers/customers";
 import { assertSitePhoto, restoreAsset, retireAsset, uploadAsset, uploadLogo } from "@/modules/media/assets";
@@ -148,6 +149,8 @@ export async function createManualAction(
             lastName: form.optional(data, "lastName"),
             phone: form.optional(data, "phone"),
             email: form.optional(data, "email"),
+            birthMonth: Number(form.optional(data, "birthMonth")) || null,
+            birthDay: Number(form.optional(data, "birthDay")) || null,
           },
       internalNote: form.optional(data, "internalNote"),
     }),
@@ -334,6 +337,19 @@ export async function uploadPhotoAction(_previous: Previous, data: FormData) {
       uploadedByUserId: context.userId,
       alt: form.optional(data, "alt"),
     });
+  });
+}
+
+/** Textes de présentation d'une page du site, modifiés par la gérante. */
+export async function savePageTextsAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const pageKey = z.enum(MANAGER_PAGE_KEYS).parse(form.text(data, "pageKey"));
+  const texts = Object.fromEntries(
+    PAGE_TEXT_FIELDS[pageKey].map((field) => [field, form.text(data, `text.${field}`)]),
+  );
+  return managerMutation(tenantId, "page.texts_updated", async (tx, context) => {
+    await assertPrimaryBusiness(tx, tenantId, context.businessId, "site_content_primary_only");
+    await updatePageTexts(tx, tenantId, { pageKey, texts });
   });
 }
 

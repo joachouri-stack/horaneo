@@ -2,10 +2,11 @@ import { tenantFeatures, tenantLimits } from "@/modules/billing/entitlements";
 import { appointmentEvent, googleCalendarUrl } from "@/lib/calendar/appointment";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { declareBusiness } from "@/db/access";
-import { formatMoney } from "@/lib/format";
+import { dateFormatter, formatMoney } from "@/lib/format";
 import type { Transaction } from "@/db/client";
 import {
   appointmentItems,
+  assets,
   appointments,
   customers,
   memberships,
@@ -73,7 +74,13 @@ export type Rendered =
     }
   | { kind: "skip"; reason: string };
 
-export type RenderOptions = { productName: string; appUrl: string; now: Date };
+export type RenderOptions = {
+  productName: string;
+  appUrl: string;
+  now: Date;
+  /** Adresse publique d'un fichier stocké (logo de l'établissement dans les e-mails). */
+  mediaUrl?: (key: string) => string;
+};
 
 type Translator = Awaited<ReturnType<typeof getTranslator>>;
 
@@ -94,8 +101,13 @@ async function loadTenant(tx: Transaction, tenantId: string) {
         eq(tenantDomains.status, "active"),
       ),
     );
+  const logoId = row.tenant.brand.logoAssetId;
+  const [logo] = logoId
+    ? await tx.select({ storageKey: assets.storageKey }).from(assets).where(eq(assets.id, logoId))
+    : [];
   return {
     ...row.tenant,
+    logoKey: logo?.storageKey ?? null,
     features: row.features as PlanFeatures,
     limits: row.limits as PlanLimits,
     siteUrl: domain ? tenantSiteUrl(domain.hostname) : null,
@@ -104,6 +116,12 @@ async function loadTenant(tx: Transaction, tenantId: string) {
 }
 
 type TenantInfo = NonNullable<Awaited<ReturnType<typeof loadTenant>>>;
+
+/** Logo de l'établissement pour les e-mails : adresse complète, ou rien. */
+function logoUrlOf(tenant: TenantInfo, options: RenderOptions) {
+  if (!tenant.logoKey || !options.mediaUrl) return null;
+  return new URL(options.mediaUrl(tenant.logoKey), options.appUrl).href;
+}
 
 async function loadAppointment(tx: Transaction, tenantId: string, appointmentId: string, locale: Locale) {
   const [row] = await tx
@@ -129,7 +147,9 @@ async function loadAppointment(tx: Transaction, tenantId: string, appointmentId:
 type AppointmentInfo = NonNullable<Awaited<ReturnType<typeof loadAppointment>>>;
 
 function formatters(locale: Locale, timeZone: string) {
-  const date = new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long", timeZone });
+  const date = {
+    format: dateFormatter(locale, { weekday: "long", day: "numeric", month: "long", timeZone }),
+  };
   const time = new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "2-digit", timeZone });
   return {
     date: (value: Date) => date.format(value),
@@ -145,7 +165,9 @@ function tenantFooter(tenant: TenantInfo) {
   const address = [tenant.addressLine1, [tenant.postalCode, tenant.city].filter(Boolean).join(" ")]
     .filter(Boolean)
     .join(", ");
-  return [tenant.name, address, tenant.phone ? formatPhone(tenant.phone) : ""].filter(Boolean);
+  return [tenant.name, address, tenant.phone ? formatPhone(tenant.phone, tenant.country) : ""].filter(
+    Boolean,
+  );
 }
 
 /** Prestations suivies de leur durée : « Massage (1 h), Gommage (30 min) ». */
@@ -352,6 +374,7 @@ async function renderGiftCard(
   const { html, text } = renderEmail({
     locale,
     brandName: tenant.name,
+    logoUrl: logoUrlOf(tenant, options),
     color: tenant.color,
     title,
     paragraphs,
@@ -396,6 +419,7 @@ async function renderLogin(
   const { html, text } = renderEmail({
     locale,
     brandName: tenant.name,
+    logoUrl: logoUrlOf(tenant, options),
     color: tenant.color,
     title: t("notifications.customer.login_link.title"),
     paragraphs: [t("notifications.customer.login_link.intro", { business: tenant.name })],
@@ -473,6 +497,7 @@ async function renderBirthday(
   const { html, text } = renderEmail({
     locale,
     brandName: tenant.name,
+    logoUrl: logoUrlOf(tenant, options),
     color: tenant.color,
     title: t("notifications.customer.birthday.title", { firstName: customer.firstName }),
     paragraphs: [t("notifications.customer.birthday.intro", { business, percent: code.discountValue })],
@@ -534,7 +559,7 @@ async function renderCustomer(
     const build = (name: string) =>
       t("notifications.customer.reminder_sms.text", { time: fmt.time(a.startsAt), business: name }) +
       (tenant.phone
-        ? t("notifications.customer.reminder_sms.phone", { phone: formatPhone(tenant.phone) })
+        ? t("notifications.customer.reminder_sms.phone", { phone: formatPhone(tenant.phone, tenant.country) })
         : "");
     return {
       kind: "sms",
@@ -552,16 +577,17 @@ async function renderCustomer(
   // « Répondez à cet e-mail » seulement si les réponses arrivent bien à l'établissement.
   const contact = tenant.email
     ? tenant.phone
-      ? t("notifications.common.contact", { phone: formatPhone(tenant.phone) })
+      ? t("notifications.common.contact", { phone: formatPhone(tenant.phone, tenant.country) })
       : t("notifications.common.contactEmail")
     : tenant.phone
-      ? t("notifications.common.contactPhone", { phone: formatPhone(tenant.phone) })
+      ? t("notifications.common.contactPhone", { phone: formatPhone(tenant.phone, tenant.country) })
       : null;
   const rebook = { label: t("notifications.common.rebook"), url: `${siteUrl}${SITE_PATHS.booking}` };
   const manageAction = { label: t("notifications.common.manage"), url: manageUrl };
   // Espace des clientes (pack qui l'inclut) : « Retrouvez tous vos rendez-vous sur … ».
-  const spaceLine = tenant.features.customerSpace
-    ? [t("notifications.common.spaceHint", { url: `${siteUrl}${SITE_PATHS.account}` })]
+  const spaceLine = tenant.features.customerSpace ? [t("notifications.common.spaceHint")] : [];
+  const spaceLink = tenant.features.customerSpace
+    ? [{ label: t("notifications.common.openSpace"), url: `${siteUrl}${SITE_PATHS.account}` }]
     : [];
   const refundLine = (cents: number | undefined) =>
     cents && cents > 0 ? [t("notifications.common.refund", { amount: fmt.money(cents, a.currency) })] : [];
@@ -603,7 +629,7 @@ async function renderCustomer(
       subject = t("notifications.customer.confirmation.subject", { date: fmt.date(a.startsAt) });
       title = t("notifications.customer.confirmation.title");
       paragraphs = [greeting, t("notifications.customer.confirmation.intro", { business })];
-      links = calendarLinks;
+      links = [...calendarLinks, ...spaceLink];
       after = [await manageHint(tx, t, fmt, info, tenant, options.now), ...spaceLine];
       break;
     case "customer.reminder_email":
@@ -613,6 +639,7 @@ async function renderCustomer(
       });
       title = t("notifications.customer.reminder_email.title");
       paragraphs = [greeting, t("notifications.customer.reminder_email.intro", { business })];
+      links = spaceLink;
       after = [await manageHint(tx, t, fmt, info, tenant, options.now), ...spaceLine];
       break;
     case "customer.cancelled":
@@ -685,6 +712,7 @@ async function renderCustomer(
   const { html, text } = renderEmail({
     locale,
     brandName: business,
+    logoUrl: logoUrlOf(tenant, options),
     color: tenant.color,
     title,
     paragraphs,

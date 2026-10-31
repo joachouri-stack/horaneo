@@ -752,6 +752,10 @@
           "title": "Logo",
           "text": "Changez le logo de votre site quand vous le souhaitez."
         },
+        "texts": {
+          "title": "Textes de présentation",
+          "text": "Votre accroche, votre présentation et vos infos pratiques."
+        },
         "hours": {
           "title": "Horaires d'ouverture",
           "text": "Vos jours et heures d'ouverture, mis à jour en un clic."
@@ -768,7 +772,7 @@
         }
       },
       "brand": {
-        "title": "Couleurs et textes de présentation",
+        "title": "Couleurs du site",
         "text": "Une simple demande depuis votre espace : notre équipe s'en occupe pour vous."
       },
       "panel": {
@@ -1039,9 +1043,9 @@
       "categoryMetaTitle": "{category}{city, select, none {} other { à {city}}}",
       "categoryMetaDescription": "{category} chez {name}{city, select, none {} other { à {city}}} : prestations, durées et tarifs. Réservez en ligne.",
       "otherCategories": "Autres prestations",
-      "durationMinutes": "{minutes} min",
-      "durationHours": "{hours} h",
-      "durationHoursMinutes": "{hours} h {minutes}"
+      "durationMinutes": "{minutes} min",
+      "durationHours": "{hours} h",
+      "durationHoursMinutes": "{hours} h {minutes}"
     },
     "about": {
       "title": "L'établissement",
@@ -2820,16 +2824,35 @@
     },
     "site": {
       "title": "Mon site",
-      "intro": "Modifiez vous-même vos prestations, horaires, photos, témoignages et votre logo.",
+      "intro": "Modifiez vous-même vos prestations, horaires, photos, témoignages, textes de présentation et votre logo.",
       "services": "Prestations et prix",
       "hours": "Horaires d'ouverture",
       "photos": "Photos",
       "testimonials": "Témoignages",
       "view": "Voir mon site",
-      "requestTitle": "Couleurs et textes de présentation",
-      "requestText": "Ces éléments sont modifiés par notre équipe. Envoyez-nous votre demande.",
+      "requestTitle": "Couleurs du site",
+      "requestText": "Les couleurs sont modifiées par notre équipe. Envoyez-nous votre demande.",
       "requestCta": "Demander une modification",
       "sharedContent": "Les photos, les avis et le logo sont communs à tout le site : ils se gèrent depuis l'espace de l'établissement principal.",
+      "texts": {
+        "link": "Textes de présentation",
+        "title": "Textes de présentation",
+        "intro": "Les textes de votre site, à modifier quand vous voulez : les changements sont en ligne dès l'enregistrement.",
+        "pages": {
+          "home": "Page d'accueil",
+          "about": "Page « L'établissement »",
+          "practical": "Infos pratiques"
+        },
+        "fields": {
+          "tagline": "Titre de l'accueil",
+          "taglineAccent": "Fin du titre, en italique (selon le modèle du site)",
+          "badge": "Petite étiquette au-dessus du titre (ex. « Institut de beauté à Avignon »)",
+          "intro": "Présentation",
+          "title": "Titre",
+          "body": "Texte",
+          "access": "Accès, parking, transports"
+        }
+      },
       "logo": {
         "title": "Logo",
         "current": "Logo actuel",
@@ -2887,7 +2910,7 @@
         "payments": "Acomptes versés directement sur votre compte.",
         "subscription": "Votre pack et votre utilisation du mois.",
         "settings": "Réservation en ligne, horaires et informations.",
-        "requests": "Couleurs, textes : demandez un changement.",
+        "requests": "Couleurs, mise en page : demandez un changement.",
         "customerData": "Copies et suppressions demandées par vos clientes.",
         "help": "Questions fréquentes et contact du support.",
         "export": "Clientes, rendez-vous et paiements en tableaux."
@@ -3130,7 +3153,7 @@
     },
     "requests": {
       "title": "Demandes de modification",
-      "intro": "Couleurs, mise en page, textes de présentation : décrivez ce que vous souhaitez changer.",
+      "intro": "Couleurs, mise en page : décrivez ce que vous souhaitez changer.",
       "subject": "Sujet",
       "message": "Votre demande",
       "send": "Envoyer la demande",
@@ -3154,7 +3177,7 @@
       "q2": "Comment fermer un jour férié ?",
       "a2": "Dans « Plus » → « Indisponibilités », choisissez « Établissement fermé » et la date.",
       "q3": "Comment changer mon logo ou mes textes ?",
-      "a3": "Le logo se change vous-même dans « Mon site » → « Logo ». Pour les couleurs ou les textes, envoyez une demande depuis « Mon site » → « Demander une modification »."
+      "a3": "Le logo et les textes de présentation se changent vous-même dans « Mon site ». Pour les couleurs, envoyez une demande depuis « Mon site » → « Demander une modification »."
     },
     "payments": {
       "title": "Paiements en ligne",
@@ -3537,7 +3560,7 @@
       "contactEmail": "Une question ? Répondez simplement à cet e-mail.",
       "managerFooter": "Message automatique envoyé par {product}.",
       "openSpace": "Ouvrir mon espace",
-      "spaceHint": "Retrouvez tous vos rendez-vous et vos avantages sur {url}",
+      "spaceHint": "Retrouvez tous vos rendez-vous et vos avantages dans votre espace.",
       "summaryFooter": "Vous pouvez couper les résumés dans Plus → Réglages.",
       "addToCalendar": "Ajouter à mon agenda",
       "googleCalendar": "Google Agenda",
@@ -3549,7 +3572,7 @@
       "confirmation": {
         "subject": "Votre rendez-vous du {date} est confirmé",
         "title": "Rendez-vous confirmé",
-        "intro": "Votre rendez-vous chez {business} est bien enregistré."
+        "intro": "Merci pour votre réservation ! Votre rendez-vous chez {business} est bien enregistré."
       },
       "reminder_email": {
         "subject": "Rappel : votre rendez-vous du {date} à {time}",

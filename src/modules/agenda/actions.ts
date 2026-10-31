@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { Transaction } from "@/db/client";
 import { appointmentItems, appointments, customers, services, staffServices, tenants } from "@/db/schema";
 import { assignManageToken } from "@/modules/booking/create";
+import { isValidBirthday } from "@/modules/customers/birthday";
 import { computeTotals } from "@/modules/booking/pricing";
 import { addMinutes } from "@/modules/booking/time";
 import { creditBackForAppointment } from "@/modules/giftcards/giftcards";
@@ -177,6 +178,9 @@ export const manualAppointmentInput = z.object({
       firstName: z.string().trim().min(1).max(80),
       lastName: z.string().trim().max(80).optional(),
       phone: z.string().trim().max(40).optional(),
+      /** Anniversaire (jour et mois, sans l'année) : les deux ou aucun. */
+      birthMonth: z.number().int().min(1).max(12).nullish(),
+      birthDay: z.number().int().min(1).max(31).nullish(),
       email: z
         .string()
         .trim()
@@ -223,6 +227,10 @@ export async function createManualAppointment(
     if (!existing) throw new AppError("not_found", "customerId");
   } else {
     if (!input.newCustomer) throw new AppError("invalid", "customer");
+    const { birthMonth, birthDay } = input.newCustomer;
+    const birthdayGiven = birthMonth != null || birthDay != null;
+    if (birthdayGiven && !isValidBirthday(birthMonth ?? 0, birthDay ?? 0))
+      throw new AppError("invalid", "birthDay");
     const phone = normalizePhone(input.newCustomer.phone, tenant.country, "phone");
     if (!phone && !input.newCustomer.email) throw new AppError("invalid", "phone");
     const [existing] = input.newCustomer.email
@@ -250,6 +258,7 @@ export async function createManualAppointment(
             phone,
             email: input.newCustomer.email ?? null,
             locale: tenant.locale,
+            ...(birthdayGiven ? { birthMonth, birthDay } : {}),
           })
           .returning({ id: customers.id })
       )[0].id;

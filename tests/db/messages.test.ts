@@ -460,7 +460,7 @@ describe.skipIf(!hasTestDatabase)("messages automatiques", () => {
       );
       expect(sms).toHaveLength(1);
       expect(plain(sms[0].text)).toBe(
-        `Rappel : rendez-vous demain à 10:00 chez Belle Époque ${n}. Pour annuler ou déplacer : +33 4 72 00 00 00`,
+        `Rappel : rendez-vous demain à 10:00 chez Belle Époque ${n}. Pour annuler ou déplacer : 04 72 00 00 00`,
       );
       expect(sms[0].sender).toBe(smsSenderName(`Belle Époque ${n}`, "Horaneo"));
       expect(sms[0].sender.length).toBeLessThanOrEqual(11);

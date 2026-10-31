@@ -52,3 +52,19 @@ export function formatDateTime(
     new Date(date),
   );
 }
+
+/**
+ * Formateur de dates qui suit l'usage français pour le premier du mois :
+ * « dimanche 1er novembre » plutôt que « dimanche 1 novembre ».
+ */
+export function dateFormatter(locale: string, options: Intl.DateTimeFormatOptions) {
+  const format = new Intl.DateTimeFormat(locale, options);
+  const firstOfMonth = locale.startsWith("fr") && options.day === "numeric" && options.month === "long";
+  return (value: Date) =>
+    firstOfMonth
+      ? format
+          .formatToParts(value)
+          .map((part) => (part.type === "day" && part.value === "1" ? "1er" : part.value))
+          .join("")
+      : format.format(value);
+}
