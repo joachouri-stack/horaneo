@@ -877,7 +877,7 @@
         },
         "data": {
           "q": "Mes données m'appartiennent-elles ?",
-          "a": "Oui. Votre fichier clients, vos rendez-vous et vos contenus vous sont remis sur simple demande, y compris si vous quittez {product}."
+          "a": "Oui. Dès le pack Pro, vous téléchargez vous-même en un clic, depuis votre espace, votre fichier clients, vos rendez-vous et vos paiements. Sur les autres packs, ils vous sont remis sur simple demande, y compris si vous quittez {product}."
         }
       }
     },
@@ -904,7 +904,6 @@
       "proCardTitle": "Déjà client ?",
       "proCardText": "Retrouvez votre agenda, vos clients et votre site dans votre espace professionnel.",
       "socialTitle": "Suivez-nous",
-      "socialSoon": "Bientôt",
       "socialLink": "{network} : {handle} (nouvel onglet)",
       "networks": {
         "youtube": "YouTube",
@@ -915,7 +914,8 @@
     },
     "whatsapp": {
       "label": "Nous écrire sur WhatsApp",
-      "defaultMessage": "Bonjour, j'ai une question."
+      "defaultMessage": "Bonjour, j'ai une question.",
+      "fallbackLabel": "Nous contacter"
     }
   },
   "site": {

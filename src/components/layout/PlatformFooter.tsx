@@ -1,4 +1,4 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { WhatsAppBubble } from "@/components/marketing/WhatsAppBubble";
 import { Logo } from "@/components/brand/Logo";
 import { NAV } from "@/components/layout/PlatformHeader";
@@ -34,32 +34,36 @@ export async function PlatformFooter() {
     { href: "/confidentialite", label: t("privacy") },
     { href: "/conditions", label: t("terms") },
   ] as const;
-  // Les quatre réseaux sont toujours affichés ; ceux dont l'adresse n'est pas encore
-  // renseignée (Admin → Réglages → Réseaux sociaux) portent « Bientôt » et ne s'ouvrent pas.
+  // Seuls les réseaux dont l'adresse est renseignée (Admin → Réglages → Réseaux sociaux)
+  // sont affichés ; sans aucun, le bloc « Suivez-nous » est masqué.
   const urls = await withPlatform(async (tx) =>
     Promise.all(NETWORKS.map(async (network) => String(await getPlatformSetting(tx, `social_${network}`)))),
   );
-  // Bulle WhatsApp (Admin → Réglages → WhatsApp) : seulement si un numéro est renseigné.
+  // Bulle WhatsApp (Admin → Réglages → WhatsApp), toujours affichée : sans numéro renseigné,
+  // elle mène à la demande de rappel.
   const whatsapp = await withPlatform(async (tx) => ({
     phone: String(await getPlatformSetting(tx, "whatsapp_number")),
     message: String(await getPlatformSetting(tx, "whatsapp_message")),
   }));
   const tWhatsapp = await getTranslations("home.whatsapp");
-  const socials = NETWORKS.map((network, index) => {
-    const url = urls[index] || null;
+  const socials = NETWORKS.flatMap((network, index) => {
+    const url = urls[index];
+    if (!url) return [];
     const name = t(`networks.${network}`);
-    const handle = url ? socialHandle(url) : t("socialSoon");
-    return { network, url, name, handle, label: url ? t("socialLink", { network: name, handle }) : name };
+    const handle = socialHandle(url);
+    return [{ network, url, name, handle, label: t("socialLink", { network: name, handle }) }];
   });
   return (
     <>
-      {whatsapp.phone && (
-        <WhatsAppBubble
-          phone={whatsapp.phone}
-          message={whatsapp.message || tWhatsapp("defaultMessage")}
-          label={tWhatsapp("label")}
-        />
-      )}
+      <WhatsAppBubble
+        href={
+          whatsapp.phone
+            ? `https://wa.me/${whatsapp.phone.replace(/\D/g, "")}?text=${encodeURIComponent(whatsapp.message || tWhatsapp("defaultMessage"))}`
+            : `/${await getLocale()}/rappel`
+        }
+        external={Boolean(whatsapp.phone)}
+        label={whatsapp.phone ? tWhatsapp("label") : tWhatsapp("fallbackLabel")}
+      />
       <footer className="relative overflow-hidden bg-[linear-gradient(180deg,#121a2c,#0b1120)] text-[#c8d0e4]">
         {/* Filet champagne et corail en haut, halos flous qui dérivent doucement. */}
         <div
