@@ -1,7 +1,8 @@
 "use client";
 
+import { MAX_UPLOAD_BYTES } from "@/config/uploads";
 import { useTranslations } from "next-intl";
-import { startTransition, useActionState } from "react";
+import { startTransition, useActionState, useState } from "react";
 import type { ActionResult } from "@/lib/actions/result";
 
 type Action = (previous: ActionResult<unknown> | null, data: FormData) => Promise<ActionResult<unknown>>;
@@ -21,7 +22,14 @@ export function StaffPhotoUpload({
   const t = useTranslations("manager.team");
   const tErrors = useTranslations("errors");
   const [state, send, pending] = useActionState(action, null);
+  // Trop lourde : refusée avant l'envoi (sinon l'envoi échoue sans message clair).
+  const [tooLarge, setTooLarge] = useState(false);
   const submit = (file: File | null) => {
+    setTooLarge(false);
+    if (file && file.size > MAX_UPLOAD_BYTES) {
+      setTooLarge(true);
+      return;
+    }
     const data = new FormData();
     data.set("tenantId", tenantId);
     data.set("id", staffId);
@@ -57,9 +65,9 @@ export function StaffPhotoUpload({
           {t("removePhoto")}
         </button>
       )}
-      {state && !state.ok && (
+      {(tooLarge || (state && !state.ok)) && (
         <p role="alert" className="w-full text-sm text-[#b4372a]">
-          {tErrors(state.error)}
+          {tErrors(tooLarge || !state || state.ok ? "image_too_large" : state.error)}
         </p>
       )}
     </div>
