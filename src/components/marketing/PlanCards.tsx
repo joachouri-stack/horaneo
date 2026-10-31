@@ -27,6 +27,8 @@ type CardPlan = {
 const ICONS = [LeafLine, CrownLine, DiamondLine];
 /** Lignes affichées d'emblée sur chaque carte ; les suivantes se déplient. */
 const VISIBLE_LINES = 9;
+/** Fonctions annoncées montrées d'emblée ; les suivantes se déplient. */
+const UPCOMING_SHOWN = 4;
 /** Bouton du premier pack : dégradé de l'accent avec reflet. */
 const ENTRY_BUTTON =
   "hn-shine bg-gradient-to-r from-accent to-accent-strong text-white shadow-[inset_0_1px_0_rgba(255,255,255,.2),0_14px_30px_-14px_var(--color-accent)] hover:brightness-110";
@@ -315,8 +317,27 @@ export async function PlanCards({
                     {t("upcoming")}
                   </p>
                   <p className={`text-[0.9375rem] leading-relaxed ${muted}`}>
-                    {items.map((item) => text(item)).join(" · ")}
+                    {items
+                      .slice(0, UPCOMING_SHOWN)
+                      .map((item) => text(item))
+                      .join(" · ")}
                   </p>
+                  {/* Longue liste : les premières seulement, le reste se déplie. */}
+                  {items.length > UPCOMING_SHOWN && (
+                    <details className={`group/soon text-[0.9375rem] leading-relaxed ${muted}`}>
+                      <summary
+                        className={`inline-flex min-h-11 cursor-pointer list-none items-center font-medium underline-offset-4 hover:underline group-open/soon:hidden [&::-webkit-details-marker]:hidden ${tint}`}
+                      >
+                        {t("upcomingMore", { count: items.length - UPCOMING_SHOWN })}
+                      </summary>
+                      <p className="mt-1">
+                        {items
+                          .slice(UPCOMING_SHOWN)
+                          .map((item) => text(item))
+                          .join(" · ")}
+                      </p>
+                    </details>
+                  )}
                 </div>
               ) : null;
             })}

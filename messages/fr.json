@@ -140,12 +140,12 @@
             "consulting": "Consultants",
             "events": "Événementiel",
             "artists": "Artistes",
-            "bakery": "Boulangeries",
+            "lessons": "Cours particuliers",
             "liberal": "Professions libérales",
             "coaching": "Coachs",
             "photo": "Photographes"
           },
-          "targetsTitle": "Pensé pour les pros qui travaillent sur rendez-vous"
+          "targetsTitle": "Pensé pour votre métier"
         },
         "commerce": {
           "name": "Commerce",
@@ -464,6 +464,7 @@
       "titleAccent": "trois packs.",
       "perMonthLegacy": "par mois {display}",
       "upcoming": "Bientôt inclus",
+      "upcomingMore": "{count, plural, one {+ # autre} other {+ # autres}}",
       "soonSolution": "La solution {solution} est en préparation. Les packs se souscrivent aujourd'hui avec la solution Réservation ; Pro et Business donneront accès à {solution} dès son lancement, sans frais de plateforme supplémentaires.",
       "perYear": "{display}/an",
       "yearlyDetail": "soit {monthly} {display}/mois",
@@ -746,7 +747,7 @@
         },
         "dataExport": {
           "title": "Export de vos données",
-          "text": "Clientes, rendez-vous et paiements en tableaux, à télécharger quand vous voulez. Dès le pack Pro."
+          "text": "Clients, rendez-vous et paiements en tableaux, à télécharger quand vous voulez. Dès le pack Pro."
         }
       }
     },
@@ -764,7 +765,7 @@
       "items": {
         "basic": {
           "q": "Que comprend le pack {plan} ?",
-          "a": "{free, select, yes {Il est gratuit, sans limite de durée.} other {Il coûte {price} par mois {display}.}} Il comprend un site multipage personnalisable, {bookings, plural, =-1 {des réservations illimitées} other {# réservations en ligne par mois}} et {customers, plural, =-1 {des contacts clients illimités} other {# contacts clients}}. Vous passez à un pack plus complet quand vous le souhaitez."
+          "a": "{free, select, yes {Il est gratuit, sans limite de durée.} other {Il coûte {price} par mois {display}.}} Il comprend un site multipage personnalisable, {bookings, plural, =-1 {des réservations illimitées} other {# réservations en ligne par mois}} et {customers, plural, =-1 {un fichier clients illimité} other {# contacts clients}}. Vous passez à un pack plus complet quand vous le souhaitez."
         },
         "commitment": {
           "q": "Y a-t-il un engagement ?",
@@ -841,7 +842,7 @@
       "rights": "© {year} {product} · Tous droits réservés",
       "legalTitle": "Informations légales",
       "proCardTitle": "Déjà client ?",
-      "proCardText": "Retrouvez votre agenda, vos clientes et votre site dans votre espace professionnel.",
+      "proCardText": "Retrouvez votre agenda, vos clients et votre site dans votre espace professionnel.",
       "socialTitle": "Suivez-nous",
       "socialSoon": "Bientôt",
       "socialLink": "{network} : {handle} (nouvel onglet)",
