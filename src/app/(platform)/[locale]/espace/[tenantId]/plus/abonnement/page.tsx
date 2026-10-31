@@ -8,6 +8,7 @@ import { withPlatform } from "@/db/access";
 import { plans as plansTable, usageCounters } from "@/db/schema";
 import { pickLocalized } from "@/i18n/locales";
 import { managerPage } from "@/lib/manager/page";
+import { dataExportAllowed } from "@/modules/export/business-data";
 import { billingGateway } from "@/lib/payments/stripe-billing";
 import { listTenantOptions } from "@/modules/billing/options";
 import { yearlyPriceCents } from "@/modules/billing/yearly";
@@ -96,6 +97,13 @@ export default async function SubscriptionPage({
     pickLocalized(data.plans.find((item) => item.code === code)?.name ?? null, page.locale);
   const currentPrice = current?.priceCents ?? 0;
   const live = subscription && isLive(subscription.status) ? subscription : null;
+  const canExport = await page.db((tx) => dataExportAllowed(tx, page.tenantId, page.tenant.features));
+  // Bouton d'export dans les encadrés de résiliation (ouvert à tous les packs pendant la résiliation).
+  const exportButton = (
+    <Link href={`${page.base}/plus/exporter`} className={`${ui.secondaryButton} sm:w-auto`}>
+      {t("exportLink")}
+    </Link>
+  );
   // Site à plusieurs entreprises : l'abonnement est réglé par l'entreprise principale.
   const canManage = page.business.isPrimary;
   const configured = billingGateway() !== null && canManage;
@@ -118,7 +126,7 @@ export default async function SubscriptionPage({
   ];
 
   const keepForm = canManage && (
-    <form action={changeSubscriptionAction} className="mt-3">
+    <form action={changeSubscriptionAction}>
       <input type="hidden" name="tenantId" value={page.tenantId} />
       <input type="hidden" name="planId" value={page.tenant.planId} />
       <SubmitButton className={`${ui.secondaryButton} sm:w-auto`}>{t("status.keep")}</SubmitButton>
@@ -202,7 +210,7 @@ export default async function SubscriptionPage({
                 date: page.fmt.short(periodEnd),
               })}
             </p>
-            {keepForm}
+            <div className="mt-3">{keepForm}</div>
           </div>
         )}
         {live?.cancelAt && (
@@ -210,7 +218,11 @@ export default async function SubscriptionPage({
             <p>
               {t("status.cancelAt", { date: page.fmt.short(live.cancelAt), pause: pausing ? "yes" : "no" })}
             </p>
-            {keepForm}
+            <p className="mt-2 text-sm text-ink/70">{t("exportBeforeLeaving")}</p>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {exportButton}
+              {keepForm}
+            </div>
           </div>
         )}
         {subscription?.stripeCustomerId && configured && (
@@ -524,24 +536,26 @@ export default async function SubscriptionPage({
             <p className="text-sm text-ink/70">
               {t("stopHint", { date: freeDate ? page.fmt.short(freeDate) : "" })}
             </p>
-            <SubmitButton
-              className={`${ui.secondaryButton} sm:w-auto`}
-              confirm={t("stopConfirm", { date: freeDate ? page.fmt.short(freeDate) : "" })}
-            >
-              {t("stop")}
-            </SubmitButton>
+            <p className="text-sm text-ink/70">{t("exportBeforeLeaving")}</p>
+            <div className="flex flex-wrap gap-2">
+              <SubmitButton
+                className={`${ui.secondaryButton} sm:w-auto`}
+                confirm={t("stopConfirm", { date: freeDate ? page.fmt.short(freeDate) : "" })}
+              >
+                {t("stop")}
+              </SubmitButton>
+              {exportButton}
+            </div>
           </form>
         )}
       </section>
       {/* Avant de changer de pack ou de résilier : la gérante récupère ses données. */}
       <section className={`${ui.card} space-y-2`}>
         <h2 className="text-lg font-semibold text-night">{t("exportTitle")}</h2>
-        {page.tenant.features.dataExport ? (
+        {canExport ? (
           <>
             <p className="text-sm text-ink/70">{t("exportHint")}</p>
-            <Link href={`${page.base}/plus/exporter`} className={`${ui.secondaryButton} sm:w-auto`}>
-              {t("exportLink")}
-            </Link>
+            {exportButton}
           </>
         ) : (
           <p className="text-sm text-ink/70">{t("exportLocked")}</p>

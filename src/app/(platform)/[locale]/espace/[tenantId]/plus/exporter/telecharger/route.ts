@@ -3,7 +3,7 @@ import { pickLocalized } from "@/i18n/locales";
 import { resolveLocale } from "@/i18n/translator";
 import { toCsv, toZip } from "@/lib/export/csv";
 import { loadManagerTenant, managerQuery } from "@/lib/manager/access";
-import { businessDataExport } from "@/modules/export/business-data";
+import { businessDataExport, dataExportAllowed } from "@/modules/export/business-data";
 
 /** Export des données de l'entreprise de la gérante : un .zip de tableaux CSV. */
 export async function GET(
@@ -15,16 +15,17 @@ export async function GET(
   const locale = resolveLocale(rawLocale);
   let loaded;
   try {
-    loaded = await managerQuery(tenantId, async (tx) => ({
-      tenant: await loadManagerTenant(tx, tenantId),
-      data: await businessDataExport(tx, tenantId),
-    }));
+    loaded = await managerQuery(tenantId, async (tx) => {
+      const tenant = await loadManagerTenant(tx, tenantId);
+      // Packs qui comprennent l'export, ou abonnement en cours de résiliation.
+      if (!tenant || !(await dataExportAllowed(tx, tenantId, tenant.features))) return null;
+      return { tenant, data: await businessDataExport(tx, tenantId) };
+    });
   } catch {
     return new Response(null, { status: 404 });
   }
+  if (!loaded) return new Response(null, { status: 404 });
   const { tenant, data } = loaded;
-  // Fonction des packs Pro et Business.
-  if (!tenant || !tenant.features.dataExport) return new Response(null, { status: 404 });
   const [t, tStatus] = await Promise.all([
     getTranslations({ locale, namespace: "manager.export" }),
     getTranslations({ locale, namespace: "manager.status" }),

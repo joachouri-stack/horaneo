@@ -1,5 +1,6 @@
 import { asc, eq, inArray, sql } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
+import type { PlanFeatures } from "@/db/schema";
 import {
   appointmentItems,
   appointments,
@@ -10,7 +11,21 @@ import {
   serviceCategories,
   services,
   staffMembers,
+  subscriptions,
 } from "@/db/schema";
+
+/**
+ * Export permis : packs qui le comprennent, ou, quel que soit le pack, abonnement en cours
+ * de résiliation ou résilié, pour que la gérante récupère ses données avant de partir.
+ */
+export async function dataExportAllowed(tx: Transaction, tenantId: string, features: PlanFeatures) {
+  if (features.dataExport) return true;
+  const [subscription] = await tx
+    .select({ cancelAt: subscriptions.cancelAt, status: subscriptions.status })
+    .from(subscriptions)
+    .where(eq(subscriptions.tenantId, tenantId));
+  return Boolean(subscription && (subscription.cancelAt || subscription.status === "canceled"));
+}
 
 /**
  * Toutes les données d'une entreprise, pour que la gérante les récupère (avant de résilier

@@ -1,12 +1,13 @@
+import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { withPlatform, withTenant } from "@/db/access";
 import type { Transaction } from "@/db/client";
-import { customers } from "@/db/schema";
+import { customers, plans, subscriptions } from "@/db/schema";
 import { createBooking } from "@/modules/booking/create";
 import { localToUtc } from "@/modules/booking/time";
 import { createBusiness } from "@/modules/businesses/businesses";
 import { saveService } from "@/modules/catalog/services";
-import { businessDataExport } from "@/modules/export/business-data";
+import { businessDataExport, dataExportAllowed } from "@/modules/export/business-data";
 import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
 import { saveStaff } from "@/modules/team/staff";
 import { createTenant } from "@/modules/tenants/create";
@@ -89,6 +90,35 @@ describe.skipIf(!hasTestDatabase)("export des données", () => {
     const theirs = await withTenant(tenant.id, (tx) => businessDataExport(tx, tenant.id), app, other.id);
     expect(theirs.customers.map((row) => row.firstName)).toEqual(["Autre"]);
     expect(theirs.appointments).toHaveLength(0);
+  });
+
+  it("export : packs Pro et Business, ou n'importe quel pack en cours de résiliation", async () => {
+    const slug = `export-starter-${Date.now().toString(36)}`;
+    const { tenant } = await platform((tx) =>
+      createTenant(tx, {
+        name: "Institut Starter",
+        slug,
+        planCode: "starter",
+        managerEmail: `${slug}@example.com`,
+      }),
+    );
+    const allowed = () =>
+      withTenant(tenant.id, (tx) => dataExportAllowed(tx, tenant.id, { dataExport: false }), app);
+    expect(
+      await withTenant(tenant.id, (tx) => dataExportAllowed(tx, tenant.id, { dataExport: true }), app),
+    ).toBe(true);
+    expect(await allowed()).toBe(false);
+    const [starter] = await owner.select({ id: plans.id }).from(plans).where(eq(plans.code, "starter"));
+    await owner
+      .insert(subscriptions)
+      .values({ tenantId: tenant.id, planId: starter.id, status: "active" })
+      .onConflictDoNothing();
+    expect(await allowed()).toBe(false);
+    await owner
+      .update(subscriptions)
+      .set({ cancelAt: new Date("2026-12-01T00:00:00Z") })
+      .where(eq(subscriptions.tenantId, tenant.id));
+    expect(await allowed()).toBe(true);
   });
 
   it("CSV lisible par un tableur : séparateur « ; », guillemets, pas de formule", () => {
