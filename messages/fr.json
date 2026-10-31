@@ -749,8 +749,8 @@
           }
         },
         "logo": {
-          "title": "Logo",
-          "text": "Changez le logo de votre site quand vous le souhaitez."
+          "title": "Logo et couleurs",
+          "text": "Changez votre logo et choisissez les couleurs de votre site."
         },
         "texts": {
           "title": "Textes de présentation",
@@ -772,7 +772,7 @@
         }
       },
       "brand": {
-        "title": "Couleurs du site",
+        "title": "Mise en page sur mesure",
         "text": "Une simple demande depuis votre espace : notre équipe s'en occupe pour vous."
       },
       "panel": {
@@ -2824,16 +2824,33 @@
     },
     "site": {
       "title": "Mon site",
-      "intro": "Modifiez vous-même vos prestations, horaires, photos, témoignages, textes de présentation et votre logo.",
+      "intro": "Modifiez vous-même vos prestations, horaires, photos, témoignages, textes de présentation, votre logo et vos couleurs.",
       "services": "Prestations et prix",
       "hours": "Horaires d'ouverture",
       "photos": "Photos",
       "testimonials": "Témoignages",
       "view": "Voir mon site",
-      "requestTitle": "Couleurs du site",
-      "requestText": "Les couleurs sont modifiées par notre équipe. Envoyez-nous votre demande.",
+      "requestTitle": "Mise en page sur mesure",
+      "requestText": "Un changement de mise en page ou une demande particulière ? Notre équipe s'en occupe.",
       "requestCta": "Demander une modification",
       "sharedContent": "Les photos, les avis et le logo sont communs à tout le site : ils se gèrent depuis l'espace de l'établissement principal.",
+      "colors": {
+        "link": "Couleurs du site",
+        "title": "Couleurs du site",
+        "intro": "Choisissez une palette : votre site change tout de suite, et les textes restent toujours lisibles.",
+        "original": "Couleurs d'origine de votre site",
+        "sample": "Réserver",
+        "done": "Couleurs enregistrées : votre site est à jour.",
+        "palettes": {
+          "rose": "Rose poudré",
+          "terracotta": "Terracotta",
+          "sage": "Vert sauge",
+          "navy": "Bleu nuit",
+          "plum": "Prune",
+          "gold": "Doré",
+          "black": "Noir élégant"
+        }
+      },
       "texts": {
         "link": "Textes de présentation",
         "title": "Textes de présentation",
@@ -2910,7 +2927,7 @@
         "payments": "Acomptes versés directement sur votre compte.",
         "subscription": "Votre pack et votre utilisation du mois.",
         "settings": "Réservation en ligne, horaires et informations.",
-        "requests": "Couleurs, mise en page : demandez un changement.",
+        "requests": "Mise en page sur mesure : demandez un changement.",
         "customerData": "Copies et suppressions demandées par vos clientes.",
         "help": "Questions fréquentes et contact du support.",
         "export": "Clientes, rendez-vous et paiements en tableaux."
@@ -3153,7 +3170,7 @@
     },
     "requests": {
       "title": "Demandes de modification",
-      "intro": "Couleurs, mise en page : décrivez ce que vous souhaitez changer.",
+      "intro": "Mise en page ou demande particulière : décrivez ce que vous souhaitez changer.",
       "subject": "Sujet",
       "message": "Votre demande",
       "send": "Envoyer la demande",
@@ -3177,7 +3194,7 @@
       "q2": "Comment fermer un jour férié ?",
       "a2": "Dans « Plus » → « Indisponibilités », choisissez « Établissement fermé » et la date.",
       "q3": "Comment changer mon logo ou mes textes ?",
-      "a3": "Le logo et les textes de présentation se changent vous-même dans « Mon site ». Pour les couleurs, envoyez une demande depuis « Mon site » → « Demander une modification »."
+      "a3": "Le logo, les couleurs et les textes de présentation se changent vous-même dans « Mon site ». Pour une mise en page sur mesure, envoyez une demande depuis « Mon site » → « Demander une modification »."
     },
     "payments": {
       "title": "Paiements en ligne",

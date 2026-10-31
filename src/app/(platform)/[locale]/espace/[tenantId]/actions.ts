@@ -51,6 +51,7 @@ import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
 import { createTimeOff, deleteTimeOff } from "@/modules/schedule/time-off";
 import { updateStatsGoals } from "@/modules/stats/goals";
 import { replaceStaffSchedules } from "@/modules/team/schedules";
+import { setBrandPalette } from "@/modules/tenants/update";
 import { deleteStaff, saveStaff, setStaffPhoto } from "@/modules/team/staff";
 import type { Transaction } from "@/db/client";
 import { tenants } from "@/db/schema";
@@ -337,6 +338,15 @@ export async function uploadPhotoAction(_previous: Previous, data: FormData) {
       uploadedByUserId: context.userId,
       alt: form.optional(data, "alt"),
     });
+  });
+}
+
+/** Couleurs du site : palette choisie par la gérante. */
+export async function savePaletteAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "brand.palette_updated", async (tx, context) => {
+    await assertPrimaryBusiness(tx, tenantId, context.businessId, "site_content_primary_only");
+    await setBrandPalette(tx, tenantId, { palette: form.text(data, "palette") });
   });
 }
 
