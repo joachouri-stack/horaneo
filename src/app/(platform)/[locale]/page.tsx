@@ -32,7 +32,6 @@ import {
   UsersLine,
   AwardLine,
   CapLine,
-  BreadLine,
   BriefcaseLine,
   CameraLine,
   ForkKnifeLine,
@@ -40,6 +39,7 @@ import {
   LeafLine,
   PaletteLine,
   PartyLine,
+  PercentLine,
   ScaleLine,
   ScissorsLine,
   WrenchLine,
@@ -114,7 +114,7 @@ const TARGET_ICONS: Record<string, typeof CheckLine> = {
   consulting: BriefcaseLine,
   events: PartyLine,
   artists: PaletteLine,
-  bakery: BreadLine,
+  lessons: CapLine,
   liberal: ScaleLine,
   coaching: AwardLine,
   photo: CameraLine,
@@ -126,6 +126,16 @@ const TARGET_ICONS: Record<string, typeof CheckLine> = {
   organizations: UsersLine,
   courseCreators: PlayLine,
 };
+
+/** Ce que la gérante modifie elle-même sur son site (clés de `selfService.items`). */
+const SELF_SERVICE = [
+  { key: "catalog", Icon: TagLine },
+  { key: "photos", Icon: CameraLine },
+  { key: "logo", Icon: SparkleLine },
+  { key: "hours", Icon: ClockLine },
+  { key: "testimonials", Icon: StarLine },
+  { key: "promotions", Icon: PercentLine },
+] as const;
 
 /** Pictogrammes du bandeau de fonctions de chaque solution (dans l'ordre des textes). */
 const STRIP: Record<Solution, (typeof CheckLine)[]> = {
@@ -150,18 +160,19 @@ const TITLE = "font-display font-semibold tracking-[-0.025em] text-night";
 /** Point corail devant les badges de section : le rappel du point du « o » de la marque. */
 const EYEBROW_DOT = <span aria-hidden="true" className="size-1.5 flex-none rounded-full bg-coral" />;
 
-/** Titre dont le point final passe en corail, comme le point du logo. */
+/** Titre dont le point (ou le point d'interrogation) final passe en corail, comme le point du logo. */
 function coralStop(text: string) {
-  if (!text.endsWith(".")) return text;
+  const stop = text.at(-1);
+  if (stop !== "." && stop !== "?") return text;
   return (
     <>
       {text.slice(0, -1)}
-      <span className="text-coral">.</span>
+      <span className="text-coral">{stop}</span>
     </>
   );
 }
 const EYEBROW =
-  "inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1 text-[0.875rem] font-medium uppercase tracking-[0.08em] text-accent-strong";
+  "inline-flex items-center gap-2 rounded-full bg-coral/10 px-3 py-1 text-[0.875rem] font-medium uppercase tracking-[0.08em] text-coral-dark";
 const PRIMARY =
   "hn-shine group inline-flex min-h-12 items-center gap-2 rounded-xl bg-accent px-5 text-[1.0625rem] font-medium text-white shadow-[0_12px_24px_-14px_var(--accent)] transition hover:-translate-y-px hover:bg-accent-strong motion-reduce:transition-none";
 const SECONDARY =
@@ -296,11 +307,12 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             >
               <div className="hn-drift absolute -left-24 top-10 size-[24rem] rounded-full bg-accent/15 blur-[90px] max-sm:size-[16rem]" />
               <div className="hn-drift-slow absolute -right-20 top-32 size-[22rem] rounded-full bg-champagne/25 blur-[90px] max-sm:size-[14rem]" />
+              <div className="hn-drift absolute right-[22%] top-[26rem] size-[18rem] rounded-full bg-coral/10 blur-[90px] max-sm:right-0 max-sm:top-[34rem] max-sm:size-[12rem]" />
             </div>
             <div className="relative mx-auto grid max-w-[75rem] items-center gap-10 px-4 pb-12 pt-6 sm:px-6 sm:pt-12 lg:grid-cols-[1.08fr_0.92fr] lg:gap-8 lg:pb-16 lg:pt-16 2xl:max-w-[88rem]">
               <div>
                 {/* Petite annonce : une ligne, casse normale, point lumineux. */}
-                <p className="hn-up inline-flex max-w-full items-center gap-2.5 rounded-full border border-hairline bg-white/80 py-1.5 pl-2.5 pr-4 text-mk-note font-medium text-night shadow-[0_6px_18px_-12px_rgba(15,24,48,.35)] backdrop-blur">
+                <p className="hn-up inline-flex max-w-full items-center gap-2.5 rounded-full border border-coral/25 bg-white/80 py-1.5 pl-2.5 pr-4 text-mk-note font-medium text-night shadow-[0_6px_18px_-12px_rgba(15,24,48,.35)] backdrop-blur">
                   <span aria-hidden="true" className="relative flex size-2 flex-none">
                     <span className="hn-ping absolute inset-0 rounded-full bg-coral" />
                     <span className="relative size-2 rounded-full bg-coral" />
@@ -374,7 +386,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 <ul className="hn-up-4 mt-7 hidden flex-wrap gap-x-5 gap-y-2 text-mk-small text-ink-soft sm:flex">
                   {(t.raw("hero.points") as string[]).map((point) => (
                     <li key={point} className="flex items-center gap-2">
-                      <span className="flex size-5 flex-none items-center justify-center rounded-full bg-accent-soft text-accent">
+                      <span className="flex size-5 flex-none items-center justify-center rounded-full bg-coral/10 text-coral-dark">
                         <CheckLine className="size-3" />
                       </span>
                       {point}
@@ -402,8 +414,8 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     />
                   </div>
                 </div>
-                <div className="hn-float absolute left-0 top-[14%] flex items-center gap-3 rounded-2xl border border-hairline bg-white/95 py-2.5 pl-2.5 pr-4 shadow-[0_18px_36px_-20px_rgba(15,24,48,.5)] backdrop-blur sm:-left-4">
-                  <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-accent-soft text-accent">
+                <div className="hn-float absolute left-0 top-[10%] flex items-center gap-3 rounded-2xl border border-hairline bg-white/95 py-2.5 pl-2.5 pr-8 shadow-[0_18px_36px_-20px_rgba(15,24,48,.5)] backdrop-blur sm:-left-4">
+                  <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-coral/10 text-coral-dark">
                     <CalendarLine className="size-[18px]" />
                   </span>
                   <span className="leading-tight">
@@ -482,7 +494,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                               key={key}
                               className="group inline-flex items-center gap-2 rounded-full border border-accent-line/60 bg-accent-soft/60 py-1.5 pl-2 pr-3.5 text-mk-small font-medium text-night transition-colors duration-300 hover:border-coral/40 hover:bg-coral/10 hover:text-coral-dark"
                             >
-                              <span className="flex size-6 flex-none items-center justify-center rounded-full bg-white text-accent transition-colors duration-300 group-hover:text-coral-dark">
+                              <span className="flex size-6 flex-none items-center justify-center rounded-full bg-white text-coral transition-colors duration-300 group-hover:text-coral-dark">
                                 <Icon className="size-3.5" />
                               </span>
                               {label}
@@ -541,7 +553,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                           data-reveal
                           className="group flex items-start gap-3.5 px-4 py-3.5 transition duration-300 motion-reduce:transition-none sm:gap-4 sm:rounded-2xl sm:border sm:border-hairline sm:bg-white sm:p-4 sm:shadow-[0_1px_2px_rgba(15,24,48,.04)] sm:hover:-translate-y-1 sm:hover:border-coral/40 sm:hover:shadow-[0_14px_30px_-18px_rgba(232,80,63,.45)] lg:p-5"
                         >
-                          <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-accent-soft text-accent transition-colors duration-300 group-hover:bg-coral/10 group-hover:text-coral-dark sm:size-11">
+                          <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-coral/10 text-coral-dark transition-colors duration-300 group-hover:bg-coral group-hover:text-white sm:size-11">
                             <Icon className="size-5 sm:size-[1.375rem]" />
                           </span>
                           <span className="min-w-0">
@@ -574,7 +586,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           >
             <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-40 -z-10 h-[40rem]">
               <div className="hn-drift absolute left-[10%] top-20 size-[26rem] rounded-full bg-accent/15 blur-[100px]" />
-              <div className="hn-drift-slow absolute right-[8%] top-40 size-[22rem] rounded-full bg-champagne/25 blur-[100px]" />
+              <div className="hn-drift-slow absolute right-[8%] top-40 size-[22rem] rounded-full bg-coral/10 blur-[100px]" />
             </div>
             <div className="mx-auto max-w-[72rem] 2xl:max-w-[85rem]">
               <div className="mx-auto max-w-[46rem] text-center">
@@ -612,6 +624,144 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             </div>
           </section>
 
+          {/* Autonomie : la gérante met son site à jour elle-même depuis son espace. */}
+          <section
+            aria-labelledby="titre-autonomie"
+            className="mx-auto max-w-[75rem] px-4 pt-20 sm:px-6 lg:pt-28 2xl:max-w-[88rem]"
+          >
+            <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14">
+              <div>
+                <p data-reveal className={EYEBROW}>
+                  {EYEBROW_DOT}
+                  {t("selfService.badge")}
+                </p>
+                <h2
+                  id="titre-autonomie"
+                  data-reveal
+                  className={`${TITLE} hn-balance mt-4 text-mk-h2 leading-[1.1]`}
+                >
+                  {t("selfService.title")}{" "}
+                  <span className="text-accent">{coralStop(t("selfService.titleAccent"))}</span>
+                </h2>
+                <p data-reveal className="mt-4 max-w-[36rem] text-mk-lead text-ink-soft">
+                  {t("selfService.text")}
+                </p>
+                <ul className="mt-8 grid gap-3 sm:grid-cols-2">
+                  {SELF_SERVICE.map(({ key, Icon }) => (
+                    <li
+                      key={key}
+                      data-reveal
+                      className="group flex items-start gap-3.5 rounded-2xl border border-hairline bg-white p-4 shadow-[0_1px_2px_rgba(15,24,48,.04)] transition duration-300 hover:-translate-y-1 hover:border-coral/40 hover:shadow-[0_14px_30px_-18px_rgba(232,80,63,.45)] motion-reduce:transition-none"
+                    >
+                      <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-coral/10 text-coral-dark transition-colors duration-300 group-hover:bg-coral group-hover:text-white">
+                        <Icon className="size-5" />
+                      </span>
+                      <span>
+                        {key === "catalog" ? (
+                          SOLUTIONS.map((code) => (
+                            <span key={code} data-only={code} className="block">
+                              <span className="block font-semibold text-night">
+                                {t(`selfService.items.catalog.${code}.title`)}
+                              </span>
+                              <span className="mt-0.5 block text-mk-small text-ink-soft">
+                                {t(`selfService.items.catalog.${code}.text`)}
+                              </span>
+                            </span>
+                          ))
+                        ) : (
+                          <>
+                            <span className="block font-semibold text-night">
+                              {t(`selfService.items.${key}.title`)}
+                            </span>
+                            <span className="mt-0.5 block text-mk-small text-ink-soft">
+                              {t(`selfService.items.${key}.text`)}
+                            </span>
+                            {(key === "testimonials" || key === "promotions") && (
+                              <span className="mt-2 inline-block rounded-full bg-champagne-soft px-2.5 py-0.5 text-[0.875rem] font-medium text-copper">
+                                {t(`selfService.items.${key}.tag`)}
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </span>
+                    </li>
+                  ))}
+                  {/* Ce que notre équipe modifie sur demande. */}
+                  <li
+                    data-reveal
+                    className="flex items-start gap-3.5 rounded-2xl border border-dashed border-coral/40 bg-coral/[0.04] p-4 sm:col-span-2"
+                  >
+                    <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-white text-coral-dark">
+                      <PaletteLine className="size-5" />
+                    </span>
+                    <span>
+                      <span className="block font-semibold text-night">{t("selfService.brand.title")}</span>
+                      <span className="mt-0.5 block text-mk-small text-ink-soft">
+                        {t("selfService.brand.text")}
+                      </span>
+                    </span>
+                  </li>
+                </ul>
+                <p className="mt-4 text-[0.875rem] text-ink-soft">{t("selfService.note")}</p>
+              </div>
+
+              {/* Aperçu de l'écran « Mon site » de l'espace de gestion (ordinateur : sur téléphone, la liste suffit). */}
+              <div data-reveal className="relative mx-auto hidden w-full max-w-[26rem] lg:block">
+                <div
+                  aria-hidden="true"
+                  className="absolute -inset-6 rounded-[2.5rem] bg-[radial-gradient(closest-side,rgba(232,80,63,.16),transparent)] blur-2xl"
+                />
+                <div
+                  aria-hidden="true"
+                  className="relative rounded-[1.6rem] border border-hairline bg-white p-5 shadow-[0_40px_80px_-40px_rgba(15,24,48,.45)] sm:p-6"
+                >
+                  <p className="font-display text-mk-card font-semibold text-night">
+                    {t("selfService.panel.title")}
+                  </p>
+                  <p className="mt-1 text-mk-small text-ink-soft">{t("selfService.panel.intro")}</p>
+                  <ul className="mt-5 divide-y divide-hairline rounded-2xl border border-hairline">
+                    {SELF_SERVICE.slice(0, 4).map(({ key, Icon }) => (
+                      <li key={key} className="flex items-center gap-3 px-4 py-3.5">
+                        <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-coral/10 text-coral-dark">
+                          <Icon className="size-[18px]" />
+                        </span>
+                        <span className="min-w-0 flex-1 truncate font-medium text-night">
+                          {key === "catalog"
+                            ? SOLUTIONS.map((code) => (
+                                <span key={code} data-only={code}>
+                                  {t(`selfService.items.catalog.${code}.title`)}
+                                </span>
+                              ))
+                            : t(`selfService.items.${key}.title`)}
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-[0.875rem] font-medium text-accent-strong">
+                          {t("selfService.panel.edit")}
+                          <ArrowLine className="size-3.5" />
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div
+                  aria-hidden="true"
+                  className="hn-float absolute -bottom-5 right-2 flex items-center gap-3 rounded-2xl border border-hairline bg-white/95 py-2.5 pl-2.5 pr-5 shadow-[0_18px_36px_-20px_rgba(15,24,48,.5)] backdrop-blur sm:-right-6"
+                >
+                  <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-[#e7f6ee] text-[#1f8a55]">
+                    <CheckLine className="size-[18px]" />
+                  </span>
+                  <span className="leading-tight">
+                    <span className="block text-mk-small font-semibold text-night">
+                      {t("selfService.panel.saved")}
+                    </span>
+                    <span className="block text-[0.875rem] text-ink-soft">
+                      {t("selfService.panel.savedText")}
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </section>
+
           {/* Les bénéfices */}
           <section
             id="fonctionnalites"
@@ -640,7 +790,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     className={`group flex items-start gap-4 rounded-2xl border border-hairline p-4 transition duration-300 motion-reduce:transition-none sm:max-lg:last:col-span-2 lg:col-span-2 lg:p-5 lg:[&:nth-child(n+4)]:col-span-3 ${later ? "bg-mist-50/60" : "bg-white shadow-[0_1px_2px_rgba(15,24,48,.04)] hover:-translate-y-1 hover:border-coral/40 hover:shadow-[0_14px_30px_-18px_rgba(232,80,63,.45)]"}`}
                   >
                     <span
-                      className={`flex size-11 flex-none items-center justify-center rounded-xl transition-colors duration-300 ${later ? "bg-white text-ink-soft" : "bg-accent-soft text-accent group-hover:bg-coral/10 group-hover:text-coral-dark"}`}
+                      className={`flex size-11 flex-none items-center justify-center rounded-xl transition-colors duration-300 ${later ? "bg-white text-ink-soft" : "bg-coral/10 text-coral-dark group-hover:bg-coral group-hover:text-white"}`}
                     >
                       <item.Icon className="size-[1.375rem]" />
                     </span>
@@ -750,7 +900,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               <p className="mt-3 text-ink-soft">{t("faq.intro")}</p>
               <a
                 href={`mailto:${contact}`}
-                className="mt-4 inline-flex min-h-11 items-center font-medium text-navy underline underline-offset-4"
+                className="mt-4 inline-flex min-h-11 items-center font-medium text-navy underline decoration-coral decoration-2 underline-offset-4 transition-colors hover:text-coral-dark"
               >
                 {t("faq.contact")}
               </a>
@@ -769,39 +919,65 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           </div>
         </section>
 
-        {/* Bandeau final */}
-        <section className="px-4 pb-16 sm:px-6">
+        {/* Bandeau final : carte claire nacrée, pour trancher avec le pied de page sombre. */}
+        <section className="px-4 pb-16 sm:px-6 lg:pb-24">
           <div
             data-reveal
-            className="relative mx-auto max-w-[72rem] 2xl:max-w-[85rem] overflow-hidden rounded-[1.75rem] bg-[linear-gradient(120deg,#1b2a4a,#24366a_60%,#2f3f86)] px-6 py-14 text-center lg:py-16"
+            className="relative mx-auto max-w-[72rem] overflow-hidden rounded-[1.75rem] border border-champagne/50 bg-[linear-gradient(160deg,#ffffff,#fbf6ec_55%,#f5ecda)] px-6 py-12 text-center shadow-[0_30px_60px_-40px_rgba(27,42,74,0.45)] sm:py-14 lg:py-16 2xl:max-w-[85rem]"
           >
             <div
               aria-hidden="true"
-              className="hn-drift pointer-events-none absolute -left-10 -top-20 size-80 rounded-full bg-[#5b6fd6]/30 blur-[80px]"
+              className="hn-drift pointer-events-none absolute -left-16 -top-24 size-80 rounded-full bg-coral/10 blur-[80px]"
             />
             <div
               aria-hidden="true"
-              className="hn-drift-slow pointer-events-none absolute -bottom-24 right-0 size-80 rounded-full bg-champagne/20 blur-[80px]"
+              className="hn-drift-slow pointer-events-none absolute -bottom-24 -right-10 size-80 rounded-full bg-champagne/40 blur-[80px]"
             />
-            <div
-              aria-hidden="true"
-              className="hn-float pointer-events-none absolute -right-24 -top-24 size-72 rounded-full border border-white/10"
-            />
-            <div
-              aria-hidden="true"
-              className="hn-float-late pointer-events-none absolute -bottom-32 -left-16 size-80 rounded-full border border-white/10"
-            />
-            <h2 className="relative font-display text-mk-h2 font-semibold tracking-[-0.02em] text-white">
-              {t("final.title")}
+            <p className="relative inline-flex flex-col items-center gap-0.5 rounded-2xl border border-champagne/60 bg-white/80 px-4 py-1.5 text-mk-small font-medium text-navy sm:flex-row sm:gap-2 sm:rounded-full">
+              <span className="inline-flex items-center gap-2">
+                {EYEBROW_DOT}
+                {t("hero.offer", { price: faqValues.price, display: data.display })}
+              </span>
+              {data.goLiveDays > 0 && (
+                <>
+                  <span aria-hidden="true" className="hidden text-champagne sm:inline">
+                    ·
+                  </span>
+                  <span>{t("hero.goLive", { days: data.goLiveDays })}</span>
+                </>
+              )}
+            </p>
+            <h2 className="relative mx-auto mt-5 max-w-[40rem] font-display text-mk-h2 font-semibold tracking-[-0.025em] text-night">
+              {coralStop(t("final.title"))}
             </h2>
-            <p className="relative mx-auto mt-3 max-w-[32rem] text-[#c8d0e4]">{t("final.text")}</p>
-            <Link
-              href={startHref}
-              className="hn-shine group relative mt-7 inline-flex min-h-12 items-center gap-2 rounded-xl bg-white px-6 font-medium text-navy transition hover:-translate-y-px focus-visible:outline-white"
-            >
-              {t("final.cta")}
-              <ArrowLine className="size-[18px] transition-transform group-hover:translate-x-0.5" />
-            </Link>
+            <p className="relative mx-auto mt-3 max-w-[32rem] text-[1.0625rem] text-ink-soft">
+              {t("final.text")}
+            </p>
+            <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Link
+                href={startHref}
+                className="hn-shine group inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-navy px-6 text-[1.0625rem] font-medium text-white shadow-[0_14px_28px_-14px_rgba(27,42,74,0.8)] transition hover:-translate-y-px hover:bg-navy-light motion-reduce:transition-none sm:w-auto"
+              >
+                {t("final.cta")}
+                <ArrowLine className="size-[18px] transition-transform group-hover:translate-x-0.5" />
+              </Link>
+              <Link
+                href={{ pathname: "/", hash: "tarifs" }}
+                className="inline-flex min-h-12 items-center gap-2 rounded-xl px-5 text-[1.0625rem] font-medium text-navy underline-offset-4 transition hover:underline"
+              >
+                {t("hero.pricing")}
+              </Link>
+            </div>
+            <ul className="relative mx-auto mt-8 flex w-fit flex-col items-start gap-x-6 gap-y-2 text-mk-small text-ink-soft sm:flex-row sm:flex-wrap sm:justify-center">
+              {(t.raw("hero.points") as string[]).map((point) => (
+                <li key={point} className="flex items-center gap-2">
+                  <span className="flex size-5 flex-none items-center justify-center rounded-full bg-coral/10 text-coral-dark">
+                    <CheckLine className="size-3" />
+                  </span>
+                  {point}
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
       </main>

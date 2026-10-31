@@ -140,12 +140,12 @@
             "consulting": "Consultants",
             "events": "Événementiel",
             "artists": "Artistes",
-            "bakery": "Boulangeries",
+            "lessons": "Cours particuliers",
             "liberal": "Professions libérales",
             "coaching": "Coachs",
             "photo": "Photographes"
           },
-          "targetsTitle": "Pensé pour les pros qui travaillent sur rendez-vous"
+          "targetsTitle": "Pensé pour votre métier"
         },
         "commerce": {
           "name": "Commerce",
@@ -464,6 +464,7 @@
       "titleAccent": "trois packs.",
       "perMonthLegacy": "par mois {display}",
       "upcoming": "Bientôt inclus",
+      "upcomingMore": "{count, plural, one {+ # autre} other {+ # autres}}",
       "soonSolution": "La solution {solution} est en préparation. Les packs se souscrivent aujourd'hui avec la solution Réservation ; Pro et Business donneront accès à {solution} dès son lancement, sans frais de plateforme supplémentaires.",
       "perYear": "{display}/an",
       "yearlyDetail": "soit {monthly} {display}/mois",
@@ -723,6 +724,62 @@
       "alt": "Captures de l'espace de gestion sur ordinateur et sur téléphone : accueil avec l'agenda du jour, le chiffre d'affaires et les statistiques, agenda du jour sur téléphone",
       "note": "Captures de l'espace de gestion, avec des données d'exemple. Les fonctions disponibles dépendent de votre pack."
     },
+    "selfService": {
+      "badge": "Votre site, en autonomie",
+      "title": "Votre site évolue avec vous,",
+      "titleAccent": "sans attendre personne.",
+      "text": "Depuis votre espace de gestion, sur téléphone comme sur ordinateur, vous mettez votre site à jour vous-même, en quelques secondes.",
+      "items": {
+        "photos": {
+          "title": "Photos",
+          "text": "Ajoutez, retirez ou changez les photos de votre galerie."
+        },
+        "catalog": {
+          "booking": {
+            "title": "Prestations et prix",
+            "text": "Créez vos prestations, changez une durée ou un prix."
+          },
+          "commerce": {
+            "title": "Produits et prix",
+            "text": "Ajoutez vos produits, changez un prix ou une description."
+          },
+          "formation": {
+            "title": "Cours et tarifs",
+            "text": "Ajoutez vos cours et ateliers, changez une date ou un tarif."
+          }
+        },
+        "logo": {
+          "title": "Logo",
+          "text": "Changez le logo de votre site quand vous le souhaitez."
+        },
+        "hours": {
+          "title": "Horaires d'ouverture",
+          "text": "Vos jours et heures d'ouverture, mis à jour en un clic."
+        },
+        "testimonials": {
+          "title": "Témoignages",
+          "text": "Ajoutez les mots de vos clients sur votre site.",
+          "tag": "Dès le pack Pro"
+        },
+        "promotions": {
+          "title": "Promotions et codes promo",
+          "text": "Lancez une offre quand vous le décidez.",
+          "tag": "Dès le pack Pro"
+        }
+      },
+      "brand": {
+        "title": "Couleurs et textes de présentation",
+        "text": "Une simple demande depuis votre espace : notre équipe s'en occupe pour vous."
+      },
+      "panel": {
+        "title": "Mon site",
+        "intro": "Tout se modifie depuis votre espace.",
+        "edit": "Modifier",
+        "saved": "Modification enregistrée",
+        "savedText": "Votre site est à jour"
+      },
+      "note": "Les fonctions disponibles dépendent de votre pack."
+    },
     "benefits": {
       "badge": "Fonctionnalités",
       "title": "Pour aller plus loin",
@@ -746,7 +803,7 @@
         },
         "dataExport": {
           "title": "Export de vos données",
-          "text": "Clientes, rendez-vous et paiements en tableaux, à télécharger quand vous voulez. Dès le pack Pro."
+          "text": "Clients, rendez-vous et paiements en tableaux, à télécharger quand vous voulez. Dès le pack Pro."
         }
       }
     },
@@ -764,7 +821,7 @@
       "items": {
         "basic": {
           "q": "Que comprend le pack {plan} ?",
-          "a": "{free, select, yes {Il est gratuit, sans limite de durée.} other {Il coûte {price} par mois {display}.}} Il comprend un site multipage personnalisable, {bookings, plural, =-1 {des réservations illimitées} other {# réservations en ligne par mois}} et {customers, plural, =-1 {des contacts clients illimités} other {# contacts clients}}. Vous passez à un pack plus complet quand vous le souhaitez."
+          "a": "{free, select, yes {Il est gratuit, sans limite de durée.} other {Il coûte {price} par mois {display}.}} Il comprend un site multipage personnalisable, {bookings, plural, =-1 {des réservations illimitées} other {# réservations en ligne par mois}} et {customers, plural, =-1 {un fichier clients illimité} other {# contacts clients}}. Vous passez à un pack plus complet quand vous le souhaitez."
         },
         "commitment": {
           "q": "Y a-t-il un engagement ?",
@@ -823,7 +880,7 @@
     "final": {
       "title": "Prêt à simplifier votre activité ?",
       "text": "Choisissez votre pack : vous en changez quand vous voulez.",
-      "cta": "Commencer"
+      "cta": "Créer mon site"
     },
     "options": {
       "requires": "Nécessite : {names}",
@@ -841,7 +898,7 @@
       "rights": "© {year} {product} · Tous droits réservés",
       "legalTitle": "Informations légales",
       "proCardTitle": "Déjà client ?",
-      "proCardText": "Retrouvez votre agenda, vos clientes et votre site dans votre espace professionnel.",
+      "proCardText": "Retrouvez votre agenda, vos clients et votre site dans votre espace professionnel.",
       "socialTitle": "Suivez-nous",
       "socialSoon": "Bientôt",
       "socialLink": "{network} : {handle} (nouvel onglet)",
@@ -2754,16 +2811,26 @@
     },
     "site": {
       "title": "Mon site",
-      "intro": "Modifiez vous-même vos prestations, horaires, photos et témoignages.",
+      "intro": "Modifiez vous-même vos prestations, horaires, photos, témoignages et votre logo.",
       "services": "Prestations et prix",
       "hours": "Horaires d'ouverture",
       "photos": "Photos",
       "testimonials": "Témoignages",
       "view": "Voir mon site",
-      "requestTitle": "Logo, couleurs, textes de présentation",
+      "requestTitle": "Couleurs et textes de présentation",
       "requestText": "Ces éléments sont modifiés par notre équipe. Envoyez-nous votre demande.",
       "requestCta": "Demander une modification",
-      "sharedContent": "Les photos et les avis sont communs à tout le site : ils se gèrent depuis l'espace de l'établissement principal."
+      "sharedContent": "Les photos, les avis et le logo sont communs à tout le site : ils se gèrent depuis l'espace de l'établissement principal.",
+      "logo": {
+        "title": "Logo",
+        "current": "Logo actuel",
+        "none": "Pas encore de logo.",
+        "file": "Nouveau logo",
+        "hint": "PNG, SVG, JPEG ou WebP, envoyé en entier. Il remplace tout de suite le logo de votre site.",
+        "send": "Changer mon logo",
+        "sending": "Envoi…",
+        "done": "Logo enregistré : votre site est à jour."
+      }
     },
     "photos": {
       "choose": "Choisir une photo",
@@ -2811,7 +2878,7 @@
         "payments": "Acomptes versés directement sur votre compte.",
         "subscription": "Votre pack et votre utilisation du mois.",
         "settings": "Réservation en ligne, horaires et informations.",
-        "requests": "Logo, couleurs, textes : demandez un changement.",
+        "requests": "Couleurs, textes : demandez un changement.",
         "customerData": "Copies et suppressions demandées par vos clientes.",
         "help": "Questions fréquentes et contact du support.",
         "export": "Clientes, rendez-vous et paiements en tableaux."
@@ -3054,7 +3121,7 @@
     },
     "requests": {
       "title": "Demandes de modification",
-      "intro": "Logo, couleurs, mise en page, textes de présentation : décrivez ce que vous souhaitez changer.",
+      "intro": "Couleurs, mise en page, textes de présentation : décrivez ce que vous souhaitez changer.",
       "subject": "Sujet",
       "message": "Votre demande",
       "send": "Envoyer la demande",
@@ -3078,7 +3145,7 @@
       "q2": "Comment fermer un jour férié ?",
       "a2": "Dans « Plus » → « Indisponibilités », choisissez « Établissement fermé » et la date.",
       "q3": "Comment changer mon logo ou mes textes ?",
-      "a3": "Envoyez une demande depuis « Mon site » → « Demander une modification »."
+      "a3": "Le logo se change vous-même dans « Mon site » → « Logo ». Pour les couleurs ou les textes, envoyez une demande depuis « Mon site » → « Demander une modification »."
     },
     "payments": {
       "title": "Paiements en ligne",

@@ -16,7 +16,8 @@ Promesse : « Votre activité. Un seul outil. Plus de liberté. »
 
 | Rôle | Couleur |
 |---|---|
-| Marque (logo, bouton d'en-tête, bandeau final) | Bleu nuit `#1B2A4A` (logo), avec sa touche corail `#E8503F` réservée au logo |
+| Marque (logo, bouton d'en-tête, bouton du bandeau final) | Bleu nuit `#1B2A4A` (logo), avec sa touche corail `#E8503F` |
+| Touches corail (rappel du point du logo) | Jamais sur un bouton : étiquette du haut de page et des sections, point final des titres, coches, pictogrammes des métiers et des cartes de fonctions (pleins au survol), carte « Nouvelle réservation », lien « Nous écrire », icône e-mail et filet du pied de page, halos très légers |
 | Fond | Blanc `#FFFFFF`, sections claires `#F6F8FC` |
 | Titres | `#16181D` ; texte courant `#3D4457` ; texte secondaire `#5B6275` |
 | Filets et bordures | `#E6E9F0` |
@@ -66,11 +67,12 @@ Cartes des packs (validé en octobre 2026) : lumière douce qui suit la souris, 
 2. **Accroche :** promesse, sous-titre, bouton principal et « Voir la démonstration » (seulement si une adresse de démonstration est réglée dans l'admin ; sinon « Voir les tarifs »). Aucun chiffre de performance inventé.
 3. **Choisissez votre solution :** trois cartes (Réservation, Commerce, Formation) ; la solution choisie change l'accent, le titre, les bénéfices, l'aperçu et le bandeau de fonctions. Une solution pas encore ouverte porte « Disponible bientôt » et propose « Être prévenu du lancement », jamais une souscription.
 4. **Votre espace de gestion :** vraies captures (données d'exemple) et quatre usages clés.
+4 bis. **Votre site, en autonomie :** pour les trois solutions, ce que la gérante modifie elle-même depuis son espace (prestations, produits ou cours selon la solution, photos, logo, horaires, témoignages et promotions dès le pack Pro). Couleurs et textes de présentation : sur demande, par notre équipe (jamais présentés comme modifiables seule). Aperçu de l'écran « Mon site » sur ordinateur seulement.
 5. **Fonctionnalités :** sept bénéfices, « Bientôt » quand c'est le cas.
 6. **Réassurance :** seulement des engagements vérifiés ; témoignages réels s'il y en a. Placée juste avant les prix, pour lever les doutes avant la décision.
 7. **Choisissez votre pack {solution} :** mêmes prix pour toutes les solutions. Chaque carte : pictogramme, nom, phrase, prix (HT), ce que le pack ajoute, « Bientôt inclus » à part, « Non inclus » (3 lignes), bouton, conditions.
 8. **Comparatif :** juste sous les packs, pour qui hésite entre deux ; mêmes données que les cartes et les droits ; sur téléphone, un pack à la fois.
-9. **Questions, bandeau final, pied de page.**
+9. **Questions, bandeau final, pied de page.** Le bandeau final est une carte claire nacrée (blanc vers champagne pâle, filet champagne) : prix de départ et délai de mise en ligne, titre, bouton bleu nuit « Créer mon site », lien vers les tarifs, trois garanties. Il tranche ainsi avec le pied de page bleu nuit, dont les textes restent bien lisibles (blanc cassé, gris clairs).
 
 Parcours voulu : découvrir ce que fait l'outil, en voir la valeur, être rassuré, puis choisir son pack ; « Voir les tarifs » en haut de page reste un raccourci direct.
 
