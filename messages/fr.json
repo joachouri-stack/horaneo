@@ -2170,6 +2170,7 @@
       "activity": "Activité",
       "phone": "Téléphone",
       "email": "E-mail",
+      "contact": "Contact",
       "website": "Site actuel",
       "create": "Créer le site",
       "openTenant": "Ouvrir la fiche du site",
@@ -2199,7 +2200,7 @@
       }
     },
     "intro": {
-      "requests": "Les modifications demandées par vos clients depuis leur espace (textes, photos, logo…).",
+      "requests": "Les demandes de vos clients depuis leur espace (mise en page sur mesure, demandes particulières…). Le logo, les couleurs, les textes et les photos, ils les changent eux-mêmes.",
       "settings": "Vos prix, vos messages automatiques et les règles communes à tous les sites.",
       "clients": "Tous les sites de vos clients. Cliquez sur un nom pour ouvrir sa fiche.",
       "billing": "Les abonnements de vos clients et leur état de paiement.",

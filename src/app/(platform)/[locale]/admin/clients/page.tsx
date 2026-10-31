@@ -62,14 +62,15 @@ export default async function ClientsPage({ params, searchParams }: PageProps<"/
       <p className="text-ink/70">{tIntro("clients")}</p>
 
       <form method="get" className={`${ui.card} space-y-4`}>
-        <div className="flex items-end gap-3">
+        {/* Sur téléphone, le bouton passe sous le champ (sinon le champ est écrasé). */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <div className="min-w-0 flex-1">
             <label htmlFor="q" className={ui.label}>
               {t("searchPlaceholder")}
             </label>
             <input id="q" name="q" type="search" defaultValue={filters.q} className={ui.input} />
           </div>
-          <button type="submit" className={`${ui.secondaryButton} w-auto shrink-0`}>
+          <button type="submit" className={`${ui.secondaryButton} shrink-0 sm:w-auto`}>
             {tCommon("search")}
           </button>
         </div>
