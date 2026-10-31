@@ -8,30 +8,32 @@ import { birthMonthNames } from "@/modules/customers/birthday";
 const selectClass =
   "block min-h-12 w-full rounded-site border border-site-border bg-site-bg px-4 py-3 text-lg text-site-text";
 
-/** Anniversaire de la cliente (jour et mois) pour une entreprise qui propose l'offre d'anniversaire. */
+/**
+ * Anniversaire de la cliente (jour et mois), donné une seule fois et enregistré
+ * dans chaque entreprise du site où elle est connue.
+ */
 export function BirthdayForm({
-  businessId,
+  businessIds,
   locale,
   month,
   day,
-  label,
 }: {
-  businessId: string;
+  businessIds: string[];
   locale: string;
   month: number | null;
   day: number | null;
-  /** Nom de l'entreprise (site à plusieurs entreprises), sinon rien. */
-  label?: string;
 }) {
   const t = useTranslations("site.account");
   const tErrors = useTranslations("errors");
   const [state, action, pending] = useActionState(saveBirthdayAction, null);
-  const id = `anniv-${businessId}`;
+  const id = "anniversaire";
   return (
     <form action={action} className="space-y-3">
-      <input type="hidden" name="businessId" value={businessId} />
+      {businessIds.map((businessId) => (
+        <input key={businessId} type="hidden" name="businessId" value={businessId} />
+      ))}
       <fieldset>
-        {label && <legend className="mb-2 font-semibold">{t("birthdayAt", { name: label })}</legend>}
+        <legend className="sr-only">{t("birthdayTitle")}</legend>
         <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-3">
           <div>
             <label htmlFor={`${id}-day`} className="sr-only">
