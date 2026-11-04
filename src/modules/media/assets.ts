@@ -29,7 +29,8 @@ function toAppError(error: unknown): never {
 }
 
 export async function uploadAsset(tx: Transaction, store: FileStorage, tenantId: string, input: UploadInput) {
-  if (input.kind !== "logo") await assertQuota(tx, tenantId, "photos");
+  // Logo et photos des produits de la boutique : hors du nombre de photos de la galerie du pack.
+  if (input.kind !== "logo" && input.kind !== "product") await assertQuota(tx, tenantId, "photos");
   const image = await processImage(input.bytes, input.kind).catch(toAppError);
   const storageKey = `tenants/${tenantId}/${input.kind}/${randomUUID()}.webp`;
   await store.put(storageKey, image.body, image.contentType);
@@ -132,7 +133,7 @@ export async function restoreAsset(tx: Transaction, tenantId: string, assetId: s
   return restored;
 }
 
-/** Options des listes : `photosOnly` écarte le logo du site et les photos de l'équipe (gérés à part). */
+/** Options des listes : `photosOnly` écarte le logo, les photos de l'équipe et des produits (gérés à part). */
 type ListOptions = { photosOnly?: boolean };
 
 export async function listActiveAssets(tx: Transaction, tenantId: string, options: ListOptions = {}) {
@@ -143,7 +144,7 @@ export async function listActiveAssets(tx: Transaction, tenantId: string, option
       and(
         eq(assets.tenantId, tenantId),
         eq(assets.status, "active"),
-        options.photosOnly ? notInArray(assets.kind, ["logo", "staff"]) : undefined,
+        options.photosOnly ? notInArray(assets.kind, ["logo", "staff", "product"]) : undefined,
       ),
     )
     .orderBy(asc(assets.sortOrder), asc(assets.createdAt));
@@ -159,7 +160,7 @@ export async function listRetiredAssets(tx: Transaction, tenantId: string, optio
         eq(assets.tenantId, tenantId),
         eq(assets.status, "replaced"),
         gt(assets.purgeAfter, new Date()),
-        options.photosOnly ? notInArray(assets.kind, ["logo", "staff"]) : undefined,
+        options.photosOnly ? notInArray(assets.kind, ["logo", "staff", "product"]) : undefined,
       ),
     )
     .orderBy(desc(assets.updatedAt));

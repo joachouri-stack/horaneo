@@ -189,7 +189,20 @@
             "week": "Nouveautés",
             "menu": ["Produits", "Commandes", "Stocks", "Promotions", "Statistiques"],
             "events": ["Produit", "Produit", "Produit", "Produit"],
-            "phoneTitle": "Votre boutique",
+            "products": [
+              "Sérum éclat",
+              "Crème de nuit",
+              "Bougie parfumée",
+              "Soin mains",
+              "Sac en toile",
+              "Coffret cadeau"
+            ],
+            "new": "Nouveau",
+            "promo": "−15 %",
+            "variants": "Variantes",
+            "orderTitle": "Nouvelle commande",
+            "orderText": "Stock mis à jour",
+            "phoneTitle": "Nos nouveautés",
             "phoneCta": "Ajouter au panier",
             "business": "Votre boutique"
           },
@@ -849,8 +862,8 @@
           "a": "Oui. Le passage à un pack supérieur est immédiat, la différence est facturée au prorata. Un pack inférieur s'applique à la prochaine échéance."
         },
         "solutions": {
-          "q": "Commerce et Formation sont-ils disponibles ?",
-          "a": "Pas encore : ces deux solutions sont en préparation et affichées « Disponible bientôt ». Les packs Pro et Business y donneront accès à leur lancement, sans frais de plateforme supplémentaires (hors frais Stripe et services tiers)."
+          "q": "{soonCount, plural, one {La solution {soonNames} est-elle disponible ?} other {Les solutions {soonNames} sont-elles disponibles ?}}",
+          "a": "{soonCount, plural, one {Pas encore : elle est en préparation et affichée « Disponible bientôt ».} other {Pas encore : elles sont en préparation et affichées « Disponible bientôt ».}} Les packs Pro et Business y donneront accès à leur lancement, sans frais de plateforme supplémentaires (hors frais Stripe et services tiers)."
         },
         "ai": {
           "q": "Les outils d'intelligence artificielle sont-ils déjà disponibles ?",
@@ -2093,7 +2106,12 @@
       "soonHint": "Cochées : pas encore livrées. Elles portent l'étiquette « Bientôt » sur le site commercial au lieu d'être promises. Décochez une fonction dès qu'elle est prête.",
       "offer_no_commitment": "Proposer aussi la formule sans engagement (avec frais de création du pack)",
       "solutions": "Solutions",
-      "solutionsHint": "Cochée : la solution est ouverte à la souscription. Décochée : elle est présentée « Disponible bientôt », sans souscription possible.",
+      "solutionsHint": "Disponible : ouverte à la souscription. Bientôt : présentée « Disponible bientôt », sans souscription possible. En pause : n'apparaît plus du tout sur le site commercial.",
+      "solutionStatus": {
+        "available": "Disponible",
+        "soon": "Bientôt",
+        "hidden": "En pause (masquée)"
+      },
       "solution": {
         "booking": "Réservation",
         "commerce": "Commerce",
@@ -2909,6 +2927,7 @@
       "requests": "Demander une modification du site",
       "help": "Aide",
       "payments": "Paiements en ligne",
+      "shop": "Boutique",
       "promo": "Codes promo",
       "promotions": "Promotions",
       "giftCards": "Cartes cadeaux",
@@ -2916,7 +2935,7 @@
       "customerData": "Demandes des clientes sur leurs données",
       "groups": {
         "activity": "Mon activité",
-        "sell": "Faire revenir les clientes",
+        "sell": "Vendre et fidéliser",
         "account": "Paiements et compte",
         "support": "Demandes et aide"
       },
@@ -2928,6 +2947,7 @@
         "unavailability": "Congés, pauses et jours de fermeture.",
         "calendar": "Vos rendez-vous dans l'agenda de votre téléphone.",
         "promotions": "Baissez le prix d'une prestation pendant quelques jours.",
+        "shop": "Vos produits en vente sur votre site : photos, prix et stock.",
         "promo": "Des codes de réduction à partager avec vos clientes.",
         "giftCards": "Les cartes cadeaux achetées sur votre site.",
         "loyalty": "Un avantage offert après un nombre de visites.",
@@ -3255,6 +3275,30 @@
     },
     "back": "Retour : {page}",
     "switchBusiness": "Changer d'entreprise",
+    "shop": {
+      "title": "Boutique",
+      "intro": "Ajoutez les produits que vous vendez. Ils seront proposés sur votre site dès l'ouverture de la boutique en ligne.",
+      "unavailable": "{plan, select, none {La boutique n'est pas comprise dans votre pack.} other {La boutique est comprise dès le pack {plan}. Voyez « Abonnement » pour changer de pack.}}",
+      "empty": "Aucun produit pour l'instant.",
+      "new": "Ajouter un produit",
+      "newHint": "La photo s'ajoute une fois le produit enregistré.",
+      "name": "Nom du produit",
+      "description": "Description",
+      "descriptionHint": "Facultatif : contenance, matière, conseils d'utilisation…",
+      "price": "Prix ({currency})",
+      "stock": "Stock",
+      "stockHint": "Laissez vide si vous ne suivez pas le stock.",
+      "active": "En vente sur le site",
+      "photo": "Photo",
+      "stockUntracked": "stock non suivi",
+      "stockOut": "rupture de stock",
+      "stockLeft": "{count, plural, one {# en stock} other {# en stock}}",
+      "hidden": "masqué",
+      "moveUp": "Monter",
+      "moveDown": "Descendre",
+      "delete": "Supprimer ce produit",
+      "deleteConfirm": "Supprimer ce produit ? Sa photo sera mise de côté."
+    },
     "promotions": {
       "title": "Promotions",
       "intro": "Pendant la période choisie, le site affiche un bandeau « offre du moment » et le prix barré à côté du prix réduit. La promotion s'arrête seule à la date de fin.",

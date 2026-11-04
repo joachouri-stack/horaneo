@@ -11,7 +11,7 @@ import sharp, { type Metadata } from "sharp";
 
 export { MAX_UPLOAD_BYTES };
 
-export type ImageKind = "logo" | "cover" | "gallery" | "staff" | "service" | "other";
+export type ImageKind = "logo" | "cover" | "gallery" | "staff" | "service" | "other" | "product";
 
 /** Taille maximale (en pixels) par emplacement. */
 export const IMAGE_MAX_SIZE: Record<ImageKind, number> = {
@@ -21,6 +21,7 @@ export const IMAGE_MAX_SIZE: Record<ImageKind, number> = {
   staff: 1000,
   service: 1600,
   other: 2000,
+  product: 1600,
 };
 
 const ACCEPTED_FORMATS = new Set(["jpeg", "png", "webp", "avif", "heif", "gif", "tiff"]);

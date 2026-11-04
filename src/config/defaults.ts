@@ -49,13 +49,14 @@ export const DEFAULT_PLATFORM_SETTINGS = {
     "qrPoster",
   ] as string[],
   /**
-   * Les trois solutions et leur état : « available » (souscription ouverte) ou
-   * « soon » (présentée « Disponible bientôt », sans souscription possible).
+   * Les trois solutions et leur état : « available » (souscription ouverte),
+   * « soon » (présentée « Disponible bientôt », sans souscription possible) ou
+   * « hidden » (en pause : n'apparaît nulle part sur le site commercial).
    */
   solutions: [
     { code: "booking", status: "available" },
     { code: "commerce", status: "soon" },
-    { code: "formation", status: "soon" },
+    { code: "formation", status: "hidden" },
   ] as SolutionSetting[],
   /** Adresse d'une démonstration en ligne ; vide : le bouton « Voir la démonstration » est masqué. */
   demo_url: "",
@@ -144,7 +145,10 @@ export const DEFAULT_BIRTHDAY_OFFER = {
   codeLength: 6,
 } as const;
 
-export type SolutionSetting = { code: "booking" | "commerce" | "formation"; status: "available" | "soon" };
+export type SolutionSetting = {
+  code: "booking" | "commerce" | "formation";
+  status: "available" | "soon" | "hidden";
+};
 
 /** Identité légale du SaaS : jamais inventée, saisie par l'administratrice. */
 export type LegalIdentity = {

@@ -1,5 +1,5 @@
 import { tenantFeatures, tenantLimits } from "@/modules/billing/entitlements";
-import { and, count, eq, ne, sql } from "drizzle-orm";
+import { and, count, eq, notInArray, sql } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
 import { assets, plans, tenants, type PlanFeatures, type PlanLimits } from "@/db/schema";
 import { AppError } from "./errors";
@@ -31,8 +31,14 @@ export async function countUsage(tx: Transaction, tenantId: string, key: QuotaKe
   const [row] = await tx
     .select({ value: count() })
     .from(assets)
-    // Le logo ne compte pas dans le nombre de photos du pack.
-    .where(and(eq(assets.tenantId, tenantId), eq(assets.status, "active"), ne(assets.kind, "logo")));
+    // Le logo et les photos des produits de la boutique ne comptent pas dans les photos du pack.
+    .where(
+      and(
+        eq(assets.tenantId, tenantId),
+        eq(assets.status, "active"),
+        notInArray(assets.kind, ["logo", "product"]),
+      ),
+    );
   return row.value;
 }
 

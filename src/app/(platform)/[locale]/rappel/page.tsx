@@ -11,6 +11,7 @@ import { pickLocalized } from "@/i18n/locales";
 import { resolveLocale } from "@/i18n/translator";
 import { SOLUTIONS, type Solution } from "@/modules/billing/grid";
 import { listPublicPlans } from "@/modules/billing/plans";
+import { getPlatformSetting } from "@/modules/settings";
 import { requestCallbackAction } from "./actions";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/rappel">): Promise<Metadata> {
@@ -29,10 +30,15 @@ export default async function CallbackPage({ params, searchParams }: PageProps<"
   setRequestLocale(locale);
   const query = await searchParams;
   const t = await getTranslations("callback");
-  const plans = await withPlatform((tx) => listPublicPlans(tx));
+  const { plans, solutions } = await withPlatform(async (tx) => ({
+    plans: await listPublicPlans(tx),
+    solutions: await getPlatformSetting(tx, "solutions"),
+  }));
   const plan = plans.find((item) => item.code === query.pack);
-  // « Être prévenu du lancement » d'une solution en préparation (Commerce, Formation…).
-  const solution = SOLUTIONS.find((code) => code === query.solution) as Solution | undefined;
+  // « Être prévenu du lancement » d'une solution en préparation (Commerce…) ; jamais une solution en pause.
+  const solution = SOLUTIONS.find(
+    (code) => code === query.solution && solutions.find((item) => item.code === code)?.status !== "hidden",
+  ) as Solution | undefined;
   const tHome = await getTranslations("home.solutions.items");
 
   return (

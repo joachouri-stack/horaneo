@@ -134,13 +134,17 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
         {/* Solutions : ouvertes à la souscription, ou « Disponible bientôt ». */}
         <Section title={t("solutions")}>
           <p className="mb-3 text-sm text-ink/70">{t("solutionsHint")}</p>
-          <div className="grid sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-3">
             {solutions.map((item) => (
-              <CheckboxField
+              <SelectField
                 key={item.code}
                 name={`solution_${item.code}`}
                 label={t(`solution.${item.code}`)}
-                defaultChecked={item.status === "available"}
+                defaultValue={item.status}
+                options={(["available", "soon", "hidden"] as const).map((status) => ({
+                  value: status,
+                  label: t(`solutionStatus.${status}`),
+                }))}
               />
             ))}
           </div>

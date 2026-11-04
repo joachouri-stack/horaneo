@@ -214,8 +214,11 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     showcase: await listShowcase(tx),
   }));
   const soon = new Set<string>(data.soon);
-  const isSoon = (solution: Solution) =>
-    data.solutions.find((item) => item.code === solution)?.status !== "available";
+  const statusOf = (solution: Solution) => data.solutions.find((item) => item.code === solution)?.status;
+  const isSoon = (solution: Solution) => statusOf(solution) !== "available";
+  // Solutions présentées sur la page : celles en pause (réglage admin) n'apparaissent nulle part.
+  const shown = SOLUTIONS.filter((code) => statusOf(code) !== "hidden");
+  const soonShown = shown.filter(isSoon);
   // Premier pack de la grille (le moins cher) : bouton « Créer mon site » et question de la FAQ.
   const first = [...data.plans].sort((a, b) => a.priceCents - b.priceCents)[0];
   const contact = config.SUPPORT_EMAIL ?? `support@${config.MAIN_DOMAIN}`;
@@ -248,6 +251,11 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     choice: data.noCommitment ? "yes" : "no",
     // Premier pack (le moins cher) qui inclut un nom de domaine pour la création.
     exportPlan: firstPlanWith("dataExport"),
+    // Solutions présentées « Bientôt » (question de la FAQ).
+    soonCount: soonShown.length,
+    soonNames: new Intl.ListFormat(locale, { type: "conjunction" }).format(
+      soonShown.map((code) => t(`solutions.items.${code}.name`)),
+    ),
     domainPlan: (() => {
       const plan = [...data.plans]
         .sort((a, b) => a.priceCents - b.priceCents)
@@ -259,8 +267,8 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
   // « Bientôt », offre de lancement ouverte.
   const aiSoon = AI_FEATURES.some((key) => soon.has(key));
   const hasOffer = data.offers.length > 0;
-  // « Commerce et Formation sont-ils disponibles ? » : tant qu'une solution est en préparation.
-  const solutionSoon = SOLUTIONS.some(isSoon);
+  // « Commerce est-il disponible ? » : tant qu'une solution présentée est en préparation.
+  const solutionSoon = soonShown.length > 0;
   const faq = FAQ.filter((key) =>
     key === "ai" ? aiSoon : key === "tablet" ? hasOffer : key === "solutions" ? solutionSoon : true,
   ).map((key) => ({
@@ -476,7 +484,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               <SolutionTabs
                 label={t("solutions.label")}
                 soonLabel={t("solutions.soon")}
-                items={SOLUTIONS.map((code) => ({
+                items={shown.map((code) => ({
                   code,
                   name: t(`solutions.items.${code}.name`),
                   short: t(`solutions.items.${code}.short`),
@@ -484,7 +492,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 }))}
               />
 
-              {SOLUTIONS.map((code) => (
+              {shown.map((code) => (
                 <div key={code} data-only={code} className="pt-10 lg:pt-14">
                   <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-14">
                     <div data-reveal>
@@ -686,7 +694,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                       </span>
                       <span className="min-w-0">
                         {key === "catalog" ? (
-                          SOLUTIONS.map((code) => (
+                          shown.map((code) => (
                             <span key={code} data-only={code} className="block">
                               <span className="block font-semibold text-night">
                                 {t(`selfService.items.catalog.${code}.title`)}
@@ -774,7 +782,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                         </span>
                         <span className="min-w-0 flex-1 truncate font-medium text-night">
                           {key === "catalog"
-                            ? SOLUTIONS.map((code) => (
+                            ? shown.map((code) => (
                                 <span key={code} data-only={code}>
                                   {t(`selfService.items.catalog.${code}.title`)}
                                 </span>
@@ -934,7 +942,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               <div data-reveal>
                 <h2 id="titre-tarifs" className={`${TITLE} text-mk-h2 leading-[1.1]`}>
                   {t("plans.title")}
-                  {SOLUTIONS.map((code) => (
+                  {shown.map((code) => (
                     <span key={code} data-only={code} className="text-accent">
                       {" "}
                       {t(`solutions.items.${code}.name`)}
@@ -964,7 +972,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               )}
             </div>
             {/* Solution en préparation : les packs se souscrivent aujourd'hui pour la Réservation. */}
-            {SOLUTIONS.filter(isSoon).map((code) => (
+            {soonShown.map((code) => (
               <p
                 key={code}
                 data-only={code}

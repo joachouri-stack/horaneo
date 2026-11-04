@@ -33,7 +33,15 @@ const tenantRef = () =>
     .notNull()
     .references(() => tenants.id, { onDelete: "cascade" });
 
-export const assetKindEnum = pgEnum("asset_kind", ["logo", "cover", "gallery", "staff", "service", "other"]);
+export const assetKindEnum = pgEnum("asset_kind", [
+  "logo",
+  "cover",
+  "gallery",
+  "staff",
+  "service",
+  "other",
+  "product",
+]);
 export const assetStatusEnum = pgEnum("asset_status", ["active", "replaced"]);
 
 /** Photos et fichiers (stockés sur Cloudflare R2). */

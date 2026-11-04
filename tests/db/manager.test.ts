@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { withPlatform, withTenant } from "@/db/access";
 import type { Transaction } from "@/db/client";
-import { appointments, assets, authSessions, usageCounters } from "@/db/schema";
+import { appointments, assets, authSessions, customers, usageCounters } from "@/db/schema";
 import { setPlatformAdmin } from "@/db/admin-role";
 import {
   cancelByManager,
@@ -610,6 +610,8 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
       const a = await onlineBooking(s.id, s.massage.id, at("10:00"));
       await onlineBooking(s.id, s.massage.id, at("14:00"));
       await asManager(s.id, (tx) => setAttendance(tx, s.id, a.appointmentId, "no_show"));
+      // Fiches créées au mois étudié (et non au jour où le test tourne).
+      await owner.update(customers).set({ createdAt: NOW }).where(eq(customers.tenantId, s.id));
       const stats = await asManager(s.id, (tx) => monthStats(tx, s.id, "2026-10", TZ, "fr"));
       expect(stats).toMatchObject({
         appointments: 2,

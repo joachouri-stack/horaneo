@@ -349,6 +349,8 @@ export async function createBooking(
     [appointment] = await tx
       .insert(appointments)
       .values({
+        // Même date que celle qui compte la réservation du mois (rendue au bon mois si elle expire).
+        createdAt: now,
         tenantId,
         customerId,
         staffId,

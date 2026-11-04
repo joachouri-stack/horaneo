@@ -116,7 +116,7 @@ describe("valeurs de départ des packs", () => {
     expect(DEFAULT_PLATFORM_SETTINGS.solutions.map((item) => [item.code, item.status])).toEqual([
       ["booking", "available"],
       ["commerce", "soon"],
-      ["formation", "soon"],
+      ["formation", "hidden"],
     ]);
   });
 

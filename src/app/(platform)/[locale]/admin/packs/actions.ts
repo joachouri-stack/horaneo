@@ -61,9 +61,12 @@ export async function saveSettingsAction(_previous: Previous, data: FormData) {
   raw.site_buyout_enabled = form.bool(data, "site_buyout_enabled");
   raw.offer_no_commitment = form.bool(data, "offer_no_commitment");
   raw.yearly_billing_enabled = form.bool(data, "yearly_billing_enabled");
-  raw.solutions_available = (["booking", "commerce", "formation"] as const).filter((code) =>
-    form.bool(data, `solution_${code}`),
-  );
+  // État de chaque solution : disponible, « Bientôt » ou en pause (masquée).
+  if (data.has("solution_booking")) {
+    const codes = ["booking", "commerce", "formation"] as const;
+    raw.solutions_available = codes.filter((code) => form.text(data, `solution_${code}`) === "available");
+    raw.solutions_hidden = codes.filter((code) => form.text(data, `solution_${code}`) === "hidden");
+  }
   raw.features_soon = FEATURE_KEYS.filter((key) => form.bool(data, `soon_${key}`));
   return adminMutation({ action: "settings.updated" }, (tx) => updatePlatformSettings(tx, raw as never));
 }

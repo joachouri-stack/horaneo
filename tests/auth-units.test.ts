@@ -137,7 +137,11 @@ describe("chiffrement du secret", () => {
   it("refuse une autre clé ou un contenu altéré", () => {
     const payload = encryptSecret("JBSWY3DPEHPK3PXP", key);
     expect(() => decryptSecret(payload, "y".repeat(40))).toThrow();
-    expect(() => decryptSecret(payload.slice(0, -2) + "AA", key)).toThrow();
+    // Un caractère du chiffré remplacé par un autre (pas le dernier : ses derniers bits ne
+    // comptent pas en base64, le changer pouvait laisser le contenu identique).
+    const at = payload.length - 3;
+    const tampered = payload.slice(0, at) + (payload[at] === "A" ? "B" : "A") + payload.slice(at + 1);
+    expect(() => decryptSecret(tampered, key)).toThrow();
   });
 });
 

@@ -59,7 +59,12 @@ export function SolutionTabs({
   const context = useContext(Context);
   if (!context) return null;
   return (
-    <div role="group" aria-label={label} className="grid gap-3 sm:grid-cols-3 sm:gap-4">
+    <div
+      role="group"
+      aria-label={label}
+      // Deux ou trois solutions présentées (une solution en pause n'a pas de carte).
+      className={`grid gap-3 sm:gap-4 ${items.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}
+    >
       {items.map((item, index) => {
         const Icon = ICONS[item.code];
         const active = context.solution === item.code;
