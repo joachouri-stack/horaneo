@@ -49,7 +49,8 @@ export default async function CancellationPage({
       const giftCards = site.giftCardBusinessIds.includes(business.id)
         ? settings.giftCardValidityMonths
         : null;
-      return { business, hours: settings.cancellationDeadlineHours, deposit, giftCards };
+      const shop = site.shopBusinessIds.includes(business.id);
+      return { business, hours: settings.cancellationDeadlineHours, deposit, giftCards, shop };
     }),
   );
   const multi = site.businesses.length > 1;
@@ -94,6 +95,17 @@ export default async function CancellationPage({
                     <li>{t("noDeposit")}</li>
                   )}
                 </ul>
+                {rule.shop && (
+                  <div id="boutique" className="mt-4 scroll-mt-28">
+                    <h3 className="font-semibold">{t("shop")}</h3>
+                    <ul className="mt-1 list-disc space-y-2 pl-5">
+                      <li>{t("shopPayment")}</li>
+                      <li>{t("shopPickup")}</li>
+                      <li>{t("shopUnavailable")}</li>
+                      <li>{t("shopWithdrawal", { name: multi ? rule.business.name : site.tenant.name })}</li>
+                    </ul>
+                  </div>
+                )}
                 {rule.giftCards && (
                   <div id="cartes-cadeaux" className="mt-4 scroll-mt-28">
                     <h3 className="font-semibold">{t("giftCards")}</h3>

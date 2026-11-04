@@ -13,7 +13,8 @@ export const getSite = cache(async (tenantId: string) => {
   const site = await withTenant(tenantId, (tx) => loadSiteData(tx, tenantId));
   if (!site) notFound();
   // Sans paiement en ligne configuré, aucune carte cadeau ne peut être achetée : pas de lien.
-  if (!paymentGateway()) return { ...site, giftCardBusinessIds: [] };
+  // Ni boutique non plus : une commande ne pourrait pas être payée.
+  if (!paymentGateway()) return { ...site, giftCardBusinessIds: [], shopBusinessIds: [] };
   return site;
 });
 

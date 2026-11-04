@@ -12,6 +12,7 @@ import {
   googleReviews,
   openingHours,
   plans,
+  products,
   serviceCategories,
   services,
   sitePages,
@@ -100,6 +101,7 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
     reviewRows,
     settingsRows,
     popularRows,
+    shopRows,
   ] = await Promise.all([
     tx
       .select()
@@ -166,6 +168,11 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
       .groupBy(appointmentItems.serviceId)
       .orderBy(desc(sql`count(*)`))
       .limit(POPULAR_SERVICES.max),
+    // Entreprises qui ont au moins un produit en vente (boutique).
+    tx
+      .selectDistinct({ businessId: products.businessId })
+      .from(products)
+      .where(and(eq(products.tenantId, tenantId), eq(products.isActive, true))),
   ]);
   const planFeatures = row.features as PlanFeatures;
   // Réservation en ligne : il faut que le pack l'inclue, puis que l'entreprise l'ait laissée ouverte.
@@ -311,6 +318,7 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
       googleReviews: Boolean(features.googleReviews),
       giftCards: Boolean(features.giftCards),
       customerSpace: Boolean(features.customerSpace),
+      commerce: Boolean(features.commerce),
     },
     offers,
     /** Avis Google par entreprise (copie de moins de 30 jours ; sinon seulement le lien). */
@@ -343,6 +351,22 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
                 business.stripeAccountId &&
                 business.stripeChargesEnabled &&
                 settingsRows.find((item) => item.businessId === business.id)?.giftCardsEnabled,
+            )
+            .map((business) => business.id)
+        : [],
+    /**
+     * Entreprises dont la boutique est ouverte : pack avec la boutique, compte Stripe actif
+     * et au moins un produit en vente (jamais un lien vers une boutique vide ou sans paiement).
+     * Le site retire ensuite la liste si le paiement en ligne n'est pas configuré.
+     */
+    shopBusinessIds:
+      features.commerce && features.onlinePayment
+        ? businessRows
+            .filter(
+              (business) =>
+                business.stripeAccountId &&
+                business.stripeChargesEnabled &&
+                shopRows.some((item) => item.businessId === business.id),
             )
             .map((business) => business.id)
         : [],

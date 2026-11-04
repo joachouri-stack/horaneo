@@ -12,6 +12,7 @@ import { SITE_PATHS } from "@/modules/site/paths";
 export async function SiteFooter({ site }: { site: NonNullable<SiteData> }) {
   const t = await getTranslations("site.footer");
   const tGift = await getTranslations("site.giftCard");
+  const tShop = await getTranslations("site.shop");
   const tAccount = await getTranslations("site.account");
   const { tenant } = site;
   const config = env();
@@ -42,6 +43,13 @@ export async function SiteFooter({ site }: { site: NonNullable<SiteData> }) {
               {t("privacy")}
             </Link>
           </li>
+          {site.shopBusinessIds.length > 0 && (
+            <li>
+              <Link href={SITE_PATHS.shop} className="underline">
+                {tShop("title")}
+              </Link>
+            </li>
+          )}
           {site.giftCardBusinessIds.length > 0 && (
             <li>
               <Link href={SITE_PATHS.giftCard} className="underline">

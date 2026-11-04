@@ -258,7 +258,10 @@ describe.skipIf(!hasTestDatabase)("site d'un client : données affichées", () =
       giftCards: false,
       // Basic : pas d'espace des clientes (le lien de l'e-mail suffit).
       customerSpace: false,
+      // Ni boutique (solution Commerce).
+      commerce: false,
     });
+    expect(site.shopBusinessIds).toEqual([]);
     expect(site.testimonials).toEqual([]);
     expect(Object.values(visibleSections(site)).every((visible) => !visible)).toBe(true);
     expect(sitemapPaths(site, visibleSections(site), SITE_PATHS, categoryPath)).toEqual([

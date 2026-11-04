@@ -4,6 +4,7 @@ import type { SiteData } from "@/modules/site/data";
 import { visibleSections } from "@/modules/site/data";
 import { ctaLabelKey, siteCta } from "@/modules/site/cta";
 import { SITE_PATHS } from "@/modules/site/paths";
+import { CartLink } from "@/components/shop/CartLink";
 import { BookButton } from "./BookButton";
 import { AccountLink, accountMenuLink, ProLink, proMenuLink } from "./AccountLink";
 import { MobileMenu } from "./MobileMenu";
@@ -30,7 +31,9 @@ export async function SiteHeader({
     ] as const
   )
     .filter(([key]) => sections[key])
-    .map(([key, href]) => ({ href, label: t(`nav.${key}`) }));
+    .map(([key, href]): { href: string; label: string } => ({ href, label: t(`nav.${key}`) }))
+    // Boutique ouverte (produits en vente, paiement prêt).
+    .concat(site.shopBusinessIds.length > 0 ? [{ href: SITE_PATHS.shop, label: t("shop.title") }] : []);
 
   return (
     <header className="sticky top-0 z-30 border-b border-site-border bg-site-bg/95 backdrop-blur">
@@ -74,6 +77,7 @@ export async function SiteHeader({
         <div className="flex items-center gap-2">
           <ProLink />
           <AccountLink site={site} />
+          {site.shopBusinessIds.length > 0 && <CartLink />}
           {showBook && cta && <BookButton href={cta.href} label={t(ctaLabelKey(cta))} size="sm" />}
           <MobileMenu links={[...links, ...(await accountMenuLink(site)), ...(await proMenuLink())]} />
         </div>

@@ -190,9 +190,30 @@ export async function createTenantWithData(db: TestDb, label: string) {
     .insert(s.giftCardTransactions)
     .values({ businessId, tenantId, giftCardId: giftCard.id, kind: "purchase", amountCents: 5000 });
   // Boutique (solution Commerce).
-  await db
+  const [product] = await db
     .insert(s.products)
-    .values({ businessId, tenantId, name: { fr: "Sérum éclat" }, priceCents: 2900, stockQuantity: 5 });
+    .values({ businessId, tenantId, name: { fr: "Sérum éclat" }, priceCents: 2900, stockQuantity: 5 })
+    .returning();
+  const [shopOrder] = await db
+    .insert(s.shopOrders)
+    .values({
+      businessId,
+      tenantId,
+      customerName: "Camille",
+      customerEmail: `client-${tag}@example.com`,
+      totalCents: 2900,
+      status: "paid",
+    })
+    .returning();
+  await db.insert(s.shopOrderItems).values({
+    businessId,
+    tenantId,
+    orderId: shopOrder.id,
+    productId: product.id,
+    name: "Sérum éclat",
+    unitPriceCents: 2900,
+    quantity: 1,
+  });
   await db.insert(s.subscriptions).values({ tenantId, planId: plan.id, status: "active" });
   await db.insert(s.orders).values({
     userId: user.id,

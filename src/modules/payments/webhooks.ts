@@ -2,6 +2,7 @@ import { eq, sql } from "drizzle-orm";
 import { declareBusiness } from "@/db/access";
 import type { Transaction } from "@/db/client";
 import { applyGiftCardIntent } from "@/modules/giftcards/giftcards";
+import { applyShopOrderIntent } from "@/modules/shop/orders";
 import { stripeEvents } from "@/db/schema";
 import { applyAccount, disconnectAccount } from "./connect";
 import { applyPaymentIntent, businessOfAccount } from "./deposits";
@@ -64,6 +65,17 @@ async function dispatch(tx: Transaction, event: GatewayEvent, gateway: PaymentGa
           id: String(object.id),
           status: String(object.status) as GatewayPaymentIntent["status"],
         })
+      ).outcome;
+    }
+    // Commande de la boutique.
+    if (metadata.shop_order_id) {
+      return (
+        await applyShopOrderIntent(
+          tx,
+          tenantId,
+          { id: String(object.id), status: String(object.status) as GatewayPaymentIntent["status"] },
+          gateway,
+        )
       ).outcome;
     }
     const result = await applyPaymentIntent(

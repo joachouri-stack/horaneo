@@ -19,6 +19,9 @@ export const MESSAGE_TEMPLATES = [
   "customer.payment_refunded",
   "customer.gift_card",
   "customer.gift_card_receipt",
+  "customer.shop_order",
+  "customer.shop_order_ready",
+  "customer.shop_order_cancelled",
   "customer.login_link",
   "customer.login_code",
   "customer.review_request",
@@ -36,6 +39,7 @@ export const MESSAGE_TEMPLATES = [
   "manager.subscription_ended",
   "manager.price_change",
   "manager.gift_card_sold",
+  "manager.shop_order",
   "manager.data_request",
   "manager.push_test",
   "manager.stripe_invite",
@@ -65,6 +69,7 @@ export const PUSH_TEMPLATES: readonly MessageTemplate[] = [
   "manager.cancelled",
   "manager.rescheduled",
   "manager.gift_card_sold",
+  "manager.shop_order",
   "manager.data_request",
 ];
 

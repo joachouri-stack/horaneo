@@ -32,6 +32,7 @@ import { tenantSiteUrl } from "@/lib/tenancy/urls";
 import { manageTokenFor } from "@/modules/booking/create";
 import { loginCodeForMessage } from "@/modules/customer-space/auth";
 import { giftCardCodeFor } from "@/modules/giftcards/giftcards";
+import { loadShopOrder, orderReference } from "@/modules/shop/orders";
 import { addMinutes } from "@/modules/booking/time";
 import { depositSummary } from "@/modules/payments/refunds";
 import { formatPhone } from "@/modules/phone";
@@ -289,6 +290,12 @@ export async function renderMessage(
     return renderGiftCard(tx, row, template, tenant, options);
   if (template === "customer.login_link" || template === "customer.login_code")
     return renderLogin(tx, row, tenant, options);
+  if (
+    template === "customer.shop_order" ||
+    template === "customer.shop_order_ready" ||
+    template === "customer.shop_order_cancelled"
+  )
+    return renderShopOrder(tx, row, template, tenant, options);
   if (template === "customer.birthday") return renderBirthday(tx, row, tenant, options);
   if (template.startsWith("manager.")) return renderManager(tx, row, template, tenant, options);
   return renderCustomer(tx, row, template, tenant, options);
@@ -384,6 +391,106 @@ async function renderGiftCard(
     footer: tenantFooter(tenant),
   });
   return { kind: "email", to: [to], subject, html, text, fromName: tenant.name, replyTo: tenant.email };
+}
+
+// ─── Boutique ─────────────────────────────────────────────────────────────────
+
+async function loadOrderForMessage(tx: Transaction, row: MessageRow) {
+  const orderId = (row.data as { orderId?: string }).orderId;
+  if (!orderId || !row.tenantId) return null;
+  return loadShopOrder(tx, row.tenantId, orderId);
+}
+
+/** Articles d'une commande, une ligne chacun : « 2 × Sérum éclat — 59,80 € ». */
+function orderLines(
+  items: { name: string; quantity: number; unitPriceCents: number }[],
+  money: (cents: number) => string,
+) {
+  return items.map(
+    (item) => `${item.quantity} × ${item.name} — ${money(item.unitPriceCents * item.quantity)}`,
+  );
+}
+
+/** Commande confirmée (ou remboursée faute de stock), puis « prête à retirer ». */
+async function renderShopOrder(
+  tx: Transaction,
+  row: MessageRow,
+  template: MessageTemplate,
+  tenant: TenantInfo,
+  options: RenderOptions,
+): Promise<Rendered> {
+  const found = await loadOrderForMessage(tx, row);
+  if (!found) return { kind: "skip", reason: "no_order" };
+  const { order, items } = found;
+  const locale = resolveLocale(order.locale);
+  const t = await getTranslator(locale);
+  const fmt = formatters(locale, tenant.timezone);
+  const money = (cents: number) => fmt.money(cents, order.currency);
+  const reference = orderReference(order.id);
+  const address = [tenant.addressLine1, [tenant.postalCode, tenant.city].filter(Boolean).join(" ")]
+    .filter(Boolean)
+    .join(", ");
+  let subject: string;
+  let title: string;
+  let paragraphs: string[];
+  if (template === "customer.shop_order_ready") {
+    if (order.status !== "ready") return { kind: "skip", reason: "not_ready" };
+    subject = t("notifications.shop.readySubject", { business: tenant.name, reference });
+    title = t("notifications.shop.readyTitle");
+    paragraphs = [
+      t("notifications.common.hello", { name: order.customerName }),
+      t("notifications.shop.readyIntro", { business: tenant.name }),
+      ...(address ? [t("notifications.shop.where", { address })] : []),
+    ];
+  } else if (template === "customer.shop_order_cancelled") {
+    if (order.status !== "refunded") return { kind: "skip", reason: "not_cancelled" };
+    subject = t("notifications.shop.cancelledSubject", { business: tenant.name, reference });
+    title = t("notifications.shop.cancelledTitle");
+    paragraphs = [
+      t("notifications.common.hello", { name: order.customerName }),
+      t("notifications.shop.cancelledIntro", { business: tenant.name, amount: money(order.totalCents) }),
+    ];
+  } else if (order.status === "refunded") {
+    subject = t("notifications.shop.refundedSubject", { business: tenant.name });
+    title = t("notifications.shop.refundedTitle");
+    paragraphs = [
+      t("notifications.common.hello", { name: order.customerName }),
+      t("notifications.shop.refundedIntro", { amount: money(order.totalCents) }),
+    ];
+  } else {
+    if (order.status === "pending_payment" || order.status === "expired")
+      return { kind: "skip", reason: "not_paid" };
+    subject = t("notifications.shop.confirmedSubject", { business: tenant.name, reference });
+    title = t("notifications.shop.confirmedTitle");
+    paragraphs = [
+      t("notifications.common.hello", { name: order.customerName }),
+      t("notifications.shop.confirmedIntro", { business: tenant.name }),
+      t("notifications.shop.pickupLater"),
+    ];
+  }
+  const { html, text } = renderEmail({
+    locale,
+    brandName: tenant.name,
+    logoUrl: logoUrlOf(tenant, options),
+    color: tenant.color,
+    title,
+    paragraphs,
+    details: [
+      { label: t("notifications.shop.reference"), value: reference },
+      { label: t("notifications.shop.total"), value: money(order.totalCents) },
+    ],
+    list: orderLines(items, money),
+    footer: tenantFooter(tenant),
+  });
+  return {
+    kind: "email",
+    to: [order.customerEmail],
+    subject,
+    html,
+    text,
+    fromName: tenant.name,
+    replyTo: tenant.email,
+  };
 }
 
 // ─── Connexion à l'espace des clientes ────────────────────────────────────────
@@ -912,6 +1019,28 @@ async function renderManager(
       { label: t("notifications.giftCard.validity"), value: fmt.date(found.card.expiresAt) },
     ];
     action = { label: t("notifications.manager.gift_card_sold.open"), url: `${space}/plus/cartes-cadeaux` };
+  } else if (template === "manager.shop_order") {
+    const found = await loadOrderForMessage(tx, row);
+    if (!found || found.order.status === "pending_payment" || found.order.status === "expired")
+      return { kind: "skip", reason: "no_order" };
+    const { order, items } = found;
+    const money = (cents: number) => fmt.money(cents, order.currency);
+    subject = t("notifications.manager.shop_order.subject", {
+      reference: orderReference(order.id),
+      amount: money(order.totalCents),
+    });
+    title = t("notifications.manager.shop_order.title");
+    paragraphs = [t("notifications.manager.shop_order.intro", { name: order.customerName })];
+    list = orderLines(items, money);
+    details = [
+      { label: t("notifications.shop.reference"), value: orderReference(order.id) },
+      { label: t("notifications.shop.total"), value: money(order.totalCents) },
+      ...(order.customerPhone
+        ? [{ label: t("notifications.shop.phone"), value: formatPhone(order.customerPhone, tenant.country) }]
+        : []),
+      ...(order.note ? [{ label: t("notifications.shop.note"), value: order.note }] : []),
+    ];
+    action = { label: t("notifications.manager.shop_order.open"), url: `${space}/plus/commandes` };
   } else if (template === "manager.data_request") {
     const kind = (row.data as { kind?: string }).kind === "deletion" ? "deletion" : "export";
     const name = (row.data as { customerName?: string }).customerName ?? "";

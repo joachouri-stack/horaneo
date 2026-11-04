@@ -29,7 +29,7 @@ type Props = {
   onRestart?: () => void;
   restartHref?: string;
   /** Textes propres à un autre achat (carte cadeau) : titre, bouton, mention sous le formulaire. */
-  labels?: { title?: string; pay?: string; secure?: string };
+  labels?: { title?: string; pay?: string; secure?: string; expired?: string; restart?: string };
 };
 
 const buttonClass =
@@ -87,15 +87,15 @@ export function DepositPayment(props: Props) {
   if (remaining === 0) {
     return (
       <div role="alert" className="rounded-site border border-site-border p-4">
-        <p className="font-semibold">{t("expired")}</p>
+        <p className="font-semibold">{props.labels?.expired ?? t("expired")}</p>
         {props.onRestart ? (
           <button type="button" onClick={props.onRestart} className={`${buttonClass} mt-4`}>
-            {t("restart")}
+            {props.labels?.restart ?? t("restart")}
           </button>
         ) : (
           props.restartHref && (
             <Link href={props.restartHref} className={`${buttonClass} mt-4`}>
-              {t("restart")}
+              {props.labels?.restart ?? t("restart")}
             </Link>
           )
         )}

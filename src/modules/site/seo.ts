@@ -95,6 +95,8 @@ export function sitemapPaths(
     if (sections.testimonials) list.push(paths.testimonials);
     list.push(paths.practical);
   }
+  // Boutique ouverte (les fiches produits y sont reliées).
+  if (site.shopBusinessIds.length > 0 && paths.shop) list.push(paths.shop);
   list.push(paths.legal, paths.privacy);
   if (paths.cancellation) list.push(paths.cancellation);
   return list;
