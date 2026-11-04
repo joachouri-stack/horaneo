@@ -189,7 +189,20 @@
             "week": "Nouveautés",
             "menu": ["Produits", "Commandes", "Stocks", "Promotions", "Statistiques"],
             "events": ["Produit", "Produit", "Produit", "Produit"],
-            "phoneTitle": "Votre boutique",
+            "products": [
+              "Sérum éclat",
+              "Crème de nuit",
+              "Bougie parfumée",
+              "Soin mains",
+              "Sac en toile",
+              "Coffret cadeau"
+            ],
+            "new": "Nouveau",
+            "promo": "−15 %",
+            "variants": "Variantes",
+            "orderTitle": "Nouvelle commande",
+            "orderText": "Stock mis à jour",
+            "phoneTitle": "Nos nouveautés",
             "phoneCta": "Ajouter au panier",
             "business": "Votre boutique"
           },
