@@ -53,6 +53,7 @@ export async function AtelierFooter({ site }: { site: Site }) {
   const tFooter = await getTranslations("site.footer");
   const tSite = await getTranslations("site");
   const tGift = await getTranslations("site.giftCard");
+  const tShop = await getTranslations("site.shop");
   const tAccount = await getTranslations("site.account");
   const cta = siteCta(site);
   const { tenant } = site;
@@ -122,6 +123,16 @@ export async function AtelierFooter({ site }: { site: Site }) {
                     className="inline-flex min-h-11 items-center underline underline-offset-4"
                   >
                     {tSite("nav.services")}
+                  </Link>
+                </li>
+              )}
+              {site.shopBusinessIds.length > 0 && (
+                <li>
+                  <Link
+                    href={SITE_PATHS.shop}
+                    className="inline-flex min-h-11 items-center underline underline-offset-4 hover:opacity-80"
+                  >
+                    {tShop("title")}
                   </Link>
                 </li>
               )}

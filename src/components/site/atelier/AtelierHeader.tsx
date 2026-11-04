@@ -5,12 +5,17 @@ import type { SiteData } from "@/modules/site/data";
 import { visibleSections } from "@/modules/site/data";
 import { businessPath, categoryPath, SITE_PATHS } from "@/modules/site/paths";
 import { AccountLink, accountMenuLink, ProLink, proMenuLink } from "../AccountLink";
+import { CartLink } from "@/components/shop/CartLink";
 import { MobileMenu } from "../MobileMenu";
 import { SiteImage } from "../SiteImage";
 import { NavLinks } from "./NavLinks";
 import { PillLink } from "./ui";
 
 type Site = NonNullable<SiteData>;
+
+async function shopLabel() {
+  return (await getTranslations("site.shop"))("title");
+}
 
 /**
  * Liens du menu : la page de chaque professionnelle, les catégories choisies
@@ -38,6 +43,8 @@ export async function atelierLinks(site: Site) {
           label: category.name,
         };
       }),
+    // Boutique ouverte (produits en vente, paiement prêt).
+    ...(site.shopBusinessIds.length > 0 ? [{ href: SITE_PATHS.shop, label: await shopLabel() }] : []),
     ...(sections.about ? [{ href: SITE_PATHS.about, label: t("about") }] : []),
     ...(sections.testimonials ? [{ href: SITE_PATHS.testimonials, label: t("testimonials") }] : []),
     { href: SITE_PATHS.practical, label: t("practical") },
@@ -102,6 +109,7 @@ export async function AtelierHeader({ site, showBook = true }: { site: Site; sho
         <div className="flex items-center gap-2">
           <ProLink />
           <AccountLink site={site} />
+          {site.shopBusinessIds.length > 0 && <CartLink />}
           {showBook && cta && (
             <span className="hidden sm:block">
               <PillLink href={cta.href} size="sm">

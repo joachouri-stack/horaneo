@@ -18,6 +18,7 @@ import {
   saveProduct,
   setProductPhoto,
 } from "@/modules/shop/products";
+import { priceCart, shopProduct, shopProducts } from "@/modules/shop/catalog";
 import { createTenant } from "@/modules/tenants/create";
 import { hasTestDatabase, openAppDb, openTestDb, type TestDb } from "../setup/db";
 
@@ -154,5 +155,52 @@ describe.skipIf(!hasTestDatabase)("boutique : catalogue de produits", () => {
     expect(primary).toEqual([]);
     const second = await asManager(tenant.id, (tx) => listProducts(tx, tenant.id), other.id);
     expect(second.map((p) => p.name.fr)).toEqual(["Sac en toile"]);
+  });
+
+  it("site public : seuls les produits en vente ; le panier relit prix et stock en base", async () => {
+    const tenant = await newTenant("pro");
+    const as = <T>(fn: (tx: Transaction) => Promise<T>) => asManager(tenant.id, fn, tenant.primaryBusinessId);
+    const serum = await as((tx) => saveProduct(tx, tenant.id, { name: "Sérum", price: "29,90", stock: "3" }));
+    const candle = await as((tx) => saveProduct(tx, tenant.id, { name: "Bougie", price: "19" }));
+    const hidden = await as((tx) =>
+      saveProduct(tx, tenant.id, { name: "Ancien", price: "10", isActive: false }),
+    );
+    // Lecture comme le site public (sans entreprise déclarée par la gérante).
+    const site = <T>(fn: (tx: Transaction) => Promise<T>) =>
+      withTenant(tenant.id, fn, app, tenant.primaryBusinessId);
+    const listed = await site((tx) => shopProducts(tx, tenant.id, tenant.primaryBusinessId, "fr"));
+    expect(listed.map((p) => p.name)).toEqual(["Sérum", "Bougie"]);
+    expect(
+      await errorCode(site((tx) => shopProduct(tx, tenant.id, tenant.primaryBusinessId, hidden.id, "fr"))),
+    ).toBe("not_found");
+
+    const cart = await site((tx) =>
+      priceCart(
+        tx,
+        tenant.id,
+        tenant.primaryBusinessId,
+        [
+          { productId: serum.id, quantity: 2 },
+          { productId: candle.id, quantity: 1 },
+          { productId: serum.id, quantity: 1 },
+          { productId: hidden.id, quantity: 1 },
+        ],
+        "fr",
+      ),
+    );
+    // Doublon additionné (3 sérums), produit masqué retiré, total recalculé.
+    expect(cart.lines.map((line) => [line.product.name, line.quantity, line.ok])).toEqual([
+      ["Sérum", 3, true],
+      ["Bougie", 1, true],
+    ]);
+    expect(cart.removed).toEqual([hidden.id]);
+    expect(cart.totalCents).toBe(3 * 2990 + 1900);
+    expect(cart.ready).toBe(true);
+    // Plus que le stock : le panier n'est pas prêt.
+    const tooMany = await site((tx) =>
+      priceCart(tx, tenant.id, tenant.primaryBusinessId, [{ productId: serum.id, quantity: 4 }], "fr"),
+    );
+    expect(tooMany.ready).toBe(false);
+    expect(tooMany.lines[0]).toMatchObject({ ok: false, available: 3 });
   });
 });

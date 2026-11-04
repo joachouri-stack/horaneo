@@ -13,6 +13,9 @@ export const SITE_PATHS = {
   privacy: "/confidentialite",
   cancellation: "/conditions-annulation",
   giftCard: "/carte-cadeau",
+  /** Boutique (solution Commerce) : produits en vente, fiche produit, panier. */
+  shop: "/boutique",
+  cart: "/panier",
   booking: "/reserver",
   /** Gestion d'un rendez-vous par le lien reçu : /rendez-vous/<jeton>. */
   appointment: "/rendez-vous",
@@ -42,6 +45,9 @@ export const APP_PATHS = {
 export const appointmentCalendarPath = (token: string) => `${SITE_PATHS.appointment}/${token}/agenda`;
 
 export const categoryPath = (slug: string) => `${SITE_PATHS.services}/${slug}`;
+
+/** Fiche d'un produit de la boutique : /boutique/<identifiant>. */
+export const productPath = (productId: string) => `${SITE_PATHS.shop}/${productId}`;
 
 /** Page d'une professionnelle (entreprise) : /avec/laila. */
 export const businessPath = (slug: string) => `/avec/${slug}`;
