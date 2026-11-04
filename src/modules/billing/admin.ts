@@ -267,6 +267,8 @@ export const settingsInput = z.object({
   yearly_free_months: settingNumber(z.number().int().min(0).max(6)),
   /** Solutions ouvertes à la souscription (les autres : « Disponible bientôt »). */
   solutions_available: z.array(z.enum(["booking", "commerce", "formation"])).default(["booking"]),
+  /** Solutions en pause : absentes du site commercial (ni onglet, ni « Bientôt »). */
+  solutions_hidden: z.array(z.enum(["booking", "commerce", "formation"])).default([]),
   /** Adresse de la démonstration (vide : bouton masqué). */
   demo_url: z.union([z.literal(""), z.url({ protocol: /^https?$/ }).max(300)]).default(""),
   /** WhatsApp du site commercial : numéro (mis au format international) et message de départ. */
@@ -307,6 +309,10 @@ async function currentSettingValue(tx: Transaction, key: keyof typeof settingsIn
     return (await getPlatformSetting(tx, "solutions"))
       .filter((item) => item.status === "available")
       .map((item) => item.code);
+  if (key === "solutions_hidden")
+    return (await getPlatformSetting(tx, "solutions"))
+      .filter((item) => item.status === "hidden")
+      .map((item) => item.code);
   return getPlatformSetting(tx, key);
 }
 
@@ -319,13 +325,17 @@ export async function updatePlatformSettings(
     if (complete[key] === undefined) complete[key] = await currentSettingValue(tx, key);
   }
   const input = settingsInput.parse(complete);
-  const { sms_pack_price, site_buyout_price, solutions_available, ...rest } = input;
+  const { sms_pack_price, site_buyout_price, solutions_available, solutions_hidden, ...rest } = input;
   await setPlatformSetting(
     tx,
     "solutions",
     (["booking", "commerce", "formation"] as const).map((code) => ({
       code,
-      status: solutions_available.includes(code) ? ("available" as const) : ("soon" as const),
+      status: solutions_available.includes(code)
+        ? ("available" as const)
+        : solutions_hidden.includes(code)
+          ? ("hidden" as const)
+          : ("soon" as const),
     })),
   );
   for (const [key, value] of Object.entries(rest)) {

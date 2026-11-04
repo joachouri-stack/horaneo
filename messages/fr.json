@@ -849,8 +849,8 @@
           "a": "Oui. Le passage à un pack supérieur est immédiat, la différence est facturée au prorata. Un pack inférieur s'applique à la prochaine échéance."
         },
         "solutions": {
-          "q": "Commerce et Formation sont-ils disponibles ?",
-          "a": "Pas encore : ces deux solutions sont en préparation et affichées « Disponible bientôt ». Les packs Pro et Business y donneront accès à leur lancement, sans frais de plateforme supplémentaires (hors frais Stripe et services tiers)."
+          "q": "{soonCount, plural, one {La solution {soonNames} est-elle disponible ?} other {Les solutions {soonNames} sont-elles disponibles ?}}",
+          "a": "{soonCount, plural, one {Pas encore : elle est en préparation et affichée « Disponible bientôt ».} other {Pas encore : elles sont en préparation et affichées « Disponible bientôt ».}} Les packs Pro et Business y donneront accès à leur lancement, sans frais de plateforme supplémentaires (hors frais Stripe et services tiers)."
         },
         "ai": {
           "q": "Les outils d'intelligence artificielle sont-ils déjà disponibles ?",
@@ -2093,7 +2093,12 @@
       "soonHint": "Cochées : pas encore livrées. Elles portent l'étiquette « Bientôt » sur le site commercial au lieu d'être promises. Décochez une fonction dès qu'elle est prête.",
       "offer_no_commitment": "Proposer aussi la formule sans engagement (avec frais de création du pack)",
       "solutions": "Solutions",
-      "solutionsHint": "Cochée : la solution est ouverte à la souscription. Décochée : elle est présentée « Disponible bientôt », sans souscription possible.",
+      "solutionsHint": "Disponible : ouverte à la souscription. Bientôt : présentée « Disponible bientôt », sans souscription possible. En pause : n'apparaît plus du tout sur le site commercial.",
+      "solutionStatus": {
+        "available": "Disponible",
+        "soon": "Bientôt",
+        "hidden": "En pause (masquée)"
+      },
       "solution": {
         "booking": "Réservation",
         "commerce": "Commerce",
