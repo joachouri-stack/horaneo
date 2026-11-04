@@ -1217,7 +1217,12 @@
       "noDeposit": "Aucun acompte n'est demandé : tout se règle sur place.",
       "percent": "{value} % du prix",
       "giftCards": "Cartes cadeaux",
-      "giftCardRules": "Valables {months} mois à partir de leur envoi. Utilisables en ligne (elles remplacent l'acompte) ou sur place, en plusieurs fois : le solde est conservé. Non remboursables et non échangeables contre de l'argent. Une carte s'utilise uniquement auprès de l'établissement qui l'a vendue."
+      "giftCardRules": "Valables {months} mois à partir de leur envoi. Utilisables en ligne (elles remplacent l'acompte) ou sur place, en plusieurs fois : le solde est conservé. Non remboursables et non échangeables contre de l'argent. Une carte s'utilise uniquement auprès de l'établissement qui l'a vendue.",
+      "shop": "Boutique",
+      "shopPayment": "Les commandes sont payées en ligne, par carte bancaire, au moment de la commande.",
+      "shopPickup": "Retrait sur place : vous recevez un e-mail dès que votre commande est prête.",
+      "shopUnavailable": "Si un produit n'est plus disponible, la commande n'est pas confirmée et vous êtes remboursé intégralement.",
+      "shopWithdrawal": "Vous disposez de 14 jours après le retrait pour changer d'avis (droit de rétractation), sauf exceptions prévues par la loi (par exemple un produit d'hygiène descellé). Contactez {name} pour le retour et le remboursement."
     },
     "offers": {
       "banner": "Offre du moment : {title}, jusqu'au {date}",
@@ -1257,7 +1262,26 @@
       "lineStock": "{count, plural, =0 {Plus en stock} other {Seulement # en stock}}",
       "removedNotice": "Des produits qui ne sont plus en vente ont été retirés de votre panier.",
       "total": "Total",
-      "loading": "Chargement du panier…"
+      "loading": "Chargement du panier…",
+      "checkoutTitle": "Vos coordonnées",
+      "name": "Nom et prénom",
+      "email": "E-mail",
+      "emailHint": "Pour la confirmation de commande et l'avis de retrait.",
+      "phone": "Téléphone (facultatif)",
+      "note": "Message (facultatif)",
+      "terms": "J'accepte les <link>conditions de vente</link>.",
+      "pay": "Payer {amount}",
+      "payTitle": "Paiement sécurisé",
+      "continue": "Continuer vers le paiement",
+      "thanksTitle": "Merci pour votre commande !",
+      "thanksText": "Votre paiement est bien reçu. Votre commande {reference} est en préparation : un e-mail de confirmation vient de partir, et un autre suivra dès qu'elle est prête à retirer.",
+      "thanksPending": "Votre paiement est en cours de validation : vous recevrez un e-mail de confirmation dans quelques instants.",
+      "refunded": "Un produit n'était plus disponible : votre commande n'a pas pu être confirmée et le paiement vous est remboursé.",
+      "holdNote": "Les produits sont réservés pour vous pendant {minutes} minutes.",
+      "expired": "Le délai de paiement est dépassé : les produits ont été remis en vente et rien ne vous a été débité. Vous pouvez recommencer votre commande.",
+      "restart": "Recommencer la commande",
+      "secureTo": "Paiement sécurisé par Stripe, versé directement à {name}.",
+      "checking": "Vérification du paiement…"
     },
     "giftCard": {
       "navLabel": "Cartes cadeaux",
@@ -2372,6 +2396,8 @@
     "gift_card_used": "Cette carte cadeau a déjà été entièrement utilisée.",
     "gift_card_insufficient": "Le solde de la carte ne couvre pas l'acompte. Retirez la carte pour payer l'acompte par carte bancaire : vous pourrez utiliser son solde sur place.",
     "gift_cards_unavailable": "Les cartes cadeaux ne sont pas proposées pour le moment.",
+    "shop_unavailable": "La boutique n'est pas ouverte pour le moment.",
+    "shop_out_of_stock": "Un produit de votre panier n'est plus disponible en quantité suffisante : vérifiez votre panier.",
     "gift_card_amount": "Choisissez un montant entre le minimum et le maximum indiqués.",
     "reward_unavailable": "Ce bon a déjà été utilisé ou a expiré.",
     "login_invalid": "Ce lien ou ce code n'est plus valable. Demandez-en un nouveau.",
@@ -2386,7 +2412,8 @@
     "option_monthly_only": "Les options se facturent chaque mois : elles ne sont pas disponibles avec le paiement à l'année.",
     "fieldInvalid": "Champ vide, ou valeur hors des limites permises.",
     "invalidFields": "{count, plural, one {Vérifiez le champ {fields} : il est vide ou sa valeur est hors des limites permises.} other {Vérifiez les champs {fields} : ils sont vides ou leur valeur est hors des limites permises.}}",
-    "fieldsConcerned": "{count, plural, one {Champ concerné : {fields}.} other {Champs concernés : {fields}.}}"
+    "fieldsConcerned": "{count, plural, one {Champ concerné : {fields}.} other {Champs concernés : {fields}.}}",
+    "shop_order_not_modifiable": "Cette commande ne peut plus être modifiée."
   },
   "status": {
     "draft": "En création",
@@ -2954,6 +2981,7 @@
       "help": "Aide",
       "payments": "Paiements en ligne",
       "shop": "Boutique",
+      "orders": "Commandes",
       "promo": "Codes promo",
       "promotions": "Promotions",
       "giftCards": "Cartes cadeaux",
@@ -2974,6 +3002,7 @@
         "calendar": "Vos rendez-vous dans l'agenda de votre téléphone.",
         "promotions": "Baissez le prix d'une prestation pendant quelques jours.",
         "shop": "Vos produits en vente sur votre site : photos, prix et stock.",
+        "orders": "Les commandes de votre boutique, à préparer pour un retrait sur place.",
         "promo": "Des codes de réduction à partager avec vos clientes.",
         "giftCards": "Les cartes cadeaux achetées sur votre site.",
         "loyalty": "Un avantage offert après un nombre de visites.",
@@ -3634,6 +3663,25 @@
       },
       "locked": "L'export de vos données est inclus dans les packs Pro et Business.",
       "lockedLink": "Voir les packs"
+    },
+    "orders": {
+      "title": "Commandes",
+      "intro": "Les commandes payées en ligne sur votre boutique, à préparer pour un retrait sur place. « Commande prête » prévient la cliente par e-mail.",
+      "unavailable": "{plan, select, none {La boutique n'est pas comprise dans votre pack.} other {La boutique est comprise dès le pack {plan}. Voyez « Abonnement » pour changer de pack.}}",
+      "open": "{count, plural, =0 {À traiter} one {À traiter (#)} other {À traiter (#)}}",
+      "noneOpen": "Aucune commande à préparer pour le moment.",
+      "done": "{count, plural, one {Commande terminée (#)} other {Commandes terminées (#)}}",
+      "markReady": "Commande prête",
+      "markCollected": "Retirée par la cliente",
+      "cancel": "Annuler et rembourser",
+      "cancelConfirm": "Annuler cette commande ? La cliente sera remboursée de {amount} et prévenue par e-mail, et les produits seront remis en stock.",
+      "status": {
+        "paid": "À préparer",
+        "ready": "Prête",
+        "collected": "Retirée",
+        "refunded": "Remboursée",
+        "cancelled": "Annulée"
+      }
     }
   },
   "notifications": {
@@ -3847,6 +3895,12 @@
           "aiTexts": "Textes IA",
           "aiImages": "Images IA"
         }
+      },
+      "shop_order": {
+        "subject": "Nouvelle commande {reference} · {amount}",
+        "title": "Nouvelle commande en boutique",
+        "intro": "{name} a commandé et payé en ligne. À préparer pour un retrait sur place :",
+        "open": "Voir les commandes"
       }
     },
     "account": {
@@ -3918,6 +3972,26 @@
       "receiptIntro": "Votre carte cadeau de {amount}, à utiliser chez {where}, est bien payée.",
       "receiptSent": "Elle vient d'être envoyée à {email}.",
       "receiptScheduled": "Elle sera envoyée à {email} le {date}."
+    },
+    "shop": {
+      "confirmedSubject": "Votre commande {reference} chez {business}",
+      "confirmedTitle": "Merci pour votre commande !",
+      "confirmedIntro": "Votre paiement est bien reçu : {business} prépare votre commande.",
+      "pickupLater": "Nous vous écrivons dès qu'elle est prête à être retirée.",
+      "readySubject": "Votre commande {reference} est prête",
+      "readyTitle": "Votre commande est prête",
+      "readyIntro": "Vous pouvez venir la retirer chez {business}.",
+      "where": "Adresse : {address}.",
+      "refundedSubject": "Votre commande chez {business} a été remboursée",
+      "refundedTitle": "Commande remboursée",
+      "refundedIntro": "Un produit de votre commande n'était plus disponible : nous n'avons pas pu la confirmer. Le paiement de {amount} vous est remboursé sur votre carte (quelques jours selon votre banque).",
+      "reference": "Commande",
+      "total": "Total payé",
+      "phone": "Téléphone",
+      "note": "Message",
+      "cancelledSubject": "Votre commande {reference} chez {business} est annulée",
+      "cancelledTitle": "Commande annulée et remboursée",
+      "cancelledIntro": "{business} a dû annuler votre commande. Le paiement de {amount} vous est remboursé sur votre carte (quelques jours selon votre banque)."
     }
   },
   "legal": {

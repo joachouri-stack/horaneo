@@ -4,6 +4,7 @@ import { categoryFields } from "@/modules/catalog/icons";
 import { redeemOnSite, updateGiftCardSettings } from "@/modules/giftcards/giftcards";
 import { deletePromotion, savePromotion } from "@/modules/promotions/promotions";
 import { assertFeature } from "@/modules/quotas";
+import { cancelShopOrder, markOrderCollected, markOrderReady } from "@/modules/shop/orders";
 import { deleteProduct, moveProduct, saveProduct, setProductPhoto } from "@/modules/shop/products";
 import { headers } from "next/headers";
 import { redirect as redirectTo } from "next/navigation";
@@ -646,6 +647,24 @@ export async function productPhotoAction(_previous: Previous, data: FormData) {
       return setProductPhoto(tx, tenantId, productId, asset.id);
     },
   );
+}
+
+/** Suivi d'une commande de la boutique : prête, retirée, ou annulée et remboursée. */
+export async function shopOrderAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const orderId = idOf(data)!;
+  const operation = form.text(data, "operation");
+  if (operation === "ready")
+    return managerMutation(tenantId, "shop_order.ready", (tx) => markOrderReady(tx, tenantId, orderId));
+  if (operation === "collected")
+    return managerMutation(tenantId, "shop_order.collected", (tx) =>
+      markOrderCollected(tx, tenantId, orderId),
+    );
+  if (operation === "cancel")
+    return managerMutation(tenantId, "shop_order.cancelled", (tx) =>
+      cancelShopOrder(tx, tenantId, orderId, paymentGateway()),
+    );
+  return { ok: false as const, error: "invalid" as const };
 }
 
 // ─── Cartes cadeaux ──────────────────────────────────────────────────────────

@@ -48,6 +48,8 @@ const EXPECTED_TENANT_GRANTS: Record<string, string[]> = {
   service_price_history: ["SELECT"],
   promotions: ["DELETE", "INSERT", "SELECT", "UPDATE"],
   products: ["DELETE", "INSERT", "SELECT", "UPDATE"],
+  shop_orders: ["INSERT", "SELECT", "UPDATE"],
+  shop_order_items: ["INSERT", "SELECT"],
   promotion_services: ["DELETE", "INSERT", "SELECT", "UPDATE"],
   google_reviews: ["SELECT"],
   gift_cards: ["INSERT", "SELECT", "UPDATE"],
