@@ -16,6 +16,7 @@ const ICONS = {
     "M8 3v4M16 3v4M3 10h18M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01",
   unavailability:
     "M8 3v4M16 3v4M3 10h18M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2M10 14l4 4M14 14l-4 4",
+  shop: "M5.5 8.5h13l-1 11.5h-11zM9 8.5V7a3 3 0 0 1 6 0v1.5",
   promotions: "M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8M7.5 7.5h.01",
   promo:
     "M3 9a3 3 0 0 0 0 6v3a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-3a3 3 0 0 0 0-6V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1zM14 5v2M14 11v2M14 17v2",
@@ -50,6 +51,8 @@ const GROUPS: { key: "activity" | "sell" | "account" | "support"; items: Item[] 
   {
     key: "sell",
     items: [
+      // Boutique : produits en vente (solution Commerce).
+      { key: "shop", href: "/plus/boutique", feature: "commerce" },
       { key: "promotions", href: "/plus/promotions", feature: "promotions" },
       { key: "promo", href: "/plus/codes-promo", feature: "promoCodes" },
       { key: "giftCards", href: "/plus/cartes-cadeaux", feature: "giftCards" },

@@ -189,6 +189,10 @@ export async function createTenantWithData(db: TestDb, label: string) {
   await db
     .insert(s.giftCardTransactions)
     .values({ businessId, tenantId, giftCardId: giftCard.id, kind: "purchase", amountCents: 5000 });
+  // Boutique (solution Commerce).
+  await db
+    .insert(s.products)
+    .values({ businessId, tenantId, name: { fr: "Sérum éclat" }, priceCents: 2900, stockQuantity: 5 });
   await db.insert(s.subscriptions).values({ tenantId, planId: plan.id, status: "active" });
   await db.insert(s.orders).values({
     userId: user.id,

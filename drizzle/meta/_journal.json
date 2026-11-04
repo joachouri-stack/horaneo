@@ -330,6 +330,13 @@
       "when": 1793402024370,
       "tag": "0046_formation_paused",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1793826935513,
+      "tag": "0047_shop_products",
+      "breakpoints": true
     }
   ]
 }

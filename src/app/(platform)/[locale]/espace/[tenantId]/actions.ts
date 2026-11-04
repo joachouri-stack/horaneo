@@ -3,6 +3,8 @@
 import { categoryFields } from "@/modules/catalog/icons";
 import { redeemOnSite, updateGiftCardSettings } from "@/modules/giftcards/giftcards";
 import { deletePromotion, savePromotion } from "@/modules/promotions/promotions";
+import { assertFeature } from "@/modules/quotas";
+import { deleteProduct, moveProduct, saveProduct, setProductPhoto } from "@/modules/shop/products";
 import { headers } from "next/headers";
 import { redirect as redirectTo } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -588,6 +590,62 @@ export async function savePromotionAction(_previous: Previous, data: FormData) {
 export async function deletePromotionAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   return managerMutation(tenantId, "promotion.deleted", (tx) => deletePromotion(tx, tenantId, idOf(data)!));
+}
+
+// ─── Boutique (solution Commerce) ────────────────────────────────────────────
+
+export async function saveProductAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "product.saved", (tx) =>
+    saveProduct(
+      tx,
+      tenantId,
+      {
+        name: form.text(data, "name"),
+        description: form.optional(data, "description"),
+        price: form.text(data, "price"),
+        stock: form.optional(data, "stock"),
+        isActive: form.bool(data, "isActive"),
+      },
+      idOf(data),
+    ),
+  );
+}
+
+export async function deleteProductAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "product.deleted", (tx) => deleteProduct(tx, tenantId, idOf(data)!));
+}
+
+export async function moveProductAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const direction = form.text(data, "direction") === "up" ? "up" : "down";
+  return managerMutation(tenantId, "product.moved", (tx) =>
+    moveProduct(tx, tenantId, idOf(data)!, direction),
+  );
+}
+
+/** Photo d'un produit : envoi (recadrée et compressée par le serveur) ou retrait. */
+export async function productPhotoAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const productId = idOf(data)!;
+  const remove = form.text(data, "operation") === "remove";
+  const bytes = remove ? null : ((await form.file(data, "file")) ?? new Uint8Array());
+  return managerMutation(
+    tenantId,
+    remove ? "product.photo_removed" : "product.photo",
+    async (tx, context) => {
+      if (!bytes) return setProductPhoto(tx, tenantId, productId, null);
+      // Boutique du pack vérifiée avant d'enregistrer la photo.
+      await assertFeature(tx, tenantId, "commerce");
+      const asset = await uploadAsset(tx, storage(), tenantId, {
+        bytes,
+        kind: "product",
+        uploadedByUserId: context.userId,
+      });
+      return setProductPhoto(tx, tenantId, productId, asset.id);
+    },
+  );
 }
 
 // ─── Cartes cadeaux ──────────────────────────────────────────────────────────
