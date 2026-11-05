@@ -1281,7 +1281,9 @@
       "expired": "Le délai de paiement est dépassé : les produits ont été remis en vente et rien ne vous a été débité. Vous pouvez recommencer votre commande.",
       "restart": "Recommencer la commande",
       "secureTo": "Paiement sécurisé par Stripe, versé directement à {name}.",
-      "checking": "Vérification du paiement…"
+      "checking": "Vérification du paiement…",
+      "otherCategory": "Autres produits",
+      "categories": "Catégories"
     },
     "giftCard": {
       "navLabel": "Cartes cadeaux",
@@ -3015,6 +3017,7 @@
         "export": "Clientes, rendez-vous et paiements en tableaux."
       },
       "badge": {
+        "orders": "{count, plural, =0 {Aucune en cours} one {# en cours} other {# en cours}}",
         "team": "{count, plural, =0 {Aucun membre} one {# membre} other {# membres}}",
         "unavailability": "{count, plural, =0 {Aucune à venir} one {# à venir} other {# à venir}}",
         "promotions": "{count, plural, =0 {Aucune en cours} one {# en cours} other {# en cours}}",
@@ -3340,6 +3343,8 @@
       "name": "Nom du produit",
       "description": "Description",
       "descriptionHint": "Facultatif : contenance, matière, conseils d'utilisation…",
+      "category": "Catégorie",
+      "categoryHint": "Facultatif : les produits d'une même catégorie sont regroupés sur votre site (ex. Soins visage).",
       "price": "Prix ({currency})",
       "stock": "Stock",
       "stockHint": "Laissez vide si vous ne suivez pas le stock.",

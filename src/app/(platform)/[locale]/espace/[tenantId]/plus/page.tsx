@@ -92,6 +92,7 @@ const TONES = {
 /** Rubriques dont la tuile affiche un compteur en direct. */
 type CountKey = keyof Awaited<ReturnType<typeof toolsOverview>>;
 const COUNTED = new Set<Key>([
+  "orders",
   "team",
   "unavailability",
   "promotions",
@@ -101,7 +102,7 @@ const COUNTED = new Set<Key>([
   "customerData",
 ]);
 /** Compteurs qui demandent une action de la gérante : mis en avant quand ils ne sont pas nuls. */
-const TO_HANDLE = new Set<Key>(["customerData"]);
+const TO_HANDLE = new Set<Key>(["customerData", "orders"]);
 
 /** Onglet « Plus » : tous les outils en tuiles, rangés par thème, avec leurs compteurs. */
 export default async function MorePage({ params }: PageProps<"/[locale]/espace/[tenantId]/plus">) {

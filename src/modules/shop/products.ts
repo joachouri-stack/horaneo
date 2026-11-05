@@ -17,6 +17,13 @@ import { assertFeature } from "@/modules/quotas";
 export const productInput = z.object({
   name: z.string().trim().min(1).max(100),
   description: z.string().trim().max(2000).optional(),
+  /** Catégorie libre ; vide : sans catégorie. */
+  category: z
+    .string()
+    .trim()
+    .max(60)
+    .optional()
+    .transform((value) => value || null),
   price: priceInput,
   /** Stock : vide = non suivi (toujours disponible), sinon un nombre entier. */
   stock: z
@@ -69,6 +76,7 @@ export async function saveProduct(
   const input = productInput.parse(raw);
   const { locale, currency } = await tenantInfo(tx, tenantId);
   const values = {
+    category: input.category,
     priceCents: input.price,
     currency,
     stockQuantity: input.stock,

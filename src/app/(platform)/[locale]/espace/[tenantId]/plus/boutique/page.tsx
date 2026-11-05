@@ -42,6 +42,14 @@ export default async function ShopPage({ params }: PageProps<"/[locale]/espace/[
           rows={3}
           defaultValue={product?.description ? pickLocalized(product.description, locale) : undefined}
         />
+        <TextField
+          id={`category-${key}`}
+          name="category"
+          label={t("category")}
+          hint={t("categoryHint")}
+          list="shop-categories"
+          defaultValue={product?.category ?? undefined}
+        />
         <div className="grid grid-cols-2 gap-3">
           <TextField
             id={`price-${key}`}
@@ -90,6 +98,12 @@ export default async function ShopPage({ params }: PageProps<"/[locale]/espace/[
       ) : (
         <>
           <p className="text-ink/80">{t("intro")}</p>
+          {/* Catégories déjà utilisées, proposées pendant la saisie. */}
+          <datalist id="shop-categories">
+            {[...new Set(products.map((product) => product.category).filter(Boolean))].map((category) => (
+              <option key={category} value={category!} />
+            ))}
+          </datalist>
           {products.length === 0 ? (
             <p className="text-ink/70">{t("empty")}</p>
           ) : (
@@ -130,6 +144,7 @@ export default async function ShopPage({ params }: PageProps<"/[locale]/espace/[
                           {pickLocalized(product.name, locale)}
                         </span>
                         <span className="block text-sm text-ink/70">
+                          {product.category && <>{product.category} · </>}
                           {page.fmt.money(product.priceCents, product.currency)} · {stockLabel(product)}
                           {!product.isActive && <> · {t("hidden")}</>}
                         </span>

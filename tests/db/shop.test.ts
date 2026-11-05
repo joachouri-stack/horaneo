@@ -160,7 +160,9 @@ describe.skipIf(!hasTestDatabase)("boutique : catalogue de produits", () => {
   it("site public : seuls les produits en vente ; le panier relit prix et stock en base", async () => {
     const tenant = await newTenant("pro");
     const as = <T>(fn: (tx: Transaction) => Promise<T>) => asManager(tenant.id, fn, tenant.primaryBusinessId);
-    const serum = await as((tx) => saveProduct(tx, tenant.id, { name: "Sérum", price: "29,90", stock: "3" }));
+    const serum = await as((tx) =>
+      saveProduct(tx, tenant.id, { name: "Sérum", category: " Soins visage ", price: "29,90", stock: "3" }),
+    );
     const candle = await as((tx) => saveProduct(tx, tenant.id, { name: "Bougie", price: "19" }));
     const hidden = await as((tx) =>
       saveProduct(tx, tenant.id, { name: "Ancien", price: "10", isActive: false }),
@@ -169,7 +171,10 @@ describe.skipIf(!hasTestDatabase)("boutique : catalogue de produits", () => {
     const site = <T>(fn: (tx: Transaction) => Promise<T>) =>
       withTenant(tenant.id, fn, app, tenant.primaryBusinessId);
     const listed = await site((tx) => shopProducts(tx, tenant.id, tenant.primaryBusinessId, "fr"));
-    expect(listed.map((p) => p.name)).toEqual(["Sérum", "Bougie"]);
+    expect(listed.map((p) => [p.name, p.category])).toEqual([
+      ["Sérum", "Soins visage"],
+      ["Bougie", null],
+    ]);
     expect(
       await errorCode(site((tx) => shopProduct(tx, tenant.id, tenant.primaryBusinessId, hidden.id, "fr"))),
     ).toBe("not_found");

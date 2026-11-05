@@ -604,6 +604,7 @@ export async function saveProductAction(_previous: Previous, data: FormData) {
       {
         name: form.text(data, "name"),
         description: form.optional(data, "description"),
+        category: form.optional(data, "category"),
         price: form.text(data, "price"),
         stock: form.optional(data, "stock"),
         isActive: form.bool(data, "isActive"),

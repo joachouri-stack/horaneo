@@ -33,6 +33,8 @@ export const products = pgTable(
       .default(sql`app_current_business()`),
     name: localized().notNull(),
     description: localized(),
+    /** Catégorie libre (« Soins visage », « Bougies »…) : les produits sont regroupés par catégorie. */
+    category: text(),
     priceCents: cents().notNull(),
     currency: currency().notNull().default("EUR"),
     /** Quantité en stock ; vide : stock non suivi (toujours disponible). */

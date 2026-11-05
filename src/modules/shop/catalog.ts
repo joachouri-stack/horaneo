@@ -15,6 +15,7 @@ export type ShopProduct = {
   businessId: string;
   name: string;
   description: string | null;
+  category: string | null;
   priceCents: number;
   currency: string;
   /** null : stock non suivi (toujours disponible). */
@@ -35,6 +36,7 @@ function toShopProduct(
     businessId: row.businessId,
     name: pickLocalized(row.name, locale),
     description: row.description ? pickLocalized(row.description, locale) || null : null,
+    category: row.category,
     priceCents: row.priceCents,
     currency: row.currency,
     stockQuantity: row.stockQuantity,
