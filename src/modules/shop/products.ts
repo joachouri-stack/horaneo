@@ -1,7 +1,7 @@
 import { and, asc, count, eq } from "drizzle-orm";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
-import { assets, products, tenants } from "@/db/schema";
+import { assets, products, productVariants, tenants } from "@/db/schema";
 import { priceInput } from "@/modules/catalog/services";
 import { setLocalized } from "@/modules/content/localized";
 import { AppError } from "@/modules/errors";
@@ -55,7 +55,7 @@ async function findProduct(tx: Transaction, tenantId: string, productId: string)
   return row;
 }
 
-/** Produits de l'entreprise déclarée (tous, actifs ou non), dans l'ordre choisi, avec leur photo. */
+/** Produits de l'entreprise déclarée (tous, actifs ou non), dans l'ordre choisi, avec leur photo et leurs variantes. */
 export async function listProducts(tx: Transaction, tenantId: string) {
   const rows = await tx
     .select({ product: products, photoKey: assets.storageKey })
@@ -63,7 +63,16 @@ export async function listProducts(tx: Transaction, tenantId: string) {
     .leftJoin(assets, and(eq(assets.tenantId, products.tenantId), eq(assets.id, products.photoAssetId)))
     .where(eq(products.tenantId, tenantId))
     .orderBy(asc(products.sortOrder), asc(products.createdAt));
-  return rows.map((row) => ({ ...row.product, photoKey: row.photoKey }));
+  const variants = await tx
+    .select()
+    .from(productVariants)
+    .where(eq(productVariants.tenantId, tenantId))
+    .orderBy(asc(productVariants.sortOrder), asc(productVariants.createdAt));
+  return rows.map((row) => ({
+    ...row.product,
+    photoKey: row.photoKey,
+    variants: variants.filter((variant) => variant.productId === row.product.id),
+  }));
 }
 
 export async function saveProduct(
@@ -167,4 +176,77 @@ export async function moveProduct(
     if (item.sortOrder !== position)
       await tx.update(products).set({ sortOrder: position }).where(eq(products.id, item.id));
   }
+}
+
+// ─── Variantes ────────────────────────────────────────────────────────────────
+
+export const variantInput = z.object({
+  name: z.string().trim().min(1).max(60),
+  /** Prix de la variante ; vide : celui du produit. */
+  price: z
+    .string()
+    .trim()
+    .optional()
+    .transform((value) => value || undefined)
+    .pipe(priceInput.optional()),
+  stock: productInput.shape.stock,
+  isActive: z.boolean().default(true),
+});
+
+/** Crée ou modifie une variante d'un produit de l'entreprise déclarée. */
+export async function saveVariant(
+  tx: Transaction,
+  tenantId: string,
+  productId: string,
+  raw: z.input<typeof variantInput>,
+  variantId?: string,
+) {
+  await assertFeature(tx, tenantId, "commerce");
+  const product = await findProduct(tx, tenantId, productId);
+  const input = variantInput.parse(raw);
+  const { locale } = await tenantInfo(tx, tenantId);
+  const values = {
+    priceCents: input.price ?? null,
+    stockQuantity: input.stock,
+    isActive: input.isActive,
+  };
+  if (variantId) {
+    const [existing] = await tx
+      .select()
+      .from(productVariants)
+      .where(and(eq(productVariants.id, variantId), eq(productVariants.productId, product.id)));
+    if (!existing) throw new AppError("not_found");
+    const [updated] = await tx
+      .update(productVariants)
+      .set({ ...values, name: setLocalized(existing.name, locale, input.name) })
+      .where(eq(productVariants.id, existing.id))
+      .returning();
+    return updated;
+  }
+  const [{ value: position }] = await tx
+    .select({ value: count() })
+    .from(productVariants)
+    .where(eq(productVariants.productId, product.id));
+  const [created] = await tx
+    .insert(productVariants)
+    .values({
+      tenantId,
+      productId: product.id,
+      ...values,
+      name: setLocalized({}, locale, input.name),
+      sortOrder: position,
+    })
+    .returning();
+  return created;
+}
+
+export async function deleteVariant(tx: Transaction, tenantId: string, productId: string, variantId: string) {
+  await assertFeature(tx, tenantId, "commerce");
+  const product = await findProduct(tx, tenantId, productId);
+  const deleted = await tx
+    .delete(productVariants)
+    .where(and(eq(productVariants.id, variantId), eq(productVariants.productId, product.id)))
+    .returning({ id: productVariants.id });
+  if (deleted.length === 0) throw new AppError("not_found");
+  return { deleted: true };
 }

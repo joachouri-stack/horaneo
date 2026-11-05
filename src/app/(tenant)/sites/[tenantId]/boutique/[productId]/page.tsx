@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { cache } from "react";
 import { AddToCart } from "@/components/shop/AddToCart";
+import { ProductBuy } from "@/components/shop/ProductBuy";
 import { SiteImage } from "@/components/site/SiteImage";
 import { withTenant } from "@/db/access";
 import { resolveLocale } from "@/i18n/translator";
@@ -91,18 +92,35 @@ export default async function ProductPage({ params }: PageProps<"/sites/[tenantI
         </div>
         <div className="space-y-5">
           <h1 className="font-site-display text-4xl font-semibold text-site-heading">{product.name}</h1>
-          <p className="text-2xl text-site-text">
-            {formatMoney(product.priceCents, product.currency, site.locale)}
-          </p>
+          {product.variants.length === 0 && (
+            <p className="text-2xl text-site-text">
+              {formatMoney(product.priceCents, product.currency, site.locale)}
+            </p>
+          )}
           {product.description && (
             <p className="whitespace-pre-line text-lg leading-relaxed text-site-muted">
               {product.description}
             </p>
           )}
-          {product.stockQuantity !== null && product.stockQuantity > 0 && product.stockQuantity <= 5 && (
-            <p className="font-semibold text-site-accent">{t("fewLeft", { count: product.stockQuantity })}</p>
+          {product.variants.length > 0 ? (
+            <ProductBuy
+              businessId={product.businessId}
+              productId={product.id}
+              variants={product.variants}
+              currency={product.currency}
+              locale={site.locale}
+              maxQuantity={MAX_QUANTITY}
+            />
+          ) : (
+            <>
+              {product.stockQuantity !== null && product.stockQuantity > 0 && product.stockQuantity <= 5 && (
+                <p className="font-semibold text-site-accent">
+                  {t("fewLeft", { count: product.stockQuantity })}
+                </p>
+              )}
+              <AddToCart businessId={product.businessId} productId={product.id} max={max} />
+            </>
           )}
-          <AddToCart businessId={product.businessId} productId={product.id} max={max} />
           <p className="text-site-muted">{t("pickupNote")}</p>
         </div>
       </div>

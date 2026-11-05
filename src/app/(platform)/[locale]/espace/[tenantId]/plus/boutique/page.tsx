@@ -9,7 +9,14 @@ import { managerPage } from "@/lib/manager/page";
 import { storage } from "@/lib/storage";
 import { firstPlanWith } from "@/modules/billing/plans";
 import { listProducts } from "@/modules/shop/products";
-import { deleteProductAction, moveProductAction, productPhotoAction, saveProductAction } from "../../actions";
+import {
+  deleteProductAction,
+  deleteVariantAction,
+  moveProductAction,
+  productPhotoAction,
+  saveProductAction,
+  saveVariantAction,
+} from "../../actions";
 
 type ProductRow = Awaited<ReturnType<typeof listProducts>>[number];
 
@@ -72,6 +79,46 @@ export default async function ShopPage({ params }: PageProps<"/[locale]/espace/[
           name="isActive"
           label={t("active")}
           defaultChecked={product ? product.isActive : true}
+        />
+      </>
+    );
+  };
+
+  const variantFields = (product: ProductRow, variant: ProductRow["variants"][number] | null) => {
+    const key = variant?.id ?? `new-${product.id}`;
+    return (
+      <>
+        <Hidden values={{ tenantId: page.tenantId, productId: product.id, id: variant?.id }} />
+        <TextField
+          id={`vname-${key}`}
+          name="name"
+          label={t("variantName")}
+          hint={t("variantNameHint")}
+          defaultValue={variant ? pickLocalized(variant.name, locale) : undefined}
+          required
+        />
+        <div className="grid grid-cols-2 gap-3">
+          <TextField
+            id={`vprice-${key}`}
+            name="price"
+            inputMode="decimal"
+            label={t("variantPrice", { currency: page.fmt.currency })}
+            hint={t("variantPriceHint")}
+            defaultValue={variant?.priceCents == null ? undefined : centsToInput(variant.priceCents)}
+          />
+          <TextField
+            id={`vstock-${key}`}
+            name="stock"
+            inputMode="numeric"
+            label={t("stock")}
+            hint={t("stockHint")}
+            defaultValue={variant?.stockQuantity == null ? undefined : String(variant.stockQuantity)}
+          />
+        </div>
+        <CheckboxField
+          name="isActive"
+          label={t("active")}
+          defaultChecked={variant ? variant.isActive : true}
         />
       </>
     );
@@ -145,7 +192,10 @@ export default async function ShopPage({ params }: PageProps<"/[locale]/espace/[
                         </span>
                         <span className="block text-sm text-ink/70">
                           {product.category && <>{product.category} · </>}
-                          {page.fmt.money(product.priceCents, product.currency)} · {stockLabel(product)}
+                          {page.fmt.money(product.priceCents, product.currency)} ·{" "}
+                          {product.variants.length > 0
+                            ? t("variantCount", { count: product.variants.length })
+                            : stockLabel(product)}
                           {!product.isActive && <> · {t("hidden")}</>}
                         </span>
                       </span>
@@ -167,6 +217,51 @@ export default async function ShopPage({ params }: PageProps<"/[locale]/espace/[
                       >
                         {fields(product)}
                       </ActionForm>
+                      {/* Variantes : taille, couleur, contenance… avec leur prix et leur stock. */}
+                      <section
+                        aria-labelledby={`variantes-${product.id}`}
+                        className="space-y-3 border-t border-hairline pt-4"
+                      >
+                        <h3 id={`variantes-${product.id}`} className="font-semibold text-night">
+                          {t("variants")}
+                        </h3>
+                        <p className="text-sm text-ink/70">{t("variantsHint")}</p>
+                        {product.variants.map((variant) => (
+                          <div key={variant.id} className="rounded-xl border border-hairline p-3">
+                            <ActionForm
+                              action={saveVariantAction}
+                              submitLabel={tCommon("save")}
+                              className="space-y-3"
+                            >
+                              {variantFields(product, variant)}
+                            </ActionForm>
+                            <ActionForm
+                              action={deleteVariantAction}
+                              submitLabel={t("deleteVariant")}
+                              variant="link"
+                              confirm={t("deleteVariantConfirm")}
+                              className="mt-2"
+                            >
+                              <Hidden
+                                values={{ tenantId: page.tenantId, productId: product.id, id: variant.id }}
+                              />
+                            </ActionForm>
+                          </div>
+                        ))}
+                        <details className="rounded-xl border border-dashed border-hairline p-3">
+                          <summary className="cursor-pointer font-medium text-night">
+                            + {t("newVariant")}
+                          </summary>
+                          <ActionForm
+                            action={saveVariantAction}
+                            submitLabel={tCommon("save")}
+                            resetOnSuccess
+                            className="mt-3 space-y-3"
+                          >
+                            {variantFields(product, null)}
+                          </ActionForm>
+                        </details>
+                      </section>
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                         {index > 0 && (
                           <ActionForm action={moveProductAction} submitLabel={t("moveUp")} variant="link">

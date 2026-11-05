@@ -8,7 +8,7 @@ import { withTenant } from "@/db/access";
 import { resolveLocale } from "@/i18n/translator";
 import { formatMoney } from "@/lib/format";
 import { getSite } from "@/lib/site/load";
-import { shopProducts } from "@/modules/shop/catalog";
+import { priceRange, shopProducts, soldOut } from "@/modules/shop/catalog";
 import { productPath, SITE_PATHS } from "@/modules/site/paths";
 
 export async function generateMetadata({
@@ -55,7 +55,8 @@ export default async function ShopPage({ params, searchParams }: PageProps<"/sit
   const grid = (list: typeof products) => (
     <ul className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3">
       {list.map((product) => {
-        const soldOut = product.stockQuantity === 0;
+        const out = soldOut(product);
+        const price = priceRange(product);
         return (
           <li key={product.id}>
             <Link
@@ -85,7 +86,7 @@ export default async function ShopPage({ params, searchParams }: PageProps<"/sit
                     </svg>
                   </span>
                 )}
-                {soldOut && (
+                {out && (
                   <span className="absolute left-3 top-3 rounded-full bg-site-bg/90 px-3 py-1 text-sm font-semibold">
                     {t("outOfStock")}
                   </span>
@@ -96,7 +97,9 @@ export default async function ShopPage({ params, searchParams }: PageProps<"/sit
                   {product.name}
                 </span>
                 <span className="mt-auto text-lg text-site-text">
-                  {formatMoney(product.priceCents, product.currency, site.locale)}
+                  {price.varies
+                    ? t("fromPrice", { price: formatMoney(price.min, product.currency, site.locale) })
+                    : formatMoney(price.min, product.currency, site.locale)}
                 </span>
               </span>
             </Link>

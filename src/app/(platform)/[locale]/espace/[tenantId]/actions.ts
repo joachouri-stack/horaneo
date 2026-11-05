@@ -5,7 +5,14 @@ import { redeemOnSite, updateGiftCardSettings } from "@/modules/giftcards/giftca
 import { deletePromotion, savePromotion } from "@/modules/promotions/promotions";
 import { assertFeature } from "@/modules/quotas";
 import { cancelShopOrder, markOrderCollected, markOrderReady } from "@/modules/shop/orders";
-import { deleteProduct, moveProduct, saveProduct, setProductPhoto } from "@/modules/shop/products";
+import {
+  deleteProduct,
+  deleteVariant,
+  moveProduct,
+  saveProduct,
+  saveVariant,
+  setProductPhoto,
+} from "@/modules/shop/products";
 import { headers } from "next/headers";
 import { redirect as redirectTo } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -611,6 +618,32 @@ export async function saveProductAction(_previous: Previous, data: FormData) {
       },
       idOf(data),
     ),
+  );
+}
+
+export async function saveVariantAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const productId = idOf(data, "productId")!;
+  return managerMutation(tenantId, "product.variant_saved", (tx) =>
+    saveVariant(
+      tx,
+      tenantId,
+      productId,
+      {
+        name: form.text(data, "name"),
+        price: form.optional(data, "price"),
+        stock: form.optional(data, "stock"),
+        isActive: form.bool(data, "isActive"),
+      },
+      idOf(data),
+    ),
+  );
+}
+
+export async function deleteVariantAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "product.variant_deleted", (tx) =>
+    deleteVariant(tx, tenantId, idOf(data, "productId")!, idOf(data)!),
   );
 }
 

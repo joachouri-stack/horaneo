@@ -1283,7 +1283,10 @@
       "secureTo": "Paiement sécurisé par Stripe, versé directement à {name}.",
       "checking": "Vérification du paiement…",
       "otherCategory": "Autres produits",
-      "categories": "Catégories"
+      "categories": "Catégories",
+      "variant": "Choisissez",
+      "outOfStockShort": "épuisé",
+      "fromPrice": "à partir de {price}"
     },
     "giftCard": {
       "navLabel": "Cartes cadeaux",
@@ -3357,7 +3360,17 @@
       "moveUp": "Monter",
       "moveDown": "Descendre",
       "delete": "Supprimer ce produit",
-      "deleteConfirm": "Supprimer ce produit ? Sa photo sera mise de côté."
+      "deleteConfirm": "Supprimer ce produit ? Sa photo sera mise de côté.",
+      "variants": "Variantes",
+      "variantsHint": "Facultatif : tailles, couleurs, contenances… Chaque variante a son prix (sinon celui du produit) et son stock. Un produit qui a des variantes se commande toujours avec l'une d'elles.",
+      "variantName": "Nom de la variante",
+      "variantNameHint": "Ex. 30 ml, Rose, Taille M.",
+      "variantPrice": "Prix ({currency})",
+      "variantPriceHint": "Vide : prix du produit.",
+      "newVariant": "Ajouter une variante",
+      "deleteVariant": "Supprimer cette variante",
+      "deleteVariantConfirm": "Supprimer cette variante ?",
+      "variantCount": "{count, plural, one {# variante} other {# variantes}}"
     },
     "promotions": {
       "title": "Promotions",

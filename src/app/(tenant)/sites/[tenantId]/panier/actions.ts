@@ -8,7 +8,7 @@ import { openShop } from "@/lib/site/shop";
 import { AppError, type AppErrorCode } from "@/modules/errors";
 import { sendQueuedSoon } from "@/lib/jobs/tick";
 import { paymentGateway } from "@/lib/payments/stripe";
-import { cartInput, priceCart } from "@/modules/shop/catalog";
+import { cartInput, lineKey, priceCart } from "@/modules/shop/catalog";
 import {
   checkoutInput,
   orderReference,
@@ -33,7 +33,10 @@ async function run<T>(fn: () => Promise<T>): Promise<ShopResult<T>> {
 
 export type CartView = {
   lines: {
+    /** Clé de l'article (produit et variante), celle du panier du navigateur. */
+    key: string;
     productId: string;
+    variantId: string | null;
     name: string;
     href: string;
     photoUrl: string | null;
@@ -65,11 +68,13 @@ export async function viewCartAction(
     const store = storage();
     return {
       lines: cart.lines.map((line) => ({
+        key: lineKey(line.product.id, line.variant?.id),
         productId: line.product.id,
-        name: line.product.name,
+        variantId: line.variant?.id ?? null,
+        name: line.name,
         href: productPath(line.product.id),
         photoUrl: line.product.photo ? store.publicUrl(line.product.photo.key) : null,
-        priceCents: line.product.priceCents,
+        priceCents: line.unitPriceCents,
         quantity: line.quantity,
         available: line.available,
         ok: line.ok,

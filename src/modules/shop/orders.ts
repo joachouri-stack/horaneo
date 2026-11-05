@@ -2,7 +2,7 @@ import { and, asc, desc, eq, inArray, lt, sql } from "drizzle-orm";
 import { z } from "zod";
 import { SHOP } from "@/config/shop";
 import type { Transaction } from "@/db/client";
-import { products, shopOrderItems, shopOrders } from "@/db/schema";
+import { products, productVariants, shopOrderItems, shopOrders } from "@/db/schema";
 import type { Locale } from "@/i18n/locales";
 import { loadBookingContext } from "@/modules/booking/availability";
 import { AppError } from "@/modules/errors";
@@ -35,11 +35,20 @@ export const checkoutInput = z.object({
   locale: z.string().min(2).max(5).default("fr"),
 });
 
-/** Remet en stock les articles suivis d'une commande. */
+/** Remet en stock les articles suivis d'une commande (variante, ou produit). */
 async function restock(tx: Transaction, orderId: string) {
   const items = await tx.select().from(shopOrderItems).where(eq(shopOrderItems.orderId, orderId));
   for (const item of items) {
     if (!item.stockTracked || !item.productId) continue;
+    if (item.variantId) {
+      await tx
+        .update(productVariants)
+        .set({ stockQuantity: sql`${productVariants.stockQuantity} + ${item.quantity}` })
+        .where(
+          and(eq(productVariants.id, item.variantId), sql`${productVariants.stockQuantity} IS NOT NULL`),
+        );
+      continue;
+    }
     await tx
       .update(products)
       .set({ stockQuantity: sql`${products.stockQuantity} + ${item.quantity}` })
@@ -53,10 +62,24 @@ async function restock(tx: Transaction, orderId: string) {
  */
 async function reserve(
   tx: Transaction,
-  items: { productId: string | null; quantity: number; stockTracked: boolean }[],
+  items: { productId: string | null; variantId: string | null; quantity: number; stockTracked: boolean }[],
 ) {
   for (const item of items) {
     if (!item.stockTracked || !item.productId) continue;
+    if (item.variantId) {
+      const [variant] = await tx
+        .update(productVariants)
+        .set({ stockQuantity: sql`${productVariants.stockQuantity} - ${item.quantity}` })
+        .where(
+          and(
+            eq(productVariants.id, item.variantId),
+            sql`${productVariants.stockQuantity} >= ${item.quantity}`,
+          ),
+        )
+        .returning({ id: productVariants.id });
+      if (!variant) return false;
+      continue;
+    }
     const [updated] = await tx
       .update(products)
       .set({ stockQuantity: sql`${products.stockQuantity} - ${item.quantity}` })
@@ -114,10 +137,11 @@ export async function startShopCheckout(
 
   const items = cart.lines.map((line) => ({
     productId: line.product.id,
-    name: line.product.name,
-    unitPriceCents: line.product.priceCents,
+    variantId: line.variant?.id ?? null,
+    name: line.name,
+    unitPriceCents: line.unitPriceCents,
     quantity: line.quantity,
-    stockTracked: line.product.stockQuantity !== null,
+    stockTracked: line.available !== null,
   }));
   if (!(await reserve(tx, items))) throw new AppError("shop_out_of_stock");
 

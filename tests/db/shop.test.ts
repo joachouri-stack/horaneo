@@ -198,7 +198,7 @@ describe.skipIf(!hasTestDatabase)("boutique : catalogue de produits", () => {
       ["Sérum", 3, true],
       ["Bougie", 1, true],
     ]);
-    expect(cart.removed).toEqual([hidden.id]);
+    expect(cart.removed).toEqual([`${hidden.id}:`]);
     expect(cart.totalCents).toBe(3 * 2990 + 1900);
     expect(cart.ready).toBe(true);
     // Plus que le stock : le panier n'est pas prêt.

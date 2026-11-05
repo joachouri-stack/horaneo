@@ -194,6 +194,9 @@ export async function createTenantWithData(db: TestDb, label: string) {
     .insert(s.products)
     .values({ businessId, tenantId, name: { fr: "Sérum éclat" }, priceCents: 2900, stockQuantity: 5 })
     .returning();
+  await db
+    .insert(s.productVariants)
+    .values({ businessId, tenantId, productId: product.id, name: { fr: "30 ml" }, stockQuantity: 3 });
   const [shopOrder] = await db
     .insert(s.shopOrders)
     .values({

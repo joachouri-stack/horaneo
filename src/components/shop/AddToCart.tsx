@@ -10,10 +10,13 @@ import { addToCart, conflictsWith } from "./cart-store";
 export function AddToCart({
   businessId,
   productId,
+  variantId = null,
   max,
 }: {
   businessId: string;
   productId: string;
+  /** Variante choisie (produit à variantes). */
+  variantId?: string | null;
   /** Quantité maximale (stock restant, plafonnée). */
   max: number;
 }) {
@@ -24,7 +27,7 @@ export function AddToCart({
   const add = () => {
     // Le panier ne contient qu'une entreprise : le changer demande confirmation.
     if (conflictsWith(businessId) && !window.confirm(t("replaceCart"))) return;
-    addToCart(businessId, productId, quantity, max);
+    addToCart(businessId, productId, variantId, quantity, max);
     setAdded(true);
   };
   const step =

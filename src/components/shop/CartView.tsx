@@ -7,7 +7,7 @@ import { viewCartAction, type CartView as CartData } from "@/app/(tenant)/sites/
 import { useSiteError } from "@/components/booking/hooks";
 import { formatMoney } from "@/lib/format";
 import { SITE_PATHS } from "@/modules/site/paths";
-import { removeProducts, setQuantity, useCart, type Cart } from "./cart-store";
+import { removeItems, setQuantity, useCart, type Cart } from "./cart-store";
 
 /**
  * Panier : les produits sont relus sur le serveur (prix, stock, encore en vente) à chaque
@@ -42,7 +42,7 @@ export function CartView({
       // Produits retirés de la vente : enlevés du panier, avec un message.
       if (result.data.removed.length > 0) {
         setRemovedNotice(true);
-        removeProducts(result.data.removed);
+        removeItems(result.data.removed);
       }
     });
     return () => {
@@ -77,7 +77,7 @@ export function CartView({
       {removedNotice && <p role="status">{t("removedNotice")}</p>}
       <ul className="divide-y divide-site-border rounded-site border border-site-border bg-site-card">
         {view.lines.map((line) => (
-          <li key={line.productId} className="flex gap-4 p-4">
+          <li key={line.key} className="flex gap-4 p-4">
             <Link href={line.href} className="size-20 shrink-0 overflow-hidden rounded-site bg-site-panel">
               {line.photoUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -100,7 +100,7 @@ export function CartView({
                   <button
                     type="button"
                     className={step}
-                    onClick={() => setQuantity(line.productId, line.quantity - 1)}
+                    onClick={() => setQuantity(line.key, line.quantity - 1)}
                     aria-label={t("less")}
                   >
                     −
@@ -109,7 +109,7 @@ export function CartView({
                   <button
                     type="button"
                     className={step}
-                    onClick={() => setQuantity(line.productId, line.quantity + 1)}
+                    onClick={() => setQuantity(line.key, line.quantity + 1)}
                     disabled={line.available !== null && line.quantity >= line.available}
                     aria-label={t("more")}
                   >
@@ -118,7 +118,7 @@ export function CartView({
                 </div>
                 <button
                   type="button"
-                  onClick={() => setQuantity(line.productId, 0)}
+                  onClick={() => setQuantity(line.key, 0)}
                   className="min-h-11 text-site-muted underline underline-offset-4"
                 >
                   {t("remove")}

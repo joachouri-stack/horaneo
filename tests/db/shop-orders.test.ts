@@ -2,12 +2,13 @@ import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { withPlatform, withTenant } from "@/db/access";
 import type { Transaction } from "@/db/client";
-import { messageLog, products, shopOrders } from "@/db/schema";
+import { messageLog, products, productVariants, shopOrderItems, shopOrders } from "@/db/schema";
 import { AppError } from "@/modules/errors";
 import { renderMessage } from "@/modules/messages/render";
 import { refreshAccount, startOnboarding } from "@/modules/payments/connect";
 import { handleEvent } from "@/modules/payments/webhooks";
-import { saveProduct } from "@/modules/shop/products";
+import { priceCart } from "@/modules/shop/catalog";
+import { saveProduct, saveVariant } from "@/modules/shop/products";
 import {
   cancelShopOrder,
   expireShopHolds,
@@ -286,5 +287,88 @@ describe.skipIf(!hasTestDatabase)("boutique : commandes et paiement", () => {
     expect(await errorCode(s.site((tx) => cancelShopOrder(tx, s.id, first, fake.gateway)))).toBe(
       "shop_order_not_modifiable",
     );
+  });
+
+  it("variantes : choix obligatoire, prix et stock de la variante, remis en stock à l'annulation", async () => {
+    const s = await setup();
+    const shirt = await platform(
+      (tx) => saveProduct(tx, s.id, { name: "Tee-shirt", price: "25" }),
+      s.businessId,
+    );
+    const small = await platform(
+      (tx) => saveVariant(tx, s.id, shirt.id, { name: "S", stock: "1" }),
+      s.businessId,
+    );
+    const large = await platform(
+      (tx) => saveVariant(tx, s.id, shirt.id, { name: "L", price: "27", stock: "5" }),
+      s.businessId,
+    );
+    // Sans variante : l'article est retiré du panier.
+    const cart = await s.site((tx) =>
+      priceCart(
+        tx,
+        s.id,
+        s.businessId,
+        [
+          { productId: shirt.id, quantity: 1 },
+          { productId: shirt.id, variantId: large.id, quantity: 2 },
+        ],
+        "fr",
+      ),
+    );
+    expect(cart.removed).toEqual([`${shirt.id}:`]);
+    expect(cart.lines.map((line) => [line.name, line.unitPriceCents, line.quantity])).toEqual([
+      ["Tee-shirt — L", 2700, 2],
+    ]);
+
+    const checkout = await s.site((tx) =>
+      startShopCheckout(
+        tx,
+        s.id,
+        {
+          ...customer,
+          items: [
+            { productId: shirt.id, variantId: small.id, quantity: 1 },
+            { productId: shirt.id, variantId: large.id, quantity: 2 },
+          ],
+        },
+        fake.gateway,
+        NOW,
+      ),
+    );
+    expect(checkout.amountCents).toBe(2500 + 2 * 2700);
+    const stock = async (id: string) =>
+      (await owner.select().from(productVariants).where(eq(productVariants.id, id)))[0].stockQuantity;
+    expect([await stock(small.id), await stock(large.id)]).toEqual([0, 3]);
+    const items = await owner
+      .select()
+      .from(shopOrderItems)
+      .where(eq(shopOrderItems.orderId, checkout.orderId));
+    expect(items.map((item) => [item.name, item.variantId]).sort()).toEqual(
+      [
+        ["Tee-shirt — L", large.id],
+        ["Tee-shirt — S", small.id],
+      ].sort(),
+    );
+    // Plus de taille S : refusé.
+    expect(
+      await errorCode(
+        s.site((tx) =>
+          startShopCheckout(
+            tx,
+            s.id,
+            { ...customer, items: [{ productId: shirt.id, variantId: small.id, quantity: 1 }] },
+            fake.gateway,
+            NOW,
+          ),
+        ),
+      ),
+    ).toBe("shop_out_of_stock");
+    // Payée puis annulée : les variantes reviennent en stock.
+    const [order] = await owner.select().from(shopOrders).where(eq(shopOrders.id, checkout.orderId));
+    fake.pay(order.stripePaymentIntentId!);
+    await s.site((tx) => syncShopOrderPayment(tx, s.id, order.id, fake.gateway, later(1)));
+    await s.site((tx) => cancelShopOrder(tx, s.id, order.id, fake.gateway));
+    expect([await stock(small.id), await stock(large.id)]).toEqual([1, 5]);
   });
 });

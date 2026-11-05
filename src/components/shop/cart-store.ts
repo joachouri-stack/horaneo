@@ -9,7 +9,11 @@ import { useSyncExternalStore } from "react";
  * jamais pris d'ici : le serveur les relit à chaque affichage du panier et à la commande.
  */
 
-export type CartItem = { productId: string; quantity: number };
+export type CartItem = { productId: string; variantId?: string | null; quantity: number };
+
+/** Clé d'un article : produit et variante (même règle que le serveur). */
+export const itemKey = (item: { productId: string; variantId?: string | null }) =>
+  `${item.productId}:${item.variantId ?? ""}`;
 export type Cart = { businessId: string; items: CartItem[] };
 
 const KEY = "shop-cart";
@@ -32,7 +36,11 @@ function parse(raw: string | null): Cart | null {
     const value = JSON.parse(raw) as Cart;
     if (typeof value?.businessId !== "string" || !Array.isArray(value.items)) return null;
     const items = value.items.filter(
-      (item) => typeof item?.productId === "string" && Number.isInteger(item.quantity) && item.quantity > 0,
+      (item) =>
+        typeof item?.productId === "string" &&
+        (item.variantId == null || typeof item.variantId === "string") &&
+        Number.isInteger(item.quantity) &&
+        item.quantity > 0,
     );
     return items.length > 0 ? { businessId: value.businessId, items } : null;
   } catch {
@@ -81,40 +89,45 @@ export function conflictsWith(businessId: string): boolean {
   return Boolean(cart && cart.businessId !== businessId);
 }
 
-/** Ajoute un produit (le panier d'une autre entreprise est remplacé). */
-export function addToCart(businessId: string, productId: string, quantity: number, max: number) {
+/** Ajoute un produit (ou une variante) ; le panier d'une autre entreprise est remplacé. */
+export function addToCart(
+  businessId: string,
+  productId: string,
+  variantId: string | null,
+  quantity: number,
+  max: number,
+) {
   const cart = snapshot();
   const items = cart && cart.businessId === businessId ? cart.items : [];
-  const existing = items.some((item) => item.productId === productId);
+  const key = itemKey({ productId, variantId });
+  const existing = items.some((item) => itemKey(item) === key);
   write({
     businessId,
     items: existing
       ? items.map((item) =>
-          item.productId === productId
-            ? { ...item, quantity: Math.min(item.quantity + quantity, max) }
-            : item,
+          itemKey(item) === key ? { ...item, quantity: Math.min(item.quantity + quantity, max) } : item,
         )
-      : [...items, { productId, quantity: Math.min(quantity, max) }],
+      : [...items, { productId, variantId, quantity: Math.min(quantity, max) }],
   });
 }
 
-/** Change la quantité d'un produit (0 : le retire). */
-export function setQuantity(productId: string, quantity: number) {
+/** Change la quantité d'un article (0 : le retire). */
+export function setQuantity(key: string, quantity: number) {
   const cart = snapshot();
   if (!cart) return;
   const items = cart.items
-    .map((item) => (item.productId === productId ? { ...item, quantity } : item))
+    .map((item) => (itemKey(item) === key ? { ...item, quantity } : item))
     .filter((item) => item.quantity > 0);
   write({ businessId: cart.businessId, items });
 }
 
-/** Retire des produits qui ne sont plus en vente. */
-export function removeProducts(productIds: string[]) {
+/** Retire des articles qui ne sont plus en vente (par leur clé). */
+export function removeItems(keys: string[]) {
   const cart = snapshot();
   if (!cart) return;
   write({
     businessId: cart.businessId,
-    items: cart.items.filter((item) => !productIds.includes(item.productId)),
+    items: cart.items.filter((item) => !keys.includes(itemKey(item))),
   });
 }
 

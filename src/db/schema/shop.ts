@@ -61,6 +61,43 @@ export const products = pgTable(
 );
 
 /**
+ * Variantes d'un produit (taille, couleur, contenance…) : chacune a son nom, son prix
+ * (vide : celui du produit) et son stock (vide : non suivi). Un produit qui a des variantes
+ * se commande toujours avec l'une d'elles.
+ */
+export const productVariants = pgTable(
+  "product_variants",
+  {
+    id: id(),
+    tenantId: uuid()
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    businessId: uuid()
+      .notNull()
+      .default(sql`app_current_business()`),
+    productId: uuid().notNull(),
+    name: localized().notNull(),
+    priceCents: cents(),
+    stockQuantity: integer(),
+    isActive: boolean().notNull().default(true),
+    sortOrder: integer().notNull().default(0),
+    ...timestamps(),
+  },
+  (t) => [
+    businessForeignKey("product_variants_business_fk", t, "cascade"),
+    unique("product_variants_business_id_key").on(t.businessId, t.id),
+    foreignKey({
+      name: "product_variants_product_fk",
+      columns: [t.businessId, t.productId],
+      foreignColumns: [products.businessId, products.id],
+    }).onDelete("cascade"),
+    index("product_variants_product_idx").on(t.productId, t.sortOrder),
+    check("product_variants_price", sql`${t.priceCents} IS NULL OR ${t.priceCents} >= 0`),
+    check("product_variants_stock", sql`${t.stockQuantity} IS NULL OR ${t.stockQuantity} >= 0`),
+  ],
+);
+
+/**
  * État d'une commande : en attente du paiement (stock réservé pendant quelques minutes),
  * payée, prête à être retirée, retirée ; ou annulée, expirée (paiement non abouti, stock
  * rendu), remboursée.
@@ -128,6 +165,8 @@ export const shopOrderItems = pgTable(
     orderId: uuid().notNull(),
     /** Produit d'origine (sans lien imposé : un produit supprimé ne supprime pas la commande). */
     productId: uuid(),
+    /** Variante choisie (même remarque). */
+    variantId: uuid(),
     name: text().notNull(),
     unitPriceCents: cents().notNull(),
     quantity: integer().notNull(),

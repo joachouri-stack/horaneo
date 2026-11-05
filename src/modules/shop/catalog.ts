@@ -1,7 +1,7 @@
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
-import { assets, products } from "@/db/schema";
+import { assets, products, productVariants } from "@/db/schema";
 import { pickLocalized, type Locale } from "@/i18n/locales";
 import { AppError } from "@/modules/errors";
 
@@ -9,6 +9,14 @@ import { AppError } from "@/modules/errors";
  * Boutique côté site public : produits en vente d'une entreprise et calcul du panier.
  * Les prix et le stock sont toujours relus en base (jamais ceux envoyés par le navigateur).
  */
+
+export type ShopVariant = {
+  id: string;
+  name: string;
+  priceCents: number;
+  /** null : stock non suivi (toujours disponible). */
+  stockQuantity: number | null;
+};
 
 export type ShopProduct = {
   id: string;
@@ -18,30 +26,28 @@ export type ShopProduct = {
   category: string | null;
   priceCents: number;
   currency: string;
-  /** null : stock non suivi (toujours disponible). */
+  /** null : stock non suivi (toujours disponible). Sans effet si le produit a des variantes. */
   stockQuantity: number | null;
   photo: { key: string; width: number | null; height: number | null } | null;
+  /** Variantes en vente (taille, couleur…) : il faut alors en choisir une. */
+  variants: ShopVariant[];
 };
 
-/** Nombre maximal d'exemplaires d'un même produit dans un panier. */
+/** Nombre maximal d'exemplaires d'un même article dans un panier. */
 export const MAX_QUANTITY = 20;
 
-function toShopProduct(
-  row: typeof products.$inferSelect,
-  photo: { storageKey: string; width: number | null; height: number | null } | null,
-  locale: Locale,
-): ShopProduct {
-  return {
-    id: row.id,
-    businessId: row.businessId,
-    name: pickLocalized(row.name, locale),
-    description: row.description ? pickLocalized(row.description, locale) || null : null,
-    category: row.category,
-    priceCents: row.priceCents,
-    currency: row.currency,
-    stockQuantity: row.stockQuantity,
-    photo: photo ? { key: photo.storageKey, width: photo.width, height: photo.height } : null,
-  };
+/** Plus petit prix d'un produit (« à partir de ») et présence de prix différents. */
+export function priceRange(product: Pick<ShopProduct, "priceCents" | "variants">) {
+  const prices = product.variants.length ? product.variants.map((v) => v.priceCents) : [product.priceCents];
+  const min = Math.min(...prices);
+  return { min, varies: prices.some((price) => price !== min) };
+}
+
+/** Plus aucun exemplaire disponible (produit, ou toutes ses variantes). */
+export function soldOut(product: Pick<ShopProduct, "stockQuantity" | "variants">) {
+  return product.variants.length
+    ? product.variants.every((variant) => variant.stockQuantity === 0)
+    : product.stockQuantity === 0;
 }
 
 async function selectProducts(
@@ -50,7 +56,7 @@ async function selectProducts(
   businessId: string,
   locale: Locale,
   ids?: string[],
-) {
+): Promise<ShopProduct[]> {
   const rows = await tx
     .select({
       product: products,
@@ -69,13 +75,40 @@ async function selectProducts(
       ),
     )
     .orderBy(asc(products.sortOrder), asc(products.createdAt));
-  return rows.map((row) =>
-    toShopProduct(
-      row.product,
-      row.storageKey ? { storageKey: row.storageKey, width: row.width, height: row.height } : null,
-      locale,
-    ),
-  );
+  const variantRows = rows.length
+    ? await tx
+        .select()
+        .from(productVariants)
+        .where(
+          and(
+            inArray(
+              productVariants.productId,
+              rows.map((row) => row.product.id),
+            ),
+            eq(productVariants.isActive, true),
+          ),
+        )
+        .orderBy(asc(productVariants.sortOrder), asc(productVariants.createdAt))
+    : [];
+  return rows.map(({ product, storageKey, width, height }) => ({
+    id: product.id,
+    businessId: product.businessId,
+    name: pickLocalized(product.name, locale),
+    description: product.description ? pickLocalized(product.description, locale) || null : null,
+    category: product.category,
+    priceCents: product.priceCents,
+    currency: product.currency,
+    stockQuantity: product.stockQuantity,
+    photo: storageKey ? { key: storageKey, width, height } : null,
+    variants: variantRows
+      .filter((variant) => variant.productId === product.id)
+      .map((variant) => ({
+        id: variant.id,
+        name: pickLocalized(variant.name, locale),
+        priceCents: variant.priceCents ?? product.priceCents,
+        stockQuantity: variant.stockQuantity,
+      })),
+  }));
 }
 
 /** Produits en vente d'une entreprise du site. */
@@ -100,6 +133,7 @@ export const cartInput = z
   .array(
     z.object({
       productId: z.uuid(),
+      variantId: z.uuid().nullish(),
       quantity: z.number().int().min(1).max(MAX_QUANTITY),
     }),
   )
@@ -108,6 +142,10 @@ export const cartInput = z
 
 export type CartLine = {
   product: ShopProduct;
+  variant: ShopVariant | null;
+  /** Nom affiché : « Sérum éclat — 30 ml ». */
+  name: string;
+  unitPriceCents: number;
   quantity: number;
   /** Quantité encore disponible (null : stock non suivi). */
   available: number | null;
@@ -116,9 +154,12 @@ export type CartLine = {
   totalCents: number;
 };
 
+/** Clé d'un article du panier : produit et variante. */
+export const lineKey = (productId: string, variantId?: string | null) => `${productId}:${variantId ?? ""}`;
+
 /**
- * Panier relu en base : produits encore en vente de l'entreprise, prix actuels, stock.
- * Les produits retirés de la vente disparaissent du panier (`removed`).
+ * Panier relu en base : produits (et variantes) encore en vente de l'entreprise, prix actuels,
+ * stock. Les articles qui ne sont plus en vente disparaissent du panier (`removed` : leurs clés).
  */
 export async function priceCart(
   tx: Transaction,
@@ -128,22 +169,44 @@ export async function priceCart(
   locale: Locale,
 ) {
   const items = cartInput.parse(raw);
-  // Même produit en double : quantités additionnées.
-  const merged = new Map<string, number>();
-  for (const item of items) merged.set(item.productId, (merged.get(item.productId) ?? 0) + item.quantity);
-  const found = await selectProducts(tx, tenantId, businessId, locale, [...merged.keys()]);
-  const lines: CartLine[] = found.map((product) => {
-    const quantity = Math.min(merged.get(product.id) ?? 1, MAX_QUANTITY);
-    const available = product.stockQuantity;
-    return {
+  // Même article en double : quantités additionnées.
+  const merged = new Map<string, { productId: string; variantId: string | null; quantity: number }>();
+  for (const item of items) {
+    const key = lineKey(item.productId, item.variantId);
+    const previous = merged.get(key);
+    merged.set(key, {
+      productId: item.productId,
+      variantId: item.variantId ?? null,
+      quantity: (previous?.quantity ?? 0) + item.quantity,
+    });
+  }
+  const found = await selectProducts(tx, tenantId, businessId, locale, [
+    ...new Set([...merged.values()].map((item) => item.productId)),
+  ]);
+  const lines: CartLine[] = [];
+  const removed: string[] = [];
+  for (const [key, item] of merged) {
+    const product = found.find((candidate) => candidate.id === item.productId);
+    // Produit à variantes : il faut une variante encore en vente ; sans variantes : aucune.
+    const variant = product?.variants.find((candidate) => candidate.id === item.variantId) ?? null;
+    if (!product || (product.variants.length > 0 ? !variant : item.variantId !== null)) {
+      removed.push(key);
+      continue;
+    }
+    const quantity = Math.min(item.quantity, MAX_QUANTITY);
+    const available = variant ? variant.stockQuantity : product.stockQuantity;
+    const unitPriceCents = variant ? variant.priceCents : product.priceCents;
+    lines.push({
       product,
+      variant,
+      name: variant ? `${product.name} — ${variant.name}` : product.name,
+      unitPriceCents,
       quantity,
       available,
       ok: available === null || quantity <= available,
-      totalCents: product.priceCents * quantity,
-    };
-  });
-  const removed = [...merged.keys()].filter((id) => !found.some((product) => product.id === id));
+      totalCents: unitPriceCents * quantity,
+    });
+  }
   return {
     lines,
     removed,
