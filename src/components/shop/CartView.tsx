@@ -134,7 +134,7 @@ export function CartView({
         ))}
       </ul>
       <p className="flex items-center justify-between text-xl font-semibold">
-        <span>{t("total")}</span>
+        <span>{t(view.fulfillment.delivery ? "subtotal" : "total")}</span>
         <span className="tabular-nums">{money(view.totalCents)}</span>
       </p>
       {view.ready && checkout?.(cart, view)}

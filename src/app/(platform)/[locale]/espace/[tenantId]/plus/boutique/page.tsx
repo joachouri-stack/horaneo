@@ -9,12 +9,14 @@ import { managerPage } from "@/lib/manager/page";
 import { storage } from "@/lib/storage";
 import { firstPlanWith } from "@/modules/billing/plans";
 import { listProducts } from "@/modules/shop/products";
+import { currentShopFulfillment } from "@/modules/shop/settings";
 import {
   deleteProductAction,
   deleteVariantAction,
   moveProductAction,
   productPhotoAction,
   saveProductAction,
+  saveShopSettingsAction,
   saveVariantAction,
 } from "../../actions";
 
@@ -25,7 +27,11 @@ export default async function ShopPage({ params }: PageProps<"/[locale]/espace/[
   const page = await managerPage(params);
   const [t, tCommon] = await Promise.all([getTranslations("manager.shop"), getTranslations("common")]);
   const available = Boolean(page.tenant.features.commerce);
-  const products = available ? await page.db((tx) => listProducts(tx, page.tenantId)) : [];
+  const [products, fulfillment] = available
+    ? await page.db(
+        async (tx) => [await listProducts(tx, page.tenantId), await currentShopFulfillment(tx)] as const,
+      )
+    : [[], null];
   const locale = page.tenant.defaultLocale as "fr";
   const store = storage();
 
@@ -145,6 +151,51 @@ export default async function ShopPage({ params }: PageProps<"/[locale]/espace/[
       ) : (
         <>
           <p className="text-ink/80">{t("intro")}</p>
+          {fulfillment && (
+            <details className={ui.card}>
+              <summary className="cursor-pointer text-lg font-semibold text-night">
+                {t("fulfillmentTitle")}
+              </summary>
+              <p className="mt-2 text-sm text-ink/70">{t("fulfillmentHint")}</p>
+              <ActionForm
+                action={saveShopSettingsAction}
+                submitLabel={tCommon("save")}
+                className="mt-4 space-y-4"
+              >
+                <Hidden values={{ tenantId: page.tenantId }} />
+                <div>
+                  <CheckboxField name="pickup" label={t("pickup")} defaultChecked={fulfillment.pickup} />
+                  <CheckboxField
+                    name="delivery"
+                    label={t("delivery")}
+                    defaultChecked={fulfillment.delivery}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <TextField
+                    name="deliveryFee"
+                    inputMode="decimal"
+                    label={t("deliveryFee", { currency: page.fmt.currency })}
+                    hint={t("deliveryFeeHint")}
+                    defaultValue={
+                      fulfillment.deliveryFeeCents ? centsToInput(fulfillment.deliveryFeeCents) : undefined
+                    }
+                  />
+                  <TextField
+                    name="freeDeliveryFrom"
+                    inputMode="decimal"
+                    label={t("freeDeliveryFrom", { currency: page.fmt.currency })}
+                    hint={t("freeDeliveryFromHint")}
+                    defaultValue={
+                      fulfillment.freeDeliveryFromCents === null
+                        ? undefined
+                        : centsToInput(fulfillment.freeDeliveryFromCents)
+                    }
+                  />
+                </div>
+              </ActionForm>
+            </details>
+          )}
           {/* Catégories déjà utilisées, proposées pendant la saisie. */}
           <datalist id="shop-categories">
             {[...new Set(products.map((product) => product.category).filter(Boolean))].map((category) => (

@@ -5,7 +5,9 @@ import { useTranslations } from "next-intl";
 import { useState, type FormEvent } from "react";
 import {
   confirmOrderAction,
+  type OrderOutcome,
   startCheckoutAction,
+  type CartView,
   type ShopCheckout,
 } from "@/app/(tenant)/sites/[tenantId]/panier/actions";
 import { useSiteError } from "@/components/booking/hooks";
@@ -21,10 +23,13 @@ const inputClass =
 /** Coordonnées, puis paiement par carte (Stripe), puis remerciement. */
 export function CheckoutForm({
   cart,
+  view,
   locale,
   businessName,
 }: {
   cart: Cart;
+  /** Panier relu en base : sous-total et modes de remise proposés. */
+  view: CartView;
   locale: string;
   businessName: string;
 }) {
@@ -34,7 +39,12 @@ export function CheckoutForm({
   const [pending, setPending] = useState(false);
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState<{ code: string; field?: string } | null>(null);
-  const [done, setDone] = useState<{ status: string; reference: string } | null>(null);
+  const [done, setDone] = useState<OrderOutcome | null>(null);
+  const options = view.fulfillment;
+  const [mode, setMode] = useState<"pickup" | "delivery">(options.pickup ? "pickup" : "delivery");
+  const delivering = mode === "delivery";
+  const fee = delivering ? options.deliveryFeeCents : 0;
+  const money = (cents: number) => formatMoney(cents, view.currency ?? "EUR", locale);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -48,6 +58,13 @@ export function CheckoutForm({
       customerPhone: String(form.get("customerPhone") ?? ""),
       note: String(form.get("note") ?? ""),
       acceptTerms: form.get("acceptTerms") === "on",
+      fulfillment: mode,
+      ...(delivering && {
+        addressLine1: String(form.get("addressLine1") ?? ""),
+        addressLine2: String(form.get("addressLine2") ?? ""),
+        postalCode: String(form.get("postalCode") ?? ""),
+        city: String(form.get("city") ?? ""),
+      }),
     });
     setPending(false);
     if (!result.ok) {
@@ -63,7 +80,11 @@ export function CheckoutForm({
     const result = await confirmOrderAction(cart.businessId, checkout.orderId);
     setChecking(false);
     clearCart();
-    setDone(result.ok ? result.data : { status: "pending_payment", reference: checkout.reference });
+    setDone(
+      result.ok
+        ? result.data
+        : { status: "pending_payment", reference: checkout.reference, fulfillment: mode },
+    );
   }
 
   if (done) {
@@ -74,7 +95,9 @@ export function CheckoutForm({
           {done.status === "refunded"
             ? t("refunded")
             : done.status === "paid"
-              ? t("thanksText", { reference: done.reference })
+              ? t(done.fulfillment === "delivery" ? "thanksDelivery" : "thanksText", {
+                  reference: done.reference,
+                })
               : t("thanksPending")}
         </p>
       </section>
@@ -115,6 +138,67 @@ export function CheckoutForm({
   return (
     <form onSubmit={submit} className="space-y-5 rounded-site bg-site-panel p-6 sm:p-8" noValidate>
       <h2 className="font-site-display text-2xl font-semibold text-site-heading">{t("checkoutTitle")}</h2>
+      {options.pickup && options.delivery && (
+        <fieldset className="space-y-2">
+          <legend className="mb-1 font-semibold">{t("fulfillment")}</legend>
+          {(["pickup", "delivery"] as const).map((value) => (
+            <label
+              key={value}
+              className="flex min-h-12 cursor-pointer items-center gap-3 rounded-site border border-site-border bg-site-bg px-4 py-2"
+            >
+              <input
+                type="radio"
+                name="fulfillment"
+                value={value}
+                checked={mode === value}
+                onChange={() => setMode(value)}
+                className="size-5 shrink-0"
+              />
+              <span className="flex-1">{t(value)}</span>
+              <span className="text-site-muted">
+                {value === "pickup"
+                  ? t("free")
+                  : options.deliveryFeeCents === 0
+                    ? t("free")
+                    : money(options.deliveryFeeCents)}
+              </span>
+            </label>
+          ))}
+        </fieldset>
+      )}
+      {delivering && (
+        <fieldset className="space-y-4">
+          <legend className="mb-1 font-semibold">{t("deliveryAddress")}</legend>
+          {options.freeDeliveryFromCents !== null && options.deliveryFeeCents > 0 && (
+            <p className="text-sm text-site-muted">
+              {t("freeFrom", { amount: money(options.freeDeliveryFromCents) })}
+            </p>
+          )}
+          {(
+            [
+              ["addressLine1", "address-line1", true],
+              ["addressLine2", "address-line2", false],
+              ["postalCode", "postal-code", true],
+              ["city", "address-level2", true],
+            ] as const
+          ).map(([field, autoComplete, required]) => (
+            <div key={field}>
+              <label htmlFor={`shop-${field}`} className="mb-1 block font-semibold">
+                {t(field)}
+              </label>
+              <input
+                id={`shop-${field}`}
+                name={field}
+                autoComplete={autoComplete}
+                required={required}
+                inputMode={field === "postalCode" ? "numeric" : undefined}
+                aria-invalid={invalid(field)}
+                className={inputClass}
+              />
+            </div>
+          ))}
+        </fieldset>
+      )}
       <div>
         <label htmlFor="shop-name" className="mb-1 block font-semibold">
           {t("name")}
@@ -187,6 +271,18 @@ export function CheckoutForm({
         <p role="alert" className="font-semibold text-red-700">
           {errorText(error.code)}
         </p>
+      )}
+      {delivering && (
+        <dl className="space-y-1 border-t border-site-border pt-4 text-lg">
+          <div className="flex justify-between">
+            <dt>{t("deliveryFee")}</dt>
+            <dd className="tabular-nums">{fee === 0 ? t("free") : money(fee)}</dd>
+          </div>
+          <div className="flex justify-between font-semibold">
+            <dt>{t("toPay")}</dt>
+            <dd className="tabular-nums">{money(view.totalCents + fee)}</dd>
+          </div>
+        </dl>
       )}
       <p className="text-sm text-site-muted">{t("holdNote", { minutes: SHOP.holdMinutes })}</p>
       <button

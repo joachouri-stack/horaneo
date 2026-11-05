@@ -358,6 +358,13 @@
       "when": 1793838469100,
       "tag": "0050_product_variants",
       "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1793838882516,
+      "tag": "0051_shop_delivery",
+      "breakpoints": true
     }
   ]
 }

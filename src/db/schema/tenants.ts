@@ -275,6 +275,13 @@ export const businessSettings = pgTable(
     birthdayDiscountPercent: smallint().notNull().default(DEFAULT_BIRTHDAY_OFFER.discountPercent),
     /** Validité du code personnel, en jours. */
     birthdayOfferDays: smallint().notNull().default(DEFAULT_BIRTHDAY_OFFER.validityDays),
+    // Boutique (pack qui l'inclut) : retrait sur place et/ou livraison.
+    shopPickupEnabled: boolean().notNull().default(true),
+    shopDeliveryEnabled: boolean().notNull().default(false),
+    /** Frais de livraison, en centimes. */
+    shopDeliveryFeeCents: integer().notNull().default(0),
+    /** Livraison offerte à partir de ce montant de commande (vide : jamais offerte). */
+    shopFreeDeliveryFromCents: integer(),
     ...timestamps(),
   },
   (t) => [
@@ -296,6 +303,8 @@ export const businessSettings = pgTable(
     ),
     check("business_settings_birthday_percent", sql`${t.birthdayDiscountPercent} between 1 and 100`),
     check("business_settings_birthday_days", sql`${t.birthdayOfferDays} between 1 and 90`),
+    check("business_settings_shop_fulfillment", sql`${t.shopPickupEnabled} or ${t.shopDeliveryEnabled}`),
+    check("business_settings_shop_fee", sql`${t.shopDeliveryFeeCents} >= 0`),
     check(
       "business_settings_gift_range",
       sql`${t.giftCardMinCents} > 0 and ${t.giftCardMinCents} <= ${t.giftCardMaxCents}`,

@@ -32,6 +32,11 @@ export default async function ShopPage({ params, searchParams }: PageProps<"/sit
   const chosen = sellers.length === 1 ? sellers[0] : sellers.find((business) => business.id === query.avec);
   const t = await getTranslations("site.shop");
   const locale = resolveLocale(site.locale);
+  // Retrait, livraison ou les deux : chez l'entreprise choisie, sinon sur l'ensemble du site.
+  const modes = new Set(
+    (chosen ? [chosen] : sellers).map((business) => site.shopModes[business.id] ?? "pickup"),
+  );
+  const mode = modes.size === 1 ? [...modes][0] : "both";
   const products = chosen
     ? await withTenant(tenantId, (tx) => shopProducts(tx, tenantId, chosen.id, locale), undefined, chosen.id)
     : [];
@@ -111,7 +116,7 @@ export default async function ShopPage({ params, searchParams }: PageProps<"/sit
 
   return (
     <main id="contenu" className="mx-auto max-w-6xl px-4 py-12">
-      <PageTitle title={t("title")} intro={t("intro")} />
+      <PageTitle title={t("title")} intro={t("intro", { mode })} />
       {sellers.length > 1 && (
         <nav aria-label={t("who")} className="mb-8">
           <p className="mb-3 text-lg font-semibold">{t("who")}</p>

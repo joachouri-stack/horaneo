@@ -112,7 +112,10 @@ export const shopOrderStatusEnum = pgEnum("shop_order_status", [
   "refunded",
 ]);
 
-/** Commandes de la boutique (retrait sur place). Données privées de l'entreprise. */
+/** Mode de remise : retrait sur place ou livraison à l'adresse donnée. */
+export const shopFulfillmentEnum = pgEnum("shop_fulfillment", ["pickup", "delivery"]);
+
+/** Commandes de la boutique (retrait sur place ou livraison). Données privées de l'entreprise. */
 export const shopOrders = pgTable(
   "shop_orders",
   {
@@ -128,6 +131,13 @@ export const shopOrders = pgTable(
     customerEmail: text().notNull(),
     customerPhone: text(),
     note: text(),
+    fulfillment: shopFulfillmentEnum().notNull().default("pickup"),
+    /** Frais de livraison compris dans le total. */
+    deliveryFeeCents: cents().notNull().default(0),
+    deliveryAddressLine1: text(),
+    deliveryAddressLine2: text(),
+    deliveryPostalCode: text(),
+    deliveryCity: text(),
     totalCents: cents().notNull(),
     currency: currency().notNull().default("EUR"),
     locale: text().notNull().default("fr"),

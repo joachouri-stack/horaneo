@@ -121,7 +121,9 @@ export default async function ProductPage({ params }: PageProps<"/sites/[tenantI
               <AddToCart businessId={product.businessId} productId={product.id} max={max} />
             </>
           )}
-          <p className="text-site-muted">{t("pickupNote")}</p>
+          <p className="text-site-muted">
+            {t("pickupNote", { mode: site.shopModes[product.businessId] ?? "pickup" })}
+          </p>
         </div>
       </div>
     </main>

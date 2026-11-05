@@ -5,6 +5,7 @@ import { redeemOnSite, updateGiftCardSettings } from "@/modules/giftcards/giftca
 import { deletePromotion, savePromotion } from "@/modules/promotions/promotions";
 import { assertFeature } from "@/modules/quotas";
 import { cancelShopOrder, markOrderCollected, markOrderReady } from "@/modules/shop/orders";
+import { updateShopSettings } from "@/modules/shop/settings";
 import {
   deleteProduct,
   deleteVariant,
@@ -918,6 +919,18 @@ export async function updateStatsGoalsAction(_previous: Previous, data: FormData
       revenue: form.text(data, "revenue"),
       appointments: form.text(data, "appointments"),
       newCustomers: form.text(data, "newCustomers"),
+    }),
+  );
+}
+
+export async function saveShopSettingsAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "shop.settings_saved", (tx) =>
+    updateShopSettings(tx, tenantId, {
+      pickup: form.bool(data, "pickup"),
+      delivery: form.bool(data, "delivery"),
+      deliveryFee: form.optional(data, "deliveryFee"),
+      freeDeliveryFrom: form.optional(data, "freeDeliveryFrom"),
     }),
   );
 }

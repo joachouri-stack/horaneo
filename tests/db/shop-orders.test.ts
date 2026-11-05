@@ -9,6 +9,7 @@ import { refreshAccount, startOnboarding } from "@/modules/payments/connect";
 import { handleEvent } from "@/modules/payments/webhooks";
 import { priceCart } from "@/modules/shop/catalog";
 import { saveProduct, saveVariant } from "@/modules/shop/products";
+import { updateShopSettings } from "@/modules/shop/settings";
 import {
   cancelShopOrder,
   expireShopHolds,
@@ -370,5 +371,66 @@ describe.skipIf(!hasTestDatabase)("boutique : commandes et paiement", () => {
     await s.site((tx) => syncShopOrderPayment(tx, s.id, order.id, fake.gateway, later(1)));
     await s.site((tx) => cancelShopOrder(tx, s.id, order.id, fake.gateway));
     expect([await stock(small.id), await stock(large.id)]).toEqual([1, 5]);
+  });
+
+  it("livraison : réglages de la gérante, adresse obligatoire, frais offerts dès un montant", async () => {
+    const s = await setup();
+    const order = (extra: Record<string, unknown>, quantity = 1) =>
+      s.site((tx) =>
+        startShopCheckout(
+          tx,
+          s.id,
+          { ...customer, items: [{ productId: s.candle!.id, quantity }], ...extra },
+          fake.gateway,
+          NOW,
+        ),
+      );
+    const address = { addressLine1: "3 rue des Lilas", postalCode: "75011", city: "Paris" };
+    // Par défaut : retrait sur place seulement.
+    expect(await errorCode(order({ fulfillment: "delivery", ...address }))).toBe("invalid");
+    // Au moins un mode de remise.
+    expect(
+      await errorCode(s.site((tx) => updateShopSettings(tx, s.id, { pickup: false, delivery: false }))),
+    ).toBe("shop_fulfillment_required");
+    await s.site((tx) =>
+      updateShopSettings(tx, s.id, {
+        pickup: false,
+        delivery: true,
+        deliveryFee: "4,90",
+        freeDeliveryFrom: "50",
+      }),
+    );
+    expect(await errorCode(order({ fulfillment: "pickup" }))).toBe("invalid");
+    expect(await errorCode(order({ fulfillment: "delivery", ...address, city: "" }))).toBe("invalid");
+
+    const paying = await order({ fulfillment: "delivery", ...address });
+    expect(paying.amountCents).toBe(1900 + 490);
+    const [saved] = await owner.select().from(shopOrders).where(eq(shopOrders.id, paying.orderId));
+    expect(saved).toMatchObject({
+      fulfillment: "delivery",
+      deliveryFeeCents: 490,
+      deliveryAddressLine1: "3 rue des Lilas",
+      deliveryCity: "Paris",
+    });
+    // Livraison offerte à partir de 50 € d'achat.
+    expect((await order({ fulfillment: "delivery", ...address }, 3)).amountCents).toBe(3 * 1900);
+
+    // E-mail « en route » quand la gérante l'expédie.
+    fake.pay(saved.stripePaymentIntentId!);
+    await s.site((tx) => syncShopOrderPayment(tx, s.id, saved.id, fake.gateway, later(1)));
+    await s.site((tx) => markOrderReady(tx, s.id, saved.id));
+    const [shipped] = (
+      await owner.select().from(messageLog).where(eq(messageLog.templateKey, "customer.shop_order_ready"))
+    ).filter((row) => (row.data as { orderId?: string }).orderId === saved.id);
+    const rendered = await platform((tx) =>
+      renderMessage(tx, shipped, {
+        appUrl: "https://horaneo.test",
+        productName: "Horaneo",
+        now: NOW,
+      } as never),
+    );
+    if (rendered.kind !== "email") throw new Error("e-mail attendu");
+    expect(rendered.subject).toContain("en route");
+    expect(rendered.text).toContain("3 rue des Lilas");
   });
 });
