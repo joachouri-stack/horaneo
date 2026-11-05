@@ -36,6 +36,8 @@ export const products = pgTable(
     /** Catégorie libre (« Soins visage », « Bougies »…) : les produits sont regroupés par catégorie. */
     category: text(),
     priceCents: cents().notNull(),
+    /** Prix avant promotion (prix barré) ; vide : pas de promotion. */
+    compareAtPriceCents: cents(),
     currency: currency().notNull().default("EUR"),
     /** Quantité en stock ; vide : stock non suivi (toujours disponible). */
     stockQuantity: integer(),
@@ -57,6 +59,10 @@ export const products = pgTable(
     }).onDelete("restrict"),
     check("products_price", sql`${t.priceCents} >= 0`),
     check("products_stock", sql`${t.stockQuantity} IS NULL OR ${t.stockQuantity} >= 0`),
+    check(
+      "products_compare_at_price",
+      sql`${t.compareAtPriceCents} IS NULL OR ${t.compareAtPriceCents} > ${t.priceCents}`,
+    ),
   ],
 );
 

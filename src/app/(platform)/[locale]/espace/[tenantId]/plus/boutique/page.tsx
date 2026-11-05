@@ -73,14 +73,24 @@ export default async function ShopPage({ params }: PageProps<"/[locale]/espace/[
             required
           />
           <TextField
-            id={`stock-${key}`}
-            name="stock"
-            inputMode="numeric"
-            label={t("stock")}
-            hint={t("stockHint")}
-            defaultValue={product?.stockQuantity == null ? undefined : String(product.stockQuantity)}
+            id={`compare-${key}`}
+            name="compareAtPrice"
+            inputMode="decimal"
+            label={t("compareAtPrice", { currency: page.fmt.currency })}
+            hint={t("compareAtPriceHint")}
+            defaultValue={
+              product?.compareAtPriceCents == null ? undefined : centsToInput(product.compareAtPriceCents)
+            }
           />
         </div>
+        <TextField
+          id={`stock-${key}`}
+          name="stock"
+          inputMode="numeric"
+          label={t("stock")}
+          hint={t("stockHint")}
+          defaultValue={product?.stockQuantity == null ? undefined : String(product.stockQuantity)}
+        />
         <CheckboxField
           name="isActive"
           label={t("active")}

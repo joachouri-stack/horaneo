@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -18,7 +19,7 @@ import {
   saveProduct,
   setProductPhoto,
 } from "@/modules/shop/products";
-import { priceCart, shopProduct, shopProducts } from "@/modules/shop/catalog";
+import { priceCart, promotion, shopProduct, shopProducts } from "@/modules/shop/catalog";
 import { createTenant } from "@/modules/tenants/create";
 import { hasTestDatabase, openAppDb, openTestDb, type TestDb } from "../setup/db";
 
@@ -207,5 +208,37 @@ describe.skipIf(!hasTestDatabase)("boutique : catalogue de produits", () => {
     );
     expect(tooMany.ready).toBe(false);
     expect(tooMany.lines[0]).toMatchObject({ ok: false, available: 3 });
+  });
+
+  it("promotion (prix barré) et étiquette « Nouveau »", async () => {
+    const tenant = await newTenant("pro");
+    const as = <T>(fn: (tx: Transaction) => Promise<T>) => asManager(tenant.id, fn, tenant.primaryBusinessId);
+    // Le prix barré doit être plus élevé que le prix.
+    expect(
+      await errorCode(
+        as((tx) => saveProduct(tx, tenant.id, { name: "Crème", price: "20", compareAtPrice: "20" })),
+      ),
+    ).toBe("invalid");
+    const cream = await as((tx) =>
+      saveProduct(tx, tenant.id, { name: "Crème", price: "17", compareAtPrice: "20" }),
+    );
+    const site = <T>(fn: (tx: Transaction) => Promise<T>) =>
+      withTenant(tenant.id, fn, app, tenant.primaryBusinessId);
+    const product = await site((tx) => shopProduct(tx, tenant.id, tenant.primaryBusinessId, cream.id, "fr"));
+    expect(product).toMatchObject({ priceCents: 1700, compareAtPriceCents: 2000, isNew: true });
+    expect(promotion(product)).toEqual({ compareAtPriceCents: 2000, percent: 15 });
+    // Le panier se paie au prix de vente.
+    const cart = await site((tx) =>
+      priceCart(tx, tenant.id, tenant.primaryBusinessId, [{ productId: cream.id, quantity: 1 }], "fr"),
+    );
+    expect(cart.totalCents).toBe(1700);
+    // Plus « Nouveau » après 30 jours ; promotion retirée en vidant le prix barré.
+    await owner.execute(
+      sql`UPDATE products SET created_at = now() - interval '31 days' WHERE id = ${cream.id}`,
+    );
+    await as((tx) => saveProduct(tx, tenant.id, { name: "Crème", price: "17" }, cream.id));
+    const later = await site((tx) => shopProduct(tx, tenant.id, tenant.primaryBusinessId, cream.id, "fr"));
+    expect(later.isNew).toBe(false);
+    expect(promotion(later)).toBeNull();
   });
 });
