@@ -5,6 +5,7 @@ import {
   giftCards,
   promoCodes,
   promotions,
+  shopOrders,
   staffMembers,
   timeOff,
   updateRequests,
@@ -65,7 +66,13 @@ export async function toolsOverview(tx: Transaction, tenantId: string, timezone:
     .select({ count })
     .from(customerDataRequests)
     .where(and(eq(customerDataRequests.tenantId, tenantId), eq(customerDataRequests.status, "new")));
+  // Commandes de la boutique payées, pas encore retirées (à préparer ou prêtes).
+  const [orders] = await tx
+    .select({ count })
+    .from(shopOrders)
+    .where(and(eq(shopOrders.tenantId, tenantId), inArray(shopOrders.status, ["paid", "ready"])));
   return {
+    orders: orders.count,
     team: team.count,
     unavailability: absences.count,
     promotions: activePromotions.count,

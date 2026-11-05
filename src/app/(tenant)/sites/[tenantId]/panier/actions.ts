@@ -8,13 +8,14 @@ import { openShop } from "@/lib/site/shop";
 import { AppError, type AppErrorCode } from "@/modules/errors";
 import { sendQueuedSoon } from "@/lib/jobs/tick";
 import { paymentGateway } from "@/lib/payments/stripe";
-import { cartInput, priceCart } from "@/modules/shop/catalog";
+import { cartInput, lineKey, priceCart } from "@/modules/shop/catalog";
 import {
   checkoutInput,
   orderReference,
   startShopCheckout,
   syncShopOrderPayment,
 } from "@/modules/shop/orders";
+import { deliveryFee, shopFulfillment } from "@/modules/shop/settings";
 import { productPath } from "@/modules/site/paths";
 
 /** Panier de la boutique : relu en base à chaque affichage (prix, stock, produits encore en vente). */
@@ -33,7 +34,10 @@ async function run<T>(fn: () => Promise<T>): Promise<ShopResult<T>> {
 
 export type CartView = {
   lines: {
+    /** Clé de l'article (produit et variante), celle du panier du navigateur. */
+    key: string;
     productId: string;
+    variantId: string | null;
     name: string;
     href: string;
     photoUrl: string | null;
@@ -47,6 +51,13 @@ export type CartView = {
   totalCents: number;
   currency: string | null;
   ready: boolean;
+  /** Modes de remise proposés par l'entreprise, avec les frais de livraison de ce panier. */
+  fulfillment: {
+    pickup: boolean;
+    delivery: boolean;
+    deliveryFeeCents: number;
+    freeDeliveryFromCents: number | null;
+  };
 };
 
 export async function viewCartAction(
@@ -56,20 +67,25 @@ export async function viewCartAction(
   return run(async () => {
     const { site, businessId, locale } = await openShop(business);
     if (!publicLimits.availability.attempt(site.ip)) throw new AppError("rate_limited");
-    const cart = await withTenant(
+    const { cart, settings } = await withTenant(
       site.tenantId,
-      (tx) => priceCart(tx, site.tenantId, businessId, items, locale),
+      async (tx) => ({
+        cart: await priceCart(tx, site.tenantId, businessId, items, locale),
+        settings: await shopFulfillment(tx, businessId),
+      }),
       undefined,
       businessId,
     );
     const store = storage();
     return {
       lines: cart.lines.map((line) => ({
+        key: lineKey(line.product.id, line.variant?.id),
         productId: line.product.id,
-        name: line.product.name,
+        variantId: line.variant?.id ?? null,
+        name: line.name,
         href: productPath(line.product.id),
         photoUrl: line.product.photo ? store.publicUrl(line.product.photo.key) : null,
-        priceCents: line.product.priceCents,
+        priceCents: line.unitPriceCents,
         quantity: line.quantity,
         available: line.available,
         ok: line.ok,
@@ -79,6 +95,12 @@ export async function viewCartAction(
       totalCents: cart.totalCents,
       currency: cart.currency,
       ready: cart.ready,
+      fulfillment: {
+        pickup: settings.pickup,
+        delivery: settings.delivery,
+        deliveryFeeCents: deliveryFee(settings, cart.totalCents),
+        freeDeliveryFromCents: settings.freeDeliveryFromCents,
+      },
     };
   });
 }
@@ -109,11 +131,13 @@ export async function startCheckoutAction(
   });
 }
 
+export type OrderOutcome = { status: string; reference: string; fulfillment: "pickup" | "delivery" };
+
 /** Après le paiement dans le navigateur : la commande est confirmée dès que Stripe confirme. */
 export async function confirmOrderAction(
   business: string,
   orderId: string,
-): Promise<ShopResult<{ status: string; reference: string }>> {
+): Promise<ShopResult<OrderOutcome>> {
   return run(async () => {
     const { site, businessId } = await openShop(business);
     if (!publicLimits.manage.attempt(site.ip)) throw new AppError("rate_limited");
@@ -124,6 +148,6 @@ export async function confirmOrderAction(
       businessId,
     );
     sendQueuedSoon();
-    return { status: order.status, reference: orderReference(order.id) };
+    return { status: order.status, reference: orderReference(order.id), fulfillment: order.fulfillment };
   });
 }

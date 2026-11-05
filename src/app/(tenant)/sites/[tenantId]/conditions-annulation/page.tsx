@@ -49,7 +49,9 @@ export default async function CancellationPage({
       const giftCards = site.giftCardBusinessIds.includes(business.id)
         ? settings.giftCardValidityMonths
         : null;
-      const shop = site.shopBusinessIds.includes(business.id);
+      const shop = site.shopBusinessIds.includes(business.id)
+        ? (site.shopModes[business.id] ?? "pickup")
+        : null;
       return { business, hours: settings.cancellationDeadlineHours, deposit, giftCards, shop };
     }),
   );
@@ -100,9 +102,14 @@ export default async function CancellationPage({
                     <h3 className="font-semibold">{t("shop")}</h3>
                     <ul className="mt-1 list-disc space-y-2 pl-5">
                       <li>{t("shopPayment")}</li>
-                      <li>{t("shopPickup")}</li>
+                      <li>{t("shopPickup", { mode: rule.shop })}</li>
                       <li>{t("shopUnavailable")}</li>
-                      <li>{t("shopWithdrawal", { name: multi ? rule.business.name : site.tenant.name })}</li>
+                      <li>
+                        {t("shopWithdrawal", {
+                          mode: rule.shop,
+                          name: multi ? rule.business.name : site.tenant.name,
+                        })}
+                      </li>
                     </ul>
                   </div>
                 )}

@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
-import { confirmOrderAction } from "@/app/(tenant)/sites/[tenantId]/panier/actions";
+import { confirmOrderAction, type OrderOutcome } from "@/app/(tenant)/sites/[tenantId]/panier/actions";
 import { CartView } from "./CartView";
 import { CheckoutForm } from "./CheckoutForm";
 import { clearCart } from "./cart-store";
@@ -23,8 +23,13 @@ export function ShopCart({
   return (
     <CartView
       locale={locale}
-      checkout={(cart) => (
-        <CheckoutForm cart={cart} locale={locale} businessName={businessNames[cart.businessId] ?? ""} />
+      checkout={(cart, view) => (
+        <CheckoutForm
+          cart={cart}
+          view={view}
+          locale={locale}
+          businessName={businessNames[cart.businessId] ?? ""}
+        />
       )}
     />
   );
@@ -33,11 +38,11 @@ export function ShopCart({
 /** Après la validation bancaire : la commande est confirmée dès que Stripe confirme. */
 function OrderReturn({ orderId, businessId }: { orderId: string; businessId: string }) {
   const t = useTranslations("site.shop");
-  const [state, setState] = useState<{ status: string; reference: string } | null>(null);
+  const [state, setState] = useState<OrderOutcome | null>(null);
   useEffect(() => {
     void confirmOrderAction(businessId, orderId).then((result) => {
       if (result.ok && result.data.status !== "pending_payment") clearCart();
-      setState(result.ok ? result.data : { status: "pending_payment", reference: "" });
+      setState(result.ok ? result.data : { status: "pending_payment", reference: "", fulfillment: "pickup" });
     });
   }, [orderId, businessId]);
   if (!state) return <p aria-live="polite">{t("checking")}</p>;
@@ -48,7 +53,9 @@ function OrderReturn({ orderId, businessId }: { orderId: string; businessId: str
         {state.status === "refunded"
           ? t("refunded")
           : state.status === "paid"
-            ? t("thanksText", { reference: state.reference })
+            ? t(state.fulfillment === "delivery" ? "thanksDelivery" : "thanksText", {
+                reference: state.reference,
+              })
             : t("thanksPending")}
       </p>
     </section>

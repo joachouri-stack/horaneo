@@ -69,6 +69,7 @@ export type AppErrorCode =
   | "shop_unavailable"
   | "shop_out_of_stock"
   | "shop_order_not_modifiable"
+  | "shop_fulfillment_required"
   | "gift_card_amount"
   | "reward_unavailable"
   | "login_invalid"

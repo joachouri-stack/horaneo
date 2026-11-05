@@ -2,7 +2,7 @@ import { and, asc, desc, eq, inArray, lt, sql } from "drizzle-orm";
 import { z } from "zod";
 import { SHOP } from "@/config/shop";
 import type { Transaction } from "@/db/client";
-import { products, shopOrderItems, shopOrders } from "@/db/schema";
+import { products, productVariants, shopOrderItems, shopOrders } from "@/db/schema";
 import type { Locale } from "@/i18n/locales";
 import { loadBookingContext } from "@/modules/booking/availability";
 import { AppError } from "@/modules/errors";
@@ -11,6 +11,7 @@ import type { GatewayPaymentIntent, PaymentGateway } from "@/modules/payments/ga
 import { onlinePaymentReady, providerError } from "@/modules/payments/deposits";
 import { normalizePhone } from "@/modules/phone";
 import { cartInput, priceCart } from "./catalog";
+import { deliveryFee, type ShopFulfillment, shopFulfillment } from "./settings";
 
 /**
  * Commandes de la boutique (retrait sur place), payées en ligne sur le compte Stripe de
@@ -33,13 +34,54 @@ export const checkoutInput = z.object({
   note: z.string().trim().max(500).optional(),
   acceptTerms: z.boolean().refine((value) => value, "terms"),
   locale: z.string().min(2).max(5).default("fr"),
+  /** Retrait sur place, ou livraison à l'adresse indiquée. */
+  fulfillment: z.enum(["pickup", "delivery"]).default("pickup"),
+  addressLine1: z.string().trim().max(200).optional(),
+  addressLine2: z.string().trim().max(200).optional(),
+  postalCode: z.string().trim().max(20).optional(),
+  city: z.string().trim().max(100).optional(),
 });
 
-/** Remet en stock les articles suivis d'une commande. */
+/**
+ * Mode de remise choisi, vérifié selon les réglages de l'entreprise : adresse complète
+ * pour une livraison, et frais (offerts à partir du montant choisi par la gérante).
+ */
+function deliveryDetails(
+  input: z.output<typeof checkoutInput>,
+  settings: ShopFulfillment,
+  subtotalCents: number,
+) {
+  if (input.fulfillment === "pickup") {
+    if (!settings.pickup) throw new AppError("invalid", "fulfillment");
+    return { fulfillment: "pickup" as const, deliveryFeeCents: 0 };
+  }
+  if (!settings.delivery) throw new AppError("invalid", "fulfillment");
+  for (const field of ["addressLine1", "postalCode", "city"] as const)
+    if (!input[field]) throw new AppError("invalid", field);
+  return {
+    fulfillment: "delivery" as const,
+    deliveryFeeCents: deliveryFee(settings, subtotalCents),
+    deliveryAddressLine1: input.addressLine1!,
+    deliveryAddressLine2: input.addressLine2 || null,
+    deliveryPostalCode: input.postalCode!,
+    deliveryCity: input.city!,
+  };
+}
+
+/** Remet en stock les articles suivis d'une commande (variante, ou produit). */
 async function restock(tx: Transaction, orderId: string) {
   const items = await tx.select().from(shopOrderItems).where(eq(shopOrderItems.orderId, orderId));
   for (const item of items) {
     if (!item.stockTracked || !item.productId) continue;
+    if (item.variantId) {
+      await tx
+        .update(productVariants)
+        .set({ stockQuantity: sql`${productVariants.stockQuantity} + ${item.quantity}` })
+        .where(
+          and(eq(productVariants.id, item.variantId), sql`${productVariants.stockQuantity} IS NOT NULL`),
+        );
+      continue;
+    }
     await tx
       .update(products)
       .set({ stockQuantity: sql`${products.stockQuantity} + ${item.quantity}` })
@@ -53,10 +95,24 @@ async function restock(tx: Transaction, orderId: string) {
  */
 async function reserve(
   tx: Transaction,
-  items: { productId: string | null; quantity: number; stockTracked: boolean }[],
+  items: { productId: string | null; variantId: string | null; quantity: number; stockTracked: boolean }[],
 ) {
   for (const item of items) {
     if (!item.stockTracked || !item.productId) continue;
+    if (item.variantId) {
+      const [variant] = await tx
+        .update(productVariants)
+        .set({ stockQuantity: sql`${productVariants.stockQuantity} - ${item.quantity}` })
+        .where(
+          and(
+            eq(productVariants.id, item.variantId),
+            sql`${productVariants.stockQuantity} >= ${item.quantity}`,
+          ),
+        )
+        .returning({ id: productVariants.id });
+      if (!variant) return false;
+      continue;
+    }
     const [updated] = await tx
       .update(products)
       .set({ stockQuantity: sql`${products.stockQuantity} - ${item.quantity}` })
@@ -111,13 +167,15 @@ export async function startShopCheckout(
   await expireShopHolds(tx, tenantId, now);
   const cart = await priceCart(tx, tenantId, context.business.id, input.items, input.locale as Locale);
   if (!cart.ready || cart.removed.length > 0 || !cart.currency) throw new AppError("shop_out_of_stock");
+  const delivery = deliveryDetails(input, await shopFulfillment(tx, context.business.id), cart.totalCents);
 
   const items = cart.lines.map((line) => ({
     productId: line.product.id,
-    name: line.product.name,
-    unitPriceCents: line.product.priceCents,
+    variantId: line.variant?.id ?? null,
+    name: line.name,
+    unitPriceCents: line.unitPriceCents,
     quantity: line.quantity,
-    stockTracked: line.product.stockQuantity !== null,
+    stockTracked: line.available !== null,
   }));
   if (!(await reserve(tx, items))) throw new AppError("shop_out_of_stock");
 
@@ -129,9 +187,10 @@ export async function startShopCheckout(
       customerEmail: input.customerEmail,
       customerPhone: phone,
       note: input.note || null,
-      totalCents: cart.totalCents,
+      totalCents: cart.totalCents + delivery.deliveryFeeCents,
       currency: cart.currency,
       locale: input.locale,
+      ...delivery,
       holdExpiresAt: new Date(now.getTime() + SHOP.holdMinutes * 60_000),
       stripeAccountId: context.business.stripeAccountId,
     })

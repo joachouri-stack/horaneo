@@ -44,6 +44,8 @@ export function TextField({
   autoComplete?: string;
   /** Pas d'un champ nombre (ex. "any" pour accepter 0,5). */
   step?: string;
+  /** Liste de suggestions (identifiant d'un <datalist>). */
+  list?: string;
 }) {
   const id = props.id ?? `f-${props.name}`;
   const error = useFieldError(props.name, id);
@@ -62,6 +64,7 @@ export function TextField({
         inputMode={props.inputMode}
         autoComplete={props.autoComplete}
         step={props.step}
+        list={props.list}
         className={ui.input}
         {...error.attributes}
       />

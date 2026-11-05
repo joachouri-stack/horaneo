@@ -8,7 +8,7 @@ import { withTenant } from "@/db/access";
 import { resolveLocale } from "@/i18n/translator";
 import { formatMoney } from "@/lib/format";
 import { getSite } from "@/lib/site/load";
-import { shopProducts } from "@/modules/shop/catalog";
+import { priceRange, shopProducts, soldOut } from "@/modules/shop/catalog";
 import { productPath, SITE_PATHS } from "@/modules/site/paths";
 
 export async function generateMetadata({
@@ -32,13 +32,91 @@ export default async function ShopPage({ params, searchParams }: PageProps<"/sit
   const chosen = sellers.length === 1 ? sellers[0] : sellers.find((business) => business.id === query.avec);
   const t = await getTranslations("site.shop");
   const locale = resolveLocale(site.locale);
+  // Retrait, livraison ou les deux : chez l'entreprise choisie, sinon sur l'ensemble du site.
+  const modes = new Set(
+    (chosen ? [chosen] : sellers).map((business) => site.shopModes[business.id] ?? "pickup"),
+  );
+  const mode = modes.size === 1 ? [...modes][0] : "both";
   const products = chosen
     ? await withTenant(tenantId, (tx) => shopProducts(tx, tenantId, chosen.id, locale), undefined, chosen.id)
     : [];
 
+  // Regroupement par catégorie (dans l'ordre des produits) ; les produits sans catégorie à la fin.
+  const named = [
+    ...new Set(products.map((product) => product.category).filter((c): c is string => Boolean(c))),
+  ];
+  const groups = [
+    ...named.map((name, index) => ({
+      name,
+      anchor: `categorie-${index + 1}`,
+      products: products.filter((product) => product.category === name),
+    })),
+    {
+      name: t("otherCategory"),
+      anchor: "autres",
+      products: products.filter((product) => !product.category),
+    },
+  ].filter((group) => group.products.length > 0);
+  const grid = (list: typeof products) => (
+    <ul className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3">
+      {list.map((product) => {
+        const out = soldOut(product);
+        const price = priceRange(product);
+        return (
+          <li key={product.id}>
+            <Link
+              href={productPath(product.id)}
+              className="group flex h-full flex-col overflow-hidden rounded-site border border-site-border bg-site-card transition hover:-translate-y-0.5 hover:shadow-md"
+            >
+              <span className="relative block aspect-square overflow-hidden bg-site-panel">
+                {product.photo ? (
+                  <SiteImage
+                    image={{ ...product.photo, alt: product.name }}
+                    sizes="(min-width: 1024px) 33vw, 50vw"
+                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                  />
+                ) : (
+                  <span
+                    aria-hidden="true"
+                    className="flex h-full items-center justify-center text-site-muted"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      className="size-10"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    >
+                      <path d="M5.5 8.5h13l-1 11.5h-11zM9 8.5V7a3 3 0 0 1 6 0v1.5" />
+                    </svg>
+                  </span>
+                )}
+                {out && (
+                  <span className="absolute left-3 top-3 rounded-full bg-site-bg/90 px-3 py-1 text-sm font-semibold">
+                    {t("outOfStock")}
+                  </span>
+                )}
+              </span>
+              <span className="flex flex-1 flex-col gap-1 p-4">
+                <span className="font-site-display text-lg font-semibold leading-snug text-site-heading">
+                  {product.name}
+                </span>
+                <span className="mt-auto text-lg text-site-text">
+                  {price.varies
+                    ? t("fromPrice", { price: formatMoney(price.min, product.currency, site.locale) })
+                    : formatMoney(price.min, product.currency, site.locale)}
+                </span>
+              </span>
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
+
   return (
     <main id="contenu" className="mx-auto max-w-6xl px-4 py-12">
-      <PageTitle title={t("title")} intro={t("intro")} />
+      <PageTitle title={t("title")} intro={t("intro", { mode })} />
       {sellers.length > 1 && (
         <nav aria-label={t("who")} className="mb-8">
           <p className="mb-3 text-lg font-semibold">{t("who")}</p>
@@ -57,59 +135,38 @@ export default async function ShopPage({ params, searchParams }: PageProps<"/sit
           </ul>
         </nav>
       )}
-      {chosen && (
-        <ul className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3">
-          {products.map((product) => {
-            const soldOut = product.stockQuantity === 0;
-            return (
-              <li key={product.id}>
-                <Link
-                  href={productPath(product.id)}
-                  className="group flex h-full flex-col overflow-hidden rounded-site border border-site-border bg-site-card transition hover:-translate-y-0.5 hover:shadow-md"
+      {chosen && groups.length > 1 && (
+        <nav aria-label={t("categories")} className="mb-8">
+          <ul className="flex flex-wrap gap-2">
+            {groups.map((group) => (
+              <li key={group.anchor}>
+                <a
+                  href={`#${group.anchor}`}
+                  className="inline-flex min-h-11 items-center rounded-full border border-site-border bg-site-card px-4 font-semibold hover:border-site-accent"
                 >
-                  <span className="relative block aspect-square overflow-hidden bg-site-panel">
-                    {product.photo ? (
-                      <SiteImage
-                        image={{ ...product.photo, alt: product.name }}
-                        sizes="(min-width: 1024px) 33vw, 50vw"
-                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                      />
-                    ) : (
-                      <span
-                        aria-hidden="true"
-                        className="flex h-full items-center justify-center text-site-muted"
-                      >
-                        <svg
-                          viewBox="0 0 24 24"
-                          className="size-10"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                        >
-                          <path d="M5.5 8.5h13l-1 11.5h-11zM9 8.5V7a3 3 0 0 1 6 0v1.5" />
-                        </svg>
-                      </span>
-                    )}
-                    {soldOut && (
-                      <span className="absolute left-3 top-3 rounded-full bg-site-bg/90 px-3 py-1 text-sm font-semibold">
-                        {t("outOfStock")}
-                      </span>
-                    )}
-                  </span>
-                  <span className="flex flex-1 flex-col gap-1 p-4">
-                    <span className="font-site-display text-lg font-semibold leading-snug text-site-heading">
-                      {product.name}
-                    </span>
-                    <span className="mt-auto text-lg text-site-text">
-                      {formatMoney(product.priceCents, product.currency, site.locale)}
-                    </span>
-                  </span>
-                </Link>
+                  {group.name}
+                </a>
               </li>
-            );
-          })}
-        </ul>
+            ))}
+          </ul>
+        </nav>
       )}
+      {chosen &&
+        groups.map((group) => (
+          <section
+            key={group.anchor}
+            id={group.anchor}
+            aria-label={group.name}
+            className="mb-12 scroll-mt-28"
+          >
+            {groups.length > 1 && (
+              <h2 className="mb-5 font-site-display text-3xl font-semibold text-site-heading">
+                {group.name}
+              </h2>
+            )}
+            {grid(group.products)}
+          </section>
+        ))}
     </main>
   );
 }

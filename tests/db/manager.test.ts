@@ -405,6 +405,7 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
       const s = await setup();
       const counts = await asManager(s.id, (tx) => toolsOverview(tx, s.id, "Europe/Paris"));
       expect(counts).toEqual({
+        orders: 0,
         team: 2,
         unavailability: 0,
         promotions: 0,

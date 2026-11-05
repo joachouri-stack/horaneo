@@ -411,7 +411,39 @@ function orderLines(
   );
 }
 
-/** Commande confirmée (ou remboursée faute de stock), puis « prête à retirer ». */
+/** Adresse de livraison d'une commande, sur une ligne (vide pour un retrait sur place). */
+function deliveryAddressOf(order: {
+  deliveryAddressLine1: string | null;
+  deliveryAddressLine2: string | null;
+  deliveryPostalCode: string | null;
+  deliveryCity: string | null;
+}) {
+  return [
+    order.deliveryAddressLine1,
+    order.deliveryAddressLine2,
+    [order.deliveryPostalCode, order.deliveryCity].filter(Boolean).join(" "),
+  ]
+    .filter(Boolean)
+    .join(", ");
+}
+
+/** Lignes « Livraison » et « Livrée à » d'une commande livrée. */
+function deliveryDetailsOf(
+  order: Parameters<typeof deliveryAddressOf>[0] & { fulfillment: string; deliveryFeeCents: number },
+  t: Translator,
+  money: (cents: number) => string,
+) {
+  if (order.fulfillment !== "delivery") return [];
+  return [
+    {
+      label: t("notifications.shop.deliveryFee"),
+      value: order.deliveryFeeCents === 0 ? t("notifications.shop.free") : money(order.deliveryFeeCents),
+    },
+    { label: t("notifications.shop.deliveryTo"), value: deliveryAddressOf(order) },
+  ];
+}
+
+/** Commande confirmée (ou remboursée faute de stock), puis « prête à retirer » (ou expédiée). */
 async function renderShopOrder(
   tx: Transaction,
   row: MessageRow,
@@ -433,15 +465,25 @@ async function renderShopOrder(
   let subject: string;
   let title: string;
   let paragraphs: string[];
+  const delivered = order.fulfillment === "delivery";
   if (template === "customer.shop_order_ready") {
     if (order.status !== "ready") return { kind: "skip", reason: "not_ready" };
-    subject = t("notifications.shop.readySubject", { business: tenant.name, reference });
-    title = t("notifications.shop.readyTitle");
-    paragraphs = [
-      t("notifications.common.hello", { name: order.customerName }),
-      t("notifications.shop.readyIntro", { business: tenant.name }),
-      ...(address ? [t("notifications.shop.where", { address })] : []),
-    ];
+    if (delivered) {
+      subject = t("notifications.shop.shippedSubject", { business: tenant.name, reference });
+      title = t("notifications.shop.shippedTitle");
+      paragraphs = [
+        t("notifications.common.hello", { name: order.customerName }),
+        t("notifications.shop.shippedIntro", { business: tenant.name }),
+      ];
+    } else {
+      subject = t("notifications.shop.readySubject", { business: tenant.name, reference });
+      title = t("notifications.shop.readyTitle");
+      paragraphs = [
+        t("notifications.common.hello", { name: order.customerName }),
+        t("notifications.shop.readyIntro", { business: tenant.name }),
+        ...(address ? [t("notifications.shop.where", { address })] : []),
+      ];
+    }
   } else if (template === "customer.shop_order_cancelled") {
     if (order.status !== "refunded") return { kind: "skip", reason: "not_cancelled" };
     subject = t("notifications.shop.cancelledSubject", { business: tenant.name, reference });
@@ -465,7 +507,7 @@ async function renderShopOrder(
     paragraphs = [
       t("notifications.common.hello", { name: order.customerName }),
       t("notifications.shop.confirmedIntro", { business: tenant.name }),
-      t("notifications.shop.pickupLater"),
+      t(delivered ? "notifications.shop.deliveryLater" : "notifications.shop.pickupLater"),
     ];
   }
   const { html, text } = renderEmail({
@@ -477,6 +519,7 @@ async function renderShopOrder(
     paragraphs,
     details: [
       { label: t("notifications.shop.reference"), value: reference },
+      ...deliveryDetailsOf(order, t, money),
       { label: t("notifications.shop.total"), value: money(order.totalCents) },
     ],
     list: orderLines(items, money),
@@ -1030,10 +1073,13 @@ async function renderManager(
       amount: money(order.totalCents),
     });
     title = t("notifications.manager.shop_order.title");
-    paragraphs = [t("notifications.manager.shop_order.intro", { name: order.customerName })];
+    paragraphs = [
+      t("notifications.manager.shop_order.intro", { name: order.customerName, mode: order.fulfillment }),
+    ];
     list = orderLines(items, money);
     details = [
       { label: t("notifications.shop.reference"), value: orderReference(order.id) },
+      ...deliveryDetailsOf(order, t, money),
       { label: t("notifications.shop.total"), value: money(order.totalCents) },
       ...(order.customerPhone
         ? [{ label: t("notifications.shop.phone"), value: formatPhone(order.customerPhone, tenant.country) }]

@@ -1220,9 +1220,9 @@
       "giftCardRules": "Valables {months} mois à partir de leur envoi. Utilisables en ligne (elles remplacent l'acompte) ou sur place, en plusieurs fois : le solde est conservé. Non remboursables et non échangeables contre de l'argent. Une carte s'utilise uniquement auprès de l'établissement qui l'a vendue.",
       "shop": "Boutique",
       "shopPayment": "Les commandes sont payées en ligne, par carte bancaire, au moment de la commande.",
-      "shopPickup": "Retrait sur place : vous recevez un e-mail dès que votre commande est prête.",
+      "shopPickup": "{mode, select, delivery {Livraison à l'adresse indiquée lors de la commande : vous recevez un e-mail dès l'envoi.} both {Retrait sur place ou livraison à l'adresse indiquée, au choix lors de la commande : vous recevez un e-mail dès que votre commande est prête ou envoyée.} other {Retrait sur place : vous recevez un e-mail dès que votre commande est prête.}}",
       "shopUnavailable": "Si un produit n'est plus disponible, la commande n'est pas confirmée et vous êtes remboursé intégralement.",
-      "shopWithdrawal": "Vous disposez de 14 jours après le retrait pour changer d'avis (droit de rétractation), sauf exceptions prévues par la loi (par exemple un produit d'hygiène descellé). Contactez {name} pour le retour et le remboursement."
+      "shopWithdrawal": "{mode, select, pickup {Vous disposez de 14 jours après le retrait} other {Vous disposez de 14 jours après le retrait ou la réception}} pour changer d'avis (droit de rétractation), sauf exceptions prévues par la loi (par exemple un produit d'hygiène descellé). Contactez {name} pour le retour et le remboursement."
     },
     "offers": {
       "banner": "Offre du moment : {title}, jusqu'au {date}",
@@ -1240,12 +1240,12 @@
     },
     "shop": {
       "title": "Boutique",
-      "intro": "Nos produits, à commander en ligne et à retirer sur place.",
+      "intro": "{mode, select, delivery {Nos produits, à commander en ligne et à recevoir chez vous.} both {Nos produits, à commander en ligne : à retirer sur place ou livrés chez vous.} other {Nos produits, à commander en ligne et à retirer sur place.}}",
       "who": "Chez qui ?",
       "outOfStock": "Rupture de stock",
       "back": "Toute la boutique",
       "fewLeft": "{count, plural, one {Plus que # en stock} other {Plus que # en stock}}",
-      "pickupNote": "Paiement en ligne, puis retrait sur place : nous vous prévenons quand votre commande est prête.",
+      "pickupNote": "{mode, select, delivery {Paiement en ligne, puis livraison chez vous : nous vous prévenons dès l'envoi de votre commande.} both {Paiement en ligne, puis retrait sur place ou livraison chez vous, au choix.} other {Paiement en ligne, puis retrait sur place : nous vous prévenons quand votre commande est prête.}}",
       "quantity": "Quantité",
       "less": "Un de moins",
       "more": "Un de plus",
@@ -1266,7 +1266,7 @@
       "checkoutTitle": "Vos coordonnées",
       "name": "Nom et prénom",
       "email": "E-mail",
-      "emailHint": "Pour la confirmation de commande et l'avis de retrait.",
+      "emailHint": "Pour la confirmation de commande et son suivi.",
       "phone": "Téléphone (facultatif)",
       "note": "Message (facultatif)",
       "terms": "J'accepte les <link>conditions de vente</link>.",
@@ -1281,7 +1281,26 @@
       "expired": "Le délai de paiement est dépassé : les produits ont été remis en vente et rien ne vous a été débité. Vous pouvez recommencer votre commande.",
       "restart": "Recommencer la commande",
       "secureTo": "Paiement sécurisé par Stripe, versé directement à {name}.",
-      "checking": "Vérification du paiement…"
+      "checking": "Vérification du paiement…",
+      "otherCategory": "Autres produits",
+      "categories": "Catégories",
+      "variant": "Choisissez",
+      "outOfStockShort": "épuisé",
+      "fromPrice": "à partir de {price}",
+      "subtotal": "Sous-total",
+      "fulfillment": "Retrait ou livraison",
+      "pickup": "Retrait sur place",
+      "delivery": "Livraison à domicile",
+      "free": "Gratuit",
+      "deliveryAddress": "Adresse de livraison",
+      "freeFrom": "Livraison offerte dès {amount} d'achat.",
+      "addressLine1": "Adresse",
+      "addressLine2": "Complément d'adresse (facultatif)",
+      "postalCode": "Code postal",
+      "city": "Ville",
+      "deliveryFee": "Livraison",
+      "toPay": "Total à payer",
+      "thanksDelivery": "Votre paiement est bien reçu. Votre commande {reference} est en préparation : un e-mail de confirmation vient de partir, et un autre suivra dès son envoi."
     },
     "giftCard": {
       "navLabel": "Cartes cadeaux",
@@ -2413,7 +2432,8 @@
     "fieldInvalid": "Champ vide, ou valeur hors des limites permises.",
     "invalidFields": "{count, plural, one {Vérifiez le champ {fields} : il est vide ou sa valeur est hors des limites permises.} other {Vérifiez les champs {fields} : ils sont vides ou leur valeur est hors des limites permises.}}",
     "fieldsConcerned": "{count, plural, one {Champ concerné : {fields}.} other {Champs concernés : {fields}.}}",
-    "shop_order_not_modifiable": "Cette commande ne peut plus être modifiée."
+    "shop_order_not_modifiable": "Cette commande ne peut plus être modifiée.",
+    "shop_fulfillment_required": "Choisissez au moins une façon de remettre les commandes : retrait sur place ou livraison."
   },
   "status": {
     "draft": "En création",
@@ -3015,6 +3035,7 @@
         "export": "Clientes, rendez-vous et paiements en tableaux."
       },
       "badge": {
+        "orders": "{count, plural, =0 {Aucune en cours} one {# en cours} other {# en cours}}",
         "team": "{count, plural, =0 {Aucun membre} one {# membre} other {# membres}}",
         "unavailability": "{count, plural, =0 {Aucune à venir} one {# à venir} other {# à venir}}",
         "promotions": "{count, plural, =0 {Aucune en cours} one {# en cours} other {# en cours}}",
@@ -3340,6 +3361,8 @@
       "name": "Nom du produit",
       "description": "Description",
       "descriptionHint": "Facultatif : contenance, matière, conseils d'utilisation…",
+      "category": "Catégorie",
+      "categoryHint": "Facultatif : les produits d'une même catégorie sont regroupés sur votre site (ex. Soins visage).",
       "price": "Prix ({currency})",
       "stock": "Stock",
       "stockHint": "Laissez vide si vous ne suivez pas le stock.",
@@ -3352,7 +3375,25 @@
       "moveUp": "Monter",
       "moveDown": "Descendre",
       "delete": "Supprimer ce produit",
-      "deleteConfirm": "Supprimer ce produit ? Sa photo sera mise de côté."
+      "deleteConfirm": "Supprimer ce produit ? Sa photo sera mise de côté.",
+      "variants": "Variantes",
+      "variantsHint": "Facultatif : tailles, couleurs, contenances… Chaque variante a son prix (sinon celui du produit) et son stock. Un produit qui a des variantes se commande toujours avec l'une d'elles.",
+      "variantName": "Nom de la variante",
+      "variantNameHint": "Ex. 30 ml, Rose, Taille M.",
+      "variantPrice": "Prix ({currency})",
+      "variantPriceHint": "Vide : prix du produit.",
+      "newVariant": "Ajouter une variante",
+      "deleteVariant": "Supprimer cette variante",
+      "deleteVariantConfirm": "Supprimer cette variante ?",
+      "variantCount": "{count, plural, one {# variante} other {# variantes}}",
+      "fulfillmentTitle": "Retrait et livraison",
+      "fulfillmentHint": "Choisissez comment vos clientes reçoivent leurs commandes : en venant les chercher, en se les faisant livrer, ou au choix.",
+      "pickup": "Retrait sur place (gratuit)",
+      "delivery": "Livraison à domicile",
+      "deliveryFee": "Frais de livraison ({currency})",
+      "deliveryFeeHint": "Vide ou 0 : livraison gratuite.",
+      "freeDeliveryFrom": "Offerte dès ({currency})",
+      "freeDeliveryFromHint": "Facultatif : montant de commande à partir duquel la livraison est offerte."
     },
     "promotions": {
       "title": "Promotions",
@@ -3666,22 +3707,26 @@
     },
     "orders": {
       "title": "Commandes",
-      "intro": "Les commandes payées en ligne sur votre boutique, à préparer pour un retrait sur place. « Commande prête » prévient la cliente par e-mail.",
+      "intro": "Les commandes payées en ligne sur votre boutique, à préparer pour un retrait sur place ou à expédier. « Commande prête » (ou « Commande expédiée ») prévient la cliente par e-mail.",
       "unavailable": "{plan, select, none {La boutique n'est pas comprise dans votre pack.} other {La boutique est comprise dès le pack {plan}. Voyez « Abonnement » pour changer de pack.}}",
       "open": "{count, plural, =0 {À traiter} one {À traiter (#)} other {À traiter (#)}}",
       "noneOpen": "Aucune commande à préparer pour le moment.",
       "done": "{count, plural, one {Commande terminée (#)} other {Commandes terminées (#)}}",
-      "markReady": "Commande prête",
-      "markCollected": "Retirée par la cliente",
+      "markReady": "{mode, select, delivery {Commande expédiée} other {Commande prête}}",
+      "markCollected": "{mode, select, delivery {Livrée} other {Retirée par la cliente}}",
       "cancel": "Annuler et rembourser",
       "cancelConfirm": "Annuler cette commande ? La cliente sera remboursée de {amount} et prévenue par e-mail, et les produits seront remis en stock.",
       "status": {
         "paid": "À préparer",
-        "ready": "Prête",
-        "collected": "Retirée",
+        "ready": "{mode, select, delivery {Expédiée} other {Prête}}",
+        "collected": "{mode, select, delivery {Livrée} other {Retirée}}",
         "refunded": "Remboursée",
         "cancelled": "Annulée"
-      }
+      },
+      "deliveryFee": "Livraison",
+      "free": "offerte",
+      "deliverTo": "À livrer :",
+      "pickup": "Retrait sur place"
     }
   },
   "notifications": {
@@ -3899,7 +3944,7 @@
       "shop_order": {
         "subject": "Nouvelle commande {reference} · {amount}",
         "title": "Nouvelle commande en boutique",
-        "intro": "{name} a commandé et payé en ligne. À préparer pour un retrait sur place :",
+        "intro": "{name} a commandé et payé en ligne. {mode, select, delivery {À expédier :} other {À préparer pour un retrait sur place :}}",
         "open": "Voir les commandes"
       }
     },
@@ -3991,7 +4036,14 @@
       "note": "Message",
       "cancelledSubject": "Votre commande {reference} chez {business} est annulée",
       "cancelledTitle": "Commande annulée et remboursée",
-      "cancelledIntro": "{business} a dû annuler votre commande. Le paiement de {amount} vous est remboursé sur votre carte (quelques jours selon votre banque)."
+      "cancelledIntro": "{business} a dû annuler votre commande. Le paiement de {amount} vous est remboursé sur votre carte (quelques jours selon votre banque).",
+      "deliveryLater": "Nous vous écrivons dès qu'elle est envoyée.",
+      "shippedSubject": "Votre commande {reference} est en route",
+      "shippedTitle": "Votre commande est en route",
+      "shippedIntro": "{business} vient d'envoyer votre commande à l'adresse indiquée.",
+      "deliveryFee": "Livraison",
+      "free": "offerte",
+      "deliveryTo": "Livrée à"
     }
   },
   "legal": {

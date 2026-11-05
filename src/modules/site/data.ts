@@ -74,6 +74,8 @@ export type SiteCategory = {
   services: SiteService[];
 };
 
+export type ShopMode = "pickup" | "delivery" | "both";
+
 export type SiteData = Awaited<ReturnType<typeof loadSiteData>>;
 
 export async function loadSiteData(tx: Transaction, tenantId: string, locale?: Locale) {
@@ -150,6 +152,8 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
         businessId: businessSettings.businessId,
         giftCardsEnabled: businessSettings.giftCardsEnabled,
         onlineBookingEnabled: businessSettings.onlineBookingEnabled,
+        shopPickup: businessSettings.shopPickupEnabled,
+        shopDelivery: businessSettings.shopDeliveryEnabled,
       })
       .from(businessSettings)
       .where(eq(businessSettings.tenantId, tenantId)),
@@ -370,6 +374,13 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
             )
             .map((business) => business.id)
         : [],
+    /** Remise des commandes de chaque boutique : « pickup », « delivery » ou « both ». */
+    shopModes: Object.fromEntries(
+      settingsRows.map((item) => [
+        item.businessId,
+        item.shopPickup && item.shopDelivery ? "both" : item.shopDelivery ? "delivery" : "pickup",
+      ]),
+    ) as Record<string, ShopMode>,
     /** Au moins une entreprise du site prend des rendez-vous en ligne. */
     bookingEnabled:
       bookingAllowed &&
