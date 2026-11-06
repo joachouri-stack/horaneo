@@ -8,7 +8,7 @@ import { withTenant } from "@/db/access";
 import { resolveLocale } from "@/i18n/translator";
 import { formatMoney } from "@/lib/format";
 import { getSite } from "@/lib/site/load";
-import { priceRange, shopProducts, soldOut } from "@/modules/shop/catalog";
+import { priceRange, promotion, shopProducts, soldOut } from "@/modules/shop/catalog";
 import { productPath, SITE_PATHS } from "@/modules/site/paths";
 
 export async function generateMetadata({
@@ -62,6 +62,8 @@ export default async function ShopPage({ params, searchParams }: PageProps<"/sit
       {list.map((product) => {
         const out = soldOut(product);
         const price = priceRange(product);
+        const promo = promotion(product);
+        const money = (cents: number) => formatMoney(cents, product.currency, site.locale);
         return (
           <li key={product.id}>
             <Link
@@ -91,10 +93,25 @@ export default async function ShopPage({ params, searchParams }: PageProps<"/sit
                     </svg>
                   </span>
                 )}
-                {out && (
+                {out ? (
                   <span className="absolute left-3 top-3 rounded-full bg-site-bg/90 px-3 py-1 text-sm font-semibold">
                     {t("outOfStock")}
                   </span>
+                ) : (
+                  (promo || product.isNew) && (
+                    <span className="absolute left-3 right-3 top-3 flex flex-wrap gap-1.5">
+                      {product.isNew && (
+                        <span className="rounded-full bg-site-bg/90 px-3 py-1 text-sm font-semibold text-site-heading">
+                          {t("new")}
+                        </span>
+                      )}
+                      {promo && (
+                        <span className="rounded-full bg-site-button px-3 py-1 text-sm font-semibold text-site-on-button">
+                          {t("discount", { percent: promo.percent })}
+                        </span>
+                      )}
+                    </span>
+                  )
                 )}
               </span>
               <span className="flex flex-1 flex-col gap-1 p-4">
@@ -102,9 +119,16 @@ export default async function ShopPage({ params, searchParams }: PageProps<"/sit
                   {product.name}
                 </span>
                 <span className="mt-auto text-lg text-site-text">
-                  {price.varies
-                    ? t("fromPrice", { price: formatMoney(price.min, product.currency, site.locale) })
-                    : formatMoney(price.min, product.currency, site.locale)}
+                  {price.varies ? t("fromPrice", { price: money(price.min) }) : money(price.min)}
+                  {promo && (
+                    <>
+                      {" "}
+                      <s className="text-base text-site-muted">
+                        <span className="sr-only">{t("insteadOf")} </span>
+                        {money(promo.compareAtPriceCents)}
+                      </s>
+                    </>
+                  )}
                 </span>
               </span>
             </Link>

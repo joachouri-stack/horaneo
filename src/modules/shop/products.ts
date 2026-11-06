@@ -25,6 +25,13 @@ export const productInput = z.object({
     .optional()
     .transform((value) => value || null),
   price: priceInput,
+  /** Prix avant promotion (prix barré sur le site) ; vide : pas de promotion. */
+  compareAtPrice: z
+    .string()
+    .trim()
+    .optional()
+    .transform((value) => value || undefined)
+    .pipe(priceInput.optional()),
   /** Stock : vide = non suivi (toujours disponible), sinon un nombre entier. */
   stock: z
     .string()
@@ -83,10 +90,14 @@ export async function saveProduct(
 ) {
   await assertFeature(tx, tenantId, "commerce");
   const input = productInput.parse(raw);
+  // Le prix barré est toujours plus élevé que le prix de vente.
+  if (input.compareAtPrice !== undefined && input.compareAtPrice <= input.price)
+    throw new AppError("invalid", "compareAtPrice");
   const { locale, currency } = await tenantInfo(tx, tenantId);
   const values = {
     category: input.category,
     priceCents: input.price,
+    compareAtPriceCents: input.compareAtPrice ?? null,
     currency,
     stockQuantity: input.stock,
     isActive: input.isActive,

@@ -1,5 +1,6 @@
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
+import { SHOP } from "@/config/shop";
 import type { Transaction } from "@/db/client";
 import { assets, products, productVariants } from "@/db/schema";
 import { pickLocalized, type Locale } from "@/i18n/locales";
@@ -25,6 +26,10 @@ export type ShopProduct = {
   description: string | null;
   category: string | null;
   priceCents: number;
+  /** Prix avant promotion (prix barré) ; null : pas de promotion. */
+  compareAtPriceCents: number | null;
+  /** Ajouté récemment : étiquette « Nouveau ». */
+  isNew: boolean;
   currency: string;
   /** null : stock non suivi (toujours disponible). Sans effet si le produit a des variantes. */
   stockQuantity: number | null;
@@ -43,6 +48,19 @@ export function priceRange(product: Pick<ShopProduct, "priceCents" | "variants">
   return { min, varies: prices.some((price) => price !== min) };
 }
 
+/**
+ * Promotion affichée : prix barré et pourcentage de réduction (arrondi). Seulement quand le
+ * prix de vente est unique (sans variantes à des prix différents).
+ */
+export function promotion(product: Pick<ShopProduct, "priceCents" | "compareAtPriceCents" | "variants">) {
+  const { min, varies } = priceRange(product);
+  if (varies || product.compareAtPriceCents === null || product.compareAtPriceCents <= min) return null;
+  return {
+    compareAtPriceCents: product.compareAtPriceCents,
+    percent: Math.round((1 - min / product.compareAtPriceCents) * 100),
+  };
+}
+
 /** Plus aucun exemplaire disponible (produit, ou toutes ses variantes). */
 export function soldOut(product: Pick<ShopProduct, "stockQuantity" | "variants">) {
   return product.variants.length
@@ -56,7 +74,9 @@ async function selectProducts(
   businessId: string,
   locale: Locale,
   ids?: string[],
+  now = new Date(),
 ): Promise<ShopProduct[]> {
+  const newSince = now.getTime() - SHOP.newForDays * 86_400_000;
   const rows = await tx
     .select({
       product: products,
@@ -97,6 +117,8 @@ async function selectProducts(
     description: product.description ? pickLocalized(product.description, locale) || null : null,
     category: product.category,
     priceCents: product.priceCents,
+    compareAtPriceCents: product.compareAtPriceCents,
+    isNew: product.createdAt.getTime() >= newSince,
     currency: product.currency,
     stockQuantity: product.stockQuantity,
     photo: storageKey ? { key: storageKey, width, height } : null,

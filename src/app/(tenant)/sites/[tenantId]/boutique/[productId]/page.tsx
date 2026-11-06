@@ -11,7 +11,7 @@ import { resolveLocale } from "@/i18n/translator";
 import { formatMoney } from "@/lib/format";
 import { getSite } from "@/lib/site/load";
 import { AppError } from "@/modules/errors";
-import { MAX_QUANTITY, shopProduct } from "@/modules/shop/catalog";
+import { MAX_QUANTITY, promotion, shopProduct } from "@/modules/shop/catalog";
 import { productPath, SITE_PATHS } from "@/modules/site/paths";
 
 const UUID = /^[0-9a-f-]{36}$/i;
@@ -56,6 +56,7 @@ export default async function ProductPage({ params }: PageProps<"/sites/[tenantI
   const t = await getTranslations("site.shop");
   const max = Math.min(product.stockQuantity ?? MAX_QUANTITY, MAX_QUANTITY);
   const several = site.shopBusinessIds.length > 1;
+  const promo = promotion(product);
   return (
     <main id="contenu" className="mx-auto max-w-6xl px-4 py-12">
       <Link
@@ -92,9 +93,32 @@ export default async function ProductPage({ params }: PageProps<"/sites/[tenantI
         </div>
         <div className="space-y-5">
           <h1 className="font-site-display text-4xl font-semibold text-site-heading">{product.name}</h1>
-          {product.variants.length === 0 && (
+          {(product.isNew || promo) && (
+            <p className="flex flex-wrap gap-2">
+              {product.isNew && (
+                <span className="rounded-full bg-site-panel px-3 py-1 text-sm font-semibold text-site-heading">
+                  {t("new")}
+                </span>
+              )}
+              {promo && (
+                <span className="rounded-full bg-site-button px-3 py-1 text-sm font-semibold text-site-on-button">
+                  {t("discount", { percent: promo.percent })}
+                </span>
+              )}
+            </p>
+          )}
+          {(product.variants.length === 0 || promo) && (
             <p className="text-2xl text-site-text">
               {formatMoney(product.priceCents, product.currency, site.locale)}
+              {promo && (
+                <>
+                  {" "}
+                  <s className="text-lg text-site-muted">
+                    <span className="sr-only">{t("insteadOf")} </span>
+                    {formatMoney(promo.compareAtPriceCents, product.currency, site.locale)}
+                  </s>
+                </>
+              )}
             </p>
           )}
           {product.description && (

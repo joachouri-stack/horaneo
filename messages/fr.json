@@ -1300,7 +1300,10 @@
       "city": "Ville",
       "deliveryFee": "Livraison",
       "toPay": "Total à payer",
-      "thanksDelivery": "Votre paiement est bien reçu. Votre commande {reference} est en préparation : un e-mail de confirmation vient de partir, et un autre suivra dès son envoi."
+      "thanksDelivery": "Votre paiement est bien reçu. Votre commande {reference} est en préparation : un e-mail de confirmation vient de partir, et un autre suivra dès son envoi.",
+      "new": "Nouveau",
+      "discount": "−{percent} %",
+      "insteadOf": "au lieu de"
     },
     "giftCard": {
       "navLabel": "Cartes cadeaux",
@@ -3364,6 +3367,8 @@
       "category": "Catégorie",
       "categoryHint": "Facultatif : les produits d'une même catégorie sont regroupés sur votre site (ex. Soins visage).",
       "price": "Prix ({currency})",
+      "compareAtPrice": "Prix avant promo ({currency})",
+      "compareAtPriceHint": "Facultatif : affiché barré, avec le pourcentage de réduction. Plus élevé que le prix.",
       "stock": "Stock",
       "stockHint": "Laissez vide si vous ne suivez pas le stock.",
       "active": "En vente sur le site",
