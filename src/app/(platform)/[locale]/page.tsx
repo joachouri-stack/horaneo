@@ -687,7 +687,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             className="mx-auto max-w-[75rem] px-4 pt-20 sm:px-6 lg:pt-28 2xl:max-w-[88rem]"
           >
             <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14">
-              <div>
+              <div className="min-w-0">
                 <p data-reveal className={EYEBROW}>
                   {EYEBROW_DOT}
                   {t("selfService.badge")}
@@ -703,13 +703,16 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 <p data-reveal className="mt-4 max-w-[36rem] text-mk-lead text-ink-soft">
                   {t("selfService.text")}
                 </p>
-                {/* Téléphone : une seule carte en liste (moins long à faire défiler) ; ordinateur : grille de cartes. */}
-                <ul className="mt-8 divide-y divide-hairline overflow-hidden rounded-2xl border border-hairline bg-white shadow-[0_1px_2px_rgba(15,24,48,.04)] sm:grid sm:grid-cols-2 sm:gap-3 sm:divide-y-0 sm:overflow-visible sm:rounded-none sm:border-0 sm:bg-transparent sm:shadow-none">
+                {/* Téléphone : une rangée de cartes qui se fait glisser (la suivante dépasse) ; ordinateur : grille de cartes. */}
+                <ul
+                  aria-label={t("selfService.listLabel")}
+                  className="-mx-4 mt-8 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-3 [scrollbar-width:none] sm:mx-0 sm:grid sm:snap-none sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0"
+                >
                   {SELF_SERVICE.map(({ key, Icon, ...item }) => (
                     <li
                       key={key}
                       data-reveal
-                      className="group flex items-start gap-3.5 px-4 py-3.5 sm:rounded-2xl sm:border sm:border-hairline sm:bg-white sm:p-4 sm:shadow-[0_1px_2px_rgba(15,24,48,.04)] sm:transition sm:duration-300 sm:hover:-translate-y-1 sm:hover:border-coral/40 sm:hover:shadow-[0_14px_30px_-18px_rgba(232,80,63,.45)] motion-reduce:transition-none"
+                      className="group flex w-[80%] flex-none snap-start flex-col items-start gap-2.5 rounded-2xl border border-hairline bg-white p-4 shadow-[0_10px_24px_-18px_rgba(15,24,48,.35)] sm:w-auto sm:flex-row sm:gap-3.5 sm:shadow-[0_1px_2px_rgba(15,24,48,.04)] sm:transition sm:duration-300 sm:hover:-translate-y-1 sm:hover:border-coral/40 sm:hover:shadow-[0_14px_30px_-18px_rgba(232,80,63,.45)] motion-reduce:transition-none"
                     >
                       <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-coral/10 text-coral-dark transition-colors duration-300 group-hover:bg-coral group-hover:text-white">
                         <Icon className="size-5" />
@@ -749,7 +752,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   {/* Ce que notre équipe modifie sur demande. */}
                   <li
                     data-reveal
-                    className="flex items-start gap-3.5 bg-coral/[0.05] px-4 py-3.5 sm:rounded-2xl sm:border sm:border-dashed sm:border-coral/40 sm:bg-coral/[0.04] sm:p-4"
+                    className="flex w-[80%] flex-none snap-start flex-col items-start gap-2.5 rounded-2xl border border-dashed border-coral/40 bg-coral/[0.04] p-4 sm:w-auto sm:flex-row sm:gap-3.5"
                   >
                     <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-coral text-white">
                       <PaletteLine className="size-5" />
@@ -857,14 +860,18 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               {t("benefits.title")}{" "}
               <span className="text-accent">{coralStop(t("benefits.titleAccent"))}</span>
             </h2>
-            <ul className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-6 lg:gap-4">
+            {/* Téléphone : une rangée de cartes qui se fait glisser (la suivante dépasse) ; au-delà : grille. */}
+            <ul
+              aria-label={t("benefits.badge")}
+              className="-mx-4 mt-10 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-3 [scrollbar-width:none] sm:mx-0 sm:grid sm:snap-none sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-6 lg:gap-4"
+            >
               {BENEFITS.map((item) => {
                 const later = "feature" in item && soon.has(item.feature);
                 return (
                   <li
                     key={item.key}
                     data-reveal
-                    className={`group flex items-start gap-4 rounded-2xl border border-hairline p-4 transition duration-300 motion-reduce:transition-none sm:max-lg:last:col-span-2 lg:col-span-2 lg:p-5 lg:[&:nth-child(n+4)]:col-span-3 ${later ? "bg-mist-50/60" : "bg-white shadow-[0_1px_2px_rgba(15,24,48,.04)] hover:-translate-y-1 hover:border-coral/40 hover:shadow-[0_14px_30px_-18px_rgba(232,80,63,.45)]"}`}
+                    className={`group flex w-[80%] flex-none snap-start flex-col items-start gap-2.5 rounded-2xl border border-hairline p-4 transition sm:w-auto sm:flex-row sm:gap-4 duration-300 motion-reduce:transition-none sm:max-lg:last:col-span-2 lg:col-span-2 lg:p-5 lg:[&:nth-child(n+4)]:col-span-3 ${later ? "bg-mist-50/60" : "bg-white shadow-[0_1px_2px_rgba(15,24,48,.04)] hover:-translate-y-1 hover:border-coral/40 hover:shadow-[0_14px_30px_-18px_rgba(232,80,63,.45)]"}`}
                   >
                     <span
                       className={`flex size-11 flex-none items-center justify-center rounded-xl transition-colors duration-300 ${later ? "bg-white text-ink-soft" : "bg-coral/10 text-coral-dark group-hover:bg-coral group-hover:text-white"}`}
