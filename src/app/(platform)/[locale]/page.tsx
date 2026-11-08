@@ -370,16 +370,11 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   </Link>
                   {/* Prix d'entrée et délai de mise en ligne (réglages), juste sous le bouton sur téléphone. */}
                   {first && (
-                    <p className="-mt-1 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-mk-small text-ink-soft sm:hidden">
+                    <p className="-mt-1 flex flex-col items-center gap-0.5 text-mk-small text-ink-soft sm:hidden">
                       <span className="font-medium text-night">
                         {t("hero.offer", { price: faqValues.price, display: data.display })}
                       </span>
-                      {data.goLiveDays > 0 && (
-                        <>
-                          <span aria-hidden="true">·</span>
-                          <span>{t("hero.goLive", { days: data.goLiveDays })}</span>
-                        </>
-                      )}
+                      {data.goLiveDays > 0 && <span>{t("hero.goLive", { days: data.goLiveDays })}</span>}
                     </p>
                   )}
                   {/* La démonstration n'apparaît que si une adresse est réglée dans l'admin.
