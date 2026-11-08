@@ -49,6 +49,7 @@ import {
 import { PlanCards } from "@/components/marketing/PlanCards";
 import { RevealOnScroll } from "@/components/marketing/RevealOnScroll";
 import { RotatingWord } from "@/components/marketing/RotatingWord";
+import { TargetsMarquee } from "@/components/marketing/TargetsMarquee";
 import { BillingToggle, SolutionScope, SolutionTabs } from "@/components/marketing/SolutionScope";
 import { SolutionVisual } from "@/components/marketing/SolutionVisual";
 import { listShowcase } from "@/modules/showcase/showcase";
@@ -519,7 +520,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               {shown.map((code) => (
                 <div key={code} data-only={code} className="pt-10 lg:pt-14">
                   <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-14">
-                    <div data-reveal>
+                    <div data-reveal className="min-w-0">
                       <p className={EYEBROW}>
                         {EYEBROW_DOT}
                         {t(`solutions.items.${code}.badge`)}
@@ -543,24 +544,17 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                       <p className="mt-6 text-mk-small font-medium text-night">
                         {t(`solutions.items.${code}.targetsTitle`)}
                       </p>
-                      <ul className="mt-3 flex flex-wrap gap-2" aria-label={t("solutions.for")}>
-                        {Object.entries(
-                          t.raw(`solutions.items.${code}.targets`) as Record<string, string>,
-                        ).map(([key, label]) => {
-                          const Icon = TARGET_ICONS[key] ?? CheckLine;
-                          return (
-                            <li
-                              key={key}
-                              className="group inline-flex items-center gap-2 rounded-full border border-accent-line/60 bg-accent-soft/60 py-1.5 pl-2 pr-3.5 text-mk-small font-medium text-night transition-colors duration-300 hover:border-coral/40 hover:bg-coral/10 hover:text-coral-dark"
-                            >
-                              <span className="flex size-6 flex-none items-center justify-center rounded-full bg-white text-coral transition-colors duration-300 group-hover:text-coral-dark">
-                                <Icon className="size-3.5" />
-                              </span>
-                              {label}
-                            </li>
-                          );
-                        })}
-                      </ul>
+                      <div className="mt-3">
+                        <TargetsMarquee
+                          label={t("solutions.for")}
+                          items={Object.entries(
+                            t.raw(`solutions.items.${code}.targets`) as Record<string, string>,
+                          ).map(([key, label]) => {
+                            const Icon = TARGET_ICONS[key] ?? CheckLine;
+                            return { key, label, icon: <Icon className="size-4" /> };
+                          })}
+                        />
+                      </div>
                       {isSoon(code) ? (
                         <div className="mt-7">
                           <Link href={{ pathname: "/rappel", query: { solution: code } }} className={PRIMARY}>
