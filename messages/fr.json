@@ -109,7 +109,7 @@
           },
           "strip": [
             {
-              "title": "Réservation en ligne 24 h/24",
+              "title": "Réservation en ligne 24 h/24",
               "text": "Vos clients réservent seuls, même le soir et le dimanche."
             },
             {
@@ -281,7 +281,8 @@
           },
           "targetsTitle": "Pensé pour ceux qui transmettent leur savoir"
         }
-      }
+      },
+      "featuresLabel": "Fonctionnalités"
     },
     "plans": {
       "title": "Choisissez votre pack",
