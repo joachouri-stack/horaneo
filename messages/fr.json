@@ -58,7 +58,17 @@
       "badge": "Pour les indépendants et les petites entreprises",
       "title": "Un site pro pour votre",
       "titleAccent": "activité.",
-      "titleWords": ["institut", "salon", "cabinet", "studio", "atelier", "boutique"],
+      "titleWords": [
+        "institut",
+        "salon",
+        "garage",
+        "cabinet",
+        "coaching",
+        "studio",
+        "restaurant",
+        "atelier",
+        "boutique"
+      ],
       "subtitle": "Clé en main, à votre image, et vous le modifiez vous-même. Ajoutez la réservation en ligne si vous en avez besoin.",
       "offer": "Dès {price} {display} par mois",
       "goLive": "{days, plural, =0 {} one {Site en ligne en # jour ouvré} other {Site en ligne en # jours ouvrés}}",
