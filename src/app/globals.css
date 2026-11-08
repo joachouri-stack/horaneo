@@ -465,6 +465,18 @@ form:has(input[name="billing"][value="year"]:checked) [data-monthly-only] {
     background-position: 200% center;
   }
 }
+@keyframes hn-word {
+  from {
+    opacity: 0;
+    transform: translateY(0.45em);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
 @keyframes hn-ping {
   0% {
     transform: scale(1);
@@ -508,6 +520,9 @@ form:has(input[name="billing"][value="year"]:checked) [data-monthly-only] {
   }
   .hn-ping {
     animation: hn-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+  .hn-word {
+    animation: hn-word 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   }
   .hn-up-2 {
     animation: hn-up 0.7s ease 0.12s both;

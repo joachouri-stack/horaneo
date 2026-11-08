@@ -56,9 +56,10 @@
     "cta": "Créer mon site",
     "hero": {
       "badge": "Pour les indépendants et les petites entreprises",
-      "title": "Votre site pro, clé en main.",
-      "titleAccent": "Vous, vous travaillez.",
-      "subtitle": "Un site à votre image, que vous modifiez vous-même. Ajoutez la réservation en ligne si vous en avez besoin.",
+      "title": "Un site pro pour votre",
+      "titleAccent": "activité.",
+      "titleWords": ["institut", "salon", "cabinet", "studio", "atelier", "boutique"],
+      "subtitle": "Clé en main, à votre image, et vous le modifiez vous-même. Ajoutez la réservation en ligne si vous en avez besoin.",
       "offer": "Dès {price} {display} par mois",
       "goLive": "{days, plural, =0 {} one {Site en ligne en # jour ouvré} other {Site en ligne en # jours ouvrés}}",
       "demo": "Voir la démonstration",
@@ -69,7 +70,9 @@
         "bookingTitle": "Nouvelle réservation",
         "bookingText": "Soin du visage · samedi 10:00",
         "reminderTitle": "Rappel envoyé",
-        "reminderText": "La veille du rendez-vous"
+        "reminderText": "La veille du rendez-vous",
+        "siteTitle": "Votre site est en ligne",
+        "siteText": "Prêt sur téléphone et ordinateur"
       }
     },
     "solutions": {
