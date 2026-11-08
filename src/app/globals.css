@@ -123,6 +123,29 @@
   }
 }
 
+/* Site commercial : métiers visés qui défilent doucement (pause au survol). */
+@media (prefers-reduced-motion: no-preference) {
+  .hn-marquee {
+    animation: marquee 36s linear infinite;
+  }
+  .hn-marquee-reverse {
+    animation-direction: reverse;
+  }
+  .hn-marquee-wrap:hover .hn-marquee {
+    animation-play-state: paused;
+  }
+}
+/* Moins de mouvement : pas de défilement automatique, la rangée se fait glisser au doigt. */
+@media (prefers-reduced-motion: reduce) {
+  .hn-marquee-row {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .hn-marquee-copy {
+    display: none;
+  }
+}
+
 /* Cartes des soins qui apparaissent quand on change de professionnelle (modèle Atelier). */
 /* Atelier : halo qui invite à toucher le bouton de l'autre professionnelle. */
 @keyframes pro-hint {
