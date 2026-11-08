@@ -591,7 +591,11 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
 
                   {/* Fonctions de la solution : chaque information une seule fois, avec son bénéfice
                       et, s'il y a lieu, le pack qui la débloque. */}
-                  <ul className="mt-8 grid overflow-hidden rounded-2xl border border-hairline bg-white max-sm:divide-y max-sm:divide-hairline sm:mt-10 sm:gap-3 sm:overflow-visible sm:rounded-none sm:border-0 sm:bg-transparent sm:grid-cols-2 lg:mt-12 lg:grid-cols-3 lg:gap-4">
+                  {/* Sur téléphone : une rangée de cartes qui se fait glisser (la suivante dépasse un peu). */}
+                  <ul
+                    aria-label={t("solutions.featuresLabel")}
+                    className="-mx-4 mt-8 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-3 [scrollbar-width:none] sm:mx-0 sm:mt-10 sm:grid sm:snap-none sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:mt-12 lg:grid-cols-3 lg:gap-4"
+                  >
                     {(
                       t.raw(`solutions.items.${code}.strip`) as {
                         title: string;
@@ -604,7 +608,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                         <li
                           key={item.title}
                           data-reveal
-                          className="group flex items-start gap-3.5 px-4 py-3.5 transition duration-300 motion-reduce:transition-none sm:gap-4 sm:rounded-2xl sm:border sm:border-hairline sm:bg-white sm:p-4 sm:shadow-[0_1px_2px_rgba(15,24,48,.04)] sm:hover:-translate-y-1 sm:hover:border-coral/40 sm:hover:shadow-[0_14px_30px_-18px_rgba(232,80,63,.45)] lg:p-5"
+                          className="group flex w-[80%] flex-none snap-start flex-col items-start gap-2.5 rounded-2xl border border-hairline bg-white p-4 shadow-[0_10px_24px_-18px_rgba(15,24,48,.35)] transition duration-300 motion-reduce:transition-none sm:w-auto sm:flex-row sm:gap-4 sm:p-4 sm:shadow-[0_1px_2px_rgba(15,24,48,.04)] sm:hover:-translate-y-1 sm:hover:border-coral/40 sm:hover:shadow-[0_14px_30px_-18px_rgba(232,80,63,.45)] lg:p-5"
                         >
                           <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-coral/10 text-coral-dark transition-colors duration-300 group-hover:bg-coral group-hover:text-white sm:size-11">
                             <Icon className="size-5 sm:size-[1.375rem]" />
