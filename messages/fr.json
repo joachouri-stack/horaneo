@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "{product} : votre activité, un seul outil",
-    "description": "Votre site de réservation en ligne avec prise de rendez-vous 24 h/24, rappels automatiques, acomptes et fichier clients : tout pour remplir votre agenda, au même endroit."
+    "description": "Votre site pro clé en main, que vous modifiez vous-même : réservation en ligne 24 h/24, rappels automatiques et acomptes si votre activité en a besoin."
   },
   "platformErrors": {
     "notFoundTitle": "Page introuvable",
@@ -55,21 +55,24 @@
     },
     "cta": "Créer mon site",
     "hero": {
-      "badge": "Pour les pros qui travaillent sur rendez-vous",
-      "title": "Vos clients réservent en ligne.",
-      "titleAccent": "Vous, vous travaillez.",
-      "subtitle": "Un site pro avec réservation 24 h/24, rappels automatiques et acomptes : tout est prêt, sans rien installer.",
+      "badge": "Pour les indépendants et les petites entreprises",
+      "title": "Un site pro pour votre",
+      "titleAccent": "activité.",
+      "titleWords": ["institut", "salon", "cabinet", "studio", "atelier", "boutique"],
+      "subtitle": "Clé en main, à votre image, et vous le modifiez vous-même. Ajoutez la réservation en ligne si vous en avez besoin.",
       "offer": "Dès {price} {display} par mois",
       "goLive": "{days, plural, =0 {} one {Site en ligne en # jour ouvré} other {Site en ligne en # jours ouvrés}}",
       "demo": "Voir la démonstration",
       "pricing": "Voir les tarifs",
-      "points": ["Réservation en ligne 24 h/24", "Rappels automatiques", "Paiements sécurisés"],
+      "points": ["Site à votre image", "Modifiable sur téléphone", "Réservation en ligne en option"],
       "visualAlt": "Capture de l'espace de gestion sur téléphone : rendez-vous du jour (données d'exemple)",
       "float": {
         "bookingTitle": "Nouvelle réservation",
         "bookingText": "Soin du visage · samedi 10:00",
         "reminderTitle": "Rappel envoyé",
-        "reminderText": "La veille du rendez-vous"
+        "reminderText": "La veille du rendez-vous",
+        "siteTitle": "Votre site est en ligne",
+        "siteText": "Prêt sur téléphone et ordinateur"
       }
     },
     "solutions": {

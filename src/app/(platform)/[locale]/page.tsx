@@ -12,6 +12,7 @@ import {
   BellLine,
   BoxLine,
   CalendarLine,
+  GlobeLine,
   CardLine,
   ChartLine,
   CheckLine,
@@ -47,6 +48,7 @@ import {
 } from "@/components/marketing/line-icons";
 import { PlanCards } from "@/components/marketing/PlanCards";
 import { RevealOnScroll } from "@/components/marketing/RevealOnScroll";
+import { RotatingWord } from "@/components/marketing/RotatingWord";
 import { BillingToggle, SolutionScope, SolutionTabs } from "@/components/marketing/SolutionScope";
 import { SolutionVisual } from "@/components/marketing/SolutionVisual";
 import { listShowcase } from "@/modules/showcase/showcase";
@@ -356,9 +358,16 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 </p>
                 {/* Sur téléphone, le titre suit la largeur de l'écran : une phrase par ligne. */}
                 <h1
-                  className={`${TITLE} hn-balance hn-up-2 mt-5 text-[clamp(1.5rem,7.6vw,2.25rem)] leading-[1.08] sm:text-mk-h1 sm:leading-[1.04]`}
+                  className={`${TITLE} hn-up-2 mt-5 text-[clamp(2rem,10.5vw,2.75rem)] leading-[1.06] sm:text-mk-h1 sm:leading-[1.04]`}
                 >
-                  {t("hero.title")} <span className="hn-shimmer block">{t("hero.titleAccent")}</span>
+                  {/* La fin du titre change toute seule (institut, salon…) ; titre complet pour les lecteurs d'écran. */}
+                  <span aria-hidden="true" className="hn-balance block">
+                    {t("hero.title")}
+                  </span>
+                  <RotatingWord words={t.raw("hero.titleWords") as string[]} />
+                  <span className="sr-only">
+                    {t("hero.title")} {t("hero.titleAccent")}
+                  </span>
                 </h1>
                 <p className="hn-up-3 mt-4 max-w-[34rem] text-mk-lead leading-normal text-ink-soft sm:mt-5 sm:leading-relaxed">
                   {t("hero.subtitle")}
@@ -370,16 +379,11 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   </Link>
                   {/* Prix d'entrée et délai de mise en ligne (réglages), juste sous le bouton sur téléphone. */}
                   {first && (
-                    <p className="-mt-1 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-mk-small text-ink-soft sm:hidden">
+                    <p className="-mt-1 flex flex-col items-center gap-0.5 text-mk-small text-ink-soft sm:hidden">
                       <span className="font-medium text-night">
                         {t("hero.offer", { price: faqValues.price, display: data.display })}
                       </span>
-                      {data.goLiveDays > 0 && (
-                        <>
-                          <span aria-hidden="true">·</span>
-                          <span>{t("hero.goLive", { days: data.goLiveDays })}</span>
-                        </>
-                      )}
+                      {data.goLiveDays > 0 && <span>{t("hero.goLive", { days: data.goLiveDays })}</span>}
                     </p>
                   )}
                   {/* La démonstration n'apparaît que si une adresse est réglée dans l'admin.
@@ -460,7 +464,18 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     <span className="block text-mk-note text-ink-soft">{t("hero.float.bookingText")}</span>
                   </span>
                 </div>
-                <div className="hn-float-late absolute right-0 top-[58%] flex items-center gap-3 rounded-2xl border border-hairline bg-white/95 py-2.5 pl-2.5 pr-4 shadow-[0_18px_36px_-20px_rgba(15,24,48,.5)] backdrop-blur sm:-right-4">
+                <div className="hn-float absolute bottom-[6%] left-0 flex items-center gap-3 rounded-2xl border border-hairline bg-white/95 py-2.5 pl-2.5 pr-4 shadow-[0_18px_36px_-20px_rgba(15,24,48,.5)] backdrop-blur sm:-left-8">
+                  <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-accent-soft text-accent">
+                    <GlobeLine className="size-[18px]" />
+                  </span>
+                  <span className="leading-tight">
+                    <span className="block text-mk-small font-medium text-night">
+                      {t("hero.float.siteTitle")}
+                    </span>
+                    <span className="block text-mk-note text-ink-soft">{t("hero.float.siteText")}</span>
+                  </span>
+                </div>
+                <div className="hn-float-late absolute right-0 top-[50%] flex items-center gap-3 rounded-2xl border border-hairline bg-white/95 py-2.5 pl-2.5 pr-4 shadow-[0_18px_36px_-20px_rgba(15,24,48,.5)] backdrop-blur sm:-right-4">
                   <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-[#e7f6ee] text-[#1f7a4d]">
                     <BellLine className="size-[18px]" />
                   </span>
