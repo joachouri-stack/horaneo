@@ -377,14 +377,23 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     {t("cta")}
                     <ArrowLine className="size-[18px] transition-transform group-hover:translate-x-0.5" />
                   </Link>
-                  {/* Prix d'entrée et délai de mise en ligne (réglages), juste sous le bouton sur téléphone. */}
+                  {/* Sur téléphone, une seule ligne sous le bouton : prix d'entrée (réglages) et lien vers les tarifs. */}
                   {first && (
-                    <p className="-mt-1 flex flex-col items-center gap-0.5 text-mk-small text-ink-soft sm:hidden">
+                    <a
+                      href="#tarifs"
+                      className="-mt-1 flex min-h-11 items-center justify-center gap-2 text-mk-small sm:hidden"
+                    >
                       <span className="font-medium text-night">
                         {t("hero.offer", { price: faqValues.price, display: data.display })}
                       </span>
-                      {data.goLiveDays > 0 && <span>{t("hero.goLive", { days: data.goLiveDays })}</span>}
-                    </p>
+                      <span aria-hidden="true" className="text-ink-soft">
+                        ·
+                      </span>
+                      <span className="inline-flex items-center gap-1 font-medium text-accent-strong">
+                        {t("hero.pricing")}
+                        <ArrowLine className="size-4" />
+                      </span>
+                    </a>
                   )}
                   {/* La démonstration n'apparaît que si une adresse est réglée dans l'admin.
                       Sur téléphone, l'action secondaire est un simple lien : un seul gros bouton. */}
@@ -401,7 +410,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   ) : (
                     <a
                       href="#tarifs"
-                      className={`${SECONDARY} justify-center max-sm:min-h-11 max-sm:border-0 max-sm:bg-transparent max-sm:text-accent-strong`}
+                      className={`${SECONDARY} justify-center ${first ? "max-sm:hidden" : "max-sm:min-h-11 max-sm:border-0 max-sm:bg-transparent max-sm:text-accent-strong"}`}
                     >
                       {t("hero.pricing")}
                       <ArrowLine className="size-4 sm:hidden" />
