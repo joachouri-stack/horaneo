@@ -860,14 +860,18 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               {t("benefits.title")}{" "}
               <span className="text-accent">{coralStop(t("benefits.titleAccent"))}</span>
             </h2>
-            <ul className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-6 lg:gap-4">
+            {/* Téléphone : une rangée de cartes qui se fait glisser (la suivante dépasse) ; au-delà : grille. */}
+            <ul
+              aria-label={t("benefits.badge")}
+              className="-mx-4 mt-10 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-3 [scrollbar-width:none] sm:mx-0 sm:grid sm:snap-none sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-6 lg:gap-4"
+            >
               {BENEFITS.map((item) => {
                 const later = "feature" in item && soon.has(item.feature);
                 return (
                   <li
                     key={item.key}
                     data-reveal
-                    className={`group flex items-start gap-4 rounded-2xl border border-hairline p-4 transition duration-300 motion-reduce:transition-none sm:max-lg:last:col-span-2 lg:col-span-2 lg:p-5 lg:[&:nth-child(n+4)]:col-span-3 ${later ? "bg-mist-50/60" : "bg-white shadow-[0_1px_2px_rgba(15,24,48,.04)] hover:-translate-y-1 hover:border-coral/40 hover:shadow-[0_14px_30px_-18px_rgba(232,80,63,.45)]"}`}
+                    className={`group flex w-[80%] flex-none snap-start flex-col items-start gap-2.5 rounded-2xl border border-hairline p-4 transition sm:w-auto sm:flex-row sm:gap-4 duration-300 motion-reduce:transition-none sm:max-lg:last:col-span-2 lg:col-span-2 lg:p-5 lg:[&:nth-child(n+4)]:col-span-3 ${later ? "bg-mist-50/60" : "bg-white shadow-[0_1px_2px_rgba(15,24,48,.04)] hover:-translate-y-1 hover:border-coral/40 hover:shadow-[0_14px_30px_-18px_rgba(232,80,63,.45)]"}`}
                   >
                     <span
                       className={`flex size-11 flex-none items-center justify-center rounded-xl transition-colors duration-300 ${later ? "bg-white text-ink-soft" : "bg-coral/10 text-coral-dark group-hover:bg-coral group-hover:text-white"}`}
