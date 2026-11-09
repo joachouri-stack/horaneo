@@ -6,12 +6,12 @@
  * « S » sont dans public/brand/, src/app/icon.png et src/app/apple-icon.png.
  *
  * La taille suit la taille du texte (className « text-… ») : le logo mesure
- * environ 1,3 fois la taille de police, comme l'ancien mot-symbole.
+ * environ 1,45 fois la taille de police (ligne lumineuse comprise).
  */
 
 /** Proportions du fichier (largeur / hauteur), pour réserver la place avant le chargement. */
 const WIDTH = 1166;
-const HEIGHT = 401;
+const HEIGHT = 440;
 
 /** light : version claire, pour un fond sombre (en-tête, accroche, pied de page). */
 type LogoProps = { productName: string; className?: string; light?: boolean };
@@ -26,7 +26,7 @@ export function Logo({ productName, className, light = false }: LogoProps) {
         width={WIDTH}
         height={HEIGHT}
         decoding="async"
-        className="h-[1.3em] w-auto"
+        className="h-[1.45em] w-auto"
       />
     </span>
   );

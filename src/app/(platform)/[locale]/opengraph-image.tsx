@@ -83,7 +83,7 @@ export default async function Image({ params }: { params: Promise<{ locale: stri
           opacity: 0.8,
         }}
       />
-      <img src={logoSrc} alt={product} width={350} height={120} />
+      <img src={logoSrc} alt={product} width={350} height={132} />
       <div style={{ display: "flex", flexDirection: "column", maxWidth: 900 }}>
         <div
           style={{
