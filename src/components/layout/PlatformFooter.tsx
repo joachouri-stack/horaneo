@@ -64,19 +64,19 @@ export async function PlatformFooter() {
         external={Boolean(whatsapp.phone)}
         label={whatsapp.phone ? tWhatsapp("label") : tWhatsapp("fallbackLabel")}
       />
-      <footer className="relative overflow-hidden bg-[linear-gradient(180deg,#121a2c,#0b1120)] text-[#c8d0e4]">
-        {/* Filet champagne et corail en haut, halos flous qui dérivent doucement. */}
+      <footer className="relative overflow-hidden bg-[linear-gradient(180deg,#0b1033,#060a22)] text-[#c8d0e4]">
+        {/* Filet dégradé violet → bleu en haut, halos flous qui dérivent doucement. */}
         <div
           aria-hidden="true"
-          className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,#d9c08e_25%,var(--color-coral)_50%,#d9c08e_75%,transparent)] opacity-80"
+          className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,var(--color-violet)_30%,var(--color-azure)_70%,transparent)] opacity-80"
         />
         <div
           aria-hidden="true"
-          className="hn-drift pointer-events-none absolute -left-24 -top-32 size-96 rounded-full bg-[#3a4bb8]/25 blur-[100px]"
+          className="hn-drift pointer-events-none absolute -left-24 -top-32 size-96 rounded-full bg-violet/25 blur-[100px]"
         />
         <div
           aria-hidden="true"
-          className="hn-drift-slow pointer-events-none absolute -bottom-40 -right-16 size-96 rounded-full bg-champagne/15 blur-[100px]"
+          className="hn-drift-slow pointer-events-none absolute -bottom-40 -right-16 size-96 rounded-full bg-azure/15 blur-[100px]"
         />
 
         <div className="relative mx-auto max-w-[75rem] 2xl:max-w-[88rem] px-4 pb-0 pt-16 sm:px-6 lg:pt-20">
@@ -109,7 +109,7 @@ export async function PlatformFooter() {
               <p className="mt-2 text-[0.9375rem] leading-relaxed text-[#c8d0e4]">{t("proCardText")}</p>
               <Link
                 href="/connexion"
-                className="hn-shine group mt-5 inline-flex min-h-12 items-center gap-2 rounded-xl bg-[linear-gradient(135deg,#d9c08e,#e4cfa2)] px-5 text-mk-body font-medium text-[#121a2c] transition hover:-translate-y-px focus-visible:outline-white"
+                className="hn-shine group mt-5 inline-flex min-h-12 items-center gap-2 rounded-xl bg-[linear-gradient(120deg,var(--color-violet),var(--color-azure-dark))] px-5 text-mk-body font-medium text-white transition hover:-translate-y-px focus-visible:outline-white"
               >
                 {tCommon("login")}
                 <ArrowLine className="size-[18px] transition-transform group-hover:translate-x-0.5" />
@@ -183,7 +183,7 @@ export async function PlatformFooter() {
           {/* La marque en très grand, qui s'estompe vers le bas : signature du pied de page. */}
           <div
             aria-hidden="true"
-            className="pointer-events-none mt-8 flex select-none justify-center [mask-image:linear-gradient(to_bottom,#000_35%,transparent_95%)] lg:mt-10"
+            className="pointer-events-none mt-4 flex select-none justify-center pt-[clamp(1rem,4vw,3.5rem)] [mask-image:linear-gradient(to_bottom,#000_45%,transparent_95%)] lg:mt-6"
           >
             <Logo productName={product} light className="text-[clamp(3rem,14.5vw,11.5rem)] leading-[0.9]" />
           </div>

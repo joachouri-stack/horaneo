@@ -100,7 +100,7 @@ export default async function TenantLayout({ children, params }: LayoutProps<"/s
         <InstallCapture />
         <NextIntlClientProvider timeZone={site.tenant.timezone} messages={clientMessages}>
           {preview && (
-            <p role="status" className="bg-[#1b2a4a] px-4 py-2 text-center text-sm font-semibold text-white">
+            <p role="status" className="bg-[#0b1033] px-4 py-2 text-center text-sm font-semibold text-white">
               {t("previewBanner")}
             </p>
           )}

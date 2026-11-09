@@ -10,7 +10,7 @@ import { savePaletteAction } from "../../actions";
 
 const OPTION =
   "flex min-h-16 cursor-pointer items-center gap-3 rounded-2xl border border-hairline bg-white p-3 has-[:checked]:border-night has-[:checked]:ring-2 has-[:checked]:ring-night/15";
-const RADIO = "size-5 flex-none accent-[#1b2a4a]";
+const RADIO = "size-5 flex-none accent-[#0b1033]";
 
 /** Couleurs du site : la gérante choisit une palette (le site garde un contraste lisible). */
 export default async function ManagerColorsPage({

@@ -13,10 +13,15 @@ import { resolveLocale } from "@/i18n/translator";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-const COLORS = { ivory: "#faf7f2", navy: "#1b2a4a", coral: "#e8503f", night: "#16181d", body: "#3a3833" };
+const COLORS = {
+  night: "#0b1033",
+  violet: "#7b3fe4",
+  azure: "#2f80ff",
+  white: "#ffffff",
+  soft: "#c7cbe6",
+};
 
 const fonts = Promise.all([
-  readFile(join(process.cwd(), "node_modules/@fontsource/comfortaa/files/comfortaa-latin-700-normal.woff")),
   readFile(join(process.cwd(), "assets/fonts/bricolage-grotesque-latin-700.woff")),
   readFile(join(process.cwd(), "assets/fonts/outfit-latin-400.woff")),
 ]);
@@ -27,32 +32,14 @@ export async function generateImageMetadata({ params }: { params: Promise<{ loca
   return [{ id: "share", alt: t("title", { product: env().PRODUCT_NAME }), size, contentType }];
 }
 
-/** Horloge du logo (même dessin que src/components/brand/Logo.tsx). */
-function Clock({ px }: { px: number }) {
+/** Pictogramme du logo : quatre carrés arrondis (même dessin que src/components/brand/Logo.tsx). */
+function Mark({ px }: { px: number }) {
   return (
-    <svg viewBox="0 0 54 54" width={px} height={px} style={{ margin: `0 ${px * 0.06}px` }}>
-      <path
-        d="M40.18 42.70 A20.5 20.5 0 1 1 22.39 7.02"
-        fill="none"
-        stroke={COLORS.navy}
-        strokeWidth="12"
-        strokeLinecap="round"
-      />
-      <path
-        d="M39.62 10.85 A20.5 20.5 0 0 1 47.49 27.72"
-        fill="none"
-        stroke={COLORS.coral}
-        strokeWidth="12"
-        strokeLinecap="round"
-      />
-      <path
-        d="M27 27 L27 18.5 M27 27 L33.5 30.5"
-        fill="none"
-        stroke={COLORS.coral}
-        strokeWidth="5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg viewBox="0 0 24 24" width={px} height={px} style={{ marginLeft: px * 0.2, marginTop: -px * 0.6 }}>
+      <rect x="2" y="2" width="9" height="9" rx="2.4" fill={COLORS.azure} />
+      <rect x="13" y="2" width="9" height="9" rx="2.4" fill={COLORS.azure} />
+      <rect x="2" y="13" width="9" height="9" rx="2.4" fill="#2563eb" />
+      <rect x="13" y="13" width="9" height="9" rx="2.4" fill={COLORS.violet} />
     </svg>
   );
 }
@@ -62,8 +49,7 @@ export default async function Image({ params }: { params: Promise<{ locale: stri
   const t = await getTranslations({ locale, namespace: "home" });
   const product = env().PRODUCT_NAME;
   const [first, ...rest] = product;
-  const restText = rest.join("");
-  const clockIndex = restText.toLowerCase().indexOf("o");
+  const gradient = `linear-gradient(120deg, ${COLORS.violet}, ${COLORS.azure})`;
 
   return new ImageResponse(
     <div
@@ -74,64 +60,59 @@ export default async function Image({ params }: { params: Promise<{ locale: stri
         flexDirection: "column",
         justifyContent: "space-between",
         padding: "72px 80px",
-        background: COLORS.ivory,
+        background: COLORS.night,
         position: "relative",
         fontFamily: "Body",
       }}
     >
-      {/* Formes décoratives, comme le bandeau final de l'accueil. */}
+      {/* Arcs lumineux, comme sur le logo. */}
       <div
         style={{
           position: "absolute",
-          right: -110,
-          top: -110,
-          width: 420,
-          height: 420,
+          left: -260,
+          top: -380,
+          width: 760,
+          height: 760,
           borderRadius: 9999,
-          border: `64px solid ${COLORS.coral}`,
-          opacity: 0.9,
+          border: `3px solid ${COLORS.violet}`,
+          opacity: 0.8,
         }}
       />
       <div
         style={{
           position: "absolute",
-          right: 120,
-          bottom: -90,
-          width: 240,
-          height: 240,
+          right: -300,
+          bottom: -420,
+          width: 820,
+          height: 820,
           borderRadius: 9999,
-          background: COLORS.navy,
+          border: `3px solid ${COLORS.azure}`,
+          opacity: 0.8,
         }}
       />
       <div
         style={{
           display: "flex",
           alignItems: "center",
-          fontFamily: "Logo",
-          fontSize: 76,
-          color: COLORS.navy,
-          letterSpacing: 2,
-          WebkitTextStroke: `3px ${COLORS.navy}`,
+          fontFamily: "Display",
+          fontSize: 84,
+          color: COLORS.white,
+          letterSpacing: -2,
         }}
       >
-        {clockIndex === -1 ? (
-          product
-        ) : (
-          <>
-            <span>{first + restText.slice(0, clockIndex)}</span>
-            <Clock px={54} />
-            <span>{restText.slice(clockIndex + 1)}</span>
-          </>
-        )}
+        <span style={{ backgroundImage: gradient, backgroundClip: "text", color: "transparent" }}>
+          {first}
+        </span>
+        <span>{rest.join("")}</span>
+        <Mark px={40} />
       </div>
-      <div style={{ display: "flex", flexDirection: "column", maxWidth: 820 }}>
+      <div style={{ display: "flex", flexDirection: "column", maxWidth: 900 }}>
         <div
           style={{
             fontFamily: "Display",
-            fontSize: 72,
-            fontWeight: 700,
+            fontSize: 70,
             lineHeight: 1.08,
-            color: COLORS.night,
+            color: COLORS.white,
             letterSpacing: -2,
           }}
         >
@@ -140,22 +121,22 @@ export default async function Image({ params }: { params: Promise<{ locale: stri
         <div
           style={{
             fontFamily: "Display",
-            fontSize: 72,
-            fontWeight: 700,
+            fontSize: 70,
             lineHeight: 1.08,
-            color: COLORS.coral,
             letterSpacing: -2,
+            backgroundImage: gradient,
+            backgroundClip: "text",
+            color: "transparent",
           }}
         >
           {t("hero.titleAccent")}
         </div>
-        <div style={{ marginTop: 28, fontSize: 30, color: COLORS.body }}>{t("hero.badge")}</div>
+        <div style={{ marginTop: 28, fontSize: 30, color: COLORS.soft }}>{t("hero.badge")}</div>
       </div>
     </div>,
     {
       ...size,
-      fonts: await fonts.then(([logo, display, body]) => [
-        { name: "Logo", data: logo, weight: 700 as const, style: "normal" as const },
+      fonts: await fonts.then(([display, body]) => [
         { name: "Display", data: display, weight: 700 as const, style: "normal" as const },
         { name: "Body", data: body, weight: 400 as const, style: "normal" as const },
       ]),

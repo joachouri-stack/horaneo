@@ -184,6 +184,12 @@ const PRIMARY =
   "hn-shine group inline-flex min-h-12 items-center gap-2 rounded-xl bg-accent px-5 text-[1.0625rem] font-medium text-white shadow-[0_12px_24px_-14px_var(--accent)] transition hover:-translate-y-px hover:bg-accent-strong motion-reduce:transition-none";
 const SECONDARY =
   "inline-flex min-h-12 items-center gap-2 rounded-xl border border-hairline bg-white px-5 text-[1.0625rem] font-medium text-night transition hover:border-accent-line hover:text-accent-strong";
+/** Accroche sur fond bleu nuit : bouton principal au dégradé du logo, secondaire translucide. */
+const HERO_PRIMARY = `${PRIMARY} bg-[linear-gradient(120deg,var(--color-violet),var(--color-azure-dark))] shadow-[0_16px_36px_-14px_rgba(91,90,255,.85)]`;
+const HERO_SECONDARY =
+  "inline-flex min-h-12 items-center gap-2 rounded-xl border border-white/20 bg-white/[0.06] px-5 text-[1.0625rem] font-medium text-white backdrop-blur transition hover:border-white/40 hover:bg-white/10";
+/** Couleur claire des liens et coches sur fond bleu nuit (lavande du logo). */
+const ON_DARK_ACCENT = "text-[#b7a6ff]";
 
 /**
  * Site commercial : « Votre agenda se remplit. Vous, vous travaillez. »
@@ -332,12 +338,17 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
       <RevealOnScroll />
       <main id="contenu" className="overflow-x-clip">
         <SolutionScope>
-          {/* Accroche */}
-          <section className="relative overflow-hidden">
+          {/* Accroche : fond bleu nuit du logo, arcs lumineux violet → bleu. */}
+          <section className="relative overflow-hidden bg-deep text-white">
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute inset-x-0 top-0 h-[34rem] bg-[radial-gradient(60rem_26rem_at_50%_-6rem,var(--accent-soft),transparent_70%)]"
+              className="pointer-events-none absolute inset-0 bg-[radial-gradient(50rem_28rem_at_15%_-10%,rgba(123,63,228,.35),transparent_70%),radial-gradient(46rem_26rem_at_95%_105%,rgba(47,128,255,.28),transparent_70%)]"
             />
+            {/* Arcs fins, comme sur le logo. */}
+            <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+              <div className="absolute -left-[22rem] -top-[30rem] size-[52rem] rounded-full border border-violet/60 shadow-[0_0_60px_rgba(123,63,228,.35)] max-sm:-left-[30rem]" />
+              <div className="absolute -bottom-[34rem] -right-[24rem] size-[56rem] rounded-full border border-azure/60 shadow-[0_0_60px_rgba(47,128,255,.3)] max-sm:-right-[34rem]" />
+            </div>
             {/* Halos qui dérivent lentement derrière l'accroche. */}
             <div
               aria-hidden="true"
@@ -350,7 +361,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             <div className="relative mx-auto grid max-w-[75rem] items-center gap-10 px-4 pb-12 pt-6 sm:px-6 sm:pt-12 lg:grid-cols-[1.08fr_0.92fr] lg:gap-8 lg:pb-16 lg:pt-16 2xl:max-w-[88rem]">
               <div>
                 {/* Petite annonce : une ligne, casse normale, point lumineux. */}
-                <p className="hn-up inline-flex max-w-full items-center gap-2.5 rounded-full border border-coral/25 bg-white/80 py-1.5 pl-2.5 pr-4 text-mk-note font-medium text-night shadow-[0_6px_18px_-12px_rgba(15,24,48,.35)] backdrop-blur">
+                <p className="hn-up inline-flex max-w-full items-center gap-2.5 rounded-full border border-white/15 bg-white/[0.06] py-1.5 pl-2.5 pr-4 text-mk-note font-medium text-white/90 backdrop-blur">
                   <span aria-hidden="true" className="relative flex size-2 flex-none">
                     <span className="hn-ping absolute inset-0 rounded-full bg-coral" />
                     <span className="relative size-2 rounded-full bg-coral" />
@@ -359,7 +370,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 </p>
                 {/* Sur téléphone, le titre suit la largeur de l'écran : une phrase par ligne. */}
                 <h1
-                  className={`${TITLE} hn-up-2 mt-5 text-[clamp(2rem,10.5vw,2.75rem)] leading-[1.06] sm:text-mk-h1 sm:leading-[1.04]`}
+                  className={`${TITLE} hn-up-2 mt-5 text-[clamp(2rem,10.5vw,2.75rem)] leading-[1.06] !text-white [--color-accent:#6f8dff] [--color-accent-strong:#8fb0ff] [--color-coral:#b08cff] sm:text-mk-h1 sm:leading-[1.04]`}
                 >
                   {/* La fin du titre change toute seule (institut, salon…) ; titre complet pour les lecteurs d'écran. */}
                   <span aria-hidden="true" className="hn-balance block">
@@ -370,11 +381,11 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     {t("hero.title")} {t("hero.titleAccent")}
                   </span>
                 </h1>
-                <p className="hn-up-3 mt-4 max-w-[34rem] text-mk-lead leading-normal text-ink-soft sm:mt-5 sm:leading-relaxed">
+                <p className="hn-up-3 mt-4 max-w-[34rem] text-mk-lead leading-normal text-white/70 sm:mt-5 sm:leading-relaxed">
                   {t("hero.subtitle")}
                 </p>
                 <div className="hn-up-4 mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:items-center">
-                  <Link href={startHref} className={`${PRIMARY} justify-center`}>
+                  <Link href={startHref} className={`${HERO_PRIMARY} justify-center`}>
                     {t("cta")}
                     <ArrowLine className="size-[18px] transition-transform group-hover:translate-x-0.5" />
                   </Link>
@@ -384,13 +395,13 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                       href="#tarifs"
                       className="-mt-1 flex min-h-11 items-center justify-center gap-2 text-mk-small sm:hidden"
                     >
-                      <span className="font-medium text-night">
+                      <span className="font-medium text-white">
                         {t("hero.offer", { price: faqValues.price, display: data.display })}
                       </span>
-                      <span aria-hidden="true" className="text-ink-soft">
+                      <span aria-hidden="true" className="text-white/50">
                         ·
                       </span>
-                      <span className="inline-flex items-center gap-1 font-medium text-accent-strong">
+                      <span className={`inline-flex items-center gap-1 font-medium ${ON_DARK_ACCENT}`}>
                         {t("hero.pricing")}
                         <ArrowLine className="size-4" />
                       </span>
@@ -403,15 +414,15 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                       href={data.demoUrl}
                       target="_blank"
                       rel="noopener"
-                      className={`${SECONDARY} justify-center max-sm:min-h-11 max-sm:border-0 max-sm:bg-transparent max-sm:text-accent-strong`}
+                      className={`${HERO_SECONDARY} justify-center max-sm:min-h-11 max-sm:border-0 max-sm:bg-transparent`}
                     >
-                      <PlayCircleLine className="size-[18px] text-accent" />
+                      <PlayCircleLine className={`size-[18px] ${ON_DARK_ACCENT}`} />
                       {t("hero.demo")}
                     </a>
                   ) : (
                     <a
                       href="#tarifs"
-                      className={`${SECONDARY} justify-center ${first ? "max-sm:hidden" : "max-sm:min-h-11 max-sm:border-0 max-sm:bg-transparent max-sm:text-accent-strong"}`}
+                      className={`${HERO_SECONDARY} justify-center ${first ? "max-sm:hidden" : "max-sm:min-h-11 max-sm:border-0 max-sm:bg-transparent"}`}
                     >
                       {t("hero.pricing")}
                       <ArrowLine className="size-4 sm:hidden" />
@@ -420,8 +431,8 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 </div>
                 {/* Prix d'entrée et délai de mise en ligne, tirés des réglages. */}
                 {first && (
-                  <p className="hn-up-4 mt-4 hidden flex-wrap items-center gap-x-2 gap-y-1 text-mk-small text-ink-soft sm:flex">
-                    <span className="font-medium text-night">
+                  <p className="hn-up-4 mt-4 hidden flex-wrap items-center gap-x-2 gap-y-1 text-mk-small text-white/60 sm:flex">
+                    <span className="font-medium text-white">
                       {t("hero.offer", { price: faqValues.price, display: data.display })}
                     </span>
                     {data.goLiveDays > 0 && (
@@ -432,10 +443,12 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     )}
                   </p>
                 )}
-                <ul className="hn-up-4 mt-7 hidden flex-wrap gap-x-5 gap-y-2 text-mk-small text-ink-soft sm:flex">
+                <ul className="hn-up-4 mt-7 hidden flex-wrap gap-x-5 gap-y-2 text-mk-small text-white/70 sm:flex">
                   {(t.raw("hero.points") as string[]).map((point) => (
                     <li key={point} className="flex items-center gap-2">
-                      <span className="flex size-5 flex-none items-center justify-center rounded-full bg-coral/10 text-coral-dark">
+                      <span
+                        className={`flex size-5 flex-none items-center justify-center rounded-full bg-white/10 ${ON_DARK_ACCENT}`}
+                      >
                         <CheckLine className="size-3" />
                       </span>
                       {point}
@@ -1061,7 +1074,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
         <section className="px-4 pb-16 sm:px-6 lg:pb-24">
           <div
             data-reveal
-            className="relative mx-auto max-w-[72rem] overflow-hidden rounded-[1.75rem] border border-champagne/50 bg-[linear-gradient(160deg,#ffffff,#fbf6ec_55%,#f5ecda)] px-6 py-12 text-center shadow-[0_30px_60px_-40px_rgba(27,42,74,0.45)] sm:py-14 lg:py-16 2xl:max-w-[85rem]"
+            className="relative mx-auto max-w-[72rem] overflow-hidden rounded-[1.75rem] border border-champagne/50 bg-[linear-gradient(160deg,#ffffff,#f4f2ff_55%,#e9efff)] px-6 py-12 text-center shadow-[0_30px_60px_-40px_rgba(27,42,74,0.45)] sm:py-14 lg:py-16 2xl:max-w-[85rem]"
           >
             <div
               aria-hidden="true"

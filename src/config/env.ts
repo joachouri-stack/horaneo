@@ -21,8 +21,8 @@ const localeList = z
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 
-  // Identité du produit (valeurs de départ : Horaneo / horaneo.com)
-  PRODUCT_NAME: z.string().min(1).default("Horaneo"),
+  // Identité du produit (valeurs de départ : Sirine / horaneo.com, domaine inchangé)
+  PRODUCT_NAME: z.string().min(1).default("Sirine"),
   MAIN_DOMAIN: z.string().min(1).default("horaneo.com"),
   /** Domaines secondaires redirigés vers une langue du site commercial, ex. "horaneo.fr=fr". */
   LOCALE_REDIRECT_DOMAINS: z.string().default("horaneo.fr=fr"),

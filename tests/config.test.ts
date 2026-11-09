@@ -9,9 +9,9 @@ import {
 } from "@/config/defaults";
 
 describe("configuration", () => {
-  it("utilise Horaneo et horaneo.com comme valeurs de départ", () => {
+  it("utilise Sirine et horaneo.com comme valeurs de départ", () => {
     const env = parseEnv({});
-    expect(env.PRODUCT_NAME).toBe("Horaneo");
+    expect(env.PRODUCT_NAME).toBe("Sirine");
     expect(env.MAIN_DOMAIN).toBe("horaneo.com");
     expect(env.ENABLED_LOCALES).toEqual(["fr"]);
   });
