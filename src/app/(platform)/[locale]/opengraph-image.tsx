@@ -32,23 +32,16 @@ export async function generateImageMetadata({ params }: { params: Promise<{ loca
   return [{ id: "share", alt: t("title", { product: env().PRODUCT_NAME }), size, contentType }];
 }
 
-/** Pictogramme du logo : quatre carrés arrondis (même dessin que src/components/brand/Logo.tsx). */
-function Mark({ px }: { px: number }) {
-  return (
-    <svg viewBox="0 0 24 24" width={px} height={px} style={{ marginLeft: px * 0.2, marginTop: -px * 0.6 }}>
-      <rect x="2" y="2" width="9" height="9" rx="2.4" fill={COLORS.azure} />
-      <rect x="13" y="2" width="9" height="9" rx="2.4" fill={COLORS.azure} />
-      <rect x="2" y="13" width="9" height="9" rx="2.4" fill="#2563eb" />
-      <rect x="13" y="13" width="9" height="9" rx="2.4" fill={COLORS.violet} />
-    </svg>
-  );
-}
+/** Logo officiel détouré (lettres blanches), en PNG : lisible par le générateur d'images. */
+const logo = readFile(join(process.cwd(), "assets/brand-logo-on-dark.png")).then(
+  (data) => `data:image/png;base64,${data.toString("base64")}`,
+);
 
 export default async function Image({ params }: { params: Promise<{ locale: string }> }) {
   const locale = resolveLocale((await params).locale);
   const t = await getTranslations({ locale, namespace: "home" });
   const product = env().PRODUCT_NAME;
-  const [first, ...rest] = product;
+  const logoSrc = await logo;
   const gradient = `linear-gradient(120deg, ${COLORS.violet}, ${COLORS.azure})`;
 
   return new ImageResponse(
@@ -90,22 +83,7 @@ export default async function Image({ params }: { params: Promise<{ locale: stri
           opacity: 0.8,
         }}
       />
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          fontFamily: "Display",
-          fontSize: 84,
-          color: COLORS.white,
-          letterSpacing: -2,
-        }}
-      >
-        <span style={{ backgroundImage: gradient, backgroundClip: "text", color: "transparent" }}>
-          {first}
-        </span>
-        <span>{rest.join("")}</span>
-        <Mark px={40} />
-      </div>
+      <img src={logoSrc} alt={product} width={350} height={132} />
       <div style={{ display: "flex", flexDirection: "column", maxWidth: 900 }}>
         <div
           style={{
