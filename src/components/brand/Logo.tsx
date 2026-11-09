@@ -1,6 +1,7 @@
 /**
  * Logo du SaaS : SEUL emplacement à modifier quand les fichiers définitifs
- * seront fournis (remplacer le contenu de ce fichier et de src/app/icon.svg).
+ * seront fournis (remplacer ce fichier ; les icônes « S » sont dans public/brand/,
+ * src/app/icon.png et src/app/apple-icon.png).
  *
  * Mot-symbole « Sirine » : première lettre en dégradé violet → bleu, un arc
  * dégradé au-dessus du reste du nom, et le pictogramme de quatre carrés arrondis.
