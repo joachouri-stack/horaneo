@@ -291,7 +291,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
       "@type": "Organization",
       name: config.PRODUCT_NAME,
       url: publicAppUrl(),
-      logo: `${publicAppUrl()}/icon.svg`,
+      logo: `${publicAppUrl()}/brand/app-icon-512.png`,
       email: contact,
     },
     {
