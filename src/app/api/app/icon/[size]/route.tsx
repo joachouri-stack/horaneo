@@ -2,14 +2,14 @@ import { ImageResponse } from "next/og";
 
 /**
  * Icône de l'espace gérante installé sur l'écran d'accueil et des
- * notifications : l'horloge du logo sur fond ivoire (même dessin que Logo.tsx).
+ * notifications : les quatre carrés du logo sur fond bleu nuit (même dessin que Logo.tsx).
  */
 const SIZES = new Set([96, 180, 192, 512]);
 
 export async function GET(_request: Request, { params }: RouteContext<"/api/app/icon/[size]">) {
   const size = Number((await params).size);
   if (!SIZES.has(size)) return new Response(null, { status: 404 });
-  const mark = Math.round(size * 0.62);
+  const mark = Math.round(size * 0.56);
   return new ImageResponse(
     <div
       style={{
@@ -18,32 +18,14 @@ export async function GET(_request: Request, { params }: RouteContext<"/api/app/
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#faf7f2",
+        background: "#0b1033",
       }}
     >
-      <svg viewBox="0 0 54 54" width={mark} height={mark}>
-        <path
-          d="M40.18 42.70 A20.5 20.5 0 1 1 22.39 7.02"
-          fill="none"
-          stroke="#1b2a4a"
-          strokeWidth="12"
-          strokeLinecap="round"
-        />
-        <path
-          d="M39.62 10.85 A20.5 20.5 0 0 1 47.49 27.72"
-          fill="none"
-          stroke="#e8503f"
-          strokeWidth="12"
-          strokeLinecap="round"
-        />
-        <path
-          d="M27 27 L27 18.5 M27 27 L33.5 30.5"
-          fill="none"
-          stroke="#e8503f"
-          strokeWidth="5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
+      <svg viewBox="0 0 64 64" width={mark} height={mark}>
+        <rect x="6" y="6" width="24" height="24" rx="6" fill="#2f80ff" />
+        <rect x="34" y="6" width="24" height="24" rx="6" fill="#2f80ff" />
+        <rect x="6" y="34" width="24" height="24" rx="6" fill="#2563eb" />
+        <rect x="34" y="34" width="24" height="24" rx="6" fill="#7b3fe4" />
       </svg>
     </div>,
     { width: size, height: size, headers: { "cache-control": "public, max-age=86400" } },

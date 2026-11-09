@@ -26,7 +26,7 @@ export type EmailContent = {
   footer: string[];
 };
 
-const DEFAULT_COLOR = "#1B2A4A";
+const DEFAULT_COLOR = "#0B1033";
 
 export function renderEmail(content: EmailContent) {
   const color = ensureContrast(

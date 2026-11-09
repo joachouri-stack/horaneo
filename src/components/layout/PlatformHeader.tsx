@@ -15,7 +15,7 @@ export const NAV = [
 
 export type NavHref = (typeof NAV)[number]["href"];
 
-const LINK = "inline-flex min-h-11 items-center transition-colors hover:text-navy";
+const LINK = "inline-flex min-h-11 items-center transition-colors hover:text-white";
 
 /**
  * En-tête du site commercial (maquette validée) : logo à gauche ; à droite,
@@ -58,9 +58,9 @@ export async function PlatformHeader({ children }: { children?: React.ReactNode 
             className="inline-flex min-h-11 items-center"
           >
             {/* Un peu plus petit sur les très petits téléphones : logo et boutons tiennent sur une ligne. */}
-            <Logo productName={product} className="text-[1.5rem] min-[400px]:text-[1.8rem]" />
+            <Logo productName={product} light className="text-[1.5rem] min-[400px]:text-[1.8rem]" />
           </Link>
-          <nav className="flex flex-wrap items-center gap-x-3 text-[1.0625rem] text-[#3d4457] min-[400px]:gap-x-6 xl:gap-x-8">
+          <nav className="flex flex-wrap items-center gap-x-3 text-[1.0625rem] text-white/75 min-[400px]:gap-x-6 xl:gap-x-8">
             {!children &&
               NAV.map((item) => (
                 <Link key={item.key} href={item.href} className={`${LINK} max-lg:hidden`}>
@@ -78,7 +78,7 @@ export async function PlatformHeader({ children }: { children?: React.ReactNode 
             {!children && (
               <Link
                 href="/commander"
-                className="group/cta inline-flex min-h-11 items-center gap-2 rounded-xl bg-navy px-5 text-[1.0625rem] font-medium text-white shadow-[0_6px_16px_-8px_rgba(27,42,74,.6)] transition hover:-translate-y-px hover:bg-[#22345c] max-lg:hidden"
+                className="group/cta inline-flex min-h-11 items-center gap-2 rounded-xl bg-[linear-gradient(120deg,var(--color-violet),var(--color-azure-dark))] px-5 text-[1.0625rem] font-medium text-white shadow-[0_10px_24px_-12px_rgba(91,90,255,.8)] transition hover:-translate-y-px hover:brightness-110 max-lg:hidden"
               >
                 {t("home.cta")}
                 <span aria-hidden="true" className="transition-transform group-hover/cta:translate-x-0.5">

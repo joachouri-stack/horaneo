@@ -1,10 +1,10 @@
-# Horaneo : règles de design (complément au prompt principal)
+# Sirine (anciennement Horaneo) : règles de design (complément au prompt principal)
 
 ## 1. À quoi sert ce fichier
 
-Ce fichier fixe l'apparence d'Horaneo. Il complète le prompt principal et l'emporte sur lui pour tout ce qui touche au visuel.
+Ce fichier fixe l'apparence de Sirine (le nom vient de la configuration `PRODUCT_NAME`). Il complète le prompt principal et l'emporte sur lui pour tout ce qui touche au visuel.
 
-Référence actuelle (octobre 2026) : la maquette « Réservation / Commerce / Formation » fournie par la direction (trois univers, packs Basic, Pro, Business). Elle remplace l'ancienne maquette corail (`docs/maquette-accueil-horaneo.html`, conservée pour mémoire). Toute amélioration visuelle est proposée avant d'être appliquée.
+Référence actuelle (novembre 2026) : le logo Sirine (mot-symbole blanc ou bleu nuit, « S » et arc en dégradé violet → bleu, pictogramme de quatre carrés arrondis) et la maquette « Réservation / Commerce / Formation » (trois univers, packs Starter, Pro, Business). L'ancienne identité corail d'Horaneo (`docs/maquette-accueil-horaneo.html`) est conservée pour mémoire seulement. Toute amélioration visuelle est proposée avant d'être appliquée.
 
 ## 2. L'esprit général
 
@@ -16,21 +16,23 @@ Promesse : « Votre activité. Un seul outil. Plus de liberté. »
 
 | Rôle | Couleur |
 |---|---|
-| Marque (logo, bouton d'en-tête, bouton du bandeau final) | Bleu nuit `#1B2A4A` (logo), avec sa touche corail `#E8503F` |
-| Touches corail (rappel du point du logo) | Jamais sur un bouton : étiquette du haut de page et des sections, point final des titres, coches, pictogrammes des métiers et des cartes de fonctions (pleins au survol), carte « Nouvelle réservation », lien « Nous écrire », icône e-mail et filet du pied de page, halos très légers |
-| Fond | Blanc `#FFFFFF`, sections claires `#F6F8FC` |
-| Titres | `#16181D` ; texte courant `#3D4457` ; texte secondaire `#5B6275` |
+| Marque (logo, en-tête, accroche, pied de page) | Bleu nuit `#0B1033` (`navy`), fond sombre `#0A0F2E` (`deep`) |
+| Dégradé du logo | Violet `#7B3FE4` (`violet`) → bleu `#2F80FF` (`azure`) : « S » et arc du logo, bouton principal de l'accroche et de l'en-tête, filet du pied de page |
+| Touche de marque (`coral`, désormais violette `#6D3AE0`) | Étiquettes du haut des sections, point final des titres, coches, pictogrammes, boutons d'action des espaces gérante et admin |
+| Fond | Blanc `#FFFFFF`, sections claires `#F6F8FC`, fond des espaces `#F7F8FC` |
+| Titres | `#0B1033` ; texte courant `#3D4457` ; texte secondaire `#5B6275` |
 | Filets et bordures | `#E6E9F0` |
-| Réservation (accent) | Indigo maîtrisé `#3A4BB8`, foncé `#2B3990`, pâle `#EEF0FB` |
-| Commerce (accent) | Bronze `#946636`, foncé `#74502A`, champagne pâle `#F7F0E5` |
-| Formation (accent) | Bleu pétrole `#0E6A73`, foncé `#0A525A`, pâle `#E5F2F2` |
-| Pack mis en avant (Pro) | Fond `#121A2C`, champagne `#D9C08E` (dégradé doux vers `#E4CFA2` sur le bouton) |
+| Réservation (accent) | Bleu `#3B5BF6`, foncé `#2A40C9`, pâle `#EEF2FF` |
+| Commerce (accent) | Violet `#7B3FE4`, foncé `#5F2BC4`, pâle `#F3EEFF` |
+| Formation (accent) | Bleu ciel `#1678C9`, foncé `#0F5EA3`, pâle `#E8F3FD` |
+| Pack mis en avant (Pro) | Fond bleu nuit, touches lavande `#A99BFF`, bouton en dégradé violet → bleu |
 
 Règles :
 
-- La marque reste le bleu nuit du logo ; les couleurs des solutions sont des accents (boutons, coches, pictogrammes, mots mis en valeur), posés par `[data-solution]` (`src/app/globals.css`, utilitaires `bg-accent`, `text-accent`, `bg-accent-soft`…).
-- Le Pro (« Le plus populaire ») est la seule carte sombre ; le Starter (« Idéal pour démarrer ») porte un filet complet, un léger dégradé et un bouton de l'accent ; le Business (« Le plus complet ») est une carte claire nacrée à filet champagne, bouton champagne sur fond sombre.
-- Dégradés : seulement subtils (halo d'accroche, bouton champagne, bandeau final).
+- L'en-tête, l'accroche de l'accueil et le pied de page sont sur fond bleu nuit, avec de fins arcs lumineux violet et bleu (rappel du logo). Le reste de la page est clair.
+- Les couleurs des solutions sont des accents (boutons, coches, pictogrammes, mots mis en valeur), posés par `[data-solution]` (`src/app/globals.css`, utilitaires `bg-accent`, `text-accent`, `bg-accent-soft`…).
+- Le Pro (« Le plus populaire ») est la seule carte sombre ; le Starter porte un filet complet et un bouton de l'accent ; le Business est une carte claire à filet lavande.
+- Dégradés : le dégradé du logo (violet → bleu) et des halos très doux ; jamais de couleurs vives en aplat.
 - Les sites des clients gardent leurs propres couleurs.
 
 ## 4. Les typographies
@@ -42,13 +44,13 @@ Règles :
   titre de carte `text-mk-card` (20 px), prix des packs `text-mk-price` (40 → 48 px), introduction `text-mk-lead`
   (18 → 19 px), texte courant `text-mk-body` (17 px), texte secondaire `text-mk-small` (15 px), mentions et
   étiquettes `text-mk-note` (14 px). Pas d'autre taille sur ces pages.
-- **Logo :** Comfortaa, inchangé.
+- **Logo :** Outfit demi-gras, interlettrage serré (`src/components/brand/Logo.tsx`), première lettre en dégradé, arc et quatre carrés.
 
 ## 5. Les boutons
 
 - Coins arrondis modérés (0,75rem), hauteur 48px, texte en graisse 500, flèche fine à droite.
-- **Principal :** fond de l'accent de la solution (Business : champagne sur fond sombre). Un seul par bloc ; l'action secondaire est un bouton blanc à filet.
-- **En-tête :** « Créer mon site », bleu nuit (même libellé que le bouton principal de la page).
+- **Principal :** fond de l'accent de la solution (dans l'accroche et sur le pack Pro : dégradé violet → bleu). Un seul par bloc ; l'action secondaire est un bouton blanc à filet.
+- **En-tête :** « Créer mon site », dégradé violet → bleu sur l'en-tête bleu nuit (même libellé que le bouton principal de la page).
 
 ## 6. Les cartes
 
@@ -59,7 +61,7 @@ Règles :
 
 Vivant mais doux (validé en octobre 2026) : l'accroche apparaît en cascade (étiquette avec point lumineux, titre, texte, boutons), la fin du titre porte un dégradé de l'accent qui glisse lentement, des halos flous dérivent derrière l'accroche, les tarifs et le bandeau final. Les blocs apparaissent au défilement en montant légèrement, les cartes une à une. La carte flottante et le téléphone de l'aperçu flottent doucement ; les pictogrammes se soulèvent au survol ; les boutons principaux ont un reflet au survol. Fondu au changement de solution. Tout est coupé si moins de mouvement est demandé, et rien n'est caché sans JavaScript.
 
-Cartes des packs (validé en octobre 2026) : lumière douce qui suit la souris, liseré champagne qui tourne lentement autour du Pro, reflet sur son bouton, pastille glissante du sélecteur Mensuel / Annuel. Prix : partie entière en grand, centimes et devise en petit (Pro en dégradé champagne). Listes limitées à neuf lignes, le reste se déplie.
+Cartes des packs (validé en octobre 2026) : lumière douce qui suit la souris, liseré lavande qui tourne lentement autour du Pro, reflet sur son bouton, pastille glissante du sélecteur Mensuel / Annuel. Prix : partie entière en grand, centimes et devise en petit (Pro en dégradé lavande → bleu). Listes limitées à neuf lignes, le reste se déplie.
 
 ## 8. La page d'accueil, section par section
 
@@ -72,7 +74,7 @@ Cartes des packs (validé en octobre 2026) : lumière douce qui suit la souris, 
 6. **Réassurance :** seulement des engagements vérifiés ; témoignages réels s'il y en a. Placée juste avant les prix, pour lever les doutes avant la décision.
 7. **Choisissez votre pack {solution} :** mêmes prix pour toutes les solutions. Chaque carte : pictogramme, nom, phrase, prix (HT), ce que le pack ajoute, « Bientôt inclus » à part, « Non inclus » (3 lignes), bouton, conditions.
 8. **Comparatif :** juste sous les packs, pour qui hésite entre deux ; mêmes données que les cartes et les droits ; sur téléphone, un pack à la fois.
-9. **Questions, bandeau final, pied de page.** Le bandeau final est une carte claire nacrée (blanc vers champagne pâle, filet champagne) : prix de départ et délai de mise en ligne, titre, bouton bleu nuit « Créer mon site », lien vers les tarifs, trois garanties. Il tranche ainsi avec le pied de page bleu nuit, dont les textes restent bien lisibles (blanc cassé, gris clairs).
+9. **Questions, bandeau final, pied de page.** Le bandeau final est une carte claire nacrée (blanc vers lavande très pâle, filet lavande) : prix de départ et délai de mise en ligne, titre, bouton bleu nuit « Créer mon site », lien vers les tarifs, trois garanties. Il tranche ainsi avec le pied de page bleu nuit, dont les textes restent bien lisibles (blanc cassé, gris clairs).
 
 Parcours voulu : découvrir ce que fait l'outil, en voir la valeur, être rassuré, puis choisir son pack ; « Voir les tarifs » en haut de page reste un raccourci direct.
 

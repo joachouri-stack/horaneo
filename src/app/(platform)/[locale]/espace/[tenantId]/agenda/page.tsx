@@ -489,10 +489,10 @@ export default async function AgendaPage({
                     nowMinute <= lastHour * 60 && (
                       <div
                         aria-hidden="true"
-                        className="pointer-events-none absolute inset-x-0 z-30 border-t-2 border-[#e8503f]"
+                        className="pointer-events-none absolute inset-x-0 z-30 border-t-2 border-[#6d3ae0]"
                         style={{ top: top(nowMinute) }}
                       >
-                        <span className="absolute -left-1 -top-[5px] size-2 rounded-full bg-[#e8503f]" />
+                        <span className="absolute -left-1 -top-[5px] size-2 rounded-full bg-[#6d3ae0]" />
                       </div>
                     )}
                 </div>

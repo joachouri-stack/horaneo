@@ -33,9 +33,9 @@ const UPCOMING_SHOWN = 4;
 /** Bouton du premier pack : dégradé de l'accent avec reflet. */
 const ENTRY_BUTTON =
   "hn-shine bg-gradient-to-r from-accent to-accent-strong text-white shadow-[inset_0_1px_0_rgba(255,255,255,.2),0_14px_30px_-14px_var(--color-accent)] hover:brightness-110";
-/** Bouton du pack le plus complet : champagne sur fond sombre. */
+/** Bouton du pack le plus complet : lavande sur fond sombre. */
 const TOP_BUTTON =
-  "hn-shine bg-deep text-champagne shadow-[inset_0_1px_0_rgba(255,255,255,.08),0_14px_30px_-14px_rgba(18,26,44,.7)] hover:bg-[#1b2540]";
+  "hn-shine bg-deep text-champagne shadow-[inset_0_1px_0_rgba(255,255,255,.08),0_14px_30px_-14px_rgba(18,26,44,.7)] hover:bg-[#151a4a]";
 
 /**
  * Cartes des packs (Starter, Pro, Business) : nom, prix, description, ce que
@@ -43,7 +43,7 @@ const TOP_BUTTON =
  * Tout vient des réglages des packs (gridCard) ; le pack du milieu, le plus
  * populaire, est mis en valeur sur fond sombre ; le premier, porte d'entrée,
  * porte un filet d'accent et reste en tête sur téléphone ; le dernier, le plus
- * complet, est une carte nacrée à filet champagne. Une offre de lancement ouverte
+ * complet, est une carte nacrée à filet lavande. Une offre de lancement ouverte
  * (tablette) s'affiche sur son pack avec le nombre réel de places restantes.
  */
 export async function PlanCards({
@@ -102,7 +102,7 @@ export async function PlanCards({
             : plans.length > 1 && index === plans.length - 1;
         // Premier pack : porte d'entrée, mise en valeur légère (filet d'accent, halo, étiquette).
         const entry = plans.length > 1 && index === 0;
-        // Dernier pack d'une grille de trois : le plus complet, carte claire nacrée à filet champagne.
+        // Dernier pack d'une grille de trois : le plus complet, carte claire nacrée à filet lavande.
         const top = plans.length >= 3 && index === plans.length - 1;
         const Icon = ICONS[Math.min(index, ICONS.length - 1)];
         const name = pickLocalized(plan.name, locale);
@@ -125,7 +125,7 @@ export async function PlanCards({
                 : entry
                   ? "bg-accent text-white"
                   : top
-                    ? "bg-[#efdfbd] text-copper"
+                    ? "bg-[#e4dcff] text-copper"
                     : "bg-accent-soft text-accent"
             }`}
           >
@@ -162,11 +162,11 @@ export async function PlanCards({
             data-reveal
             className={`hn-spot relative flex flex-col rounded-[1.4rem] p-6 transition duration-300 motion-reduce:transition-none lg:p-7 ${
               featured
-                ? "bg-[radial-gradient(120%_60%_at_50%_-8%,#26324f_0%,#121a2c_55%,#0b1120_100%)] text-[#d5dbe8] shadow-[0_40px_80px_-36px_rgba(18,26,44,.85),0_0_0_1px_rgba(217,192,142,.08)] [--spot:rgba(217,192,142,.11)] md:max-lg:order-first lg:-my-3 lg:py-10"
+                ? "bg-[radial-gradient(120%_60%_at_50%_-8%,#1d2366_0%,#0b1033_55%,#070b24_100%)] text-[#d5dbe8] shadow-[0_40px_80px_-36px_rgba(18,26,44,.85),0_0_0_1px_rgba(160,140,255,.08)] [--spot:rgba(160,140,255,.11)] md:max-lg:order-first lg:-my-3 lg:py-10"
                 : entry
                   ? "bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-accent)_7%,white)_0%,#fff_42%)] shadow-[0_1px_2px_rgba(15,24,48,.04),0_30px_60px_-36px_color-mix(in_srgb,var(--color-accent)_60%,transparent)] [--spot:color-mix(in_srgb,var(--color-accent)_10%,transparent)] hover:-translate-y-1 hover:shadow-[0_36px_70px_-34px_color-mix(in_srgb,var(--color-accent)_70%,transparent)]"
                   : top
-                    ? "bg-[linear-gradient(180deg,#fffdf8_0%,#fbf6ec_100%)] shadow-[0_1px_2px_rgba(15,24,48,.04),0_30px_60px_-36px_rgba(148,102,54,.45)] [--spot:rgba(217,192,142,.16)] hover:-translate-y-1 hover:shadow-[0_36px_70px_-34px_rgba(148,102,54,.55)]"
+                    ? "bg-[linear-gradient(180deg,#ffffff_0%,#f4f2ff_100%)] shadow-[0_1px_2px_rgba(15,24,48,.04),0_30px_60px_-36px_rgba(91,70,200,.35)] [--spot:rgba(160,140,255,.16)] hover:-translate-y-1 hover:shadow-[0_36px_70px_-34px_rgba(91,70,200,.45)]"
                     : "border border-hairline bg-white/90 shadow-[0_1px_2px_rgba(15,24,48,.04),0_12px_32px_-24px_rgba(15,24,48,.18)] backdrop-blur-sm [--spot:color-mix(in_srgb,var(--color-accent)_9%,transparent)] hover:-translate-y-1 hover:shadow-[0_28px_50px_-30px_rgba(15,24,48,.35)]"
             }`}
           >
@@ -181,7 +181,7 @@ export async function PlanCards({
             )}
             {top && (
               <>
-                {/* Filet champagne, reflet nacré en haut de la carte. */}
+                {/* Filet lavande, reflet nacré en haut de la carte. */}
                 <span aria-hidden="true" className="hn-edge hn-edge-gold" />
                 <span
                   aria-hidden="true"
@@ -194,7 +194,7 @@ export async function PlanCards({
             )}
             {featured && (
               <>
-                {/* Liseré champagne qui tourne lentement, grain léger, reflet en haut de la carte. */}
+                {/* Liseré lavande qui tourne lentement, grain léger, reflet en haut de la carte. */}
                 <span aria-hidden="true" className="hn-ring" />
                 <span
                   aria-hidden="true"
@@ -204,7 +204,7 @@ export async function PlanCards({
                   aria-hidden="true"
                   className="pointer-events-none absolute inset-x-0 top-0 h-40 rounded-t-[1.4rem] bg-gradient-to-b from-champagne/10 to-transparent"
                 />
-                <p className="absolute right-5 top-0 -translate-y-1/2 rounded-full bg-gradient-to-r from-[#c9a96a] to-[#e4cfa2] px-3 py-1 text-[0.875rem] font-medium tracking-[0.02em] text-deep">
+                <p className="absolute right-5 top-0 -translate-y-1/2 rounded-full bg-gradient-to-r from-violet to-azure-dark px-3 py-1 text-[0.875rem] font-medium tracking-[0.02em] text-white">
                   {t("recommended")}
                 </p>
               </>
@@ -217,7 +217,7 @@ export async function PlanCards({
                     : entry
                       ? "bg-gradient-to-br from-accent to-accent-strong text-white shadow-[0_8px_18px_-8px_var(--color-accent)] ring-4 ring-accent-soft"
                       : top
-                        ? "bg-gradient-to-br from-[#f6e9c9] to-[#e4cfa2] text-copper shadow-[0_8px_18px_-8px_rgba(148,102,54,.5)] ring-4 ring-champagne-soft"
+                        ? "bg-gradient-to-br from-[#efebff] to-[#d9d1ff] text-copper shadow-[0_8px_18px_-8px_rgba(91,70,200,.4)] ring-4 ring-champagne-soft"
                         : "bg-accent-soft text-accent"
                 }`}
               >
@@ -395,7 +395,7 @@ export async function PlanCards({
                 aria-label={t("choose", { plan: name })}
                 className={`group flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-[1.0625rem] font-medium transition duration-200 motion-reduce:transition-none ${
                   featured
-                    ? "hn-shine bg-gradient-to-r from-[#c9a96a] via-[#e4cfa2] to-[#d2b47c] text-deep focus-visible:outline-white shadow-[0_12px_30px_-14px_rgba(217,192,142,.7)] hover:brightness-105"
+                    ? "hn-shine bg-gradient-to-r from-violet via-[#4f5bf0] to-azure-dark text-white focus-visible:outline-white shadow-[0_12px_30px_-14px_rgba(160,140,255,.7)] hover:brightness-105"
                     : top && paid
                       ? TOP_BUTTON
                       : entry && paid
@@ -415,7 +415,7 @@ export async function PlanCards({
                   aria-label={t("choose", { plan: name })}
                   className={`group flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-[1.0625rem] font-medium transition duration-200 motion-reduce:transition-none ${
                     featured
-                      ? "hn-shine bg-gradient-to-r from-[#c9a96a] via-[#e4cfa2] to-[#d2b47c] text-deep focus-visible:outline-white shadow-[0_12px_30px_-14px_rgba(217,192,142,.7)] hover:brightness-105"
+                      ? "hn-shine bg-gradient-to-r from-violet via-[#4f5bf0] to-azure-dark text-white focus-visible:outline-white shadow-[0_12px_30px_-14px_rgba(160,140,255,.7)] hover:brightness-105"
                       : top && paid
                         ? TOP_BUTTON
                         : entry && paid

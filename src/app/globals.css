@@ -16,10 +16,15 @@
  * Les sites des clients n'utilisent PAS cette palette : ils ont leurs propres couleurs.
  */
 @theme {
-  --color-navy: #1b2a4a; /* titres, menu */
-  --color-coral: #e8503f; /* boutons d'action uniquement */
-  --color-coral-dark: #c93e2f; /* survol des boutons */
-  --color-ivory: #faf7f2; /* fonds */
+  /* Sirine : bleu nuit du logo, dégradé violet → bleu. */
+  --color-navy: #0b1033; /* titres, menu, logo */
+  --color-violet: #7b3fe4; /* dégradé du logo (début) */
+  --color-azure: #2f80ff; /* dégradé du logo (fin) */
+  --color-azure-dark: #2563eb;
+  /* « coral » : touche de couleur de la marque (désormais violette), boutons d'action des espaces. */
+  --color-coral: #6d3ae0;
+  --color-coral-dark: #5a2bc4; /* survol des boutons */
+  --color-ivory: #f7f8fc; /* fonds */
   --color-ink: #2b2b2b; /* textes */
   --color-success: #2e9e6b; /* confirmations */
   /* Site commercial */
@@ -27,26 +32,26 @@
   --color-rust: #9e2b1e; /* texte sur fond rosé */
   --color-blush: #fbe3df;
   --color-blush-strong: #f6c9c1;
-  --color-salmon: #f0705f; /* accent sur fond bleu nuit */
+  --color-salmon: #a78bfa; /* accent sur fond bleu nuit */
   --color-sand: #f4efe6;
   --color-line: #ece6da;
-  --color-night: #16181d; /* titres de la page d'accueil */
+  --color-night: #0b1033; /* titres de la page d'accueil */
   --color-body: #3a3833; /* texte de la page d'accueil */
   --color-stone: #6b665e; /* texte secondaire */
-  --color-navy-light: #26375c;
+  --color-navy-light: #1b2350;
   --color-mist: #e6eaf2; /* bleu très pâle : packs Basic et Essentiel */
   --color-mist-strong: #c9d2e3;
   /* Touches cuivrées et dorées (packs, offre recommandée) : décor et petits textes. */
-  --color-copper: #9a5a24; /* texte cuivré lisible sur fond clair */
-  --color-gold: #d4a75a; /* filets et pictogrammes, accent sur fond bleu nuit */
-  --color-cream: #f7f0e3; /* fond crème des pastilles dorées */
+  --color-copper: #5b34c9; /* texte violet lisible sur fond clair (étiquettes de pack) */
+  --color-gold: #9d8bff; /* filets et pictogrammes, accent sur fond bleu nuit */
+  --color-cream: #f0ecff; /* fond lavande des pastilles */
   /* Site commercial (refonte) : gris bleutés fins, champagne du pack Business. */
   --color-ink-soft: #5b6275;
   --color-hairline: #e6e9f0;
   --color-mist-50: #f6f8fc;
-  --color-champagne: #d9c08e;
-  --color-champagne-soft: #f5ecda;
-  --color-deep: #121a2c; /* fond du pack Business */
+  --color-champagne: #a99bff; /* lavande : pack mis en avant */
+  --color-champagne-soft: #efebff;
+  --color-deep: #0a0f2e; /* fond sombre (pack Pro, accroche) */
 
   --font-display: var(--font-bricolage), var(--font-outfit), system-ui, sans-serif;
   --font-sans: var(--font-outfit), system-ui, sans-serif;
@@ -239,28 +244,28 @@ html:has(body.saas) {
  * utilitaires bg-accent, text-accent, bg-accent-soft…
  */
 [data-solution="booking"] {
-  --accent: #3a4bb8;
-  --accent-strong: #2b3990;
-  --accent-soft: #eef0fb;
-  --accent-line: #d9ddf5;
+  --accent: #3b5bf6;
+  --accent-strong: #2a40c9;
+  --accent-soft: #eef2ff;
+  --accent-line: #d6defd;
 }
 [data-solution="commerce"] {
-  --accent: #946636;
-  --accent-strong: #74502a;
-  --accent-soft: #f7f0e5;
-  --accent-line: #ecdcc4;
+  --accent: #7b3fe4;
+  --accent-strong: #5f2bc4;
+  --accent-soft: #f3eeff;
+  --accent-line: #e1d5fb;
 }
 [data-solution="formation"] {
-  --accent: #0e6a73;
-  --accent-strong: #0a525a;
-  --accent-soft: #e5f2f2;
-  --accent-line: #c6e3e3;
+  --accent: #1678c9;
+  --accent-strong: #0f5ea3;
+  --accent-soft: #e8f3fd;
+  --accent-line: #c9e2f8;
 }
 @theme inline {
-  --color-accent: var(--accent, #3a4bb8);
-  --color-accent-strong: var(--accent-strong, #2b3990);
-  --color-accent-soft: var(--accent-soft, #eef0fb);
-  --color-accent-line: var(--accent-line, #d9ddf5);
+  --color-accent: var(--accent, #3b5bf6);
+  --color-accent-strong: var(--accent-strong, #2a40c9);
+  --color-accent-soft: var(--accent-soft, #eef2ff);
+  --color-accent-line: var(--accent-line, #d6defd);
 }
 
 /* Contenu propre à une solution : seul celui de la solution choisie s'affiche. */
@@ -310,7 +315,7 @@ form:has(input[name="billing"][value="year"]:checked) [data-monthly-only] {
 
 /*
  * Cartes des packs (proposition « premium ») : lumière qui suit le pointeur,
- * liseré champagne qui tourne lentement autour du pack mis en avant, grain
+ * liseré lavande qui tourne lentement autour du pack mis en avant, grain
  * léger, reflet sur son bouton. Tout s'arrête si moins d'animations est demandé.
  */
 @property --hn-angle {
@@ -343,12 +348,12 @@ form:has(input[name="billing"][value="year"]:checked) [data-monthly-only] {
   padding: 1px;
   background: conic-gradient(
     from var(--hn-angle),
-    rgb(217 192 142 / 0.18),
-    #ecdbb4 10%,
-    rgb(217 192 142 / 0.18) 24%,
-    rgb(217 192 142 / 0.18) 58%,
-    #c9a96a 70%,
-    rgb(217 192 142 / 0.18) 84%
+    rgb(140 130 255 / 0.2),
+    #b9a8ff 10%,
+    rgb(140 130 255 / 0.2) 24%,
+    rgb(140 130 255 / 0.2) 58%,
+    #4f8dff 70%,
+    rgb(140 130 255 / 0.2) 84%
   );
   mask:
     linear-gradient(#000 0 0) content-box,
@@ -377,14 +382,14 @@ form:has(input[name="billing"][value="year"]:checked) [data-monthly-only] {
     color-mix(in srgb, var(--color-accent-line) 60%, transparent) 100%
   );
 }
-/* Pack le plus complet : filet champagne. */
+/* Pack le plus complet : filet lavande, dégradé du logo. */
 .hn-edge-gold {
   background: linear-gradient(
     160deg,
-    #e4cfa2,
-    rgb(217 192 142 / 0.45) 35%,
-    rgb(217 192 142 / 0.25) 65%,
-    #d9c08e
+    #b9a8ff,
+    rgb(150 130 255 / 0.45) 35%,
+    rgb(120 160 255 / 0.25) 65%,
+    #7aa2ff
   );
 }
 .hn-grain {
@@ -393,7 +398,7 @@ form:has(input[name="billing"][value="year"]:checked) [data-monthly-only] {
   mix-blend-mode: overlay;
 }
 .hn-gold {
-  background: linear-gradient(180deg, #f6e9c9 0%, #d9c08e 55%, #c3a266 100%);
+  background: linear-gradient(180deg, #ece7ff 0%, #b39dff 55%, #7aa2ff 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

@@ -2,77 +2,70 @@
  * Logo du SaaS : SEUL emplacement à modifier quand les fichiers définitifs
  * seront fournis (remplacer le contenu de ce fichier et de src/app/icon.svg).
  *
- * « Horaneo » en lettres rondes (Comfortaa), dont le premier « o » est une
- * horloge : anneau bleu nuit ouvert, arc et aiguilles corail.
+ * Mot-symbole « Sirine » : première lettre en dégradé violet → bleu, un arc
+ * dégradé au-dessus du reste du nom, et le pictogramme de quatre carrés arrondis.
+ * Le nom vient de la configuration (PRODUCT_NAME), jamais écrit en dur.
  */
 
-type ClockProps = { className?: string; title?: string; light?: boolean };
+/** Dégradé du logo (violet → bleu), repris par les pictogrammes. */
+const GRADIENT = "bg-[linear-gradient(135deg,var(--color-violet)_10%,var(--color-azure)_90%)]";
 
-export function ClockMark({ className, title, light = false }: ClockProps) {
+type MarkProps = { className?: string; title?: string };
+
+/** Pictogramme seul : quatre carrés arrondis, trois bleus et un violet. */
+export function LogoMark({ className, title }: MarkProps) {
   return (
     <svg
-      viewBox="0 0 54 54"
+      viewBox="0 0 24 24"
       className={className}
       role={title ? "img" : undefined}
       aria-hidden={title ? undefined : true}
       aria-label={title}
     >
-      <path
-        d="M40.18 42.70 A20.5 20.5 0 1 1 22.39 7.02"
-        fill="none"
-        stroke={light ? "#ffffff" : "var(--color-navy)"}
-        strokeWidth="12"
-        strokeLinecap="round"
-      />
-      <path
-        d="M39.62 10.85 A20.5 20.5 0 0 1 47.49 27.72"
-        fill="none"
-        stroke="var(--color-coral)"
-        strokeWidth="12"
-        strokeLinecap="round"
-      />
-      <path
-        d="M27 27 L27 18.5 M27 27 L33.5 30.5"
-        fill="none"
-        stroke="var(--color-coral)"
-        strokeWidth="5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <rect x="2" y="2" width="9" height="9" rx="2.4" fill="var(--color-azure)" />
+      <rect x="13" y="2" width="9" height="9" rx="2.4" fill="var(--color-azure)" />
+      <rect x="2" y="13" width="9" height="9" rx="2.4" fill="var(--color-azure-dark)" />
+      <rect x="13" y="13" width="9" height="9" rx="2.4" fill="var(--color-violet)" />
     </svg>
   );
 }
 
-/** light : version claire, pour un fond sombre (pied de page). */
+/** light : version claire, pour un fond sombre (accroche, pied de page). */
 type LogoProps = { productName: string; className?: string; light?: boolean };
-
-/** Lettres rondes, légèrement épaissies d'un contour de la même couleur. */
-const LETTERS =
-  "font-logo font-bold tracking-[0.03em] text-navy [-webkit-text-stroke:0.05em_currentColor] [paint-order:stroke_fill]";
 
 export function Logo({ productName, className, light = false }: LogoProps) {
   const [first, ...rest] = productName;
-  const letters = light ? LETTERS.replace("text-navy", "text-white") : LETTERS;
-  const restText = rest.join("");
-  const clockIndex = restText.toLowerCase().indexOf("o");
-
-  // Si le nom ne contient pas de « o », on affiche simplement le texte.
-  if (clockIndex === -1) {
-    return <span className={`${letters} ${className ?? ""}`}>{productName}</span>;
-  }
-
   return (
     <span
-      className={`inline-flex items-baseline leading-none ${letters} ${className ?? ""}`}
-      aria-label={productName}
       role="img"
+      aria-label={productName}
+      className={`relative inline-flex items-start font-sans font-semibold leading-none tracking-[-0.03em] ${light ? "text-white" : "text-navy"} ${className ?? ""}`}
     >
-      <span aria-hidden="true">{first + restText.slice(0, clockIndex)}</span>
-      <ClockMark
-        light={light}
-        className="mx-[0.04em] inline-block h-[0.7em] w-[0.7em] translate-y-[0.04em]"
-      />
-      <span aria-hidden="true">{restText.slice(clockIndex + 1)}</span>
+      <span aria-hidden="true" className="relative">
+        <span className={`${GRADIENT} bg-clip-text pr-[0.01em] text-transparent`}>{first}</span>
+        {rest.join("")}
+        {/* Arc dégradé au-dessus du nom, comme sur le logo. */}
+        <svg
+          viewBox="0 0 100 24"
+          preserveAspectRatio="none"
+          className="pointer-events-none absolute -top-[0.2em] left-[0.62em] h-[0.3em] w-[calc(100%-0.62em)]"
+        >
+          <defs>
+            <linearGradient id="logo-arc" x1="0" x2="1" y1="0" y2="0">
+              <stop offset="0" stopColor="var(--color-violet)" />
+              <stop offset="1" stopColor="var(--color-azure)" />
+            </linearGradient>
+          </defs>
+          <path
+            d="M2 22 C 30 -4, 70 -4, 98 18"
+            fill="none"
+            stroke="url(#logo-arc)"
+            strokeWidth="5"
+            strokeLinecap="round"
+          />
+        </svg>
+      </span>
+      <LogoMark className="ml-[0.08em] mt-[0.05em] h-[0.42em] w-[0.42em] flex-none" />
     </span>
   );
 }

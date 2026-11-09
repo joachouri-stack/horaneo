@@ -24,7 +24,7 @@ export default async function AdminSecurityPage({ params }: PageProps<"/[locale]
   const qr = await QRCode.toDataURL(uri, {
     margin: 1,
     width: 240,
-    color: { dark: "#1B2A4A", light: "#FFFFFF" },
+    color: { dark: "#0B1033", light: "#FFFFFF" },
   });
 
   return (

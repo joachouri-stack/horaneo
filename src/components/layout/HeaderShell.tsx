@@ -5,7 +5,7 @@ import { Link } from "@/i18n/navigation";
 import type { NavHref } from "./PlatformHeader";
 
 /**
- * Bandeau d'en-tête du site commercial : reste en haut de l'écran pendant le
+ * Bandeau d'en-tête du site commercial (bleu nuit du logo) : reste en haut de l'écran pendant le
  * défilement (fine ombre dès qu'on a quitté le haut de page) et, sur téléphone
  * et tablette, ouvre un menu avec les sections de l'accueil.
  */
@@ -39,8 +39,8 @@ export function HeaderShell({
   return (
     <div
       data-scrolled={scrolled}
-      className={`group/hdr sticky top-0 z-40 text-mk-body bg-white/90 backdrop-blur-md transition-shadow duration-300 ${
-        scrolled || open ? "shadow-[0_1px_0_#e6e9f0,0_8px_24px_rgba(15,24,48,.05)]" : ""
+      className={`group/hdr sticky top-0 z-40 text-mk-body bg-deep text-white transition-shadow duration-300 ${
+        scrolled || open ? "shadow-[0_1px_0_rgba(255,255,255,.08),0_10px_30px_rgba(5,8,30,.35)]" : ""
       }`}
     >
       <div className="relative">
@@ -52,7 +52,7 @@ export function HeaderShell({
             aria-controls="menu-accueil"
             aria-label={open ? menu.close : menu.open}
             onClick={() => setOpen((value) => !value)}
-            className="absolute right-3 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-full border-[1.5px] border-line bg-white text-night lg:hidden"
+            className="absolute right-3 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-full border-[1.5px] border-white/20 bg-white/[0.06] text-white lg:hidden"
           >
             <span aria-hidden="true" className="relative block h-3 w-4">
               <span
@@ -84,7 +84,7 @@ export function HeaderShell({
                     href={item.href}
                     onClick={() => setOpen(false)}
                     tabIndex={open ? undefined : -1}
-                    className="flex min-h-12 items-center rounded-2xl px-3 text-[1.1875rem] font-medium text-night hover:bg-white"
+                    className="flex min-h-12 items-center rounded-2xl px-3 text-[1.1875rem] font-medium text-white hover:bg-white/10"
                   >
                     {item.label}
                   </Link>
@@ -95,7 +95,7 @@ export function HeaderShell({
                   href="/commander"
                   onClick={() => setOpen(false)}
                   tabIndex={open ? undefined : -1}
-                  className="flex min-h-12 items-center justify-center rounded-xl bg-navy px-6 font-medium text-white"
+                  className="flex min-h-12 items-center justify-center rounded-xl bg-[linear-gradient(120deg,var(--color-violet),var(--color-azure-dark))] px-6 font-medium text-white"
                 >
                   {menu.cta}
                 </Link>

@@ -30,7 +30,7 @@ export async function AppointmentCard({
     <Link
       href={href}
       className={`flex gap-3 rounded-[var(--radius-card)] border-l-8 bg-white p-4 shadow-sm ${highlight ? "ring-2 ring-accent" : ""}`}
-      style={{ borderLeftColor: item.staffColor ?? "#1b2a4a" }}
+      style={{ borderLeftColor: item.staffColor ?? "#0b1033" }}
     >
       <div className="w-16 shrink-0 font-display text-lg font-semibold text-night">
         {day && (
