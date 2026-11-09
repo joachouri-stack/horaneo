@@ -44,7 +44,7 @@ Règles :
   titre de carte `text-mk-card` (20 px), prix des packs `text-mk-price` (40 → 48 px), introduction `text-mk-lead`
   (18 → 19 px), texte courant `text-mk-body` (17 px), texte secondaire `text-mk-small` (15 px), mentions et
   étiquettes `text-mk-note` (14 px). Pas d'autre taille sur ces pages.
-- **Logo :** Outfit demi-gras, interlettrage serré (`src/components/brand/Logo.tsx`), première lettre en dégradé, arc et quatre carrés.
+- **Logo :** le fichier officiel, détouré (`public/brand/logo-on-dark.webp` et `logo-on-light.webp`, affichés par `src/components/brand/Logo.tsx`) : jamais redessiné. Icône carrée : le « S » dans un cercle lumineux (`public/brand/app-icon-*.png`).
 
 ## 5. Les boutons
 
