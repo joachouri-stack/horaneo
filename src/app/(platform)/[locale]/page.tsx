@@ -47,6 +47,7 @@ import {
   ScissorsLine,
   WrenchLine,
 } from "@/components/marketing/line-icons";
+import { AllFeatures } from "@/components/marketing/AllFeatures";
 import { PlanCards } from "@/components/marketing/PlanCards";
 import { RevealOnScroll } from "@/components/marketing/RevealOnScroll";
 import { RotatingWord } from "@/components/marketing/RotatingWord";
@@ -952,6 +953,8 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 );
               })}
             </ul>
+            {/* Liste complète, repliée : pour celles qui veulent tous les détails. */}
+            <AllFeatures plans={data.plans} soon={data.soon} shown={shown} />
           </section>
 
           {/* Témoignages réels saisis dans l'admin (section masquée s'il n'y en a pas). */}
@@ -1038,7 +1041,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   <span className="text-coral">.</span>
                 </h2>
                 <p className="mt-2 max-w-[36rem] text-mk-body text-ink-soft sm:mt-3 sm:text-mk-lead">
-                  {t("plans.subtitle")}
+                  {t(shown.length > 1 ? "plans.subtitle" : "plans.subtitleSingle")}
                 </p>
               </div>
               {/* Mensuel / Annuel : seulement si le paiement à l'année est proposé (réglage). */}

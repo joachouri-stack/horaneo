@@ -23,7 +23,7 @@ import {
 } from "./line-icons";
 import { PackColumns } from "./SolutionScope";
 
-const ICONS: Record<GridCategory, typeof CheckLine> = {
+export const CATEGORY_ICONS: Record<GridCategory, typeof CheckLine> = {
   site: LayoutLine,
   booking: CalendarLine,
   commerce: StoreLine,
@@ -119,7 +119,7 @@ export async function Comparison({
             </tr>
           </thead>
           {groups.map((group) => {
-            const Icon = ICONS[group.category];
+            const Icon = CATEGORY_ICONS[group.category];
             const solutions = new Set(group.rows.map((row) => row.solution));
             const only = solutions.size === 1 ? [...solutions][0] : null;
             return (
