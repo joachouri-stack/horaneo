@@ -109,9 +109,13 @@ export async function PlanCards({
   };
 
   // Packs côte à côte : en rangée à faire glisser sur téléphone et tablette (la carte suivante
-  // dépasse), en grille de trois sur ordinateur.
+  // dépasse, flèches et points dessous), en grille de trois sur ordinateur.
   return (
-    <PlanSpotlight className="-mx-4 flex snap-x snap-mandatory scroll-px-4 items-stretch gap-4 overflow-x-auto px-4 pb-10 pt-6 [scrollbar-width:none] sm:-mx-6 sm:scroll-px-6 sm:px-6 lg:mx-0 lg:grid lg:snap-none lg:grid-cols-3 lg:gap-6 lg:overflow-visible lg:px-0 lg:pb-0 lg:pt-0">
+    <PlanSpotlight
+      count={plans.length}
+      labels={{ previous: t("carousel.previous"), next: t("carousel.next"), goTo: t("carousel.goTo") }}
+      className="-mx-4 flex snap-x snap-mandatory scroll-px-4 items-stretch gap-4 overflow-x-auto overscroll-x-contain px-4 pb-10 pt-6 [scrollbar-width:none] sm:-mx-6 sm:scroll-px-6 sm:px-6 lg:mx-0 lg:grid lg:snap-none lg:grid-cols-3 lg:gap-6 lg:overflow-visible lg:px-0 lg:pb-0 lg:pt-0"
+    >
       {plans.map((plan, index) => {
         // Pack mis en avant (« Le plus populaire ») : celui du milieu dans une grille de trois, sinon le dernier.
         const featured =

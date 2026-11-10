@@ -457,7 +457,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 </ul>
               </div>
 
-              {/* L'application en vedette (vraie capture, données d'exemple) : grand téléphone posé sur un
+              {/* L'application en vedette (aperçu, données d'exemple) : grand téléphone posé sur un
                   socle lumineux, empreinte du « S » derrière, notifications qui flottent autour. */}
               <div className="hn-up-3 relative mx-auto w-full max-w-[26rem] pb-14 sm:max-w-[30rem] lg:max-w-[34rem]">
                 <div
@@ -479,19 +479,16 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   <div className="absolute inset-x-0 bottom-6 h-14 rounded-[50%] border-t-2 border-[#b79cff] bg-[linear-gradient(180deg,#3a2f9e,#1a1650)] shadow-[0_-2px_24px_rgba(183,156,255,.7)]" />
                 </div>
                 <div className="relative mx-auto w-[15rem] sm:w-[17rem] lg:w-[16.5rem] xl:w-[18rem] 2xl:w-[20rem]">
-                  <div className="rounded-[3rem] bg-[linear-gradient(160deg,#c4b5fd,#7b3fe4_35%,#2f80ff_70%,#a78bfa)] p-[3px] shadow-[0_0_60px_rgba(123,63,228,.55),0_50px_80px_-30px_rgba(5,8,30,.9)]">
-                    <div className="rounded-[2.85rem] bg-[#0d1236] p-2">
-                      <Image
-                        src="/images/espace-telephone.webp"
-                        width={780}
-                        height={1688}
-                        alt={t("hero.visualAlt")}
-                        preload
-                        sizes="(min-width: 1536px) 20rem, (min-width: 1280px) 18rem, (min-width: 1024px) 16.5rem, (min-width: 640px) 17rem, 15rem"
-                        className="h-auto w-full rounded-[2.4rem]"
-                      />
-                    </div>
-                  </div>
+                  {/* Image du téléphone complet (cadre compris, fond transparent) : halo violet autour. */}
+                  <Image
+                    src="/images/accueil-telephone.webp"
+                    width={860}
+                    height={1756}
+                    alt={t("hero.visualAlt")}
+                    preload
+                    sizes="(min-width: 1536px) 20rem, (min-width: 1280px) 18rem, (min-width: 1024px) 16.5rem, (min-width: 640px) 17rem, 15rem"
+                    className="h-auto w-full drop-shadow-[0_0_40px_rgba(123,63,228,.55)]"
+                  />
                 </div>
                 <div
                   className={`hn-float -left-1 top-[10%] sm:-left-6 lg:left-auto lg:-right-10 lg:top-[14%] absolute flex items-center gap-3 rounded-2xl border border-white/70 bg-white/95 py-2.5 pl-2.5 pr-5 shadow-[0_20px_40px_-18px_rgba(5,8,30,.75),0_0_0_1px_rgba(123,63,228,.08)] backdrop-blur`}
