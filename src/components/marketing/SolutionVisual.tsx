@@ -23,7 +23,7 @@ import {
  */
 /** Photo de couverture d'une solution, à la place de l'aperçu dessiné (public/images). */
 const COVERS: Partial<Record<Solution, { src: string; width: number; height: number }>> = {
-  booking: { src: "/images/couverture-reservation.webp", width: 1536, height: 1024 },
+  booking: { src: "/images/couverture-sirine.webp", width: 1536, height: 1024 },
 };
 
 export async function SolutionVisual({ solution }: { solution: Solution }) {
