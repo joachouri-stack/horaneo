@@ -123,7 +123,12 @@ export function createStripeBilling(secretKey: string): BillingGateway {
               ]
             : []),
         ],
-        subscription_data: { metadata: input.metadata },
+        subscription_data: {
+          metadata: input.metadata,
+          // Essai gratuit : l'abonnement n'est prélevé qu'à la fin ; la carte est enregistrée dès maintenant.
+          ...(input.trialDays && input.trialDays > 0 ? { trial_period_days: input.trialDays } : {}),
+        },
+        payment_method_collection: "always",
         metadata: input.metadata,
         success_url: input.successUrl,
         cancel_url: input.cancelUrl,

@@ -216,6 +216,10 @@ export async function requestPlanChange(
               }
             : null,
         taxRateId: await ensureTaxRate(tx, gateway),
+        // Essai gratuit seulement pour un premier abonnement payant.
+        trialDays: subscription?.stripeSubscriptionId
+          ? 0
+          : Number(await getPlatformSetting(tx, "trial_days")),
         successUrl: urls.successUrl,
         cancelUrl: urls.cancelUrl,
         metadata: {
@@ -249,8 +253,12 @@ export async function requestPlanChange(
 
   if (target.priceCents <= 0) {
     // Passage au Basic : fin du pack payant à la fin de la période, pas avant la fin de l'engagement.
+    // Pendant l'essai gratuit : fin à la fin de l'essai, sans prélèvement ni engagement.
     await resetPending();
-    const candidates = [live.currentPeriodEnd, live.commitmentEndsAt].filter((d): d is Date => Boolean(d));
+    const trialing = live.status === "trialing";
+    const candidates = (
+      trialing ? [live.currentPeriodEnd] : [live.currentPeriodEnd, live.commitmentEndsAt]
+    ).filter((d): d is Date => Boolean(d));
     const at = candidates.length ? new Date(Math.max(...candidates.map((d) => d.getTime()))) : null;
     const remote = await gateway.setCancelAt({ subscriptionId: stripeId, at: at ?? now }).catch(billingError);
     await tx
@@ -377,7 +385,9 @@ export async function applySubscription(tx: Transaction, sub: BillingSubscriptio
     // Formule choisie à la souscription (« no » : sans engagement, frais de création déjà payés).
     const months = Number(await getPlatformSetting(tx, "commitment_months"));
     withCommitment = months > 0 && sub.metadata.commitment !== "no";
-    commitmentEndsAt = withCommitment ? addMonths(sub.currentPeriodStart ?? now, months) : null;
+    // Essai gratuit : l'engagement commence à la fin de l'essai (premier prélèvement).
+    const start = sub.status === "trialing" ? sub.currentPeriodEnd : sub.currentPeriodStart;
+    commitmentEndsAt = withCommitment ? addMonths(start ?? now, months) : null;
   }
   await tx
     .update(subscriptions)

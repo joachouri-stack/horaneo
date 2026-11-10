@@ -33,6 +33,9 @@ Règles :
 - Les couleurs des solutions sont des accents (boutons, coches, pictogrammes, mots mis en valeur), posés par `[data-solution]` (`src/app/globals.css`, utilitaires `bg-accent`, `text-accent`, `bg-accent-soft`…).
 - Le Pro (« Le plus populaire ») est la seule carte sombre ; le Starter porte un filet complet et un bouton de l'accent ; le Business est une carte claire à filet lavande.
 - Dégradés : le dégradé du logo (violet → bleu) et des halos très doux ; jamais de couleurs vives en aplat.
+- Mots mis en valeur des titres : dégradé bleu → violet (`.hn-grad-text`). Badge « Le plus populaire » et bouton du pack Pro : dégradé du « S » magenta → violet → bleu (`.hn-brand-gradient`).
+- Cartes des packs (maquette de novembre 2026) : pictogramme dans un carré arrondi au dégradé du logo, coches pleines en dégradé, Starter et Business blancs avec bouton à filet en dégradé, Pro sombre.
+- Empreinte du logo (`SirineMark`, le « S » dans son cercle lumineux) : en grand derrière le téléphone de l'accroche, au-dessus du titre des tarifs, dans les coins du bandeau final et sur la carte « Déjà client » du pied de page. Pas ailleurs, pour garder l'effet.
 - Les sites des clients gardent leurs propres couleurs.
 
 ## 4. Les typographies

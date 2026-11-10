@@ -82,7 +82,9 @@
         "reminderTitle": "Rappel envoyé",
         "reminderText": "La veille du rendez-vous",
         "siteTitle": "Votre site est en ligne",
-        "siteText": "Prêt sur téléphone et ordinateur"
+        "siteText": "Prêt sur téléphone et ordinateur",
+        "depositTitle": "Acompte payé",
+        "depositText": "Réservation confirmée"
       }
     },
     "solutions": {
@@ -305,7 +307,7 @@
       "choose": "Choisir le pack {plan}",
       "callback": "Être rappelé",
       "contractFree": "Gratuit, sans carte bancaire. Évoluez quand vous voulez.",
-      "contractPaid": "{months, plural, =0 {Sans engagement, résiliable chaque mois} other {{choice, select, yes {Au choix : sans engagement (résiliable chaque mois) ou engagement de # mois} other {Engagement de # mois}}}}. Prix {display}, facturé chaque mois.",
+      "contractPaid": "{months, plural, =0 {Sans engagement, résiliable chaque mois} other {{choice, select, yes {Au choix : sans engagement (résiliable chaque mois) ou engagement de {months} mois} other {Engagement de {months} mois}}}}. Prix {display}, facturé chaque mois.",
       "tablet": {
         "badge": "Offre limitée",
         "title": "Tablette offerte",
@@ -500,7 +502,9 @@
       "billingLabel": "Périodicité de paiement",
       "billingMonth": "Mensuel",
       "billingYear": "Annuel",
-      "billingBadge": "{months, plural, one {# mois offert} other {# mois offerts}}"
+      "billingBadge": "{months, plural, one {# mois offert} other {# mois offerts}}",
+      "trial": "{days, plural, one {# jour d'essai gratuit} other {# jours d'essai gratuit}}",
+      "trialNote": "Prélevé seulement après l'essai · annulable pendant l'essai"
     },
     "grid": {
       "categories": {
@@ -858,7 +862,7 @@
         },
         "commitment": {
           "q": "Y a-t-il un engagement ?",
-          "a": "{months, plural, =0 {Non, les packs payants sont sans engagement.} other {{choice, select, yes {Vous choisissez : sans engagement, résiliable chaque mois, ou avec un engagement de # mois.} other {Les packs payants sont proposés avec un engagement de # mois.}}{tablet, select, yes { L'offre tablette est réservée à la formule avec engagement.} other {}}}}"
+          "a": "{months, plural, =0 {Non, les packs payants sont sans engagement.} other {{choice, select, yes {Vous choisissez : sans engagement, résiliable chaque mois, ou avec un engagement de {months} mois.} other {Les packs payants sont proposés avec un engagement de {months} mois.}}{tablet, select, yes { L'offre tablette est réservée à la formule avec engagement.} other {}}}}"
         },
         "prices": {
           "q": "Les prix sont-ils HT ou TTC ?",
@@ -2151,6 +2155,8 @@
       "vatHint": "À valider avec votre comptable. 0 = pas de TVA (franchise). Un nouveau taux s'applique aux nouvelles souscriptions et recharges de SMS ; les abonnements en cours gardent l'ancien taux.",
       "commitment_months": "Durée de l'engagement (mois, 0 = pas de formule avec engagement)",
       "go_live_delay_days": "Délai de mise en ligne annoncé (jours ouvrés)",
+      "trial_days": "Essai gratuit à la première souscription (jours, 0 = pas d'essai)",
+      "trialHint": "L'abonnement n'est prélevé qu'à la fin de l'essai et l'engagement commence après. La carte est enregistrée à la commande ; les frais de création (formule sans engagement) sont payés tout de suite. Une annulation pendant l'essai arrête tout, sans prélèvement de l'abonnement.",
       "payments": "Paiements et données",
       "deposit_commission_percent": "Commission sur les acomptes (%)",
       "retention_days_after_cancel": "Site en ligne après la fin de l'abonnement (jours)",

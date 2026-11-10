@@ -22,6 +22,7 @@ export function createFakeBilling() {
       setupFee: unknown;
       taxRateId: string | null;
       metadata: Record<string, string>;
+      trialDays?: number;
       subscriptionId?: string;
     }
   >();
@@ -189,12 +190,14 @@ export function createFakeBilling() {
       const id = next("sub");
       checkout.subscriptionId = id;
       const end = new Date(start);
-      // Prix annuel : la période dure douze mois.
-      end.setUTCMonth(end.getUTCMonth() + (prices.get(checkout.priceId)?.interval === "year" ? 12 : 1));
+      const trial = (checkout.trialDays ?? 0) > 0;
+      // Essai gratuit : la première période est l'essai ; prix annuel : douze mois.
+      if (trial) end.setUTCDate(end.getUTCDate() + checkout.trialDays!);
+      else end.setUTCMonth(end.getUTCMonth() + (prices.get(checkout.priceId)?.interval === "year" ? 12 : 1));
       subscriptions.set(id, {
         id,
         customerId: checkout.customerId,
-        status: "active",
+        status: trial ? "trialing" : "active",
         priceId: checkout.priceId,
         planId: planOfPrice(checkout.priceId),
         currentPeriodStart: start,
@@ -211,6 +214,8 @@ export function createFakeBilling() {
     /** Fin de la période : le pack programmé s'applique, ou l'abonnement se termine. */
     renew(subscriptionId: string) {
       const sub = subscriptions.get(subscriptionId)!;
+      // Fin de l'essai gratuit : premier prélèvement, l'abonnement devient actif.
+      if (sub.status === "trialing") sub.status = "active";
       if (sub.cancelAt && sub.currentPeriodEnd && sub.cancelAt <= sub.currentPeriodEnd) {
         sub.status = "canceled";
         return snapshot(subscriptionId);

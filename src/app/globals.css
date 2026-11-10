@@ -516,6 +516,19 @@ form:has(input[name="billing"][value="year"]:checked) [data-monthly-only] {
     opacity: 0;
   }
 }
+/* Titres : dégradé bleu → violet du logo Sirine (mots mis en valeur). */
+.hn-grad-text {
+  background-image: linear-gradient(100deg, #2563eb 0%, #4f4ff0 45%, #7b3fe4 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+/* Dégradé du « S » (magenta → violet → bleu) : badges et boutons mis en avant. */
+.hn-brand-gradient {
+  background-image: linear-gradient(110deg, #a52fd8 0%, #7b3fe4 45%, #2563eb 100%);
+}
 .hn-shimmer {
   background-image: linear-gradient(
     90deg,

@@ -173,6 +173,8 @@ export async function createOrder(
             }
           : null,
       taxRateId: await ensureTaxRate(tx, gateway),
+      // Nouveau client : essai gratuit de l'abonnement (réglage admin, 0 = pas d'essai).
+      trialDays: Number(await getPlatformSetting(tx, "trial_days")),
       ...urls(order.id),
       metadata: {
         order_id: order.id,

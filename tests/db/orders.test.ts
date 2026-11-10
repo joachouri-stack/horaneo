@@ -2,8 +2,9 @@ import { and, desc, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { withPlatform } from "@/db/access";
 import type { Transaction } from "@/db/client";
-import { messageLog, orders, plans, subscriptions, tenants, users } from "@/db/schema";
+import { messageLog, orders, platformSettings, plans, subscriptions, tenants, users } from "@/db/schema";
 import { handleBillingEvent } from "@/modules/billing/events";
+import { requestPlanChange } from "@/modules/billing/subscriptions";
 import { AppError } from "@/modules/errors";
 import { dispatchMessages } from "@/modules/messages/dispatch";
 import {
@@ -251,6 +252,57 @@ describe.skipIf(!hasTestDatabase)("commandes", () => {
     expect(
       await errorCode(platform((tx) => createOrder(tx, user.id, form("serenite"), billing.gateway, urls))),
     ).toBe("already_customer");
+  });
+
+  it("essai gratuit : prélevé après l'essai, engagement après l'essai, annulation pendant l'essai sans engagement", async () => {
+    await owner.update(platformSettings).set({ value: 14 }).where(eq(platformSettings.key, "trial_days"));
+    try {
+      const user = await newUser();
+      const created = await platform((tx) =>
+        createOrder(tx, user.id, form("essentiel"), billing.gateway, urls),
+      );
+      const [order] = await owner.select().from(orders).where(eq(orders.id, created.orderId));
+      expect(billing.checkouts.get(order.stripeCheckoutSessionId!)?.trialDays).toBe(14);
+      const subscription = billing.completeCheckout(order.stripeCheckoutSessionId!, START);
+      expect(subscription.status).toBe("trialing");
+      await platform((tx) =>
+        handleBillingEvent(
+          tx,
+          {
+            id: `evt_trial_${n}`,
+            type: "checkout.session.completed",
+            raw: {},
+            kind: "checkout_completed",
+            subscriptionId: subscription.id,
+          },
+          billing.gateway,
+        ),
+      );
+      const { tenant } = await platform((tx) =>
+        createTenant(tx, {
+          name: order.businessName,
+          slug: `essai-${n}-${Date.now().toString(36)}`,
+          planCode: "essentiel",
+          managerEmail: user.email,
+        }),
+      );
+      await platform((tx) => linkOrderToTenant(tx, order.id, tenant.id, billing.gateway));
+      const [row] = await owner.select().from(subscriptions).where(eq(subscriptions.tenantId, tenant.id));
+      // Engagement de 12 mois à partir de la fin de l'essai (5 → 19 octobre).
+      expect(row).toMatchObject({ status: "trialing", withCommitment: true });
+      expect(row.commitmentEndsAt?.toISOString()).toBe("2027-10-19T08:00:00.000Z");
+
+      // Annulation pendant l'essai : fin à la fin de l'essai, l'engagement ne s'applique pas.
+      const [basic] = await owner.select().from(plans).where(eq(plans.code, "basic"));
+      const result = await platform((tx) =>
+        requestPlanChange(tx, tenant.id, basic.id, billing.gateway, urls(order.id), START),
+      );
+      expect(result.kind).toBe("cancel_scheduled");
+      const [after] = await owner.select().from(subscriptions).where(eq(subscriptions.tenantId, tenant.id));
+      expect(after.cancelAt?.toISOString()).toBe("2026-10-19T08:00:00.000Z");
+    } finally {
+      await owner.update(platformSettings).set({ value: 0 }).where(eq(platformSettings.key, "trial_days"));
+    }
   });
 
   it("refus d'une commande payée : abonnement arrêté, professionnel prévenu", async () => {
