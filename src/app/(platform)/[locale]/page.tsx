@@ -1008,7 +1008,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           <section
             id="tarifs"
             aria-labelledby="titre-tarifs"
-            className="relative isolate mx-auto max-w-[75rem] 2xl:max-w-[88rem] scroll-mt-20 px-4 pt-20 sm:px-6 lg:pt-28"
+            className="relative isolate mx-auto max-w-[75rem] 2xl:max-w-[88rem] scroll-mt-20 px-4 pt-12 sm:px-6 sm:pt-16 lg:pt-20"
           >
             {/* Fond des packs : trame de points, halos et arcs lumineux violet → bleu du logo dans les coins. */}
             <div
@@ -1024,9 +1024,9 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               <div className="absolute -right-[28rem] top-[30rem] size-[44rem] rounded-full border-[3px] border-azure/40 shadow-[0_0_50px_rgba(47,128,255,.22)] max-sm:-right-[36rem]" />
             </div>
             {/* En-tête centré, comme la maquette : empreinte du logo, titre en dégradé, choix Mensuel / Annuel. */}
-            <div className="mb-10 flex flex-col items-center gap-5 text-center lg:mb-14">
+            <div className="mb-5 flex flex-col items-center gap-4 text-center sm:mb-8 lg:mb-10">
               <div data-reveal className="flex flex-col items-center">
-                <SirineMark className="mb-4 size-14 drop-shadow-[0_10px_24px_rgba(123,63,228,.35)]" />
+                <SirineMark className="mb-3 size-10 drop-shadow-[0_10px_24px_rgba(123,63,228,.35)] sm:size-12 lg:size-14" />
                 <h2 id="titre-tarifs" className={`${TITLE} hn-balance text-mk-h2 leading-[1.1]`}>
                   {t("plans.title")}
                   {shown.map((code) => (
@@ -1037,7 +1037,9 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   ))}
                   <span className="text-coral">.</span>
                 </h2>
-                <p className="mt-3 max-w-[36rem] text-mk-lead text-ink-soft">{t("plans.subtitle")}</p>
+                <p className="mt-2 max-w-[36rem] text-mk-body text-ink-soft sm:mt-3 sm:text-mk-lead">
+                  {t("plans.subtitle")}
+                </p>
               </div>
               {/* Mensuel / Annuel : seulement si le paiement à l'année est proposé (réglage). */}
               {data.yearly.enabled ? (
