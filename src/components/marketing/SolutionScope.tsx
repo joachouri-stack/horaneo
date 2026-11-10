@@ -46,7 +46,11 @@ export function SolutionScope({
 
 const ICONS = { booking: CalendarLine, commerce: StoreLine, formation: CapLine } as const;
 
-/** Les trois cartes de choix (vrais boutons, utilisables au clavier). */
+/**
+ * Choix de la solution (Réservation, Commerce, Formation) : une barre claire à onglets,
+ * l'onglet choisi en dégradé violet → bleu du logo. Côte à côte même sur téléphone (la
+ * phrase d'explication n'apparaît qu'à partir de la tablette). Vrais boutons, au clavier aussi.
+ */
 export function SolutionTabs({
   items,
   label,
@@ -62,10 +66,12 @@ export function SolutionTabs({
     <div
       role="group"
       aria-label={label}
-      // Deux ou trois solutions présentées (une solution en pause n'a pas de carte).
-      className={`grid gap-3 sm:gap-4 ${items.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}
+      // Deux ou trois solutions présentées (une solution en pause n'a pas d'onglet).
+      className={`grid gap-1.5 rounded-[1.6rem] border border-white/80 bg-white/90 p-1.5 shadow-[0_24px_50px_-28px_rgba(43,37,128,.55),0_0_0_1px_rgba(123,63,228,.08)] backdrop-blur ${
+        items.length === 2 ? "grid-cols-2" : "grid-cols-3"
+      }`}
     >
-      {items.map((item, index) => {
+      {items.map((item) => {
         const Icon = ICONS[item.code];
         const active = context.solution === item.code;
         return (
@@ -74,49 +80,28 @@ export function SolutionTabs({
             type="button"
             aria-pressed={active}
             onClick={() => context.choose(item.code)}
-            data-solution={item.code}
-            // --i : rang de la carte, pour qu'elles s'allument tour à tour sur écran tactile (globals.css).
-            style={{ "--i": index } as React.CSSProperties}
-            className={`hn-sol hn-shine group relative flex min-h-[4.75rem] items-center gap-3.5 overflow-hidden rounded-2xl border px-4 py-3.5 text-left transition duration-300 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 ${
+            className={`group flex min-h-[4.25rem] min-w-0 flex-col items-center justify-center gap-2 rounded-[1.2rem] px-2 py-3 text-center transition duration-300 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 sm:flex-row sm:justify-start sm:gap-3.5 sm:px-4 sm:text-left ${
               active
-                ? "border-transparent bg-accent text-white shadow-[0_18px_36px_-20px_var(--accent)]"
-                : "border-hairline bg-white text-night hover:-translate-y-1 hover:border-accent hover:shadow-[0_18px_36px_-20px_var(--accent)]"
+                ? "hn-brand-gradient text-white shadow-[0_14px_30px_-14px_rgba(123,63,228,.8)]"
+                : "text-night hover:bg-[#f4f1ff]"
             }`}
           >
-            {/* Halo de la couleur de la solution : il monte du coin au survol. */}
             <span
-              aria-hidden="true"
-              className={`hn-sol-halo pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 ${
-                active
-                  ? "bg-[radial-gradient(ellipse_at_0%_100%,rgb(255_255_255/0.22),transparent_65%)]"
-                  : "bg-[radial-gradient(ellipse_at_0%_100%,var(--accent-soft),transparent_70%)]"
-              }`}
-            />
-            <span
-              className={`hn-sol-icon relative flex size-11 flex-none items-center justify-center rounded-xl transition duration-300 group-hover:-rotate-6 group-hover:scale-110 motion-reduce:transition-none motion-reduce:group-hover:rotate-0 motion-reduce:group-hover:scale-100 ${
-                active
-                  ? "bg-white/15 text-white"
-                  : "bg-accent-soft text-accent group-hover:bg-accent group-hover:text-white"
+              className={`flex size-10 flex-none items-center justify-center rounded-xl transition duration-300 sm:size-11 ${
+                active ? "bg-white/20 text-white" : "bg-[#efeaff] text-violet group-hover:scale-105"
               }`}
             >
-              <Icon className="size-6" />
+              <Icon className="size-5 sm:size-6" />
             </span>
-            {/* Filet du bas, de la couleur de la solution : il s'étire au survol. */}
-            <span
-              aria-hidden="true"
-              className={`hn-sol-bar absolute bottom-0 left-4 h-[3px] rounded-full transition-all duration-300 motion-reduce:transition-none ${
-                active ? "w-[calc(100%-2rem)] bg-white/40" : "w-0 bg-accent group-hover:w-[calc(100%-2rem)]"
-              }`}
-            />
-            <span className="relative min-w-0">
-              <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                <span className="font-display text-mk-card font-semibold tracking-[-0.01em]">
+            <span className="min-w-0">
+              <span className="flex flex-col items-center gap-1 sm:flex-row sm:flex-wrap sm:gap-x-2 sm:gap-y-0.5">
+                <span className="font-display text-[1.0625rem] font-semibold leading-tight tracking-[-0.01em] sm:text-mk-card">
                   {item.name}
                 </span>
                 {item.soon && (
                   <span
-                    className={`rounded-full px-2 py-px text-[0.875rem] font-medium ${
-                      active ? "bg-white/15 text-white" : "bg-mist-50 text-ink-soft"
+                    className={`whitespace-nowrap rounded-full px-2 py-px text-[0.75rem] font-medium sm:text-[0.8125rem] ${
+                      active ? "bg-white/20 text-white" : "bg-[#efeaff] text-violet"
                     }`}
                   >
                     {soonLabel}
@@ -124,7 +109,7 @@ export function SolutionTabs({
                 )}
               </span>
               <span
-                className={`block text-[0.9375rem] leading-snug ${active ? "text-white/80" : "text-ink-soft"}`}
+                className={`hidden text-[0.9375rem] leading-snug sm:block ${active ? "text-white/85" : "text-ink-soft"}`}
               >
                 {item.short}
               </span>
