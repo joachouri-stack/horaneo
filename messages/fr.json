@@ -504,7 +504,12 @@
       "billingYear": "Annuel",
       "billingBadge": "{months, plural, one {# mois offert} other {# mois offerts}}",
       "trial": "{days, plural, one {# jour d'essai gratuit} other {# jours d'essai gratuit}}",
-      "trialNote": "Prélevé seulement après l'essai · annulable pendant l'essai"
+      "trialNote": "Prélevé seulement après l'essai · annulable pendant l'essai",
+      "carousel": {
+        "previous": "Pack précédent",
+        "next": "Pack suivant",
+        "goTo": "Voir le pack"
+      }
     },
     "grid": {
       "categories": {
