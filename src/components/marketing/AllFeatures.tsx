@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import type { PlanFeatures, PlanLimits } from "@/db/schema";
 import { Link } from "@/i18n/navigation";
-import { gridComparison } from "@/modules/billing/grid";
+import { gridComparison, SOLUTIONS, type Solution } from "@/modules/billing/grid";
 import { CATEGORY_ICONS } from "./Comparison";
 import { ArrowLine, CheckLine } from "./line-icons";
 
@@ -11,15 +11,31 @@ type FeaturePlan = { code: string; features: PlanFeatures; limits: PlanLimits };
  * « Voir toutes les fonctionnalités » : la liste complète, rangée par thème, repliée par
  * défaut (pas de JavaScript : details / summary). Même catalogue que le comparatif des packs
  * (lignes incluses dans au moins un pack) ; les lignes propres à une solution suivent la
- * solution choisie ([data-only]), les fonctions annoncées portent « Bientôt ».
+ * solution choisie ([data-only]) ; rien des solutions masquées. Fonctions annoncées : « Bientôt ».
  */
-export async function AllFeatures({ plans, soon }: { plans: FeaturePlan[]; soon: string[] }) {
+export async function AllFeatures({
+  plans,
+  soon,
+  shown,
+}: {
+  plans: FeaturePlan[];
+  soon: string[];
+  /** Solutions présentées sur la page : rien des autres (masquées dans les réglages). */
+  shown: readonly Solution[];
+}) {
   const [t, tGrid, tPlans] = await Promise.all([
     getTranslations("home.benefits.all"),
     getTranslations("home.grid"),
     getTranslations("home.plans"),
   ]);
-  const groups = gridComparison(plans, new Set(soon));
+  const hidden = new Set<string>(SOLUTIONS.filter((code) => !shown.includes(code)));
+  const groups = gridComparison(plans, new Set(soon))
+    .filter((group) => !hidden.has(group.category))
+    .map((group) => ({
+      ...group,
+      rows: group.rows.filter((row) => !row.solution || !hidden.has(row.solution)),
+    }))
+    .filter((group) => group.rows.length > 0);
   if (groups.length === 0) return null;
 
   return (

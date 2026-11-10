@@ -289,6 +289,7 @@
     "plans": {
       "title": "Choisissez votre pack",
       "subtitle": "Les mêmes tarifs pour les trois solutions. Évoluez quand vous voulez.",
+      "subtitleSingle": "Un pack adapté à chaque activité. Évoluez quand vous voulez.",
       "monthly": "Prix mensuels {display}",
       "free": "Gratuit",
       "freeSuffix": "pour toujours",
