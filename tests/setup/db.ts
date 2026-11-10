@@ -18,7 +18,13 @@ export function openAppDb(): TestDb {
 export async function openTestDb(): Promise<TestDb> {
   if (!testDatabaseUrl) throw new Error("TEST_DATABASE_URL absente");
   await seed(testDatabaseUrl);
-  return createDb(testDatabaseUrl);
+  const db = createDb(testDatabaseUrl);
+  // Essai gratuit désactivé par défaut : les tests qui le vérifient l'activent eux-mêmes.
+  await db.execute(
+    sql`INSERT INTO platform_settings (key, value) VALUES ('trial_days', '0'::jsonb)
+        ON CONFLICT (key) DO UPDATE SET value = '0'::jsonb`,
+  );
+  return db;
 }
 
 /** Code d'erreur PostgreSQL d'une requête refusée (23P01 = chevauchement, 23503 = lien invalide…). */

@@ -46,6 +46,8 @@ export interface BillingGateway {
     successUrl: string;
     cancelUrl: string;
     metadata: Record<string, string>;
+    /** Essai gratuit de l'abonnement, en jours (0 : prélevé dès la souscription). */
+    trialDays?: number;
   }): Promise<{ id: string; url: string }>;
   /** Paiement unique sur la page Stripe (ex. pack de SMS), avec la carte du professionnel. */
   createPaymentCheckout(input: {

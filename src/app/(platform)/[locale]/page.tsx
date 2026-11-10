@@ -217,6 +217,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     },
     warningPercent: Number(await getPlatformSetting(tx, "sms_warning_percent")),
     goLiveDays: Number(await getPlatformSetting(tx, "go_live_delay_days")),
+    trialDays: Number(await getPlatformSetting(tx, "trial_days")),
     soon: await getPlatformSetting(tx, "features_soon"),
     solutions: await getPlatformSetting(tx, "solutions"),
     demoUrl: String(await getPlatformSetting(tx, "demo_url")),
@@ -1043,6 +1044,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               noCommitment={data.noCommitment}
               offers={data.offers}
               yearly={data.yearly}
+              trialDays={data.trialDays}
             />
             <p className="mt-6 text-center text-[0.9375rem] text-ink-soft">{t("plans.quotaNote")}</p>
           </section>

@@ -13,7 +13,16 @@ import {
   type BillingInterval,
 } from "@/modules/billing/yearly";
 import { PlanSpotlight } from "./PlanSpotlight";
-import { ArrowLine, CheckLine, CrownLine, DashLine, DiamondLine, LeafLine, TabletLine } from "./line-icons";
+import {
+  ArrowLine,
+  CheckLine,
+  CrownLine,
+  DashLine,
+  DiamondLine,
+  GiftLine,
+  LeafLine,
+  TabletLine,
+} from "./line-icons";
 
 type CardPlan = {
   id: string;
@@ -59,6 +68,7 @@ export async function PlanCards({
   noCommitment = true,
   offers,
   yearly,
+  trialDays = 0,
 }: {
   plans: CardPlan[];
   locale: Locale;
@@ -70,6 +80,8 @@ export async function PlanCards({
   offers: LaunchOfferView[];
   /** Paiement à l'année proposé, et ses mois offerts (réglages). */
   yearly: { enabled: boolean; freeMonths: number };
+  /** Essai gratuit à la première souscription (réglage admin ; 0 : pas d'essai). */
+  trialDays?: number;
 }) {
   const t = await getTranslations("home.plans");
   const tGrid = await getTranslations("home.grid");
@@ -270,6 +282,23 @@ export async function PlanCards({
                 </div>
               )}
             </div>
+
+            {/* Essai gratuit (réglage) : pastille sous le prix, comme la maquette. */}
+            {paid && trialDays > 0 && (
+              <div
+                className={`relative mt-4 flex items-center gap-3 rounded-2xl px-4 py-2.5 ${
+                  featured ? "bg-white/10 ring-1 ring-white/15" : "bg-[#f1edff] ring-1 ring-[#e2dafd]"
+                }`}
+              >
+                <GiftLine className={`size-6 flex-none ${featured ? "text-white" : "text-violet"}`} />
+                <span className="leading-tight">
+                  <span className={`block text-[1rem] font-semibold ${strong}`}>
+                    {t("trial", { days: trialDays })}
+                  </span>
+                  <span className={`block text-[0.8125rem] ${muted}`}>{t("trialNote")}</span>
+                </span>
+              </div>
+            )}
 
             <ul
               className={`relative mt-6 flex flex-col gap-2.5 border-t pt-5 text-[1.0625rem] leading-snug ${featured ? "border-white/10" : top ? "border-champagne/30" : "border-hairline"}`}

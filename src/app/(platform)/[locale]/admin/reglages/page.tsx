@@ -34,6 +34,7 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
       "sms_pack_price_cents",
       "sms_warning_percent",
       "go_live_delay_days",
+      "trial_days",
       "deposit_commission_percent",
       "retention_days_after_cancel",
       "replaced_asset_retention_days",
@@ -108,6 +109,7 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
             {field("commitment_months")}
             {field("price_change_notice_days", "number", t("priceChangeHint"))}
             {field("go_live_delay_days")}
+            {field("trial_days", "number", t("trialHint"))}
             <CheckboxField
               name="offer_no_commitment"
               label={t("offer_no_commitment")}

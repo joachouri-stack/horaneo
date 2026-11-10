@@ -500,7 +500,9 @@
       "billingLabel": "Périodicité de paiement",
       "billingMonth": "Mensuel",
       "billingYear": "Annuel",
-      "billingBadge": "{months, plural, one {# mois offert} other {# mois offerts}}"
+      "billingBadge": "{months, plural, one {# mois offert} other {# mois offerts}}",
+      "trial": "{days, plural, one {# jour d'essai gratuit} other {# jours d'essai gratuit}}",
+      "trialNote": "Prélevé seulement après l'essai · annulable pendant l'essai"
     },
     "grid": {
       "categories": {
@@ -2151,6 +2153,8 @@
       "vatHint": "À valider avec votre comptable. 0 = pas de TVA (franchise). Un nouveau taux s'applique aux nouvelles souscriptions et recharges de SMS ; les abonnements en cours gardent l'ancien taux.",
       "commitment_months": "Durée de l'engagement (mois, 0 = pas de formule avec engagement)",
       "go_live_delay_days": "Délai de mise en ligne annoncé (jours ouvrés)",
+      "trial_days": "Essai gratuit à la première souscription (jours, 0 = pas d'essai)",
+      "trialHint": "L'abonnement n'est prélevé qu'à la fin de l'essai et l'engagement commence après. La carte est enregistrée à la commande ; les frais de création (formule sans engagement) sont payés tout de suite. Une annulation pendant l'essai arrête tout, sans prélèvement de l'abonnement.",
       "payments": "Paiements et données",
       "deposit_commission_percent": "Commission sur les acomptes (%)",
       "retention_days_after_cancel": "Site en ligne après la fin de l'abonnement (jours)",
