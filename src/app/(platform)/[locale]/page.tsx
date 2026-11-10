@@ -360,7 +360,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               <div className="hn-drift-slow absolute -right-20 top-32 size-[22rem] rounded-full bg-champagne/25 blur-[90px] max-sm:size-[14rem]" />
               <div className="hn-drift absolute right-[22%] top-[26rem] size-[18rem] rounded-full bg-coral/10 blur-[90px] max-sm:right-0 max-sm:top-[34rem] max-sm:size-[12rem]" />
             </div>
-            <div className="relative mx-auto grid max-w-[75rem] items-center gap-10 px-4 pb-12 pt-6 sm:px-6 sm:pt-12 lg:grid-cols-[1.08fr_0.92fr] lg:gap-8 lg:pb-16 lg:pt-16 2xl:max-w-[88rem]">
+            <div className="relative mx-auto grid max-w-[75rem] items-center gap-10 px-4 pb-12 pt-6 sm:px-6 sm:pt-12 lg:grid-cols-[1.08fr_0.92fr] lg:gap-8 lg:pb-10 lg:pt-10 2xl:max-w-[88rem]">
               <div>
                 {/* Petite annonce : une ligne, casse normale, point lumineux. */}
                 <p className="hn-up inline-flex max-w-full items-center gap-2.5 rounded-full border border-white/15 bg-white/[0.06] py-1.5 pl-2.5 pr-4 text-mk-note font-medium text-white/90 backdrop-blur">
@@ -445,13 +445,11 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     )}
                   </p>
                 )}
-                <ul className="hn-up-4 mt-7 hidden flex-wrap gap-x-5 gap-y-2 text-mk-small text-white/70 sm:flex">
+                <ul className="hn-up-4 mt-8 hidden flex-col gap-3 text-mk-body text-white/85 sm:flex">
                   {(t.raw("hero.points") as string[]).map((point) => (
-                    <li key={point} className="flex items-center gap-2">
-                      <span
-                        className={`flex size-5 flex-none items-center justify-center rounded-full bg-white/10 ${ON_DARK_ACCENT}`}
-                      >
-                        <CheckLine className="size-3" />
+                    <li key={point} className="flex items-center gap-3">
+                      <span className="flex size-6 flex-none items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--color-violet),var(--color-azure-dark))] text-white shadow-[0_6px_16px_-6px_rgba(123,63,228,.9)]">
+                        <CheckLine className="size-3.5" />
                       </span>
                       {point}
                     </li>
@@ -459,62 +457,100 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 </ul>
               </div>
 
-              {/* Vraie capture de l'espace sur téléphone (données d'exemple), deux notifications qui flottent. */}
-              <div className="hn-up-3 relative mx-auto w-full max-w-[24rem] lg:max-w-[28rem]">
-                {/* Empreinte du logo : le « S » lumineux, en grand derrière le téléphone. */}
+              {/* L'application en vedette (vraie capture, données d'exemple) : grand téléphone posé sur un
+                  socle lumineux, empreinte du « S » derrière, notifications qui flottent autour. */}
+              <div className="hn-up-3 relative mx-auto w-full max-w-[26rem] pb-14 sm:max-w-[30rem] lg:max-w-[34rem]">
                 <div
                   aria-hidden="true"
-                  className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                  className="pointer-events-none absolute left-1/2 top-[45%] size-[26rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(123,63,228,.55),rgba(47,128,255,.18)_55%,transparent)] blur-2xl sm:size-[34rem]"
+                />
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute left-1/2 top-[45%] -translate-x-1/2 -translate-y-1/2"
                 >
                   <SirineMark
                     onDark
-                    className="hn-float-late size-[22rem] max-w-none opacity-40 sm:size-[28rem] lg:size-[32rem]"
+                    className="hn-float-late size-[24rem] max-w-none opacity-30 sm:size-[30rem] lg:size-[36rem]"
                   />
                 </div>
-                <div className="relative mx-auto w-[14rem] sm:w-[17rem] lg:w-[18.5rem]">
-                  <div className="rounded-[2.6rem] border border-[#2a3043] bg-[#1d2333] p-2 shadow-[0_40px_70px_-30px_rgba(15,24,48,.6)]">
-                    <Image
-                      src="/images/espace-telephone.webp"
-                      width={780}
-                      height={1688}
-                      alt={t("hero.visualAlt")}
-                      preload
-                      sizes="(min-width: 1024px) 18.5rem, (min-width: 640px) 17rem, 14rem"
-                      className="h-auto w-full rounded-[2.1rem]"
-                    />
+                {/* Socle lumineux sous le téléphone. */}
+                <div aria-hidden="true" className="pointer-events-none absolute inset-x-[4%] bottom-0 h-24">
+                  <div className="absolute inset-x-0 bottom-0 h-20 rounded-[50%] bg-[linear-gradient(180deg,#2b2580,#0f0d3a_70%)] shadow-[0_-6px_40px_rgba(123,63,228,.55),0_20px_60px_rgba(5,8,30,.8)]" />
+                  <div className="absolute inset-x-0 bottom-6 h-14 rounded-[50%] border-t-2 border-[#b79cff] bg-[linear-gradient(180deg,#3a2f9e,#1a1650)] shadow-[0_-2px_24px_rgba(183,156,255,.7)]" />
+                </div>
+                <div className="relative mx-auto w-[15rem] sm:w-[17rem] lg:w-[16.5rem] xl:w-[18rem] 2xl:w-[20rem]">
+                  <div className="rounded-[3rem] bg-[linear-gradient(160deg,#c4b5fd,#7b3fe4_35%,#2f80ff_70%,#a78bfa)] p-[3px] shadow-[0_0_60px_rgba(123,63,228,.55),0_50px_80px_-30px_rgba(5,8,30,.9)]">
+                    <div className="rounded-[2.85rem] bg-[#0d1236] p-2">
+                      <Image
+                        src="/images/espace-telephone.webp"
+                        width={780}
+                        height={1688}
+                        alt={t("hero.visualAlt")}
+                        preload
+                        sizes="(min-width: 1536px) 20rem, (min-width: 1280px) 18rem, (min-width: 1024px) 16.5rem, (min-width: 640px) 17rem, 15rem"
+                        className="h-auto w-full rounded-[2.4rem]"
+                      />
+                    </div>
                   </div>
                 </div>
-                <div className="hn-float absolute left-0 top-[10%] flex items-center gap-3 rounded-2xl border border-hairline bg-white/95 py-2.5 pl-2.5 pr-8 shadow-[0_18px_36px_-20px_rgba(15,24,48,.5)] backdrop-blur sm:-left-4">
-                  <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-coral/10 text-coral-dark">
-                    <CalendarLine className="size-[18px]" />
+                <div
+                  className={`hn-float -left-1 top-[10%] sm:-left-6 lg:left-auto lg:-right-10 lg:top-[14%] absolute flex items-center gap-3 rounded-2xl border border-white/70 bg-white/95 py-2.5 pl-2.5 pr-5 shadow-[0_20px_40px_-18px_rgba(5,8,30,.75),0_0_0_1px_rgba(123,63,228,.08)] backdrop-blur`}
+                >
+                  <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-[#efeaff] text-violet">
+                    <CalendarLine className="size-5" />
                   </span>
                   <span className="leading-tight">
-                    <span className="block text-mk-small font-medium text-night">
+                    <span className="flex items-center gap-1.5 text-mk-small font-semibold text-night">
                       {t("hero.float.bookingTitle")}
                     </span>
-                    <span className="block text-mk-note text-ink-soft">{t("hero.float.bookingText")}</span>
-                  </span>
-                </div>
-                <div className="hn-float absolute bottom-[6%] left-0 flex items-center gap-3 rounded-2xl border border-hairline bg-white/95 py-2.5 pl-2.5 pr-4 shadow-[0_18px_36px_-20px_rgba(15,24,48,.5)] backdrop-blur sm:-left-8">
-                  <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-accent-soft text-accent">
-                    <GlobeLine className="size-[18px]" />
-                  </span>
-                  <span className="leading-tight">
-                    <span className="block text-mk-small font-medium text-night">
-                      {t("hero.float.siteTitle")}
+                    <span className="flex items-center gap-1 text-mk-note text-ink-soft">
+                      {t("hero.float.bookingText")}
                     </span>
-                    <span className="block text-mk-note text-ink-soft">{t("hero.float.siteText")}</span>
                   </span>
                 </div>
-                <div className="hn-float-late absolute right-0 top-[50%] flex items-center gap-3 rounded-2xl border border-hairline bg-white/95 py-2.5 pl-2.5 pr-4 shadow-[0_18px_36px_-20px_rgba(15,24,48,.5)] backdrop-blur sm:-right-4">
-                  <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-[#e7f6ee] text-[#1f7a4d]">
-                    <BellLine className="size-[18px]" />
+                <div
+                  className={`hn-float-late max-sm:hidden lg:-right-14 lg:top-[38%] sm:-right-6 sm:top-[42%] absolute flex items-center gap-3 rounded-2xl border border-white/70 bg-white/95 py-2.5 pl-2.5 pr-5 shadow-[0_20px_40px_-18px_rgba(5,8,30,.75),0_0_0_1px_rgba(123,63,228,.08)] backdrop-blur`}
+                >
+                  <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-[#efeaff] text-violet">
+                    <BellLine className="size-5" />
                   </span>
                   <span className="leading-tight">
-                    <span className="block text-mk-small font-medium text-night">
+                    <span className="flex items-center gap-1.5 text-mk-small font-semibold text-night">
                       {t("hero.float.reminderTitle")}
                     </span>
-                    <span className="block text-mk-note text-ink-soft">{t("hero.float.reminderText")}</span>
+                    <span className="flex items-center gap-1 text-mk-note text-ink-soft">
+                      {t("hero.float.reminderText")}
+                    </span>
+                  </span>
+                </div>
+                <div
+                  className={`hn-float -right-1 bottom-[22%] sm:-right-4 lg:-right-8 lg:bottom-[24%] absolute flex items-center gap-3 rounded-2xl border border-white/70 bg-white/95 py-2.5 pl-2.5 pr-5 shadow-[0_20px_40px_-18px_rgba(5,8,30,.75),0_0_0_1px_rgba(123,63,228,.08)] backdrop-blur`}
+                >
+                  <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-[#efeaff] text-violet">
+                    <CardLine className="size-5" />
+                  </span>
+                  <span className="leading-tight">
+                    <span className="flex items-center gap-1.5 text-mk-small font-semibold text-night">
+                      {t("hero.float.depositTitle")}
+                    </span>
+                    <span className="flex items-center gap-1 text-mk-note text-ink-soft">
+                      {t("hero.float.depositText")} <CheckLine className="size-3.5 text-[#1f9d63]" />
+                    </span>
+                  </span>
+                </div>
+                <div
+                  className={`hn-float-late max-lg:hidden -left-16 bottom-[18%] xl:-left-20 absolute flex items-center gap-3 rounded-2xl border border-white/70 bg-white/95 py-2.5 pl-2.5 pr-5 shadow-[0_20px_40px_-18px_rgba(5,8,30,.75),0_0_0_1px_rgba(123,63,228,.08)] backdrop-blur`}
+                >
+                  <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-[#efeaff] text-violet">
+                    <GlobeLine className="size-5" />
+                  </span>
+                  <span className="leading-tight">
+                    <span className="flex items-center gap-1.5 text-mk-small font-semibold text-night">
+                      {t("hero.float.siteTitle")}
+                    </span>
+                    <span className="flex items-center gap-1 text-mk-note text-ink-soft">
+                      {t("hero.float.siteText")}
+                    </span>
                   </span>
                 </div>
               </div>

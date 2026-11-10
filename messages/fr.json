@@ -82,7 +82,9 @@
         "reminderTitle": "Rappel envoyé",
         "reminderText": "La veille du rendez-vous",
         "siteTitle": "Votre site est en ligne",
-        "siteText": "Prêt sur téléphone et ordinateur"
+        "siteText": "Prêt sur téléphone et ordinateur",
+        "depositTitle": "Acompte payé",
+        "depositText": "Réservation confirmée"
       }
     },
     "solutions": {
