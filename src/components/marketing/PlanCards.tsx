@@ -30,12 +30,16 @@ const ICONS = [LeafLine, CrownLine, DiamondLine];
 const VISIBLE_LINES = 9;
 /** Fonctions annoncées montrées d'emblée ; les suivantes se déplient. */
 const UPCOMING_SHOWN = 4;
-/** Bouton du premier pack : dégradé de l'accent avec reflet. */
-const ENTRY_BUTTON =
-  "hn-shine bg-gradient-to-r from-accent to-accent-strong text-white shadow-[inset_0_1px_0_rgba(255,255,255,.2),0_14px_30px_-14px_var(--color-accent)] hover:brightness-110";
-/** Bouton du pack le plus complet : lavande sur fond sombre. */
-const TOP_BUTTON =
-  "hn-shine bg-deep text-champagne shadow-[inset_0_1px_0_rgba(255,255,255,.08),0_14px_30px_-14px_rgba(18,26,44,.7)] hover:bg-[#151a4a]";
+/** Boutons des packs clairs : blanc, filet en dégradé violet → bleu du logo. */
+const OUTLINE_BUTTON =
+  "border-2 border-transparent text-night [background:linear-gradient(#fff,#fff)_padding-box,linear-gradient(110deg,#7b3fe4,#2563eb)_border-box] hover:shadow-[0_12px_28px_-14px_rgba(91,70,240,.6)]";
+const ENTRY_BUTTON = OUTLINE_BUTTON;
+const TOP_BUTTON = OUTLINE_BUTTON;
+/** Bouton du pack mis en avant : dégradé du « S » (magenta → violet → bleu), avec reflet. */
+const FEATURED_BUTTON =
+  "hn-shine hn-brand-gradient text-white focus-visible:outline-white shadow-[0_14px_32px_-12px_rgba(165,47,216,.75)] hover:brightness-110";
+/** Pictogramme des packs : carré arrondi au dégradé du logo. */
+const ICON_BOX = "bg-[linear-gradient(135deg,var(--color-violet),var(--color-azure-dark))] text-white";
 
 /**
  * Cartes des packs (Starter, Pro, Business) : nom, prix, description, ce que
@@ -119,14 +123,8 @@ export async function PlanCards({
         });
         const check = (
           <span
-            className={`mt-[1px] flex size-[18px] flex-none items-center justify-center rounded-full ${
-              featured
-                ? "bg-champagne/20 text-champagne"
-                : entry
-                  ? "bg-accent text-white"
-                  : top
-                    ? "bg-[#e4dcff] text-copper"
-                    : "bg-accent-soft text-accent"
+            className={`mt-[1px] flex size-[18px] flex-none items-center justify-center rounded-full text-white ${
+              featured ? "hn-brand-gradient" : ICON_BOX
             }`}
           >
             <CheckLine className="size-3" />
@@ -164,9 +162,9 @@ export async function PlanCards({
               featured
                 ? "bg-[radial-gradient(120%_60%_at_50%_-8%,#1d2366_0%,#0b1033_55%,#070b24_100%)] text-[#d5dbe8] shadow-[0_40px_80px_-36px_rgba(18,26,44,.85),0_0_0_1px_rgba(160,140,255,.08)] [--spot:rgba(160,140,255,.11)] md:max-lg:order-first lg:-my-3 lg:py-10"
                 : entry
-                  ? "bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-accent)_7%,white)_0%,#fff_42%)] shadow-[0_1px_2px_rgba(15,24,48,.04),0_30px_60px_-36px_color-mix(in_srgb,var(--color-accent)_60%,transparent)] [--spot:color-mix(in_srgb,var(--color-accent)_10%,transparent)] hover:-translate-y-1 hover:shadow-[0_36px_70px_-34px_color-mix(in_srgb,var(--color-accent)_70%,transparent)]"
+                  ? "bg-white shadow-[0_1px_2px_rgba(15,24,48,.04),0_30px_60px_-36px_rgba(91,70,240,.45)] [--spot:rgba(123,63,228,.08)] hover:-translate-y-1 hover:shadow-[0_36px_70px_-34px_rgba(91,70,240,.55)]"
                   : top
-                    ? "bg-[linear-gradient(180deg,#ffffff_0%,#f4f2ff_100%)] shadow-[0_1px_2px_rgba(15,24,48,.04),0_30px_60px_-36px_rgba(91,70,200,.35)] [--spot:rgba(160,140,255,.16)] hover:-translate-y-1 hover:shadow-[0_36px_70px_-34px_rgba(91,70,200,.45)]"
+                    ? "bg-white shadow-[0_1px_2px_rgba(15,24,48,.04),0_30px_60px_-36px_rgba(91,70,200,.35)] [--spot:rgba(160,140,255,.16)] hover:-translate-y-1 hover:shadow-[0_36px_70px_-34px_rgba(91,70,200,.45)]"
                     : "border border-hairline bg-white/90 shadow-[0_1px_2px_rgba(15,24,48,.04),0_12px_32px_-24px_rgba(15,24,48,.18)] backdrop-blur-sm [--spot:color-mix(in_srgb,var(--color-accent)_9%,transparent)] hover:-translate-y-1 hover:shadow-[0_28px_50px_-30px_rgba(15,24,48,.35)]"
             }`}
           >
@@ -174,7 +172,7 @@ export async function PlanCards({
               <>
                 {/* Filet complet et halo de l'accent de la solution. */}
                 <span aria-hidden="true" className="hn-edge hn-edge-full" />
-                <p className="absolute right-5 top-0 -translate-y-1/2 rounded-full bg-gradient-to-r from-accent to-accent-strong px-3 py-1 text-[0.875rem] font-medium tracking-[0.02em] text-white shadow-[0_6px_16px_-8px_var(--color-accent)]">
+                <p className="absolute right-5 top-0 -translate-y-1/2 rounded-full bg-[linear-gradient(110deg,var(--color-violet),var(--color-azure-dark))] px-3 py-1 text-[0.875rem] font-medium tracking-[0.02em] text-white shadow-[0_6px_16px_-8px_rgba(91,70,240,.8)]">
                   {t("entryTag")}
                 </p>
               </>
@@ -204,24 +202,23 @@ export async function PlanCards({
                   aria-hidden="true"
                   className="pointer-events-none absolute inset-x-0 top-0 h-40 rounded-t-[1.4rem] bg-gradient-to-b from-champagne/10 to-transparent"
                 />
-                <p className="absolute right-5 top-0 -translate-y-1/2 rounded-full bg-gradient-to-r from-violet to-azure-dark px-3 py-1 text-[0.875rem] font-medium tracking-[0.02em] text-white">
+                <p className="hn-brand-gradient absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full px-4 py-1.5 text-[0.9375rem] font-semibold tracking-[0.01em] text-white shadow-[0_10px_24px_-10px_rgba(165,47,216,.8)]">
+                  <span aria-hidden="true" className="mr-1.5">
+                    ★
+                  </span>
                   {t("recommended")}
                 </p>
               </>
             )}
             <div className="relative flex items-center gap-3">
               <span
-                className={`flex size-11 items-center justify-center rounded-full ${
+                className={`flex size-12 flex-none items-center justify-center rounded-[0.9rem] ${ICON_BOX} ${
                   featured
-                    ? "bg-champagne/15 text-champagne"
-                    : entry
-                      ? "bg-gradient-to-br from-accent to-accent-strong text-white shadow-[0_8px_18px_-8px_var(--color-accent)] ring-4 ring-accent-soft"
-                      : top
-                        ? "bg-gradient-to-br from-[#efebff] to-[#d9d1ff] text-copper shadow-[0_8px_18px_-8px_rgba(91,70,200,.4)] ring-4 ring-champagne-soft"
-                        : "bg-accent-soft text-accent"
+                    ? "shadow-[0_10px_24px_-10px_rgba(123,63,228,.9)] ring-1 ring-white/20"
+                    : "shadow-[0_10px_22px_-10px_rgba(91,70,240,.7)]"
                 }`}
               >
-                <Icon className="size-[22px]" />
+                <Icon className="size-6" />
               </span>
               <div>
                 <h3 className={`font-display text-mk-card font-semibold tracking-[-0.015em] ${strong}`}>
@@ -237,12 +234,7 @@ export async function PlanCards({
 
             <div className={`relative mt-6 ${withYearly ? "lg:min-h-[4.6rem]" : ""}`}>
               <p data-billing-only={withYearly ? "month" : undefined} className="flex items-baseline gap-2">
-                {bigPrice(
-                  plan.priceCents,
-                  featured,
-                  strong,
-                  entry ? "text-accent" : top ? "text-copper" : "",
-                )}
+                {bigPrice(plan.priceCents, featured, strong, "")}
                 <span className={`text-[1.0625rem] ${muted}`}>
                   {paid ? t("perMonth", { display }) : t("freeSuffix")}
                 </span>
@@ -250,12 +242,7 @@ export async function PlanCards({
               {withYearly && (
                 <div data-billing-only="year">
                   <p className="flex items-baseline gap-2">
-                    {bigPrice(
-                      yearlyCents,
-                      featured,
-                      strong,
-                      entry ? "text-accent" : top ? "text-copper" : "",
-                    )}
+                    {bigPrice(yearlyCents, featured, strong, "")}
                     <span className={`text-[1.0625rem] ${muted}`}>{t("perYear", { display })}</span>
                   </p>
                   <p className={`mt-1.5 text-[0.9375rem] ${muted}`}>
@@ -395,13 +382,13 @@ export async function PlanCards({
                 aria-label={t("choose", { plan: name })}
                 className={`group flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-[1.0625rem] font-medium transition duration-200 motion-reduce:transition-none ${
                   featured
-                    ? "hn-shine bg-gradient-to-r from-violet via-[#4f5bf0] to-azure-dark text-white focus-visible:outline-white shadow-[0_12px_30px_-14px_rgba(160,140,255,.7)] hover:brightness-105"
+                    ? FEATURED_BUTTON
                     : top && paid
                       ? TOP_BUTTON
                       : entry && paid
                         ? ENTRY_BUTTON
                         : paid
-                          ? "bg-accent text-white shadow-[inset_0_1px_0_rgba(255,255,255,.2),0_12px_26px_-16px_var(--color-accent)] hover:bg-accent-strong"
+                          ? OUTLINE_BUTTON
                           : "border border-hairline bg-white text-night hover:border-accent-line hover:text-accent-strong"
                 }`}
               >
@@ -415,13 +402,13 @@ export async function PlanCards({
                   aria-label={t("choose", { plan: name })}
                   className={`group flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-[1.0625rem] font-medium transition duration-200 motion-reduce:transition-none ${
                     featured
-                      ? "hn-shine bg-gradient-to-r from-violet via-[#4f5bf0] to-azure-dark text-white focus-visible:outline-white shadow-[0_12px_30px_-14px_rgba(160,140,255,.7)] hover:brightness-105"
+                      ? FEATURED_BUTTON
                       : top && paid
                         ? TOP_BUTTON
                         : entry && paid
                           ? ENTRY_BUTTON
                           : paid
-                            ? "bg-accent text-white shadow-[inset_0_1px_0_rgba(255,255,255,.2),0_12px_26px_-16px_var(--color-accent)] hover:bg-accent-strong"
+                            ? OUTLINE_BUTTON
                             : "border border-hairline bg-white text-night hover:border-accent-line hover:text-accent-strong"
                   }`}
                 >

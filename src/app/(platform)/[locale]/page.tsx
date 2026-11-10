@@ -5,6 +5,7 @@ import { formatMoney } from "@/lib/format";
 import Image from "next/image";
 import { connection } from "next/server";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { SirineMark } from "@/components/brand/Logo";
 import { PlatformFooter } from "@/components/layout/PlatformFooter";
 import { PlatformHeader } from "@/components/layout/PlatformHeader";
 import {
@@ -459,10 +460,16 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
 
               {/* Vraie capture de l'espace sur téléphone (données d'exemple), deux notifications qui flottent. */}
               <div className="hn-up-3 relative mx-auto w-full max-w-[24rem] lg:max-w-[28rem]">
+                {/* Empreinte du logo : le « S » lumineux, en grand derrière le téléphone. */}
                 <div
                   aria-hidden="true"
-                  className="absolute inset-x-6 top-10 bottom-6 rounded-[3rem] bg-[radial-gradient(closest-side,var(--accent),transparent)] opacity-20 blur-3xl"
-                />
+                  className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                >
+                  <SirineMark
+                    onDark
+                    className="hn-float-late size-[22rem] max-w-none opacity-40 sm:size-[28rem] lg:size-[32rem]"
+                  />
+                </div>
                 <div className="relative mx-auto w-[14rem] sm:w-[17rem] lg:w-[18.5rem]">
                   <div className="rounded-[2.6rem] border border-[#2a3043] bg-[#1d2333] p-2 shadow-[0_40px_70px_-30px_rgba(15,24,48,.6)]">
                     <Image
@@ -546,7 +553,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                       <h3 className={`${TITLE} hn-balance mt-4 text-mk-h2 leading-[1.1]`}>
                         {t(`solutions.items.${code}.title`)}
                         <br />
-                        <span className="text-accent">
+                        <span className="hn-grad-text">
                           {coralStop(t(`solutions.items.${code}.titleAccent`))}
                         </span>
                       </h3>
@@ -670,7 +677,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   className={`${TITLE} hn-balance mt-4 text-mk-h2 leading-[1.1]`}
                 >
                   {t("dashboard.title")}{" "}
-                  <span className="block text-accent">{coralStop(t("dashboard.titleAccent"))}</span>
+                  <span className="hn-grad-text block">{coralStop(t("dashboard.titleAccent"))}</span>
                 </h2>
                 <p data-reveal className="mt-4 text-mk-lead text-ink-soft">
                   {t("dashboard.text")}
@@ -711,7 +718,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   className={`${TITLE} hn-balance mt-4 text-mk-h2 leading-[1.1]`}
                 >
                   {t("selfService.title")}{" "}
-                  <span className="text-accent">{coralStop(t("selfService.titleAccent"))}</span>
+                  <span className="hn-grad-text">{coralStop(t("selfService.titleAccent"))}</span>
                 </h2>
                 <p data-reveal className="mt-4 max-w-[36rem] text-mk-lead text-ink-soft">
                   {t("selfService.text")}
@@ -871,7 +878,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               className={`${TITLE} mt-4 max-w-[44rem] text-mk-h2 leading-[1.1]`}
             >
               {t("benefits.title")}{" "}
-              <span className="text-accent">{coralStop(t("benefits.titleAccent"))}</span>
+              <span className="hn-grad-text">{coralStop(t("benefits.titleAccent"))}</span>
             </h2>
             {/* Téléphone : une rangée de cartes qui se fait glisser (la suivante dépasse) ; au-delà : grille. */}
             <ul
@@ -929,7 +936,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 className={`${TITLE} mt-4 max-w-[44rem] text-mk-h2 leading-[1.1]`}
               >
                 {t("showcase.title")}{" "}
-                <span className="text-accent">{coralStop(t("showcase.titleAccent"))}</span>
+                <span className="hn-grad-text">{coralStop(t("showcase.titleAccent"))}</span>
               </h2>
               <ul className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
                 {data.showcase.map((entry) => (
@@ -969,30 +976,34 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             aria-labelledby="titre-tarifs"
             className="relative isolate mx-auto max-w-[75rem] 2xl:max-w-[88rem] scroll-mt-20 px-4 pt-20 sm:px-6 lg:pt-28"
           >
-            {/* Fond des packs : trame de points et halos doux de l'accent et du champagne. */}
+            {/* Fond des packs : trame de points, halos et arcs lumineux violet → bleu du logo dans les coins. */}
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute left-1/2 top-40 -z-10 h-[46rem] w-screen -translate-x-1/2 overflow-hidden"
+              className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[64rem] w-screen -translate-x-1/2 overflow-hidden"
             >
-              <div className="hn-dots absolute inset-0" />
-              <div className="hn-drift absolute left-[8%] top-24 size-[22rem] rounded-full bg-accent/10 blur-[90px]" />
-              <div className="absolute left-1/2 top-10 -translate-x-1/2">
-                <div className="hn-drift-slow size-[26rem] rounded-full bg-champagne/20 blur-[100px]" />
+              <div className="hn-dots absolute inset-0 top-40" />
+              <div className="hn-drift absolute left-[8%] top-48 size-[22rem] rounded-full bg-violet/10 blur-[90px]" />
+              <div className="absolute left-1/2 top-32 -translate-x-1/2">
+                <div className="hn-drift-slow size-[26rem] rounded-full bg-azure/10 blur-[100px]" />
               </div>
+              <div className="absolute -left-[26rem] -top-[20rem] size-[40rem] rounded-full border-[3px] border-violet/40 shadow-[0_0_50px_rgba(123,63,228,.25)] max-sm:-left-[32rem]" />
+              <div className="absolute -right-[28rem] top-[30rem] size-[44rem] rounded-full border-[3px] border-azure/40 shadow-[0_0_50px_rgba(47,128,255,.22)] max-sm:-right-[36rem]" />
             </div>
-            <div className="mb-10 flex flex-wrap items-end justify-between gap-4 lg:mb-12">
-              <div data-reveal>
-                <h2 id="titre-tarifs" className={`${TITLE} text-mk-h2 leading-[1.1]`}>
+            {/* En-tête centré, comme la maquette : empreinte du logo, titre en dégradé, choix Mensuel / Annuel. */}
+            <div className="mb-10 flex flex-col items-center gap-5 text-center lg:mb-14">
+              <div data-reveal className="flex flex-col items-center">
+                <SirineMark className="mb-4 size-14 drop-shadow-[0_10px_24px_rgba(123,63,228,.35)]" />
+                <h2 id="titre-tarifs" className={`${TITLE} hn-balance text-mk-h2 leading-[1.1]`}>
                   {t("plans.title")}
                   {shown.map((code) => (
-                    <span key={code} data-only={code} className="text-accent">
+                    <span key={code} data-only={code} className="hn-grad-text">
                       {" "}
                       {t(`solutions.items.${code}.name`)}
                     </span>
                   ))}
                   <span className="text-coral">.</span>
                 </h2>
-                <p className="mt-2 max-w-[36rem] text-ink-soft">{t("plans.subtitle")}</p>
+                <p className="mt-3 max-w-[36rem] text-mk-lead text-ink-soft">{t("plans.subtitle")}</p>
               </div>
               {/* Mensuel / Annuel : seulement si le paiement à l'année est proposé (réglage). */}
               {data.yearly.enabled ? (
@@ -1084,6 +1095,9 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               aria-hidden="true"
               className="hn-drift-slow pointer-events-none absolute -bottom-24 -right-10 size-80 rounded-full bg-champagne/40 blur-[80px]"
             />
+            {/* Empreinte du logo, discrète, dans les coins du bandeau. */}
+            <SirineMark className="pointer-events-none absolute -bottom-16 -right-16 size-64 opacity-[0.12] sm:size-80" />
+            <SirineMark className="pointer-events-none absolute -left-12 -top-12 size-40 opacity-[0.08] max-sm:hidden" />
             <p className="relative inline-flex flex-col items-center gap-0.5 rounded-2xl border border-champagne/60 bg-white/80 px-4 py-1.5 text-mk-small font-medium text-navy sm:flex-row sm:gap-2 sm:rounded-full">
               <span className="inline-flex items-center gap-2">
                 {EYEBROW_DOT}

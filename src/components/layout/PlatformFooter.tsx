@@ -1,6 +1,6 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { WhatsAppBubble } from "@/components/marketing/WhatsAppBubble";
-import { Logo } from "@/components/brand/Logo";
+import { Logo, SirineMark } from "@/components/brand/Logo";
 import { NAV } from "@/components/layout/PlatformHeader";
 import { ArrowLine, MailLine } from "@/components/marketing/line-icons";
 import { SocialCards, socialHandle, type SocialNetwork } from "@/components/marketing/SocialCards";
@@ -102,8 +102,14 @@ export async function PlatformFooter() {
             </div>
 
             {/* Déjà client : accès direct à l'espace pro. */}
-            <div className="self-start rounded-[1.4rem] border border-champagne/35 bg-[linear-gradient(160deg,rgba(255,255,255,0.09),rgba(255,255,255,0.03))] shadow-[0_24px_50px_-30px_rgba(0,0,0,0.8)] p-6 backdrop-blur-sm lg:p-7">
-              <p className="font-display text-mk-card font-semibold tracking-[-0.02em] text-white">
+            <div className="relative self-start overflow-hidden rounded-[1.4rem] border border-champagne/35 bg-[linear-gradient(160deg,rgba(255,255,255,0.09),rgba(255,255,255,0.03))] shadow-[0_24px_50px_-30px_rgba(0,0,0,0.8)] p-6 backdrop-blur-sm lg:p-7">
+              {/* Empreinte du logo dans le coin de la carte. */}
+              <SirineMark
+                onDark
+                className="pointer-events-none absolute -right-10 -top-10 size-40 opacity-25"
+              />
+              <p className="relative flex items-center gap-2.5 font-display text-mk-card font-semibold tracking-[-0.02em] text-white">
+                <SirineMark onDark className="size-8" />
                 {t("proCardTitle")}
               </p>
               <p className="mt-2 text-[0.9375rem] leading-relaxed text-[#c8d0e4]">{t("proCardText")}</p>

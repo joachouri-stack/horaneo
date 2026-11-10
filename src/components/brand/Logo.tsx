@@ -31,3 +31,22 @@ export function Logo({ productName, className, light = false }: LogoProps) {
     </span>
   );
 }
+
+/**
+ * Empreinte de la marque : le « S » dans son cercle lumineux (fichier officiel détouré).
+ * Décorative (ignorée par les lecteurs d'écran). onDark : version pour fond sombre.
+ */
+export function SirineMark({ className, onDark = false }: { className?: string; onDark?: boolean }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- image détourée du logo officiel, servie telle quelle
+    <img
+      src={onDark ? "/brand/mark-on-dark.webp" : "/brand/mark-on-light.webp"}
+      alt=""
+      aria-hidden="true"
+      width={512}
+      height={512}
+      decoding="async"
+      className={className}
+    />
+  );
+}
