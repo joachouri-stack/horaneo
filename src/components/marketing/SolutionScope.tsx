@@ -67,7 +67,7 @@ export function SolutionTabs({
       role="group"
       aria-label={label}
       // Deux ou trois solutions présentées (une solution en pause n'a pas d'onglet).
-      className={`relative z-10 -mt-9 grid gap-1.5 rounded-[1.6rem] border border-white/80 bg-white/90 p-1.5 shadow-[0_24px_50px_-28px_rgba(43,37,128,.55),0_0_0_1px_rgba(123,63,228,.08)] backdrop-blur ${
+      className={`relative z-10 -mt-9 grid gap-1.5 rounded-[1.6rem] border border-white bg-white p-1.5 shadow-[0_24px_50px_-28px_rgba(43,37,128,.55),0_0_0_1px_rgba(123,63,228,.08)] ${
         items.length === 2 ? "grid-cols-2" : "grid-cols-3"
       }`}
     >
