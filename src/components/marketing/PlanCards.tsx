@@ -108,8 +108,10 @@ export async function PlanCards({
     return tGrid(`${base}.card` as "rows.photos.card", { count: line.count ?? 0 });
   };
 
+  // Packs côte à côte : en rangée à faire glisser sur téléphone et tablette (la carte suivante
+  // dépasse), en grille de trois sur ordinateur.
   return (
-    <PlanSpotlight className="grid gap-5 md:max-lg:mx-auto md:max-lg:max-w-[36rem] lg:grid-cols-3 lg:items-stretch lg:gap-6">
+    <PlanSpotlight className="-mx-4 flex snap-x snap-mandatory scroll-px-4 items-stretch gap-4 overflow-x-auto px-4 pb-10 pt-6 [scrollbar-width:none] sm:-mx-6 sm:scroll-px-6 sm:px-6 lg:mx-0 lg:grid lg:snap-none lg:grid-cols-3 lg:gap-6 lg:overflow-visible lg:px-0 lg:pb-0 lg:pt-0">
       {plans.map((plan, index) => {
         // Pack mis en avant (« Le plus populaire ») : celui du milieu dans une grille de trois, sinon le dernier.
         const featured =
@@ -170,9 +172,9 @@ export async function PlanCards({
             key={plan.id}
             data-plan={plan.code}
             data-reveal
-            className={`hn-spot relative flex flex-col rounded-[1.4rem] p-6 transition duration-300 motion-reduce:transition-none lg:p-7 ${
+            className={`hn-spot relative flex w-[86%] flex-none snap-center flex-col rounded-[1.4rem] p-6 transition sm:w-[46%] lg:w-auto duration-300 motion-reduce:transition-none lg:p-7 ${
               featured
-                ? "bg-[radial-gradient(120%_60%_at_50%_-8%,#1d2366_0%,#0b1033_55%,#070b24_100%)] text-[#d5dbe8] shadow-[0_40px_80px_-36px_rgba(18,26,44,.85),0_0_0_1px_rgba(160,140,255,.08)] [--spot:rgba(160,140,255,.11)] md:max-lg:order-first lg:-my-3 lg:py-10"
+                ? "bg-[radial-gradient(120%_60%_at_50%_-8%,#1d2366_0%,#0b1033_55%,#070b24_100%)] text-[#d5dbe8] shadow-[0_40px_80px_-36px_rgba(18,26,44,.85),0_0_0_1px_rgba(160,140,255,.08)] [--spot:rgba(160,140,255,.11)] lg:-my-3 lg:py-10"
                 : entry
                   ? "bg-white shadow-[0_1px_2px_rgba(15,24,48,.04),0_30px_60px_-36px_rgba(91,70,240,.45)] [--spot:rgba(123,63,228,.08)] hover:-translate-y-1 hover:shadow-[0_36px_70px_-34px_rgba(91,70,240,.55)]"
                   : top
