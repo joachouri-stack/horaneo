@@ -75,7 +75,7 @@
       "demo": "Voir la démonstration",
       "pricing": "Voir les tarifs",
       "points": ["Site à votre image", "Modifiable sur téléphone", "Réservation en ligne en option"],
-      "visualAlt": "Capture de l'espace de gestion sur téléphone : rendez-vous du jour (données d'exemple)",
+      "visualAlt": "Aperçu de l'espace de gestion sur téléphone : rendez-vous du jour (données d'exemple)",
       "float": {
         "bookingTitle": "Nouvelle réservation",
         "bookingText": "Soin du visage · samedi 10:00",
