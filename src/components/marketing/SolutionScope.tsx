@@ -61,7 +61,8 @@ export function SolutionTabs({
   soonLabel: string;
 }) {
   const context = useContext(Context);
-  if (!context) return null;
+  // Une seule solution présentée (les autres masquées dans les réglages) : rien à choisir.
+  if (!context || items.length < 2) return null;
   return (
     <div
       role="group"

@@ -47,6 +47,7 @@ import {
   ScissorsLine,
   WrenchLine,
 } from "@/components/marketing/line-icons";
+import { AllFeatures } from "@/components/marketing/AllFeatures";
 import { PlanCards } from "@/components/marketing/PlanCards";
 import { RevealOnScroll } from "@/components/marketing/RevealOnScroll";
 import { RotatingWord } from "@/components/marketing/RotatingWord";
@@ -952,6 +953,8 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 );
               })}
             </ul>
+            {/* Liste complète, repliée : pour celles qui veulent tous les détails. */}
+            <AllFeatures plans={data.plans} soon={data.soon} />
           </section>
 
           {/* Témoignages réels saisis dans l'admin (section masquée s'il n'y en a pas). */}

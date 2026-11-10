@@ -847,6 +847,11 @@
           "title": "Export de vos données",
           "text": "Clients, rendez-vous et paiements en tableaux, à télécharger quand vous voulez.{plan, select, none {} other { Dès le pack {plan}.}}"
         }
+      },
+      "all": {
+        "show": "Voir toutes les fonctionnalités",
+        "hide": "Masquer la liste",
+        "compare": "Comparer les packs en détail"
       }
     },
     "comparison": {
