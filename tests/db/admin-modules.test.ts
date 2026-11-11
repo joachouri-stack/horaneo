@@ -210,6 +210,26 @@ describe.skipIf(!hasTestDatabase)("espace admin : modules", () => {
       expect(await platform((tx) => getPlatformSetting(tx, "vat_rate_percent"))).toBe(before);
     });
 
+    it("réglages : une solution passe en « masquée » et le reste", async () => {
+      await platform((tx) =>
+        updatePlatformSettings(tx, {
+          solutions_available: ["booking"],
+          solutions_hidden: ["commerce", "formation"],
+        }),
+      );
+      expect(await platform((tx) => getPlatformSetting(tx, "solutions"))).toEqual([
+        { code: "booking", status: "available" },
+        { code: "commerce", status: "hidden" },
+        { code: "formation", status: "hidden" },
+      ]);
+      // Un autre réglage enregistré ensuite ne la fait pas réapparaître.
+      await platform((tx) => updatePlatformSettings(tx, { whatsapp_number: "" }));
+      expect((await platform((tx) => getPlatformSetting(tx, "solutions")))[1]).toEqual({
+        code: "commerce",
+        status: "hidden",
+      });
+    });
+
     it("réglages : numéro WhatsApp mis au format international, numéro invalide refusé", async () => {
       await platform((tx) => updatePlatformSettings(tx, { whatsapp_number: "06 12 34 56 78" }));
       expect(await platform((tx) => getPlatformSetting(tx, "whatsapp_number"))).toBe("+33612345678");

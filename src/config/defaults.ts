@@ -60,7 +60,7 @@ export const DEFAULT_PLATFORM_SETTINGS = {
    */
   solutions: [
     { code: "booking", status: "available" },
-    { code: "commerce", status: "soon" },
+    { code: "commerce", status: "hidden" },
     { code: "formation", status: "hidden" },
   ] as SolutionSetting[],
   /** Adresse d'une démonstration en ligne ; vide : le bouton « Voir la démonstration » est masqué. */
