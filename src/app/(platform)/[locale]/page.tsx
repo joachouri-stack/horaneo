@@ -184,8 +184,6 @@ const EYEBROW =
   "inline-flex items-center gap-2 rounded-full bg-coral/10 px-3 py-1 text-[0.875rem] font-medium uppercase tracking-[0.08em] text-coral-dark";
 const PRIMARY =
   "hn-shine group inline-flex min-h-12 items-center gap-2 rounded-xl bg-accent px-5 text-[1.0625rem] font-medium text-white shadow-[0_12px_24px_-14px_var(--accent)] transition hover:-translate-y-px hover:bg-accent-strong motion-reduce:transition-none";
-const SECONDARY =
-  "inline-flex min-h-12 items-center gap-2 rounded-xl border border-hairline bg-white px-5 text-[1.0625rem] font-medium text-night transition hover:border-accent-line hover:text-accent-strong";
 /** Accroche sur fond bleu nuit : bouton principal au dégradé du logo, secondaire translucide. */
 const HERO_PRIMARY = `${PRIMARY} bg-[linear-gradient(120deg,var(--color-violet),var(--color-azure-dark))] shadow-[0_16px_36px_-14px_rgba(91,90,255,.85)]`;
 const HERO_SECONDARY =
@@ -610,7 +608,9 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                           })}
                         />
                       </div>
-                      {isSoon(code) ? (
+                      {/* Solution disponible : pas de boutons ici, « Créer mon site » et « Voir les tarifs »
+                          sont déjà dans l'accroche juste au-dessus. Solution annoncée : demande de rappel. */}
+                      {isSoon(code) && (
                         <div className="mt-7">
                           <Link href={{ pathname: "/rappel", query: { solution: code } }} className={PRIMARY}>
                             {t("solutions.ctaSoon")}
@@ -619,23 +619,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                           <p className="mt-3 max-w-[30rem] text-[0.9375rem] text-ink-soft">
                             {t("solutions.soonNote")}
                           </p>
-                        </div>
-                      ) : (
-                        <div className="mt-7 flex flex-wrap gap-3">
-                          <Link href={startHref} className={PRIMARY}>
-                            {t("cta")}
-                            <ArrowLine className="size-[18px] transition-transform group-hover:translate-x-0.5" />
-                          </Link>
-                          {data.demoUrl ? (
-                            <a href={data.demoUrl} target="_blank" rel="noopener" className={SECONDARY}>
-                              <PlayCircleLine className="size-[18px] text-accent" />
-                              {t("hero.demo")}
-                            </a>
-                          ) : (
-                            <a href="#tarifs" className={SECONDARY}>
-                              {t("hero.pricing")}
-                            </a>
-                          )}
                         </div>
                       )}
                     </div>
