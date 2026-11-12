@@ -27,6 +27,7 @@ import {
   PlayCircleLine,
   PlayLine,
   PlusLine,
+  MessageLine,
   RefreshLine,
   SparkleLine,
   StoreLine,
@@ -48,6 +49,7 @@ import {
   WrenchLine,
 } from "@/components/marketing/line-icons";
 import { AllFeatures } from "@/components/marketing/AllFeatures";
+import { TestimonialCard } from "@/components/marketing/TestimonialCard";
 import { PlanCards } from "@/components/marketing/PlanCards";
 import { RevealOnScroll } from "@/components/marketing/RevealOnScroll";
 import { RotatingWord } from "@/components/marketing/RotatingWord";
@@ -900,32 +902,19 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               <ul className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
                 {data.showcase.map((entry) => (
                   <li key={entry.id} data-reveal>
-                    <figure className="flex h-full flex-col rounded-2xl border border-hairline bg-white p-5 shadow-[0_1px_2px_rgba(15,24,48,.04)] lg:p-6">
-                      <span aria-hidden="true" className="font-display text-4xl leading-none text-coral">
-                        “
-                      </span>
-                      <blockquote className="mt-2 flex-1 text-mk-body leading-relaxed text-night">
-                        {entry.quote}
-                      </blockquote>
-                      <figcaption className="mt-5 border-t border-hairline pt-4 text-mk-small text-ink-soft">
-                        <span className="block font-semibold text-night">{entry.author}</span>
-                        {entry.name} · {entry.activity}
-                        {entry.url && (
-                          <a
-                            href={entry.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-2 flex w-fit items-center gap-1 font-medium text-accent-strong underline-offset-4 hover:underline"
-                          >
-                            {t("showcase.visit", { name: entry.name })}
-                            <ArrowLine className="size-4" />
-                          </a>
-                        )}
-                      </figcaption>
-                    </figure>
+                    <TestimonialCard entry={entry} visitLabel={t("showcase.visit", { name: entry.name })} />
                   </li>
                 ))}
               </ul>
+              <p className="mt-6">
+                <Link
+                  href="/avis"
+                  className="inline-flex min-h-11 items-center gap-1.5 font-medium text-violet underline-offset-4 hover:underline"
+                >
+                  {t("showcase.allReviews")}
+                  <ArrowLine className="size-4" />
+                </Link>
+              </p>
             </section>
           )}
         </SolutionScope>
@@ -963,68 +952,86 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           </div>
         </section>
 
-        {/* Bandeau final : carte claire nacrée, pour trancher avec le pied de page sombre. */}
+        {/* Bandeau final : carte compacte au dégradé du logo, les infos clés tirées des réglages
+            (essai, prix d'entrée, délai, formule sans engagement) et deux actions. */}
         <section className="px-4 pb-16 sm:px-6 lg:pb-24">
           <div
             data-reveal
-            className="relative mx-auto max-w-[72rem] overflow-hidden rounded-[1.75rem] border border-champagne/50 bg-[linear-gradient(160deg,#ffffff,#f4f2ff_55%,#e9efff)] px-6 py-12 text-center shadow-[0_30px_60px_-40px_rgba(27,42,74,0.45)] sm:py-14 lg:py-16 2xl:max-w-[85rem]"
+            className="relative mx-auto max-w-[72rem] overflow-hidden rounded-[1.75rem] bg-[linear-gradient(125deg,#5b2bd6,#7b3fe4_35%,#2563eb)] px-5 py-9 text-white shadow-[0_30px_60px_-30px_rgba(91,43,214,.7)] sm:px-10 sm:py-12 2xl:max-w-[85rem]"
           >
-            <div
-              aria-hidden="true"
-              className="hn-drift pointer-events-none absolute -left-16 -top-24 size-80 rounded-full bg-coral/10 blur-[80px]"
+            <SirineMark
+              onDark
+              className="pointer-events-none absolute -bottom-20 -right-16 size-72 opacity-20 sm:size-96"
             />
             <div
               aria-hidden="true"
-              className="hn-drift-slow pointer-events-none absolute -bottom-24 -right-10 size-80 rounded-full bg-champagne/40 blur-[80px]"
+              className="hn-drift pointer-events-none absolute -left-20 -top-28 size-80 rounded-full bg-white/15 blur-[80px]"
             />
-            {/* Empreinte du logo, discrète, dans les coins du bandeau. */}
-            <SirineMark className="pointer-events-none absolute -bottom-16 -right-16 size-64 opacity-[0.12] sm:size-80" />
-            <SirineMark className="pointer-events-none absolute -left-12 -top-12 size-40 opacity-[0.08] max-sm:hidden" />
-            <p className="relative inline-flex flex-col items-center gap-0.5 rounded-2xl border border-champagne/60 bg-white/80 px-4 py-1.5 text-mk-small font-medium text-navy sm:flex-row sm:gap-2 sm:rounded-full">
-              <span className="inline-flex items-center gap-2">
-                {EYEBROW_DOT}
-                {t("hero.offer", { price: faqValues.price, display: data.display })}
-              </span>
-              {data.goLiveDays > 0 && (
-                <>
-                  <span aria-hidden="true" className="hidden text-champagne sm:inline">
-                    ·
-                  </span>
-                  <span>{t("hero.goLive", { days: data.goLiveDays })}</span>
-                </>
-              )}
-            </p>
-            <h2 className="relative mx-auto mt-5 max-w-[40rem] font-display text-mk-h2 font-semibold tracking-[-0.025em] text-night">
-              {coralStop(t("final.title"))}
-            </h2>
-            <p className="relative mx-auto mt-3 max-w-[32rem] text-[1.0625rem] text-ink-soft">
-              {t("final.text")}
-            </p>
-            <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link
-                href={startHref}
-                className="hn-shine group inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-navy px-6 text-[1.0625rem] font-medium text-white shadow-[0_14px_28px_-14px_rgba(27,42,74,0.8)] transition hover:-translate-y-px hover:bg-navy-light motion-reduce:transition-none sm:w-auto"
-              >
-                {t("final.cta")}
-                <ArrowLine className="size-[18px] transition-transform group-hover:translate-x-0.5" />
-              </Link>
-              <Link
-                href={{ pathname: "/", hash: "tarifs" }}
-                className="inline-flex min-h-12 items-center gap-2 rounded-xl px-5 text-[1.0625rem] font-medium text-navy underline-offset-4 transition hover:underline"
-              >
-                {t("hero.pricing")}
-              </Link>
+            <div className="relative grid gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-center lg:gap-12">
+              <div>
+                <h2 className="hn-balance font-display text-mk-h2 font-semibold leading-[1.1] tracking-[-0.025em] text-white">
+                  {t("final.title")}
+                </h2>
+                <p className="mt-3 max-w-[34rem] text-[1.0625rem] leading-relaxed text-white/85">
+                  {t("final.text")}
+                </p>
+                <ul className="mt-6 grid grid-cols-2 gap-x-4 gap-y-3 text-mk-small font-medium sm:max-w-[40rem]">
+                  {[
+                    data.trialDays > 0 && {
+                      key: "trial",
+                      Icon: GiftLine,
+                      text: t("plans.trial", { days: data.trialDays }),
+                    },
+                    first && {
+                      key: "price",
+                      Icon: TagLine,
+                      text: t("hero.offer", { price: faqValues.price, display: data.display }),
+                    },
+                    data.goLiveDays > 0 && {
+                      key: "golive",
+                      Icon: ClockLine,
+                      text: t("hero.goLive", { days: data.goLiveDays }),
+                    },
+                    data.noCommitment && { key: "free", Icon: CheckLine, text: t("final.noCommitment") },
+                    // Inclus dès le premier pack seulement (fonctions des packs, réglées dans l'admin).
+                    first?.features.maintenance && {
+                      key: "updates",
+                      Icon: RefreshLine,
+                      text: t("final.updates"),
+                    },
+                    first?.features.whatsappSupport && {
+                      key: "support",
+                      Icon: MessageLine,
+                      text: first.features.technicalSupport247 ? t("final.support247") : t("final.support"),
+                    },
+                  ]
+                    .filter((item) => item !== false && item !== undefined)
+                    .map((item) => (
+                      <li key={item.key} className="flex items-start gap-2.5">
+                        <span className="flex size-7 flex-none items-center justify-center rounded-lg bg-white/15 ring-1 ring-white/25">
+                          <item.Icon className="size-4" />
+                        </span>
+                        <span className="pt-1 leading-snug">{item.text}</span>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+              <div className="flex flex-col gap-3 lg:items-stretch">
+                <Link
+                  href={startHref}
+                  className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-white px-6 text-[1.0625rem] font-semibold text-[#4c1fc4] shadow-[0_14px_30px_-14px_rgba(10,15,46,.6)] transition hover:-translate-y-px motion-reduce:transition-none"
+                >
+                  {t("final.cta")}
+                  <ArrowLine className="size-[18px] transition-transform group-hover:translate-x-0.5" />
+                </Link>
+                <Link
+                  href="/rappel"
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/40 px-6 text-[1.0625rem] font-medium text-white transition hover:bg-white/10"
+                >
+                  {t("plans.callback")}
+                </Link>
+              </div>
             </div>
-            <ul className="relative mx-auto mt-8 flex w-fit flex-col items-start gap-x-6 gap-y-2 text-mk-small text-ink-soft sm:flex-row sm:flex-wrap sm:justify-center">
-              {(t.raw("hero.points") as string[]).map((point) => (
-                <li key={point} className="flex items-center gap-2">
-                  <span className="flex size-5 flex-none items-center justify-center rounded-full bg-coral/10 text-coral-dark">
-                    <CheckLine className="size-3" />
-                  </span>
-                  {point}
-                </li>
-              ))}
-            </ul>
           </div>
         </section>
       </main>

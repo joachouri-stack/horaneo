@@ -160,6 +160,11 @@ export async function PlatformFooter() {
                   </Link>
                 </li>
                 <li>
+                  <Link href="/avis" className={LINK}>
+                    {t("reviews")}
+                  </Link>
+                </li>
+                <li>
                   <a href={`mailto:${contact}`} className={LINK}>
                     {t("contact")}
                   </a>

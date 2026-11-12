@@ -48,6 +48,7 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
       "social_tiktok",
       "social_instagram",
       "social_facebook",
+      "trustpilot_url",
       "whatsapp_number",
       "whatsapp_message",
     ] as const;
@@ -177,6 +178,17 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
                 />
               ),
             )}
+          </div>
+          <div className="mt-4">
+            <TextField
+              name="trustpilot_url"
+              type="url"
+              inputMode="url"
+              autoComplete="off"
+              label={t("trustpilot_url")}
+              hint={t("trustpilotHint")}
+              defaultValue={String(s.trustpilot_url)}
+            />
           </div>
         </Section>
         {/* Bulle WhatsApp en bas à droite du site commercial (masquée sans numéro). */}

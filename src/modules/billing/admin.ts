@@ -284,6 +284,14 @@ export const settingsInput = z.object({
   social_tiktok: socialLink("tiktok"),
   social_instagram: socialLink("instagram"),
   social_facebook: socialLink("facebook"),
+  /** Page Trustpilot (avis indépendants) : adresse https, ou vide. */
+  trustpilot_url: z
+    .string()
+    .trim()
+    .max(300)
+    .default("")
+    .transform((value) => (!value || /^https?:\/\//i.test(value) ? value : `https://${value}`))
+    .pipe(z.union([z.literal(""), z.url({ protocol: /^https?$/ })])),
   go_live_delay_days: settingNumber(z.number().int().min(0).max(60)),
   trial_days: settingNumber(z.number().int().min(0).max(60)),
   deposit_commission_percent: settingNumber(z.number().min(0).max(20)),
