@@ -17,7 +17,7 @@ export const DEFAULT_PLATFORM_SETTINGS = {
    * Essai gratuit de l'abonnement à la première souscription, en jours (0 = pas d'essai).
    * L'abonnement n'est prélevé qu'à la fin de l'essai ; l'engagement commence après l'essai.
    */
-  trial_days: 14,
+  trial_days: 30,
   /** Durée d'engagement en mois (0 = sans engagement). */
   commitment_months: 12,
   /** Préavis avant d'appliquer le nouveau prix d'un pack à un abonné (après la fin de son engagement), en jours. */

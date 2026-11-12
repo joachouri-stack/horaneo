@@ -33,8 +33,13 @@ const INTERNAL_PATHS: Record<string, string> = {
   "/robots.txt": "/seo/robots",
 };
 
-/** Adresses indépendantes du domaine (la tâche planifiée est protégée par son secret). */
-const MACHINE_PATHS = ["/api/health", "/api/cron"];
+/**
+ * Adresses indépendantes du domaine : elles répondent sur n'importe quel nom (ancien domaine
+ * compris), sans redirection que leurs appelants ne suivraient pas. La tâche planifiée est
+ * protégée par son secret, les notifications Stripe par leur signature, les agendas
+ * synchronisés par leur jeton.
+ */
+const MACHINE_PATHS = ["/api/health", "/api/cron", "/api/stripe", "/api/calendar"];
 
 function hasPrefix(pathname: string, prefix: string) {
   return pathname === prefix || pathname.startsWith(`${prefix}/`);
