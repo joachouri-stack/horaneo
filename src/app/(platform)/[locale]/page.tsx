@@ -27,6 +27,7 @@ import {
   PlayCircleLine,
   PlayLine,
   PlusLine,
+  MessageLine,
   RefreshLine,
   SparkleLine,
   StoreLine,
@@ -974,7 +975,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 <p className="mt-3 max-w-[34rem] text-[1.0625rem] leading-relaxed text-white/85">
                   {t("final.text")}
                 </p>
-                <ul className="mt-6 grid grid-cols-2 gap-x-4 gap-y-3 text-mk-small font-medium sm:max-w-[34rem]">
+                <ul className="mt-6 grid grid-cols-2 gap-x-4 gap-y-3 text-mk-small font-medium sm:max-w-[40rem]">
                   {[
                     data.trialDays > 0 && {
                       key: "trial",
@@ -992,6 +993,17 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                       text: t("hero.goLive", { days: data.goLiveDays }),
                     },
                     data.noCommitment && { key: "free", Icon: CheckLine, text: t("final.noCommitment") },
+                    // Inclus dès le premier pack seulement (fonctions des packs, réglées dans l'admin).
+                    first?.features.maintenance && {
+                      key: "updates",
+                      Icon: RefreshLine,
+                      text: t("final.updates"),
+                    },
+                    first?.features.whatsappSupport && {
+                      key: "support",
+                      Icon: MessageLine,
+                      text: first.features.technicalSupport247 ? t("final.support247") : t("final.support"),
+                    },
                   ]
                     .filter((item) => item !== false && item !== undefined)
                     .map((item) => (

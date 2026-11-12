@@ -934,7 +934,10 @@
       "title": "Prêt à lancer votre site ?",
       "text": "Nous créons votre site à votre image, puis vous le gérez vous-même, sans compétence technique.",
       "cta": "Créer mon site",
-      "noCommitment": "Sans engagement possible"
+      "noCommitment": "Sans engagement : résiliable chaque mois",
+      "updates": "Mises à jour et maintenance incluses",
+      "support": "Assistance par WhatsApp",
+      "support247": "Assistance WhatsApp · service technique 7 j/7"
     },
     "options": {
       "requires": "Nécessite : {names}",
