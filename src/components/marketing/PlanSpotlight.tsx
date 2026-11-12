@@ -19,46 +19,36 @@ type Labels = { previous: string; next: string; goTo: string };
  * un « clic » feutré très court, puis une note cristalline brève. Elle monte légèrement vers la
  * droite et descend vers la gauche, pour accompagner le mouvement. Volume faible.
  */
-function playTick(context: AudioContext, direction: 1 | -1) {
+function playTick(context: AudioContext) {
   const now = context.currentTime;
-  const out = context.createGain();
-  out.gain.value = 0.9;
-  out.connect(context.destination);
 
-  // Clic feutré : un souffle de bruit de 12 ms, filtré dans les aigus.
-  const length = Math.floor(context.sampleRate * 0.012);
+  // Clic tactile : un petit « toc » sourd, comme un retour haptique, identique dans les deux sens.
+  const tone = context.createOscillator();
+  const gain = context.createGain();
+  tone.type = "sine";
+  tone.frequency.setValueAtTime(300, now);
+  tone.frequency.exponentialRampToValueAtTime(160, now + 0.03);
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(0.12, now + 0.002);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.045);
+  tone.connect(gain).connect(context.destination);
+  tone.start(now);
+  tone.stop(now + 0.05);
+
+  // Léger souffle de 8 ms dans les aigus pour la netteté du clic.
+  const length = Math.floor(context.sampleRate * 0.008);
   const noise = context.createBuffer(1, length, context.sampleRate);
   const samples = noise.getChannelData(0);
   for (let i = 0; i < length; i += 1) samples[i] = (Math.random() * 2 - 1) * (1 - i / length);
   const click = context.createBufferSource();
   click.buffer = noise;
-  const band = context.createBiquadFilter();
-  band.type = "bandpass";
-  band.frequency.value = 3800;
-  band.Q.value = 1.2;
+  const high = context.createBiquadFilter();
+  high.type = "highpass";
+  high.frequency.value = 2500;
   const clickGain = context.createGain();
-  clickGain.gain.value = 0.05;
-  click.connect(band).connect(clickGain).connect(out);
+  clickGain.gain.value = 0.04;
+  click.connect(high).connect(clickGain).connect(context.destination);
   click.start(now);
-
-  // Note cristalline : fondamentale et quinte douces, glissement d'un demi-ton selon le sens.
-  const base = direction === 1 ? 1568 : 1397; // sol 6 vers la droite, fa 6 vers la gauche
-  for (const [ratio, level] of [
-    [1, 0.035],
-    [1.5, 0.012],
-  ] as const) {
-    const tone = context.createOscillator();
-    const gain = context.createGain();
-    tone.type = "sine";
-    tone.frequency.setValueAtTime(base * ratio * (direction === 1 ? 0.94 : 1.06), now + 0.01);
-    tone.frequency.exponentialRampToValueAtTime(base * ratio, now + 0.05);
-    gain.gain.setValueAtTime(0.0001, now + 0.01);
-    gain.gain.exponentialRampToValueAtTime(level, now + 0.018);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
-    tone.connect(gain).connect(out);
-    tone.start(now + 0.01);
-    tone.stop(now + 0.18);
-  }
 }
 
 export function PlanSpotlight({
@@ -103,12 +93,11 @@ export function PlanSpotlight({
 
   useEffect(() => {
     if (active === previous.current) return;
-    const direction = active > previous.current ? 1 : -1;
     previous.current = active;
     const context = audio.current;
     if (!context) return;
     if (context.state === "suspended") void context.resume();
-    playTick(context, direction);
+    playTick(context);
   }, [active]);
 
   // Carte la plus proche du centre de la rangée = point allumé.
