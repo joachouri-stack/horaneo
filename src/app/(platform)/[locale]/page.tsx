@@ -683,7 +683,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             </div>
           </section>
 
-          {/* Exemple de site : maquette d'un établissement fictif (clairement indiqué sous l'image). */}
+          {/* Exemple de site : maquette d'un établissement fictif (présentée comme un exemple par le titre). */}
           <section aria-labelledby="titre-exemple" className="px-4 pt-20 sm:px-6 lg:pt-28">
             <div className="mx-auto max-w-[72rem] 2xl:max-w-[85rem]">
               <div className="mx-auto max-w-[46rem] text-center">
@@ -714,9 +714,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     className="h-auto w-full"
                   />
                 </div>
-                <figcaption className="mt-3 text-center text-[0.875rem] text-ink-soft">
-                  {t("example.note")}
-                </figcaption>
               </figure>
             </div>
           </section>
