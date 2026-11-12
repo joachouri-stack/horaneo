@@ -553,7 +553,7 @@ export const DEFAULT_GRID_PLANS: PlanSeed[] = [
       aiTexts: 100,
       aiImages: 20,
       chatbotQuestions: 20,
-      extraLanguages: 4,
+      extraLanguages: 3,
     },
     features: GRID_BUSINESS,
   },
