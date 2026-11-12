@@ -146,8 +146,8 @@ const STRIP: Record<Solution, (typeof CheckLine)[]> = {
 /** Pictogrammes des quatre usages de l'espace de gestion (dans l'ordre des textes). */
 
 /**
- * Tuiles des fonctionnalités : une icône et quelques mots. `pack` : fonction du pack dont dépend
- * la tuile (« Dès le pack … » si le premier pack ne l'a pas) ; `feature` : « Bientôt » si annoncée.
+ * Tuiles des fonctionnalités : une icône et quelques mots, sans mention de pack. `feature` :
+ * fonction annoncée (icône plus claire tant qu'elle n'est pas disponible).
  */
 const FEATURE_TILES = [
   { key: "catalog", Icon: TagLine, label: "" },
@@ -155,16 +155,11 @@ const FEATURE_TILES = [
   { key: "logo", Icon: PaletteLine, label: "selfService.items.logo.title" },
   { key: "texts", Icon: FileLine, label: "selfService.items.texts.title" },
   { key: "hours", Icon: ClockLine, label: "selfService.items.hours.title" },
-  {
-    key: "testimonials",
-    Icon: StarLine,
-    label: "selfService.items.testimonials.title",
-    pack: "testimonials",
-  },
-  { key: "promotions", Icon: PercentLine, label: "selfService.items.promotions.title", pack: "promotions" },
-  { key: "marketing", Icon: MegaphoneLine, label: "benefits.items.marketing.title", pack: "loyalty" },
-  { key: "reviews", Icon: StarLine, label: "benefits.items.reviews.title", pack: "googleReviews" },
-  { key: "dataExport", Icon: DownloadLine, label: "benefits.items.dataExport.title", pack: "dataExport" },
+  { key: "testimonials", Icon: StarLine, label: "selfService.items.testimonials.title" },
+  { key: "promotions", Icon: PercentLine, label: "selfService.items.promotions.title" },
+  { key: "marketing", Icon: MegaphoneLine, label: "benefits.items.marketing.title" },
+  { key: "reviews", Icon: StarLine, label: "benefits.items.reviews.title" },
+  { key: "dataExport", Icon: DownloadLine, label: "benefits.items.dataExport.title" },
   {
     key: "automation",
     Icon: RefreshLine,
@@ -871,7 +866,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             >
               {FEATURE_TILES.map((tile) => {
                 const later = "feature" in tile && soon.has(tile.feature);
-                const plan = "pack" in tile ? firstPlanWith(tile.pack) : "none";
                 return (
                   <li
                     key={tile.key}
@@ -893,17 +887,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                             ))
                           : t(tile.label)}
                       </span>
-                      {later ? (
-                        <span className="mt-0.5 block text-[0.8125rem] text-ink-soft">
-                          {t("plans.soonTag")}
-                        </span>
-                      ) : (
-                        plan !== "none" && (
-                          <span className="mt-0.5 block text-[0.8125rem] font-medium text-violet">
-                            {t("selfService.fromPlan", { plan })}
-                          </span>
-                        )
-                      )}
                     </span>
                   </li>
                 );

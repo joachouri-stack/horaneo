@@ -833,7 +833,6 @@
         "saved": "Modification enregistrée",
         "savedText": "Votre site est à jour"
       },
-      "fromPlan": "Dès le pack {plan}",
       "note": "Les fonctions disponibles dépendent de votre pack.",
       "noteLink": "Comparer les packs",
       "listLabel": "Ce que vous modifiez vous-même"
