@@ -683,6 +683,44 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             </div>
           </section>
 
+          {/* Exemple de site : maquette d'un établissement fictif (clairement indiqué sous l'image). */}
+          <section aria-labelledby="titre-exemple" className="px-4 pt-20 sm:px-6 lg:pt-28">
+            <div className="mx-auto max-w-[72rem] 2xl:max-w-[85rem]">
+              <div className="mx-auto max-w-[46rem] text-center">
+                <p data-reveal className={EYEBROW}>
+                  {EYEBROW_DOT}
+                  {t("example.badge")}
+                </p>
+                <h2
+                  id="titre-exemple"
+                  data-reveal
+                  className={`${TITLE} hn-balance mt-4 text-mk-h2 leading-[1.1]`}
+                >
+                  {t("example.title")}{" "}
+                  <span className="hn-grad-text block">{coralStop(t("example.titleAccent"))}</span>
+                </h2>
+                <p data-reveal className="mt-4 text-mk-lead text-ink-soft">
+                  {t("example.text")}
+                </p>
+              </div>
+              <figure data-reveal className="mt-10 lg:mt-12">
+                <div className="-mx-2 overflow-hidden rounded-[1rem] shadow-[0_40px_90px_-40px_rgba(15,24,48,.55)] sm:mx-0 sm:rounded-[1.2rem] lg:rounded-[1.8rem]">
+                  <Image
+                    src="/images/exemple-site-coiffure.webp"
+                    width={1672}
+                    height={941}
+                    alt={t("example.alt")}
+                    sizes="(min-width: 1536px) 85rem, (min-width: 1152px) 72rem, 100vw"
+                    className="h-auto w-full"
+                  />
+                </div>
+                <figcaption className="mt-3 text-center text-[0.875rem] text-ink-soft">
+                  {t("example.note")}
+                </figcaption>
+              </figure>
+            </div>
+          </section>
+
           {/* Le tableau de bord (Réservation) : aperçu de l'espace de gestion. */}
           <section
             data-only="booking"
