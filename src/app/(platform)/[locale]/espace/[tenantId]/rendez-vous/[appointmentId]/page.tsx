@@ -5,6 +5,7 @@ import { CheckboxField, Hidden, SelectField, TextArea, TextField } from "@/compo
 import { ui } from "@/components/ui/styles";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
+import { isDeletable } from "@/modules/agenda/actions";
 import { getAppointmentDetail } from "@/modules/agenda/queries";
 import { loadBookingContext } from "@/modules/booking/availability";
 import { utcToLocal } from "@/modules/booking/time";
@@ -13,6 +14,7 @@ import { depositSummary } from "@/modules/payments/refunds";
 import { formatPhone } from "@/modules/phone";
 import {
   cancelAppointmentAction,
+  deleteAppointmentAction,
   moveAppointmentAction,
   setAttendanceAction,
   updateNoteAction,
@@ -290,6 +292,42 @@ export default async function AppointmentPage({
           </ActionForm>
         </details>
       )}
+
+      {/* Rendez-vous terminé ou passé : suppression définitive (saisie par erreur, essai). Un bouton
+          discret ; la confirmation explique que c'est irréversible. */}
+      {isDeletable(item) && (
+        <div className="flex flex-col items-center gap-2 pt-2 text-center">
+          <ActionForm
+            action={deleteAppointmentAction}
+            submitLabel={t("appointment.delete")}
+            submitIcon={<TrashIcon />}
+            variant="dangerOutline"
+            confirm={t("appointment.deleteConfirm")}
+            className="flex w-full flex-col items-center gap-3"
+          >
+            <Hidden values={hidden} />
+          </ActionForm>
+          <p className="max-w-[24rem] text-sm text-ink/60">{t("appointment.deleteHint")}</p>
+        </div>
+      )}
     </div>
+  );
+}
+
+/** Corbeille (bouton de suppression). */
+function TrashIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className="size-[18px]"
+    >
+      <path d="M4 7h16M10 11v6M14 11v6M5.5 7l1 12a2 2 0 0 0 2 1.8h7a2 2 0 0 0 2-1.8l1-12M9 7V4.5h6V7" />
+    </svg>
   );
 }

@@ -3,7 +3,16 @@ import { assertQuota } from "@/modules/quotas";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
-import { appointmentItems, appointments, customers, services, staffServices, tenants } from "@/db/schema";
+import {
+  appointmentItems,
+  appointments,
+  customers,
+  giftCardTransactions,
+  payments,
+  services,
+  staffServices,
+  tenants,
+} from "@/db/schema";
 import { assignManageToken } from "@/modules/booking/create";
 import { isValidBirthday } from "@/modules/customers/birthday";
 import { computeTotals } from "@/modules/booking/pricing";
@@ -320,4 +329,53 @@ export async function updateInternalNote(
     .update(appointments)
     .set({ internalNote: note.trim().slice(0, 500) || null })
     .where(eq(appointments.id, appointment.id));
+}
+
+/** Statuts d'un rendez-vous terminé, qu'on peut supprimer (les rendez-vous à venir s'annulent). */
+const DELETABLE_STATUSES = ["attended", "no_show", "cancelled", "expired"] as const;
+
+/** Rendez-vous supprimable : terminé, ou passé mais resté « confirmé » (jamais marqué venue / absente). */
+export function isDeletable(appointment: { status: string; endsAt: Date }, now = new Date()) {
+  if ((DELETABLE_STATUSES as readonly string[]).includes(appointment.status)) return true;
+  return appointment.status === "confirmed" && appointment.endsAt <= now;
+}
+
+/**
+ * Suppression définitive d'un rendez-vous terminé ou passé (erreur de saisie, essai) : il disparaît de
+ * l'agenda, de la fiche cliente et des statistiques, avec ses prestations, ses messages et son
+ * point de fidélité. Refusée si un acompte en ligne ou une carte cadeau y est lié : ces
+ * mouvements d'argent restent pour la comptabilité. Un rendez-vous à venir s'annule (la
+ * cliente est prévenue) au lieu d'être supprimé.
+ */
+export async function deleteAppointment(
+  tx: Transaction,
+  tenantId: string,
+  appointmentId: string,
+  now = new Date(),
+) {
+  const appointment = await loadAppointment(tx, tenantId, appointmentId, true);
+  if (!isDeletable(appointment, now)) throw new AppError("appointment_not_deletable");
+  const [payment] = await tx
+    .select({ id: payments.id })
+    .from(payments)
+    .where(and(eq(payments.tenantId, tenantId), eq(payments.appointmentId, appointment.id)))
+    .limit(1);
+  const [giftCard] = await tx
+    .select({ id: giftCardTransactions.id })
+    .from(giftCardTransactions)
+    .where(
+      and(
+        eq(giftCardTransactions.tenantId, tenantId),
+        eq(giftCardTransactions.appointmentId, appointment.id),
+      ),
+    )
+    .limit(1);
+  if (payment || giftCard) throw new AppError("appointment_has_payment");
+  // Un rendez-vous déplacé garde la trace de l'ancien : le lien est retiré, pas le rendez-vous.
+  await tx
+    .update(appointments)
+    .set({ rescheduledFromId: null })
+    .where(and(eq(appointments.tenantId, tenantId), eq(appointments.rescheduledFromId, appointment.id)));
+  await tx.delete(appointments).where(eq(appointments.id, appointment.id));
+  return { deleted: true };
 }

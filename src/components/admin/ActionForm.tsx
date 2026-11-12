@@ -14,7 +14,9 @@ type Props = {
   resetOnSuccess?: boolean;
   className?: string;
   /** Bouton discret (actions secondaires). */
-  variant?: "primary" | "secondary" | "link" | "danger";
+  variant?: "primary" | "secondary" | "link" | "danger" | "dangerOutline";
+  /** Pictogramme affiché devant le texte du bouton. */
+  submitIcon?: React.ReactNode;
   confirm?: string;
   encType?: "multipart/form-data";
   /** Message affiché après succès quand l'action n'en renvoie pas (à la place de « Enregistré »). */
@@ -47,6 +49,7 @@ export function ActionForm({
   resetOnSuccess,
   className,
   variant = "primary",
+  submitIcon,
   confirm,
   successMessage,
   stickySubmit,
@@ -112,7 +115,9 @@ export function ActionForm({
         ? `${ui.secondaryButton} sm:w-auto`
         : variant === "danger"
           ? "inline-flex min-h-11 items-center font-semibold text-coral-dark underline disabled:opacity-60"
-          : "inline-flex min-h-11 items-center font-semibold text-night underline disabled:opacity-60";
+          : variant === "dangerOutline"
+            ? "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#f1c5bf] bg-white px-5 font-semibold text-[#b4372a] transition hover:bg-[#fdecea] disabled:opacity-60 sm:w-auto"
+            : "inline-flex min-h-11 items-center font-semibold text-night underline disabled:opacity-60";
 
   const list = new Intl.ListFormat(locale, { type: "conjunction" });
   const alertText =
@@ -164,6 +169,7 @@ export function ActionForm({
           {feedback}
           {submitLabel && (
             <button type="submit" disabled={pending} className={buttonClass}>
+              {submitIcon}
               {submitLabel}
             </button>
           )}
@@ -173,6 +179,7 @@ export function ActionForm({
           {feedback}
           {submitLabel && (
             <button type="submit" disabled={pending} className={buttonClass}>
+              {submitIcon}
               {submitLabel}
             </button>
           )}
