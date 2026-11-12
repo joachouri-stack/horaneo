@@ -720,6 +720,86 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             </div>
           </section>
 
+          {/* Choisissez votre pack : juste après l'aperçu de l'espace, pour voir les prix sans trop défiler. */}
+          <section
+            id="tarifs"
+            aria-labelledby="titre-tarifs"
+            className="relative isolate mx-auto max-w-[75rem] 2xl:max-w-[88rem] scroll-mt-20 px-4 pt-12 sm:px-6 sm:pt-16 lg:pt-20"
+          >
+            {/* Fond des packs : trame de points, halos et arcs lumineux violet → bleu du logo dans les coins. */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[64rem] w-screen -translate-x-1/2 overflow-hidden"
+            >
+              <div className="hn-dots absolute inset-0 top-40" />
+              <div className="hn-drift absolute left-[8%] top-48 size-[22rem] rounded-full bg-violet/10 blur-[90px]" />
+              <div className="absolute left-1/2 top-32 -translate-x-1/2">
+                <div className="hn-drift-slow size-[26rem] rounded-full bg-azure/10 blur-[100px]" />
+              </div>
+              <div className="absolute -left-[26rem] -top-[20rem] size-[40rem] rounded-full border-[3px] border-violet/40 shadow-[0_0_50px_rgba(123,63,228,.25)] max-sm:-left-[32rem]" />
+              <div className="absolute -right-[28rem] top-[30rem] size-[44rem] rounded-full border-[3px] border-azure/40 shadow-[0_0_50px_rgba(47,128,255,.22)] max-sm:-right-[36rem]" />
+            </div>
+            {/* En-tête centré, comme la maquette : empreinte du logo, titre en dégradé, choix Mensuel / Annuel. */}
+            <div className="mb-5 flex flex-col items-center gap-4 text-center sm:mb-8 lg:mb-10">
+              <div data-reveal className="flex flex-col items-center">
+                <SirineMark className="mb-3 size-10 drop-shadow-[0_10px_24px_rgba(123,63,228,.35)] sm:size-12 lg:size-14" />
+                <h2 id="titre-tarifs" className={`${TITLE} hn-balance text-mk-h2 leading-[1.1]`}>
+                  {t("plans.title")}
+                  {shown.map((code) => (
+                    <span key={code} data-only={code} className="hn-grad-text">
+                      {" "}
+                      {t(`solutions.items.${code}.name`)}
+                    </span>
+                  ))}
+                  <span className="text-coral">.</span>
+                </h2>
+                <p className="mt-2 max-w-[36rem] text-mk-body text-ink-soft sm:mt-3 sm:text-mk-lead">
+                  {t(shown.length > 1 ? "plans.subtitle" : "plans.subtitleSingle")}
+                </p>
+              </div>
+              {/* Mensuel / Annuel : seulement si le paiement à l'année est proposé (réglage). */}
+              {data.yearly.enabled ? (
+                <BillingToggle
+                  labels={{
+                    group: t("plans.billingLabel"),
+                    month: t("plans.billingMonth"),
+                    year: t("plans.billingYear"),
+                    badge:
+                      data.yearly.freeMonths > 0
+                        ? t("plans.billingBadge", { months: data.yearly.freeMonths })
+                        : null,
+                  }}
+                />
+              ) : (
+                <p className="rounded-full bg-accent-soft px-3.5 py-1.5 text-[0.9375rem] font-medium text-accent-strong">
+                  {t("plans.monthly", { display: data.display })}
+                </p>
+              )}
+            </div>
+            {/* Solution en préparation : les packs se souscrivent aujourd'hui pour la Réservation. */}
+            {soonShown.map((code) => (
+              <p
+                key={code}
+                data-only={code}
+                className="mb-8 rounded-xl border border-accent-line bg-accent-soft px-4 py-3 text-[1.0625rem] text-accent-strong"
+              >
+                {t("plans.soonSolution", { solution: t(`solutions.items.${code}.name`) })}
+              </p>
+            ))}
+            <PlanCards
+              plans={data.plans}
+              locale={locale}
+              soon={data.soon}
+              display={data.display}
+              commitmentMonths={data.commitment}
+              noCommitment={data.noCommitment}
+              offers={data.offers}
+              yearly={data.yearly}
+              trialDays={data.trialDays}
+            />
+            <p className="mt-6 text-center text-[0.9375rem] text-ink-soft">{t("plans.quotaNote")}</p>
+          </section>
+
           {/* Autonomie : la gérante met son site à jour elle-même depuis son espace. */}
           <section
             aria-labelledby="titre-autonomie"
@@ -990,86 +1070,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               </ul>
             </section>
           )}
-
-          {/* Choisissez votre pack */}
-          <section
-            id="tarifs"
-            aria-labelledby="titre-tarifs"
-            className="relative isolate mx-auto max-w-[75rem] 2xl:max-w-[88rem] scroll-mt-20 px-4 pt-12 sm:px-6 sm:pt-16 lg:pt-20"
-          >
-            {/* Fond des packs : trame de points, halos et arcs lumineux violet → bleu du logo dans les coins. */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[64rem] w-screen -translate-x-1/2 overflow-hidden"
-            >
-              <div className="hn-dots absolute inset-0 top-40" />
-              <div className="hn-drift absolute left-[8%] top-48 size-[22rem] rounded-full bg-violet/10 blur-[90px]" />
-              <div className="absolute left-1/2 top-32 -translate-x-1/2">
-                <div className="hn-drift-slow size-[26rem] rounded-full bg-azure/10 blur-[100px]" />
-              </div>
-              <div className="absolute -left-[26rem] -top-[20rem] size-[40rem] rounded-full border-[3px] border-violet/40 shadow-[0_0_50px_rgba(123,63,228,.25)] max-sm:-left-[32rem]" />
-              <div className="absolute -right-[28rem] top-[30rem] size-[44rem] rounded-full border-[3px] border-azure/40 shadow-[0_0_50px_rgba(47,128,255,.22)] max-sm:-right-[36rem]" />
-            </div>
-            {/* En-tête centré, comme la maquette : empreinte du logo, titre en dégradé, choix Mensuel / Annuel. */}
-            <div className="mb-5 flex flex-col items-center gap-4 text-center sm:mb-8 lg:mb-10">
-              <div data-reveal className="flex flex-col items-center">
-                <SirineMark className="mb-3 size-10 drop-shadow-[0_10px_24px_rgba(123,63,228,.35)] sm:size-12 lg:size-14" />
-                <h2 id="titre-tarifs" className={`${TITLE} hn-balance text-mk-h2 leading-[1.1]`}>
-                  {t("plans.title")}
-                  {shown.map((code) => (
-                    <span key={code} data-only={code} className="hn-grad-text">
-                      {" "}
-                      {t(`solutions.items.${code}.name`)}
-                    </span>
-                  ))}
-                  <span className="text-coral">.</span>
-                </h2>
-                <p className="mt-2 max-w-[36rem] text-mk-body text-ink-soft sm:mt-3 sm:text-mk-lead">
-                  {t(shown.length > 1 ? "plans.subtitle" : "plans.subtitleSingle")}
-                </p>
-              </div>
-              {/* Mensuel / Annuel : seulement si le paiement à l'année est proposé (réglage). */}
-              {data.yearly.enabled ? (
-                <BillingToggle
-                  labels={{
-                    group: t("plans.billingLabel"),
-                    month: t("plans.billingMonth"),
-                    year: t("plans.billingYear"),
-                    badge:
-                      data.yearly.freeMonths > 0
-                        ? t("plans.billingBadge", { months: data.yearly.freeMonths })
-                        : null,
-                  }}
-                />
-              ) : (
-                <p className="rounded-full bg-accent-soft px-3.5 py-1.5 text-[0.9375rem] font-medium text-accent-strong">
-                  {t("plans.monthly", { display: data.display })}
-                </p>
-              )}
-            </div>
-            {/* Solution en préparation : les packs se souscrivent aujourd'hui pour la Réservation. */}
-            {soonShown.map((code) => (
-              <p
-                key={code}
-                data-only={code}
-                className="mb-8 rounded-xl border border-accent-line bg-accent-soft px-4 py-3 text-[1.0625rem] text-accent-strong"
-              >
-                {t("plans.soonSolution", { solution: t(`solutions.items.${code}.name`) })}
-              </p>
-            ))}
-            <PlanCards
-              plans={data.plans}
-              locale={locale}
-              soon={data.soon}
-              display={data.display}
-              commitmentMonths={data.commitment}
-              noCommitment={data.noCommitment}
-              offers={data.offers}
-              yearly={data.yearly}
-              trialDays={data.trialDays}
-            />
-            <p className="mt-6 text-center text-[0.9375rem] text-ink-soft">{t("plans.quotaNote")}</p>
-          </section>
         </SolutionScope>
 
         {/* Questions */}
