@@ -719,14 +719,15 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 </p>
               </div>
               <figure data-reveal className="mt-10 lg:mt-12">
-                <div className="rounded-[1.4rem] border border-hairline bg-white/70 p-1.5 shadow-[0_40px_90px_-40px_rgba(15,24,48,.45),0_0_0_1px_rgba(255,255,255,.6)_inset] backdrop-blur sm:p-2.5 lg:rounded-[1.8rem]">
+                {/* La photo seule, sans cadre blanc autour : coins arrondis et ombre portée. */}
+                <div className="-mx-2 overflow-hidden rounded-[1rem] shadow-[0_40px_90px_-40px_rgba(15,24,48,.55)] sm:mx-0 sm:rounded-[1.2rem] lg:rounded-[1.8rem]">
                   <Image
                     src="/images/espace-de-gestion-sirine.webp"
                     width={1672}
                     height={941}
                     alt={t("dashboard.alt")}
                     sizes="(min-width: 1536px) 85rem, (min-width: 1152px) 72rem, 100vw"
-                    className="h-auto w-full rounded-[1rem] lg:rounded-[1.3rem]"
+                    className="h-auto w-full"
                   />
                 </div>
                 <figcaption className="mt-3 text-center text-[0.875rem] text-ink-soft">
