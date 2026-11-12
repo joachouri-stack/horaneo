@@ -518,7 +518,7 @@ export const DEFAULT_GRID_PLANS: PlanSeed[] = [
     code: "pro",
     name: { fr: "Pro", en: "Pro", es: "Pro", ru: "Pro" },
     description: { fr: "Pour développer votre activité" },
-    priceCents: 3990,
+    priceCents: 3242,
     noCommitmentFeeCents: null,
     highlights: [],
     sortOrder: 2,
