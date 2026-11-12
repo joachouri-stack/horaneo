@@ -35,6 +35,8 @@ export type AppErrorCode =
   | "image_too_small"
   | "image_empty"
   | "category_not_empty"
+  | "appointment_not_deletable"
+  | "appointment_has_payment"
   | "domain_not_active"
   | "booking_closed"
   | "booking_quota_reached"

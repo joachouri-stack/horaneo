@@ -13,6 +13,7 @@ import { depositSummary } from "@/modules/payments/refunds";
 import { formatPhone } from "@/modules/phone";
 import {
   cancelAppointmentAction,
+  deleteAppointmentAction,
   moveAppointmentAction,
   setAttendanceAction,
   updateNoteAction,
@@ -287,6 +288,28 @@ export default async function AppointmentPage({
                 <p className="text-sm text-ink/70">{t("appointment.refundHint")}</p>
               </div>
             )}
+          </ActionForm>
+        </details>
+      )}
+
+      {/* Rendez-vous terminé : suppression définitive (saisie par erreur, essai). */}
+      {["attended", "no_show", "cancelled", "expired"].includes(item.status) && (
+        <details className={ui.card}>
+          <summary className="-m-5 flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 p-5 text-lg font-semibold sm:-m-6 sm:p-6 [&::-webkit-details-marker]:hidden text-[#b4372a]">
+            {t("appointment.delete")}
+            <span aria-hidden="true" className="text-ink-soft">
+              ▾
+            </span>
+          </summary>
+          <p className="mt-6 text-sm text-ink/70">{t("appointment.deleteHint")}</p>
+          <ActionForm
+            action={deleteAppointmentAction}
+            submitLabel={t("appointment.delete")}
+            variant="secondary"
+            confirm={t("appointment.deleteConfirm")}
+            className="mt-4"
+          >
+            <Hidden values={hidden} />
           </ActionForm>
         </details>
       )}

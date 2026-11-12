@@ -2,11 +2,12 @@ import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { withPlatform, withTenant } from "@/db/access";
 import type { Transaction } from "@/db/client";
-import { appointments, assets, authSessions, customers, usageCounters } from "@/db/schema";
+import { appointments, assets, authSessions, customers, payments, usageCounters } from "@/db/schema";
 import { setPlatformAdmin } from "@/db/admin-role";
 import {
   cancelByManager,
   createManualAppointment,
+  deleteAppointment,
   moveAppointment,
   setAttendance,
 } from "@/modules/agenda/actions";
@@ -632,6 +633,39 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
       expect(details.hours[10] + details.hours[14]).toBe(2);
       expect(details.averageBasketCents).toBe(7000);
       expect(details).toMatchObject({ customers: 2, returningCustomers: 0 });
+    });
+
+    it("rendez-vous terminé supprimé : il sort des statistiques ; à venir ou payé en ligne : refusé", async () => {
+      const s = await setup();
+      const a = await onlineBooking(s.id, s.massage.id, at("10:00"));
+      const b = await onlineBooking(s.id, s.massage.id, at("14:00"));
+      await asManager(s.id, (tx) => setAttendance(tx, s.id, a.appointmentId, "attended"));
+      // Encore « confirmé » (pas terminé) : il faut l'annuler, pas le supprimer.
+      expect(await errorCode(asManager(s.id, (tx) => deleteAppointment(tx, s.id, b.appointmentId)))).toBe(
+        "appointment_not_deletable",
+      );
+      await asManager(s.id, (tx) => deleteAppointment(tx, s.id, a.appointmentId));
+      expect(
+        await owner.select().from(appointments).where(eq(appointments.id, a.appointmentId)),
+      ).toHaveLength(0);
+      const stats = await asManager(s.id, (tx) => monthStats(tx, s.id, "2026-10", TZ, "fr"));
+      expect(stats).toMatchObject({ appointments: 1, revenueCents: 7000 });
+      // Acompte payé en ligne : gardé pour la comptabilité.
+      await asManager(s.id, (tx) => setAttendance(tx, s.id, b.appointmentId, "attended"));
+      const [row] = await owner.select().from(appointments).where(eq(appointments.id, b.appointmentId));
+      await owner.insert(payments).values({
+        tenantId: s.id,
+        businessId: row.businessId,
+        appointmentId: b.appointmentId,
+        stripePaymentIntentId: `pi_${Math.random()}`,
+        stripeAccountId: "acct_test",
+        amountCents: 2000,
+        currency: "EUR",
+        status: "succeeded",
+      });
+      expect(await errorCode(asManager(s.id, (tx) => deleteAppointment(tx, s.id, b.appointmentId)))).toBe(
+        "appointment_has_payment",
+      );
     });
 
     it("objectifs du mois : enregistrés, retirés quand le champ est vide, refusés s'ils sont invalides", async () => {

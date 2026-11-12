@@ -38,6 +38,7 @@ import { assertPrimaryBusiness } from "@/modules/businesses/businesses";
 import { storage } from "@/lib/storage";
 import {
   cancelByManager,
+  deleteAppointment,
   createManualAppointment,
   moveAppointment,
   setAttendance,
@@ -123,6 +124,17 @@ export async function cancelAppointmentAction(_previous: Previous, data: FormDat
         gateway: paymentGateway(),
       }),
   );
+}
+
+/** Suppression d'un rendez-vous terminé, puis retour à l'agenda (la page du rendez-vous n'existe plus). */
+export async function deleteAppointmentAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const result = await managerMutation(tenantId, "appointment.deleted", (tx) =>
+    deleteAppointment(tx, tenantId, idOf(data)!),
+  );
+  if (!result.ok) return result;
+  redirect({ href: `/espace/${tenantId}/agenda`, locale: resolveLocale(await getLocale()) });
+  return result;
 }
 
 export async function moveAppointmentAction(_previous: Previous, data: FormData) {
