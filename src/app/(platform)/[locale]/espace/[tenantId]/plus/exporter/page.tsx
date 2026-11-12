@@ -6,7 +6,7 @@ import { dataExportAllowed } from "@/modules/export/business-data";
 
 /** Export des données : la gérante récupère ses tableaux (avant de résilier ou à tout moment). */
 export default async function ExportPage({ params }: PageProps<"/[locale]/espace/[tenantId]/plus/exporter">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "owner");
   const t = await getTranslations("manager.export");
   const allowed = await page.db((tx) => dataExportAllowed(tx, page.tenantId, page.tenant.features));
   return (

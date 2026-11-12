@@ -8,7 +8,7 @@ import { saveHoursAction } from "../../actions";
 export default async function ManagerHoursPage({
   params,
 }: PageProps<"/[locale]/espace/[tenantId]/site/horaires">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "site");
   const t = await getTranslations("admin.tenant.hours");
   const hours = await page.db((tx) => listOpeningHours(tx, page.tenantId));
   return (

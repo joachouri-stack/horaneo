@@ -9,7 +9,7 @@ import { photoAction, uploadPhotoAction } from "../../actions";
 export default async function ManagerPhotosPage({
   params,
 }: PageProps<"/[locale]/espace/[tenantId]/site/photos">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "site");
   // Photos communes au site : modifiées depuis l'entreprise principale seulement.
   if (!page.business.isPrimary) return <SharedContentNotice />;
   const { active, retired } = await page.db(async (tx) => ({

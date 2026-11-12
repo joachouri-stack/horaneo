@@ -407,6 +407,13 @@
       "when": 1794521127719,
       "tag": "0057_business_three_languages",
       "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1794524600225,
+      "tag": "0058_collaborators",
+      "breakpoints": true
     }
   ]
 }

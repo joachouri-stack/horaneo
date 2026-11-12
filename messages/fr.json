@@ -2507,7 +2507,10 @@
     "invalidFields": "{count, plural, one {Vérifiez le champ {fields} : il est vide ou sa valeur est hors des limites permises.} other {Vérifiez les champs {fields} : ils sont vides ou leur valeur est hors des limites permises.}}",
     "fieldsConcerned": "{count, plural, one {Champ concerné : {fields}.} other {Champs concernés : {fields}.}}",
     "shop_order_not_modifiable": "Cette commande ne peut plus être modifiée.",
-    "shop_fulfillment_required": "Choisissez au moins une façon de remettre les commandes : retrait sur place ou livraison."
+    "shop_fulfillment_required": "Choisissez au moins une façon de remettre les commandes : retrait sur place ou livraison.",
+    "forbidden_area": "Cette partie de l'espace n'est pas ouverte à votre compte. Demandez l'accès à la gérante.",
+    "collaborator_already_invited": "Ce membre de l'équipe a déjà un accès à l'espace.",
+    "collaborator_already_member": "Cette adresse e-mail a déjà un accès à l'espace de ce site."
   },
   "status": {
     "draft": "En création",
@@ -3193,7 +3196,39 @@
       "changePhoto": "Changer la photo",
       "removePhoto": "Retirer la photo",
       "photoSending": "Envoi…",
-      "full": "Limite de votre pack atteinte"
+      "full": "Limite de votre pack atteinte",
+      "access": {
+        "title": "Accès à l'espace",
+        "intro": "Donnez à {name} son propre accès à votre espace {product}. La connexion se fait avec l'adresse e-mail (un lien ou un code est envoyé, sans mot de passe à retenir), et l'espace ne montre que ce que vous cochez ci-dessous.",
+        "email": "Adresse e-mail",
+        "agenda": "Agenda",
+        "agendaOwn": "Seulement ses propres rendez-vous",
+        "agendaAll": "L'agenda de toute l'équipe",
+        "agendaHint": "L'agenda est toujours ouvert : ajouter, déplacer ou annuler des rendez-vous, et noter ses absences.",
+        "extra": "Accès en plus de l'agenda",
+        "areas": {
+          "customers": "Fichier clients : voir et modifier les fiches",
+          "stats": "Statistiques et chiffre d'affaires",
+          "site": "Site : textes, photos, logo, couleurs, prestations et horaires",
+          "shop": "Boutique : produits et commandes",
+          "marketing": "Promotions, codes promo, cartes cadeaux et fidélité"
+        },
+        "ownerOnly": "L'abonnement, l'équipe, les paiements, les réglages et l'export des données restent réservés à vous.",
+        "invite": "Envoyer l'invitation",
+        "invited": "Invitation envoyée par e-mail.",
+        "save": "Enregistrer les accès",
+        "saved": "Accès enregistrés : ils s'appliquent dès sa prochaine page.",
+        "open": "Accès ouvert pour {email}",
+        "lastLogin": "Dernière connexion : {date}",
+        "neverLoggedIn": "Pas encore connecté : l'invitation attend d'être ouverte.",
+        "resend": "Renvoyer l'invitation",
+        "resent": "Invitation renvoyée.",
+        "remove": "Retirer l'accès",
+        "removeConfirm": "Retirer l'accès de {name} à l'espace ? Ses rendez-vous restent dans l'agenda.",
+        "removed": "Accès retiré.",
+        "badge": "Accès à l'espace",
+        "manage": "Accès à l'espace"
+      }
     },
     "subscription": {
       "groupBooking": "Avec réservation en ligne",
@@ -4131,6 +4166,15 @@
       "deliveryFee": "Livraison",
       "free": "offerte",
       "deliveryTo": "Livrée à"
+    },
+    "collaborator": {
+      "invite": {
+        "subject": "{business} vous donne accès à son espace {product}",
+        "title": "Bienvenue dans l'équipe de {business}",
+        "intro": "{business} vous a ouvert un accès à son espace {product} : votre agenda et les outils que la gérante a choisis pour vous.",
+        "login": "Pour vous connecter, touchez le bouton ci-dessous et saisissez cette adresse e-mail : {email}. Vous recevrez un lien ou un code de connexion, sans mot de passe à retenir.",
+        "open": "Ouvrir mon espace"
+      }
     }
   },
   "legal": {

@@ -6,6 +6,7 @@ import { DayTimeline, initials } from "@/components/manager/DayTimeline";
 import { openingHours, staffMembers } from "@/db/schema";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
+import { agendaStaffFilter } from "@/modules/team/access";
 import { layoutLanes } from "@/modules/agenda/lanes";
 import { dayRange, listAgenda, listTimeOff, type AgendaAppointment } from "@/modules/agenda/queries";
 import { loadBookingContext } from "@/modules/booking/availability";
@@ -49,7 +50,7 @@ export default async function AgendaPage({
   params,
   searchParams,
 }: PageProps<"/[locale]/espace/[tenantId]/agenda">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "agenda");
   const query = await searchParams;
   const t = await getTranslations("manager.agenda");
   const tz = page.tenant.timezone;
@@ -57,8 +58,11 @@ export default async function AgendaPage({
   const today = utcToLocal(now, tz).date;
   const date = typeof query.date === "string" && DATE_PATTERN.test(query.date) ? query.date : today;
   const view = query.vue === "semaine" ? "week" : query.vue === "mois" ? "month" : "day";
+  // Collaborateur limité à son agenda : toujours son membre, quel que soit le lien.
+  const ownStaff = agendaStaffFilter(page.space);
   const memberFilter =
-    typeof query.membre === "string" && /^[0-9a-f-]{36}$/i.test(query.membre) ? query.membre : null;
+    ownStaff ??
+    (typeof query.membre === "string" && /^[0-9a-f-]{36}$/i.test(query.membre) ? query.membre : null);
   // La semaine commence le lundi. Le mois : semaines entières, du lundi avant le 1er au dimanche après le dernier jour.
   const monthFirst = addMonths(date, 0);
   const monthWeeks = Math.ceil(
@@ -185,7 +189,7 @@ export default async function AgendaPage({
           ))}
         </div>
       </div>
-      {staff.length > 1 && (
+      {staff.length > 1 && !ownStaff && (
         <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
           <Link
             href={link({ membre: null })}

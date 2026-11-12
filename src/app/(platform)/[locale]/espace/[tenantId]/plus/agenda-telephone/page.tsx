@@ -13,7 +13,7 @@ import { disableCalendarFeedAction, renewCalendarFeedAction } from "../../action
 export default async function PhoneCalendarPage({
   params,
 }: PageProps<"/[locale]/espace/[tenantId]/plus/agenda-telephone">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "owner");
   const t = await getTranslations("manager.calendarFeed");
   const state = await page.db((tx) => calendarFeedState(tx, page.tenantId));
   const url =

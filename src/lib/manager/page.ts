@@ -2,13 +2,20 @@ import "server-only";
 import { resolveLocale } from "@/i18n/translator";
 import { withTenant } from "@/db/access";
 import { currencySymbol } from "@/lib/format";
+import { redirect } from "@/i18n/navigation";
+import { canAccess, type ManagerArea } from "@/modules/team/access";
 import { requireManager } from "./access";
 
-/** Contexte commun des pages de l'espace gérante (droits vérifiés). */
-export async function managerPage(params: Promise<{ locale: string; tenantId: string }>) {
+/**
+ * Contexte commun des pages de l'espace gérante (droits vérifiés). `area` :
+ * partie de l'espace de la page ; un collaborateur à qui la gérante ne l'a pas
+ * ouverte revient à l'accueil de l'espace.
+ */
+export async function managerPage(params: Promise<{ locale: string; tenantId: string }>, area: ManagerArea) {
   const { locale: rawLocale, tenantId } = await params;
   const locale = resolveLocale(rawLocale);
   const access = await requireManager(locale, tenantId);
+  if (!canAccess(access.space, area)) redirect({ href: `/espace/${tenantId}`, locale });
   const tz = access.tenant.timezone;
   const fmt = {
     time: (date: Date) =>

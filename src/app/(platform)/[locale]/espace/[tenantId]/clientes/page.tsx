@@ -43,7 +43,7 @@ export default async function CustomersPage({
   params,
   searchParams,
 }: PageProps<"/[locale]/espace/[tenantId]/clientes">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "customers");
   const query = await searchParams;
   const q = typeof query.q === "string" ? query.q : "";
   const segment: CustomerSegment = CUSTOMER_SEGMENT_KEYS.includes(query.groupe as CustomerSegment)

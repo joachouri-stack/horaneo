@@ -47,7 +47,9 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
   // Pas de compte à créer avant : sans connexion, l'e-mail, le prénom et le nom se saisissent ici.
   const session = await getCurrentSession();
   // Déjà cliente : le changement de pack se fait depuis son espace.
-  if (session && (await getManagedTenants(session.user.id)).length > 0) redirect({ href: "/espace", locale });
+  // Déjà gérante d'un site : le changement de pack se fait depuis son espace (un collaborateur peut commander).
+  if (session && (await getManagedTenants(session.user.id)).some((tenant) => tenant.role === "owner"))
+    redirect({ href: "/espace", locale });
   const [t, tHome] = await Promise.all([getTranslations("order"), getTranslations("home.plans")]);
   const { plans, options, display, commitment, noCommitment, offers, yearly } = await withPlatform(
     async (tx) => ({

@@ -43,6 +43,8 @@ export const MESSAGE_TEMPLATES = [
   "manager.data_request",
   "manager.push_test",
   "manager.stripe_invite",
+  // À un collaborateur invité par la gérante
+  "collaborator.invite",
   // Au professionnel avant que son site existe, et à l'administratrice
   "account.order_received",
   "account.order_rejected",

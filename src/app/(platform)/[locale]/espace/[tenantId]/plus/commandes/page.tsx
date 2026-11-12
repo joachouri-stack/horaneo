@@ -21,7 +21,7 @@ const TONES: Record<string, string> = {
 export default async function ShopOrdersPage({
   params,
 }: PageProps<"/[locale]/espace/[tenantId]/plus/commandes">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "shop");
   const t = await getTranslations("manager.orders");
   const available = Boolean(page.tenant.features.commerce);
   const orders = available ? await page.db((tx) => listShopOrders(tx, page.tenantId)) : [];

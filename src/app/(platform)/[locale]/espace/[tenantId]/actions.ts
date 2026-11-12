@@ -27,6 +27,7 @@ import {
   managerMutation,
   managerPersonalAction,
   managerPlatformAction,
+  managerPlatformMutation,
   managerQuery,
 } from "@/lib/manager/access";
 import { removeDevice, saveDevice, queuePushTest, type DeviceInput } from "@/modules/notifications/devices";
@@ -55,6 +56,15 @@ import { saveCustomer, searchCustomers } from "@/modules/customers/customers";
 import { assertSitePhoto, restoreAsset, retireAsset, uploadAsset, uploadLogo } from "@/modules/media/assets";
 import { parseInterval } from "@/modules/billing/yearly";
 import { AppError } from "@/modules/errors";
+import {
+  assertAppointmentInScope,
+  assertStaffInScope,
+  assertTimeOffInScope,
+  inviteCollaborator,
+  removeCollaborator,
+  resendInvitation,
+  updateCollaborator,
+} from "@/modules/team/access";
 import { refreshAccount, startOnboarding } from "@/modules/payments/connect";
 import { setBirthdayOffer } from "@/modules/promo/birthday";
 import { deletePromoCode, savePromoCode } from "@/modules/promo/codes";
@@ -107,9 +117,10 @@ async function localStart(tx: Transaction, tenantId: string, data: FormData) {
 export async function setAttendanceAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   const status = z.enum(["attended", "no_show", "confirmed"]).parse(form.text(data, "status"));
-  return managerMutation(tenantId, `appointment.${status}`, (tx) =>
-    setAttendance(tx, tenantId, idOf(data)!, status),
-  );
+  return managerMutation(tenantId, "agenda", `appointment.${status}`, async (tx, { space }) => {
+    await assertAppointmentInScope(tx, tenantId, space, idOf(data)!);
+    return setAttendance(tx, tenantId, idOf(data)!, status);
+  });
 }
 
 export async function cancelAppointmentAction(_previous: Previous, data: FormData) {
@@ -117,21 +128,25 @@ export async function cancelAppointmentAction(_previous: Previous, data: FormDat
   const refund = form.bool(data, "refund");
   return managerMutation(
     tenantId,
+    "agenda",
     refund ? "appointment.cancelled_refunded" : "appointment.cancelled",
-    (tx) =>
-      cancelByManager(tx, tenantId, idOf(data)!, form.optional(data, "reason"), {
+    async (tx, { space }) => {
+      await assertAppointmentInScope(tx, tenantId, space, idOf(data)!);
+      return cancelByManager(tx, tenantId, idOf(data)!, form.optional(data, "reason"), {
         refund,
         gateway: paymentGateway(),
-      }),
+      });
+    },
   );
 }
 
 /** Suppression d'un rendez-vous terminé, puis retour à l'agenda (la page du rendez-vous n'existe plus). */
 export async function deleteAppointmentAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  const result = await managerMutation(tenantId, "appointment.deleted", (tx) =>
-    deleteAppointment(tx, tenantId, idOf(data)!),
-  );
+  const result = await managerMutation(tenantId, "agenda", "appointment.deleted", async (tx, { space }) => {
+    await assertAppointmentInScope(tx, tenantId, space, idOf(data)!);
+    return deleteAppointment(tx, tenantId, idOf(data)!);
+  });
   if (!result.ok) return result;
   redirect({ href: `/espace/${tenantId}/agenda`, locale: resolveLocale(await getLocale()) });
   return result;
@@ -139,19 +154,23 @@ export async function deleteAppointmentAction(_previous: Previous, data: FormDat
 
 export async function moveAppointmentAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "appointment.moved", async (tx) =>
-    moveAppointment(tx, tenantId, idOf(data)!, {
+  return managerMutation(tenantId, "agenda", "appointment.moved", async (tx, { space }) => {
+    await assertAppointmentInScope(tx, tenantId, space, idOf(data)!);
+    // Collaborateur limité à son agenda : le rendez-vous reste chez lui.
+    assertStaffInScope(space, idOf(data, "staffId"));
+    return moveAppointment(tx, tenantId, idOf(data)!, {
       start: await localStart(tx, tenantId, data),
       staffId: idOf(data, "staffId")!,
-    }),
-  );
+    });
+  });
 }
 
 export async function updateNoteAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "appointment.note", (tx) =>
-    updateInternalNote(tx, tenantId, idOf(data)!, form.text(data, "internalNote")),
-  );
+  return managerMutation(tenantId, "agenda", "appointment.note", async (tx, { space }) => {
+    await assertAppointmentInScope(tx, tenantId, space, idOf(data)!);
+    return updateInternalNote(tx, tenantId, idOf(data)!, form.text(data, "internalNote"));
+  });
 }
 
 export async function createManualAction(
@@ -160,8 +179,9 @@ export async function createManualAction(
 ): Promise<ActionResult<unknown>> {
   const tenantId = tenantIdOf(data);
   const customerId = idOf(data, "customerId");
-  const result = await managerMutation(tenantId, "appointment.created", async (tx) =>
-    createManualAppointment(tx, tenantId, {
+  const result = await managerMutation(tenantId, "agenda", "appointment.created", async (tx, { space }) => {
+    assertStaffInScope(space, form.text(data, "staffId"));
+    return createManualAppointment(tx, tenantId, {
       serviceIds: form.all(data, "serviceIds"),
       staffId: form.text(data, "staffId"),
       start: await localStart(tx, tenantId, data),
@@ -177,8 +197,8 @@ export async function createManualAction(
             birthDay: Number(form.optional(data, "birthDay")) || null,
           },
       internalNote: form.optional(data, "internalNote"),
-    }),
-  );
+    });
+  });
   if (!result.ok) return result;
   redirect({
     href: `/espace/${tenantId}/rendez-vous/${result.data!.appointmentId}`,
@@ -192,7 +212,8 @@ export async function freeSlotsAction(tenantId: string, serviceIds: string[], st
   const ids = z.array(uuid).min(1).max(10).parse(serviceIds);
   const member = uuid.parse(staffId);
   const day = z.string().regex(DATE_PATTERN).parse(date);
-  return managerQuery(uuid.parse(tenantId), async (tx) => {
+  return managerQuery(uuid.parse(tenantId), "agenda", async (tx, { space }) => {
+    assertStaffInScope(space, member);
     const context = await loadBookingContext(tx, tenantId);
     const slots =
       (
@@ -207,7 +228,7 @@ export async function freeSlotsAction(tenantId: string, serviceIds: string[], st
 }
 
 export async function searchCustomersAction(tenantId: string, query: string) {
-  return managerQuery(uuid.parse(tenantId), (tx) =>
+  return managerQuery(uuid.parse(tenantId), "agenda", (tx) =>
     searchCustomers(tx, tenantId, z.string().max(80).parse(query), 8),
   );
 }
@@ -249,7 +270,9 @@ export async function createTimeOffAction(
             endDate: form.text(data, "endDate"),
             reason,
           };
-  return managerMutation(tenantId, `time_off.${kind}`, async (tx) => {
+  return managerMutation(tenantId, "agenda", `time_off.${kind}`, async (tx, { space }) => {
+    // Collaborateur limité à son agenda : ses propres absences seulement (pas de fermeture du salon).
+    assertStaffInScope(space, input.kind === "closure" ? null : input.staffId);
     const result = await createTimeOff(tx, tenantId, input);
     return { conflicts: result.conflicts };
   });
@@ -257,7 +280,10 @@ export async function createTimeOffAction(
 
 export async function deleteTimeOffAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "time_off.deleted", (tx) => deleteTimeOff(tx, tenantId, idOf(data)!));
+  return managerMutation(tenantId, "agenda", "time_off.deleted", async (tx, { space }) => {
+    await assertTimeOffInScope(tx, tenantId, space, idOf(data)!);
+    return deleteTimeOff(tx, tenantId, idOf(data)!);
+  });
 }
 
 // ─── Clientes ─────────────────────────────────────────────────────────────────
@@ -268,22 +294,26 @@ export async function saveCustomerAction(
 ): Promise<ActionResult<unknown>> {
   const tenantId = tenantIdOf(data);
   const id = idOf(data);
-  const result = await managerMutation(tenantId, id ? "customer.updated" : "customer.created", (tx) =>
-    saveCustomer(
-      tx,
-      tenantId,
-      {
-        firstName: form.text(data, "firstName"),
-        lastName: form.optional(data, "lastName"),
-        phone: form.optional(data, "phone"),
-        email: form.optional(data, "email"),
-        notes: form.optional(data, "notes"),
-        // Jour et mois : vides tous les deux pour effacer l'anniversaire.
-        birthMonth: form.text(data, "birthMonth"),
-        birthDay: form.text(data, "birthDay"),
-      },
-      id,
-    ),
+  const result = await managerMutation(
+    tenantId,
+    "customers",
+    id ? "customer.updated" : "customer.created",
+    (tx) =>
+      saveCustomer(
+        tx,
+        tenantId,
+        {
+          firstName: form.text(data, "firstName"),
+          lastName: form.optional(data, "lastName"),
+          phone: form.optional(data, "phone"),
+          email: form.optional(data, "email"),
+          notes: form.optional(data, "notes"),
+          // Jour et mois : vides tous les deux pour effacer l'anniversaire.
+          birthMonth: form.text(data, "birthMonth"),
+          birthDay: form.text(data, "birthDay"),
+        },
+        id,
+      ),
   );
   if (result.ok && !id)
     redirect({
@@ -297,19 +327,21 @@ export async function saveCustomerAction(
 
 export async function saveCategoryAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "category.saved", (tx) =>
+  return managerMutation(tenantId, "site", "category.saved", (tx) =>
     saveCategory(tx, tenantId, categoryFields(data), idOf(data)),
   );
 }
 
 export async function deleteCategoryAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "category.deleted", (tx) => deleteCategory(tx, tenantId, idOf(data)!));
+  return managerMutation(tenantId, "site", "category.deleted", (tx) =>
+    deleteCategory(tx, tenantId, idOf(data)!),
+  );
 }
 
 export async function saveServiceAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "service.saved", (tx) =>
+  return managerMutation(tenantId, "site", "service.saved", (tx) =>
     saveService(
       tx,
       tenantId,
@@ -331,12 +363,14 @@ export async function saveServiceAction(_previous: Previous, data: FormData) {
 
 export async function deleteServiceAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "service.deleted", (tx) => deleteService(tx, tenantId, idOf(data)!));
+  return managerMutation(tenantId, "site", "service.deleted", (tx) =>
+    deleteService(tx, tenantId, idOf(data)!),
+  );
 }
 
 export async function saveHoursAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "hours.updated", (tx) =>
+  return managerMutation(tenantId, "site", "hours.updated", (tx) =>
     replaceOpeningHours(tx, tenantId, parseRanges(data)),
   );
 }
@@ -355,7 +389,7 @@ export async function uploadPhotoAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   const kind = z.enum(["gallery", "cover", "staff", "service", "other"]).parse(form.text(data, "kind"));
   const bytes = (await form.file(data, "file")) ?? new Uint8Array();
-  return managerMutation(tenantId, "asset.uploaded", async (tx, context) => {
+  return managerMutation(tenantId, "site", "asset.uploaded", async (tx, context) => {
     await assertPrimaryBusiness(tx, tenantId, context.businessId, "site_content_primary_only");
     return uploadAsset(tx, storage(), tenantId, {
       bytes,
@@ -369,7 +403,7 @@ export async function uploadPhotoAction(_previous: Previous, data: FormData) {
 /** Couleurs du site : palette choisie par la gérante. */
 export async function savePaletteAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "brand.palette_updated", async (tx, context) => {
+  return managerMutation(tenantId, "site", "brand.palette_updated", async (tx, context) => {
     await assertPrimaryBusiness(tx, tenantId, context.businessId, "site_content_primary_only");
     await setBrandPalette(tx, tenantId, { palette: form.text(data, "palette") });
   });
@@ -382,7 +416,7 @@ export async function savePageTextsAction(_previous: Previous, data: FormData) {
   const texts = Object.fromEntries(
     PAGE_TEXT_FIELDS[pageKey].map((field) => [field, form.text(data, `text.${field}`)]),
   );
-  return managerMutation(tenantId, "page.texts_updated", async (tx, context) => {
+  return managerMutation(tenantId, "site", "page.texts_updated", async (tx, context) => {
     await assertPrimaryBusiness(tx, tenantId, context.businessId, "site_content_primary_only");
     await updatePageTexts(tx, tenantId, { pageKey, texts });
   });
@@ -392,7 +426,7 @@ export async function savePageTextsAction(_previous: Previous, data: FormData) {
 export async function uploadLogoAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   const bytes = (await form.file(data, "file")) ?? new Uint8Array();
-  return managerMutation(tenantId, "logo.uploaded", async (tx, context) => {
+  return managerMutation(tenantId, "site", "logo.uploaded", async (tx, context) => {
     await assertPrimaryBusiness(tx, tenantId, context.businessId, "site_content_primary_only");
     const { assetId } = await uploadLogo(tx, storage(), tenantId, bytes, context.userId);
     return { assetId };
@@ -403,7 +437,7 @@ export async function photoAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   const id = idOf(data)!;
   const operation = z.enum(["retire", "restore"]).parse(form.text(data, "operation"));
-  return managerMutation(tenantId, `asset.${operation}`, async (tx, context) => {
+  return managerMutation(tenantId, "site", `asset.${operation}`, async (tx, context) => {
     await assertPrimaryBusiness(tx, tenantId, context.businessId, "site_content_primary_only");
     await assertSitePhoto(tx, tenantId, id);
     return operation === "retire" ? retireAsset(tx, tenantId, id) : restoreAsset(tx, tenantId, id);
@@ -412,7 +446,7 @@ export async function photoAction(_previous: Previous, data: FormData) {
 
 export async function saveTestimonialAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "testimonial.saved", async (tx, context) => {
+  return managerMutation(tenantId, "site", "testimonial.saved", async (tx, context) => {
     await assertPrimaryBusiness(tx, tenantId, context.businessId, "site_content_primary_only");
     return saveTestimonial(
       tx,
@@ -430,7 +464,7 @@ export async function saveTestimonialAction(_previous: Previous, data: FormData)
 
 export async function deleteTestimonialAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "testimonial.deleted", async (tx, context) => {
+  return managerMutation(tenantId, "site", "testimonial.deleted", async (tx, context) => {
     await assertPrimaryBusiness(tx, tenantId, context.businessId, "site_content_primary_only");
     return deleteTestimonial(tx, tenantId, idOf(data)!);
   });
@@ -440,7 +474,7 @@ export async function deleteTestimonialAction(_previous: Previous, data: FormDat
 
 export async function saveStaffAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "staff.saved", (tx) =>
+  return managerMutation(tenantId, "owner", "staff.saved", (tx) =>
     saveStaff(
       tx,
       tenantId,
@@ -462,20 +496,25 @@ export async function staffPhotoAction(_previous: Previous, data: FormData) {
   const staffId = idOf(data)!;
   const remove = form.text(data, "operation") === "remove";
   const bytes = remove ? null : ((await form.file(data, "file")) ?? new Uint8Array());
-  return managerMutation(tenantId, remove ? "staff.photo_removed" : "staff.photo", async (tx, context) => {
-    if (!bytes) return setStaffPhoto(tx, tenantId, staffId, null);
-    const asset = await uploadAsset(tx, storage(), tenantId, {
-      bytes,
-      kind: "staff",
-      uploadedByUserId: context.userId,
-    });
-    return setStaffPhoto(tx, tenantId, staffId, asset.id);
-  });
+  return managerMutation(
+    tenantId,
+    "owner",
+    remove ? "staff.photo_removed" : "staff.photo",
+    async (tx, context) => {
+      if (!bytes) return setStaffPhoto(tx, tenantId, staffId, null);
+      const asset = await uploadAsset(tx, storage(), tenantId, {
+        bytes,
+        kind: "staff",
+        uploadedByUserId: context.userId,
+      });
+      return setStaffPhoto(tx, tenantId, staffId, asset.id);
+    },
+  );
 }
 
 export async function deleteStaffAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  const result = await managerMutation(tenantId, "staff.deleted", (tx) =>
+  const result = await managerMutation(tenantId, "owner", "staff.deleted", (tx) =>
     deleteStaff(tx, tenantId, idOf(data)!),
   );
   if (result.ok && result.data?.deleted === false) {
@@ -487,14 +526,14 @@ export async function deleteStaffAction(_previous: Previous, data: FormData) {
 
 export async function saveStaffScheduleAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "staff.schedule", (tx) =>
+  return managerMutation(tenantId, "owner", "staff.schedule", (tx) =>
     replaceStaffSchedules(tx, tenantId, idOf(data, "staffId")!, parseRanges(data)),
   );
 }
 
 export async function updateSettingsAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "settings.updated", async (tx) => {
+  return managerMutation(tenantId, "owner", "settings.updated", async (tx) => {
     // Réglages enregistrés d'un seul bouton : l'ouverture de la réservation en ligne en fait partie
     // quand le pack la propose (le champ caché signale que la case était affichée).
     if (data.has("onlineBookingShown")) {
@@ -518,7 +557,7 @@ export async function updateSettingsAction(_previous: Previous, data: FormData) 
 
 export async function createRequestAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "update_request.created", (tx, context) =>
+  return managerMutation(tenantId, "site", "update_request.created", (tx, context) =>
     createUpdateRequest(tx, tenantId, context.role === "owner" ? context.userId : null, {
       subject: form.text(data, "subject"),
       message: form.text(data, "message"),
@@ -577,21 +616,23 @@ function promoValues(data: FormData) {
 
 export async function savePromoCodeAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "promo.saved", (tx) =>
+  return managerMutation(tenantId, "marketing", "promo.saved", (tx) =>
     savePromoCode(tx, tenantId, promoValues(data), idOf(data)),
   );
 }
 
 export async function deletePromoCodeAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "promo.deleted", (tx) => deletePromoCode(tx, tenantId, idOf(data)!));
+  return managerMutation(tenantId, "marketing", "promo.deleted", (tx) =>
+    deletePromoCode(tx, tenantId, idOf(data)!),
+  );
 }
 
 // ─── Promotions datées ───────────────────────────────────────────────────────
 
 export async function savePromotionAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "promotion.saved", (tx) =>
+  return managerMutation(tenantId, "marketing", "promotion.saved", (tx) =>
     savePromotion(
       tx,
       tenantId,
@@ -610,14 +651,16 @@ export async function savePromotionAction(_previous: Previous, data: FormData) {
 
 export async function deletePromotionAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "promotion.deleted", (tx) => deletePromotion(tx, tenantId, idOf(data)!));
+  return managerMutation(tenantId, "marketing", "promotion.deleted", (tx) =>
+    deletePromotion(tx, tenantId, idOf(data)!),
+  );
 }
 
 // ─── Boutique (solution Commerce) ────────────────────────────────────────────
 
 export async function saveProductAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "product.saved", (tx) =>
+  return managerMutation(tenantId, "shop", "product.saved", (tx) =>
     saveProduct(
       tx,
       tenantId,
@@ -638,7 +681,7 @@ export async function saveProductAction(_previous: Previous, data: FormData) {
 export async function saveVariantAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   const productId = idOf(data, "productId")!;
-  return managerMutation(tenantId, "product.variant_saved", (tx) =>
+  return managerMutation(tenantId, "shop", "product.variant_saved", (tx) =>
     saveVariant(
       tx,
       tenantId,
@@ -656,20 +699,22 @@ export async function saveVariantAction(_previous: Previous, data: FormData) {
 
 export async function deleteVariantAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "product.variant_deleted", (tx) =>
+  return managerMutation(tenantId, "shop", "product.variant_deleted", (tx) =>
     deleteVariant(tx, tenantId, idOf(data, "productId")!, idOf(data)!),
   );
 }
 
 export async function deleteProductAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "product.deleted", (tx) => deleteProduct(tx, tenantId, idOf(data)!));
+  return managerMutation(tenantId, "shop", "product.deleted", (tx) =>
+    deleteProduct(tx, tenantId, idOf(data)!),
+  );
 }
 
 export async function moveProductAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   const direction = form.text(data, "direction") === "up" ? "up" : "down";
-  return managerMutation(tenantId, "product.moved", (tx) =>
+  return managerMutation(tenantId, "shop", "product.moved", (tx) =>
     moveProduct(tx, tenantId, idOf(data)!, direction),
   );
 }
@@ -682,6 +727,7 @@ export async function productPhotoAction(_previous: Previous, data: FormData) {
   const bytes = remove ? null : ((await form.file(data, "file")) ?? new Uint8Array());
   return managerMutation(
     tenantId,
+    "shop",
     remove ? "product.photo_removed" : "product.photo",
     async (tx, context) => {
       if (!bytes) return setProductPhoto(tx, tenantId, productId, null);
@@ -703,13 +749,15 @@ export async function shopOrderAction(_previous: Previous, data: FormData) {
   const orderId = idOf(data)!;
   const operation = form.text(data, "operation");
   if (operation === "ready")
-    return managerMutation(tenantId, "shop_order.ready", (tx) => markOrderReady(tx, tenantId, orderId));
+    return managerMutation(tenantId, "shop", "shop_order.ready", (tx) =>
+      markOrderReady(tx, tenantId, orderId),
+    );
   if (operation === "collected")
-    return managerMutation(tenantId, "shop_order.collected", (tx) =>
+    return managerMutation(tenantId, "shop", "shop_order.collected", (tx) =>
       markOrderCollected(tx, tenantId, orderId),
     );
   if (operation === "cancel")
-    return managerMutation(tenantId, "shop_order.cancelled", (tx) =>
+    return managerMutation(tenantId, "shop", "shop_order.cancelled", (tx) =>
       cancelShopOrder(tx, tenantId, orderId, paymentGateway()),
     );
   return { ok: false as const, error: "invalid" as const };
@@ -720,7 +768,7 @@ export async function shopOrderAction(_previous: Previous, data: FormData) {
 /** Sur place : la gérante saisit le code et le montant du soin. */
 export async function redeemGiftCardAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  const result = await managerMutation(tenantId, "gift_card.redeemed", (tx, { userId }) =>
+  const result = await managerMutation(tenantId, "marketing", "gift_card.redeemed", (tx, { userId }) =>
     redeemOnSite(
       tx,
       tenantId,
@@ -741,7 +789,7 @@ export async function redeemGiftCardAction(_previous: Previous, data: FormData) 
 
 export async function saveGiftCardSettingsAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "gift_card.settings", (tx) =>
+  return managerMutation(tenantId, "marketing", "gift_card.settings", (tx) =>
     updateGiftCardSettings(tx, tenantId, {
       enabled: form.bool(data, "enabled"),
       validityMonths: form.text(data, "validityMonths") as unknown as number,
@@ -843,7 +891,7 @@ export async function openBillingPortalAction(data: FormData) {
 export async function saveLoyaltySettingsAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   const amount = form.optional(data, "rewardAmount");
-  return managerMutation(tenantId, "loyalty.settings", (tx) =>
+  return managerMutation(tenantId, "marketing", "loyalty.settings", (tx) =>
     setLoyaltySettings(tx, tenantId, {
       enabled: form.bool(data, "enabled"),
       visitsRequired: form.text(data, "visitsRequired") as unknown as number,
@@ -856,7 +904,7 @@ export async function saveLoyaltySettingsAction(_previous: Previous, data: FormD
 
 export async function saveBirthdayOfferAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "birthday_offer.settings", (tx) =>
+  return managerMutation(tenantId, "marketing", "birthday_offer.settings", (tx) =>
     setBirthdayOffer(tx, tenantId, {
       enabled: form.bool(data, "enabled"),
       discountPercent: form.text(data, "discountPercent"),
@@ -867,7 +915,7 @@ export async function saveBirthdayOfferAction(_previous: Previous, data: FormDat
 
 export async function adjustLoyaltyAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "loyalty.adjusted", (tx, { userId }) =>
+  return managerMutation(tenantId, "marketing", "loyalty.adjusted", (tx, { userId }) =>
     adjustLoyalty(
       tx,
       tenantId,
@@ -880,7 +928,7 @@ export async function adjustLoyaltyAction(_previous: Previous, data: FormData) {
 
 export async function useLoyaltyRewardAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "loyalty.reward_used", (tx, { userId }) =>
+  return managerMutation(tenantId, "marketing", "loyalty.reward_used", (tx, { userId }) =>
     redeemReward(tx, tenantId, idOf(data, "rewardId")!, userId),
   );
 }
@@ -889,7 +937,7 @@ export async function resolveDataRequestAction(_previous: Previous, data: FormDa
   const tenantId = tenantIdOf(data);
   const status = z.enum(["done", "rejected"]).parse(form.text(data, "status"));
   const t = await getTranslations("manager.customerData");
-  return managerMutation(tenantId, `customer_data.${status}`, (tx, { userId }) =>
+  return managerMutation(tenantId, "owner", `customer_data.${status}`, (tx, { userId }) =>
     resolveDataRequest(tx, tenantId, idOf(data)!, status, userId, t("erasedName")),
   );
 }
@@ -908,7 +956,7 @@ export async function disablePushAction(tenantId: string, endpoint: string) {
 }
 
 export async function testPushAction(tenantId: string) {
-  return managerMutation(tenantId, "push.test", (tx, { role, businessId }) => {
+  return managerMutation(tenantId, "owner", "push.test", (tx, { role, businessId }) => {
     if (role === "admin") throw new AppError("personal_setting");
     return queuePushTest(tx, tenantId, { businessId });
   });
@@ -916,18 +964,20 @@ export async function testPushAction(tenantId: string) {
 
 export async function renewCalendarFeedAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "calendar_feed.renewed", (tx) => renewCalendarFeed(tx, tenantId));
+  return managerMutation(tenantId, "owner", "calendar_feed.renewed", (tx) => renewCalendarFeed(tx, tenantId));
 }
 
 export async function disableCalendarFeedAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "calendar_feed.disabled", (tx) => disableCalendarFeed(tx, tenantId));
+  return managerMutation(tenantId, "owner", "calendar_feed.disabled", (tx) =>
+    disableCalendarFeed(tx, tenantId),
+  );
 }
 
 /** Objectifs du mois (statistiques) : chiffre d'affaires, rendez-vous, nouvelles clientes. */
 export async function updateStatsGoalsAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "stats.goals", (tx) =>
+  return managerMutation(tenantId, "stats", "stats.goals", (tx) =>
     updateStatsGoals(tx, tenantId, {
       revenue: form.text(data, "revenue"),
       appointments: form.text(data, "appointments"),
@@ -938,12 +988,66 @@ export async function updateStatsGoalsAction(_previous: Previous, data: FormData
 
 export async function saveShopSettingsAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "shop.settings_saved", (tx) =>
+  return managerMutation(tenantId, "shop", "shop.settings_saved", (tx) =>
     updateShopSettings(tx, tenantId, {
       pickup: form.bool(data, "pickup"),
       delivery: form.bool(data, "delivery"),
       deliveryFee: form.optional(data, "deliveryFee"),
       freeDeliveryFrom: form.optional(data, "freeDeliveryFrom"),
     }),
+  );
+}
+
+// ─── Accès de l'équipe à l'espace ─────────────────────────────────────────────
+
+/** Droits cochés par la gérante (case absente : partie fermée). */
+function permissionsOf(data: FormData) {
+  return {
+    agendaScope: form.text(data, "agendaScope") === "all" ? ("all" as const) : ("own" as const),
+    customers: form.bool(data, "customers"),
+    stats: form.bool(data, "stats"),
+    site: form.bool(data, "site"),
+    shop: form.bool(data, "shop"),
+    marketing: form.bool(data, "marketing"),
+  };
+}
+
+export async function inviteCollaboratorAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const locale = resolveLocale(await getLocale());
+  return managerPlatformMutation(tenantId, "collaborator.invited", (tx, { businessId }) =>
+    inviteCollaborator(tx, tenantId, {
+      staffId: form.text(data, "staffId"),
+      email: form.text(data, "email"),
+      permissions: permissionsOf(data),
+      businessId,
+      locale,
+    }),
+  );
+}
+
+export async function updateCollaboratorAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerPlatformMutation(tenantId, "collaborator.updated", (tx, { businessId }) =>
+    updateCollaborator(tx, tenantId, {
+      staffId: form.text(data, "staffId"),
+      permissions: permissionsOf(data),
+      businessId,
+    }),
+  );
+}
+
+export async function removeCollaboratorAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerPlatformMutation(tenantId, "collaborator.removed", (tx, { businessId }) =>
+    removeCollaborator(tx, tenantId, { staffId: form.text(data, "staffId"), businessId }),
+  );
+}
+
+export async function resendInvitationAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const locale = resolveLocale(await getLocale());
+  return managerPlatformMutation(tenantId, "collaborator.invitation_resent", (tx, { businessId }) =>
+    resendInvitation(tx, tenantId, { staffId: form.text(data, "staffId"), businessId, locale }),
   );
 }

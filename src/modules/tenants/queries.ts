@@ -135,7 +135,7 @@ export async function getTenantOverview(tx: Transaction, tenantId: string) {
         })
         .from(memberships)
         .innerJoin(users, eq(users.id, memberships.userId))
-        .where(eq(memberships.tenantId, tenantId)),
+        .where(and(eq(memberships.tenantId, tenantId), eq(memberships.role, "owner"))),
       tx
         .select()
         .from(usageCounters)

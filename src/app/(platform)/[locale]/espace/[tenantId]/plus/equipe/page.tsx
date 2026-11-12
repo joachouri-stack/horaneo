@@ -4,17 +4,23 @@ import { ui } from "@/components/ui/styles";
 import { managerPage } from "@/lib/manager/page";
 import { listServices } from "@/modules/catalog/services";
 import { listStaff } from "@/modules/team/staff";
+import { withPlatform } from "@/db/access";
+import { listCollaborators } from "@/modules/team/access";
 import { deleteStaffAction, saveStaffAction, staffPhotoAction } from "../../actions";
 
 export default async function ManagerTeamPage({
   params,
 }: PageProps<"/[locale]/espace/[tenantId]/plus/equipe">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "owner");
   const { staff, services } = await page.db(async (tx) => ({
     staff: await listStaff(tx, page.tenantId),
     services: await listServices(tx, page.tenantId),
   }));
   const t = await getTranslations("manager.team");
+  // Accès de l'équipe : lus avec le rôle plateforme, filtrés sur l'entreprise de la gérante.
+  const withAccess = (await withPlatform((tx) => listCollaborators(tx, page.tenantId, page.businessId)))
+    .map((row) => row.staffMemberId)
+    .filter((id): id is string => id !== null);
   const limit = page.tenant.limits.members;
   const active = staff.filter((member) => member.isActive).length;
   return (
@@ -32,6 +38,7 @@ export default async function ManagerTeamPage({
         services={services}
         actions={{ save: saveStaffAction, remove: deleteStaffAction, photo: staffPhotoAction }}
         base={page.base}
+        withAccess={withAccess}
       />
     </>
   );

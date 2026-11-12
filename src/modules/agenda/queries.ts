@@ -128,10 +128,12 @@ export async function todaySummary(
   timezone: string,
   locale: Locale,
   now = new Date(),
+  /** Un seul membre (collaborateur limité à son agenda) ; par défaut toute l'équipe. */
+  staffId: string | null = null,
 ) {
   const today = utcToLocal(now, timezone).date;
   const { start, end } = dayRange(today, timezone);
-  const list = await listAgenda(tx, tenantId, { from: start, to: end, locale });
+  const list = await listAgenda(tx, tenantId, { from: start, to: end, locale, staffId });
   const counted = list.filter((item) => item.status !== "no_show");
   const since = new Date(now.getTime() - 24 * 60 * 60 * 1000);
   const recent = await tx
@@ -141,6 +143,7 @@ export async function todaySummary(
       and(
         eq(appointments.tenantId, tenantId),
         eq(appointments.source, "online"),
+        staffId ? eq(appointments.staffId, staffId) : undefined,
         gte(appointments.createdAt, since),
         inArray(appointments.status, ["confirmed", "pending_payment", "attended"]),
       ),
@@ -162,12 +165,17 @@ export async function todaySummary(
 export async function upcomingAppointments(
   tx: Transaction,
   tenantId: string,
-  options: { timezone: string; locale: Locale; days?: number; limit?: number },
+  options: { timezone: string; locale: Locale; days?: number; limit?: number; staffId?: string | null },
   now = new Date(),
 ) {
   const tomorrow = addDays(utcToLocal(now, options.timezone).date, 1);
   const { start, end } = dayRange(tomorrow, options.timezone, options.days ?? 14);
-  const list = await listAgenda(tx, tenantId, { from: start, to: end, locale: options.locale });
+  const list = await listAgenda(tx, tenantId, {
+    from: start,
+    to: end,
+    locale: options.locale,
+    staffId: options.staffId,
+  });
   return list
     .filter((item) => item.status === "confirmed" || item.status === "pending_payment")
     .slice(0, options.limit ?? 3);

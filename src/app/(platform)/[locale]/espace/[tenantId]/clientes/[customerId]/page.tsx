@@ -16,7 +16,7 @@ import { adjustLoyaltyAction, saveCustomerAction, useLoyaltyRewardAction } from 
 export default async function CustomerPage({
   params,
 }: PageProps<"/[locale]/espace/[tenantId]/clientes/[customerId]">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "customers");
   const { customerId } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(customerId)) notFound();
   const [t, tManager, tCommon] = await Promise.all([

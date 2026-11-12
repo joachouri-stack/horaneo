@@ -24,7 +24,7 @@ type ProductRow = Awaited<ReturnType<typeof listProducts>>[number];
 
 /** Boutique (solution Commerce) : la gérante crée et gère ses produits. */
 export default async function ShopPage({ params }: PageProps<"/[locale]/espace/[tenantId]/plus/boutique">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "shop");
   const [t, tCommon] = await Promise.all([getTranslations("manager.shop"), getTranslations("common")]);
   const available = Boolean(page.tenant.features.commerce);
   const [products, fulfillment] = available

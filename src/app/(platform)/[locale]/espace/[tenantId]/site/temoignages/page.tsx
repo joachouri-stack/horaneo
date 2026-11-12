@@ -7,7 +7,7 @@ import { deleteTestimonialAction, saveTestimonialAction } from "../../actions";
 export default async function ManagerTestimonialsPage({
   params,
 }: PageProps<"/[locale]/espace/[tenantId]/site/temoignages">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "site");
   // Avis communs au site : modifiés depuis l'entreprise principale seulement.
   if (!page.business.isPrimary) return <SharedContentNotice />;
   const items = await page.db((tx) => listTestimonials(tx, page.tenantId));

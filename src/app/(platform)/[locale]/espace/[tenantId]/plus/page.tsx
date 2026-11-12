@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { DASH_ICONS, DashIcon, panel } from "@/components/manager/DashboardWidgets";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
+import { canAccess, type ManagerArea } from "@/modules/team/access";
 import type { PlanFeatures } from "@/db/schema";
 import { dataExportAllowed } from "@/modules/export/business-data";
 import { toolsOverview } from "@/modules/stats/tools";
@@ -37,46 +38,52 @@ const ICONS = {
 type Key = keyof typeof ICONS;
 
 /** `feature` : rubrique affichée seulement si le pack de l'établissement la comprend (l'une d'elles, pour une liste). */
-type Item = { key: Key; href: string; feature?: keyof PlanFeatures | (keyof PlanFeatures)[] };
+/** `area` : partie de l'espace (un collaborateur ne voit que celles que la gérante lui a ouvertes). */
+type Item = {
+  key: Key;
+  href: string;
+  area: ManagerArea;
+  feature?: keyof PlanFeatures | (keyof PlanFeatures)[];
+};
 
 const GROUPS: { key: "activity" | "sell" | "account" | "support"; items: Item[] }[] = [
   {
     key: "activity",
     items: [
-      { key: "stats", href: "/plus/statistiques" },
-      { key: "team", href: "/plus/equipe" },
-      { key: "unavailability", href: "/indisponibilites" },
-      { key: "calendar", href: "/plus/agenda-telephone" },
+      { key: "stats", href: "/plus/statistiques", area: "stats" },
+      { key: "team", href: "/plus/equipe", area: "owner" },
+      { key: "unavailability", href: "/indisponibilites", area: "agenda" },
+      { key: "calendar", href: "/plus/agenda-telephone", area: "owner" },
     ],
   },
   {
     key: "sell",
     items: [
       // Boutique : produits en vente (solution Commerce).
-      { key: "shop", href: "/plus/boutique", feature: "commerce" },
-      { key: "orders", href: "/plus/commandes", feature: "commerce" },
-      { key: "promotions", href: "/plus/promotions", feature: "promotions" },
-      { key: "promo", href: "/plus/codes-promo", feature: "promoCodes" },
-      { key: "giftCards", href: "/plus/cartes-cadeaux", feature: "giftCards" },
+      { key: "shop", href: "/plus/boutique", area: "shop", feature: "commerce" },
+      { key: "orders", href: "/plus/commandes", area: "shop", feature: "commerce" },
+      { key: "promotions", href: "/plus/promotions", area: "marketing", feature: "promotions" },
+      { key: "promo", href: "/plus/codes-promo", area: "marketing", feature: "promoCodes" },
+      { key: "giftCards", href: "/plus/cartes-cadeaux", area: "marketing", feature: "giftCards" },
       // Fidélité et anniversaire des clientes (offert avec les codes promo).
-      { key: "loyalty", href: "/plus/fidelite", feature: ["loyalty", "promoCodes"] },
+      { key: "loyalty", href: "/plus/fidelite", area: "marketing", feature: ["loyalty", "promoCodes"] },
     ],
   },
   {
     key: "account",
     items: [
-      { key: "payments", href: "/plus/paiements", feature: "onlinePayment" },
-      { key: "subscription", href: "/plus/abonnement" },
-      { key: "settings", href: "/plus/reglages" },
-      { key: "export", href: "/plus/exporter" },
+      { key: "payments", href: "/plus/paiements", area: "owner", feature: "onlinePayment" },
+      { key: "subscription", href: "/plus/abonnement", area: "owner" },
+      { key: "settings", href: "/plus/reglages", area: "owner" },
+      { key: "export", href: "/plus/exporter", area: "owner" },
     ],
   },
   {
     key: "support",
     items: [
-      { key: "requests", href: "/plus/demandes" },
-      { key: "customerData", href: "/plus/donnees-clientes", feature: "customerSpace" },
-      { key: "help", href: "/plus/aide" },
+      { key: "requests", href: "/plus/demandes", area: "site" },
+      { key: "customerData", href: "/plus/donnees-clientes", area: "owner", feature: "customerSpace" },
+      { key: "help", href: "/plus/aide", area: "agenda" },
     ],
   },
 ];
@@ -106,7 +113,7 @@ const TO_HANDLE = new Set<Key>(["customerData", "orders"]);
 
 /** Onglet « Plus » : tous les outils en tuiles, rangés par thème, avec leurs compteurs. */
 export default async function MorePage({ params }: PageProps<"/[locale]/espace/[tenantId]/plus">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "agenda");
   const t = await getTranslations("manager.more");
   const counts = await page.db((tx) => toolsOverview(tx, page.tenantId, page.tenant.timezone));
   // Export : packs qui le comprennent, ou abonnement en cours de résiliation.
@@ -124,6 +131,7 @@ export default async function MorePage({ params }: PageProps<"/[locale]/espace/[
         // Pas de rubrique pour une fonction que le pack ne comprend pas : le menu reste court.
         items: group.items.filter(
           (item) =>
+            canAccess(page.space, item.area) &&
             (item.key !== "export" || canExport) &&
             (!item.feature || [item.feature].flat().some((feature) => page.tenant.features[feature])),
         ),

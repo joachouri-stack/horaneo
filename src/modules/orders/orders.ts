@@ -81,7 +81,11 @@ export async function createOrder(
   // Pages légales pas encore publiées : pas de paiement en ligne (formulaire « Être rappelé »).
   if (plan.priceCents > 0 && !(await salesOpen(tx))) throw new AppError("sales_paused");
   // Déjà cliente : le changement de pack se fait depuis son espace.
-  const [membership] = await tx.select().from(memberships).where(eq(memberships.userId, userId)).limit(1);
+  const [membership] = await tx
+    .select()
+    .from(memberships)
+    .where(and(eq(memberships.userId, userId), eq(memberships.role, "owner")))
+    .limit(1);
   if (membership) throw new AppError("already_customer");
   const phone = normalizePhone(input.phone, "FR", "phone");
 

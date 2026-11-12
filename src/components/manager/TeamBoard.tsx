@@ -31,6 +31,7 @@ export async function TeamBoard({
   services,
   actions,
   base,
+  withAccess = [],
 }: {
   tenantId: string;
   contentLocale: string;
@@ -40,6 +41,8 @@ export async function TeamBoard({
   services: Services;
   actions: { save: Action; remove: Action; photo: Action };
   base: string;
+  /** Membres qui ont un accès à l'espace (collaborateurs). */
+  withAccess?: string[];
 }) {
   const [t, tAdmin, tCommon, tDays] = await Promise.all([
     getTranslations("manager.team"),
@@ -164,6 +167,11 @@ export async function TeamBoard({
                     >
                       {member.isActive ? t("active") : t("inactive")}
                     </span>
+                    {withAccess.includes(member.id) && (
+                      <span className="rounded-full bg-accent-soft px-2 py-px text-[0.72rem] font-medium text-accent-strong">
+                        {t("access.badge")}
+                      </span>
+                    )}
                   </p>
                   <p className="mt-1 flex items-center gap-1.5 text-sm text-ink-soft">
                     <DashIcon d={DASH_ICONS.calendar} className="h-4 w-4" />
@@ -200,6 +208,12 @@ export async function TeamBoard({
                   className="inline-flex min-h-10 items-center rounded-full bg-accent-soft px-4 text-sm font-medium text-accent-strong transition hover:bg-accent hover:text-white"
                 >
                   {t("schedule")}
+                </Link>
+                <Link
+                  href={`${base}/plus/equipe/${member.id}#acces`}
+                  className="inline-flex min-h-10 items-center rounded-full border border-hairline bg-white px-4 text-sm font-medium text-night transition hover:border-accent-line hover:text-accent"
+                >
+                  {t("access.manage")}
                 </Link>
                 <StaffPhotoUpload
                   tenantId={tenantId}

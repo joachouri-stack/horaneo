@@ -12,7 +12,7 @@ import { resolveDataRequestAction } from "../../actions";
 export default async function CustomerDataPage({
   params,
 }: PageProps<"/[locale]/espace/[tenantId]/plus/donnees-clientes">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "owner");
   const t = await getTranslations("manager.customerData");
   const requests = await page.db((tx) => listDataRequests(tx, page.tenantId));
   return (

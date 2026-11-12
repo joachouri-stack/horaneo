@@ -9,7 +9,7 @@ import { saveCustomerAction } from "../../actions";
 export default async function NewCustomerPage({
   params,
 }: PageProps<"/[locale]/espace/[tenantId]/clientes/nouvelle">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "customers");
   const t = await getTranslations("manager.customers");
   const tCommon = await getTranslations("common");
   return (

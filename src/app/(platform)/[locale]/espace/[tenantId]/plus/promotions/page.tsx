@@ -17,7 +17,7 @@ type PromotionRow = Awaited<ReturnType<typeof listPromotions>>[number];
 export default async function PromotionsPage({
   params,
 }: PageProps<"/[locale]/espace/[tenantId]/plus/promotions">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "marketing");
   const [t, tCommon] = await Promise.all([getTranslations("manager.promotions"), getTranslations("common")]);
   const available = Boolean(page.tenant.features.promotions);
   const { promotions, services } = available

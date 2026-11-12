@@ -14,7 +14,7 @@ type PromoRow = Awaited<ReturnType<typeof listPromoCodes>>[number];
 export default async function PromoCodesPage({
   params,
 }: PageProps<"/[locale]/espace/[tenantId]/plus/codes-promo">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "marketing");
   const [t, tCommon] = await Promise.all([getTranslations("manager.promo"), getTranslations("common")]);
   const available = Boolean(page.tenant.features.promoCodes);
   const codes = available ? await page.db((tx) => listPromoCodes(tx, page.tenantId)) : [];

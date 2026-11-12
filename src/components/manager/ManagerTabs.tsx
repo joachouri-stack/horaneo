@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
+import type { ManagerArea } from "@/modules/team/access";
 
 const ICONS = {
   today: "M3 10.5 12 4l9 6.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z",
@@ -17,22 +18,26 @@ const ICONS = {
   settings: "M4 7h10M18 7h2M4 17h2M10 17h10M14 5v4M6 15v4",
 } as const;
 
+/** `area` : partie de l'espace ; un onglet que la gérante n'a pas ouvert au collaborateur est masqué. */
 const MAIN = [
-  { key: "today", path: "" },
-  { key: "agenda", path: "/agenda" },
-  { key: "customers", path: "/clientes" },
-  { key: "site", path: "/site" },
-  { key: "more", path: "/plus" },
-] as const;
+  { key: "today", path: "", area: "agenda" },
+  { key: "agenda", path: "/agenda", area: "agenda" },
+  { key: "customers", path: "/clientes", area: "customers" },
+  { key: "site", path: "/site", area: "site" },
+  { key: "more", path: "/plus", area: "agenda" },
+] as const satisfies readonly { key: string; path: string; area: ManagerArea }[];
 
 /** Raccourcis de la barre latérale (ordinateur) vers les pages de « Plus ». */
 const SECONDARY = [
-  { key: "stats", path: "/plus/statistiques" },
-  { key: "team", path: "/plus/equipe" },
-  { key: "payments", path: "/plus/paiements" },
-  { key: "subscription", path: "/plus/abonnement" },
-  { key: "settings", path: "/plus/reglages" },
-] as const;
+  { key: "stats", path: "/plus/statistiques", area: "stats" },
+  { key: "team", path: "/plus/equipe", area: "owner" },
+  { key: "payments", path: "/plus/paiements", area: "owner" },
+  { key: "subscription", path: "/plus/abonnement", area: "owner" },
+  { key: "settings", path: "/plus/reglages", area: "owner" },
+] as const satisfies readonly { key: string; path: string; area: ManagerArea }[];
+
+/** Grille des onglets du bas selon leur nombre (classes écrites en entier pour Tailwind). */
+const COLUMNS = ["", "grid-cols-1", "grid-cols-2", "grid-cols-3", "grid-cols-4", "grid-cols-5"] as const;
 
 function Icon({ d, className }: { d: string; className: string }) {
   return (
@@ -60,11 +65,16 @@ export function ManagerTabs({
   tenantId,
   siteUrl,
   siteLabel,
+  areas,
 }: {
   tenantId: string;
   siteUrl: string | null;
   siteLabel: string;
+  /** Parties de l'espace ouvertes à la personne connectée. */
+  areas: ManagerArea[];
 }) {
+  const main = MAIN.filter((tab) => areas.includes(tab.area));
+  const secondary = SECONDARY.filter((tab) => areas.includes(tab.area));
   const t = useTranslations("manager.tabs");
   const tMore = useTranslations("manager.more");
   const pathname = usePathname();
@@ -85,8 +95,8 @@ export function ManagerTabs({
         aria-label={t("nav")}
         className="fixed inset-x-0 bottom-0 z-40 border-t border-hairline bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
       >
-        <ul className="mx-auto grid max-w-3xl grid-cols-5">
-          {MAIN.map((tab) => (
+        <ul className={`mx-auto grid max-w-3xl ${COLUMNS[main.length]}`}>
+          {main.map((tab) => (
             <li key={tab.key}>
               <Link
                 href={`${base}${tab.path}`}
@@ -109,25 +119,27 @@ export function ManagerTabs({
         className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-6 border-r border-hairline bg-mist-50 px-4 py-6 lg:flex"
       >
         <ul className="space-y-1">
-          {MAIN.filter((tab) => tab.key !== "more").map((tab) => (
-            <li key={tab.key}>
-              <Link
-                href={`${base}${tab.path}`}
-                aria-current={isActive(tab.path) ? "page" : undefined}
-                className={sideLink}
-              >
-                <Icon d={ICONS[tab.key]} className="h-5 w-5 shrink-0" />
-                {t(tab.key)}
-              </Link>
-            </li>
-          ))}
+          {main
+            .filter((tab) => tab.key !== "more")
+            .map((tab) => (
+              <li key={tab.key}>
+                <Link
+                  href={`${base}${tab.path}`}
+                  aria-current={isActive(tab.path) ? "page" : undefined}
+                  className={sideLink}
+                >
+                  <Icon d={ICONS[tab.key]} className="h-5 w-5 shrink-0" />
+                  {t(tab.key)}
+                </Link>
+              </li>
+            ))}
         </ul>
         <div>
           <p className="px-3 pb-2 text-[0.8125rem] font-medium uppercase tracking-[0.08em] text-ink-soft/80">
             {t("more")}
           </p>
           <ul className="space-y-1">
-            {SECONDARY.map((item) => (
+            {secondary.map((item) => (
               <li key={item.key}>
                 <Link
                   href={`${base}${item.path}`}

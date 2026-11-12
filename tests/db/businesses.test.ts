@@ -293,7 +293,12 @@ describe.skipIf(!hasTestDatabase)("plusieurs entreprises sur un même site", () 
       site.laila.id,
       app,
     );
-    expect(access).toEqual({ role: "owner", businessId: site.natacha.id });
+    expect(access).toEqual({
+      role: "owner",
+      businessId: site.natacha.id,
+      permissions: {},
+      staffMemberId: null,
+    });
     const [laila] = await owner.select().from(users).where(eq(users.id, site.laila.managerId));
     expect(
       await errorCode(
@@ -451,7 +456,7 @@ describe.skipIf(!hasTestDatabase)("plusieurs entreprises sur un même site", () 
       business.id,
       app,
     );
-    expect(access).toEqual({ role: "owner", businessId: business.id });
+    expect(access).toEqual({ role: "owner", businessId: business.id, permissions: {}, staffMemberId: null });
     const [laila] = await owner.select().from(users).where(eq(users.id, site.laila.managerId));
     expect(
       await errorCode(
@@ -490,7 +495,12 @@ describe.skipIf(!hasTestDatabase)("plusieurs entreprises sur un même site", () 
     expect(settings.version).toBe(0);
     const access = (userId: string) =>
       resolveManagerAccess({ user: { id: userId }, session: {} }, site.tenantId, business.id, app);
-    expect(await access(after)).toEqual({ role: "owner", businessId: business.id });
+    expect(await access(after)).toEqual({
+      role: "owner",
+      businessId: business.id,
+      permissions: {},
+      staffMemberId: null,
+    });
     expect(await access(before)).toBeNull();
     // Une gérante d'une autre entreprise du site ne peut pas être reprise ici.
     const [laila] = await owner.select().from(users).where(eq(users.id, site.laila.managerId));
