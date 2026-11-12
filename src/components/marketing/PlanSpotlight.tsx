@@ -43,12 +43,31 @@ export function PlanSpotlight({
   const row = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
   const previous = useRef(0);
-  // Son autorisé une fois que la personne a touché la rangée ou ses commandes (règle des navigateurs).
+  // Son débloqué au premier toucher (ou clic, ou touche) n'importe où sur la page : les
+  // navigateurs, Safari sur iPhone en tête, n'autorisent le son qu'à l'intérieur d'un geste, et
+  // un glissé seul n'en est pas un. Le déblocage joue un son vide, puis on n'écoute plus.
   const audio = useRef<AudioContext | null>(null);
-  const unlock = () => {
-    if (audio.current || typeof window === "undefined" || !("AudioContext" in window)) return;
-    audio.current = new AudioContext();
-  };
+  useEffect(() => {
+    const Context =
+      window.AudioContext ??
+      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!Context) return;
+    const events = ["pointerdown", "touchend", "click", "keydown"] as const;
+    const unlock = () => {
+      const context = (audio.current ??= new Context());
+      if (context.state === "suspended") void context.resume();
+      const silence = context.createBufferSource();
+      silence.buffer = context.createBuffer(1, 1, 22050);
+      silence.connect(context.destination);
+      silence.start(0);
+      if (context.state === "running")
+        for (const event of events) document.removeEventListener(event, unlock, true);
+    };
+    for (const event of events) document.addEventListener(event, unlock, true);
+    return () => {
+      for (const event of events) document.removeEventListener(event, unlock, true);
+    };
+  }, []);
 
   useEffect(() => {
     if (active === previous.current) return;
@@ -109,7 +128,7 @@ export function PlanSpotlight({
     "grid size-11 place-items-center rounded-full border border-hairline bg-white text-night shadow-[0_8px_20px_-12px_rgba(15,24,48,.45)] transition hover:border-violet/40 hover:text-violet disabled:opacity-35 disabled:hover:border-hairline disabled:hover:text-night";
 
   return (
-    <div onPointerDownCapture={unlock} onKeyDownCapture={unlock}>
+    <div>
       {count > 1 && (
         <div className="flex items-center justify-center gap-4 lg:hidden">
           <button
