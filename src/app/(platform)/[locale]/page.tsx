@@ -48,6 +48,7 @@ import {
   WrenchLine,
 } from "@/components/marketing/line-icons";
 import { AllFeatures } from "@/components/marketing/AllFeatures";
+import { TestimonialCard } from "@/components/marketing/TestimonialCard";
 import { PlanCards } from "@/components/marketing/PlanCards";
 import { RevealOnScroll } from "@/components/marketing/RevealOnScroll";
 import { RotatingWord } from "@/components/marketing/RotatingWord";
@@ -900,32 +901,19 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               <ul className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
                 {data.showcase.map((entry) => (
                   <li key={entry.id} data-reveal>
-                    <figure className="flex h-full flex-col rounded-2xl border border-hairline bg-white p-5 shadow-[0_1px_2px_rgba(15,24,48,.04)] lg:p-6">
-                      <span aria-hidden="true" className="font-display text-4xl leading-none text-coral">
-                        “
-                      </span>
-                      <blockquote className="mt-2 flex-1 text-mk-body leading-relaxed text-night">
-                        {entry.quote}
-                      </blockquote>
-                      <figcaption className="mt-5 border-t border-hairline pt-4 text-mk-small text-ink-soft">
-                        <span className="block font-semibold text-night">{entry.author}</span>
-                        {entry.name} · {entry.activity}
-                        {entry.url && (
-                          <a
-                            href={entry.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-2 flex w-fit items-center gap-1 font-medium text-accent-strong underline-offset-4 hover:underline"
-                          >
-                            {t("showcase.visit", { name: entry.name })}
-                            <ArrowLine className="size-4" />
-                          </a>
-                        )}
-                      </figcaption>
-                    </figure>
+                    <TestimonialCard entry={entry} visitLabel={t("showcase.visit", { name: entry.name })} />
                   </li>
                 ))}
               </ul>
+              <p className="mt-6">
+                <Link
+                  href="/avis"
+                  className="inline-flex min-h-11 items-center gap-1.5 font-medium text-violet underline-offset-4 hover:underline"
+                >
+                  {t("showcase.allReviews")}
+                  <ArrowLine className="size-4" />
+                </Link>
+              </p>
             </section>
           )}
         </SolutionScope>

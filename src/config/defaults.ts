@@ -74,6 +74,8 @@ export const DEFAULT_PLATFORM_SETTINGS = {
   social_tiktok: "",
   social_instagram: "",
   social_facebook: "",
+  /** Page Trustpilot de la marque (avis indépendants) ; vide : liens Trustpilot masqués. */
+  trustpilot_url: "",
   /**
    * Formule sans engagement proposée à la commande (avec frais de création du pack).
    * false : seule la formule avec engagement (commitment_months), création offerte.

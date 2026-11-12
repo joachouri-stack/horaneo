@@ -948,6 +948,7 @@
       "discover": "Découvrir",
       "pro": "Espace pro",
       "contact": "Nous écrire",
+      "reviews": "Avis clients",
       "rights": "© {year} {product} · Tous droits réservés",
       "legalTitle": "Informations légales",
       "proCardTitle": "Déjà client ?",
@@ -970,7 +971,22 @@
       "badge": "Ils nous font confiance",
       "title": "Des professionnels",
       "titleAccent": "comme vous.",
-      "visit": "Voir le site de {name}"
+      "visit": "Voir le site de {name}",
+      "allReviews": "Voir tous les avis"
+    },
+    "reviews": {
+      "metaTitle": "Avis clients",
+      "badge": "Avis clients",
+      "title": "Ce qu'en disent",
+      "titleAccent": "nos clients.",
+      "intro": "De vrais témoignages de professionnels qui utilisent {product}, publiés avec leur accord.",
+      "empty": "Les premiers témoignages arrivent bientôt : {product} vient d'être lancé.",
+      "emptyCta": "Vous utilisez {product} ? Racontez-nous votre expérience.",
+      "write": "Laisser un avis",
+      "trustpilotRead": "Lire nos avis sur Trustpilot",
+      "trustpilotWrite": "Laisser un avis sur Trustpilot",
+      "trustpilotNote": "Trustpilot est une plateforme d'avis indépendante : chacun peut y laisser son avis, nous ne pouvons pas le modifier.",
+      "mailSubject": "Mon avis sur {product}"
     }
   },
   "site": {
@@ -2234,6 +2250,8 @@
       "social_tiktok": "Compte TikTok",
       "social_instagram": "Compte Instagram",
       "social_facebook": "Page Facebook",
+      "trustpilot_url": "Page Trustpilot",
+      "trustpilotHint": "Facultatif. L'adresse de votre page Trustpilot (ex. https://fr.trustpilot.com/review/votresite.fr). Remplie, elle ajoute « Lire nos avis » et « Laisser un avis » sur la page Avis clients ; vide, ces boutons sont masqués.",
       "yearly_billing_enabled": "Proposer le paiement à l'année",
       "yearly_free_months": "Mois offerts pour le paiement à l'année",
       "yearlyHint": "2 = 10 mois payés pour 12. Un changement s'applique aux nouvelles souscriptions, puis aux abonnés annuels à la fin de leur engagement, après préavis.",
