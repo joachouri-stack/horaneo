@@ -758,9 +758,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     className="h-auto w-full"
                   />
                 </div>
-                <figcaption className="mt-3 text-center text-[0.875rem] text-ink-soft">
-                  {t("dashboard.note")}
-                </figcaption>
               </figure>
             </div>
           </section>
