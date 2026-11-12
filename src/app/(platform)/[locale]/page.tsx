@@ -134,17 +134,6 @@ const TARGET_ICONS: Record<string, typeof CheckLine> = {
   courseCreators: PlayLine,
 };
 
-/** Ce que la gérante modifie elle-même sur son site (clés de `selfService.items`). */
-const SELF_SERVICE = [
-  { key: "catalog", Icon: TagLine },
-  { key: "photos", Icon: CameraLine },
-  { key: "logo", Icon: SparkleLine },
-  { key: "texts", Icon: FileLine },
-  { key: "hours", Icon: ClockLine },
-  { key: "testimonials", Icon: StarLine, pack: "testimonials" },
-  { key: "promotions", Icon: PercentLine, pack: "promotions" },
-] as const;
-
 /** Pictogrammes du bandeau de fonctions de chaque solution (dans l'ordre des textes). */
 const STRIP: Record<Solution, (typeof CheckLine)[]> = {
   booking: [ClockLine, BellLine, CardLine, CalendarLine, UsersLine, ChartLine],
@@ -154,14 +143,33 @@ const STRIP: Record<Solution, (typeof CheckLine)[]> = {
 
 /** Pictogrammes des quatre usages de l'espace de gestion (dans l'ordre des textes). */
 
-/** « Pour aller plus loin » : seulement ce que les cartes des solutions ne présentent pas déjà. */
-// `pack` : fonction du pack dont dépend la carte (« Dès le pack … » si le premier pack ne l'a pas).
-const BENEFITS = [
-  { key: "marketing", Icon: MegaphoneLine, pack: "loyalty" },
-  { key: "reviews", Icon: StarLine, pack: "googleReviews" },
-  { key: "dataExport", Icon: DownloadLine, pack: "dataExport" },
-  { key: "automation", Icon: RefreshLine, feature: "marketingAutomation" },
-  { key: "assistant", Icon: SparkleLine, feature: "aiChatbot" },
+/**
+ * Tuiles des fonctionnalités : une icône et quelques mots. `pack` : fonction du pack dont dépend
+ * la tuile (« Dès le pack … » si le premier pack ne l'a pas) ; `feature` : « Bientôt » si annoncée.
+ */
+const FEATURE_TILES = [
+  { key: "catalog", Icon: TagLine, label: "" },
+  { key: "photos", Icon: CameraLine, label: "selfService.items.photos.title" },
+  { key: "logo", Icon: PaletteLine, label: "selfService.items.logo.title" },
+  { key: "texts", Icon: FileLine, label: "selfService.items.texts.title" },
+  { key: "hours", Icon: ClockLine, label: "selfService.items.hours.title" },
+  {
+    key: "testimonials",
+    Icon: StarLine,
+    label: "selfService.items.testimonials.title",
+    pack: "testimonials",
+  },
+  { key: "promotions", Icon: PercentLine, label: "selfService.items.promotions.title", pack: "promotions" },
+  { key: "marketing", Icon: MegaphoneLine, label: "benefits.items.marketing.title", pack: "loyalty" },
+  { key: "reviews", Icon: StarLine, label: "benefits.items.reviews.title", pack: "googleReviews" },
+  { key: "dataExport", Icon: DownloadLine, label: "benefits.items.dataExport.title", pack: "dataExport" },
+  {
+    key: "automation",
+    Icon: RefreshLine,
+    label: "benefits.items.automation.title",
+    feature: "marketingAutomation",
+  },
+  { key: "assistant", Icon: SparkleLine, label: "benefits.items.assistant.title", feature: "aiChatbot" },
 ] as const;
 
 const TITLE = "font-display font-semibold tracking-[-0.025em] text-night";
@@ -800,150 +808,49 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             <p className="mt-6 text-center text-[0.9375rem] text-ink-soft">{t("plans.quotaNote")}</p>
           </section>
 
-          {/* Autonomie : la gérante met son site à jour elle-même depuis son espace. */}
+          {/* Fonctionnalités : une seule partie, peu de texte. Une tuile = une icône et quelques mots ;
+              l'écran « Mon site » (vraie capture, données d'exemple) montre que la gérante modifie
+              son site elle-même. Le détail complet se déplie en dessous. */}
           <section
-            aria-labelledby="titre-autonomie"
-            className="mx-auto max-w-[75rem] px-4 pt-20 sm:px-6 lg:pt-28 2xl:max-w-[88rem]"
+            id="fonctionnalites"
+            aria-labelledby="titre-fonctionnalites"
+            className="mx-auto max-w-[75rem] scroll-mt-20 px-4 pt-20 sm:px-6 lg:pt-28 2xl:max-w-[88rem]"
           >
-            <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14">
-              <div className="min-w-0">
+            {/* Téléphone : titre, écran « Mon site », puis tuiles. Ordinateur : titre et tuiles à gauche, écran à droite. */}
+            <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-x-14 lg:gap-y-0">
+              <div className="min-w-0 lg:col-start-1">
                 <p data-reveal className={EYEBROW}>
                   {EYEBROW_DOT}
-                  {t("selfService.badge")}
+                  {t("benefits.badge")}
                 </p>
                 <h2
-                  id="titre-autonomie"
+                  id="titre-fonctionnalites"
                   data-reveal
                   className={`${TITLE} hn-balance mt-4 text-mk-h2 leading-[1.1]`}
                 >
-                  {t("selfService.title")}{" "}
-                  <span className="hn-grad-text">{coralStop(t("selfService.titleAccent"))}</span>
+                  {t("growth.title")}{" "}
+                  <span className="hn-grad-text">{coralStop(t("growth.titleAccent"))}</span>
                 </h2>
-                <p data-reveal className="mt-4 max-w-[36rem] text-mk-lead text-ink-soft">
-                  {t("selfService.text")}
-                </p>
-                {/* Téléphone : une rangée de cartes qui se fait glisser (la suivante dépasse) ; ordinateur : grille de cartes. */}
-                <ul
-                  aria-label={t("selfService.listLabel")}
-                  className="-mx-4 mt-8 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-3 [scrollbar-width:none] sm:mx-0 sm:grid sm:snap-none sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0"
-                >
-                  {SELF_SERVICE.map(({ key, Icon, ...item }) => (
-                    <li
-                      key={key}
-                      data-reveal
-                      className="group flex w-[80%] flex-none snap-start flex-col items-start gap-2.5 rounded-2xl border border-hairline bg-white p-4 shadow-[0_10px_24px_-18px_rgba(15,24,48,.35)] sm:w-auto sm:flex-row sm:gap-3.5 sm:shadow-[0_1px_2px_rgba(15,24,48,.04)] sm:transition sm:duration-300 sm:hover:-translate-y-1 sm:hover:border-coral/40 sm:hover:shadow-[0_14px_30px_-18px_rgba(232,80,63,.45)] motion-reduce:transition-none"
-                    >
-                      <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-coral/10 text-coral-dark transition-colors duration-300 group-hover:bg-coral group-hover:text-white">
-                        <Icon className="size-5" />
-                      </span>
-                      <span className="min-w-0">
-                        {key === "catalog" ? (
-                          shown.map((code) => (
-                            <span key={code} data-only={code} className="block">
-                              <span className="block font-semibold text-night">
-                                {t(`selfService.items.catalog.${code}.title`)}
-                              </span>
-                              <span className="mt-0.5 block text-mk-small text-ink-soft">
-                                {t(`selfService.items.catalog.${code}.text`)}
-                              </span>
-                            </span>
-                          ))
-                        ) : (
-                          <>
-                            <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                              <span className="font-semibold text-night">
-                                {t(`selfService.items.${key}.title`)}
-                              </span>
-                              {"pack" in item && firstPlanWith(item.pack) !== "none" && (
-                                <span className="rounded-full bg-champagne-soft px-2 py-px text-[0.8125rem] font-medium text-copper">
-                                  {t("selfService.fromPlan", { plan: firstPlanWith(item.pack) })}
-                                </span>
-                              )}
-                            </span>
-                            <span className="mt-0.5 block text-mk-small text-ink-soft">
-                              {t(`selfService.items.${key}.text`)}
-                            </span>
-                          </>
-                        )}
-                      </span>
-                    </li>
-                  ))}
-                  {/* Ce que notre équipe modifie sur demande. */}
-                  <li
-                    data-reveal
-                    className="flex w-[80%] flex-none snap-start flex-col items-start gap-2.5 rounded-2xl border border-dashed border-coral/40 bg-coral/[0.04] p-4 sm:w-auto sm:flex-row sm:gap-3.5"
-                  >
-                    <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-coral text-white">
-                      <PaletteLine className="size-5" />
-                    </span>
-                    <span className="min-w-0">
-                      <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                        <span className="font-semibold text-night">{t("selfService.brand.title")}</span>
-                        <span className="rounded-full bg-white px-2 py-px text-[0.8125rem] font-medium text-coral-dark ring-1 ring-coral/30">
-                          {t("selfService.brand.tag")}
-                        </span>
-                      </span>
-                      <span className="mt-0.5 block text-mk-small text-ink-soft">
-                        {t("selfService.brand.text")}
-                      </span>
-                    </span>
-                  </li>
-                </ul>
-                <p className="mt-4 flex items-start gap-2 text-mk-small text-ink-soft">
-                  <SparkleLine className="mt-1 size-4 flex-none text-coral" />
-                  <span>
-                    {t("selfService.note")}{" "}
-                    <Link
-                      href="/comparatif"
-                      className="inline-flex min-h-11 items-center gap-1 whitespace-nowrap font-medium text-navy underline-offset-4 hover:underline"
-                    >
-                      {t("selfService.noteLink")}
-                      <ArrowLine className="size-3.5" />
-                    </Link>
-                  </span>
+                <p data-reveal className="mt-4 max-w-[34rem] text-mk-lead text-ink-soft">
+                  {t("growth.text")}
                 </p>
               </div>
-
-              {/* Aperçu de l'écran « Mon site » de l'espace de gestion (ordinateur : sur téléphone, la liste suffit). */}
-              <div data-reveal className="relative mx-auto hidden w-full max-w-[26rem] lg:block">
-                <div
-                  aria-hidden="true"
-                  className="absolute -inset-6 rounded-[2.5rem] bg-[radial-gradient(closest-side,rgba(232,80,63,.16),transparent)] blur-2xl"
+              {/* Écran « Mon site » sur téléphone, avec la confirmation d'enregistrement. */}
+              <div
+                data-reveal
+                className="relative mx-auto w-full max-w-[13rem] sm:max-w-[18rem] lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:max-w-[22rem] lg:self-center"
+              >
+                <Image
+                  src="/images/mon-site-telephone.webp"
+                  width={1120}
+                  height={1960}
+                  alt={t("growth.visualAlt")}
+                  sizes="(min-width: 1024px) 22rem, (min-width: 640px) 19rem, 17rem"
+                  className="h-auto w-full"
                 />
                 <div
                   aria-hidden="true"
-                  className="relative rounded-[1.6rem] border border-hairline bg-white p-5 shadow-[0_40px_80px_-40px_rgba(15,24,48,.45)] sm:p-6"
-                >
-                  <p className="font-display text-mk-card font-semibold text-night">
-                    {t("selfService.panel.title")}
-                  </p>
-                  <p className="mt-1 text-mk-small text-ink-soft">{t("selfService.panel.intro")}</p>
-                  <ul className="mt-5 divide-y divide-hairline rounded-2xl border border-hairline">
-                    {SELF_SERVICE.slice(0, 4).map(({ key, Icon }) => (
-                      <li key={key} className="flex items-center gap-3 px-4 py-3.5">
-                        <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-coral/10 text-coral-dark">
-                          <Icon className="size-[18px]" />
-                        </span>
-                        <span className="min-w-0 flex-1 truncate font-medium text-night">
-                          {key === "catalog"
-                            ? shown.map((code) => (
-                                <span key={code} data-only={code}>
-                                  {t(`selfService.items.catalog.${code}.title`)}
-                                </span>
-                              ))
-                            : t(`selfService.items.${key}.title`)}
-                        </span>
-                        <span className="inline-flex items-center gap-1 text-[0.875rem] font-medium text-accent-strong">
-                          {t("selfService.panel.edit")}
-                          <ArrowLine className="size-3.5" />
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div
-                  aria-hidden="true"
-                  className="hn-float absolute -bottom-5 right-2 flex items-center gap-3 rounded-2xl border border-hairline bg-white/95 py-2.5 pl-2.5 pr-5 shadow-[0_18px_36px_-20px_rgba(15,24,48,.5)] backdrop-blur sm:-right-6"
+                  className="hn-float absolute bottom-[14%] -left-8 flex items-center whitespace-nowrap gap-3 rounded-2xl border border-hairline bg-white/95 py-2.5 pl-2.5 pr-5 shadow-[0_18px_36px_-20px_rgba(15,24,48,.5)] backdrop-blur sm:-left-10"
                 >
                   <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-[#e7f6ee] text-[#1f8a55]">
                     <CheckLine className="size-[18px]" />
@@ -958,65 +865,49 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   </span>
                 </div>
               </div>
-            </div>
-          </section>
-
-          {/* Les bénéfices */}
-          <section
-            id="fonctionnalites"
-            aria-labelledby="titre-benefices"
-            className="mx-auto max-w-[75rem] 2xl:max-w-[88rem] scroll-mt-20 px-4 pt-20 sm:px-6 lg:pt-28"
-          >
-            <p data-reveal className={EYEBROW}>
-              {EYEBROW_DOT}
-              {t("benefits.badge")}
-            </p>
-            <h2
-              id="titre-benefices"
-              data-reveal
-              className={`${TITLE} mt-4 max-w-[44rem] text-mk-h2 leading-[1.1]`}
-            >
-              {t("benefits.title")}{" "}
-              <span className="hn-grad-text">{coralStop(t("benefits.titleAccent"))}</span>
-            </h2>
-            {/* Téléphone : une rangée de cartes qui se fait glisser (la suivante dépasse) ; au-delà : grille. */}
-            <ul
-              aria-label={t("benefits.badge")}
-              className="-mx-4 mt-10 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-3 [scrollbar-width:none] sm:mx-0 sm:grid sm:snap-none sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-6 lg:gap-4"
-            >
-              {BENEFITS.map((item) => {
-                const later = "feature" in item && soon.has(item.feature);
-                return (
-                  <li
-                    key={item.key}
-                    data-reveal
-                    className={`group flex w-[80%] flex-none snap-start flex-col items-start gap-2.5 rounded-2xl border border-hairline p-4 transition sm:w-auto sm:flex-row sm:gap-4 duration-300 motion-reduce:transition-none sm:max-lg:last:col-span-2 lg:col-span-2 lg:p-5 lg:[&:nth-child(n+4)]:col-span-3 ${later ? "bg-mist-50/60" : "bg-white shadow-[0_1px_2px_rgba(15,24,48,.04)] hover:-translate-y-1 hover:border-coral/40 hover:shadow-[0_14px_30px_-18px_rgba(232,80,63,.45)]"}`}
-                  >
-                    <span
-                      className={`flex size-11 flex-none items-center justify-center rounded-xl transition-colors duration-300 ${later ? "bg-white text-ink-soft" : "bg-coral/10 text-coral-dark group-hover:bg-coral group-hover:text-white"}`}
+              <ul
+                aria-label={t("benefits.badge")}
+                className="grid min-w-0 grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:col-start-1 lg:mt-8"
+              >
+                {FEATURE_TILES.map((tile) => {
+                  const later = "feature" in tile && soon.has(tile.feature);
+                  const plan = "pack" in tile ? firstPlanWith(tile.pack) : "none";
+                  return (
+                    <li
+                      key={tile.key}
+                      data-reveal
+                      className="flex flex-col gap-2 rounded-2xl border border-hairline bg-white p-3 shadow-[0_10px_24px_-20px_rgba(43,37,128,.45)] sm:min-h-[6.5rem] sm:gap-2.5 sm:p-4"
                     >
-                      <item.Icon className="size-[1.375rem]" />
-                    </span>
-                    <span className="min-w-0">
-                      {/* « Bientôt » au-dessus du titre : même place sur toutes les cartes, quelle que soit la largeur. */}
-                      {later && (
-                        <span className="mb-1 inline-block rounded-full bg-white px-2 py-px text-mk-note text-ink-soft">
+                      <span
+                        className={`flex size-8 flex-none items-center justify-center rounded-xl sm:size-9 ${later ? "bg-[#efeaff] text-violet" : "bg-[linear-gradient(135deg,var(--color-violet),var(--color-azure-dark))] text-white shadow-[0_8px_18px_-8px_rgba(123,63,228,.8)]"}`}
+                      >
+                        <tile.Icon className="size-[18px]" />
+                      </span>
+                      <span className="font-display text-[0.9375rem] font-semibold leading-snug text-night sm:text-mk-body">
+                        {tile.key === "catalog"
+                          ? shown.map((code) => (
+                              <span key={code} data-only={code}>
+                                {t(`selfService.items.catalog.${code}.title`)}
+                              </span>
+                            ))
+                          : t(tile.label)}
+                      </span>
+                      {later ? (
+                        <span className="mt-auto w-fit rounded-full bg-mist-50 px-2 py-px text-[0.75rem] text-ink-soft sm:text-[0.8125rem]">
                           {t("plans.soonTag")}
                         </span>
+                      ) : (
+                        plan !== "none" && (
+                          <span className="mt-auto w-fit rounded-full bg-[#efeaff] px-2 py-px text-[0.75rem] font-medium text-violet sm:text-[0.8125rem]">
+                            {t("selfService.fromPlan", { plan })}
+                          </span>
+                        )
                       )}
-                      <span className="block font-display text-mk-body font-semibold leading-snug text-night">
-                        {t(`benefits.items.${item.key}.title`)}
-                      </span>
-                      <span className="mt-1 block text-mk-small leading-snug text-ink-soft">
-                        {t(`benefits.items.${item.key}.text`, {
-                          plan: "pack" in item ? firstPlanWith(item.pack) : "none",
-                        })}
-                      </span>
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
             {/* Liste complète, repliée : pour celles qui veulent tous les détails. */}
             <AllFeatures plans={data.plans} soon={data.soon} shown={shown} />
           </section>
