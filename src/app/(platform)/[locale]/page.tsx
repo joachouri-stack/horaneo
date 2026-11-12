@@ -454,7 +454,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     )}
                   </p>
                 )}
-                <ul className="hn-up-4 mt-8 hidden flex-col gap-3 text-mk-body text-white/85 sm:flex">
+                <ul className="hn-up-4 mt-6 flex flex-col gap-3 text-mk-body text-white/85 sm:mt-8">
                   {(t.raw("hero.points") as string[]).map((point) => (
                     <li key={point} className="flex items-center gap-3">
                       <span className="flex size-6 flex-none items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--color-violet),var(--color-azure-dark))] text-white shadow-[0_6px_16px_-6px_rgba(123,63,228,.9)]">
