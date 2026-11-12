@@ -334,17 +334,27 @@ export async function updateInternalNote(
 /** Statuts d'un rendez-vous terminé, qu'on peut supprimer (les rendez-vous à venir s'annulent). */
 const DELETABLE_STATUSES = ["attended", "no_show", "cancelled", "expired"] as const;
 
+/** Rendez-vous supprimable : terminé, ou passé mais resté « confirmé » (jamais marqué venue / absente). */
+export function isDeletable(appointment: { status: string; endsAt: Date }, now = new Date()) {
+  if ((DELETABLE_STATUSES as readonly string[]).includes(appointment.status)) return true;
+  return appointment.status === "confirmed" && appointment.endsAt <= now;
+}
+
 /**
- * Suppression définitive d'un rendez-vous terminé (erreur de saisie, essai) : il disparaît de
+ * Suppression définitive d'un rendez-vous terminé ou passé (erreur de saisie, essai) : il disparaît de
  * l'agenda, de la fiche cliente et des statistiques, avec ses prestations, ses messages et son
  * point de fidélité. Refusée si un acompte en ligne ou une carte cadeau y est lié : ces
  * mouvements d'argent restent pour la comptabilité. Un rendez-vous à venir s'annule (la
  * cliente est prévenue) au lieu d'être supprimé.
  */
-export async function deleteAppointment(tx: Transaction, tenantId: string, appointmentId: string) {
+export async function deleteAppointment(
+  tx: Transaction,
+  tenantId: string,
+  appointmentId: string,
+  now = new Date(),
+) {
   const appointment = await loadAppointment(tx, tenantId, appointmentId, true);
-  if (!(DELETABLE_STATUSES as readonly string[]).includes(appointment.status))
-    throw new AppError("appointment_not_deletable");
+  if (!isDeletable(appointment, now)) throw new AppError("appointment_not_deletable");
   const [payment] = await tx
     .select({ id: payments.id })
     .from(payments)

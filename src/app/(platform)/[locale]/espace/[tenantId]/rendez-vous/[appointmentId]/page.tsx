@@ -5,6 +5,7 @@ import { CheckboxField, Hidden, SelectField, TextArea, TextField } from "@/compo
 import { ui } from "@/components/ui/styles";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
+import { isDeletable } from "@/modules/agenda/actions";
 import { getAppointmentDetail } from "@/modules/agenda/queries";
 import { loadBookingContext } from "@/modules/booking/availability";
 import { utcToLocal } from "@/modules/booking/time";
@@ -292,27 +293,41 @@ export default async function AppointmentPage({
         </details>
       )}
 
-      {/* Rendez-vous terminé : suppression définitive (saisie par erreur, essai). */}
-      {["attended", "no_show", "cancelled", "expired"].includes(item.status) && (
-        <details className={ui.card}>
-          <summary className="-m-5 flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 p-5 text-lg font-semibold sm:-m-6 sm:p-6 [&::-webkit-details-marker]:hidden text-[#b4372a]">
-            {t("appointment.delete")}
-            <span aria-hidden="true" className="text-ink-soft">
-              ▾
-            </span>
-          </summary>
-          <p className="mt-6 text-sm text-ink/70">{t("appointment.deleteHint")}</p>
+      {/* Rendez-vous terminé ou passé : suppression définitive (saisie par erreur, essai). Un bouton
+          discret ; la confirmation explique que c'est irréversible. */}
+      {isDeletable(item) && (
+        <div className="flex flex-col items-center gap-2 pt-2 text-center">
           <ActionForm
             action={deleteAppointmentAction}
             submitLabel={t("appointment.delete")}
-            variant="secondary"
+            submitIcon={<TrashIcon />}
+            variant="dangerOutline"
             confirm={t("appointment.deleteConfirm")}
-            className="mt-4"
+            className="flex w-full flex-col items-center gap-3"
           >
             <Hidden values={hidden} />
           </ActionForm>
-        </details>
+          <p className="max-w-[24rem] text-sm text-ink/60">{t("appointment.deleteHint")}</p>
+        </div>
       )}
     </div>
+  );
+}
+
+/** Corbeille (bouton de suppression). */
+function TrashIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className="size-[18px]"
+    >
+      <path d="M4 7h16M10 11v6M14 11v6M5.5 7l1 12a2 2 0 0 0 2 1.8h7a2 2 0 0 0 2-1.8l1-12M9 7V4.5h6V7" />
+    </svg>
   );
 }

@@ -640,10 +640,10 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
       const a = await onlineBooking(s.id, s.massage.id, at("10:00"));
       const b = await onlineBooking(s.id, s.massage.id, at("14:00"));
       await asManager(s.id, (tx) => setAttendance(tx, s.id, a.appointmentId, "attended"));
-      // Encore « confirmé » (pas terminé) : il faut l'annuler, pas le supprimer.
-      expect(await errorCode(asManager(s.id, (tx) => deleteAppointment(tx, s.id, b.appointmentId)))).toBe(
-        "appointment_not_deletable",
-      );
+      // Encore à venir (« confirmé », pas encore passé) : il faut l'annuler, pas le supprimer.
+      expect(
+        await errorCode(asManager(s.id, (tx) => deleteAppointment(tx, s.id, b.appointmentId, NOW))),
+      ).toBe("appointment_not_deletable");
       await asManager(s.id, (tx) => deleteAppointment(tx, s.id, a.appointmentId));
       expect(
         await owner.select().from(appointments).where(eq(appointments.id, a.appointmentId)),
@@ -666,6 +666,16 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
       expect(await errorCode(asManager(s.id, (tx) => deleteAppointment(tx, s.id, b.appointmentId)))).toBe(
         "appointment_has_payment",
       );
+    });
+
+    it("rendez-vous passé resté « confirmé » (jamais marqué venue) : supprimable", async () => {
+      const s = await setup();
+      const a = await onlineBooking(s.id, s.massage.id, at("10:00"));
+      // Le lendemain du rendez-vous, sans l'avoir marqué venue ni absente.
+      await asManager(s.id, (tx) => deleteAppointment(tx, s.id, a.appointmentId, at("10:00", "2026-10-07")));
+      expect(
+        await owner.select().from(appointments).where(eq(appointments.id, a.appointmentId)),
+      ).toHaveLength(0);
     });
 
     it("objectifs du mois : enregistrés, retirés quand le champ est vide, refusés s'ils sont invalides", async () => {
