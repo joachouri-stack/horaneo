@@ -96,3 +96,26 @@ describe("reconnaissance du site selon le domaine", () => {
     });
   });
 });
+
+describe("changement de domaine principal (horaneo.com → sirine.pro)", () => {
+  const moved: HostConfig = {
+    mainDomain: "sirine.pro",
+    localeRedirectDomains: parseLocaleRedirectDomains("horaneo.fr=fr, horaneo.com=fr"),
+    devAliases: [],
+  };
+  const at = (host: string, path = "/") => classifyHost(host, new URL(`https://example.test${path}`), moved);
+
+  it("l'ancien site commercial redirige vers le nouveau domaine, en gardant la page", () => {
+    expect(at("horaneo.com", "/tarifs")).toEqual({
+      kind: "redirect",
+      location: "https://sirine.pro/fr/tarifs",
+    });
+    expect(at("www.horaneo.com")).toEqual({ kind: "redirect", location: "https://sirine.pro/fr" });
+  });
+
+  it("les sites des clients restent à leur adresse en .horaneo.com ; les nouveaux sont en .sirine.pro", () => {
+    expect(at("ma-beaute.horaneo.com")).toEqual({ kind: "tenant", hostname: "ma-beaute.horaneo.com" });
+    expect(at("nouveau.sirine.pro")).toEqual({ kind: "tenant", hostname: "nouveau.sirine.pro" });
+    expect(at("sirine.pro")).toEqual({ kind: "platform" });
+  });
+});
