@@ -145,10 +145,7 @@ const STRIP: Record<Solution, (typeof CheckLine)[]> = {
 
 /** Pictogrammes des quatre usages de l'espace de gestion (dans l'ordre des textes). */
 
-/**
- * Tuiles des fonctionnalités : une icône et quelques mots, sans mention de pack. `feature` :
- * fonction annoncée (icône plus claire tant qu'elle n'est pas disponible).
- */
+/** Tuiles des fonctionnalités : une icône et quelques mots, toutes présentées de la même façon. */
 const FEATURE_TILES = [
   { key: "catalog", Icon: TagLine, label: "" },
   { key: "photos", Icon: CameraLine, label: "selfService.items.photos.title" },
@@ -160,13 +157,8 @@ const FEATURE_TILES = [
   { key: "marketing", Icon: MegaphoneLine, label: "benefits.items.marketing.title" },
   { key: "reviews", Icon: StarLine, label: "benefits.items.reviews.title" },
   { key: "dataExport", Icon: DownloadLine, label: "benefits.items.dataExport.title" },
-  {
-    key: "automation",
-    Icon: RefreshLine,
-    label: "benefits.items.automation.title",
-    feature: "marketingAutomation",
-  },
-  { key: "assistant", Icon: SparkleLine, label: "benefits.items.assistant.title", feature: "aiChatbot" },
+  { key: "automation", Icon: RefreshLine, label: "benefits.items.automation.title" },
+  { key: "assistant", Icon: SparkleLine, label: "benefits.items.assistant.title" },
 ] as const;
 
 const TITLE = "font-display font-semibold tracking-[-0.025em] text-night";
@@ -865,16 +857,13 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               className="mt-10 grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3 lg:mt-12 lg:grid-cols-4"
             >
               {FEATURE_TILES.map((tile) => {
-                const later = "feature" in tile && soon.has(tile.feature);
                 return (
                   <li
                     key={tile.key}
                     data-reveal
                     className="group flex items-center gap-3 rounded-2xl border border-hairline bg-white p-3 transition duration-300 hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_16px_32px_-20px_rgba(91,70,240,.55)] motion-reduce:transition-none sm:gap-3.5 sm:p-4"
                   >
-                    <span
-                      className={`flex size-9 flex-none items-center justify-center rounded-xl sm:size-10 ${later ? "bg-[#efeaff] text-violet" : "bg-[linear-gradient(135deg,var(--color-violet),var(--color-azure-dark))] text-white shadow-[0_8px_18px_-8px_rgba(123,63,228,.8)]"}`}
-                    >
+                    <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-[linear-gradient(135deg,var(--color-violet),var(--color-azure-dark))] text-white shadow-[0_8px_18px_-8px_rgba(123,63,228,.8)] sm:size-10">
                       <tile.Icon className="size-[18px] sm:size-5" />
                     </span>
                     <span className="min-w-0">
