@@ -504,7 +504,7 @@
       "billingMonth": "Mensuel",
       "billingYear": "Annuel",
       "billingBadge": "{months, plural, one {# mois offert} other {# mois offerts}}",
-      "trial": "{days, plural, one {# jour d'essai gratuit} other {# jours d'essai gratuit}}",
+      "trial": "{days, plural, =30 {1 mois d'essai gratuit} =60 {2 mois d'essai gratuit} one {# jour d'essai gratuit} other {# jours d'essai gratuit}}",
       "trialNote": "Prélevé seulement après l'essai · annulable pendant l'essai",
       "carousel": {
         "previous": "Pack précédent",

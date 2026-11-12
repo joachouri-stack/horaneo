@@ -379,6 +379,13 @@
       "when": 1794393833728,
       "tag": "0053_commerce_paused",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1794505873336,
+      "tag": "0054_trial_one_month",
+      "breakpoints": true
     }
   ]
 }
