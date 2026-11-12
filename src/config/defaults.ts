@@ -410,16 +410,16 @@ const GRID_BASIC = {
   customerFile: true,
   helpCenter: true,
   emailSupport: true,
+  whatsappSupport: true,
   brandingFooter: true,
 } satisfies PlanFeatures;
 
-/** Starter : site multipage, paiement par carte, assistance WhatsApp et par e-mail. */
+/** Starter : site multipage, paiement par carte, assistance technique 7 j/7. */
 const GRID_STARTER = {
   ...GRID_BASIC,
   fullSite: true,
   sitePages: true,
   onlinePayment: true,
-  whatsappSupport: true,
   maintenance: true,
   securityProtection: true,
   logoCreation: true,
