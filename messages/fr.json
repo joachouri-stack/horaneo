@@ -499,7 +499,7 @@
       "perYear": "{display}/an",
       "yearlyDetail": "soit {monthly} {display}/mois",
       "yearlySaving": "{amount} d'économie",
-      "contractYearly": "Payé en une fois pour 12 mois, renouvelé chaque année. Prix {display}.",
+      "contractYearly": "Payé en une fois pour 12 mois, renouvelé chaque année. Prix {display}. Non remboursable en cas de résiliation : vos services restent actifs jusqu'à la fin de l'année payée.",
       "billingLabel": "Périodicité de paiement",
       "billingMonth": "Mensuel",
       "billingYear": "Annuel",
@@ -4213,7 +4213,7 @@
     "billing": "Paiement",
     "billingMonthly": "Chaque mois",
     "billingYearly": "À l'année{months, plural, =0 {} one { · # mois offert} other { · # mois offerts}}",
-    "billingYearlyHint": "Payé en une fois pour 12 mois, renouvelé chaque année.{options, select, yes { Les options se facturent au mois.} other {}}"
+    "billingYearlyHint": "Payé en une fois pour 12 mois, renouvelé chaque année.{options, select, yes { Les options se facturent au mois.} other {}} Non remboursable en cas de résiliation : vos services restent actifs jusqu'à la fin de l'année payée."
   },
   "callback": {
     "metaTitle": "Être rappelé",
