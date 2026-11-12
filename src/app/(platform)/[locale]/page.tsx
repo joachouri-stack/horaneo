@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { PlanFeatures } from "@/db/schema";
 import { pickLocalized } from "@/i18n/locales";
 import { formatMoney } from "@/lib/format";
+import { ttcHintCents } from "@/modules/billing/vat";
 import Image from "next/image";
 import { connection } from "next/server";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -205,6 +206,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
   const data = await withPlatform(async (tx) => ({
     plans: await listPublicPlans(tx),
     display: String(await getPlatformSetting(tx, "prices_display")),
+    vatPercent: Number(await getPlatformSetting(tx, "vat_rate_percent")),
     commitment: Number(await getPlatformSetting(tx, "commitment_months")),
     noCommitment: Boolean(await getPlatformSetting(tx, "offer_no_commitment")),
     yearly: {
@@ -228,6 +230,8 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
   const soonShown = shown.filter(isSoon);
   // Premier pack de la grille (le moins cher) : bouton « Créer mon site » et question de la FAQ.
   const first = [...data.plans].sort((a, b) => a.priceCents - b.priceCents)[0];
+  // Prix d'entrée TTC, en petit à côté du prix HT (seulement si les prix sont affichés HT avec TVA).
+  const firstTtcCents = first ? ttcHintCents(first.priceCents, data.display, data.vatPercent) : null;
   const contact = config.SUPPORT_EMAIL ?? `support@${config.MAIN_DOMAIN}`;
   const startHref = { pathname: "/commander" as const, query: first ? { pack: first.code } : {} };
   // Nom du premier pack qui inclut une fonction (« Dès le pack … ») ; « none » si le premier
@@ -433,6 +437,11 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     <span className="font-medium text-white">
                       {t("hero.offer", { price: faqValues.price, display: data.display })}
                     </span>
+                    {firstTtcCents !== null && (
+                      <span>
+                        ({t("hero.offerTtc", { price: formatMoney(firstTtcCents, first.currency, locale) })})
+                      </span>
+                    )}
                     {data.goLiveDays > 0 && (
                       <>
                         <span aria-hidden="true">·</span>
@@ -820,6 +829,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               locale={locale}
               soon={data.soon}
               display={data.display}
+              vatPercent={data.vatPercent}
               commitmentMonths={data.commitment}
               noCommitment={data.noCommitment}
               offers={data.offers}

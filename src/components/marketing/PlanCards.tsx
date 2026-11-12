@@ -12,6 +12,7 @@ import {
   yearlySavingCents,
   type BillingInterval,
 } from "@/modules/billing/yearly";
+import { ttcHintCents } from "@/modules/billing/vat";
 import { PlanSpotlight } from "./PlanSpotlight";
 import {
   ArrowLine,
@@ -64,6 +65,7 @@ export async function PlanCards({
   locale,
   soon,
   display,
+  vatPercent = 0,
   commitmentMonths,
   noCommitment = true,
   offers,
@@ -74,6 +76,8 @@ export async function PlanCards({
   locale: Locale;
   soon: string[];
   display: string;
+  /** Taux de TVA (réglage) : montant TTC en petit sous les prix affichés HT. */
+  vatPercent?: number;
   commitmentMonths: number;
   /** Formule sans engagement proposée à côté de l'engagement (réglage admin). */
   noCommitment?: boolean;
@@ -135,6 +139,9 @@ export async function PlanCards({
         // fermée (pages légales non publiées), la page de commande propose d'être rappelé.
         const withYearly = paid && yearly.enabled;
         const yearlyCents = yearlyPriceCents(plan.priceCents, yearly.freeMonths);
+        // Montants TTC en petit sous les prix HT (rien si les prix sont affichés TTC ou sans TVA).
+        const monthlyTtcCents = ttcHintCents(plan.priceCents, display, vatPercent);
+        const yearlyTtcCents = ttcHintCents(yearlyCents, display, vatPercent);
         const hrefFor = (billing: BillingInterval) => ({
           pathname: "/commander" as const,
           query: billing === "year" ? { pack: plan.code, billing } : { pack: plan.code },
@@ -257,12 +264,25 @@ export async function PlanCards({
                   {paid ? t("perMonth", { display }) : t("freeSuffix")}
                 </span>
               </p>
+              {monthlyTtcCents !== null && (
+                <p
+                  data-billing-only={withYearly ? "month" : undefined}
+                  className={`mt-1.5 text-[0.9375rem] ${muted}`}
+                >
+                  {t("ttcMonthly", { amount: money(monthlyTtcCents) })}
+                </p>
+              )}
               {withYearly && (
                 <div data-billing-only="year">
                   <p className="flex items-baseline gap-2">
                     {bigPrice(yearlyCents, featured, strong, "")}
                     <span className={`text-[1.0625rem] ${muted}`}>{t("perYear", { display })}</span>
                   </p>
+                  {yearlyTtcCents !== null && (
+                    <p className={`mt-1.5 text-[0.9375rem] ${muted}`}>
+                      {t("ttcYearly", { amount: money(yearlyTtcCents) })}
+                    </p>
+                  )}
                   <p className={`mt-1.5 text-[0.9375rem] ${muted}`}>
                     {t("yearlyDetail", {
                       monthly: money(monthlyEquivalentCents(yearlyCents)),
