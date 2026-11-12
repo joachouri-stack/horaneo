@@ -10,7 +10,25 @@ type Labels = { previous: string; next: string; goTo: string };
  * au-dessus (visibles tout de suite, les cartes sont hautes) pour passer d'un pack à l'autre (le glissé du doigt n'est pas toujours deviné). Sur
  * ordinateur : grille de trois, sans flèches. La lumière de chaque carte suit la souris
  * (variables --mx et --my lues par .hn-spot) ; rien ne bouge au toucher ni au clavier.
+ * Un « tic » très léger accompagne chaque passage d'un pack à l'autre, seulement après un geste
+ * de la personne (glissé, flèche, point) : jamais au chargement de la page.
  */
+
+/** Petit « tic » synthétisé (aucun fichier) : note courte et douce, volume faible. */
+function playTick(context: AudioContext) {
+  const now = context.currentTime;
+  const oscillator = context.createOscillator();
+  const gain = context.createGain();
+  oscillator.type = "sine";
+  oscillator.frequency.setValueAtTime(1320, now);
+  oscillator.frequency.exponentialRampToValueAtTime(880, now + 0.06);
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(0.06, now + 0.005);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.09);
+  oscillator.connect(gain).connect(context.destination);
+  oscillator.start(now);
+  oscillator.stop(now + 0.1);
+}
 export function PlanSpotlight({
   className,
   count,
@@ -24,6 +42,22 @@ export function PlanSpotlight({
 }) {
   const row = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
+  const previous = useRef(0);
+  // Son autorisé une fois que la personne a touché la rangée ou ses commandes (règle des navigateurs).
+  const audio = useRef<AudioContext | null>(null);
+  const unlock = () => {
+    if (audio.current || typeof window === "undefined" || !("AudioContext" in window)) return;
+    audio.current = new AudioContext();
+  };
+
+  useEffect(() => {
+    if (active === previous.current) return;
+    previous.current = active;
+    const context = audio.current;
+    if (!context) return;
+    if (context.state === "suspended") void context.resume();
+    playTick(context);
+  }, [active]);
 
   // Carte la plus proche du centre de la rangée = point allumé.
   useEffect(() => {
@@ -75,7 +109,7 @@ export function PlanSpotlight({
     "grid size-11 place-items-center rounded-full border border-hairline bg-white text-night shadow-[0_8px_20px_-12px_rgba(15,24,48,.45)] transition hover:border-violet/40 hover:text-violet disabled:opacity-35 disabled:hover:border-hairline disabled:hover:text-night";
 
   return (
-    <div>
+    <div onPointerDownCapture={unlock} onKeyDownCapture={unlock}>
       {count > 1 && (
         <div className="flex items-center justify-center gap-4 lg:hidden">
           <button
