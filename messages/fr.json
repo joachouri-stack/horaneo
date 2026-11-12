@@ -74,7 +74,11 @@
       "goLive": "{days, plural, =0 {} one {Site en ligne en # jour ouvré} other {Site en ligne en # jours ouvrés}}",
       "demo": "Voir la démonstration",
       "pricing": "Voir les tarifs",
-      "points": ["Site à votre image", "Modifiable sur téléphone", "Réservation en ligne en option"],
+      "points": [
+        "Textes, images et logo modifiables",
+        "Hébergement et sécurité inclus",
+        "Un développeur dispo 7j/7"
+      ],
       "visualAlt": "Aperçu de l'espace de gestion sur téléphone : rendez-vous du jour (données d'exemple)",
       "float": {
         "bookingTitle": "Nouvelle réservation",
