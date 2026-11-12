@@ -931,9 +931,10 @@
       }
     },
     "final": {
-      "title": "Prêt à simplifier votre activité ?",
-      "text": "Choisissez votre pack : vous en changez quand vous voulez.",
-      "cta": "Créer mon site"
+      "title": "Prêt à lancer votre site ?",
+      "text": "Nous créons votre site à votre image, puis vous le gérez vous-même, sans compétence technique.",
+      "cta": "Créer mon site",
+      "noCommitment": "Sans engagement possible"
     },
     "options": {
       "requires": "Nécessite : {names}",
