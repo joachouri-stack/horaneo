@@ -109,9 +109,13 @@ export default async function SubscriptionPage({
   const configured = billingGateway() !== null && canManage;
   const scheduled = data.plans.find((plan) => plan.id === live?.scheduledPlanId);
   const periodEnd = live?.currentPeriodEnd ?? null;
-  const freeDate = [periodEnd, live?.commitmentEndsAt]
+  const trialing = live?.status === "trialing";
+  // Fin effective d'une résiliation : fin de l'essai pendant l'essai (engagement ignoré), sinon la
+  // plus tardive de la fin de période et de la fin d'engagement (même règle que le module).
+  const freeDate = (trialing ? [periodEnd] : [periodEnd, live?.commitmentEndsAt])
     .filter((date): date is Date => Boolean(date))
     .sort((a, b) => b.getTime() - a.getTime())[0];
+  const committed = !trialing && live?.commitmentEndsAt && live.commitmentEndsAt > new Date();
   const pausing = !data.freePlan.isPublic;
   const priceLabel = (cents: number) =>
     cents > 0 ? t("perMonth", { amount: page.fmt.money(cents), display }) : t("free");
@@ -183,25 +187,69 @@ export default async function SubscriptionPage({
         <div className="mt-2 space-y-1 text-ink/80">
           {/* Sans abonnement : pack gratuit, ou pack payant attribué par notre équipe (pas de prélèvement). */}
           {!live && <p>{currentPrice > 0 ? t("status.assigned") : t("status.free")}</p>}
+          {/* Prochain prélèvement (et fin de l'essai) mis en avant : date et montant. */}
           {live && periodEnd && !live.cancelAt && (
-            <p>
-              {t("status.nextPayment", {
-                date: page.fmt.short(periodEnd),
-                // À l'année : le montant de l'année (réduction comprise).
-                amount: page.fmt.money(
-                  live.billingInterval === "year"
-                    ? yearlyPriceCents(scheduled?.priceCents ?? currentPrice, data.yearly.freeMonths)
-                    : (scheduled?.priceCents ?? currentPrice),
-                ),
-              })}
-            </p>
+            <dl className="my-3 grid gap-2 sm:grid-cols-2">
+              <div className="rounded-[var(--radius-card)] bg-[#f4f1ff] px-4 py-3">
+                <dt className="text-sm text-ink/70">{t("status.nextLabel")}</dt>
+                <dd className="mt-0.5 text-lg font-semibold text-night">
+                  {page.fmt.short(periodEnd)} ·{" "}
+                  {/* À l'année : le montant de l'année (réduction comprise). */}
+                  {page.fmt.money(
+                    live.billingInterval === "year"
+                      ? yearlyPriceCents(scheduled?.priceCents ?? currentPrice, data.yearly.freeMonths)
+                      : (scheduled?.priceCents ?? currentPrice),
+                  )}
+                </dd>
+              </div>
+              {trialing && (
+                <div className="rounded-[var(--radius-card)] bg-[#e7f6ee] px-4 py-3">
+                  <dt className="text-sm text-[#1f6f47]">{t("status.trialLabel")}</dt>
+                  <dd className="mt-0.5 text-lg font-semibold text-night">{page.fmt.short(periodEnd)}</dd>
+                </div>
+              )}
+            </dl>
           )}
           {live && <p>{t("interval", { interval: live.billingInterval })}</p>}
-          {live?.commitmentEndsAt && live.commitmentEndsAt > new Date() && (
+          {committed && live?.commitmentEndsAt && (
             <p>{t("status.commitment", { date: page.fmt.short(live.commitmentEndsAt) })}</p>
           )}
-          {live && live.withCommitment === false && <p>{t("status.noCommitment")}</p>}
         </div>
+        {/* Résiliation : toujours possible, la règle dépend de l'essai et de l'engagement. */}
+        {live && !live.cancelAt && (
+          <div className="mt-4 rounded-[var(--radius-card)] border border-hairline bg-mist-50/60 p-4">
+            <p className="font-semibold text-night">{t("cancel.title")}</p>
+            <p className="mt-1 text-sm text-ink/80">
+              {trialing
+                ? t("cancel.trial", { date: periodEnd ? page.fmt.short(periodEnd) : "" })
+                : committed && live.commitmentEndsAt
+                  ? t("cancel.commitment", { date: page.fmt.short(live.commitmentEndsAt) })
+                  : t("cancel.anytime", { date: periodEnd ? page.fmt.short(periodEnd) : "" })}
+            </p>
+            {configured && (
+              <form action={changeSubscriptionAction} className="mt-3 flex flex-wrap items-center gap-2">
+                <input type="hidden" name="tenantId" value={page.tenantId} />
+                <input type="hidden" name="planId" value={data.freePlan.id} />
+                <SubmitButton
+                  className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-[#f1c5bf] bg-white px-5 font-semibold text-[#b4372a] transition hover:bg-[#fdecea] sm:w-auto"
+                  confirm={
+                    pausing
+                      ? t("stopConfirm", { date: freeDate ? page.fmt.short(freeDate) : "" })
+                      : t("toFreeConfirm", { date: freeDate ? page.fmt.short(freeDate) : "" })
+                  }
+                >
+                  {t("cancel.button")}
+                </SubmitButton>
+                {exportButton}
+              </form>
+            )}
+            <p className="mt-2 text-sm text-ink/60">
+              {pausing
+                ? t("stopHint", { date: freeDate ? page.fmt.short(freeDate) : "" })
+                : t("toFreeHint", { date: freeDate ? page.fmt.short(freeDate) : "" })}
+            </p>
+          </div>
+        )}
         {scheduled && periodEnd && (
           <div className="mt-4 rounded-[var(--radius-card)] bg-mist-50 p-4">
             <p>
@@ -527,27 +575,6 @@ export default async function SubscriptionPage({
               })}
             </div>
           ))}
-        {/* Sans pack gratuit à la vente : on arrête l'abonnement, le site est mis en pause à la fin. */}
-        {live && pausing && !live.cancelAt && configured && (
-          <form action={changeSubscriptionAction} className={`${ui.card} space-y-2`}>
-            <input type="hidden" name="tenantId" value={page.tenantId} />
-            <input type="hidden" name="planId" value={data.freePlan.id} />
-            <h3 className="text-lg font-semibold text-night">{t("stop")}</h3>
-            <p className="text-sm text-ink/70">
-              {t("stopHint", { date: freeDate ? page.fmt.short(freeDate) : "" })}
-            </p>
-            <p className="text-sm text-ink/70">{t("exportBeforeLeaving")}</p>
-            <div className="flex flex-wrap gap-2">
-              <SubmitButton
-                className={`${ui.secondaryButton} sm:w-auto`}
-                confirm={t("stopConfirm", { date: freeDate ? page.fmt.short(freeDate) : "" })}
-              >
-                {t("stop")}
-              </SubmitButton>
-              {exportButton}
-            </div>
-          </form>
-        )}
       </section>
       {/* Avant de changer de pack ou de résilier : la gérante récupère ses données. */}
       <section className={`${ui.card} space-y-2`}>

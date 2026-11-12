@@ -3206,14 +3206,22 @@
       "unlimited": "illimité",
       "of": "{used} sur {limit}",
       "status": {
-        "nextPayment": "Prochain prélèvement le {date} : {amount}",
         "commitment": "Engagement jusqu'au {date}",
         "scheduled": "Passage au pack {name} le {date}.",
         "cancelAt": "Votre pack payant se termine le {date}. {pause, select, yes {Votre site sera ensuite mis en pause.} other {Votre site passera ensuite au pack gratuit.}}",
         "keep": "Garder mon pack actuel",
         "free": "Pack gratuit, sans prélèvement.",
         "assigned": "Pack mis en place par notre équipe : aucun prélèvement automatique pour le moment.",
-        "noCommitment": "Formule sans engagement : vous pouvez arrêter à la fin de chaque mois."
+        "noCommitment": "Formule sans engagement : vous pouvez arrêter à la fin de chaque mois.",
+        "nextLabel": "Prochain prélèvement",
+        "trialLabel": "Essai gratuit jusqu'au"
+      },
+      "cancel": {
+        "title": "Résiliation",
+        "trial": "Résiliable à tout moment pendant l'essai, sans aucun prélèvement : votre site reste en ligne jusqu'au {date}.",
+        "anytime": "Résiliable à tout moment, sans frais : l'abonnement s'arrête à la fin de la période en cours, le {date}.",
+        "commitment": "Résiliable à tout moment : la résiliation prend effet à la fin de votre engagement, le {date}.",
+        "button": "Résilier mon abonnement"
       },
       "pastDue": "Votre dernier prélèvement n'a pas abouti. Mettez à jour votre carte pour garder votre pack.",
       "pastDueBanner": "Prélèvement refusé : mettez à jour votre carte.",
