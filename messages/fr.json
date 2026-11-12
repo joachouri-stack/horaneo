@@ -761,6 +761,14 @@
       "alt": "Captures de l'espace de gestion sur ordinateur et sur téléphone : accueil avec l'agenda du jour, le chiffre d'affaires et les statistiques, agenda du jour sur téléphone",
       "note": "Captures de l'espace de gestion, avec des données d'exemple. Les fonctions disponibles dépendent de votre pack."
     },
+    "example": {
+      "badge": "Exemple de site",
+      "title": "Un site à votre image,",
+      "titleAccent": "sur ordinateur et sur téléphone.",
+      "text": "Vos prestations, vos photos, vos avis et la réservation en ligne, dans un design qui vous ressemble.",
+      "alt": "Exemple de site pour un salon de coiffure, sur ordinateur et sur téléphone : prestations, réservation en ligne et espace client",
+      "note": "Maquette d'exemple : l'établissement présenté est fictif."
+    },
     "growth": {
       "title": "Tout pour faire grandir",
       "titleAccent": "votre activité.",
