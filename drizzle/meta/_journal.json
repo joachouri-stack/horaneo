@@ -386,6 +386,13 @@
       "when": 1794505873336,
       "tag": "0054_trial_one_month",
       "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1794516692401,
+      "tag": "0055_whatsapp_support_all_plans",
+      "breakpoints": true
     }
   ]
 }

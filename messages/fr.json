@@ -423,7 +423,7 @@
         "legalPages": "Mentions légales et Confidentialité préparées avec vos informations, à vérifier par vous",
         "monthlyUpdate": "Une mise à jour par mois, faite pour vous",
         "onDemandUpdates": "Mises à jour à la demande",
-        "whatsappSupport": "Assistance prioritaire par WhatsApp",
+        "whatsappSupport": "Assistance par WhatsApp",
         "members": "{count, plural, one {# membre de l'équipe} other {# membres de l'équipe}}",
         "membersUnlimited": "Membres de l'équipe illimités",
         "stats": "Statistiques détaillées",
@@ -929,7 +929,7 @@
         },
         "support": {
           "q": "Comment joindre l'assistance ?",
-          "a": "Par e-mail à {email}, et par WhatsApp si votre pack le comprend. Le centre d'aide de votre espace répond aux questions les plus fréquentes."
+          "a": "Par e-mail à {email} et par WhatsApp, quel que soit votre pack. Le centre d'aide de votre espace répond aux questions les plus fréquentes."
         },
         "data": {
           "q": "Mes données m'appartiennent-elles ?",
@@ -2063,7 +2063,7 @@
         "stats": "Statistiques détaillées",
         "monthlySummary": "Bilan mensuel",
         "emailSupport": "Assistance par e-mail",
-        "whatsappSupport": "Assistance prioritaire par WhatsApp",
+        "whatsappSupport": "Assistance par WhatsApp",
         "brandingFooter": "Mention de notre marque en bas du site (cochée : affichée)",
         "promotions": "Promotions datées (prix barrés)",
         "googleReviews": "Avis Google",
@@ -3276,7 +3276,7 @@
         "loyalty": "Carte de fidélité",
         "googleReviews": "Avis Google affichés sur votre site",
         "emailSupport": "Assistance par e-mail",
-        "whatsappSupport": "Assistance prioritaire par WhatsApp",
+        "whatsappSupport": "Assistance par WhatsApp",
         "maintenance": "Maintenance du site incluse",
         "securityProtection": "Protection contre les cyberattaques",
         "logoCreation": "Création du logo et de l'icône du site",
@@ -3374,7 +3374,7 @@
     "help": {
       "title": "Aide",
       "email": "Écrire au support",
-      "whatsapp": "Assistance prioritaire par WhatsApp",
+      "whatsapp": "Assistance par WhatsApp",
       "faq": "Questions fréquentes",
       "q1": "Comment ajouter un rendez-vous pris par téléphone ?",
       "a1": "Dans « Accueil », touchez « Nouveau rendez-vous » (ou « + Rendez-vous » dans l'Agenda), puis choisissez la cliente, la prestation et l'heure.",
