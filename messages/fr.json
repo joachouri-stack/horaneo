@@ -576,7 +576,7 @@
           "card": "Référencement Google avancé"
         },
         "multilingual": {
-          "label": "Langues du site en plus du français",
+          "label": "Traduction du site dans d'autres langues",
           "card": "Site en {count, plural, one {# langue} other {# langues}} de plus",
           "cardUnlimited": "Site multipage dans toutes les langues"
         },
@@ -676,7 +676,7 @@
           "card": "Logiciel de caisse certifié NF525"
         },
         "chatbotQuestions": {
-          "label": "Chatbot : réponses préparées (questions)",
+          "label": "Chatbot (questions et réponses)",
           "card": "Chatbot ({count} questions et réponses)",
           "cardUnlimited": "Chatbot (questions et réponses illimitées)"
         },
