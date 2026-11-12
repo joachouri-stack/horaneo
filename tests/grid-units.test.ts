@@ -78,16 +78,15 @@ describe("grille des packs : une seule source pour les cartes et le comparatif",
     expect(card.upcoming.map((line) => line.key)).toContain("aiChatbot");
     expect(card.included.map((line) => line.key)).toContain("sms");
     expect(gridCard(starter, GRID, SOON).missing.length).toBeLessThanOrEqual(3);
-    // Pro : chatbot (questions et réponses) inclus.
-    // Langues en plus et chatbot : pas encore développés, annoncés « Bientôt » avec Commerce et Formation.
+    // Pro : ni traduction (réservée au Business) ni chatbot (ajouté plus tard). Annoncés
+    // « Bientôt » sur le Business, ils figurent dans « Non inclus » du Pro, après les 3 lignes.
     const proCard = gridCard(pro, GRID, SOON);
-    expect(proCard.upcoming.map((line) => line.key)).toEqual([
-      "multilingual",
-      "commerce",
-      "formation",
-      "chatbotQuestions",
-    ]);
-    expect(proCard.upcoming.find((line) => line.key === "chatbotQuestions")?.count).toBe(20);
+    expect(proCard.upcoming.map((line) => line.key)).toEqual(["commerce", "formation"]);
+    expect(proCard.missing.map((line) => line.key).slice(-2)).toEqual(["multilingual", "chatbotQuestions"]);
+    expect(proCard.missing.filter((line) => !line.soon)).toHaveLength(3);
+    expect(card.upcoming.map((line) => line.key)).toEqual(
+      expect.arrayContaining(["multilingual", "chatbotQuestions"]),
+    );
     expect(gridCard(pro, GRID, SOON).included.map((line) => line.key)).toContain("setupAssistance");
     // Cartes cadeaux et nom de domaine : en tête des cartes Pro et Business, absents du Starter.
     for (const plan of [pro, business])

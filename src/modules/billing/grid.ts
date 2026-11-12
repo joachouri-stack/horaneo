@@ -48,6 +48,8 @@ type RowDef = {
   detail?: boolean;
   /** Mise en avant : en tête de la carte de chaque pack qui l'inclut (visible sans déplier). */
   highlight?: boolean;
+  /** Listée dans « Non inclus » même si elle est annoncée (« Bientôt »), en plus des 3 lignes. */
+  notIncludedEvenIfSoon?: boolean;
 };
 
 const ROWS: RowDef[] = [
@@ -62,7 +64,13 @@ const ROWS: RowDef[] = [
   { key: "favicon", category: "site", feature: "logoCreation" },
   { key: "responsive", category: "site", feature: "mobileReady" },
   { key: "advancedSeo", category: "site", feature: "advancedSeo" },
-  { key: "multilingual", category: "site", feature: "multilingual", limit: "extraLanguages" },
+  {
+    key: "multilingual",
+    category: "site",
+    feature: "multilingual",
+    limit: "extraLanguages",
+    notIncludedEvenIfSoon: true,
+  },
   // Réservations et agenda
   {
     key: "bookings",
@@ -98,7 +106,13 @@ const ROWS: RowDef[] = [
   { key: "accountingExport", category: "payments", feature: "accountingExport" },
   { key: "cashRegisterNf525", category: "payments", feature: "cashRegisterNf525" },
   // Intelligence artificielle
-  { key: "chatbotQuestions", category: "ai", feature: "aiChatbot", limit: "chatbotQuestions" },
+  {
+    key: "chatbotQuestions",
+    category: "ai",
+    feature: "aiChatbot",
+    limit: "chatbotQuestions",
+    notIncludedEvenIfSoon: true,
+  },
   { key: "aiChatbot", category: "ai", feature: "aiChatbot", limit: "aiChatConversations" },
   { key: "aiTexts", category: "ai", feature: "aiTexts", limit: "aiTexts" },
   { key: "aiImages", category: "ai", feature: "aiImages", limit: "aiImages" },
@@ -170,7 +184,8 @@ const MAX_MISSING = 3;
 /**
  * Contenu d'une carte : « Tout le pack précédent », puis ce que le pack
  * ajoute (ou améliore), les fonctions annoncées à part ; et ce qui lui manque
- * par rapport au pack suivant (« Non inclus », 3 lignes au plus). Les lignes
+ * par rapport au pack suivant (« Non inclus » : 3 lignes au plus, plus les
+ * fonctions annoncées marquées notIncludedEvenIfSoon). Les lignes
  * de détail ne figurent que dans le comparatif.
  */
 export function gridCard(plan: GridPlan, plans: GridPlan[], soon: ReadonlySet<string>) {
@@ -195,12 +210,20 @@ export function gridCard(plan: GridPlan, plans: GridPlan[], soon: ReadonlySet<st
     // Lignes mises en avant d'abord, les autres dans l'ordre du catalogue.
     .sort((a, b) => Number(Boolean(b.highlight)) - Number(Boolean(a.highlight)))
     .map((def) => line(def, plan));
-  const missing = next
-    ? ROWS.filter((def) => !def.detail && !cellOf(def, plan).included && cellOf(def, next).included)
-        .map((def) => line(def, next))
-        .filter((item) => !item.soon)
-        .slice(0, MAX_MISSING)
+  // Ce que le pack suivant ajoute : 3 lignes disponibles au plus, puis les fonctions annoncées
+  // à signaler quand même (ex. traduction, chatbot), pour ne pas laisser croire qu'elles sont incluses.
+  const gaps = next
+    ? ROWS.filter((def) => !def.detail && !cellOf(def, plan).included && cellOf(def, next).included).map(
+        (def) => ({ def, item: line(def, next) }),
+      )
     : [];
+  const missing = [
+    ...gaps
+      .filter(({ item }) => !item.soon)
+      .slice(0, MAX_MISSING)
+      .map(({ item }) => item),
+    ...gaps.filter(({ def, item }) => item.soon && def.notIncludedEvenIfSoon).map(({ item }) => item),
+  ];
   return {
     previous: previous?.code ?? null,
     /** Disponible aujourd'hui. */
