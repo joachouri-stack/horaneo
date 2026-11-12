@@ -764,8 +764,7 @@
     "growth": {
       "title": "Tout pour faire grandir",
       "titleAccent": "votre activité.",
-      "text": "Vous modifiez votre site vous-même, et vous faites revenir vos clients.",
-      "visualAlt": "Écran « Mon site » de l'espace de gestion sur téléphone (données d'exemple)"
+      "text": "Vous modifiez votre site vous-même, et vous faites revenir vos clients."
     },
     "selfService": {
       "badge": "Votre site, en autonomie",

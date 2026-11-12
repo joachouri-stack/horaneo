@@ -808,82 +808,49 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             <p className="mt-6 text-center text-[0.9375rem] text-ink-soft">{t("plans.quotaNote")}</p>
           </section>
 
-          {/* Fonctionnalités : une seule partie, peu de texte. Une tuile = une icône et quelques mots ;
-              l'écran « Mon site » (vraie capture, données d'exemple) montre que la gérante modifie
-              son site elle-même. Le détail complet se déplie en dessous. */}
+          {/* Fonctionnalités : une seule partie, peu de texte. Titre centré, puis des tuiles compactes
+              (une icône et le nom de la fonction). Le détail complet se déplie en dessous. */}
           <section
             id="fonctionnalites"
             aria-labelledby="titre-fonctionnalites"
             className="mx-auto max-w-[75rem] scroll-mt-20 px-4 pt-20 sm:px-6 lg:pt-28 2xl:max-w-[88rem]"
           >
-            {/* Téléphone : titre, écran « Mon site », puis tuiles. Ordinateur : titre et tuiles à gauche, écran à droite. */}
-            <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-x-14 lg:gap-y-0">
-              <div className="min-w-0 lg:col-start-1">
-                <p data-reveal className={EYEBROW}>
-                  {EYEBROW_DOT}
-                  {t("benefits.badge")}
-                </p>
-                <h2
-                  id="titre-fonctionnalites"
-                  data-reveal
-                  className={`${TITLE} hn-balance mt-4 text-mk-h2 leading-[1.1]`}
-                >
-                  {t("growth.title")}{" "}
-                  <span className="hn-grad-text">{coralStop(t("growth.titleAccent"))}</span>
-                </h2>
-                <p data-reveal className="mt-4 max-w-[34rem] text-mk-lead text-ink-soft">
-                  {t("growth.text")}
-                </p>
-              </div>
-              {/* Écran « Mon site » sur téléphone, avec la confirmation d'enregistrement. */}
-              <div
+            <div className="flex flex-col items-center text-center">
+              <p data-reveal className={EYEBROW}>
+                {EYEBROW_DOT}
+                {t("benefits.badge")}
+              </p>
+              <h2
+                id="titre-fonctionnalites"
                 data-reveal
-                className="relative mx-auto w-full max-w-[13rem] sm:max-w-[18rem] lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:max-w-[22rem] lg:self-center"
+                className={`${TITLE} hn-balance mt-4 text-mk-h2 leading-[1.1]`}
               >
-                <Image
-                  src="/images/mon-site-telephone.webp"
-                  width={1120}
-                  height={1960}
-                  alt={t("growth.visualAlt")}
-                  sizes="(min-width: 1024px) 22rem, (min-width: 640px) 19rem, 17rem"
-                  className="h-auto w-full"
-                />
-                <div
-                  aria-hidden="true"
-                  className="hn-float absolute bottom-[14%] -left-8 flex items-center whitespace-nowrap gap-3 rounded-2xl border border-hairline bg-white/95 py-2.5 pl-2.5 pr-5 shadow-[0_18px_36px_-20px_rgba(15,24,48,.5)] backdrop-blur sm:-left-10"
-                >
-                  <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-[#e7f6ee] text-[#1f8a55]">
-                    <CheckLine className="size-[18px]" />
-                  </span>
-                  <span className="leading-tight">
-                    <span className="block text-mk-small font-semibold text-night">
-                      {t("selfService.panel.saved")}
-                    </span>
-                    <span className="block text-[0.875rem] text-ink-soft">
-                      {t("selfService.panel.savedText")}
-                    </span>
-                  </span>
-                </div>
-              </div>
-              <ul
-                aria-label={t("benefits.badge")}
-                className="grid min-w-0 grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:col-start-1 lg:mt-8"
-              >
-                {FEATURE_TILES.map((tile) => {
-                  const later = "feature" in tile && soon.has(tile.feature);
-                  const plan = "pack" in tile ? firstPlanWith(tile.pack) : "none";
-                  return (
-                    <li
-                      key={tile.key}
-                      data-reveal
-                      className="flex flex-col gap-2 rounded-2xl border border-hairline bg-white p-3 shadow-[0_10px_24px_-20px_rgba(43,37,128,.45)] sm:min-h-[6.5rem] sm:gap-2.5 sm:p-4"
+                {t("growth.title")} <span className="hn-grad-text">{coralStop(t("growth.titleAccent"))}</span>
+              </h2>
+              <p data-reveal className="mt-4 max-w-[34rem] text-mk-lead text-ink-soft">
+                {t("growth.text")}
+              </p>
+            </div>
+            <ul
+              aria-label={t("benefits.badge")}
+              className="mt-10 grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3 lg:mt-12 lg:grid-cols-4"
+            >
+              {FEATURE_TILES.map((tile) => {
+                const later = "feature" in tile && soon.has(tile.feature);
+                const plan = "pack" in tile ? firstPlanWith(tile.pack) : "none";
+                return (
+                  <li
+                    key={tile.key}
+                    data-reveal
+                    className="group flex items-center gap-3 rounded-2xl border border-hairline bg-white p-3 transition duration-300 hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_16px_32px_-20px_rgba(91,70,240,.55)] motion-reduce:transition-none sm:gap-3.5 sm:p-4"
+                  >
+                    <span
+                      className={`flex size-9 flex-none items-center justify-center rounded-xl sm:size-10 ${later ? "bg-[#efeaff] text-violet" : "bg-[linear-gradient(135deg,var(--color-violet),var(--color-azure-dark))] text-white shadow-[0_8px_18px_-8px_rgba(123,63,228,.8)]"}`}
                     >
-                      <span
-                        className={`flex size-8 flex-none items-center justify-center rounded-xl sm:size-9 ${later ? "bg-[#efeaff] text-violet" : "bg-[linear-gradient(135deg,var(--color-violet),var(--color-azure-dark))] text-white shadow-[0_8px_18px_-8px_rgba(123,63,228,.8)]"}`}
-                      >
-                        <tile.Icon className="size-[18px]" />
-                      </span>
-                      <span className="font-display text-[0.9375rem] font-semibold leading-snug text-night sm:text-mk-body">
+                      <tile.Icon className="size-[18px] sm:size-5" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-[0.9375rem] font-semibold leading-snug text-night sm:text-mk-body">
                         {tile.key === "catalog"
                           ? shown.map((code) => (
                               <span key={code} data-only={code}>
@@ -893,21 +860,21 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                           : t(tile.label)}
                       </span>
                       {later ? (
-                        <span className="mt-auto w-fit rounded-full bg-mist-50 px-2 py-px text-[0.75rem] text-ink-soft sm:text-[0.8125rem]">
+                        <span className="mt-0.5 block text-[0.8125rem] text-ink-soft">
                           {t("plans.soonTag")}
                         </span>
                       ) : (
                         plan !== "none" && (
-                          <span className="mt-auto w-fit rounded-full bg-[#efeaff] px-2 py-px text-[0.75rem] font-medium text-violet sm:text-[0.8125rem]">
+                          <span className="mt-0.5 block text-[0.8125rem] font-medium text-violet">
                             {t("selfService.fromPlan", { plan })}
                           </span>
                         )
                       )}
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
             {/* Liste complète, repliée : pour celles qui veulent tous les détails. */}
             <AllFeatures plans={data.plans} soon={data.soon} shown={shown} />
           </section>
