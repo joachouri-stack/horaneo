@@ -5,6 +5,7 @@ import { TimeOffForm } from "@/components/manager/TimeOffForm";
 import { ui } from "@/components/ui/styles";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
+import { agendaStaffFilter } from "@/modules/team/access";
 import { loadBookingContext } from "@/modules/booking/availability";
 import { utcToLocal } from "@/modules/booking/time";
 import { listUpcomingTimeOff } from "@/modules/schedule/time-off";
@@ -17,15 +18,26 @@ export default async function UnavailabilityPage({
   params,
   searchParams,
 }: PageProps<"/[locale]/espace/[tenantId]/indisponibilites">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "agenda");
   const query = await searchParams;
-  const kind = KINDS.find((value) => value === query.type) ?? "block";
+  // Collaborateur limité à son agenda : ses propres absences, pas de fermeture de l'établissement.
+  const ownStaff = agendaStaffFilter(page.space);
+  const kinds = ownStaff ? KINDS.filter((value) => value !== "closure") : KINDS;
+  const kind = kinds.find((value) => value === query.type) ?? "block";
   const t = await getTranslations("manager.unavailability");
   const tAgenda = await getTranslations("manager.agenda");
-  const { staff, upcoming } = await page.db(async (tx) => ({
-    staff: (await loadBookingContext(tx, page.tenantId)).staff,
-    upcoming: await listUpcomingTimeOff(tx, page.tenantId),
-  }));
+  const { staff, upcoming } = await page.db(async (tx) => {
+    const all = {
+      staff: (await loadBookingContext(tx, page.tenantId)).staff,
+      upcoming: await listUpcomingTimeOff(tx, page.tenantId),
+    };
+    return ownStaff
+      ? {
+          staff: all.staff.filter((member) => member.id === ownStaff),
+          upcoming: all.upcoming.filter((item) => item.staffId === ownStaff),
+        }
+      : all;
+  });
   const range = (start: Date, end: Date) => {
     const sameDay =
       utcToLocal(start, page.tenant.timezone).date ===
@@ -44,7 +56,7 @@ export default async function UnavailabilityPage({
         <p className="mt-1 text-ink/70">{t("intro")}</p>
       </div>
       <div className="flex rounded-full bg-white p-1 shadow-sm">
-        {KINDS.map((value) => (
+        {kinds.map((value) => (
           <Link
             key={value}
             href={`${page.base}/indisponibilites?type=${value}`}

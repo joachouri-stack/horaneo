@@ -5,6 +5,7 @@ import { CheckboxField, Hidden, SelectField, TextArea, TextField } from "@/compo
 import { ui } from "@/components/ui/styles";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
+import { agendaStaffFilter, canAccess } from "@/modules/team/access";
 import { isDeletable } from "@/modules/agenda/actions";
 import { getAppointmentDetail } from "@/modules/agenda/queries";
 import { loadBookingContext } from "@/modules/booking/availability";
@@ -33,7 +34,7 @@ const STATUS_BADGE: Record<string, string> = {
 export default async function AppointmentPage({
   params,
 }: PageProps<"/[locale]/espace/[tenantId]/rendez-vous/[appointmentId]">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "agenda");
   const { appointmentId } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(appointmentId)) notFound();
   const [t, tCommon] = await Promise.all([getTranslations("manager"), getTranslations("common")]);
@@ -43,7 +44,10 @@ export default async function AppointmentPage({
     staff: (await loadBookingContext(tx, page.tenantId)).staff,
     deposit: await depositSummary(tx, page.tenantId, appointmentId),
   }));
-  if (!item) notFound();
+  // Collaborateur limité à son agenda : les rendez-vous des autres membres n'existent pas pour lui.
+  const ownStaff = agendaStaffFilter(page.space);
+  if (!item || (ownStaff && item.staffId !== ownStaff)) notFound();
+  const staffChoices = ownStaff ? staff.filter((member) => member.id === ownStaff) : staff;
   const local = utcToLocal(item.startsAt, page.tenant.timezone);
   const active = item.status === "confirmed" || item.status === "pending_payment";
   const hidden = { tenantId: page.tenantId, id: item.id };
@@ -73,9 +77,13 @@ export default async function AppointmentPage({
       <section className={ui.card}>
         <h2 className="text-sm font-semibold uppercase text-ink/60">{t("appointment.customer")}</h2>
         <p className="mt-1 text-xl font-semibold text-night">
-          <Link href={`${page.base}/clientes/${item.customerId}`} className="underline">
-            {item.customerName}
-          </Link>
+          {canAccess(page.space, "customers") ? (
+            <Link href={`${page.base}/clientes/${item.customerId}`} className="underline">
+              {item.customerName}
+            </Link>
+          ) : (
+            item.customerName
+          )}
         </p>
         <div className="mt-4 flex gap-2">
           {item.customerPhone && (
@@ -251,10 +259,10 @@ export default async function AppointmentPage({
               // La personne du rendez-vous reste proposée même désactivée : sans elle, le
               // rendez-vous passerait sans le dire à la première personne de la liste.
               options={[
-                ...(staff.some((member) => member.id === item.staffId)
+                ...(staffChoices.some((member) => member.id === item.staffId)
                   ? []
                   : [{ value: item.staffId, label: item.staffName }]),
-                ...staff.map((member) => ({ value: member.id, label: member.name })),
+                ...staffChoices.map((member) => ({ value: member.id, label: member.name })),
               ]}
             />
           </ActionForm>

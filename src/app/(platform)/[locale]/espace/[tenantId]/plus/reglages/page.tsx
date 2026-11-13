@@ -20,7 +20,7 @@ const advanceOptions = (current: number) =>
 export default async function SettingsPage({
   params,
 }: PageProps<"/[locale]/espace/[tenantId]/plus/reglages">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "owner");
   const [t, tCommon] = await Promise.all([getTranslations("manager.settings"), getTranslations("common")]);
   const [settings, reviewCooldownDays, dailyTime, monthlyTime] = await page.db((tx) =>
     Promise.all([

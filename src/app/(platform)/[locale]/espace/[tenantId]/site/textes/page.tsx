@@ -19,7 +19,7 @@ const ordered = (fields: readonly Field[]) =>
 export default async function ManagerPageTextsPage({
   params,
 }: PageProps<"/[locale]/espace/[tenantId]/site/textes">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "site");
   // Textes communs au site : modifiés depuis l'entreprise principale seulement.
   if (!page.business.isPrimary) return <SharedContentNotice />;
   const [t, tCommon] = await Promise.all([getTranslations("manager.site.texts"), getTranslations("common")]);

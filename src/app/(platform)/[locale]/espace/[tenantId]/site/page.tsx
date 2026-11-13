@@ -11,7 +11,7 @@ import { uploadLogoAction } from "../actions";
 
 /** « Mon site » : ce que la gérante modifie elle-même (dont le logo), et le reste par demande. */
 export default async function MySitePage({ params }: PageProps<"/[locale]/espace/[tenantId]/site">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "site");
   const t = await getTranslations("manager.site");
   const [primary] = await page.db((tx) =>
     tx

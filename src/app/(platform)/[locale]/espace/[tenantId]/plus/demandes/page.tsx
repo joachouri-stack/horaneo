@@ -9,7 +9,7 @@ import { createRequestAction } from "../../actions";
 export default async function RequestsPage({
   params,
 }: PageProps<"/[locale]/espace/[tenantId]/plus/demandes">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "site");
   const t = await getTranslations("manager.requests");
   const requests = await page.db((tx) => listTenantRequests(tx, page.tenantId));
   return (

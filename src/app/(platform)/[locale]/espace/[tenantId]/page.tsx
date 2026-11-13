@@ -20,6 +20,7 @@ import { reviewsCacheByBusiness } from "@/modules/reviews/google";
 import { getPlatformSetting } from "@/modules/settings";
 import { dashboardStats, trendPercent } from "@/modules/stats/dashboard";
 import { monthStats } from "@/modules/stats/month";
+import { agendaStaffFilter, canAccess } from "@/modules/team/access";
 
 /**
  * Accueil de l'espace gérante (tableau de bord) : salutation et actions, chiffres
@@ -27,14 +28,18 @@ import { monthStats } from "@/modules/stats/month";
  * jours, répartition des prestations et part des réservations en ligne du mois.
  */
 export default async function TodayPage({ params }: PageProps<"/[locale]/espace/[tenantId]">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "agenda");
   const t = await getTranslations("manager.today");
   const now = new Date();
   const tz = page.tenant.timezone;
+  // Collaborateur : ses rendez-vous seulement (si la gérante l'a choisi), chiffres s'ils lui sont ouverts.
+  const staffId = agendaStaffFilter(page.space);
+  const showStats = canAccess(page.space, "stats");
+  const isOwner = canAccess(page.space, "owner");
   const [summary, sms, warningPercent, stats, reviews] = await page.db(
     async (tx) =>
       [
-        await todaySummary(tx, page.tenantId, tz, page.locale, now),
+        await todaySummary(tx, page.tenantId, tz, page.locale, now, staffId),
         await smsUsage(tx, page.tenantId),
         await getPlatformSetting(tx, "sms_warning_percent"),
         await dashboardStats(tx, page.tenantId, tz, now),
@@ -48,7 +53,11 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
   const upcoming =
     summary.appointments.length === 0
       ? await page.db((tx) =>
-          upcomingAppointments(tx, page.tenantId, { timezone: page.tenant.timezone, locale: page.locale }),
+          upcomingAppointments(tx, page.tenantId, {
+            timezone: page.tenant.timezone,
+            locale: page.locale,
+            staffId,
+          }),
         )
       : [];
   const shortDay = new Intl.DateTimeFormat(page.locale, {
@@ -65,7 +74,7 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
   const rating = reviews?.fetchedAt && reviews.rating !== null ? reviews : null;
   // Alerte SMS : à partir du seuil du quota du mois, sauf si des SMS achetés prennent le relais.
   const smsAlert =
-    sms && sms.limit !== null && sms.limit > 0 && sms.packsRemaining === 0
+    isOwner && sms && sms.limit !== null && sms.limit > 0 && sms.packsRemaining === 0
       ? sms.used >= sms.limit
         ? t("smsReached")
         : sms.used >= Math.ceil((sms.limit * Number(warningPercent)) / 100)
@@ -126,70 +135,87 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
               iosHowTo: t("install.iosHowTo"),
             }}
           />
-          <PushReminder
-            href={`${page.base}/notifications`}
-            labels={{
-              title: t("pushReminder.title"),
-              text: t("pushReminder.text"),
-              action: t("pushReminder.action"),
-              later: t("pushReminder.later"),
-            }}
+          {isOwner && (
+            <PushReminder
+              href={`${page.base}/notifications`}
+              labels={{
+                title: t("pushReminder.title"),
+                text: t("pushReminder.text"),
+                action: t("pushReminder.action"),
+                later: t("pushReminder.later"),
+              }}
+            />
+          )}
+        </div>
+      )}
+
+      {/* Chiffres clés (collaborateur sans accès aux statistiques : le nombre de rendez-vous seulement). */}
+      {showStats ? (
+        <div
+          className={`order-2 grid grid-cols-2 gap-3 sm:gap-4 lg:order-none [&>*:last-child:nth-child(odd)]:col-span-2 xl:[&>*:last-child:nth-child(odd)]:col-span-1 ${rating ? "xl:grid-cols-5" : "xl:grid-cols-4"}`}
+        >
+          <StatCard
+            icon={DASH_ICONS.calendar}
+            tone="indigo"
+            label={t("appointments")}
+            value={String(summary.count)}
+            sub={t("newBookings", { count: summary.newBookings })}
+          />
+          <StatCard
+            icon={DASH_ICONS.euro}
+            tone="green"
+            label={t("revenue")}
+            value={page.fmt.money(summary.revenueCents)}
+            sub={t("todayOnline", { count: online })}
+          />
+          <StatCard
+            icon={DASH_ICONS.users}
+            tone="violet"
+            label={t("newCustomers")}
+            value={String(stats.newCustomers)}
+            sub={t("last7")}
+            trend={
+              <Trend
+                value={trendPercent(stats.newCustomers, stats.previousNewCustomers)}
+                label={t("trendLabel")}
+              />
+            }
+          />
+          <StatCard
+            icon={DASH_ICONS.globe}
+            tone="teal"
+            label={t("onlineRate")}
+            value={`${monthTotal ? Math.round((month.online / monthTotal) * 100) : 0} %`}
+            sub={t("onlineRateSub", { online: month.online, total: monthTotal })}
+          />
+          {rating && (
+            <StatCard
+              icon={DASH_ICONS.star}
+              tone="amber"
+              label={t("reviews")}
+              value={(rating.rating ?? 0).toLocaleString(page.locale, { maximumFractionDigits: 1 })}
+              sub={t("reviewsCount", { count: rating.total })}
+            />
+          )}
+        </div>
+      ) : (
+        <div className="order-2 grid grid-cols-2 gap-3 sm:gap-4 lg:order-none xl:grid-cols-4">
+          <StatCard
+            icon={DASH_ICONS.calendar}
+            tone="indigo"
+            label={t("appointments")}
+            value={String(summary.count)}
+            sub={t("newBookings", { count: summary.newBookings })}
           />
         </div>
       )}
 
-      {/* Chiffres clés. */}
-      <div
-        className={`order-2 grid grid-cols-2 gap-3 sm:gap-4 lg:order-none [&>*:last-child:nth-child(odd)]:col-span-2 xl:[&>*:last-child:nth-child(odd)]:col-span-1 ${rating ? "xl:grid-cols-5" : "xl:grid-cols-4"}`}
-      >
-        <StatCard
-          icon={DASH_ICONS.calendar}
-          tone="indigo"
-          label={t("appointments")}
-          value={String(summary.count)}
-          sub={t("newBookings", { count: summary.newBookings })}
-        />
-        <StatCard
-          icon={DASH_ICONS.euro}
-          tone="green"
-          label={t("revenue")}
-          value={page.fmt.money(summary.revenueCents)}
-          sub={t("todayOnline", { count: online })}
-        />
-        <StatCard
-          icon={DASH_ICONS.users}
-          tone="violet"
-          label={t("newCustomers")}
-          value={String(stats.newCustomers)}
-          sub={t("last7")}
-          trend={
-            <Trend
-              value={trendPercent(stats.newCustomers, stats.previousNewCustomers)}
-              label={t("trendLabel")}
-            />
-          }
-        />
-        <StatCard
-          icon={DASH_ICONS.globe}
-          tone="teal"
-          label={t("onlineRate")}
-          value={`${monthTotal ? Math.round((month.online / monthTotal) * 100) : 0} %`}
-          sub={t("onlineRateSub", { online: month.online, total: monthTotal })}
-        />
-        {rating && (
-          <StatCard
-            icon={DASH_ICONS.star}
-            tone="amber"
-            label={t("reviews")}
-            value={(rating.rating ?? 0).toLocaleString(page.locale, { maximumFractionDigits: 1 })}
-            sub={t("reviewsCount", { count: rating.total })}
-          />
-        )}
-      </div>
-
-      <div className="order-1 grid gap-6 lg:order-none lg:grid-cols-3">
+      <div className={`order-1 grid gap-6 lg:order-none ${showStats ? "lg:grid-cols-3" : ""}`}>
         {/* Agenda du jour. */}
-        <section aria-labelledby="rdv-du-jour" className={`${panel} min-w-0 lg:col-span-2`}>
+        <section
+          aria-labelledby="rdv-du-jour"
+          className={`${panel} min-w-0 ${showStats ? "lg:col-span-2" : ""}`}
+        >
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <h2
               id="rdv-du-jour"
@@ -244,61 +270,66 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
           )}
         </section>
 
-        <div className="min-w-0 space-y-6">
-          {/* Chiffre d'affaires des 7 derniers jours. */}
-          <section aria-labelledby="ca-semaine" className={panel}>
-            <h2 id="ca-semaine" className="font-display text-[1.1rem] font-semibold text-night">
-              {t("revenueTitle")}
-            </h2>
-            <p className="text-sm text-ink-soft">{t("last7")}</p>
-            <p className="mt-3 flex flex-wrap items-baseline gap-2">
-              <span className="font-display text-[1.9rem] font-semibold leading-none tracking-[-0.02em] text-night tabular-nums">
-                {page.fmt.money(stats.weekCents)}
-              </span>
-              <Trend value={trendPercent(stats.weekCents, stats.previousWeekCents)} label={t("trendLabel")} />
-            </p>
-            <RevenueBars
-              days={stats.revenue.map((day) => {
-                const instant = dayRange(day.date, tz).start;
-                return {
-                  label: weekday.format(instant).replace(".", ""),
-                  value: page.fmt.money(day.cents),
-                  cents: day.cents,
-                  today: day.date === stats.today,
-                };
-              })}
-            />
-          </section>
-
-          {/* Répartition des prestations du mois. */}
-          <section aria-labelledby="prestations-mois" className={panel}>
-            <h2 id="prestations-mois" className="font-display text-[1.1rem] font-semibold text-night">
-              {t("servicesTitle")}
-            </h2>
-            <p className="text-sm text-ink-soft">{t("thisMonth")}</p>
-            {servicesTotal === 0 ? (
-              <p className="mt-4 text-[0.9375rem] text-ink-soft">{t("noData")}</p>
-            ) : (
-              <Donut
-                items={month.topServices.map(([label, value]) => ({ label, value }))}
-                total={servicesTotal}
-                centerLabel={t("servicesUnit", { count: servicesTotal })}
+        {showStats && (
+          <div className="min-w-0 space-y-6">
+            {/* Chiffre d'affaires des 7 derniers jours. */}
+            <section aria-labelledby="ca-semaine" className={panel}>
+              <h2 id="ca-semaine" className="font-display text-[1.1rem] font-semibold text-night">
+                {t("revenueTitle")}
+              </h2>
+              <p className="text-sm text-ink-soft">{t("last7")}</p>
+              <p className="mt-3 flex flex-wrap items-baseline gap-2">
+                <span className="font-display text-[1.9rem] font-semibold leading-none tracking-[-0.02em] text-night tabular-nums">
+                  {page.fmt.money(stats.weekCents)}
+                </span>
+                <Trend
+                  value={trendPercent(stats.weekCents, stats.previousWeekCents)}
+                  label={t("trendLabel")}
+                />
+              </p>
+              <RevenueBars
+                days={stats.revenue.map((day) => {
+                  const instant = dayRange(day.date, tz).start;
+                  return {
+                    label: weekday.format(instant).replace(".", ""),
+                    value: page.fmt.money(day.cents),
+                    cents: day.cents,
+                    today: day.date === stats.today,
+                  };
+                })}
               />
-            )}
-          </section>
+            </section>
 
-          {/* Réservations du mois : en ligne ou ajoutées au salon. */}
-          <section aria-labelledby="canal-mois" className={panel}>
-            <h2 id="canal-mois" className="font-display text-[1.1rem] font-semibold text-night">
-              {t("channelTitle")}
-            </h2>
-            <p className="text-sm text-ink-soft">{t("thisMonth")}</p>
-            <SplitBar
-              left={{ label: t("online"), value: month.online }}
-              right={{ label: t("salon"), value: month.manual }}
-            />
-          </section>
-        </div>
+            {/* Répartition des prestations du mois. */}
+            <section aria-labelledby="prestations-mois" className={panel}>
+              <h2 id="prestations-mois" className="font-display text-[1.1rem] font-semibold text-night">
+                {t("servicesTitle")}
+              </h2>
+              <p className="text-sm text-ink-soft">{t("thisMonth")}</p>
+              {servicesTotal === 0 ? (
+                <p className="mt-4 text-[0.9375rem] text-ink-soft">{t("noData")}</p>
+              ) : (
+                <Donut
+                  items={month.topServices.map(([label, value]) => ({ label, value }))}
+                  total={servicesTotal}
+                  centerLabel={t("servicesUnit", { count: servicesTotal })}
+                />
+              )}
+            </section>
+
+            {/* Réservations du mois : en ligne ou ajoutées au salon. */}
+            <section aria-labelledby="canal-mois" className={panel}>
+              <h2 id="canal-mois" className="font-display text-[1.1rem] font-semibold text-night">
+                {t("channelTitle")}
+              </h2>
+              <p className="text-sm text-ink-soft">{t("thisMonth")}</p>
+              <SplitBar
+                left={{ label: t("online"), value: month.online }}
+                right={{ label: t("salon"), value: month.manual }}
+              />
+            </section>
+          </div>
+        )}
       </div>
     </div>
   );

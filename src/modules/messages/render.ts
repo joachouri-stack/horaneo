@@ -246,6 +246,8 @@ async function managerEmails(tx: Transaction, tenantId: string, row: MessageRow)
     .where(
       and(
         eq(memberships.tenantId, tenantId),
+        // Gérantes seulement : les collaborateurs ne reçoivent pas les alertes de l'établissement.
+        eq(memberships.role, "owner"),
         row.businessId ? eq(memberships.businessId, row.businessId) : undefined,
         !row.businessId && subscription ? eq(businesses.isPrimary, true) : undefined,
       ),
@@ -267,6 +269,7 @@ async function managerDevices(tx: Transaction, tenantId: string, row: MessageRow
     .where(
       and(
         eq(memberships.tenantId, tenantId),
+        eq(memberships.role, "owner"),
         row.businessId ? eq(memberships.businessId, row.businessId) : undefined,
       ),
     );
@@ -297,6 +300,7 @@ export async function renderMessage(
   )
     return renderShopOrder(tx, row, template, tenant, options);
   if (template === "customer.birthday") return renderBirthday(tx, row, tenant, options);
+  if (template === "collaborator.invite") return renderCollaboratorInvite(tx, row, tenant, options);
   if (template.startsWith("manager.")) return renderManager(tx, row, template, tenant, options);
   return renderCustomer(tx, row, template, tenant, options);
 }
@@ -922,6 +926,60 @@ async function creditedBack(tx: Transaction, tenantId: string, appointmentId: st
     )
     .limit(1);
   return Boolean(row);
+}
+
+// ─── Invitation d'un collaborateur ────────────────────────────────────────────
+
+/**
+ * Invitation d'un membre de l'équipe : envoyée à son adresse, seulement s'il a
+ * toujours accès (la gérante a pu retirer l'accès avant l'envoi).
+ */
+async function renderCollaboratorInvite(
+  tx: Transaction,
+  row: MessageRow,
+  tenant: TenantInfo,
+  options: RenderOptions,
+): Promise<Rendered> {
+  const userId = (row.data as { userId?: string }).userId;
+  if (!userId) return { kind: "skip", reason: "no_user" };
+  const [found] = await tx
+    .select({ email: users.email })
+    .from(memberships)
+    .innerJoin(users, eq(users.id, memberships.userId))
+    .where(
+      and(
+        eq(memberships.userId, userId),
+        eq(memberships.tenantId, tenant.id),
+        eq(memberships.role, "collaborator"),
+      ),
+    );
+  if (!found) return { kind: "skip", reason: "no_access" };
+  const locale = resolveLocale(row.locale);
+  const t = await getTranslator(locale);
+  const product = options.productName;
+  const { html, text } = renderEmail({
+    locale,
+    brandName: product,
+    title: t("notifications.collaborator.invite.title", { business: tenant.name }),
+    paragraphs: [
+      t("notifications.collaborator.invite.intro", { business: tenant.name, product }),
+      t("notifications.collaborator.invite.login", { email: found.email }),
+    ],
+    action: {
+      label: t("notifications.collaborator.invite.open"),
+      url: `${options.appUrl}/${locale}/espace/${tenant.id}`,
+    },
+    footer: [tenant.name, t("notifications.common.managerFooter", { product })],
+  });
+  return {
+    kind: "email",
+    to: [found.email],
+    subject: t("notifications.collaborator.invite.subject", { business: tenant.name, product }),
+    html,
+    text,
+    fromName: product,
+    replyTo: tenant.email,
+  };
 }
 
 // ─── Messages aux gérantes ────────────────────────────────────────────────────

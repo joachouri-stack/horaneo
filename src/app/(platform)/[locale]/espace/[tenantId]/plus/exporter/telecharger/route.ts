@@ -15,7 +15,7 @@ export async function GET(
   const locale = resolveLocale(rawLocale);
   let loaded;
   try {
-    loaded = await managerQuery(tenantId, async (tx) => {
+    loaded = await managerQuery(tenantId, "owner", async (tx) => {
       const tenant = await loadManagerTenant(tx, tenantId);
       // Packs qui comprennent l'export, ou abonnement en cours de résiliation.
       if (!tenant || !(await dataExportAllowed(tx, tenantId, tenant.features))) return null;

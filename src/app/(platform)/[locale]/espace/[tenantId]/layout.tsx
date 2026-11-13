@@ -10,6 +10,7 @@ import { resolveLocale } from "@/i18n/translator";
 import { env } from "@/config/env";
 import { withTenant } from "@/db/access";
 import { managedTenantIds, requireManager } from "@/lib/manager/access";
+import { canAccess, MANAGER_AREAS } from "@/modules/team/access";
 import { and, eq } from "drizzle-orm";
 import { tenantDomains } from "@/db/schema";
 import { tenantSiteUrl } from "@/lib/tenancy/urls";
@@ -38,12 +39,15 @@ export default async function ManagerLayout({
   const { locale: rawLocale, tenantId } = await params;
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
-  const { tenant, business, businessId, multiBusiness, role, userId } = await requireManager(
+  const { tenant, business, businessId, multiBusiness, role, userId, space } = await requireManager(
     locale,
     tenantId,
   );
+  // Parties ouvertes : tout pour la gérante, ce qu'elle a choisi pour un collaborateur.
+  const areas = MANAGER_AREAS.filter((area) => canAccess(space, area));
+  const isOwner = canAccess(space, "owner");
   const t = await getTranslations("manager");
-  const several = role === "owner" && (await managedTenantIds(userId)).length > 1;
+  const several = role !== "admin" && (await managedTenantIds(userId)).length > 1;
   const [subscription, unseen, [primary]] = await Promise.all([
     withTenant(tenantId, (tx) => getSubscription(tx, tenantId)),
     withTenant(tenantId, (tx) => unseenNotificationCount(tx, tenantId, { userId }), undefined, businessId),
@@ -89,7 +93,7 @@ export default async function ManagerLayout({
           </Link>
         </div>
       )}
-      {subscription?.paymentFailedAt && (
+      {isOwner && subscription?.paymentFailedAt && (
         <div role="alert" className="bg-[#b4372a] px-4 py-2 text-center text-sm font-semibold text-white">
           {t("subscription.pastDueBanner")}{" "}
           <Link href={`/espace/${tenantId}/plus/abonnement`} className="underline">
@@ -98,7 +102,7 @@ export default async function ManagerLayout({
         </div>
       )}
       <div className="min-h-dvh bg-mist-50 lg:flex">
-        <ManagerTabs tenantId={tenantId} siteUrl={siteUrl} siteLabel={t("viewSite")} />
+        <ManagerTabs tenantId={tenantId} siteUrl={siteUrl} siteLabel={t("viewSite")} areas={areas} />
         <div className="min-w-0 flex-1">
           <div className="mx-auto max-w-6xl px-4 pt-4 sm:px-6 lg:px-8 lg:pt-6">
             <div className="flex items-center justify-between gap-3">
@@ -112,13 +116,15 @@ export default async function ManagerLayout({
                     {t("switchTenant")}
                   </Link>
                 )}
-                <NotificationBell
-                  href={`/espace/${tenantId}/notifications`}
-                  count={unseen}
-                  label={
-                    unseen > 0 ? t("notifications.bellUnseen", { count: unseen }) : t("notifications.title")
-                  }
-                />
+                {isOwner && (
+                  <NotificationBell
+                    href={`/espace/${tenantId}/notifications`}
+                    count={unseen}
+                    label={
+                      unseen > 0 ? t("notifications.bellUnseen", { count: unseen }) : t("notifications.title")
+                    }
+                  />
+                )}
               </div>
             </div>
           </div>

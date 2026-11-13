@@ -14,6 +14,9 @@ export class AppError extends Error {
 export type AppErrorCode =
   | "invalid"
   | "personal_setting"
+  | "forbidden_area"
+  | "collaborator_already_invited"
+  | "collaborator_already_member"
   | "stripe_already_active"
   | "not_found"
   | "slug_taken"

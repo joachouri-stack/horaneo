@@ -15,7 +15,7 @@ export default async function PaymentsPage({
   params,
   searchParams,
 }: PageProps<"/[locale]/espace/[tenantId]/plus/paiements">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "owner");
   const query = await searchParams;
   const [t, tErrors] = await Promise.all([getTranslations("manager.payments"), getTranslations("errors")]);
   const configured = paymentGateway() !== null;

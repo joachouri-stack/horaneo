@@ -19,7 +19,7 @@ export default async function GiftCardsPage({
   params,
   searchParams,
 }: PageProps<"/[locale]/espace/[tenantId]/plus/cartes-cadeaux">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "marketing");
   const query = await searchParams;
   const [t, tCommon] = await Promise.all([getTranslations("manager.giftCards"), getTranslations("common")]);
   const available = Boolean(page.tenant.features.giftCards);

@@ -16,7 +16,7 @@ const RADIO = "size-5 flex-none accent-[#0b1033]";
 export default async function ManagerColorsPage({
   params,
 }: PageProps<"/[locale]/espace/[tenantId]/site/couleurs">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "site");
   // Couleurs communes au site : changées depuis l'entreprise principale seulement.
   if (!page.business.isPrimary) return <SharedContentNotice />;
   const [t, tCommon] = await Promise.all([getTranslations("manager.site.colors"), getTranslations("common")]);

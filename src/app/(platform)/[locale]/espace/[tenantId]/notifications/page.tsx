@@ -37,7 +37,7 @@ const STYLE: Record<NotificationKind, { icon: string; tone: string }> = {
 export default async function NotificationsPage({
   params,
 }: PageProps<"/[locale]/espace/[tenantId]/notifications">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "owner");
   const t = await getTranslations("manager.notifications");
   const items = await page.db(async (tx) => {
     const list = await listNotifications(tx, page.tenantId, { userId: page.userId });

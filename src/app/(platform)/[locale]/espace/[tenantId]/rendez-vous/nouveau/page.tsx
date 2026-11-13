@@ -5,6 +5,7 @@ import { ui } from "@/components/ui/styles";
 import { customers, serviceCategories } from "@/db/schema";
 import { pickLocalized } from "@/i18n/locales";
 import { managerPage } from "@/lib/manager/page";
+import { agendaStaffFilter } from "@/modules/team/access";
 import { loadBookingContext } from "@/modules/booking/availability";
 import { DATE_PATTERN, utcToLocal } from "@/modules/booking/time";
 
@@ -13,7 +14,7 @@ export default async function NewAppointmentPage({
   params,
   searchParams,
 }: PageProps<"/[locale]/espace/[tenantId]/rendez-vous/nouveau">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "agenda");
   const query = await searchParams;
   const t = await getTranslations("manager.manual");
   const value = (key: string) => (typeof query[key] === "string" ? (query[key] as string) : undefined);
@@ -28,6 +29,7 @@ export default async function NewAppointmentPage({
         ? (await tx.select().from(customers).where(eq(customers.id, customerId)))[0]
         : undefined,
   }));
+  const ownStaff = agendaStaffFilter(page.space);
   const now = utcToLocal(new Date(), page.tenant.timezone);
   const date = value("date") && DATE_PATTERN.test(value("date")!) ? value("date")! : now.date;
   const time = value("heure") && /^\d{2}:\d{2}$/.test(value("heure")!) ? value("heure")! : "09:00";
@@ -49,11 +51,14 @@ export default async function NewAppointmentPage({
               return category ? pickLocalized(category.name, page.locale) : null;
             })(),
           }))}
-          staff={context.staff.map((member) => ({
-            id: member.id,
-            name: member.name,
-            serviceIds: member.serviceIds,
-          }))}
+          // Collaborateur limité à son agenda : lui seul.
+          staff={context.staff
+            .filter((member) => !ownStaff || member.id === ownStaff)
+            .map((member) => ({
+              id: member.id,
+              name: member.name,
+              serviceIds: member.serviceIds,
+            }))}
           defaults={{
             date,
             time,

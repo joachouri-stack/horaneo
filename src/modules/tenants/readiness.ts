@@ -36,7 +36,7 @@ export async function siteReadiness(tx: Transaction, tenantIds: string[]): Promi
     tx
       .select({ tenantId: memberships.tenantId, value: count() })
       .from(memberships)
-      .where(inArray(memberships.tenantId, tenantIds))
+      .where(and(inArray(memberships.tenantId, tenantIds), eq(memberships.role, "owner")))
       .groupBy(memberships.tenantId),
   ]);
   const has = (list: { tenantId: string }[], tenantId: string) =>

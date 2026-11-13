@@ -16,7 +16,7 @@ import { saveBirthdayOfferAction, saveLoyaltySettingsAction } from "../../action
 export default async function LoyaltyPage({
   params,
 }: PageProps<"/[locale]/espace/[tenantId]/plus/fidelite">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "marketing");
   const [t, tCommon, tNotifications] = await Promise.all([
     getTranslations("manager.loyalty"),
     getTranslations("common"),

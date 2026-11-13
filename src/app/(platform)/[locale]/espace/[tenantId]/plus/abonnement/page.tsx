@@ -30,7 +30,7 @@ export default async function SubscriptionPage({
   params,
   searchParams,
 }: PageProps<"/[locale]/espace/[tenantId]/plus/abonnement">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "owner");
   const query = await searchParams;
   const [t, tErrors, tGrid, tPlans] = await Promise.all([
     getTranslations("manager.subscription"),

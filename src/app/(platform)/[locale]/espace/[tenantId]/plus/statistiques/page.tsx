@@ -42,7 +42,7 @@ export default async function StatsPage({
   params,
   searchParams,
 }: PageProps<"/[locale]/espace/[tenantId]/plus/statistiques">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "stats");
   const t = await getTranslations("manager.stats");
   const tCommon = await getTranslations("common");
   const tz = page.tenant.timezone;

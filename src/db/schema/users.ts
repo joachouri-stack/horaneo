@@ -1,7 +1,9 @@
 import {
   boolean,
+  foreignKey,
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   primaryKey,
@@ -13,10 +15,11 @@ import { businessForeignKey } from "./tenants";
 import { sql } from "drizzle-orm";
 import { id, timestamps, utc } from "./_helpers";
 import { tenants } from "./tenants";
+import { staffMembers } from "./content";
 
 /**
- * Famille B : comptes. Seules la gérante et l'administratrice ont un compte ;
- * les clientes finales n'en ont jamais.
+ * Famille B : comptes. Seules la gérante, ses collaborateurs et l'administratrice
+ * ont un compte ; les clientes finales n'en ont jamais.
  *
  * Les tables auth_* sont gérées par Better Auth (connexion Google, Apple,
  * lien magique). Elles ne contiennent aucune donnée métier d'un tenant.
@@ -39,7 +42,23 @@ export const users = pgTable(
   (t) => [uniqueIndex("users_email_key").on(sql`lower(${t.email})`)],
 );
 
-export const membershipRoleEnum = pgEnum("membership_role", ["owner"]);
+/** « owner » : la gérante (tous les droits) ; « collaborator » : un membre de son équipe invité par elle. */
+export const membershipRoleEnum = pgEnum("membership_role", ["owner", "collaborator"]);
+
+/**
+ * Droits d'un collaborateur dans l'espace, choisis par la gérante. L'agenda est
+ * toujours ouvert (le sien seulement, ou celui de toute l'équipe) ; le reste est
+ * fermé sauf case cochée. L'abonnement, l'équipe, les paiements et les réglages
+ * restent réservés à la gérante.
+ */
+export type CollaboratorPermissions = {
+  agendaScope?: "own" | "all";
+  customers?: boolean;
+  stats?: boolean;
+  site?: boolean;
+  shop?: boolean;
+  marketing?: boolean;
+};
 
 /** Qui gère quel établissement. Une personne peut en gérer plusieurs. */
 export const memberships = pgTable(
@@ -56,12 +75,22 @@ export const memberships = pgTable(
       .notNull()
       .default(sql`app_current_business()`),
     role: membershipRoleEnum().notNull().default("owner"),
+    /** Collaborateur : droits choisis par la gérante (vide pour la gérante, qui a tout). */
+    permissions: jsonb().$type<CollaboratorPermissions>().notNull().default({}),
+    /** Collaborateur : son membre d'équipe (ses rendez-vous). Le supprimer retire l'accès. */
+    staffMemberId: uuid(),
     ...timestamps(),
   },
   (t) => [
     businessForeignKey("memberships_business_fk", t, "cascade"),
     primaryKey({ columns: [t.userId, t.tenantId] }),
     index("memberships_tenant_idx").on(t.tenantId),
+    foreignKey({
+      name: "memberships_staff_fk",
+      columns: [t.tenantId, t.staffMemberId],
+      foreignColumns: [staffMembers.tenantId, staffMembers.id],
+    }).onDelete("cascade"),
+    uniqueIndex("memberships_staff_key").on(t.tenantId, t.staffMemberId),
   ],
 );
 

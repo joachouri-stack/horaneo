@@ -5,7 +5,7 @@ import { managerPage } from "@/lib/manager/page";
 
 /** Aide : contact de l'assistance (e-mail ; WhatsApp prioritaire selon le pack) et questions fréquentes. */
 export default async function HelpPage({ params }: PageProps<"/[locale]/espace/[tenantId]/plus/aide">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "agenda");
   const t = await getTranslations("manager.help");
   const config = env();
   const email = config.SUPPORT_EMAIL ?? `support@${config.MAIN_DOMAIN}`;

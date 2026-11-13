@@ -12,7 +12,7 @@ import {
 export default async function ManagerServicesPage({
   params,
 }: PageProps<"/[locale]/espace/[tenantId]/site/prestations">) {
-  const page = await managerPage(params);
+  const page = await managerPage(params, "site");
   const t = await getTranslations("manager.site");
   const { categories, services } = await page.db(async (tx) => ({
     categories: await listCategories(tx, page.tenantId),
