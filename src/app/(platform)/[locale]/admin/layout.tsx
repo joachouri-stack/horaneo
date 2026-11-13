@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { AdminNav } from "@/components/admin/AdminNav";
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages } from "next-intl/server";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { adminQuery } from "@/lib/admin/mutation";
 import { countWaitingOrders } from "@/modules/orders/orders";
@@ -15,10 +17,11 @@ export default async function AdminLayout({ children }: LayoutProps<"/[locale]/a
     async (tx) => (await countWaitingOrders(tx)) + (await countNewRequests(tx)),
   ).catch(() => 0);
   return (
-    <>
+    // Tous les textes (le site commercial n'envoie que les siens).
+    <NextIntlClientProvider messages={await getMessages()}>
       <AppHeader />
       <AdminNav badges={{ todo: waiting }} />
       {children}
-    </>
+    </NextIntlClientProvider>
   );
 }

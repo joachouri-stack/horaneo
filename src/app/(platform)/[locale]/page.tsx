@@ -158,8 +158,6 @@ const FEATURE_TILES = [
   { key: "marketing", Icon: MegaphoneLine, label: "benefits.items.marketing.title" },
   { key: "reviews", Icon: StarLine, label: "benefits.items.reviews.title" },
   { key: "dataExport", Icon: DownloadLine, label: "benefits.items.dataExport.title" },
-  { key: "automation", Icon: RefreshLine, label: "benefits.items.automation.title" },
-  { key: "assistant", Icon: SparkleLine, label: "benefits.items.assistant.title" },
 ] as const;
 
 const TITLE = "font-display font-semibold tracking-[-0.025em] text-night";
@@ -475,6 +473,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 >
                   <SirineMark
                     onDark
+                    sizes="(min-width: 1024px) 576px, (min-width: 640px) 480px, 384px"
                     className="hn-float-late size-[24rem] max-w-none opacity-30 sm:size-[30rem] lg:size-[36rem]"
                   />
                 </div>
@@ -636,8 +635,10 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   {/* Fonctions de la solution : chaque information une seule fois, avec son bénéfice
                       et, s'il y a lieu, le pack qui la débloque. */}
                   {/* Sur téléphone : une rangée de cartes qui se fait glisser (la suivante dépasse un peu). */}
+                  {/* tabIndex : la rangée se fait aussi défiler au clavier (flèches). */}
                   <ul
                     aria-label={t("solutions.featuresLabel")}
+                    tabIndex={0}
                     className="-mx-4 mt-8 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-3 [scrollbar-width:none] sm:mx-0 sm:mt-10 sm:grid sm:snap-none sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:mt-12 lg:grid-cols-3 lg:gap-4"
                   >
                     {(
@@ -975,6 +976,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           >
             <SirineMark
               onDark
+              sizes="(min-width: 640px) 384px, 288px"
               className="pointer-events-none absolute -bottom-20 -right-16 size-72 opacity-20 sm:size-96"
             />
             <div

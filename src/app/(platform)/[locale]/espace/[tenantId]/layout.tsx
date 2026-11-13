@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { getTranslations, setRequestLocale } from "next-intl/server";
+import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
+import { NextIntlClientProvider } from "next-intl";
 import { ScrollToTop } from "@/components/admin/ScrollToTop";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { ManagerMain } from "@/components/manager/ManagerMain";
@@ -62,7 +63,8 @@ export default async function ManagerLayout({
   const siteUrl = primary && tenant.status === "active" ? tenantSiteUrl(primary.hostname) : null;
 
   return (
-    <>
+    // Tous les textes (le site commercial n'envoie que les siens).
+    <NextIntlClientProvider messages={await getMessages()}>
       {/* Sur téléphone, pas de bandeau du logo : plus de place, et « Se déconnecter » passe dans « Plus ». */}
       <div className="hidden lg:block">
         <AppHeader />
@@ -131,6 +133,6 @@ export default async function ManagerLayout({
           <ManagerMain tenantId={tenantId}>{children}</ManagerMain>
         </div>
       </div>
-    </>
+    </NextIntlClientProvider>
   );
 }

@@ -54,7 +54,7 @@ describe("valeurs de départ des packs", () => {
     expect(DEFAULT_GRID_PLANS.map((plan) => [plan.code, plan.priceCents, plan.isPublic])).toEqual([
       ["basic", 0, false],
       ["starter", 1999, true],
-      ["pro", 3242, true],
+      ["pro", 3290, true],
       ["business", 7900, true],
     ]);
     expect(DEFAULT_PLATFORM_SETTINGS.prices_display).toBe("HT");

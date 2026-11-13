@@ -32,7 +32,7 @@ describe.skipIf(!hasTestDatabase)("valeurs de départ en base", () => {
     const sold = rows.filter((plan) => plan.isPublic).sort((a, b) => a.sortOrder - b.sortOrder);
     expect(sold.map((plan) => [plan.code, plan.priceCents])).toEqual([
       ["starter", 1999],
-      ["pro", 3242],
+      ["pro", 3290],
       ["business", 7900],
     ]);
     // Aucuns frais de création, réservation incluse dans les trois packs.
