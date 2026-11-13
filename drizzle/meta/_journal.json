@@ -435,6 +435,13 @@
       "when": 1794575472643,
       "tag": "0061_starter_two_members",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1794578737604,
+      "tag": "0062_starter_staff_planning",
+      "breakpoints": true
     }
   ]
 }
