@@ -2520,7 +2520,8 @@
     "shop_fulfillment_required": "Choisissez au moins une façon de remettre les commandes : retrait sur place ou livraison.",
     "forbidden_area": "Cette partie de l'espace n'est pas ouverte à votre compte. Demandez l'accès à la gérante.",
     "collaborator_already_invited": "Ce membre de l'équipe a déjà un accès à l'espace.",
-    "collaborator_already_member": "Cette adresse e-mail a déjà un accès à l'espace de ce site."
+    "collaborator_already_member": "Cette adresse e-mail a déjà un accès à l'espace de ce site.",
+    "customer_has_upcoming": "Ce client a un rendez-vous à venir : annulez-le d'abord, puis supprimez la fiche."
   },
   "status": {
     "draft": "En création",
@@ -2978,7 +2979,7 @@
       "statNew": "Nouveaux",
       "statNewSub": "Arrivées ces {days} derniers jours",
       "statInactive": "À relancer",
-      "statInactiveSub": "Pas revenues depuis {days} jours",
+      "statInactiveSub": "Pas revenus depuis {days} jours",
       "filters": "Filtrer les clients",
       "filter": {
         "all": "Tous",
@@ -3008,7 +3009,11 @@
       "birthdayHint": "Jour et mois seulement, sans l'année. Laissez vide si vous ne le connaissez pas.",
       "birthdayUnknown": "Anniversaire non renseigné",
       "birthdayEmpty": "—",
-      "birthdayOn": "Anniversaire : {date}"
+      "birthdayOn": "Anniversaire : {date}",
+      "edit": "Modifier la fiche",
+      "delete": "Supprimer le client",
+      "deleteHint": "Définitif. S'il a déjà eu des rendez-vous, ses coordonnées sont effacées mais ses rendez-vous restent dans votre historique et votre chiffre d'affaires.",
+      "deleteConfirm": "Supprimer {name} ? Cette action est définitive."
     },
     "site": {
       "title": "Mon site",

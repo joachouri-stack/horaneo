@@ -267,6 +267,43 @@ export async function anonymizeCustomer(
   return updated;
 }
 
+/**
+ * Supprime un client à la demande de la gérante :
+ * - sans aucun rendez-vous : la fiche est supprimée (codes promo et fidélité avec elle) ;
+ * - avec des rendez-vous passés : ses données sont effacées comme pour une demande de
+ *   suppression (anonymizeCustomer), l'historique et le chiffre d'affaires restent justes ;
+ * - avec un rendez-vous à venir : refusé, il faut d'abord l'annuler.
+ */
+export async function deleteCustomer(
+  tx: Transaction,
+  tenantId: string,
+  customerId: string,
+  erasedName: string,
+  now = new Date(),
+) {
+  const [customer] = await tx
+    .select({ id: customers.id })
+    .from(customers)
+    .where(
+      and(eq(customers.id, customerId), eq(customers.tenantId, tenantId), isNull(customers.anonymizedAt)),
+    );
+  if (!customer) throw new AppError("not_found");
+  const [counts] = await tx
+    .select({
+      total: sql<number>`count(*)`,
+      upcoming: sql<number>`count(*) filter (where ${appointments.status} in ('confirmed','pending_payment') and ${appointments.endsAt} > ${now.toISOString()}::timestamptz)`,
+    })
+    .from(appointments)
+    .where(and(eq(appointments.customerId, customerId), eq(appointments.tenantId, tenantId)));
+  if (Number(counts.upcoming) > 0) throw new AppError("customer_has_upcoming");
+  if (Number(counts.total) > 0) {
+    await anonymizeCustomer(tx, tenantId, customerId, erasedName, now);
+    return { erased: true };
+  }
+  await tx.delete(customers).where(and(eq(customers.id, customerId), eq(customers.tenantId, tenantId)));
+  return { erased: false };
+}
+
 /** Champ de formulaire : vide (« » ou absent) = pas d'anniversaire. */
 const part = (max: number) =>
   z.preprocess(

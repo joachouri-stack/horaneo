@@ -52,7 +52,7 @@ import { DATE_PATTERN, localToUtc } from "@/modules/booking/time";
 import { deleteCategory, deleteService, saveCategory, saveService } from "@/modules/catalog/services";
 import { MANAGER_PAGE_KEYS, PAGE_TEXT_FIELDS, updatePageTexts } from "@/modules/content/pages";
 import { deleteTestimonial, saveTestimonial } from "@/modules/content/testimonials";
-import { saveCustomer, searchCustomers } from "@/modules/customers/customers";
+import { deleteCustomer, saveCustomer, searchCustomers } from "@/modules/customers/customers";
 import { assertSitePhoto, restoreAsset, retireAsset, uploadAsset, uploadLogo } from "@/modules/media/assets";
 import { parseInterval } from "@/modules/billing/yearly";
 import { AppError } from "@/modules/errors";
@@ -320,6 +320,18 @@ export async function saveCustomerAction(
       href: `/espace/${tenantId}/clientes/${(result.data as { id: string }).id}`,
       locale: resolveLocale(await getLocale()),
     });
+  return result;
+}
+
+/** Suppression d'un client (gérante seulement), puis retour à la liste des clients. */
+export async function deleteCustomerAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const t = await getTranslations("manager.customerData");
+  const result = await managerMutation(tenantId, "owner", "customer.deleted", (tx) =>
+    deleteCustomer(tx, tenantId, idOf(data)!, t("erasedName")),
+  );
+  if (!result.ok) return result;
+  redirect({ href: `/espace/${tenantId}/clientes`, locale: resolveLocale(await getLocale()) });
   return result;
 }
 
