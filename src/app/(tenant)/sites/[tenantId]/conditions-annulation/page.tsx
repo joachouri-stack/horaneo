@@ -15,8 +15,13 @@ export async function generateMetadata({
   params,
 }: PageProps<"/sites/[tenantId]/conditions-annulation">): Promise<Metadata> {
   const site = await getSite((await params).tenantId);
+  const tSeo = await getTranslations({ locale: site.locale, namespace: "site.seo" });
   const t = await getTranslations({ locale: site.locale, namespace: "site.cancellation" });
-  return { title: t("title"), alternates: { canonical: SITE_PATHS.cancellation } };
+  return {
+    title: t("title"),
+    description: tSeo("cancellation", { name: site.tenant.name }),
+    alternates: { canonical: SITE_PATHS.cancellation },
+  };
 }
 
 /**

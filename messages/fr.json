@@ -1423,6 +1423,16 @@
       "invalid": "Vérifiez vos informations (e-mail, téléphone) puis réessayez.",
       "not_found": "Ce rendez-vous est introuvable. Utilisez le lien du dernier e-mail reçu.",
       "payments_unavailable": "Le paiement en ligne n'est pas disponible pour le moment. Contactez l'établissement pour réserver."
+    },
+    "seo": {
+      "gallery": "Découvrez {name} en photos : le lieu, les prestations et l'ambiance.",
+      "testimonials": "Avis et témoignages des clients de {name}.",
+      "shop": "Les produits de {name}, à commander en ligne.",
+      "giftCard": "Offrez une carte cadeau {name}, à utiliser en ligne ou sur place.",
+      "booking": "Réservez en ligne chez {name}, 24 h/24, en quelques clics.",
+      "cancellation": "Conditions d'annulation et de report des rendez-vous chez {name}.",
+      "legal": "Mentions légales du site de {name}.",
+      "privacy": "Politique de confidentialité de {name} : données collectées et vos droits."
     }
   },
   "emails": {

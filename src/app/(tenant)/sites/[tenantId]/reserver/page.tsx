@@ -22,8 +22,14 @@ export async function generateMetadata({
   params,
 }: PageProps<"/sites/[tenantId]/reserver">): Promise<Metadata> {
   const site = await getSite((await params).tenantId);
+  const tSeo = await getTranslations({ locale: site.locale, namespace: "site.seo" });
   const t = await getTranslations({ locale: site.locale, namespace: "booking" });
-  return { title: t("title"), alternates: { canonical: SITE_PATHS.booking }, robots: { index: false } };
+  return {
+    title: t("title"),
+    description: tSeo("booking", { name: site.tenant.name }),
+    alternates: { canonical: SITE_PATHS.booking },
+    robots: { index: false },
+  };
 }
 
 /**

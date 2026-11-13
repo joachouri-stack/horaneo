@@ -15,8 +15,13 @@ export async function generateMetadata({
   params,
 }: PageProps<"/sites/[tenantId]/boutique">): Promise<Metadata> {
   const site = await getSite((await params).tenantId);
+  const tSeo = await getTranslations({ locale: site.locale, namespace: "site.seo" });
   const t = await getTranslations({ locale: site.locale, namespace: "site.shop" });
-  return { title: t("title"), alternates: { canonical: SITE_PATHS.shop } };
+  return {
+    title: t("title"),
+    description: tSeo("shop", { name: site.tenant.name }),
+    alternates: { canonical: SITE_PATHS.shop },
+  };
 }
 
 /**
