@@ -421,6 +421,13 @@
       "when": 1794528718248,
       "tag": "0059_collaborators",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1794557578363,
+      "tag": "0060_pro_price_32_90_ht",
+      "breakpoints": true
     }
   ]
 }

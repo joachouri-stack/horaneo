@@ -78,7 +78,7 @@
       "points": [
         "Textes, images et logo modifiables",
         "Hébergement et sécurité inclus",
-        "Un développeur dispo 7j/7"
+        "Assistance 7 j/7 sur WhatsApp"
       ],
       "visualAlt": "Aperçu de l'espace de gestion sur téléphone : rendez-vous du jour (données d'exemple)",
       "float": {
@@ -754,7 +754,7 @@
         },
         "priorityHumanSupport": {
           "label": "Assistance humaine prioritaire",
-          "card": "Assistance prioritaire"
+          "card": "Assistance humaine prioritaire"
         }
       }
     },

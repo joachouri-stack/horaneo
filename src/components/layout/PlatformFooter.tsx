@@ -106,6 +106,7 @@ export async function PlatformFooter() {
               {/* Empreinte du logo dans le coin de la carte. */}
               <SirineMark
                 onDark
+                sizes="160px"
                 className="pointer-events-none absolute -right-10 -top-10 size-40 opacity-25"
               />
               <p className="relative flex items-center gap-2.5 font-display text-mk-card font-semibold tracking-[-0.02em] text-white">
@@ -196,7 +197,12 @@ export async function PlatformFooter() {
             aria-hidden="true"
             className="pointer-events-none mt-4 flex select-none justify-center pt-[clamp(1rem,4vw,3.5rem)] [mask-image:linear-gradient(to_bottom,#000_45%,transparent_95%)] lg:mt-6"
           >
-            <Logo productName={product} light className="text-[clamp(3rem,14.5vw,11.5rem)] leading-[0.9]" />
+            <Logo
+              productName={product}
+              light
+              sizes="(min-width: 1280px) 720px, 60vw"
+              className="text-[clamp(3rem,14.5vw,11.5rem)] leading-[0.9]"
+            />
           </div>
         </div>
       </footer>
