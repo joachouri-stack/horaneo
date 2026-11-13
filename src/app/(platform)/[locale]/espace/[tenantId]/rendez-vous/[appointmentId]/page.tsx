@@ -19,6 +19,7 @@ import {
   moveAppointmentAction,
   setAttendanceAction,
   updateNoteAction,
+  updateTotalAction,
 } from "../../actions";
 
 /** Un rendez-vous : contacter la cliente, venue/absente, déplacer, annuler. */
@@ -129,6 +130,30 @@ export default async function AppointmentPage({
         <p className="mt-2">
           {t("appointment.total")} : <strong>{page.fmt.money(item.totalCents, item.currency)}</strong>
         </p>
+        {/* Montant réellement réglé (geste commercial, prestation ajoutée…) : compte dans « Dépensé ». */}
+        {item.status !== "expired" && (
+          <details className="mt-2">
+            <summary className="inline-flex min-h-11 cursor-pointer items-center font-semibold text-accent underline underline-offset-4">
+              {t("appointment.editTotal")}
+            </summary>
+            <ActionForm
+              action={updateTotalAction}
+              submitLabel={tCommon("save")}
+              successMessage={t("appointment.totalSaved")}
+              className="mt-2 space-y-3"
+            >
+              <Hidden values={hidden} />
+              <TextField
+                name="total"
+                label={`${t("appointment.totalField")} (${page.fmt.currency})`}
+                hint={t("appointment.totalHint")}
+                defaultValue={(item.totalCents / 100).toFixed(2).replace(".", ",")}
+                inputMode="decimal"
+                required
+              />
+            </ActionForm>
+          </details>
+        )}
         {deposit && (
           <p className="mt-1">
             {deposit.status === "succeeded"

@@ -23,6 +23,7 @@ import { trackAttendance } from "@/modules/loyalty/loyalty";
 import { queueBookingConfirmed, queueMessage } from "@/modules/messages/queue";
 import type { PaymentGateway } from "@/modules/payments/gateway";
 import { refundDeposit } from "@/modules/payments/refunds";
+import { parseMoney } from "@/modules/money";
 import { normalizePhone } from "@/modules/phone";
 import { queueReviewRequest } from "@/modules/reviews/request";
 
@@ -329,6 +330,30 @@ export async function updateInternalNote(
     .update(appointments)
     .set({ internalNote: note.trim().slice(0, 500) || null })
     .where(eq(appointments.id, appointment.id));
+}
+
+/** Montant le plus élevé accepté pour un rendez-vous (garde-fou contre une faute de frappe). */
+const MAX_TOTAL_CENTS = 100_000_00;
+
+/**
+ * Montant réellement réglé pour un rendez-vous (geste commercial, prestation ajoutée sur place,
+ * erreur de saisie) : il compte ensuite dans « Dépensé » du client, le chiffre d'affaires et
+ * les statistiques. Jamais en dessous de l'acompte déjà payé en ligne.
+ */
+export async function updateAppointmentTotal(
+  tx: Transaction,
+  tenantId: string,
+  appointmentId: string,
+  amount: string,
+) {
+  const appointment = await loadAppointment(tx, tenantId, appointmentId, true);
+  if (appointment.status === "expired") throw new AppError("not_found");
+  const totalCents = parseMoney(amount);
+  if (!Number.isInteger(totalCents) || totalCents < 0 || totalCents > MAX_TOTAL_CENTS)
+    throw new AppError("invalid", "total");
+  if (totalCents < appointment.depositCents) throw new AppError("total_below_deposit", "total");
+  await tx.update(appointments).set({ totalCents }).where(eq(appointments.id, appointment.id));
+  return { totalCents };
 }
 
 /** Statuts d'un rendez-vous terminé, qu'on peut supprimer (les rendez-vous à venir s'annulent). */

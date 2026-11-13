@@ -2521,7 +2521,8 @@
     "forbidden_area": "Cette partie de l'espace n'est pas ouverte à votre compte. Demandez l'accès à la gérante.",
     "collaborator_already_invited": "Ce membre de l'équipe a déjà un accès à l'espace.",
     "collaborator_already_member": "Cette adresse e-mail a déjà un accès à l'espace de ce site.",
-    "customer_has_upcoming": "Ce client a un rendez-vous à venir : annulez-le d'abord, puis supprimez la fiche."
+    "customer_has_upcoming": "Ce client a un rendez-vous à venir : annulez-le d'abord, puis supprimez la fiche.",
+    "total_below_deposit": "Le montant ne peut pas être inférieur à l'acompte déjà payé en ligne."
   },
   "status": {
     "draft": "En création",
@@ -2874,7 +2875,11 @@
         "customer_payment_refunded": "Remboursement (e-mail)",
         "customer_review_request": "Demande d'avis Google (e-mail)",
         "customer_birthday": "Joyeux anniversaire (e-mail)"
-      }
+      },
+      "editTotal": "Modifier le montant",
+      "totalField": "Montant réglé par le client",
+      "totalHint": "Ce montant compte dans « Dépensé » du client, votre chiffre d'affaires et vos statistiques.",
+      "totalSaved": "Montant enregistré."
     },
     "manual": {
       "title": "Nouveau rendez-vous",
