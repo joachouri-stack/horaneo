@@ -411,8 +411,15 @@
     {
       "idx": 58,
       "version": "7",
-      "when": 1794524600225,
-      "tag": "0058_collaborators",
+      "when": 1794522688686,
+      "tag": "0058_pro_price_38_90_ttc",
+      "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1794528718248,
+      "tag": "0059_collaborators",
       "breakpoints": true
     }
   ]
