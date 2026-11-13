@@ -24,6 +24,12 @@ export async function openTestDb(): Promise<TestDb> {
     sql`INSERT INTO platform_settings (key, value) VALUES ('trial_days', '0'::jsonb)
         ON CONFLICT (key) DO UPDATE SET value = '0'::jsonb`,
   );
+  // Formule avec engagement (12 mois) activée : les tests vérifient aussi ce mécanisme,
+  // même si elle n'est plus proposée par défaut.
+  await db.execute(
+    sql`INSERT INTO platform_settings (key, value) VALUES ('commitment_months', '12'::jsonb)
+        ON CONFLICT (key) DO UPDATE SET value = '12'::jsonb`,
+  );
   return db;
 }
 

@@ -19,7 +19,7 @@ export const DEFAULT_PLATFORM_SETTINGS = {
    */
   trial_days: 30,
   /** Durée d'engagement en mois (0 = sans engagement). */
-  commitment_months: 12,
+  commitment_months: 0,
   /** Préavis avant d'appliquer le nouveau prix d'un pack à un abonné (après la fin de son engagement), en jours. */
   price_change_notice_days: 30,
   /**
@@ -78,7 +78,7 @@ export const DEFAULT_PLATFORM_SETTINGS = {
   trustpilot_url: "",
   /**
    * Formule sans engagement proposée à la commande (avec frais de création du pack).
-   * false : seule la formule avec engagement (commitment_months), création offerte.
+   * false : seule la formule avec engagement (si commitment_months > 0).
    */
   offer_no_commitment: true as boolean,
   /** Rachat du site par le client quand il part (désactivé par défaut) et son prix TTC en centimes. */

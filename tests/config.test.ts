@@ -152,7 +152,7 @@ describe("valeurs de départ des packs", () => {
 
   it("prévoit les réglages encore ouverts", () => {
     expect(DEFAULT_PLATFORM_SETTINGS).toMatchObject({
-      commitment_months: 12,
+      commitment_months: 0,
       offer_no_commitment: true,
       price_change_notice_days: 30,
       site_buyout_enabled: false,
