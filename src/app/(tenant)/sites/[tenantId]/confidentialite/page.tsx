@@ -9,8 +9,13 @@ export async function generateMetadata({
   params,
 }: PageProps<"/sites/[tenantId]/confidentialite">): Promise<Metadata> {
   const site = await getSite((await params).tenantId);
+  const tSeo = await getTranslations({ locale: site.locale, namespace: "site.seo" });
   const t = await getTranslations({ locale: site.locale, namespace: "site.privacy" });
-  return { title: t("title"), alternates: { canonical: SITE_PATHS.privacy } };
+  return {
+    title: t("title"),
+    description: tSeo("privacy", { name: site.tenant.name }),
+    alternates: { canonical: SITE_PATHS.privacy },
+  };
 }
 
 /** Politique de confidentialité du site (modèle à faire valider juridiquement). */

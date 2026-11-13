@@ -27,56 +27,59 @@ export async function SiteFooter({ site }: { site: NonNullable<SiteData> }) {
               .join(", ")}
           </p>
           {tenant.phone && (
-            <a href={`tel:${tenant.phone}`} className="mt-1 block text-site-text">
+            <a href={`tel:${tenant.phone}`} className="mt-1 inline-flex min-h-11 items-center text-site-text">
               {formatPhone(tenant.phone)}
             </a>
           )}
         </div>
-        <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-site-muted">
+        <ul className="flex flex-wrap gap-x-6 text-sm text-site-muted">
           <li>
-            <Link href={SITE_PATHS.legal} className="underline">
+            <Link href={SITE_PATHS.legal} className="inline-flex min-h-11 items-center underline">
               {t("legal")}
             </Link>
           </li>
           <li>
-            <Link href={SITE_PATHS.privacy} className="underline">
+            <Link href={SITE_PATHS.privacy} className="inline-flex min-h-11 items-center underline">
               {t("privacy")}
             </Link>
           </li>
           {site.shopBusinessIds.length > 0 && (
             <li>
-              <Link href={SITE_PATHS.shop} className="underline">
+              <Link href={SITE_PATHS.shop} className="inline-flex min-h-11 items-center underline">
                 {tShop("title")}
               </Link>
             </li>
           )}
           {site.giftCardBusinessIds.length > 0 && (
             <li>
-              <Link href={SITE_PATHS.giftCard} className="underline">
+              <Link href={SITE_PATHS.giftCard} className="inline-flex min-h-11 items-center underline">
                 {tGift("navLabel")}
               </Link>
             </li>
           )}
           <li>
-            <Link href={SITE_PATHS.cancellation} className="underline">
+            <Link href={SITE_PATHS.cancellation} className="inline-flex min-h-11 items-center underline">
               {t("cancellation")}
             </Link>
           </li>
           {site.features.customerSpace && (
             <li>
-              <Link href={SITE_PATHS.account} className="underline">
+              <Link href={SITE_PATHS.account} className="inline-flex min-h-11 items-center underline">
                 {tAccount("navLink")}
               </Link>
             </li>
           )}
           <li>
-            <a href={SITE_PATHS.pro} className="underline">
+            <a href={SITE_PATHS.pro} className="inline-flex min-h-11 items-center underline">
               {t("pro")}
             </a>
           </li>
           {site.features.brandingFooter && (
             <li>
-              <a href={`https://${config.MAIN_DOMAIN}`} className="underline">
+              <a
+                href={`https://${config.MAIN_DOMAIN}`}
+                className="inline-flex min-h-11 items-center underline"
+              >
                 {t("madeBy", { product: config.PRODUCT_NAME })}
               </a>
             </li>

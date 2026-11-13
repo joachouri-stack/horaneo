@@ -9,8 +9,13 @@ export async function generateMetadata({
   params,
 }: PageProps<"/sites/[tenantId]/galerie">): Promise<Metadata> {
   const site = await getSite((await params).tenantId);
+  const tSeo = await getTranslations({ locale: site.locale, namespace: "site.seo" });
   const t = await getTranslations({ locale: site.locale, namespace: "site.gallery" });
-  return { title: site.pages.gallery?.seoTitle || t("title"), alternates: { canonical: SITE_PATHS.gallery } };
+  return {
+    title: site.pages.gallery?.seoTitle || t("title"),
+    description: site.pages.gallery?.seoDescription || tSeo("gallery", { name: site.tenant.name }),
+    alternates: { canonical: SITE_PATHS.gallery },
+  };
 }
 
 export default async function GalleryPage({ params }: PageProps<"/sites/[tenantId]/galerie">) {

@@ -80,7 +80,11 @@ export async function TestimonialList({ site, limit }: { site: Site; limit?: num
               <span>
                 <span className="block font-semibold text-site-text">{item.authorName}</span>
                 {item.rating && (
-                  <span className="text-site-accent" aria-label={t("rating", { rating: item.rating })}>
+                  <span
+                    className="text-site-accent"
+                    role="img"
+                    aria-label={t("rating", { rating: item.rating })}
+                  >
                     <span aria-hidden="true">
                       {"★".repeat(item.rating)}
                       {"☆".repeat(5 - item.rating)}

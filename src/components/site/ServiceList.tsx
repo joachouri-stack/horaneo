@@ -96,7 +96,10 @@ export async function ServiceList({
             className="font-site-display text-2xl font-semibold text-site-heading"
           >
             {linkCategories ? (
-              <Link href={categoryPath(category.slug)} className="hover:underline">
+              <Link
+                href={categoryPath(category.slug)}
+                className="inline-flex min-h-11 items-center hover:underline"
+              >
                 {category.name}
               </Link>
             ) : (

@@ -87,7 +87,10 @@ export default async function TenantHomePage({ params }: PageProps<"/sites/[tena
               <h2 id="a-la-une" className={sectionTitle}>
                 {t("home.featured")}
               </h2>
-              <Link href={SITE_PATHS.services} className="mb-6 font-semibold text-site-accent underline">
+              <Link
+                href={SITE_PATHS.services}
+                className="mb-6 inline-flex min-h-11 items-center font-semibold text-site-accent underline"
+              >
                 {t("services.seeAll")} →
               </Link>
             </div>

@@ -16,8 +16,15 @@ export async function generateMetadata({
   params,
 }: PageProps<"/sites/[tenantId]/carte-cadeau">): Promise<Metadata> {
   const site = await getSite((await params).tenantId);
+  const tSeo = await getTranslations({ locale: site.locale, namespace: "site.seo" });
   const t = await getTranslations({ locale: site.locale, namespace: "site.giftCard" });
-  return { title: t("metaTitle"), alternates: { canonical: SITE_PATHS.giftCard } };
+  return {
+    title: t("metaTitle"),
+    description: tSeo("giftCard", { name: site.tenant.name }),
+    alternates: { canonical: SITE_PATHS.giftCard },
+    // Cartes cadeaux pas proposées en ligne : page masquée aux moteurs de recherche.
+    robots: site.giftCardBusinessIds.length === 0 ? { index: false } : undefined,
+  };
 }
 
 /**
