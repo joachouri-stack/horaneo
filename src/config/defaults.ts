@@ -509,7 +509,7 @@ export const DEFAULT_GRID_PLANS: PlanSeed[] = [
     highlights: [],
     sortOrder: 1,
     isPublic: true,
-    limits: { ...BASIC_LIMITS, onlineBookingsPerMonth: null, photos: 50, customers: null },
+    limits: { ...BASIC_LIMITS, onlineBookingsPerMonth: null, photos: 50, customers: null, members: 2 },
     features: GRID_STARTER,
   },
   {
