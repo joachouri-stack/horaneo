@@ -420,6 +420,8 @@ const GRID_STARTER = {
   fullSite: true,
   sitePages: true,
   onlinePayment: true,
+  // Horaires de travail de chaque membre (le Starter a 2 membres).
+  staffPlanning: true,
   maintenance: true,
   securityProtection: true,
   logoCreation: true,
