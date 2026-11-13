@@ -488,7 +488,6 @@
       "note": {
         "display": "Prix {display}",
         "commitment": "{months, plural, =0 {Sans engagement} other {Engagement # mois}}",
-        "setupFree": "Création du site offerte",
         "hosting": "Hébergement et maintenance inclus"
       },
       "trust": {
@@ -4268,15 +4267,15 @@
     "formula": "Formule (packs payants)",
     "formulaHint": "Vous choisissez : votre abonnement mensuel est le même dans les deux cas.",
     "withCommitment": "Avec engagement {months} mois",
-    "withCommitmentFree": "Création du site offerte. Le premier mois est payé à la commande.",
+    "withCommitmentFree": "Le premier mois est payé à la commande.",
     "withoutCommitment": "Sans engagement",
     "creationFee": "{withCommitment, select, yes {Sans engagement : {fee} de création} other {Création : {fee}}}",
     "withoutCommitmentPlanFee": "Les frais de création du pack choisi (indiqués à côté de son prix), payés à la commande. Vous arrêtez quand vous voulez.",
     "options": "Options",
     "optionsHint": "Facultatives, ajoutées à votre abonnement. Vous pourrez aussi les ajouter plus tard.",
     "total": "Total de votre abonnement",
-    "commitmentHint": "Abonnement avec engagement de {months} mois, création du site offerte. Vous réglez le premier mois à la commande, sur la page de paiement sécurisée.",
-    "withoutCommitmentFree": "Sans frais de création. Vous arrêtez quand vous voulez, à la fin du mois en cours.",
+    "commitmentHint": "Abonnement avec engagement de {months} mois. Vous réglez le premier mois à la commande, sur la page de paiement sécurisée.",
+    "withoutCommitmentFree": "Vous arrêtez quand vous voulez, à la fin du mois en cours.",
     "launchOffer": "{offer} avec le pack {plan}{commitment, select, yes { et la formule avec engagement} other {}} : {remaining, plural, one {# place restante} other {# places restantes}}. Éligibilité vérifiée après le premier paiement.",
     "billing": "Paiement",
     "billingMonthly": "Chaque mois",
