@@ -17,7 +17,13 @@ import { createBooking } from "@/modules/booking/create";
 import { updateBookingSettings } from "@/modules/booking/settings";
 import { localToUtc } from "@/modules/booking/time";
 import { saveService } from "@/modules/catalog/services";
-import { customerDirectory, getCustomer, saveCustomer, searchCustomers } from "@/modules/customers/customers";
+import {
+  customerDirectory,
+  deleteCustomer,
+  getCustomer,
+  saveCustomer,
+  searchCustomers,
+} from "@/modules/customers/customers";
 import { AppError } from "@/modules/errors";
 import {
   createUpdateRequest,
@@ -455,6 +461,47 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
           ),
         ),
       ).toBe("invalid");
+    });
+  });
+
+  describe("suppression d'un client", () => {
+    it("sans rendez-vous : supprimé ; avec un rendez-vous à venir : refusé ; avec un historique : effacé", async () => {
+      const s = await setup();
+      const alone = await asManager(s.id, (tx) =>
+        saveCustomer(tx, s.id, { firstName: "Sans", phone: "0611111111" }),
+      );
+      expect(
+        (await asManager(s.id, (tx) => deleteCustomer(tx, s.id, alone.id, "Client effacé"))).erased,
+      ).toBe(false);
+      expect(await asManager(s.id, (tx) => getCustomer(tx, s.id, alone.id, "fr"))).toBeNull();
+
+      const booked = await asManager(s.id, (tx) =>
+        createManualAppointment(tx, s.id, {
+          serviceIds: [s.massage.id],
+          staffId: s.lea.id,
+          start: at("10:30"),
+          newCustomer: { firstName: "Avec", phone: "0622222222" },
+        }),
+      );
+      const [row] = await owner.select().from(appointments).where(eq(appointments.id, booked.appointmentId));
+      // La veille : le rendez-vous est à venir, il faut d'abord l'annuler.
+      expect(
+        await errorCode(
+          asManager(s.id, (tx) => deleteCustomer(tx, s.id, row.customerId, "Client effacé", NOW)),
+        ),
+      ).toBe("customer_has_upcoming");
+      // Le lendemain : la fiche est effacée, le rendez-vous reste dans l'historique.
+      const after = new Date(at("12:00").getTime() + 24 * 3600 * 1000);
+      expect(
+        (await asManager(s.id, (tx) => deleteCustomer(tx, s.id, row.customerId, "Client effacé", after)))
+          .erased,
+      ).toBe(true);
+      const card = await asManager(s.id, (tx) => getCustomer(tx, s.id, row.customerId, "fr"));
+      expect(card?.customer).toMatchObject({ firstName: "Client effacé", phone: null, email: null });
+      expect(card?.history).toHaveLength(1);
+      expect(
+        await errorCode(asManager(s.id, (tx) => deleteCustomer(tx, s.id, row.customerId, "Client effacé"))),
+      ).toBe("not_found");
     });
   });
 

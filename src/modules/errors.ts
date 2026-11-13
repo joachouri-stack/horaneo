@@ -15,6 +15,7 @@ export type AppErrorCode =
   | "invalid"
   | "personal_setting"
   | "forbidden_area"
+  | "customer_has_upcoming"
   | "collaborator_already_invited"
   | "collaborator_already_member"
   | "stripe_already_active"
