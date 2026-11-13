@@ -43,6 +43,7 @@ import {
   createManualAppointment,
   moveAppointment,
   setAttendance,
+  updateAppointmentTotal,
   updateInternalNote,
 } from "@/modules/agenda/actions";
 import { getSlotsForRange, loadBookingContext } from "@/modules/booking/availability";
@@ -170,6 +171,15 @@ export async function updateNoteAction(_previous: Previous, data: FormData) {
   return managerMutation(tenantId, "agenda", "appointment.note", async (tx, { space }) => {
     await assertAppointmentInScope(tx, tenantId, space, idOf(data)!);
     return updateInternalNote(tx, tenantId, idOf(data)!, form.text(data, "internalNote"));
+  });
+}
+
+/** Montant réellement réglé pour un rendez-vous. */
+export async function updateTotalAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "agenda", "appointment.total_updated", async (tx, { space }) => {
+    await assertAppointmentInScope(tx, tenantId, space, idOf(data)!);
+    return updateAppointmentTotal(tx, tenantId, idOf(data)!, form.text(data, "total"));
   });
 }
 

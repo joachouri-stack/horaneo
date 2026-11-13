@@ -10,6 +10,7 @@ import {
   deleteAppointment,
   moveAppointment,
   setAttendance,
+  updateAppointmentTotal,
 } from "@/modules/agenda/actions";
 import { dayRange, listAgenda, todaySummary } from "@/modules/agenda/queries";
 import { getSlotsForRange, loadBookingContext, onlineStaff } from "@/modules/booking/availability";
@@ -459,6 +460,35 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
           asManager(s.id, (tx) =>
             saveCustomer(tx, s.id, { firstName: "Zoé", email: "NINA@example.com" }, created.id),
           ),
+        ),
+      ).toBe("invalid");
+    });
+  });
+
+  describe("montant d'un rendez-vous", () => {
+    it("la gérante corrige le montant réglé : il compte dans « Dépensé » du client", async () => {
+      const s = await setup();
+      const booked = await asManager(s.id, (tx) =>
+        createManualAppointment(tx, s.id, {
+          serviceIds: [s.massage.id],
+          staffId: s.lea.id,
+          start: at("10:30"),
+          newCustomer: { firstName: "Montant", phone: "0633333333" },
+        }),
+      );
+      await asManager(s.id, (tx) => updateAppointmentTotal(tx, s.id, booked.appointmentId, "50,00"));
+      const [row] = await owner.select().from(appointments).where(eq(appointments.id, booked.appointmentId));
+      expect(row.totalCents).toBe(5000);
+      const card = await asManager(s.id, (tx) => getCustomer(tx, s.id, row.customerId, "fr"));
+      expect(card?.stats.spentCents).toBe(5000);
+      expect(
+        await errorCode(
+          asManager(s.id, (tx) => updateAppointmentTotal(tx, s.id, booked.appointmentId, "abc")),
+        ),
+      ).toBe("invalid");
+      expect(
+        await errorCode(
+          asManager(s.id, (tx) => updateAppointmentTotal(tx, s.id, booked.appointmentId, "999999")),
         ),
       ).toBe("invalid");
     });

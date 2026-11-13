@@ -16,6 +16,7 @@ export type AppErrorCode =
   | "personal_setting"
   | "forbidden_area"
   | "customer_has_upcoming"
+  | "total_below_deposit"
   | "collaborator_already_invited"
   | "collaborator_already_member"
   | "stripe_already_active"
