@@ -11,6 +11,7 @@ import { managerPage } from "@/lib/manager/page";
 import { dataExportAllowed } from "@/modules/export/business-data";
 import { billingGateway } from "@/lib/payments/stripe-billing";
 import { listTenantOptions } from "@/modules/billing/options";
+import { ttcHintCents } from "@/modules/billing/vat";
 import { yearlyPriceCents } from "@/modules/billing/yearly";
 import { gridCard, type CardLine } from "@/modules/billing/grid";
 import { listPublicPlans } from "@/modules/billing/plans";
@@ -69,6 +70,7 @@ export default async function SubscriptionPage({
       freePlan: await freePlan(tx),
       options: await listTenantOptions(tx, page.tenantId),
       display: await getPlatformSetting(tx, "prices_display"),
+      vatPercent: Number(await getPlatformSetting(tx, "vat_rate_percent")),
       commitmentMonths: Number(await getPlatformSetting(tx, "commitment_months")),
       yearly: {
         enabled: Boolean(await getPlatformSetting(tx, "yearly_billing_enabled")),
@@ -117,6 +119,17 @@ export default async function SubscriptionPage({
     .sort((a, b) => b.getTime() - a.getTime())[0];
   const committed = !trialing && live?.commitmentEndsAt && live.commitmentEndsAt > new Date();
   const pausing = !data.freePlan.isPublic;
+  // Montant réellement prélevé : TTC (Stripe ajoute la TVA aux prix HT), avec le HT entre parenthèses.
+  // À l'année : le montant de l'année (réduction comprise).
+  const nextHt =
+    live?.billingInterval === "year"
+      ? yearlyPriceCents(scheduled?.priceCents ?? currentPrice, data.yearly.freeMonths)
+      : (scheduled?.priceCents ?? currentPrice);
+  const nextTtc = ttcHintCents(nextHt, display, data.vatPercent);
+  const nextCharge =
+    nextTtc === null
+      ? page.fmt.money(nextHt)
+      : t("status.nextAmountTtc", { ttc: page.fmt.money(nextTtc), ht: page.fmt.money(nextHt) });
   const priceLabel = (cents: number) =>
     cents > 0 ? t("perMonth", { amount: page.fmt.money(cents), display }) : t("free");
   const error = typeof query.erreur === "string" ? (query.erreur as AppErrorCode) : null;
@@ -193,13 +206,7 @@ export default async function SubscriptionPage({
               <div className="rounded-[var(--radius-card)] bg-[#f4f1ff] px-4 py-3">
                 <dt className="text-sm text-ink/70">{t("status.nextLabel")}</dt>
                 <dd className="mt-0.5 text-lg font-semibold text-night">
-                  {page.fmt.short(periodEnd)} ·{" "}
-                  {/* À l'année : le montant de l'année (réduction comprise). */}
-                  {page.fmt.money(
-                    live.billingInterval === "year"
-                      ? yearlyPriceCents(scheduled?.priceCents ?? currentPrice, data.yearly.freeMonths)
-                      : (scheduled?.priceCents ?? currentPrice),
-                  )}
+                  {page.fmt.short(periodEnd)} · {nextCharge}
                 </dd>
               </div>
               {trialing && (
@@ -243,7 +250,7 @@ export default async function SubscriptionPage({
                 {exportButton}
               </form>
             )}
-            <p className="mt-2 text-sm text-ink/60">
+            <p className="mt-2 text-sm text-ink/70">
               {pausing
                 ? t("stopHint", { date: freeDate ? page.fmt.short(freeDate) : "" })
                 : t("toFreeHint", { date: freeDate ? page.fmt.short(freeDate) : "" })}
@@ -422,7 +429,7 @@ export default async function SubscriptionPage({
           .map((group, groupIndex) => (
             <div key={groupIndex} className="space-y-3">
               {splitPlans(data.plans).siteOnly.length > 0 && (
-                <h3 className="pt-2 text-sm font-semibold uppercase tracking-wide text-ink/60">
+                <h3 className="pt-2 text-sm font-semibold uppercase tracking-wide text-ink/70">
                   {groupIndex === 0 ? t("groupBooking") : t("groupSiteOnly")}
                 </h3>
               )}

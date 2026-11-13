@@ -88,13 +88,19 @@ export default async function ShopOrdersPage({
           )}
         </p>
         <p className="mt-2 text-sm text-ink/80">
-          <a href={`mailto:${order.customerEmail}`} className="underline underline-offset-4">
+          <a
+            href={`mailto:${order.customerEmail}`}
+            className="inline-flex min-h-11 items-center underline underline-offset-4"
+          >
             {order.customerEmail}
           </a>
           {order.customerPhone && (
             <>
               {" · "}
-              <a href={`tel:${order.customerPhone}`} className="underline underline-offset-4">
+              <a
+                href={`tel:${order.customerPhone}`}
+                className="inline-flex min-h-11 items-center underline underline-offset-4"
+              >
                 {formatPhone(order.customerPhone, page.tenant.country)}
               </a>
             </>

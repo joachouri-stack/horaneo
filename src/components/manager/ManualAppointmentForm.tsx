@@ -159,7 +159,7 @@ export function ManualAppointmentForm({ tenantId, services, staff, defaults }: P
                       <span className="font-semibold">
                         {[item.firstName, item.lastName].filter(Boolean).join(" ")}
                       </span>
-                      {item.phone && <span className="ml-2 text-sm text-ink/60">{item.phone}</span>}
+                      {item.phone && <span className="ml-2 text-sm text-ink/70">{item.phone}</span>}
                     </button>
                   </li>
                 ))}
@@ -222,7 +222,7 @@ export function ManualAppointmentForm({ tenantId, services, staff, defaults }: P
                   ))}
                 </select>
               </div>
-              <p className="mt-1 text-sm text-ink/60">{tCustomers("birthdayHint")}</p>
+              <p className="mt-1 text-sm text-ink/70">{tCustomers("birthdayHint")}</p>
             </fieldset>
             <button
               type="button"
@@ -277,7 +277,7 @@ export function ManualAppointmentForm({ tenantId, services, staff, defaults }: P
           {groups.map((group) => (
             <div key={group.name ?? "other"} className="space-y-2">
               {group.name && (
-                <p className="text-sm font-semibold tracking-wide text-ink/60 uppercase">{group.name}</p>
+                <p className="text-sm font-semibold tracking-wide text-ink/70 uppercase">{group.name}</p>
               )}
               <div className="grid gap-2 sm:grid-cols-2">
                 {group.items.map((service) => (
@@ -368,7 +368,7 @@ export function ManualAppointmentForm({ tenantId, services, staff, defaults }: P
                     if (slots.length === 0) return null;
                     return (
                       <div key={period.key}>
-                        <p className="mb-1 text-[0.8125rem] font-semibold tracking-wide text-ink/60 uppercase">
+                        <p className="mb-1 text-[0.8125rem] font-semibold tracking-wide text-ink/70 uppercase">
                           {t(`periods.${period.key}`)}
                         </p>
                         <div className="flex flex-wrap gap-2">

@@ -14,7 +14,7 @@ export const FieldErrorsContext = createContext<Record<string, string>>({});
 type BaseProps = { name: string; label: string; hint?: string; required?: boolean; id?: string };
 
 function Hint({ text }: { text?: string }) {
-  return text ? <p className="mt-1 text-sm text-ink/60">{text}</p> : null;
+  return text ? <p className="mt-1 text-sm text-ink/70">{text}</p> : null;
 }
 
 /** Message d'erreur sous un champ, et attributs à poser sur le champ. */

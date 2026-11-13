@@ -163,7 +163,7 @@ export default async function ShopPage({ params }: PageProps<"/[locale]/espace/[
           <p className="text-ink/80">{t("intro")}</p>
           {fulfillment && (
             <details className={ui.card}>
-              <summary className="cursor-pointer text-lg font-semibold text-night">
+              <summary className="flex min-h-11 cursor-pointer items-center text-lg font-semibold text-night">
                 {t("fulfillmentTitle")}
               </summary>
               <p className="mt-2 text-sm text-ink/70">{t("fulfillmentHint")}</p>
@@ -247,7 +247,7 @@ export default async function ShopPage({ params }: PageProps<"/[locale]/espace/[
                       )}
                       <span className="min-w-0 flex-1">
                         <span
-                          className={`block text-lg font-semibold ${product.isActive ? "text-night" : "text-ink/50"}`}
+                          className={`block text-lg font-semibold ${product.isActive ? "text-night" : "text-ink/70"}`}
                         >
                           {pickLocalized(product.name, locale)}
                         </span>
@@ -310,7 +310,7 @@ export default async function ShopPage({ params }: PageProps<"/[locale]/espace/[
                           </div>
                         ))}
                         <details className="rounded-xl border border-dashed border-hairline p-3">
-                          <summary className="cursor-pointer font-medium text-night">
+                          <summary className="flex min-h-11 cursor-pointer items-center font-medium text-night">
                             + {t("newVariant")}
                           </summary>
                           <ActionForm
@@ -350,7 +350,9 @@ export default async function ShopPage({ params }: PageProps<"/[locale]/espace/[
             </ul>
           )}
           <details className={ui.card} open={products.length === 0}>
-            <summary className="cursor-pointer text-lg font-semibold text-night">+ {t("new")}</summary>
+            <summary className="flex min-h-11 cursor-pointer items-center text-lg font-semibold text-night">
+              + {t("new")}
+            </summary>
             <p className="mt-2 text-sm text-ink/70">{t("newHint")}</p>
             <ActionForm
               action={saveProductAction}

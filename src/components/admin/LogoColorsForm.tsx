@@ -60,7 +60,7 @@ export function LogoColorsForm({
             // eslint-disable-next-line @next/next/no-img-element
             <img src={logoUrl} alt={t("current")} className="max-h-24 max-w-44 object-contain" />
           ) : (
-            <span className="text-sm text-ink/60">{t("none")}</span>
+            <span className="text-sm text-ink/70">{t("none")}</span>
           )}
         </div>
         <form action={uploadAction} className="flex-1 space-y-2">
@@ -76,7 +76,7 @@ export function LogoColorsForm({
             required
             className={ui.fileInput}
           />
-          <p className="text-sm text-ink/60">{t("uploadHint")}</p>
+          <p className="text-sm text-ink/70">{t("uploadHint")}</p>
           <button type="submit" disabled={uploading} className={`${ui.secondaryButton} sm:w-auto`}>
             {t("upload")}
           </button>

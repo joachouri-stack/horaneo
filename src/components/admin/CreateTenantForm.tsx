@@ -57,7 +57,7 @@ export function CreateTenantForm({ plans, mainDomain, prefill }: Props) {
           }}
           className={ui.input}
         />
-        <p className="mt-1 text-sm text-ink/60">
+        <p className="mt-1 text-sm text-ink/70">
           {t("slugHint", { example: `${slug || t("slugPlaceholder")}.${mainDomain}` })}
         </p>
       </div>

@@ -91,9 +91,9 @@ const GROUPS: { key: "activity" | "sell" | "account" | "support"; items: Item[] 
 /** Couleur de chaque thème : pastille de l'icône. */
 const TONES = {
   activity: "bg-[#e8ebfa] text-[#3a4bb8]",
-  sell: "bg-[#fbe8ee] text-[#b8456b]",
+  sell: "bg-[#fbe8ee] text-[#9c3458]",
   account: "bg-[#e3f4ee] text-[#1f7a5f]",
-  support: "bg-[#fdf1e0] text-[#a8661b]",
+  support: "bg-[#fdf1e0] text-[#8a5212]",
 } as const;
 
 /** Rubriques dont la tuile affiche un compteur en direct. */
@@ -187,7 +187,7 @@ export default async function MorePage({ params }: PageProps<"/[locale]/espace/[
                         <span
                           className={`mt-auto w-fit rounded-full px-2.5 py-0.5 text-[0.8125rem] font-medium tabular-nums ${
                             urgent
-                              ? "bg-[#fdf3e2] text-[#a8661b]"
+                              ? "bg-[#fdf3e2] text-[#8a5212]"
                               : count > 0
                                 ? "bg-accent-soft text-accent-strong"
                                 : "bg-mist-50 text-ink-soft"

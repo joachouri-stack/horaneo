@@ -44,7 +44,7 @@ export function OpeningHoursEditor({
             <li key={day} className="grid gap-2 py-3 sm:grid-cols-[8rem_1fr] sm:items-start">
               <span className="pt-3 font-semibold text-night">{tDays(String(day) as "1")}</span>
               <div className="space-y-2">
-                {dayRanges.length === 0 && <p className="pt-3 text-ink/60">{t("closed")}</p>}
+                {dayRanges.length === 0 && <p className="pt-3 text-ink/70">{t("closed")}</p>}
                 {dayRanges.map((range) => (
                   <div
                     key={range.key}

@@ -269,7 +269,7 @@ export default async function AgendaPage({
                       closed
                         ? "bg-[repeating-linear-gradient(45deg,#fafbfd,#fafbfd_6px,#f3f5f9_6px,#f3f5f9_12px)]"
                         : ""
-                    } ${outside ? "opacity-40" : ""}`}
+                    } ${outside ? "opacity-60" : ""}`}
                   >
                     <span
                       className={`flex size-7 items-center justify-center self-center rounded-full text-sm font-medium tabular-nums sm:self-start ${
@@ -549,7 +549,7 @@ export default async function AgendaPage({
                 <h2 className="flex items-baseline justify-between gap-2">
                   <Link
                     href={link({ date: day, vue: "jour" })}
-                    className={`font-display text-[1.05rem] font-semibold first-letter:uppercase ${day === today ? "text-accent" : "text-night"}`}
+                    className={`inline-flex min-h-11 items-center font-display text-[1.05rem] font-semibold first-letter:uppercase ${day === today ? "text-accent" : "text-night"}`}
                   >
                     {label}
                   </Link>

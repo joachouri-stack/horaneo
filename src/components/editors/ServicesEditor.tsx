@@ -109,7 +109,7 @@ export async function ServicesEditor({
                     {logoOptions && logoOptions.length > 0 && (
                       <fieldset className="sm:col-span-2">
                         <legend className="font-semibold text-night">{t("trainingLogos")}</legend>
-                        <p className="text-sm text-ink/60">{t("trainingLogosHint")}</p>
+                        <p className="text-sm text-ink/70">{t("trainingLogosHint")}</p>
                         <input type="hidden" name="logoAssetIdsShown" value="1" />
                         <div className="grid sm:grid-cols-2">
                           {logoOptions.map((option) => (
@@ -169,7 +169,7 @@ export async function ServicesEditor({
                           required
                           className={`mt-1 ${ui.fileInput}`}
                         />
-                        <p className="mt-1 text-sm text-ink/60">{t("addLogoHint")}</p>
+                        <p className="mt-1 text-sm text-ink/70">{t("addLogoHint")}</p>
                       </div>
                       <TextField id={`logo-alt-${category.id}`} name="alt" label={t("addLogoName")} />
                     </ActionForm>
@@ -220,7 +220,7 @@ export async function ServicesEditor({
                     <span className="block font-semibold text-night">
                       {text(service.name)}
                       {!service.isActive && (
-                        <span className="ml-2 text-sm font-normal text-ink/60">({t("disabled")})</span>
+                        <span className="ml-2 text-sm font-normal text-ink/70">({t("disabled")})</span>
                       )}
                     </span>
                     <span className="block text-sm text-ink/70">

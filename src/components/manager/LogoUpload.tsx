@@ -26,7 +26,7 @@ export function LogoUpload({ tenantId, logoUrl, action }: Props) {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={logoUrl} alt={t("current")} className="max-h-24 max-w-full object-contain" />
         ) : (
-          <span className="text-sm text-ink/60">{t("none")}</span>
+          <span className="text-sm text-ink/70">{t("none")}</span>
         )}
       </div>
       <form action={formAction} className="flex-1 space-y-2">
@@ -48,7 +48,7 @@ export function LogoUpload({ tenantId, logoUrl, action }: Props) {
             if (big) event.currentTarget.value = "";
           }}
         />
-        <p className="text-sm text-ink/60">{t("hint")}</p>
+        <p className="text-sm text-ink/70">{t("hint")}</p>
         <button type="submit" disabled={pending} className={`${ui.primaryButton} sm:w-auto`}>
           {pending ? t("sending") : t("send")}
         </button>

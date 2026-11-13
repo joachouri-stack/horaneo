@@ -26,7 +26,7 @@
   --color-coral-dark: #5a2bc4; /* survol des boutons */
   --color-ivory: #f7f8fc; /* fonds */
   --color-ink: #2b2b2b; /* textes */
-  --color-success: #2e9e6b; /* confirmations */
+  --color-success: #1f7a5f; /* confirmations (lisible sur blanc et sur fond vert pâle) */
   /* Site commercial */
   --color-brick: #d4402f; /* boutons de la page d'accueil */
   --color-rust: #9e2b1e; /* texte sur fond rosé */

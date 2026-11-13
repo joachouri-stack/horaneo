@@ -28,17 +28,17 @@ export default async function RequestsPage({
       <section className="space-y-2">
         <h2 className="text-lg font-semibold">{t("history")}</h2>
         {requests.length === 0 ? (
-          <p className="text-ink/60">{t("none")}</p>
+          <p className="text-ink/70">{t("none")}</p>
         ) : (
           <ul className="space-y-2">
             {requests.map((request) => (
               <li key={request.id} className="rounded-[var(--radius-card)] bg-white p-4 shadow-sm">
                 <div className="flex justify-between gap-3">
                   <p className="font-semibold">{request.subject}</p>
-                  <span className="text-sm text-ink/60">{t(`status.${request.status}`)}</span>
+                  <span className="text-sm text-ink/70">{t(`status.${request.status}`)}</span>
                 </div>
                 <p className="mt-1 whitespace-pre-line text-sm text-ink/80">{request.message}</p>
-                <p className="mt-1 text-[0.8125rem] text-ink/50">{page.fmt.short(request.createdAt)}</p>
+                <p className="mt-1 text-[0.8125rem] text-ink/70">{page.fmt.short(request.createdAt)}</p>
               </li>
             ))}
           </ul>

@@ -5,7 +5,7 @@ const COLORS: Record<string, string> = {
   active: "bg-success/15 text-[#1e6b48]",
   suspended: "bg-coral/15 text-coral-dark",
   cancelled: "bg-ink/10 text-ink",
-  deleted: "bg-ink/10 text-ink/60",
+  deleted: "bg-ink/10 text-ink/70",
 };
 
 export function StatusBadge({ status }: { status: string }) {

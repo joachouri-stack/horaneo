@@ -25,7 +25,7 @@ import {
 /** Couleur de l'étiquette de statut en haut de la fiche. */
 const STATUS_BADGE: Record<string, string> = {
   confirmed: "bg-navy/10 text-night",
-  pending_payment: "bg-[#fdf3e2] text-[#a8661b]",
+  pending_payment: "bg-[#fdf3e2] text-[#8a5212]",
   attended: "bg-success/15 text-[#1e6b48]",
   no_show: "bg-ink/10 text-ink/80",
   cancelled: "bg-[#fdecea] text-[#b4372a]",
@@ -57,7 +57,7 @@ export default async function AppointmentPage({
   return (
     <div className="space-y-6">
       <div>
-        <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-ink/60">
+        <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-ink/70">
           {/* Statut bien visible : un rendez-vous annulé ne doit pas passer inaperçu. */}
           <span className={`rounded-full px-3 py-1 ${STATUS_BADGE[item.status] ?? "bg-navy/10 text-night"}`}>
             {t(`status.${item.status}`)}
@@ -75,10 +75,13 @@ export default async function AppointmentPage({
       </div>
 
       <section className={ui.card}>
-        <h2 className="text-sm font-semibold uppercase text-ink/60">{t("appointment.customer")}</h2>
+        <h2 className="text-sm font-semibold uppercase text-ink/70">{t("appointment.customer")}</h2>
         <p className="mt-1 text-xl font-semibold text-night">
           {canAccess(page.space, "customers") ? (
-            <Link href={`${page.base}/clientes/${item.customerId}`} className="underline">
+            <Link
+              href={`${page.base}/clientes/${item.customerId}`}
+              className="inline-flex min-h-11 items-center underline"
+            >
               {item.customerName}
             </Link>
           ) : (
@@ -106,11 +109,11 @@ export default async function AppointmentPage({
             </a>
           )}
         </div>
-        {item.customerPhone && <p className="mt-2 text-sm text-ink/60">{formatPhone(item.customerPhone)}</p>}
+        {item.customerPhone && <p className="mt-2 text-sm text-ink/70">{formatPhone(item.customerPhone)}</p>}
       </section>
 
       <section className={ui.card}>
-        <h2 className="text-sm font-semibold uppercase text-ink/60">{t("appointment.services")}</h2>
+        <h2 className="text-sm font-semibold uppercase text-ink/70">{t("appointment.services")}</h2>
         <ul className="mt-1">
           {item.services.map((name, index) => (
             <li key={index} className="font-semibold">
@@ -146,7 +149,7 @@ export default async function AppointmentPage({
         )}
         {item.customerNote && (
           <p className="mt-3 rounded bg-mist-50 p-3">
-            <span className="block text-sm font-semibold text-ink/60">{t("appointment.customerNote")}</span>
+            <span className="block text-sm font-semibold text-ink/70">{t("appointment.customerNote")}</span>
             {item.customerNote}
           </p>
         )}
@@ -202,7 +205,7 @@ export default async function AppointmentPage({
 
       {messages.length > 0 && (
         <section className={ui.card}>
-          <h2 className="text-sm font-semibold uppercase text-ink/60">{t("appointment.messages")}</h2>
+          <h2 className="text-sm font-semibold uppercase text-ink/70">{t("appointment.messages")}</h2>
           <ul className="mt-2 divide-y divide-navy/10">
             {messages.map((message) => (
               <li key={message.id} className="flex flex-wrap justify-between gap-x-3 py-2">
@@ -315,7 +318,7 @@ export default async function AppointmentPage({
           >
             <Hidden values={hidden} />
           </ActionForm>
-          <p className="max-w-[24rem] text-sm text-ink/60">{t("appointment.deleteHint")}</p>
+          <p className="max-w-[24rem] text-sm text-ink/70">{t("appointment.deleteHint")}</p>
         </div>
       )}
     </div>
