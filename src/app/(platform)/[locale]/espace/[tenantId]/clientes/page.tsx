@@ -19,9 +19,9 @@ const MAX_SHOWN = 1000;
 /** Couleurs des pastilles d'initiales : fixes pour une même cliente. */
 const AVATAR_COLORS = [
   "bg-[#e8ebfa] text-[#3a4bb8]",
-  "bg-[#fbe8ee] text-[#b8456b]",
+  "bg-[#fbe8ee] text-[#9c3458]",
   "bg-[#e3f4ee] text-[#1f7a5f]",
-  "bg-[#fdf1e0] text-[#a8661b]",
+  "bg-[#fdf1e0] text-[#8a5212]",
   "bg-[#efe9fb] text-[#6a4bc4]",
   "bg-[#e2f2f6] text-[#1f6f86]",
 ];
@@ -35,7 +35,7 @@ function avatarColor(id: string) {
 const BADGES = {
   loyal: "bg-[#e8ebfa] text-[#3a4bb8]",
   new: "bg-[#e3f4ee] text-[#1f7a5f]",
-  inactive: "bg-[#fdf3e2] text-[#a8661b]",
+  inactive: "bg-[#fdf3e2] text-[#8a5212]",
 } as const;
 
 /** Fichier clientes : chiffres clés, filtres par groupe, recherche et liste détaillée. */

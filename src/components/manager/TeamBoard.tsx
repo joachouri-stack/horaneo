@@ -124,7 +124,7 @@ export async function TeamBoard({
         </div>
         {limit !== null && limit !== undefined && (
           <span
-            className={`rounded-full px-3 py-1 text-sm font-medium ${full ? "bg-[#fdf3e2] text-[#a8661b]" : "bg-accent-soft text-accent-strong"}`}
+            className={`rounded-full px-3 py-1 text-sm font-medium ${full ? "bg-[#fdf3e2] text-[#8a5212]" : "bg-accent-soft text-accent-strong"}`}
           >
             {tAdmin("quota", { used: active, limit })}
           </span>
@@ -258,7 +258,7 @@ export async function TeamBoard({
                 <DashIcon d={DASH_ICONS.plus} className="h-5 w-5" />
               </span>
               {tAdmin("newMember")}
-              {full && <span className="text-sm font-normal text-[#a8661b]">{t("full")}</span>}
+              {full && <span className="text-sm font-normal text-[#8a5212]">{t("full")}</span>}
             </summary>
             <p className="mt-3 mb-4 text-sm text-ink-soft">{tAdmin("hoursHint")}</p>
             <ActionForm action={actions.save} submitLabel={tCommon("add")} resetOnSuccess>

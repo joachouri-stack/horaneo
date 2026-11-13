@@ -5,7 +5,7 @@ import type { AgendaAppointment } from "@/modules/agenda/queries";
 
 const STATUS_STYLE: Record<string, string> = {
   confirmed: "bg-[#eef0fb] text-[#2b3990]",
-  pending_payment: "bg-[#fdf3e2] text-[#a8661b]",
+  pending_payment: "bg-[#fdf3e2] text-[#8a5212]",
   attended: "bg-[#e7f6ee] text-[#1e7a4c]",
   no_show: "bg-[#f1f2f5] text-ink-soft",
   cancelled: "bg-[#f1f2f5] text-ink-soft line-through",

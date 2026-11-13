@@ -82,7 +82,7 @@ export default async function UnavailabilityPage({
           {t("upcoming")}
         </h2>
         {upcoming.length === 0 ? (
-          <p className="text-ink/60">{t("none")}</p>
+          <p className="text-ink/70">{t("none")}</p>
         ) : (
           <ul className="space-y-2">
             {upcoming.map((item) => (

@@ -55,7 +55,7 @@ export async function CustomerFields({ customer }: { customer?: Customer }) {
             defaultValue={customer?.birthMonth ? String(customer.birthMonth) : ""}
           />
         </div>
-        <p className="mt-1 text-sm text-ink/60">{tCustomers("birthdayHint")}</p>
+        <p className="mt-1 text-sm text-ink/70">{tCustomers("birthdayHint")}</p>
       </fieldset>
       <div className="sm:col-span-2">
         <TextArea

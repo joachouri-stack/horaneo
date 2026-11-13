@@ -154,7 +154,7 @@ export default async function CustomerPage({
                     <span>
                       {tLoyalty(`kinds.${event.kind}`)}
                       {event.reason && event.reason !== "expired" && ` — ${event.reason}`}
-                      <span className="block text-ink/60">{page.fmt.short(event.createdAt)}</span>
+                      <span className="block text-ink/70">{page.fmt.short(event.createdAt)}</span>
                     </span>
                     <span className="font-semibold">
                       {event.points > 0 ? `+${event.points}` : event.points}
@@ -174,7 +174,7 @@ export default async function CustomerPage({
           {t("history")}
         </h2>
         {history.length === 0 ? (
-          <p className="text-ink/60">{t("noHistory")}</p>
+          <p className="text-ink/70">{t("noHistory")}</p>
         ) : (
           <ul className="divide-y divide-navy/10 rounded-[var(--radius-card)] bg-white shadow-sm">
             {history.map((item) => (
@@ -191,7 +191,7 @@ export default async function CustomerPage({
                   </span>
                   <span className="text-right text-sm">
                     <span className="block">{page.fmt.money(item.totalCents, item.currency)}</span>
-                    <span className="block text-ink/60">{tManager(`status.${item.status}`)}</span>
+                    <span className="block text-ink/70">{tManager(`status.${item.status}`)}</span>
                   </span>
                 </Link>
               </li>

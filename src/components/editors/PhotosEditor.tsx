@@ -61,7 +61,7 @@ export async function PhotosEditor({
                 loading="lazy"
                 className="aspect-square w-full rounded-lg object-cover"
               />
-              <p className="text-[0.8125rem] text-ink/60">{t(`kinds.${photo.kind as Kind}`)}</p>
+              <p className="text-[0.8125rem] text-ink/70">{t(`kinds.${photo.kind as Kind}`)}</p>
               <ActionForm action={photoAction} submitLabel={t("remove")} variant="danger" className="">
                 <Hidden values={{ tenantId, id: photo.id, operation: "retire" }} />
               </ActionForm>
@@ -69,7 +69,7 @@ export async function PhotosEditor({
           ))}
         </ul>
         <div className="mt-6 border-t border-navy/10 pt-6">
-          <p className="mb-4 text-sm text-ink/60">{t("uploadHint")}</p>
+          <p className="mb-4 text-sm text-ink/70">{t("uploadHint")}</p>
           {uploader}
         </div>
       </Section>
@@ -85,7 +85,7 @@ export async function PhotosEditor({
                   loading="lazy"
                   className="aspect-square w-full rounded-lg object-cover grayscale"
                 />
-                <p className="text-[0.8125rem] text-ink/60">
+                <p className="text-[0.8125rem] text-ink/70">
                   {t("trashItem", { date: formatDate(photo.purgeAfter, locale) })}
                 </p>
                 <ActionForm action={photoAction} submitLabel={t("restore")} variant="link" className="">

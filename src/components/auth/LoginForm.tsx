@@ -155,7 +155,7 @@ export function LoginForm({ providers, callbackPath, errorPath }: Props) {
               </button>
             ))}
           </div>
-          <p className="flex items-center gap-3 text-sm text-ink/60" aria-hidden="true">
+          <p className="flex items-center gap-3 text-sm text-ink/70" aria-hidden="true">
             <span className="h-px flex-1 bg-navy/15" />
             {t("or")}
             <span className="h-px flex-1 bg-navy/15" />
@@ -184,7 +184,7 @@ export function LoginForm({ providers, callbackPath, errorPath }: Props) {
         </button>
       </form>
 
-      <p className="text-sm text-ink/60">{t("legal")}</p>
+      <p className="text-sm text-ink/70">{t("legal")}</p>
     </div>
   );
 }

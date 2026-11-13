@@ -4,10 +4,10 @@ import type { AgendaAppointment } from "@/modules/agenda/queries";
 
 const STATUS_STYLE: Record<string, string> = {
   confirmed: "bg-navy/10 text-night",
-  pending_payment: "bg-[#fdf3e2] text-[#a8661b]",
+  pending_payment: "bg-[#fdf3e2] text-[#8a5212]",
   attended: "bg-success/15 text-[#1e6b48]",
   no_show: "bg-ink/10 text-ink/70",
-  cancelled: "bg-ink/10 text-ink/60 line-through",
+  cancelled: "bg-ink/10 text-ink/70 line-through",
 };
 
 /** Carte d'un rendez-vous dans les listes (grosse zone tactile). */
@@ -34,7 +34,7 @@ export async function AppointmentCard({
     >
       <div className="w-16 shrink-0 font-display text-lg font-semibold text-night">
         {day && (
-          <span className="block text-[0.8125rem] font-semibold text-ink/60 first-letter:uppercase">
+          <span className="block text-[0.8125rem] font-semibold text-ink/70 first-letter:uppercase">
             {day}
           </span>
         )}
@@ -49,7 +49,7 @@ export async function AppointmentCard({
         )}
         <p className="truncate font-semibold text-ink">{item.customerName}</p>
         <p className="truncate text-sm text-ink/70">{item.services.join(" + ")}</p>
-        <p className="text-sm text-ink/60">{item.staffName}</p>
+        <p className="text-sm text-ink/70">{item.staffName}</p>
       </div>
       <span
         className={`h-fit shrink-0 rounded-full px-2 py-1 text-[0.8125rem] font-semibold ${STATUS_STYLE[item.status] ?? ""}`}

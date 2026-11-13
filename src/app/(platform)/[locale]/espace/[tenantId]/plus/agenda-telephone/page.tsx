@@ -64,7 +64,7 @@ export default async function PhoneCalendarPage({
             >
               {t("googleButton")}
             </a>
-            <p className="mt-3 text-sm text-ink/60">{t("googleDelay")}</p>
+            <p className="mt-3 text-sm text-ink/70">{t("googleDelay")}</p>
           </Section>
           <Section title={t("privacyTitle")}>
             <p className="mb-4 text-ink/80">{t("privacyText")}</p>

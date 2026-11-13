@@ -44,7 +44,7 @@ export async function WizardNav({
         {WIZARD_STEPS.map((step, i) => (
           <li
             key={step}
-            className={i === index ? "font-bold text-night" : i < index ? "text-success" : "text-ink/50"}
+            className={i === index ? "font-bold text-night" : i < index ? "text-success" : "text-ink/70"}
           >
             {i + 1}. {t(`steps.${step}`)}
           </li>

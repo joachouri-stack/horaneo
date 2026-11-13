@@ -88,7 +88,7 @@ export default async function GiftCardsPage({
               key={item}
               href={`${page.base}/plus/cartes-cadeaux${item === "all" ? "" : `?filtre=${item}`}`}
               aria-current={filter === item ? "page" : undefined}
-              className="rounded-full border border-navy/20 px-4 py-2 text-sm font-semibold text-night aria-[current=page]:bg-navy aria-[current=page]:text-white"
+              className="inline-flex min-h-11 items-center rounded-full border border-navy/20 px-4 text-sm font-semibold text-night aria-[current=page]:bg-navy aria-[current=page]:text-white"
             >
               {t(`filter.${item}`)}
             </Link>
@@ -102,7 +102,7 @@ export default async function GiftCardsPage({
               <li key={card.id} className="py-3">
                 <p className="font-semibold">
                   •••• {card.codeLast4}{" "}
-                  <span className={card.state === "active" ? "text-success" : "text-ink/60"}>
+                  <span className={card.state === "active" ? "text-success" : "text-ink/70"}>
                     · {t(`state.${card.state}`)}
                   </span>
                 </p>
