@@ -703,7 +703,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               <figure data-reveal className="mt-10 lg:mt-12">
                 <div className="-mx-2 overflow-hidden rounded-[1rem] shadow-[0_40px_90px_-40px_rgba(15,24,48,.55)] sm:mx-0 sm:rounded-[1.2rem] lg:rounded-[1.8rem]">
                   <Image
-                    src="/images/exemple-site-coiffure.webp"
+                    src="/images/equipe-salon-sirine.webp"
                     width={1672}
                     height={941}
                     alt={t("example.alt")}
