@@ -429,6 +429,13 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     </a>
                   )}
                 </div>
+                {/* Essai gratuit (réglage) : le premier argument, juste sous les boutons. */}
+                {data.trialDays > 0 && (
+                  <p className="hn-up-4 mt-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.08] px-3.5 py-1.5 text-mk-small font-medium text-white">
+                    <GiftLine className="size-4 text-champagne" />
+                    {t("plans.trial", { days: data.trialDays })}
+                  </p>
+                )}
                 {/* Prix d'entrée et délai de mise en ligne, tirés des réglages. */}
                 {first && (
                   <p className="hn-up-4 mt-4 hidden flex-wrap items-center gap-x-2 gap-y-1 text-mk-small text-white/60 sm:flex">
@@ -756,6 +763,51 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   />
                 </div>
               </figure>
+            </div>
+          </section>
+
+          {/* Comment ça marche : le « clé en main » en 3 étapes, juste avant les prix. */}
+          <section aria-labelledby="titre-etapes" className="px-4 pt-20 sm:px-6 lg:pt-28">
+            <div className="mx-auto max-w-[72rem] 2xl:max-w-[85rem]">
+              <div className="mx-auto max-w-[46rem] text-center">
+                <p data-reveal className={EYEBROW}>
+                  {EYEBROW_DOT}
+                  {t("steps.badge")}
+                </p>
+                <h2
+                  id="titre-etapes"
+                  data-reveal
+                  className={`${TITLE} hn-balance mt-4 text-mk-h2 leading-[1.1]`}
+                >
+                  {t("steps.title")}{" "}
+                  <span className="hn-grad-text block">{coralStop(t("steps.titleAccent"))}</span>
+                </h2>
+              </div>
+              <ol className="mt-10 grid gap-4 sm:grid-cols-3 lg:mt-12 lg:gap-6">
+                {(["choose", "create", "book"] as const).map((key, index) => (
+                  <li
+                    key={key}
+                    data-reveal
+                    className="rounded-2xl border border-hairline bg-white p-5 shadow-[0_16px_32px_-24px_rgba(15,24,48,.35)] sm:p-6"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="flex size-10 items-center justify-center rounded-xl bg-[linear-gradient(135deg,var(--color-violet),var(--color-azure-dark))] font-display text-lg font-semibold text-white shadow-[0_8px_18px_-8px_rgba(123,63,228,.8)]"
+                    >
+                      {index + 1}
+                    </span>
+                    <h3 className="mt-4 font-display text-mk-card font-semibold tracking-[-0.015em] text-night">
+                      {t(`steps.items.${key}.title`)}
+                    </h3>
+                    <p className="mt-2 text-mk-body text-ink-soft">
+                      {t(`steps.items.${key}.text`, {
+                        trial: data.trialDays > 0 ? "yes" : "no",
+                        days: data.goLiveDays,
+                      })}
+                    </p>
+                  </li>
+                ))}
+              </ol>
             </div>
           </section>
 

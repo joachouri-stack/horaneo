@@ -69,7 +69,7 @@
         "atelier",
         "boutique"
       ],
-      "subtitle": "Clé en main, à votre image, et vous le modifiez vous-même. Ajoutez la réservation en ligne si vous en avez besoin.",
+      "subtitle": "Nous créons votre site à votre image. Vos clients réservent en ligne 24 h/24, et vous le modifiez vous-même en quelques clics.",
       "offer": "Dès {price} {display} par mois",
       "offerTtc": "soit {price} TTC",
       "goLive": "{days, plural, =0 {} one {Site en ligne en # jour ouvré} other {Site en ligne en # jours ouvrés}}",
@@ -121,7 +121,7 @@
             },
             {
               "title": "Rappels automatiques",
-              "text": "Moins de rendez-vous oubliés : e-mail inclus, SMS en plus."
+              "text": "Vos clients reçoivent un rappel avant leur rendez-vous : moins d'oublis, moins de places perdues."
             },
             {
               "title": "Acomptes et paiements en ligne",
@@ -292,7 +292,7 @@
     "plans": {
       "title": "Choisissez votre pack",
       "subtitle": "Les mêmes tarifs pour les trois solutions. Évoluez quand vous voulez.",
-      "subtitleSingle": "Un pack adapté à chaque activité. Évoluez quand vous voulez.",
+      "subtitleSingle": "Un pack pour chaque étape de votre activité. Changez de pack quand vous voulez.",
       "monthly": "Prix mensuels {display}",
       "free": "Gratuit",
       "freeSuffix": "pour toujours",
@@ -321,7 +321,7 @@
         "conditions": "Conditions de l'offre"
       },
       "compare": "Voir le comparatif détaillé",
-      "quotaNote": "Les limites de chaque pack sont indiquées sur sa carte. Les SMS sont comptés par mois : à la limite, l'envoi s'arrête jusqu'au mois suivant. Rien n'est jamais facturé sans votre accord.",
+      "quotaNote": "Tout ce que comprend chaque pack est indiqué sur sa carte. Rien n'est jamais facturé sans votre accord.",
       "toggleBooking": "Avec réservation",
       "toggleSite": "Sans réservation",
       "perMonthShort": "par mois",
@@ -652,7 +652,7 @@
         },
         "loyalty": {
           "label": "Programme de fidélité",
-          "card": "Outils de fidélisation"
+          "card": "Programme de fidélité"
         },
         "giftCards": {
           "label": "Cartes cadeaux",
@@ -713,7 +713,7 @@
         },
         "reports": {
           "label": "Rapports détaillés mensuels",
-          "card": "Rapports détaillés"
+          "card": "Rapport mensuel de votre activité"
         },
         "hosting": {
           "label": "Hébergement sécurisé (HTTPS, pare-feu)",
@@ -757,18 +757,37 @@
         }
       }
     },
+    "steps": {
+      "badge": "Comment ça marche",
+      "title": "Votre site en ligne,",
+      "titleAccent": "en 3 étapes simples.",
+      "items": {
+        "choose": {
+          "title": "Vous choisissez votre pack",
+          "text": "La commande se fait en ligne en quelques minutes. {trial, select, yes {Rien n'est prélevé pendant l'essai gratuit.} other {Le paiement est sécurisé par carte.}}"
+        },
+        "create": {
+          "title": "Nous créons votre site",
+          "text": "Envoyez-nous vos photos, vos prestations et vos horaires : votre site est prêt {days, plural, =0 {en quelques jours} one {en # jour ouvré} other {en # jours ouvrés}}."
+        },
+        "book": {
+          "title": "Vos clients réservent",
+          "text": "Ils prennent rendez-vous en ligne 24 h/24, et vous gérez tout depuis votre téléphone."
+        }
+      }
+    },
     "dashboard": {
       "badge": "Votre espace de gestion",
-      "title": "Toute votre activité,",
+      "title": "Votre journée en un coup d'œil,",
       "titleAccent": "dans un seul tableau de bord.",
-      "text": "Votre site est relié à un espace de gestion simple, pensé pour le téléphone comme pour l'ordinateur.",
+      "text": "Rendez-vous, clients, chiffre d'affaires : tout est réuni dans un espace simple, sur téléphone comme sur ordinateur.",
       "alt": "Captures de l'espace de gestion sur ordinateur et sur téléphone : accueil avec l'agenda du jour, le chiffre d'affaires et les statistiques, agenda du jour sur téléphone"
     },
     "example": {
       "badge": "Exemple de site",
       "title": "Un site à votre image,",
-      "titleAccent": "sur ordinateur et sur téléphone.",
-      "text": "Vos prestations, vos photos, vos avis et la réservation en ligne, dans un design qui vous ressemble.",
+      "titleAccent": "qui donne envie de réserver.",
+      "text": "Vos prestations, vos photos, vos avis et la réservation en ligne : nous créons tout pour vous, dans un design qui vous ressemble.",
       "alt": "Équipe d'un salon de coiffure et d'esthétique avec Sirine : agenda des rendez-vous sur tablette et réservation en ligne sur téléphone"
     },
     "growth": {
