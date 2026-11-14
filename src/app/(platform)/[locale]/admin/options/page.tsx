@@ -82,7 +82,7 @@ export default async function OptionsPage({ params }: PageProps<"/[locale]/admin
                 defaultChecked={option.isAvailable}
               />
             </div>
-            <p className="text-sm text-ink/60">{option.stripePriceId ? t("cardReady") : t("noStripe")}</p>
+            <p className="text-sm text-ink/70">{option.stripePriceId ? t("cardReady") : t("noStripe")}</p>
           </ActionForm>
         </details>
       ))}

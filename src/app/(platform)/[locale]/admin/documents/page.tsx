@@ -37,7 +37,7 @@ export default async function LegalDocumentsPage({ params }: PageProps<"/[locale
         <h2 id="doc-identity" className="text-xl font-bold text-night">
           {t("identity.title")}
         </h2>
-        <p className="mb-4 text-sm text-ink/60">{t("identity.intro")}</p>
+        <p className="mb-4 text-sm text-ink/70">{t("identity.intro")}</p>
         <ActionForm action={saveLegalIdentityAction} submitLabel={t("identity.save")} className="space-y-4">
           {identityFields.map((field) => (
             <TextField
@@ -55,7 +55,7 @@ export default async function LegalDocumentsPage({ params }: PageProps<"/[locale
           <h2 id={`doc-${key}`} className="text-xl font-bold text-night">
             {tLegal(`titles.${key}`)}
           </h2>
-          <p className="mb-4 text-sm text-ink/60">
+          <p className="mb-4 text-sm text-ink/70">
             {doc && doc.locale === locale
               ? t("current", {
                   version: doc.version,

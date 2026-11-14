@@ -379,36 +379,48 @@ export async function listSubscriptions(tx: Transaction) {
   return rows.map((row) => ({ ...row, live: isLive(row.subscription.status) }));
 }
 
-/** Revenu mensuel réel : abonnements Stripe en cours (packs et options facturées). */
+/**
+ * Revenu mensuel réel : abonnements Stripe en cours (packs et options facturées).
+ * Les abonnements en essai gratuit n'ont encore rien payé : comptés à part.
+ */
 export async function liveRevenue(tx: Transaction) {
   const rows = await listSubscriptions(tx);
   const live = rows.filter((row) => row.live && row.subscription.stripeSubscriptionId);
-  const liveTenants = live.map((row) => row.subscription.tenantId);
   const freeMonths = Number(await getPlatformSetting(tx, "yearly_free_months"));
-  const [options] = liveTenants.length
-    ? await tx
-        .select({ cents: sql<number>`coalesce(sum(${planOptions.priceCents}), 0)::int` })
-        .from(tenantOptions)
-        .innerJoin(planOptions, eq(planOptions.id, tenantOptions.optionId))
-        .where(
-          and(
-            inArray(tenantOptions.tenantId, liveTenants),
-            isNotNull(tenantOptions.stripeSubscriptionItemId),
-          ),
-        )
-    : [{ cents: 0 }];
-  return {
-    // Abonnements à l'année : comptés pour leur équivalent mensuel.
-    monthlyRevenueCents:
-      live.reduce(
+  async function monthlyCents(group: typeof live) {
+    const tenantIds = group.map((row) => row.subscription.tenantId);
+    const [options] = tenantIds.length
+      ? await tx
+          .select({ cents: sql<number>`coalesce(sum(${planOptions.priceCents}), 0)::int` })
+          .from(tenantOptions)
+          .innerJoin(planOptions, eq(planOptions.id, tenantOptions.optionId))
+          .where(
+            and(
+              inArray(tenantOptions.tenantId, tenantIds),
+              isNotNull(tenantOptions.stripeSubscriptionItemId),
+            ),
+          )
+      : [{ cents: 0 }];
+    return (
+      group.reduce(
         (sum, row) =>
           sum +
+          // Abonnements à l'année : comptés pour leur équivalent mensuel.
           (row.subscription.billingInterval === "year"
             ? monthlyEquivalentCents(yearlyPriceCents(row.priceCents, freeMonths))
             : row.priceCents),
         0,
-      ) + options.cents,
-    paying: live.length,
+      ) + options.cents
+    );
+  }
+  const paying = live.filter((row) => row.subscription.status !== "trialing");
+  const trialing = live.filter((row) => row.subscription.status === "trialing");
+  return {
+    monthlyRevenueCents: await monthlyCents(paying),
+    paying: paying.length,
+    /** En essai : revenu attendu à la fin de l'essai. */
+    trialing: trialing.length,
+    trialRevenueCents: await monthlyCents(trialing),
     pastDue: rows.filter((row) => row.subscription.paymentFailedAt && row.live).length,
   };
 }

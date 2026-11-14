@@ -11,6 +11,7 @@ import { formatMoney } from "@/lib/format";
 import { billingGateway } from "@/lib/payments/stripe-billing";
 import { paymentGateway } from "@/lib/payments/stripe";
 import { liveRevenue } from "@/modules/billing/admin";
+import { getPlatformSetting } from "@/modules/settings";
 import { listPendingOrders } from "@/modules/orders/orders";
 import { salesOpen } from "@/modules/legal/documents";
 import { getDashboardStats } from "@/modules/tenants/queries";
@@ -21,11 +22,12 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/admin">)
   return { title: t("metaTitle") };
 }
 
-function Stat({ label, value }: { label: string; value: string | number }) {
+function Stat({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
   return (
     <div className="rounded-[var(--radius-card)] bg-white p-4 shadow-sm">
       <p className="text-sm text-ink/70">{label}</p>
       <p className="mt-1 font-display text-2xl font-extrabold text-night">{value}</p>
+      {hint && <p className="mt-1 text-sm text-ink/70">{hint}</p>}
     </div>
   );
 }
@@ -52,6 +54,7 @@ export default async function AdminHomePage({ params }: PageProps<"/[locale]/adm
     adminQuery((tx) => liveRevenue(tx)),
     adminQuery((tx) => salesOpen(tx)),
   ]);
+  const display = String(await adminQuery((tx) => getPlatformSetting(tx, "prices_display")));
   const [pendingOrders, readiness] = await Promise.all([
     adminQuery((tx) => listPendingOrders(tx)).then(
       (rows) => rows.filter((row) => row.order.status !== "in_creation").length,
@@ -168,11 +171,24 @@ export default async function AdminHomePage({ params }: PageProps<"/[locale]/adm
         <h2 id="chiffres" className="text-xl font-bold">
           {tTodo("figures")}
         </h2>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
           <Stat label={t("dashboard.activeClients")} value={stats.activeClients} />
           <Stat
-            label={t("dashboard.monthlyRevenue")}
+            label={t("dashboard.monthlyRevenue", { display })}
             value={formatMoney(revenue.monthlyRevenueCents, PLATFORM_CURRENCY, locale)}
+          />
+          {/* Essai gratuit : rien n'est encore payé, revenu attendu à part. */}
+          <Stat
+            label={t("dashboard.trialing")}
+            value={t("dashboard.trialingValue", { count: revenue.trialing })}
+            hint={
+              revenue.trialing > 0
+                ? t("dashboard.trialingHint", {
+                    amount: formatMoney(revenue.trialRevenueCents, PLATFORM_CURRENCY, locale),
+                    display,
+                  })
+                : undefined
+            }
           />
           <Stat label={t("dashboard.newThisMonth")} value={stats.newThisMonth} />
           <Stat label={t("dashboard.cancelledThisMonth")} value={stats.cancelledThisMonth} />

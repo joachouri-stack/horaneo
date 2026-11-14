@@ -35,11 +35,12 @@ export default async function PlansPage({ params, searchParams }: PageProps<"/[l
   setRequestLocale(locale);
   await requireAdmin(locale);
   const editing = (await searchParams).modifier;
-  const [t, { plans, noticeDays }] = await Promise.all([
+  const [t, { plans, noticeDays, display }] = await Promise.all([
     getTranslations("admin.plans"),
     adminQuery(async (tx) => ({
       plans: await listPlans(tx),
       noticeDays: await getPlatformSetting(tx, "price_change_notice_days"),
+      display: String(await getPlatformSetting(tx, "prices_display")),
     })),
   ]);
   const onSale = plans.filter((plan) => plan.isPublic);
@@ -53,7 +54,7 @@ export default async function PlansPage({ params, searchParams }: PageProps<"/[l
           <h2 className="text-xl font-bold text-night">{pickLocalized(plan.name, locale)}</h2>
           <span className="flex flex-wrap items-center gap-x-3 text-sm text-ink/70">
             {plan.priceCents > 0
-              ? t("perMonth", { price: formatMoney(plan.priceCents, plan.currency, locale) })
+              ? t("perMonth", { price: formatMoney(plan.priceCents, plan.currency, locale), display })
               : t("free")}
             {" · "}
             {plan.isPublic ? t("onSale") : t("notOnSale")}
@@ -211,7 +212,7 @@ async function PlanEditor({
         </fieldset>
       </details>
       <CheckboxField name="isPublic" label={t("isPublic")} defaultChecked={plan.isPublic} />
-      <p className="text-sm text-ink/60">{plan.stripePriceId ? t("cardReady") : t("noStripe")}</p>
+      <p className="text-sm text-ink/70">{plan.stripePriceId ? t("cardReady") : t("noStripe")}</p>
     </ActionForm>
   );
 }
