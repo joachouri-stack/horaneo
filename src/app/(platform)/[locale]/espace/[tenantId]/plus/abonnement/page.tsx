@@ -400,25 +400,28 @@ export default async function SubscriptionPage({
         </section>
       )}
 
-      {/* Options actives : ajoutées par notre équipe, facturées avec l'abonnement. */}
-      <section className={ui.card} aria-labelledby="titre-options">
-        <h2 id="titre-options" className="text-xl font-semibold">
-          {t("options")}
-        </h2>
-        {data.options.length === 0 ? (
-          <p className="mt-2 text-ink/70">{t("optionsNone")}</p>
-        ) : (
-          <ul className="mt-3 space-y-1">
-            {data.options.map(({ option }) => (
-              <li key={option.id} className="flex flex-wrap justify-between gap-2">
-                <span className="font-semibold text-night">{pickLocalized(option.name, page.locale)}</span>
-                {option.priceCents !== null && <span>{priceLabel(option.priceCents)}</span>}
-              </li>
-            ))}
-          </ul>
-        )}
-        <p className="mt-3 text-sm text-ink/70">{t("optionsHint")}</p>
-      </section>
+      {/* Options à la carte : les fonctions passent par les packs. Le bloc n'apparaît que si
+          une option payante est encore facturée à ce client. */}
+      {data.options.some(({ option }) => option.priceCents !== null) && (
+        <section className={ui.card} aria-labelledby="titre-options">
+          <h2 id="titre-options" className="text-xl font-semibold">
+            {t("options")}
+          </h2>
+          {data.options.length === 0 ? (
+            <p className="mt-2 text-ink/70">{t("optionsNone")}</p>
+          ) : (
+            <ul className="mt-3 space-y-1">
+              {data.options.map(({ option }) => (
+                <li key={option.id} className="flex flex-wrap justify-between gap-2">
+                  <span className="font-semibold text-night">{pickLocalized(option.name, page.locale)}</span>
+                  {option.priceCents !== null && <span>{priceLabel(option.priceCents)}</span>}
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-3 text-sm text-ink/70">{t("optionsHint")}</p>
+        </section>
+      )}
 
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">{t("choose")}</h2>

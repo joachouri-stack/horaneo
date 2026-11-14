@@ -232,51 +232,54 @@ export default async function TenantOverviewPage({
           </div>
         </Section>
 
-        {/* Options à la carte du client : activées ici, facturées sur son abonnement s'il en a un. */}
-        <Section title={t("options")}>
-          <p className="mb-3 text-sm text-ink/70">{t("optionsHint")}</p>
-          <ul className="divide-y divide-navy/10">
-            {optionRows.catalog.map((option) => {
-              const row = optionRows.active.find((item) => item.option.id === option.id);
-              const name = pickLocalized(option.name, locale);
-              return (
-                <li key={option.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-                  <span>
-                    <span className="font-semibold text-night">{name}</span>
-                    <span className="block text-sm text-ink/70">
-                      {option.priceCents === null
-                        ? t("optionNoPrice")
-                        : t("optionPrice", {
-                            amount: formatMoney(option.priceCents, option.currency, locale),
-                          })}
-                      {row && ` · ${t("optionActive")}`}
-                      {row?.stripeSubscriptionItemId && ` (${t("optionBilled")})`}
-                    </span>
-                  </span>
-                  <ActionForm
-                    action={setTenantOptionAction}
-                    submitLabel={row ? t("optionOff") : t("optionOn")}
-                    variant={row ? "danger" : "secondary"}
-                    confirm={
-                      row
-                        ? t("optionOffConfirm", { name, tenant: tenant.name })
-                        : liveSubscription && option.priceCents !== null
-                          ? t("optionOnConfirm", {
-                              name,
-                              tenant: tenant.name,
+        {/* Options à la carte : les fonctions passent par les packs. Le bloc ne réapparaît que si
+            une option a un tarif (Admin → Options). */}
+        {optionRows.catalog.some((option) => option.priceCents !== null) && (
+          <Section title={t("options")}>
+            <p className="mb-3 text-sm text-ink/70">{t("optionsHint")}</p>
+            <ul className="divide-y divide-navy/10">
+              {optionRows.catalog.map((option) => {
+                const row = optionRows.active.find((item) => item.option.id === option.id);
+                const name = pickLocalized(option.name, locale);
+                return (
+                  <li key={option.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                    <span>
+                      <span className="font-semibold text-night">{name}</span>
+                      <span className="block text-sm text-ink/70">
+                        {option.priceCents === null
+                          ? t("optionNoPrice")
+                          : t("optionPrice", {
                               amount: formatMoney(option.priceCents, option.currency, locale),
-                            })
-                          : undefined
-                    }
-                    successMessage={row ? t("optionRemoved", { name }) : t("optionAdded", { name })}
-                  >
-                    <Hidden values={{ tenantId, code: option.code, active: row ? "no" : "yes" }} />
-                  </ActionForm>
-                </li>
-              );
-            })}
-          </ul>
-        </Section>
+                            })}
+                        {row && ` · ${t("optionActive")}`}
+                        {row?.stripeSubscriptionItemId && ` (${t("optionBilled")})`}
+                      </span>
+                    </span>
+                    <ActionForm
+                      action={setTenantOptionAction}
+                      submitLabel={row ? t("optionOff") : t("optionOn")}
+                      variant={row ? "danger" : "secondary"}
+                      confirm={
+                        row
+                          ? t("optionOffConfirm", { name, tenant: tenant.name })
+                          : liveSubscription && option.priceCents !== null
+                            ? t("optionOnConfirm", {
+                                name,
+                                tenant: tenant.name,
+                                amount: formatMoney(option.priceCents, option.currency, locale),
+                              })
+                            : undefined
+                      }
+                      successMessage={row ? t("optionRemoved", { name }) : t("optionAdded", { name })}
+                    >
+                      <Hidden values={{ tenantId, code: option.code, active: row ? "no" : "yes" }} />
+                    </ActionForm>
+                  </li>
+                );
+              })}
+            </ul>
+          </Section>
+        )}
 
         <details className={`${ui.card} lg:col-span-2`}>
           <summary className="cursor-pointer py-1.5 text-xl font-bold">{t("usage")}</summary>

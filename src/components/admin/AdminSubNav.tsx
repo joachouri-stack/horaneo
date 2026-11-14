@@ -9,7 +9,7 @@ const GROUPS = {
   ],
   plans: [
     { href: "/admin/packs", key: "plans" },
-    { href: "/admin/options", key: "options" },
+    // « Options » (/admin/options) : retiré du menu, les fonctions passent par les packs.
     { href: "/admin/offres", key: "launchOffers" },
   ],
   settings: [
