@@ -37,7 +37,7 @@ type CardPlan = {
 
 const ICONS = [LeafLine, CrownLine, DiamondLine];
 /** Lignes affichées d'emblée sur chaque carte ; les suivantes se déplient. */
-const VISIBLE_LINES = 9;
+const VISIBLE_LINES = 6;
 /** Boutons des packs clairs : blanc, filet en dégradé violet → bleu du logo. */
 const OUTLINE_BUTTON =
   "border-2 border-transparent text-night [background:linear-gradient(#fff,#fff)_padding-box,linear-gradient(110deg,#7b3fe4,#2563eb)_border-box] hover:shadow-[0_12px_28px_-14px_rgba(91,70,240,.6)]";

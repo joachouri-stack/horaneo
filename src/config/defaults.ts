@@ -505,7 +505,7 @@ export const DEFAULT_GRID_PLANS: PlanSeed[] = [
   {
     code: "starter",
     name: { fr: "Starter", en: "Starter", es: "Starter", ru: "Starter" },
-    description: { fr: "L'essentiel pour bien démarrer" },
+    description: { fr: "Pour les indépendants qui se lancent" },
     priceCents: 1999,
     noCommitmentFeeCents: null,
     highlights: [],
@@ -517,7 +517,7 @@ export const DEFAULT_GRID_PLANS: PlanSeed[] = [
   {
     code: "pro",
     name: { fr: "Pro", en: "Pro", es: "Pro", ru: "Pro" },
-    description: { fr: "Pour développer votre activité" },
+    description: { fr: "Pour les établissements avec une petite équipe" },
     priceCents: 3290,
     noCommitmentFeeCents: null,
     highlights: [],
@@ -537,7 +537,7 @@ export const DEFAULT_GRID_PLANS: PlanSeed[] = [
   {
     code: "business",
     name: { fr: "Business", en: "Business", es: "Business", ru: "Business" },
-    description: { fr: "Pour automatiser et piloter votre activité" },
+    description: { fr: "Pour les établissements avec une grande équipe" },
     priceCents: 7900,
     noCommitmentFeeCents: null,
     highlights: [],

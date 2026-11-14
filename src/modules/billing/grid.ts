@@ -69,7 +69,6 @@ const ROWS: RowDef[] = [
     category: "site",
     feature: "multilingual",
     limit: "extraLanguages",
-    notIncludedEvenIfSoon: true,
   },
   // Réservations et agenda
   {
@@ -91,7 +90,8 @@ const ROWS: RowDef[] = [
   // Clients et collaborateurs
   { key: "customers", category: "crm", limit: "customers", always: true },
   { key: "members", category: "crm", limit: "members", always: true },
-  { key: "customerFollowUp", category: "crm", feature: "customerFollowUp" },
+  // Comparatif seulement : sur les cartes, il se confondait avec le fichier clients.
+  { key: "customerFollowUp", category: "crm", feature: "customerFollowUp", detail: true },
   { key: "advancedCrm", category: "crm", feature: "advancedCrm" },
   { key: "dataExport", category: "crm", feature: "dataExport" },
   // Marketing et fidélisation
@@ -111,7 +111,6 @@ const ROWS: RowDef[] = [
     category: "ai",
     feature: "aiChatbot",
     limit: "chatbotQuestions",
-    notIncludedEvenIfSoon: true,
   },
   { key: "aiChatbot", category: "ai", feature: "aiChatbot", limit: "aiChatConversations" },
   { key: "aiTexts", category: "ai", feature: "aiTexts", limit: "aiTexts" },
@@ -182,6 +181,31 @@ export type CardLine = { key: string; count?: number | null; soon: boolean; solu
 const MAX_MISSING = 3;
 
 /**
+ * Ordre des lignes en tête des cartes : ce qui fait choisir un pack d'abord (réservation,
+ * paiement, rappels, clients, équipe…), puis le reste dans l'ordre du catalogue.
+ */
+const CARD_ORDER = [
+  "fullSite",
+  "bookings",
+  "onlinePayment",
+  "emailReminders",
+  "sms",
+  "customers",
+  "members",
+  "favicon",
+  "giftCards",
+  "freeDomain",
+  "setupAssistance",
+  "loyalty",
+  "reports",
+  "priorityHumanSupport",
+];
+const cardRank = (key: string) => {
+  const index = CARD_ORDER.indexOf(key);
+  return index === -1 ? CARD_ORDER.length : index;
+};
+
+/**
  * Contenu d'une carte : « Tout le pack précédent », puis ce que le pack
  * ajoute (ou améliore), les fonctions annoncées à part ; et ce qui lui manque
  * par rapport au pack suivant (« Non inclus » : 3 lignes au plus, plus les
@@ -204,14 +228,17 @@ export function gridCard(plan: GridPlan, plans: GridPlan[], soon: ReadonlySet<st
   const added = ROWS.filter((def) => {
     if (def.detail) return false;
     const cell = cellOf(def, plan);
-    // Une ligne mise en avant reste sur la carte des packs suivants qui l'incluent aussi.
-    return cell.included && (def.highlight || !previous || !sameCell(cell, cellOf(def, previous)));
+    // Seulement ce que le pack ajoute au précédent : pas de répétition d'une carte à l'autre.
+    return cell.included && (!previous || !sameCell(cell, cellOf(def, previous)));
   })
-    // Lignes mises en avant d'abord, les autres dans l'ordre du catalogue.
-    .sort((a, b) => Number(Boolean(b.highlight)) - Number(Boolean(a.highlight)))
+    // Lignes mises en avant d'abord, puis l'ordre des cartes, puis celui du catalogue (tri stable).
+    .sort(
+      (a, b) =>
+        Number(Boolean(b.highlight)) - Number(Boolean(a.highlight)) || cardRank(a.key) - cardRank(b.key),
+    )
     .map((def) => line(def, plan));
-  // Ce que le pack suivant ajoute : 3 lignes disponibles au plus, puis les fonctions annoncées
-  // à signaler quand même (ex. traduction, chatbot), pour ne pas laisser croire qu'elles sont incluses.
+  // Ce que le pack suivant ajoute : 3 lignes disponibles au plus. Les fonctions annoncées
+  // (« Bientôt ») n'y figurent que si elles sont marquées notIncludedEvenIfSoon.
   const gaps = next
     ? ROWS.filter((def) => !def.detail && !cellOf(def, plan).included && cellOf(def, next).included).map(
         (def) => ({ def, item: line(def, next) }),
