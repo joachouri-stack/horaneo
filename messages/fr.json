@@ -915,7 +915,7 @@
         },
         "tablet": {
           "q": "Comment fonctionne l'offre tablette ?",
-          "a": "Une tablette professionnelle est offerte aux premiers abonnés Business éligibles, avec engagement. Une tablette par établissement, expédiée après le premier paiement et la vérification d'éligibilité."
+          "a": "Une tablette professionnelle est offerte aux premiers abonnés Business éligibles, avec engagement ou paiement à l'année. Une tablette par établissement, expédiée après le premier paiement et la vérification d'éligibilité."
         },
         "setup": {
           "q": "Combien de temps pour mettre mon site en ligne ?",
@@ -2211,7 +2211,7 @@
       "commitment_months": "Durée de l'engagement (mois, 0 = pas de formule avec engagement)",
       "go_live_delay_days": "Délai de mise en ligne annoncé (jours ouvrés)",
       "trial_days": "Essai gratuit à la première souscription (jours, 0 = pas d'essai)",
-      "trialHint": "L'abonnement n'est prélevé qu'à la fin de l'essai et l'engagement commence après. La carte est enregistrée à la commande ; les frais de création (formule sans engagement) sont payés tout de suite. Une annulation pendant l'essai arrête tout, sans prélèvement de l'abonnement.",
+      "trialHint": "L'abonnement n'est prélevé qu'à la fin de l'essai (un éventuel engagement commence après). La carte est enregistrée à la commande. Une annulation pendant l'essai arrête tout, sans prélèvement de l'abonnement.",
       "payments": "Paiements et données",
       "deposit_commission_percent": "Commission sur les acomptes (%)",
       "retention_days_after_cancel": "Site en ligne après la fin de l'abonnement (jours)",
@@ -2412,7 +2412,7 @@
       "endsOnHint": "Vide : l'offre dure jusqu'à ce que toutes les places soient prises.",
       "conditions": "Conditions affichées",
       "isActive": "Offre active",
-      "requiresCommitment": "Réservée à la formule avec engagement",
+      "requiresCommitment": "Réservée à la formule avec engagement ou au paiement à l'année",
       "claims": "Bénéficiaires",
       "noClaims": "Aucune place prise pour le moment.",
       "statuses": {
@@ -4264,6 +4264,17 @@
       "eta": "Mise en ligne prévue sous {days, plural, one {# jour ouvré} other {# jours ouvrés}} environ."
     },
     "submit": "Continuer",
+    "submitPaid": "Continuer vers le paiement sécurisé",
+    "compare": "Comparer les packs",
+    "trialNote": "{days, plural, =30 {1 mois d'essai gratuit} =60 {2 mois d'essai gratuit} one {# jour d'essai gratuit} other {# jours d'essai gratuit}} : rien n'est prélevé aujourd'hui. Annulable pendant l'essai, sans frais.",
+    "ttcMonthly": "soit {amount} TTC par mois",
+    "ttcYearly": "soit {amount} TTC par an",
+    "reassurance": {
+      "label": "Nos engagements",
+      "monthly": "Mensuel sans engagement",
+      "support": "Assistance 7 j/7 sur WhatsApp",
+      "secure": "Paiement sécurisé par Stripe"
+    },
     "formula": "Formule (packs payants)",
     "formulaHint": "Vous choisissez : votre abonnement mensuel est le même dans les deux cas.",
     "withCommitment": "Avec engagement {months} mois",
@@ -4276,7 +4287,7 @@
     "total": "Total de votre abonnement",
     "commitmentHint": "Abonnement avec engagement de {months} mois. Vous réglez le premier mois à la commande, sur la page de paiement sécurisée.",
     "withoutCommitmentFree": "Vous arrêtez quand vous voulez, à la fin du mois en cours.",
-    "launchOffer": "{offer} avec le pack {plan}{commitment, select, yes { et la formule avec engagement} other {}} : {remaining, plural, one {# place restante} other {# places restantes}}. Éligibilité vérifiée après le premier paiement.",
+    "launchOffer": "{offer} avec le pack {plan}{commitment, select, yes { payé à l'année} other {}} : {remaining, plural, one {# place restante} other {# places restantes}}. Éligibilité vérifiée après le premier paiement.",
     "billing": "Paiement",
     "billingMonthly": "Chaque mois",
     "billingYearly": "À l'année{months, plural, =0 {} one { · # mois offert} other { · # mois offerts}}",

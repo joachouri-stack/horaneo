@@ -51,20 +51,21 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
   if (session && (await getManagedTenants(session.user.id)).some((tenant) => tenant.role === "owner"))
     redirect({ href: "/espace", locale });
   const [t, tHome] = await Promise.all([getTranslations("order"), getTranslations("home.plans")]);
-  const { plans, options, display, commitment, noCommitment, offers, yearly } = await withPlatform(
-    async (tx) => ({
+  const { plans, options, display, commitment, noCommitment, offers, yearly, vatPercent, trialDays } =
+    await withPlatform(async (tx) => ({
       offers: await listLaunchOffers(tx, { openOnly: true }),
       plans: await listPublicPlans(tx),
       options: await listPlanOptions(tx),
       display: String(await getPlatformSetting(tx, "prices_display")),
       commitment: Number(await getPlatformSetting(tx, "commitment_months")),
       noCommitment: Boolean(await getPlatformSetting(tx, "offer_no_commitment")),
+      vatPercent: Number(await getPlatformSetting(tx, "vat_rate_percent")),
+      trialDays: Number(await getPlatformSetting(tx, "trial_days")),
       yearly: {
         enabled: Boolean(await getPlatformSetting(tx, "yearly_billing_enabled")),
         freeMonths: Number(await getPlatformSetting(tx, "yearly_free_months")),
       },
-    }),
-  );
+    }));
   // Options choisies sur l'accueil (?options=booking,online-payment), reprises dans le formulaire.
   const initialOptions = typeof query.options === "string" ? query.options.split(",").slice(0, 20) : [];
   // Vente fermée : seuls les packs gratuits (s'il y en a) se commandent en ligne.
@@ -94,16 +95,51 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
     );
   }
 
+  // Offres de lancement (places réelles) : celles qui exigent un engagement se prennent à l'année.
+  const offerNotes = offers.flatMap((offer) => {
+    const plan = plans.find((item) => item.code === offer.planCode);
+    if (!plan) return [];
+    const yearlyOnly = offer.requiresCommitment && commitment === 0;
+    // Engagement mensuel encore proposé : l'offre s'affiche avec la formule (plus bas).
+    if (offer.requiresCommitment && !yearlyOnly && noCommitment) return [];
+    if (yearlyOnly && !yearly.enabled) return [];
+    return [
+      {
+        id: offer.id,
+        yearlyOnly,
+        text: t("launchOffer", {
+          offer: pickLocalized(offer.title, locale),
+          plan: pickLocalized(plan.name, locale),
+          remaining: offer.remaining,
+          commitment: yearlyOnly ? "yes" : "no",
+        }),
+      },
+    ];
+  });
+  const paidOnly = orderable.every((plan) => plan.priceCents > 0);
+
   return (
     <>
-      <PlatformHeader />
+      {/* Page de paiement épurée : pas de menu, seulement le retour aux packs. */}
+      <PlatformHeader>
+        <Link
+          href={{ pathname: "/", hash: "tarifs" }}
+          className="inline-flex min-h-11 items-center hover:text-white"
+        >
+          {t("compare")}
+        </Link>
+      </PlatformHeader>
       <main id="contenu" className="text-mk-body mx-auto max-w-2xl space-y-6 px-4 py-8">
         <div>
           <h1 className="font-display text-mk-h2 font-semibold tracking-[-0.025em]">{t("title")}</h1>
           <p className="mt-2 text-ink/80">{t("intro")}</p>
         </div>
         <div className={ui.card}>
-          <ActionForm action={submitOrderAction} submitLabel={t("submit")} className="space-y-5">
+          <ActionForm
+            action={submitOrderAction}
+            submitLabel={paidOnly ? t("submitPaid") : t("submit")}
+            className="space-y-5"
+          >
             <OrderChoices
               plans={orderable.map((plan) => ({
                 code: plan.code,
@@ -130,6 +166,9 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
               initialBilling={parseInterval(query.billing)}
               yearly={yearly}
               display={display}
+              vatPercent={vatPercent}
+              trialDays={trialDays}
+              offers={offerNotes}
               labels={{
                 plan: t("plan"),
                 options: t("options"),
@@ -250,6 +289,20 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
                     .join(" ")
                 : t("commitmentHint", { months: commitment })}
             </p>
+            {/* Ce qui rassure juste avant de payer. */}
+            <ul aria-label={t("reassurance.label")} className="grid gap-2 text-sm text-night sm:grid-cols-3">
+              {(commitment === 0
+                ? (["monthly", "support", "secure"] as const)
+                : (["support", "secure"] as const)
+              ).map((key) => (
+                <li key={key} className="flex items-center gap-2">
+                  <svg aria-hidden="true" viewBox="0 0 20 20" className="h-4 w-4 shrink-0 fill-success">
+                    <path d="M8.1 14.3 3.8 10l1.4-1.4 2.9 2.9 6.7-6.7 1.4 1.4z" />
+                  </svg>
+                  {t(`reassurance.${key}`)}
+                </li>
+              ))}
+            </ul>
             <label className="flex items-start gap-3 text-sm">
               <input
                 type="checkbox"
