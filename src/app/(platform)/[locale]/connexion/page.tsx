@@ -56,14 +56,6 @@ export default async function LoginPage({ params, searchParams }: PageProps<"/[l
           <h1 className="font-display text-mk-h2 font-semibold tracking-[-0.025em]">
             {signup ? t("signupTitle") : t("title")}
           </h1>
-          {pack && (
-            <p className="mt-3 font-semibold">
-              {t("chosenPack", { name: pickLocalized(pack.name, locale) })}
-            </p>
-          )}
-          <p className="mt-3 text-ink/80">
-            {signup ? t("signupSubtitle", { social }) : t("subtitle", { social })}
-          </p>
           {errorKey && (
             <p role="alert" className={`mt-6 ${ui.error}`}>
               {t(`errors.${errorKey}`)}
@@ -73,6 +65,18 @@ export default async function LoginPage({ params, searchParams }: PageProps<"/[l
             providers={providers}
             callbackPath={`/${locale}${suite}`}
             errorPath={`/${locale}/connexion`}
+            intro={
+              <>
+                {pack && (
+                  <p className="mt-3 font-semibold">
+                    {t("chosenPack", { name: pickLocalized(pack.name, locale) })}
+                  </p>
+                )}
+                <p className="mt-3 text-ink/80">
+                  {signup ? t("signupSubtitle", { social }) : t("subtitle", { social })}
+                </p>
+              </>
+            }
           />
         </div>
       </main>
