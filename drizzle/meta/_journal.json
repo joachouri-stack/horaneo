@@ -463,6 +463,13 @@
       "when": 1794676059578,
       "tag": "0065_plan_taglines",
       "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "7",
+      "when": 1794678501406,
+      "tag": "0066_pro_price_32_90_ht",
+      "breakpoints": true
     }
   ]
 }
