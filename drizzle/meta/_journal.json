@@ -449,6 +449,13 @@
       "when": 1794609718019,
       "tag": "0063_no_commitment",
       "breakpoints": true
+    },
+    {
+      "idx": 64,
+      "version": "7",
+      "when": 1794667056405,
+      "tag": "0064_tablet_offer_yearly",
+      "breakpoints": true
     }
   ]
 }

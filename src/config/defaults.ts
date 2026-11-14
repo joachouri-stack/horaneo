@@ -576,7 +576,7 @@ export const DEFAULT_LAUNCH_OFFERS = [
     requiresCommitment: true,
     title: { fr: "Tablette professionnelle offerte" },
     conditions: {
-      fr: "Réservée aux 100 premiers abonnés Business éligibles avec engagement de 12 mois. Une tablette par établissement, configurée par nos soins, expédiée après validation du premier paiement et des contrôles d'éligibilité. Livraison en France métropolitaine.",
+      fr: "Réservée aux 100 premiers abonnés Business éligibles, avec paiement à l'année. Une tablette par établissement, configurée par nos soins, expédiée après validation du premier paiement et des contrôles d'éligibilité. Livraison en France métropolitaine.",
     },
   },
 ];

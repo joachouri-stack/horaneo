@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { formatMoney } from "@/lib/format";
 import { dependentsOf, monthlyTotal, type PricedOption } from "@/modules/billing/option-total";
+import { ttcHintCents } from "@/modules/billing/vat";
 import { yearlyPriceCents, type BillingInterval } from "@/modules/billing/yearly";
 
 export type ConfiguratorOption = PricedOption & {
@@ -14,12 +15,15 @@ export type ConfiguratorOption = PricedOption & {
   available: boolean;
 };
 export type ConfiguratorPlan = { code: string; name: string; priceCents: number };
+/** Offre de lancement (places réelles) : sous « À l'année » si elle exige un engagement. */
+export type ConfiguratorOffer = { id: string; text: string; yearlyOnly: boolean };
 
 /**
  * Choix du pack, de la périodicité et des options dans le formulaire de
  * commande (champs « planCode », « billing » et « options »), avec le total
  * calculé comme à la commande : par mois, ou par an avec les mois offerts.
  * Les options se facturent chaque mois : elles disparaissent à l'année.
+ * Sous le total : le montant TTC (prix affichés HT) et l'essai gratuit.
  */
 export function OrderChoices({
   plans,
@@ -29,6 +33,9 @@ export function OrderChoices({
   initialBilling,
   yearly,
   display,
+  vatPercent,
+  trialDays,
+  offers,
   labels,
 }: {
   plans: (ConfiguratorPlan & { note: string | null })[];
@@ -39,6 +46,11 @@ export function OrderChoices({
   /** Paiement à l'année proposé, et ses mois offerts (réglages). */
   yearly: { enabled: boolean; freeMonths: number };
   display: string;
+  /** Taux de TVA (réglages) : montant TTC affiché quand les prix sont HT. */
+  vatPercent: number;
+  /** Essai gratuit à la première souscription (réglages, 0 = pas d'essai). */
+  trialDays: number;
+  offers: ConfiguratorOffer[];
   labels: {
     plan: string;
     options: string;
@@ -53,6 +65,7 @@ export function OrderChoices({
   };
 }) {
   const t = useTranslations("home.options");
+  const tOrder = useTranslations("order");
   const locale = useLocale();
   const money = (cents: number) => formatMoney(cents, PLATFORM_CURRENCY, locale);
   const [planCode, setPlanCode] = useState(initialPlan);
@@ -64,6 +77,13 @@ export function OrderChoices({
   const total = useMemo(
     () => monthlyTotal(plan?.priceCents ?? 0, annual ? [] : selected, options),
     [plan, selected, options, annual],
+  );
+  const totalCents = priceOf(total.totalCents);
+  const ttcCents = ttcHintCents(totalCents, display, vatPercent);
+  const offerNote = (offer: ConfiguratorOffer) => (
+    <span key={offer.id} className="mt-2 block rounded-[var(--radius-card)] bg-navy/5 p-3 text-sm text-night">
+      {offer.text}
+    </span>
   );
   const orderable = options.filter((option) => option.orderable && option.priceCents !== null);
   const card =
@@ -117,12 +137,17 @@ export function OrderChoices({
                     {value === "year" && (
                       <span className="block text-sm text-ink/70">{labels.yearlyHint}</span>
                     )}
+                    {value === "year" && offers.filter((offer) => offer.yearlyOnly).map(offerNote)}
                   </span>
                 </span>
               </label>
             ))}
           </div>
         </fieldset>
+      )}
+      {/* Offres sans condition de paiement : sous le choix du pack. */}
+      {offers.some((offer) => !offer.yearlyOnly) && (
+        <p>{offers.filter((offer) => !offer.yearlyOnly).map(offerNote)}</p>
       )}
       {orderable.length > 0 && !annual && (
         <fieldset>
@@ -171,18 +196,30 @@ export function OrderChoices({
           </div>
         </fieldset>
       )}
-      <p
-        className="flex items-baseline justify-between gap-3 rounded-[var(--radius-card)] bg-navy px-4 py-3 text-white"
-        aria-live="polite"
-      >
-        <span className="font-semibold">{labels.total}</span>
-        <span>
-          <span className="text-2xl font-bold">{money(priceOf(total.totalCents))}</span>{" "}
-          <span className="text-sm text-white/80">
-            {annual ? labels.perYear : t("perMonth", { display })}
+      <div aria-live="polite">
+        <p className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 rounded-[var(--radius-card)] bg-navy px-4 py-3 text-white">
+          <span className="font-semibold">{labels.total}</span>
+          <span className="text-right">
+            <span className="whitespace-nowrap">
+              <span className="text-2xl font-bold">{money(totalCents)}</span>{" "}
+              <span className="text-sm text-white/80">
+                {annual ? labels.perYear : t("perMonth", { display })}
+              </span>
+            </span>
+            {ttcCents !== null && (
+              <span className="block text-sm text-white/80">
+                {tOrder(annual ? "ttcYearly" : "ttcMonthly", { amount: money(ttcCents) })}
+              </span>
+            )}
           </span>
-        </span>
-      </p>
+        </p>
+        {/* Essai gratuit : rien n'est prélevé à la commande d'un pack payant. */}
+        {trialDays > 0 && (plan?.priceCents ?? 0) > 0 && (
+          <p className="mt-2 rounded-[var(--radius-card)] bg-success/10 px-4 py-3 text-sm font-semibold text-success">
+            {tOrder("trialNote", { days: trialDays })}
+          </p>
+        )}
+      </div>
     </>
   );
 }
