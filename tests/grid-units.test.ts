@@ -78,25 +78,33 @@ describe("grille des packs : une seule source pour les cartes et le comparatif",
     expect(card.upcoming.map((line) => line.key)).toContain("aiChatbot");
     expect(card.included.map((line) => line.key)).toContain("sms");
     expect(gridCard(starter, GRID, SOON).missing.length).toBeLessThanOrEqual(3);
-    // Pro : ni traduction (réservée au Business) ni chatbot (ajouté plus tard). Annoncés
-    // « Bientôt » sur le Business, ils figurent dans « Non inclus » du Pro, après les 3 lignes.
+    // Pro : « Non inclus » ne liste que des fonctions disponibles aujourd'hui (3 au plus) ;
+    // la traduction et le chatbot, annoncés « Bientôt », figurent sur la carte Business.
     const proCard = gridCard(pro, GRID, SOON);
     expect(proCard.upcoming.map((line) => line.key)).toEqual(["commerce", "formation"]);
-    expect(proCard.missing.map((line) => line.key).slice(-2)).toEqual(["multilingual", "chatbotQuestions"]);
-    expect(proCard.missing.filter((line) => !line.soon)).toHaveLength(3);
+    expect(proCard.missing.every((line) => !line.soon)).toBe(true);
+    expect(proCard.missing).toHaveLength(3);
     expect(card.upcoming.map((line) => line.key)).toEqual(
       expect.arrayContaining(["multilingual", "chatbotQuestions"]),
     );
     expect(gridCard(pro, GRID, SOON).included.map((line) => line.key)).toContain("setupAssistance");
-    // Cartes cadeaux et nom de domaine : en tête des cartes Pro et Business, absents du Starter.
-    for (const plan of [pro, business])
-      expect(
-        gridCard(plan, GRID, SOON)
-          .included.slice(0, 2)
-          .map((line) => line.key)
-          .sort(),
-      ).toEqual(["freeDomain", "giftCards"]);
+    // Cartes cadeaux et nom de domaine : en tête de la carte Pro, sans être répétés sur le Business.
+    expect(
+      gridCard(pro, GRID, SOON)
+        .included.slice(0, 2)
+        .map((line) => line.key)
+        .sort(),
+    ).toEqual(["freeDomain", "giftCards"]);
+    expect(card.included.map((line) => line.key)).not.toContain("giftCards");
     expect(gridCard(starter, GRID, SOON).included.map((line) => line.key)).not.toContain("freeDomain");
+    // Starter : ce qui fait choisir d'abord (site, réservations, paiement, rappels).
+    expect(
+      gridCard(starter, GRID, SOON)
+        .included.slice(0, 4)
+        .map((line) => line.key),
+    ).toEqual(["fullSite", "bookings", "onlinePayment", "emailReminders"]);
+    // Le suivi client ne figure qu'au comparatif (il se confondait avec le fichier clients).
+    expect(proCard.included.map((line) => line.key)).not.toContain("customerFollowUp");
   });
 
   it("chaque ligne a ses textes (comparatif et carte)", () => {
