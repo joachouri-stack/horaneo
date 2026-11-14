@@ -37,16 +37,16 @@ export default async function OrdersPage({ params }: PageProps<"/[locale]/admin/
                 {pickLocalized(planName, locale)} · {t(`status.${order.status as "paid"}`)}
               </span>
             </div>
-            <p className="text-sm text-ink/60">
+            <p className="text-sm text-ink/70">
               {t("received", { date: formatDate(order.createdAt, locale) })}
             </p>
             <dl className="mt-3 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
               <div>
-                <dt className="inline text-ink/60">{t("label", { label: t("activity") })} </dt>
+                <dt className="inline text-ink/70">{t("label", { label: t("activity") })} </dt>
                 <dd className="inline">{order.activity}</dd>
               </div>
               <div>
-                <dt className="inline text-ink/60">{t("label", { label: t("phone") })} </dt>
+                <dt className="inline text-ink/70">{t("label", { label: t("phone") })} </dt>
                 <dd className="inline">
                   <a href={`tel:${order.phone}`} className="underline">
                     {formatPhone(order.phone) || order.phone}
@@ -55,12 +55,12 @@ export default async function OrdersPage({ params }: PageProps<"/[locale]/admin/
               </div>
               {userName && (
                 <div>
-                  <dt className="inline text-ink/60">{t("label", { label: t("contact") })} </dt>
+                  <dt className="inline text-ink/70">{t("label", { label: t("contact") })} </dt>
                   <dd className="inline">{userName}</dd>
                 </div>
               )}
               <div>
-                <dt className="inline text-ink/60">{t("label", { label: t("email") })} </dt>
+                <dt className="inline text-ink/70">{t("label", { label: t("email") })} </dt>
                 <dd className="inline">
                   <a href={`mailto:${email}`} className="underline">
                     {email}
@@ -69,7 +69,7 @@ export default async function OrdersPage({ params }: PageProps<"/[locale]/admin/
               </div>
               {order.currentWebsite && (
                 <div>
-                  <dt className="inline text-ink/60">{t("label", { label: t("website") })} </dt>
+                  <dt className="inline text-ink/70">{t("label", { label: t("website") })} </dt>
                   <dd className="inline">
                     <a
                       href={order.currentWebsite}

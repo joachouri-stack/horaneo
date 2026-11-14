@@ -1550,7 +1550,10 @@
     },
     "dashboard": {
       "activeClients": "Clients en ligne",
-      "monthlyRevenue": "Revenu mensuel (abonnements et options)",
+      "monthlyRevenue": "Revenu mensuel {display} (abonnements et options)",
+      "trialing": "En essai gratuit",
+      "trialingValue": "{count, plural, one {# client} other {# clients}}",
+      "trialingHint": "{amount} {display} par mois à la fin de l'essai",
       "newThisMonth": "Nouveaux ce mois-ci",
       "cancelledThisMonth": "Résiliations ce mois-ci",
       "byPlan": "Clients en ligne par pack",
@@ -1656,7 +1659,8 @@
       "overview": {
         "plan": "Pack",
         "changePlan": "Changer de pack",
-        "changePlanHint": "Sans abonnement payé par carte, le pack est attribué sans paiement. Si ce client paie par carte, c'est depuis son espace qu'il change de pack (bouton « Voir son espace »).",
+        "currentPlan": "Pack actuel",
+        "changePlanHint": "Client sans paiement par carte : le pack change ici, sans paiement. Client qui paie par carte : il change de pack depuis son espace.",
         "changePlanConfirm": "Changer le pack du client « {name} » ? Ses limites et ses fonctions changent tout de suite. Si le nouveau pack n'inclut pas de nom de domaine personnel, le site reprend son adresse gratuite.",
         "suspendConfirm": "Suspendre {name} ? Son site sera hors ligne immédiatement.",
         "status": "Statut",
@@ -2187,7 +2191,7 @@
         "prioritySupport": "Support prioritaire",
         "dedicatedSupport": "Accompagnement renforcé"
       },
-      "perMonth": "{price} par mois",
+      "perMonth": "{price} {display} par mois",
       "free": "Gratuit",
       "onSale": "en vente",
       "notOnSale": "pas en vente",
@@ -2209,7 +2213,7 @@
     },
     "settings": {
       "title": "Réglages",
-      "pricing": "Prix et engagement",
+      "pricing": "Prix, essai et paiement",
       "prices_display": "Affichage des prix",
       "vat_rate_percent": "Taux de TVA (%)",
       "vatHint": "À valider avec votre comptable. 0 = pas de TVA (franchise). Un nouveau taux s'applique aux nouvelles souscriptions et recharges de SMS ; les abonnements en cours gardent l'ancien taux.",
@@ -2257,7 +2261,7 @@
       "site_buyout_price": "Prix du rachat (€)",
       "soon": "Fonctions annoncées « Bientôt »",
       "soonHint": "Cochées : pas encore livrées. Elles portent l'étiquette « Bientôt » sur le site commercial au lieu d'être promises. Décochez une fonction dès qu'elle est prête.",
-      "offer_no_commitment": "Proposer aussi la formule sans engagement (avec frais de création du pack)",
+      "offer_no_commitment": "Avec une durée d'engagement réglée : proposer aussi la formule sans engagement (frais de création du pack s'il en a)",
       "solutions": "Solutions",
       "solutionsHint": "Disponible : ouverte à la souscription. Bientôt : présentée « Disponible bientôt », sans souscription possible. En pause : n'apparaît plus du tout sur le site commercial.",
       "solutionStatus": {
@@ -2299,8 +2303,9 @@
     },
     "billing": {
       "title": "Paiements des abonnements",
-      "revenue": "Revenu mensuel (abonnements et options)",
+      "revenue": "Revenu mensuel {display} (abonnements et options)",
       "paying": "Abonnements payants",
+      "payingHint": "Hors essai gratuit",
       "pastDue": "Paiements par carte en échec",
       "empty": "Aucun abonnement pour le moment.",
       "client": "Client",

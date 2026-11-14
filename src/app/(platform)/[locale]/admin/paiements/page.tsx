@@ -10,17 +10,20 @@ import { formatDate, formatMoney } from "@/lib/format";
 import { paymentGateway } from "@/lib/payments/stripe";
 import { billingGateway } from "@/lib/payments/stripe-billing";
 import { listSubscriptions, liveRevenue, smsMonthlyTotals } from "@/modules/billing/admin";
+import { getPlatformSetting } from "@/modules/settings";
 
 /** Abonnements des clients : revenu, échéances, paiements par carte en échec. */
 export default async function BillingAdminPage({ params }: PageProps<"/[locale]/admin/paiements">) {
   const locale = resolveLocale((await params).locale);
   setRequestLocale(locale);
   await requireAdmin(locale);
-  const [t, { rows, revenue, sms }] = await Promise.all([
+  const [t, tDashboard, { rows, revenue, display, sms }] = await Promise.all([
     getTranslations("admin.billing"),
+    getTranslations("admin.dashboard"),
     adminQuery(async (tx) => ({
       rows: await listSubscriptions(tx),
       revenue: await liveRevenue(tx),
+      display: String(await getPlatformSetting(tx, "prices_display")),
       sms: await smsMonthlyTotals(tx),
     })),
   ]);
@@ -44,9 +47,9 @@ export default async function BillingAdminPage({ params }: PageProps<"/[locale]/
           <p className="mt-1">{t("notConfigured")}</p>
         </div>
       )}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className={ui.card}>
-          <p className="text-sm text-ink/70">{t("revenue")}</p>
+          <p className="text-sm text-ink/70">{t("revenue", { display })}</p>
           <p className="mt-1 font-display text-3xl font-extrabold text-night">
             {formatMoney(revenue.monthlyRevenueCents, PLATFORM_CURRENCY, locale)}
           </p>
@@ -54,6 +57,20 @@ export default async function BillingAdminPage({ params }: PageProps<"/[locale]/
         <div className={ui.card}>
           <p className="text-sm text-ink/70">{t("paying")}</p>
           <p className="mt-1 font-display text-3xl font-extrabold text-night">{revenue.paying}</p>
+          <p className="mt-1 text-sm text-ink/70">{t("payingHint")}</p>
+        </div>
+        {/* Essai gratuit : rien n'est encore payé, revenu attendu à la fin de l'essai. */}
+        <div className={ui.card}>
+          <p className="text-sm text-ink/70">{tDashboard("trialing")}</p>
+          <p className="mt-1 font-display text-3xl font-extrabold text-night">{revenue.trialing}</p>
+          {revenue.trialing > 0 && (
+            <p className="mt-1 text-sm text-ink/70">
+              {tDashboard("trialingHint", {
+                amount: formatMoney(revenue.trialRevenueCents, PLATFORM_CURRENCY, locale),
+                display,
+              })}
+            </p>
+          )}
         </div>
         <div className={ui.card}>
           <p className="text-sm text-ink/70">{t("pastDue")}</p>

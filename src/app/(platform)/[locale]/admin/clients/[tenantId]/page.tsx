@@ -110,7 +110,7 @@ export default async function TenantOverviewPage({
                     {readiness.done[key] ? "✓" : "!"}
                   </span>
                   <span className="flex-1">{tReady(`items.${key}`)}</span>
-                  <span className="text-sm font-normal text-ink/60">
+                  <span className="text-sm font-normal text-ink/70">
                     {readiness.done[key] ? tReady("done") : tReady("todo")}
                   </span>
                 </Link>
@@ -151,7 +151,7 @@ export default async function TenantOverviewPage({
         <Section
           title={t("status")}
           aside={
-            <span className="text-sm text-ink/60">
+            <span className="text-sm text-ink/70">
               {t("created", { date: formatDate(tenant.createdAt, locale) })}
             </span>
           }
@@ -174,7 +174,7 @@ export default async function TenantOverviewPage({
               <p className="text-sm text-ink/70">{item.hint}</p>
             </ActionForm>
           ))}
-          <p className="mt-4 text-sm text-ink/60">
+          <p className="mt-4 text-sm text-ink/70">
             {t("countryTimezone", {
               country: regionName.of(tenant.country) ?? tenant.country,
               timezone: tenant.timezone,
@@ -195,7 +195,7 @@ export default async function TenantOverviewPage({
             <Hidden values={{ tenantId }} />
             <SelectField
               name="planCode"
-              label={t("plan")}
+              label={t("currentPlan")}
               defaultValue={plan.code}
               options={plans.map((item) => ({
                 value: item.code,

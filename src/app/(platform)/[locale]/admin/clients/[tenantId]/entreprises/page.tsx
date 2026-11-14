@@ -318,7 +318,7 @@ async function BusinessLogoBox({
               className="h-24 w-24 rounded-full border border-navy/10 bg-white object-contain"
             />
           ) : (
-            <span className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-dashed border-navy/20 bg-white px-2 text-center text-sm text-ink/60">
+            <span className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-dashed border-navy/20 bg-white px-2 text-center text-sm text-ink/70">
               {t("noLogo")}
             </span>
           )}

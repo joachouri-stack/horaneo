@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useActionState } from "react";
+import { useActionState, type ReactNode } from "react";
 import type { CodeFormState } from "@/app/(platform)/[locale]/admin/actions";
 import { CopyButton } from "@/components/admin/CopyButton";
 import { ui } from "@/components/ui/styles";
@@ -13,10 +13,12 @@ type Props = {
   submitLabel: string;
   /** Autorise les codes de secours (lettres et tiret) en plus des 6 chiffres. */
   allowBackupCode?: boolean;
+  /** Étapes affichées avant la saisie (QR code, clé) : masquées une fois la vérification activée. */
+  children?: ReactNode;
 };
 
 /** Saisie d'un code de double vérification ; affiche les codes de secours à l'activation. */
-export function CodeForm({ action, label, submitLabel, allowBackupCode = false }: Props) {
+export function CodeForm({ action, label, submitLabel, allowBackupCode = false, children }: Props) {
   const t = useTranslations("admin");
   const [state, formAction, pending] = useActionState(action, {});
 
@@ -43,30 +45,33 @@ export function CodeForm({ action, label, submitLabel, allowBackupCode = false }
   }
 
   return (
-    <form action={formAction} className="mt-6 space-y-4">
-      {state.error && (
-        <p role="alert" className={ui.error}>
-          {t(`errors.${state.error}`)}
-        </p>
-      )}
-      <div>
-        <label htmlFor="code" className={ui.label}>
-          {label}
-        </label>
-        <input
-          id="code"
-          name="code"
-          required
-          autoComplete="one-time-code"
-          inputMode={allowBackupCode ? "text" : "numeric"}
-          pattern={allowBackupCode ? undefined : "[0-9 ]{6,7}"}
-          maxLength={allowBackupCode ? 11 : 7}
-          className={`${ui.input} text-center font-mono text-2xl tracking-widest`}
-        />
-      </div>
-      <button type="submit" disabled={pending} className={ui.primaryButton}>
-        {submitLabel}
-      </button>
-    </form>
+    <>
+      {children}
+      <form action={formAction} className="mt-6 space-y-4">
+        {state.error && (
+          <p role="alert" className={ui.error}>
+            {t(`errors.${state.error}`)}
+          </p>
+        )}
+        <div>
+          <label htmlFor="code" className={ui.label}>
+            {label}
+          </label>
+          <input
+            id="code"
+            name="code"
+            required
+            autoComplete="one-time-code"
+            inputMode={allowBackupCode ? "text" : "numeric"}
+            pattern={allowBackupCode ? undefined : "[0-9 ]{6,7}"}
+            maxLength={allowBackupCode ? 11 : 7}
+            className={`${ui.input} text-center font-mono text-2xl tracking-widest`}
+          />
+        </div>
+        <button type="submit" disabled={pending} className={ui.primaryButton}>
+          {submitLabel}
+        </button>
+      </form>
+    </>
   );
 }

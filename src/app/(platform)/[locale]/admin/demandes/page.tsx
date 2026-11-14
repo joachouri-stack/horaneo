@@ -67,7 +67,7 @@ export default async function RequestsAdminPage({
                 >
                   {request.tenantName}
                 </Link>
-                <span className="text-sm text-ink/60">
+                <span className="text-sm text-ink/70">
                   {t("planUpdates", {
                     plan: pickLocalized(request.planName, locale),
                     rule: request.planFeatures.onDemandUpdates
@@ -81,7 +81,7 @@ export default async function RequestsAdminPage({
               </div>
               <p className="mt-2 font-semibold">{request.subject}</p>
               <p className="mt-1 whitespace-pre-line text-ink/80">{request.message}</p>
-              <p className="mt-2 text-sm text-ink/60">
+              <p className="mt-2 text-sm text-ink/70">
                 {t("from", {
                   email: request.authorEmail ?? "—",
                   date: formatDate(request.createdAt, locale),
