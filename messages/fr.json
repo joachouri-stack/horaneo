@@ -1476,7 +1476,7 @@
     "or": "ou",
     "emailLabel": "Adresse e-mail",
     "emailPlaceholder": "vous@exemple.fr",
-    "sendLink": "Recevoir un lien de connexion",
+    "sendLink": "Recevoir mon lien de connexion",
     "sending": "Envoi…",
     "sentTitle": "Vérifiez votre boîte de réception",
     "sentBody": "Un e-mail vient d'être envoyé à {email}, avec un bouton et un code de connexion. Ils sont valables {minutes} minutes.",
@@ -1495,7 +1495,12 @@
       "social": "La connexion n'a pas abouti. Merci de réessayer.",
       "generic": "Une erreur est survenue. Merci de réessayer."
     },
-    "legal": "En continuant, vous acceptez les conditions d'utilisation et la politique de confidentialité.",
+    "legal": "En continuant, vous acceptez les <terms>conditions d'utilisation</terms> et la <privacy>politique de confidentialité</privacy>.",
+    "noSite": "Pas encore de site ?",
+    "discoverPlans": "Découvrir les packs",
+    "resend": "Renvoyer l'e-mail",
+    "resendIn": "Renvoyer l'e-mail ({seconds} s)",
+    "resent": "Un nouvel e-mail vient d'être envoyé.",
     "signupTitle": "Créez votre compte",
     "signupSubtitle": "Sans mot de passe : {social, select, both {continuez avec Google ou Apple, ou recevez un lien par e-mail} google {continuez avec Google, ou recevez un lien par e-mail} apple {continuez avec Apple, ou recevez un lien par e-mail} other {recevez simplement un lien par e-mail}}. Si vous avez déjà un compte, vous retrouverez votre espace.",
     "chosenPack": "Pack choisi : {name}"
