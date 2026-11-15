@@ -2591,7 +2591,8 @@
     "stepOf": "Étape {current} sur {total} : {label}",
     "services": {
       "choose": "Quelle prestation ?",
-      "chooseMany": "Choisissez une ou plusieurs prestations (jusqu'à {max})",
+      "chooseMany": "Choisissez vos prestations",
+      "maxHint": "Une ou plusieurs, jusqu'à {max} par rendez-vous.",
       "maxReached": "Vous avez atteint le nombre maximum de prestations pour un rendez-vous.",
       "selected": "{count, plural, one {# prestation} other {# prestations}} · {duration} · {price}",
       "other": "Autres prestations"
@@ -2664,6 +2665,12 @@
       "birthday": "Date d'anniversaire (facultatif)",
       "birthdayHint": "Pour recevoir une attention de notre part le jour de votre anniversaire.",
       "birthdayHintPlain": "Jour et mois seulement, sans l'année.",
+      "more": {
+        "promo": "+ J'ai un code promo",
+        "birthday": "+ Indiquer ma date d'anniversaire",
+        "beneficiary": "+ Ce rendez-vous est pour quelqu'un d'autre",
+        "note": "+ Ajouter un message pour l'établissement"
+      },
       "birthdayDay": "Jour",
       "birthdayMonth": "Mois"
     },
@@ -2767,7 +2774,7 @@
       "appliedNoDeposit": "Carte •••• {last4} enregistrée : le montant sera déduit sur place (solde {balance}).",
       "remove": "Retirer",
       "paidWith": "Acompte réglé avec votre carte cadeau.",
-      "toggle": "J'ai une carte cadeau"
+      "toggle": "+ J'ai une carte cadeau"
     },
     "promoLabel": "{title} : au lieu de {price}",
     "priceFrom": "à partir de {price}",
