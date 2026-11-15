@@ -157,7 +157,7 @@ export default async function BusinessesPage({
               </div>
               {/* Page publique de l'entreprise : repliée, on l'ouvre pour la modifier. */}
               <details className="border-t border-navy/10 pt-6">
-                <summary className="cursor-pointer py-2 text-lg font-bold">{t("profile")}</summary>
+                <summary className="hn-summary cursor-pointer py-2 text-lg font-bold">{t("profile")}</summary>
                 <p className="mt-2 mb-4 text-sm text-ink/70">{t("profileHint")}</p>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <TextField
@@ -244,7 +244,7 @@ export default async function BusinessesPage({
 
             {/* 3. L'accès à son espace : sans gérante on le donne, sinon on la remplace (repliée). */}
             <details className="mt-6 rounded-xl bg-navy/5 p-4" open={managers.length === 0}>
-              <summary className="cursor-pointer py-2.5 font-bold">
+              <summary className="hn-summary cursor-pointer py-2.5 font-bold">
                 {t(managers.length === 0 ? "addManager" : "replaceManager")}
               </summary>
               <p className="mt-2 mb-3 text-sm text-ink/70">

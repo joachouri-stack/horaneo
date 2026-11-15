@@ -111,11 +111,16 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
             {field("price_change_notice_days", "number", t("priceChangeHint"))}
             {field("go_live_delay_days")}
             {field("trial_days", "number", t("trialHint"))}
-            <CheckboxField
-              name="offer_no_commitment"
-              label={t("offer_no_commitment")}
-              defaultChecked={noCommitment}
-            />
+            {/* Utile seulement avec une durée d'engagement : sinon la valeur actuelle est gardée, sans case. */}
+            {Number(s.commitment_months) > 0 ? (
+              <CheckboxField
+                name="offer_no_commitment"
+                label={t("offer_no_commitment")}
+                defaultChecked={noCommitment}
+              />
+            ) : (
+              noCommitment && <Hidden values={{ offer_no_commitment: "on" }} />
+            )}
             {/* Paiement à l'année : proposé ou non, et sa réduction en mois offerts. */}
             <CheckboxField
               name="yearly_billing_enabled"

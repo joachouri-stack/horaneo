@@ -50,11 +50,15 @@ export default async function PlansPage({ params, searchParams }: PageProps<"/[l
     const open = plan.code === editing;
     return (
       <li key={plan.id} id={`pack-${plan.code}`} className={ui.card}>
-        <div className="flex flex-wrap items-center justify-between gap-2">
+        {/* Même présentation pour chaque pack : le nom, puis le prix et le lien. */}
+        <div className="space-y-1">
           <h2 className="text-xl font-bold text-night">{pickLocalized(plan.name, locale)}</h2>
           <span className="flex flex-wrap items-center gap-x-3 text-sm text-ink/70">
             {plan.priceCents > 0
-              ? t("perMonth", { price: formatMoney(plan.priceCents, plan.currency, locale), display })
+              ? t("perMonth", {
+                  price: formatMoney(plan.priceCents, plan.currency, locale, { cents: true }),
+                  display,
+                })
               : t("free")}
             {" · "}
             {plan.isPublic ? t("onSale") : t("notOnSale")}
@@ -85,7 +89,7 @@ export default async function PlansPage({ params, searchParams }: PageProps<"/[l
       {/* Anciens packs : plus en vente, gardés pour les clients qui les ont encore. */}
       {old.length > 0 && (
         <details className="space-y-3" open={old.some((plan) => plan.code === editing)}>
-          <summary className="cursor-pointer py-2.5 text-lg font-bold text-night">
+          <summary className="hn-summary cursor-pointer py-2.5 text-lg font-bold text-night">
             {t("oldPlans", { count: old.length })}
           </summary>
           <p className="mb-3 text-sm text-ink/70">{t("oldPlansHint")}</p>
@@ -196,7 +200,9 @@ async function PlanEditor({
         />
       </div>
       <details className="rounded-[var(--radius-card)] border border-navy/10 p-4">
-        <summary className="cursor-pointer py-2.5 font-semibold text-night">{t("features")}</summary>
+        <summary className="hn-summary cursor-pointer py-2.5 font-semibold text-night">
+          {t("features")}
+        </summary>
         <fieldset className="mt-3">
           <legend className="sr-only">{t("features")}</legend>
           <div className="grid sm:grid-cols-2">
