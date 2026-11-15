@@ -1,9 +1,19 @@
 import { assertQuota } from "@/modules/quotas";
-import { and, asc, desc, eq, ilike, isNull, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, isNull, ne, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { CUSTOMER_SEGMENTS } from "@/config/customers";
 import type { Transaction } from "@/db/client";
-import { appointmentItems, appointments, customers, staffMembers, tenants } from "@/db/schema";
+import {
+  appointmentItems,
+  appointments,
+  customerDataRequests,
+  customers,
+  loyaltyEvents,
+  loyaltyRewards,
+  promoCodes,
+  staffMembers,
+  tenants,
+} from "@/db/schema";
 import { pickLocalized, type Locale } from "@/i18n/locales";
 import { AppError } from "@/modules/errors";
 import { normalizePhone } from "@/modules/phone";
@@ -48,7 +58,36 @@ export async function searchCustomers(tx: Transaction, tenantId: string, query: 
     .limit(limit);
 }
 
+/**
+ * Fiche déjà enregistrée pour la même personne : même téléphone et même prénom
+ * (sans tenir compte des majuscules ni des espaces). Un même numéro partagé par deux
+ * personnes (une mère et sa fille) garde deux fiches. Null si aucune.
+ */
+export async function findSamePerson(
+  tx: Transaction,
+  tenantId: string,
+  person: { phone: string | null; firstName: string },
+) {
+  if (!person.phone) return null;
+  const [row] = await tx
+    .select({ id: customers.id })
+    .from(customers)
+    .where(
+      and(
+        eq(customers.tenantId, tenantId),
+        isNull(customers.anonymizedAt),
+        eq(customers.phone, person.phone),
+        sql`lower(trim(${customers.firstName})) = lower(trim(${person.firstName}))`,
+      ),
+    )
+    .limit(1);
+  return row ?? null;
+}
+
 export const CUSTOMER_SEGMENT_KEYS = ["all", "loyal", "new", "inactive"] as const;
+/** Tris du fichier clients : par nom, par dernière visite (récente d'abord), par montant dépensé. */
+export const CUSTOMER_SORT_KEYS = ["name", "lastVisit", "spent"] as const;
+export type CustomerSort = (typeof CUSTOMER_SORT_KEYS)[number];
 export type CustomerSegment = (typeof CUSTOMER_SEGMENT_KEYS)[number];
 
 const toDate = (value: unknown) => (value == null ? null : new Date(value as string));
@@ -61,7 +100,7 @@ const toDate = (value: unknown) => (value == null ? null : new Date(value as str
 export async function customerDirectory(
   tx: Transaction,
   tenantId: string,
-  input: { query?: string; segment?: CustomerSegment; now: Date; limit?: number },
+  input: { query?: string; segment?: CustomerSegment; sort?: CustomerSort; now: Date; limit?: number },
 ) {
   const { loyalVisits, newDays, inactiveDays } = CUSTOMER_SEGMENTS;
   const day = 24 * 60 * 60 * 1000;
@@ -136,7 +175,15 @@ export async function customerDirectory(
     .from(customers)
     .leftJoin(stats, eq(stats.customerId, customers.id))
     .where(where)
-    .orderBy(asc(customers.firstName), asc(customers.lastName))
+    .orderBy(
+      ...(input.sort === "lastVisit"
+        ? [sql`${stats.lastVisit} desc nulls last`]
+        : input.sort === "spent"
+          ? [sql`coalesce(${stats.spentCents}, 0) desc`]
+          : []),
+      asc(customers.firstName),
+      asc(customers.lastName),
+    )
     .limit(input.limit ?? 200);
   // Nombre de fiches correspondant au filtre : la liste dit quand elle n'affiche pas tout.
   const [{ matching }] = await tx
@@ -379,6 +426,9 @@ export async function saveCustomer(
       if (!updated) throw new AppError("not_found");
       return updated;
     }
+    // Même personne déjà dans le fichier : pas de seconde fiche.
+    if (await findSamePerson(tx, tenantId, { phone, firstName: input.firstName }))
+      throw new AppError("customer_exists", "phone");
     // Nombre de fiches clients limité par le pack (ex. Basic).
     await assertQuota(tx, tenantId, "customers");
     const [created] = await tx
@@ -392,4 +442,137 @@ export async function saveCustomer(
     if ((err.code ?? err.cause?.code) === "23505") throw new AppError("invalid", "email");
     throw error;
   }
+}
+
+/**
+ * Fiches qui semblent être la même personne que celle-ci (même téléphone, même e-mail,
+ * ou même prénom et même nom) : proposées pour une fusion.
+ */
+export async function possibleDuplicates(tx: Transaction, tenantId: string, customerId: string) {
+  const [current] = await tx
+    .select()
+    .from(customers)
+    .where(and(eq(customers.tenantId, tenantId), eq(customers.id, customerId)));
+  if (!current || current.anonymizedAt) return [];
+  const sameName = current.lastName
+    ? and(
+        sql`lower(trim(${customers.firstName})) = lower(trim(${current.firstName}))`,
+        sql`lower(trim(coalesce(${customers.lastName}, ''))) = lower(trim(${current.lastName}))`,
+      )
+    : undefined;
+  return (
+    tx
+      .select({
+        id: customers.id,
+        firstName: customers.firstName,
+        lastName: customers.lastName,
+        phone: customers.phone,
+        email: customers.email,
+        createdAt: customers.createdAt,
+      })
+      .from(customers)
+      .where(
+        and(
+          eq(customers.tenantId, tenantId),
+          eq(customers.businessId, current.businessId),
+          ne(customers.id, current.id),
+          isNull(customers.anonymizedAt),
+          or(
+            current.phone ? eq(customers.phone, current.phone) : undefined,
+            current.email ? sql`lower(${customers.email}) = lower(${current.email})` : undefined,
+            sameName,
+          ),
+        ),
+      )
+      // Même prénom d'abord (la même personne le plus souvent), puis la plus ancienne.
+      .orderBy(
+        sql`lower(trim(${customers.firstName})) = lower(trim(${current.firstName})) desc`,
+        asc(customers.createdAt),
+      )
+      .limit(20)
+  );
+}
+
+/**
+ * Fusionne deux fiches de la même personne : tout ce qui concerne la fiche en double
+ * (rendez-vous, fidélité, codes personnels, demandes sur les données) passe sur la fiche
+ * gardée, ses coordonnées manquantes sont complétées et les notes réunies, puis la fiche
+ * en double est supprimée. Un seul bon de fidélité en cours est gardé (celui de la fiche gardée).
+ */
+export async function mergeCustomers(
+  tx: Transaction,
+  tenantId: string,
+  input: { keepId: string; removeId: string },
+) {
+  const keepId = z.uuid().parse(input.keepId);
+  const removeId = z.uuid().parse(input.removeId);
+  if (keepId === removeId) throw new AppError("merge_same_customer", "removeId");
+  const rows = await tx
+    .select()
+    .from(customers)
+    .where(
+      and(
+        eq(customers.tenantId, tenantId),
+        inArray(customers.id, [keepId, removeId]),
+        isNull(customers.anonymizedAt),
+      ),
+    );
+  const keep = rows.find((row) => row.id === keepId);
+  const remove = rows.find((row) => row.id === removeId);
+  if (!keep || !remove || keep.businessId !== remove.businessId) throw new AppError("not_found");
+
+  const moved = { customerId: keepId };
+  await tx
+    .update(appointments)
+    .set(moved)
+    .where(and(eq(appointments.tenantId, tenantId), eq(appointments.customerId, removeId)));
+  await tx
+    .update(loyaltyEvents)
+    .set(moved)
+    .where(and(eq(loyaltyEvents.tenantId, tenantId), eq(loyaltyEvents.customerId, removeId)));
+  const [keepOpen] = await tx
+    .select({ id: loyaltyRewards.id })
+    .from(loyaltyRewards)
+    .where(and(eq(loyaltyRewards.customerId, keepId), isNull(loyaltyRewards.usedAt)));
+  if (keepOpen)
+    await tx
+      .delete(loyaltyRewards)
+      .where(and(eq(loyaltyRewards.customerId, removeId), isNull(loyaltyRewards.usedAt)));
+  await tx
+    .update(loyaltyRewards)
+    .set(moved)
+    .where(and(eq(loyaltyRewards.tenantId, tenantId), eq(loyaltyRewards.customerId, removeId)));
+  await tx
+    .update(promoCodes)
+    .set(moved)
+    .where(and(eq(promoCodes.tenantId, tenantId), eq(promoCodes.customerId, removeId)));
+  await tx
+    .update(customerDataRequests)
+    .set(moved)
+    .where(and(eq(customerDataRequests.tenantId, tenantId), eq(customerDataRequests.customerId, removeId)));
+  // Supprimée avant de compléter la fiche gardée (l'e-mail est unique).
+  await tx.delete(customers).where(eq(customers.id, removeId));
+  const birthday =
+    keep.birthMonth == null && remove.birthMonth != null
+      ? { birthMonth: remove.birthMonth, birthDay: remove.birthDay }
+      : {};
+  const consentAt =
+    [keep.consentAt, remove.consentAt]
+      .filter((date): date is Date => date !== null)
+      .sort((a, b) => b.getTime() - a.getTime())[0] ?? null;
+  const [merged] = await tx
+    .update(customers)
+    .set({
+      lastName: keep.lastName || remove.lastName,
+      phone: keep.phone ?? remove.phone,
+      email: keep.email ?? remove.email,
+      notes: [keep.notes, remove.notes].filter(Boolean).join("\n\n") || null,
+      emailConsent: keep.emailConsent || remove.emailConsent,
+      smsConsent: keep.smsConsent || remove.smsConsent,
+      consentAt,
+      ...birthday,
+    })
+    .where(eq(customers.id, keepId))
+    .returning();
+  return merged;
 }

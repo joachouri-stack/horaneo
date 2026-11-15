@@ -15,6 +15,7 @@ import {
 } from "@/db/schema";
 import { assignManageToken } from "@/modules/booking/create";
 import { isValidBirthday } from "@/modules/customers/birthday";
+import { findSamePerson } from "@/modules/customers/customers";
 import { computeTotals } from "@/modules/booking/pricing";
 import { addMinutes } from "@/modules/booking/time";
 import { creditBackForAppointment } from "@/modules/giftcards/giftcards";
@@ -248,7 +249,7 @@ export async function createManualAppointment(
       throw new AppError("invalid", "birthDay");
     const phone = normalizePhone(input.newCustomer.phone, tenant.country, "phone");
     if (!phone && !input.newCustomer.email) throw new AppError("invalid", "phone");
-    const [existing] = input.newCustomer.email
+    const [byEmail] = input.newCustomer.email
       ? await tx
           .select({ id: customers.id })
           .from(customers)
@@ -259,6 +260,9 @@ export async function createManualAppointment(
             ),
           )
       : [];
+    // Déjà dans le fichier (même e-mail, ou même téléphone et même prénom) : on reprend sa fiche.
+    const existing =
+      byEmail ?? (await findSamePerson(tx, tenantId, { phone, firstName: input.newCustomer.firstName }));
     // Nombre de fiches clients limité par le pack (ex. Basic).
     if (!existing) await assertQuota(tx, tenantId, "customers");
     customerId =

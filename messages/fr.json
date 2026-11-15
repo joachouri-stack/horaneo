@@ -2550,7 +2550,9 @@
     "collaborator_already_invited": "Ce membre de l'équipe a déjà un accès à l'espace.",
     "collaborator_already_member": "Cette adresse e-mail a déjà un accès à l'espace de ce site.",
     "customer_has_upcoming": "Ce client a un rendez-vous à venir : annulez-le d'abord, puis supprimez la fiche.",
-    "total_below_deposit": "Le montant ne peut pas être inférieur à l'acompte déjà payé en ligne."
+    "total_below_deposit": "Le montant ne peut pas être inférieur à l'acompte déjà payé en ligne.",
+    "customer_exists": "Ce client existe déjà dans votre fichier (même prénom et même téléphone). Retrouvez-le avec la recherche.",
+    "merge_same_customer": "Choisissez une autre fiche que celle-ci."
   },
   "status": {
     "draft": "En création",
@@ -3056,7 +3058,22 @@
       "edit": "Modifier la fiche",
       "delete": "Supprimer le client",
       "deleteHint": "Définitif. S'il a déjà eu des rendez-vous, ses coordonnées sont effacées mais ses rendez-vous restent dans votre historique et votre chiffre d'affaires.",
-      "deleteConfirm": "Supprimer {name} ? Cette action est définitive."
+      "deleteConfirm": "Supprimer {name} ? Cette action est définitive.",
+      "export": "Exporter",
+      "sortBy": "Trier par :",
+      "sort": { "name": "Nom", "lastVisit": "Dernière visite", "spent": "Dépensé" },
+      "clearSearch": "Effacer la recherche",
+      "createFromSearch": "Créer ce client",
+      "merge": {
+        "title": "Fusionner avec une autre fiche",
+        "hint": "Une même personne enregistrée deux fois ? Choisissez la fiche en double : ses rendez-vous, sa fidélité et ses notes passent sur la fiche de {name}, puis la fiche en double est supprimée.",
+        "none": "Aucune autre fiche ne ressemble à celle-ci (même téléphone, e-mail ou nom).",
+        "choose": "Fiche en double à réunir avec celle-ci",
+        "createdOn": "créée le {date}",
+        "submit": "Fusionner",
+        "confirm": "Réunir la fiche choisie avec celle de {name} ? La fiche en double sera supprimée. Cette action est définitive.",
+        "done": "Fiches fusionnées."
+      }
     },
     "site": {
       "title": "Mon site",

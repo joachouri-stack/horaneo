@@ -21,6 +21,8 @@ import { saveService } from "@/modules/catalog/services";
 import {
   customerDirectory,
   deleteCustomer,
+  mergeCustomers,
+  possibleDuplicates,
   getCustomer,
   saveCustomer,
   searchCustomers,
@@ -436,6 +438,15 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
       expect(camille).toMatchObject({ visits: 1, spentCents: 7000, isNew: true, inactive: false });
       expect(camille.lastVisit?.getTime()).toBe(at("10:00").getTime());
       expect(today.customers.find((row) => row.firstName === "Zoé")).toMatchObject({ visits: 0 });
+      // Tri : par nom (Camille, Zoé), par montant dépensé ou dernière visite (Camille d'abord).
+      const bySpent = await asManager(s.id, (tx) =>
+        customerDirectory(tx, s.id, { now: new Date(), sort: "spent" }),
+      );
+      expect(bySpent.customers.map((row) => row.firstName)).toEqual(["Camille", "Zoé"]);
+      const byVisit = await asManager(s.id, (tx) =>
+        customerDirectory(tx, s.id, { now: new Date(), sort: "lastVisit" }),
+      );
+      expect(byVisit.customers[0].firstName).toBe("Camille");
 
       // Trois mois plus tard : Camille n'est pas revenue, elle est à relancer.
       const later = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
@@ -491,6 +502,88 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
           asManager(s.id, (tx) => updateAppointmentTotal(tx, s.id, booked.appointmentId, "999999")),
         ),
       ).toBe("invalid");
+    });
+  });
+
+  describe("doublons et fusion de fiches", () => {
+    it("même téléphone et même prénom : la fiche existante est reprise, pas de doublon", async () => {
+      const s = await setup();
+      const zoe = await asManager(s.id, (tx) =>
+        saveCustomer(tx, s.id, { firstName: "Zoé", phone: "06 11 22 33 44" }),
+      );
+      // Formulaire « Nouveau client » : refusé, la fiche existe déjà.
+      expect(
+        await errorCode(
+          asManager(s.id, (tx) => saveCustomer(tx, s.id, { firstName: " zoé ", phone: "+33611223344" })),
+        ),
+      ).toBe("customer_exists");
+      // Même numéro mais autre prénom (une mère et sa fille) : deux fiches.
+      const lina = await asManager(s.id, (tx) =>
+        saveCustomer(tx, s.id, { firstName: "Lina", phone: "0611223344" }),
+      );
+      expect(lina.id).not.toBe(zoe.id);
+      // Rendez-vous avec « Nouveau client » : rattaché à la fiche de Zoé.
+      const booked = await asManager(s.id, (tx) =>
+        createManualAppointment(tx, s.id, {
+          serviceIds: [s.massage.id],
+          staffId: s.lea.id,
+          start: at("10:30"),
+          newCustomer: { firstName: "ZOÉ", phone: "0611223344" },
+        }),
+      );
+      const [row] = await owner.select().from(appointments).where(eq(appointments.id, booked.appointmentId));
+      expect(row.customerId).toBe(zoe.id);
+    });
+
+    it("fusion : rendez-vous et coordonnées réunis sur la fiche gardée, la fiche en double disparaît", async () => {
+      const s = await setup();
+      const first = await asManager(s.id, (tx) =>
+        saveCustomer(tx, s.id, { firstName: "Camille", lastName: "Martin", phone: "0644444444" }),
+      );
+      const second = await asManager(s.id, (tx) =>
+        saveCustomer(tx, s.id, {
+          firstName: "Camille",
+          lastName: "Martin",
+          email: "camille.m@example.com",
+          notes: "Préfère le matin",
+        }),
+      );
+      const booked = await asManager(s.id, (tx) =>
+        createManualAppointment(tx, s.id, {
+          serviceIds: [s.massage.id],
+          staffId: s.lea.id,
+          start: at("10:30"),
+          customerId: second.id,
+        }),
+      );
+      const duplicates = await asManager(s.id, (tx) => possibleDuplicates(tx, s.id, first.id));
+      expect(duplicates.map((row) => row.id)).toEqual([second.id]);
+
+      expect(
+        await errorCode(platform((tx) => mergeCustomers(tx, s.id, { keepId: first.id, removeId: first.id }))),
+      ).toBe("merge_same_customer");
+      // Réservée à la gérante principale : passe par le rôle plateforme (fidélité en lecture seule).
+      const merged = await platform((tx) =>
+        mergeCustomers(tx, s.id, { keepId: first.id, removeId: second.id }),
+      );
+      expect(merged).toMatchObject({
+        phone: "+33644444444",
+        email: "camille.m@example.com",
+        notes: "Préfère le matin",
+      });
+      const [row] = await owner.select().from(appointments).where(eq(appointments.id, booked.appointmentId));
+      expect(row.customerId).toBe(first.id);
+      expect(await asManager(s.id, (tx) => getCustomer(tx, s.id, second.id, "fr"))).toBeNull();
+      // Fiche d'un autre établissement : introuvable.
+      const other = await setup();
+      const foreign = await asManager(other.id, (tx) =>
+        saveCustomer(tx, other.id, { firstName: "Autre", phone: "0655555555" }),
+      );
+      expect(
+        await errorCode(
+          platform((tx) => mergeCustomers(tx, s.id, { keepId: first.id, removeId: foreign.id })),
+        ),
+      ).toBe("not_found");
     });
   });
 

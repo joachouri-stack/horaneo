@@ -8,13 +8,14 @@ import { ui } from "@/components/ui/styles";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
 import { formatBirthday } from "@/modules/customers/birthday";
-import { getCustomer } from "@/modules/customers/customers";
+import { getCustomer, possibleDuplicates } from "@/modules/customers/customers";
 import { loyaltyForManager } from "@/modules/loyalty/loyalty";
 import { formatPhone } from "@/modules/phone";
 import { canAccess } from "@/modules/team/access";
 import {
   adjustLoyaltyAction,
   deleteCustomerAction,
+  mergeCustomerAction,
   saveCustomerAction,
   useLoyaltyRewardAction,
 } from "../../actions";
@@ -68,6 +69,8 @@ export default async function CustomerPage({
   const initials = (customer.firstName.charAt(0) + (customer.lastName?.charAt(0) ?? "")).toUpperCase();
   // Suppression : la gérante seulement, et pas une fiche déjà effacée.
   const isOwner = canAccess(page.space, "owner") && !customer.anonymizedAt;
+  // Fiches qui ressemblent à celle-ci (même téléphone, e-mail ou nom) : à fusionner.
+  const duplicates = isOwner ? await page.db((tx) => possibleDuplicates(tx, page.tenantId, customer.id)) : [];
   const action =
     "inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl px-3 text-[0.95rem] font-semibold transition";
   const contactRow = "flex min-h-11 items-center gap-3 text-[0.95rem] text-night";
@@ -319,6 +322,62 @@ export default async function CustomerPage({
             </ActionForm>
           </div>
         </details>
+
+        {/* Fusion d'une fiche en double : réservée à la gérante, avec confirmation. */}
+        {isOwner && (
+          <details className={`${panel} group`}>
+            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 font-display text-[1.1rem] font-semibold text-night">
+              {t("merge.title")}
+              <span aria-hidden="true" className="text-ink-soft transition group-open:rotate-180">
+                ▾
+              </span>
+            </summary>
+            <p className="mt-2 text-sm text-ink/70">{t("merge.hint", { name })}</p>
+            {duplicates.length === 0 ? (
+              <p className="mt-4 rounded-xl bg-mist-50 px-4 py-3 text-sm text-ink/70">{t("merge.none")}</p>
+            ) : (
+              <ActionForm
+                action={mergeCustomerAction}
+                submitLabel={t("merge.submit")}
+                confirm={t("merge.confirm", { name })}
+                successMessage={t("merge.done")}
+                variant="secondary"
+                className="mt-4 space-y-4"
+              >
+                <Hidden values={{ tenantId: page.tenantId, id: customer.id }} />
+                <fieldset className="space-y-2">
+                  <legend className="sr-only">{t("merge.choose")}</legend>
+                  {duplicates.map((other) => (
+                    <label
+                      key={other.id}
+                      className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border-2 border-hairline px-4 py-3 has-[:checked]:border-night"
+                    >
+                      <input
+                        type="radio"
+                        name="removeId"
+                        value={other.id}
+                        required
+                        className="h-5 w-5 shrink-0 accent-navy"
+                      />
+                      <span className="min-w-0 flex-1">
+                        <span className="block font-medium text-night">
+                          {[other.firstName, other.lastName].filter(Boolean).join(" ")}
+                        </span>
+                        <span className="block truncate text-sm text-ink/70">
+                          {[other.phone ? formatPhone(other.phone) : null, other.email]
+                            .filter(Boolean)
+                            .join(" · ")}
+                          {" · "}
+                          {t("merge.createdOn", { date: page.fmt.short(other.createdAt) })}
+                        </span>
+                      </span>
+                    </label>
+                  ))}
+                </fieldset>
+              </ActionForm>
+            )}
+          </details>
+        )}
 
         {/* Suppression : réservée à la gérante, avec confirmation. */}
         {isOwner && (
