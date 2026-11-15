@@ -5,6 +5,7 @@ import { listCategories, listServices } from "@/modules/catalog/services";
 import {
   deleteCategoryAction,
   deleteServiceAction,
+  moveCatalogAction,
   saveCategoryAction,
   saveServiceAction,
 } from "../../actions";
@@ -34,6 +35,7 @@ export default async function ManagerServicesPage({
           deleteCategory: deleteCategoryAction,
           saveService: saveServiceAction,
           deleteService: deleteServiceAction,
+          move: moveCatalogAction,
         }}
       />
     </div>

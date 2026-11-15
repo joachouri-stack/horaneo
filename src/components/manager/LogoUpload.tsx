@@ -19,6 +19,8 @@ export function LogoUpload({ tenantId, logoUrl, action }: Props) {
   const [state, formAction, pending] = useActionState(action, null);
   // Trop lourd : refusé avant l'envoi (sinon l'envoi échoue sans message clair).
   const [tooLarge, setTooLarge] = useState(false);
+  // Nom du fichier choisi, affiché à côté du bouton (le champ natif est masqué).
+  const [fileName, setFileName] = useState<string | null>(null);
   return (
     <div className="mt-4 flex flex-col gap-5 sm:flex-row sm:items-center">
       <div className="flex h-28 w-full flex-none items-center justify-center rounded-xl border border-navy/10 bg-white p-3 sm:w-48">
@@ -31,25 +33,30 @@ export function LogoUpload({ tenantId, logoUrl, action }: Props) {
       </div>
       <form action={formAction} className="flex-1 space-y-2">
         <input type="hidden" name="tenantId" value={tenantId} />
-        <label htmlFor="logo-file" className={ui.label}>
-          {t("file")}
+        {/* Même bouton que pour les photos ; le champ natif (en anglais selon le navigateur) est masqué. */}
+        <label
+          className={`${ui.secondaryButton} cursor-pointer has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-navy/40 sm:w-auto`}
+        >
+          <input
+            id="logo-file"
+            name="file"
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/svg+xml"
+            required
+            className="sr-only"
+            onChange={(event) => {
+              const file = event.currentTarget.files?.[0];
+              const big = Boolean(file && file.size > MAX_UPLOAD_BYTES);
+              setTooLarge(big);
+              setFileName(big ? null : (file?.name ?? null));
+              if (big) event.currentTarget.value = "";
+            }}
+          />
+          🖼️ {t("choose")}
         </label>
-        <input
-          id="logo-file"
-          name="file"
-          type="file"
-          accept="image/png,image/jpeg,image/webp,image/svg+xml"
-          required
-          className={ui.fileInput}
-          onChange={(event) => {
-            const file = event.currentTarget.files?.[0];
-            const big = Boolean(file && file.size > MAX_UPLOAD_BYTES);
-            setTooLarge(big);
-            if (big) event.currentTarget.value = "";
-          }}
-        />
+        {fileName && <p className="text-sm font-medium text-night">{t("chosen", { name: fileName })}</p>}
         <p className="text-sm text-ink/70">{t("hint")}</p>
-        <button type="submit" disabled={pending} className={`${ui.primaryButton} sm:w-auto`}>
+        <button type="submit" disabled={pending || !fileName} className={`${ui.primaryButton} sm:w-auto`}>
           {pending ? t("sending") : t("send")}
         </button>
         {tooLarge && (

@@ -26,6 +26,7 @@ export default async function ManagerPhotosPage({
         active={active}
         retired={retired}
         photoAction={photoAction}
+        reorder
         headingLevel={1}
         uploader={<PhotoCropUpload tenantId={page.tenantId} action={uploadPhotoAction} />}
       />

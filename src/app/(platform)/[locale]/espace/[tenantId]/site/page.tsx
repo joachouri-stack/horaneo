@@ -35,11 +35,24 @@ export default async function MySitePage({ params }: PageProps<"/[locale]/espace
   ];
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
-          {t("title")}
-        </h1>
-        <p className="mt-1 text-ink/70">{t("intro")}</p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
+            {t("title")}
+          </h1>
+          <p className="mt-1 text-ink/70">{t("intro")}</p>
+        </div>
+        {/* Voir le résultat après une modification : bien visible, en haut. */}
+        {primary && page.tenant.status === "active" && (
+          <a
+            href={tenantSiteUrl(primary.hostname)}
+            target="_blank"
+            rel="noreferrer"
+            className={`${ui.primaryButton} sm:w-auto`}
+          >
+            {t("view")} ↗
+          </a>
+        )}
       </div>
       <ul className="grid gap-3 sm:grid-cols-2">
         {links.map((link) => (
@@ -50,16 +63,6 @@ export default async function MySitePage({ params }: PageProps<"/[locale]/espace
           </li>
         ))}
       </ul>
-      {primary && page.tenant.status === "active" && (
-        <a
-          href={tenantSiteUrl(primary.hostname)}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex min-h-11 items-center font-semibold text-night underline"
-        >
-          {t("view")} ↗
-        </a>
-      )}
       {/* Logo commun à tout le site : changé depuis l'établissement principal. */}
       <section className={ui.card}>
         <h2 className="text-lg font-semibold">{t("logo.title")}</h2>

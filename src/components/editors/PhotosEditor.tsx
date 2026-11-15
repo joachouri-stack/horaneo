@@ -22,6 +22,7 @@ export async function PhotosEditor({
   photoAction,
   uploader,
   headingLevel,
+  reorder = false,
 }: {
   tenantId: string;
   locale: string;
@@ -33,6 +34,8 @@ export async function PhotosEditor({
   uploader: React.ReactNode;
   /** Niveau du titre principal : 1 quand l'éditeur forme toute la page (espace gérante). */
   headingLevel?: 1 | 2;
+  /** Boutons « Monter » / « Descendre » (l'action accepte les opérations « up » et « down »). */
+  reorder?: boolean;
 }) {
   const t = await getTranslations("admin.tenant.photos");
   const photos = active.filter((asset) => asset.kind !== "logo");
@@ -50,23 +53,42 @@ export async function PhotosEditor({
       >
         {photos.length === 0 && <p className="text-ink/70">{t("empty")}</p>}
         <ul className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          {photos.map((photo) => (
-            <li key={photo.id} className="space-y-2">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={store.publicUrl(photo.storageKey)}
-                alt={pickLocalized(photo.alt, contentLocale as "fr")}
-                width={photo.width ?? undefined}
-                height={photo.height ?? undefined}
-                loading="lazy"
-                className="aspect-square w-full rounded-lg object-cover"
-              />
-              <p className="text-[0.8125rem] text-ink/70">{t(`kinds.${photo.kind as Kind}`)}</p>
-              <ActionForm action={photoAction} submitLabel={t("remove")} variant="danger" className="">
-                <Hidden values={{ tenantId, id: photo.id, operation: "retire" }} />
-              </ActionForm>
-            </li>
-          ))}
+          {photos.map((photo) => {
+            // Ordre parmi les photos du même emplacement (ex. la galerie).
+            const sameKind = photos.filter((item) => item.kind === photo.kind);
+            const position = sameKind.findIndex((item) => item.id === photo.id);
+            return (
+              <li key={photo.id} className="space-y-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={store.publicUrl(photo.storageKey)}
+                  alt={pickLocalized(photo.alt, contentLocale as "fr")}
+                  width={photo.width ?? undefined}
+                  height={photo.height ?? undefined}
+                  loading="lazy"
+                  className="aspect-square w-full rounded-lg object-cover"
+                />
+                <p className="text-[0.8125rem] text-ink/70">{t(`kinds.${photo.kind as Kind}`)}</p>
+                {reorder && sameKind.length > 1 && (
+                  <div className="flex flex-wrap gap-x-4">
+                    {position > 0 && (
+                      <ActionForm action={photoAction} submitLabel={`← ${t("moveUp")}`} variant="link">
+                        <Hidden values={{ tenantId, id: photo.id, operation: "up" }} />
+                      </ActionForm>
+                    )}
+                    {position < sameKind.length - 1 && (
+                      <ActionForm action={photoAction} submitLabel={`${t("moveDown")} →`} variant="link">
+                        <Hidden values={{ tenantId, id: photo.id, operation: "down" }} />
+                      </ActionForm>
+                    )}
+                  </div>
+                )}
+                <ActionForm action={photoAction} submitLabel={t("remove")} variant="danger" className="">
+                  <Hidden values={{ tenantId, id: photo.id, operation: "retire" }} />
+                </ActionForm>
+              </li>
+            );
+          })}
         </ul>
         <div className="mt-6 border-t border-navy/10 pt-6">
           <p className="mb-4 text-sm text-ink/70">{t("uploadHint")}</p>
