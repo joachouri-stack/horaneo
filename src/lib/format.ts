@@ -15,8 +15,14 @@ export function formatMoney(cents: number, currency: string, locale: string): st
  * Montant découpé pour l'affichage des prix : la partie entière (« 19 ») et
  * le reste (« ,99 € »), même format que formatMoney.
  */
-export function moneyParts(cents: number, currency: string, locale: string): { lead: string; tail: string } {
-  const whole = cents % 100 === 0;
+export function moneyParts(
+  cents: number,
+  currency: string,
+  locale: string,
+  { cents: withCents = false }: { cents?: boolean } = {},
+): { lead: string; tail: string } {
+  // Centimes masqués pour un montant rond, sauf demande contraire (prix comparés côte à côte).
+  const whole = cents % 100 === 0 && !withCents;
   const parts = new Intl.NumberFormat(locale, {
     style: "currency",
     currency,

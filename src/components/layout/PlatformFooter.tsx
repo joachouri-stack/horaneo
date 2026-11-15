@@ -8,6 +8,7 @@ import { env } from "@/config/env";
 import { withPlatform } from "@/db/access";
 import { Link } from "@/i18n/navigation";
 import { getPlatformSetting } from "@/modules/settings";
+import { listShowcase } from "@/modules/showcase/showcase";
 
 const NETWORKS: SocialNetwork[] = ["youtube", "tiktok", "instagram", "facebook"];
 
@@ -36,6 +37,10 @@ export async function PlatformFooter() {
   ] as const;
   // Seuls les réseaux dont l'adresse est renseignée (Admin → Réglages → Réseaux sociaux)
   // sont affichés ; sans aucun, le bloc « Suivez-nous » est masqué.
+  const hasReviews = await withPlatform(
+    async (tx) =>
+      (await listShowcase(tx)).length > 0 || Boolean(String(await getPlatformSetting(tx, "trustpilot_url"))),
+  );
   const urls = await withPlatform(async (tx) =>
     Promise.all(NETWORKS.map(async (network) => String(await getPlatformSetting(tx, `social_${network}`)))),
   );
@@ -160,11 +165,14 @@ export async function PlatformFooter() {
                     {tCommon("login")}
                   </Link>
                 </li>
-                <li>
-                  <Link href="/avis" className={LINK}>
-                    {t("reviews")}
-                  </Link>
-                </li>
+                {/* Avis clients : seulement quand il y a de quoi lire (témoignages ou page Trustpilot). */}
+                {hasReviews && (
+                  <li>
+                    <Link href="/avis" className={LINK}>
+                      {t("reviews")}
+                    </Link>
+                  </li>
+                )}
                 <li>
                   <a href={`mailto:${contact}`} className={LINK}>
                     {t("contact")}
@@ -192,7 +200,7 @@ export async function PlatformFooter() {
             <p>{t("rights", { year: new Date().getFullYear(), product: product.toLocaleUpperCase() })}</p>
           </div>
 
-          {/* La marque en très grand, qui s'estompe vers le bas : signature du pied de page. */}
+          {/* La marque en grand, qui s'estompe vers le bas : signature du pied de page (sans prendre tout l'écran). */}
           <div
             aria-hidden="true"
             className="pointer-events-none mt-4 flex select-none justify-center pt-[clamp(1rem,4vw,3.5rem)] [mask-image:linear-gradient(to_bottom,#000_45%,transparent_95%)] lg:mt-6"
@@ -200,8 +208,8 @@ export async function PlatformFooter() {
             <Logo
               productName={product}
               light
-              sizes="(min-width: 1280px) 720px, 60vw"
-              className="text-[clamp(3rem,14.5vw,11.5rem)] leading-[0.9]"
+              sizes="(min-width: 1280px) 360px, 40vw"
+              className="text-[clamp(2.5rem,8vw,5.5rem)] leading-[0.9]"
             />
           </div>
         </div>
