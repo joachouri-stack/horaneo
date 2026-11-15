@@ -340,6 +340,15 @@ export async function loadShopOrder(tx: Transaction, tenantId: string, orderId: 
   return { order, items };
 }
 
+/** Nombre de commandes encore à traiter (payées à préparer, ou prêtes / expédiées). */
+export async function openShopOrdersCount(tx: Transaction, tenantId: string) {
+  const [{ value }] = await tx
+    .select({ value: sql<number>`count(*)::int` })
+    .from(shopOrders)
+    .where(and(eq(shopOrders.tenantId, tenantId), inArray(shopOrders.status, ["paid", "ready"])));
+  return value;
+}
+
 /** Commandes de l'entreprise déclarée (les plus récentes d'abord), hors paiements non aboutis. */
 export async function listShopOrders(tx: Transaction, tenantId: string, limit = 200) {
   const orders = await tx

@@ -11,6 +11,12 @@ import { getSite } from "@/lib/site/load";
 import { priceRange, promotion, shopProducts, soldOut } from "@/modules/shop/catalog";
 import { productPath, SITE_PATHS } from "@/modules/site/paths";
 
+/**
+ * À partir de ce nombre de produits, la boutique est présentée par catégorie (un
+ * titre par catégorie) ; en dessous, une seule grille, filtrable par catégorie.
+ */
+const SECTIONS_FROM = 9;
+
 export async function generateMetadata({
   params,
 }: PageProps<"/sites/[tenantId]/boutique">): Promise<Metadata> {
@@ -42,9 +48,11 @@ export default async function ShopPage({ params, searchParams }: PageProps<"/sit
     (chosen ? [chosen] : sellers).map((business) => site.shopModes[business.id] ?? "pickup"),
   );
   const mode = modes.size === 1 ? [...modes][0] : "both";
-  const products = chosen
+  const listed = chosen
     ? await withTenant(tenantId, (tx) => shopProducts(tx, tenantId, chosen.id, locale), undefined, chosen.id)
     : [];
+  // Produits en rupture à la fin (ordre de la gérante conservé sinon).
+  const products = [...listed.filter((product) => !soldOut(product)), ...listed.filter(soldOut)];
 
   // Regroupement par catégorie (dans l'ordre des produits) ; les produits sans catégorie à la fin.
   const named = [
@@ -62,8 +70,20 @@ export default async function ShopPage({ params, searchParams }: PageProps<"/sit
       products: products.filter((product) => !product.category),
     },
   ].filter((group) => group.products.length > 0);
+  // Peu de produits : une seule grille, les catégories servent de filtres.
+  const sectioned = products.length >= SECTIONS_FROM;
+  const filter = sectioned ? undefined : groups.find((group) => group.anchor === query.categorie);
+  const sellerQuery = sellers.length > 1 && chosen ? `avec=${chosen.id}&` : "";
+  const filterHref = (anchor?: string) =>
+    anchor
+      ? `${SITE_PATHS.shop}?${sellerQuery}categorie=${anchor}`
+      : `${SITE_PATHS.shop}${sellerQuery ? `?${sellerQuery.slice(0, -1)}` : ""}`;
+  const chip =
+    "inline-flex min-h-11 items-center rounded-full border border-site-border bg-site-card px-4 font-semibold hover:border-site-accent aria-[current=true]:border-site-button aria-[current=true]:bg-site-button aria-[current=true]:text-site-on-button";
   const grid = (list: typeof products) => (
-    <ul className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3">
+    <ul
+      className={`grid grid-cols-2 gap-4 sm:gap-6 ${sectioned ? "lg:grid-cols-3" : "sm:grid-cols-3 lg:grid-cols-4"}`}
+    >
       {list.map((product) => {
         const out = soldOut(product);
         const price = priceRange(product);
@@ -79,13 +99,17 @@ export default async function ShopPage({ params, searchParams }: PageProps<"/sit
                 {product.photo ? (
                   <SiteImage
                     image={{ ...product.photo, alt: product.name }}
-                    sizes="(min-width: 1024px) 33vw, 50vw"
-                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                    sizes={
+                      sectioned
+                        ? "(min-width: 1024px) 33vw, 50vw"
+                        : "(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
+                    }
+                    className={`h-full w-full object-cover transition duration-300 group-hover:scale-105 ${out ? "opacity-60 grayscale" : ""}`}
                   />
                 ) : (
                   <span
                     aria-hidden="true"
-                    className="flex h-full items-center justify-center text-site-muted"
+                    className={`flex h-full items-center justify-center text-site-muted ${out ? "opacity-60" : ""}`}
                   >
                     <svg
                       viewBox="0 0 24 24"
@@ -167,20 +191,36 @@ export default async function ShopPage({ params, searchParams }: PageProps<"/sit
       {chosen && groups.length > 1 && (
         <nav aria-label={t("categories")} className="mb-8">
           <ul className="flex flex-wrap gap-2">
+            {!sectioned && (
+              <li>
+                <Link href={filterHref()} aria-current={!filter ? "true" : undefined} className={chip}>
+                  {t("allCategories")}
+                </Link>
+              </li>
+            )}
             {groups.map((group) => (
               <li key={group.anchor}>
-                <a
-                  href={`#${group.anchor}`}
-                  className="inline-flex min-h-11 items-center rounded-full border border-site-border bg-site-card px-4 font-semibold hover:border-site-accent"
-                >
-                  {group.name}
-                </a>
+                {sectioned ? (
+                  <a href={`#${group.anchor}`} className={chip}>
+                    {group.name}
+                  </a>
+                ) : (
+                  <Link
+                    href={filterHref(group.anchor)}
+                    aria-current={filter?.anchor === group.anchor ? "true" : undefined}
+                    className={chip}
+                  >
+                    {group.name}
+                  </Link>
+                )}
               </li>
             ))}
           </ul>
         </nav>
       )}
+      {chosen && !sectioned && grid(filter ? filter.products : products)}
       {chosen &&
+        sectioned &&
         groups.map((group) => (
           <section
             key={group.anchor}

@@ -7,6 +7,10 @@ import { pickLocalized } from "@/i18n/locales";
 import { centsToInput } from "@/lib/format";
 import { managerPage } from "@/lib/manager/page";
 import { storage } from "@/lib/storage";
+import { tenantSiteUrl } from "@/lib/tenancy/urls";
+import { tenantDomains } from "@/db/schema";
+import { SITE_PATHS } from "@/modules/site/paths";
+import { and, eq } from "drizzle-orm";
 import { firstPlanWith } from "@/modules/billing/plans";
 import { listProducts } from "@/modules/shop/products";
 import { currentShopFulfillment } from "@/modules/shop/settings";
@@ -27,11 +31,21 @@ export default async function ShopPage({ params }: PageProps<"/[locale]/espace/[
   const page = await managerPage(params, "shop");
   const [t, tCommon] = await Promise.all([getTranslations("manager.shop"), getTranslations("common")]);
   const available = Boolean(page.tenant.features.commerce);
-  const [products, fulfillment] = available
+  const [products, fulfillment, primary] = available
     ? await page.db(
-        async (tx) => [await listProducts(tx, page.tenantId), await currentShopFulfillment(tx)] as const,
+        async (tx) =>
+          [
+            await listProducts(tx, page.tenantId),
+            await currentShopFulfillment(tx),
+            (
+              await tx
+                .select({ hostname: tenantDomains.hostname })
+                .from(tenantDomains)
+                .where(and(eq(tenantDomains.tenantId, page.tenantId), eq(tenantDomains.isPrimary, true)))
+            )[0],
+          ] as const,
       )
-    : [[], null];
+    : [[], null, undefined];
   const locale = page.tenant.defaultLocale as "fr";
   const store = storage();
 
@@ -168,7 +182,20 @@ export default async function ShopPage({ params }: PageProps<"/[locale]/espace/[
         </p>
       ) : (
         <>
-          <p className="text-ink/80">{t("intro")}</p>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-ink/80">{t("intro")}</p>
+            {/* Voir la boutique telle que les clients la voient. */}
+            {primary && page.tenant.status === "active" && products.length > 0 && (
+              <a
+                href={`${tenantSiteUrl(primary.hostname)}${SITE_PATHS.shop}`}
+                target="_blank"
+                rel="noreferrer"
+                className={`${ui.secondaryButton} sm:w-auto`}
+              >
+                {t("seeShop")} ↗
+              </a>
+            )}
+          </div>
           {fulfillment && (
             <details className={ui.card}>
               <summary className="flex min-h-11 cursor-pointer items-center text-lg font-semibold text-night">

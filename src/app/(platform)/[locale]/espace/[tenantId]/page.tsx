@@ -20,6 +20,7 @@ import { reviewsCacheByBusiness } from "@/modules/reviews/google";
 import { getPlatformSetting } from "@/modules/settings";
 import { dashboardStats, trendPercent } from "@/modules/stats/dashboard";
 import { monthStats } from "@/modules/stats/month";
+import { openShopOrdersCount } from "@/modules/shop/orders";
 import { agendaStaffFilter, canAccess } from "@/modules/team/access";
 
 /**
@@ -46,6 +47,11 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
         (await reviewsCacheByBusiness(tx, page.tenantId)).get(page.businessId),
       ] as const,
   );
+  // Commandes de la boutique à traiter : rappel en haut de l'accueil.
+  const openOrders =
+    page.tenant.features.commerce && canAccess(page.space, "shop")
+      ? await page.db((tx) => openShopOrdersCount(tx, page.tenantId))
+      : 0;
   const month = await page.db((tx) =>
     monthStats(tx, page.tenantId, stats.today.slice(0, 7), tz, page.locale),
   );
@@ -112,6 +118,15 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
           </Link>
         </div>
       </div>
+
+      {openOrders > 0 && (
+        <p role="status" className={`${panel} !py-4 border-accent-line bg-accent-soft/60 text-night`}>
+          {t("ordersOpen", { count: openOrders })}{" "}
+          <Link href={`${page.base}/plus/commandes`} className="font-medium text-accent underline">
+            {t("ordersLink")}
+          </Link>
+        </p>
+      )}
 
       {smsAlert && (
         <p role="status" className={`${panel} !py-4 border-[#f3d3cc] bg-[#fdf4f2] text-night`}>
