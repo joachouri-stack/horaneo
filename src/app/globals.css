@@ -312,6 +312,9 @@ html:has(body.saas) {
 form:has(input[name="billing"][value="year"]:checked) [data-monthly-only] {
   display: none;
 }
+form:not(:has(input[name="billing"][value="year"]:checked)) [data-yearly-only] {
+  display: none;
+}
 
 /*
  * Cartes des packs (proposition « premium ») : lumière qui suit le pointeur,

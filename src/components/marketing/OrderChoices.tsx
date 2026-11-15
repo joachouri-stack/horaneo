@@ -16,7 +16,15 @@ export type ConfiguratorOption = PricedOption & {
 };
 export type ConfiguratorPlan = { code: string; name: string; priceCents: number };
 /** Offre de lancement (places réelles) : sous « À l'année » si elle exige un engagement. */
-export type ConfiguratorOffer = { id: string; text: string; yearlyOnly: boolean };
+export type ConfiguratorOffer = {
+  id: string;
+  text: string;
+  yearlyOnly: boolean;
+  /** Pack concerné : l'offre ne s'affiche que s'il est choisi. */
+  planCode: string;
+  /** Pack choisi mais en mensuel : comment obtenir l'offre (paiement à l'année). */
+  monthlyText: string;
+};
 
 /**
  * Choix du pack, de la périodicité et des options dans le formulaire de
@@ -35,6 +43,7 @@ export function OrderChoices({
   display,
   vatPercent,
   trialDays,
+  firstCharge,
   offers,
   labels,
 }: {
@@ -50,6 +59,8 @@ export function OrderChoices({
   vatPercent: number;
   /** Essai gratuit à la première souscription (réglages, 0 = pas d'essai). */
   trialDays: number;
+  /** Date du premier prélèvement (fin de l'essai), déjà mise en forme. */
+  firstCharge: string;
   offers: ConfiguratorOffer[];
   labels: {
     plan: string;
@@ -60,6 +71,7 @@ export function OrderChoices({
     perYear: string;
     billing: string;
     monthly: string;
+    monthlyHint: string;
     yearly: string;
     yearlyHint: string;
   };
@@ -67,7 +79,8 @@ export function OrderChoices({
   const t = useTranslations("home.options");
   const tOrder = useTranslations("order");
   const locale = useLocale();
-  const money = (cents: number) => formatMoney(cents, PLATFORM_CURRENCY, locale);
+  // Prix comparés côte à côte : toujours avec centimes (« 46,00 € »).
+  const money = (cents: number) => formatMoney(cents, PLATFORM_CURRENCY, locale, { cents: true });
   const [planCode, setPlanCode] = useState(initialPlan);
   const [billing, setBilling] = useState<BillingInterval>(yearly.enabled ? initialBilling : "month");
   const annual = billing === "year";
@@ -80,6 +93,8 @@ export function OrderChoices({
   );
   const totalCents = priceOf(total.totalCents);
   const ttcCents = ttcHintCents(totalCents, display, vatPercent);
+  // Offres du pack choisi (tablette) : incluses à l'année, sinon comment les obtenir.
+  const planOffers = offers.filter((offer) => offer.planCode === plan?.code);
   const offerNote = (offer: ConfiguratorOffer) => (
     <span key={offer.id} className="mt-2 block rounded-[var(--radius-card)] bg-navy/5 p-3 text-sm text-night">
       {offer.text}
@@ -134,10 +149,9 @@ export function OrderChoices({
                     <span className="block font-bold text-night">
                       {value === "month" ? labels.monthly : labels.yearly}
                     </span>
-                    {value === "year" && (
-                      <span className="block text-sm text-ink/70">{labels.yearlyHint}</span>
-                    )}
-                    {value === "year" && offers.filter((offer) => offer.yearlyOnly).map(offerNote)}
+                    <span className="block text-sm text-ink/70">
+                      {value === "year" ? labels.yearlyHint : labels.monthlyHint}
+                    </span>
                   </span>
                 </span>
               </label>
@@ -145,9 +159,19 @@ export function OrderChoices({
           </div>
         </fieldset>
       )}
-      {/* Offres sans condition de paiement : sous le choix du pack. */}
-      {offers.some((offer) => !offer.yearlyOnly) && (
-        <p>{offers.filter((offer) => !offer.yearlyOnly).map(offerNote)}</p>
+      {/* Offre du pack choisi : incluse (à l'année ou sans condition), sinon l'indication pour l'obtenir. */}
+      {planOffers.length > 0 && (
+        <p>
+          {planOffers.map((offer) =>
+            !offer.yearlyOnly || annual ? (
+              offerNote(offer)
+            ) : (
+              <span key={offer.id} className="mt-2 block text-sm text-ink/80">
+                {offer.monthlyText}
+              </span>
+            ),
+          )}
+        </p>
       )}
       {orderable.length > 0 && !annual && (
         <fieldset>
@@ -215,8 +239,14 @@ export function OrderChoices({
         </p>
         {/* Essai gratuit : rien n'est prélevé à la commande d'un pack payant. */}
         {trialDays > 0 && (plan?.priceCents ?? 0) > 0 && (
-          <p className="mt-2 rounded-[var(--radius-card)] bg-success/10 px-4 py-3 text-sm font-semibold text-success">
-            {tOrder("trialNote", { days: trialDays })}
+          <p className="mt-2 rounded-[var(--radius-card)] bg-success/10 px-4 py-3 text-sm text-success">
+            <span className="font-semibold">{tOrder("trialNote", { days: trialDays })}</span>{" "}
+            {tOrder("firstCharge", {
+              date: firstCharge,
+              amount: money(ttcCents ?? totalCents),
+              ttc: ttcCents !== null ? "yes" : "no",
+              interval: annual ? "year" : "month",
+            })}
           </p>
         )}
       </div>
