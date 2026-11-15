@@ -1,8 +1,16 @@
 /** Mises en forme selon la langue (montants, dates). */
 
-/** Montant sans centimes inutiles : « 36 € », mais « 45,50 € ». */
-export function formatMoney(cents: number, currency: string, locale: string): string {
-  const whole = cents % 100 === 0;
+/**
+ * Montant sans centimes inutiles : « 36 € », mais « 45,50 € ». Avec `cents`, toujours
+ * deux décimales (« 36,00 € »), pour des prix comparés côte à côte.
+ */
+export function formatMoney(
+  cents: number,
+  currency: string,
+  locale: string,
+  { cents: withCents = false }: { cents?: boolean } = {},
+): string {
+  const whole = cents % 100 === 0 && !withCents;
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,

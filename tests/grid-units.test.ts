@@ -97,12 +97,12 @@ describe("grille des packs : une seule source pour les cartes et le comparatif",
     ).toEqual(["freeDomain", "giftCards"]);
     expect(card.included.map((line) => line.key)).not.toContain("giftCards");
     expect(gridCard(starter, GRID, SOON).included.map((line) => line.key)).not.toContain("freeDomain");
-    // Starter : ce qui fait choisir d'abord (site, réservations, paiement, rappels).
+    // Starter : ce qui fait choisir d'abord (site créé pour le client, réservations, paiement, rappels).
     expect(
       gridCard(starter, GRID, SOON)
-        .included.slice(0, 4)
+        .included.slice(0, 5)
         .map((line) => line.key),
-    ).toEqual(["fullSite", "bookings", "onlinePayment", "emailReminders"]);
+    ).toEqual(["fullSite", "siteCreation", "bookings", "onlinePayment", "emailReminders"]);
     // Le suivi client ne figure qu'au comparatif (il se confondait avec le fichier clients).
     expect(proCard.included.map((line) => line.key)).not.toContain("customerFollowUp");
   });
