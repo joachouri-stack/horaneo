@@ -18,8 +18,9 @@ export default async function PhotosPage({ params }: PageProps<"/[locale]/admin/
     getTranslations("admin.tenant.photos"),
     loadTenantOverview(tenantId),
     adminQuery(async (tx) => ({
-      active: await listActiveAssets(tx, tenantId),
-      retired: await listRetiredAssets(tx, tenantId),
+      // Photos des produits : gérées avec le produit (Boutique), pas ici (les retirer les enlèverait de la boutique).
+      active: (await listActiveAssets(tx, tenantId)).filter((asset) => asset.kind !== "product"),
+      retired: (await listRetiredAssets(tx, tenantId)).filter((asset) => asset.kind !== "product"),
     })),
   ]);
   const kinds = ["gallery", "cover", "staff", "service", "other"] as const;
@@ -36,7 +37,7 @@ export default async function PhotosPage({ params }: PageProps<"/[locale]/admin/
         <div className="space-y-6">
           <PhotoCropUpload tenantId={tenantId} action={uploadPhotoAction} />
           <details>
-            <summary className="cursor-pointer py-3 text-sm font-semibold text-night">
+            <summary className="hn-summary cursor-pointer py-3 text-sm font-semibold text-night">
               {t("uploadNoCrop")}
             </summary>
             <ActionForm

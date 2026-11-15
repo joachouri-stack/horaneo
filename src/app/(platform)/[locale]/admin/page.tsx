@@ -194,7 +194,7 @@ export default async function AdminHomePage({ params }: PageProps<"/[locale]/adm
           <Stat label={t("dashboard.cancelledThisMonth")} value={stats.cancelledThisMonth} />
         </div>
         <details className={ui.card}>
-          <summary className="cursor-pointer py-2.5 font-bold">{t("dashboard.byPlan")}</summary>
+          <summary className="hn-summary cursor-pointer py-2.5 font-bold">{t("dashboard.byPlan")}</summary>
           <ul className="mt-4 divide-y divide-navy/10">
             {/* Anciens packs qui ne sont plus en vente : seulement s'ils ont encore des clients. */}
             {stats.byPlan

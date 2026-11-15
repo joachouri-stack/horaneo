@@ -99,7 +99,7 @@ export default async function OrdersPage({ params }: PageProps<"/[locale]/admin/
             </div>
             {order.status !== "in_creation" && (
               <details className="mt-4">
-                <summary className="cursor-pointer py-2.5 font-semibold text-coral-dark">
+                <summary className="hn-summary cursor-pointer py-2.5 font-semibold text-coral-dark">
                   {t("reject")}
                 </summary>
                 <ActionForm

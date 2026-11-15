@@ -127,46 +127,69 @@ export default async function BillingAdminPage({ params }: PageProps<"/[locale]/
         {sms.length === 0 ? (
           <p className="mt-2 text-ink/70">{t("sms.empty")}</p>
         ) : (
-          <div className="mt-3 overflow-x-auto">
-            <table className="w-full min-w-[32rem] text-left text-sm">
-              <thead className="text-ink/70">
-                <tr>
-                  <th scope="col" className="py-2 pr-3 font-semibold">
-                    {t("sms.period")}
-                  </th>
-                  <th scope="col" className="py-2 pr-3 text-right font-semibold">
-                    {t("sms.total")}
-                  </th>
-                  <th scope="col" className="py-2 pr-3 text-right font-semibold">
-                    {t("sms.fromQuota")}
-                  </th>
-                  <th scope="col" className="py-2 pr-3 text-right font-semibold">
-                    {t("sms.fromPacks")}
-                  </th>
-                  <th scope="col" className="py-2 text-right font-semibold">
-                    {t("sms.packsSold")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-navy/10">
-                {sms.map((row) => (
-                  <tr key={row.period}>
-                    <th scope="row" className="py-2 pr-3 font-semibold">
-                      {monthLabel(row.period)}
+          <>
+            {/* Téléphone : une ligne par mois, sans tableau à faire défiler. */}
+            <ul className="mt-3 divide-y divide-navy/10 text-sm sm:hidden">
+              {sms.map((row) => (
+                <li key={row.period} className="py-2">
+                  <p className="font-semibold text-night">{monthLabel(row.period)}</p>
+                  <p className="text-ink/80">
+                    {t("sms.total")} : <span className="font-bold text-night">{row.total}</span> ·{" "}
+                    {t("sms.fromQuota")} : {row.fromQuota} · {t("sms.fromPacks")} : {row.fromPacks} ·{" "}
+                    {t("sms.packsSold")} :{" "}
+                    {row.packsSold > 0
+                      ? `${row.packsSold} · ${formatMoney(row.packsRevenueCents, PLATFORM_CURRENCY, locale)}`
+                      : "0"}
+                  </p>
+                </li>
+              ))}
+            </ul>
+            <div
+              className="mt-3 hidden overflow-x-auto sm:block"
+              role="region"
+              aria-labelledby="titre-sms"
+              tabIndex={0}
+            >
+              <table className="w-full min-w-[32rem] text-left text-sm">
+                <thead className="text-ink/70">
+                  <tr>
+                    <th scope="col" className="py-2 pr-3 font-semibold">
+                      {t("sms.period")}
                     </th>
-                    <td className="py-2 pr-3 text-right font-bold text-night">{row.total}</td>
-                    <td className="py-2 pr-3 text-right">{row.fromQuota}</td>
-                    <td className="py-2 pr-3 text-right">{row.fromPacks}</td>
-                    <td className="py-2 text-right">
-                      {row.packsSold > 0
-                        ? `${row.packsSold} · ${formatMoney(row.packsRevenueCents, PLATFORM_CURRENCY, locale)}`
-                        : "0"}
-                    </td>
+                    <th scope="col" className="py-2 pr-3 text-right font-semibold">
+                      {t("sms.total")}
+                    </th>
+                    <th scope="col" className="py-2 pr-3 text-right font-semibold">
+                      {t("sms.fromQuota")}
+                    </th>
+                    <th scope="col" className="py-2 pr-3 text-right font-semibold">
+                      {t("sms.fromPacks")}
+                    </th>
+                    <th scope="col" className="py-2 text-right font-semibold">
+                      {t("sms.packsSold")}
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-navy/10">
+                  {sms.map((row) => (
+                    <tr key={row.period}>
+                      <th scope="row" className="py-2 pr-3 font-semibold">
+                        {monthLabel(row.period)}
+                      </th>
+                      <td className="py-2 pr-3 text-right font-bold text-night">{row.total}</td>
+                      <td className="py-2 pr-3 text-right">{row.fromQuota}</td>
+                      <td className="py-2 pr-3 text-right">{row.fromPacks}</td>
+                      <td className="py-2 text-right">
+                        {row.packsSold > 0
+                          ? `${row.packsSold} · ${formatMoney(row.packsRevenueCents, PLATFORM_CURRENCY, locale)}`
+                          : "0"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </section>
     </main>

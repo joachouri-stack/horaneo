@@ -282,7 +282,7 @@ export default async function TenantOverviewPage({
         )}
 
         <details className={`${ui.card} lg:col-span-2`}>
-          <summary className="cursor-pointer py-1.5 text-xl font-bold">{t("usage")}</summary>
+          <summary className="hn-summary cursor-pointer py-1.5 text-xl font-bold">{t("usage")}</summary>
           <div className="mt-4">
             <dl className="grid grid-cols-2 gap-4">
               {[

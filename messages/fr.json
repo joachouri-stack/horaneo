@@ -1997,7 +1997,8 @@
           "cover": "Grande photo d'accueil",
           "staff": "Photo d'un membre",
           "service": "Photo d'une prestation",
-          "other": "Autre (logo… envoyé sans recadrage)"
+          "other": "Autre (logo… envoyé sans recadrage)",
+          "product": "Photo d'un produit (boutique)"
         },
         "alt": "Description de la photo (lue aux personnes malvoyantes)",
         "quota": "{used, plural, one {# photo} other {# photos}} sur {limit}",
