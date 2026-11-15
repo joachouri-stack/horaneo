@@ -23,6 +23,8 @@ type Props = {
   successMessage?: string;
   /** Bouton collé en bas de l'écran (longs formulaires). */
   stickySubmit?: boolean;
+  /** Position du bouton collé (par défaut tout en bas ; au-dessus des onglets de l'espace gérante). */
+  stickyBottomClass?: string;
 };
 
 /** Champs en erreur du résultat (un seul ou plusieurs). */
@@ -53,6 +55,7 @@ export function ActionForm({
   confirm,
   successMessage,
   stickySubmit,
+  stickyBottomClass = "bottom-0",
 }: Props) {
   const t = useTranslations();
   const locale = useLocale();
@@ -165,7 +168,9 @@ export function ActionForm({
       <FieldErrorsContext.Provider value={fieldErrors}>{children}</FieldErrorsContext.Provider>
       {stickySubmit ? (
         // Bouton et message toujours visibles en bas de l'écran pendant qu'on fait défiler le formulaire.
-        <div className="sticky bottom-0 z-10 -mx-4 space-y-3 border-t border-hairline bg-white/95 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-xl sm:border">
+        <div
+          className={`sticky ${stickyBottomClass} z-10 -mx-4 space-y-3 border-t border-hairline bg-white/95 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-xl sm:border`}
+        >
           {feedback}
           {submitLabel && (
             <button type="submit" disabled={pending} className={buttonClass}>

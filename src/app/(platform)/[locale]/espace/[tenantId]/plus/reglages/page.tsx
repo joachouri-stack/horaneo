@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
-import { CheckboxField, Hidden, Section, SelectField, TextField } from "@/components/admin/fields";
+import { CheckboxField, Hidden, Section, SelectField } from "@/components/admin/fields";
+import { DepositFields } from "@/components/manager/DepositFields";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
 import { paymentGateway } from "@/lib/payments/stripe";
@@ -15,6 +16,21 @@ import { updateSettingsAction } from "../../actions";
 const ADVANCE_DAYS = [7, 14, 30, 60, 90, 180, 365];
 const advanceOptions = (current: number) =>
   ADVANCE_DAYS.includes(current) ? ADVANCE_DAYS : [...ADVANCE_DAYS, current].sort((a, b) => a - b);
+
+/** Délais proposés (en minutes) pour réserver au plus tard, plus la valeur actuelle. */
+const NOTICE_MINUTES = [0, 30, 60, 120, 240, 720, 1440, 2880];
+/** Délais proposés (en heures) pour annuler ou déplacer en ligne, plus la valeur actuelle. */
+const CANCELLATION_HOURS = [0, 2, 12, 24, 48, 72];
+const withCurrent = (list: number[], current: number) =>
+  list.includes(current) ? list : [...list, current].sort((a, b) => a - b);
+
+/** Autres pages de réglages, rappelées en bas de page. */
+const OTHER_SETTINGS = [
+  { key: "hours", path: "/site/horaires" },
+  { key: "team", path: "/plus/equipe" },
+  { key: "payments", path: "/plus/paiements" },
+  { key: "subscription", path: "/plus/abonnement" },
+] as const;
 
 /** Réglages de la réservation en ligne, de l'acompte et des résumés : un seul bouton « Enregistrer ». */
 export default async function SettingsPage({
@@ -39,14 +55,28 @@ export default async function SettingsPage({
       timeZone: "UTC",
     }).format(new Date(Date.UTC(2000, 0, 1, hours, minutes)));
   };
+  /** « 30 minutes avant », « 2 heures avant », « jusqu'au dernier moment ». */
+  const delayLabel = (minutes: number) =>
+    minutes === 0
+      ? t("delayNone")
+      : minutes % 60 === 0
+        ? t("delayHours", { count: minutes / 60 })
+        : t("delayMinutes", { count: minutes });
   const paymentAvailable = Boolean(page.tenant.features.onlinePayment);
+  const bookingOff = planAllowsBooking(page.tenant.features) && !settings.onlineBookingEnabled;
   const payment = paymentSetup(page.business, page.tenant.features, paymentGateway() !== null);
   return (
     <div className="space-y-6">
       <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
         {t("title")}
       </h1>
-      <ActionForm action={updateSettingsAction} submitLabel={tCommon("save")} className="space-y-6">
+      <ActionForm
+        action={updateSettingsAction}
+        submitLabel={tCommon("save")}
+        className="space-y-6"
+        stickySubmit
+        stickyBottomClass="bottom-[calc(4rem+1px+env(safe-area-inset-bottom))] lg:bottom-0"
+      >
         <Hidden values={{ tenantId: page.tenantId }} />
         {/* Pack « site seul » : pas de réservation en ligne, on propose de changer de pack. */}
         {!planAllowsBooking(page.tenant.features) ? (
@@ -76,16 +106,17 @@ export default async function SettingsPage({
           </Section>
         )}
         <Section title={t("booking")}>
+          {bookingOff && <p className="text-sm text-ink/70">{t("bookingOffNote")}</p>}
           <div className="grid gap-4 sm:grid-cols-2">
-            <TextField
+            <SelectField
               name="minNoticeHours"
-              type="number"
-              // Délai réglé en minutes : 30 min s'affiche 0,5 h et doit rester enregistrable.
-              step="any"
-              inputMode="decimal"
               label={t("minNotice")}
-              defaultValue={settings.minNoticeMinutes / 60}
-              required
+              // Délai enregistré en minutes, envoyé en heures (30 min = 0,5).
+              defaultValue={String(settings.minNoticeMinutes / 60)}
+              options={withCurrent(NOTICE_MINUTES, settings.minNoticeMinutes).map((minutes) => ({
+                value: String(minutes / 60),
+                label: delayLabel(minutes),
+              }))}
             />
             <SelectField
               name="maxAdvanceDays"
@@ -111,24 +142,29 @@ export default async function SettingsPage({
               defaultValue={String(settings.maxServicesPerBooking)}
               options={["1", "2", "3"].map((value) => ({ value, label: value }))}
             />
-            <TextField
+            <SelectField
               name="cancellationDeadlineHours"
-              type="number"
-              inputMode="numeric"
               label={t("cancellation")}
-              defaultValue={settings.cancellationDeadlineHours}
-              required
+              defaultValue={String(settings.cancellationDeadlineHours)}
+              options={withCurrent(CANCELLATION_HOURS, settings.cancellationDeadlineHours).map((hours) => ({
+                value: String(hours),
+                label: delayLabel(hours * 60),
+              }))}
             />
           </div>
         </Section>
         <Section title={t("deposit")}>
           {paymentAvailable ? (
-            <div className="space-y-4">
-              <CheckboxField
-                name="depositEnabled"
-                label={t("depositEnabled")}
-                defaultChecked={settings.depositEnabled}
-              />
+            <DepositFields
+              enabled={settings.depositEnabled}
+              type={settings.depositType}
+              value={
+                settings.depositType === "percent"
+                  ? String(settings.depositValue)
+                  : centsToInput(settings.depositValue)
+              }
+              currency={page.fmt.currency}
+            >
               {payment === "platform_off" && <p className="text-ink/80">{t("depositPlatformOff")}</p>}
               {(payment === "not_started" || payment === "incomplete") && (
                 <p className="text-ink/80">
@@ -138,29 +174,10 @@ export default async function SettingsPage({
                   </Link>
                 </p>
               )}
-              <p className="text-sm text-ink/70">{t("depositRefundRule")}</p>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <SelectField
-                  name="depositType"
-                  label={t("depositType")}
-                  defaultValue={settings.depositType}
-                  options={[
-                    { value: "percent", label: t("percent") },
-                    { value: "fixed", label: t("fixed") },
-                  ]}
-                />
-                <TextField
-                  name="depositValue"
-                  inputMode="decimal"
-                  label={t("depositValue", { currency: page.fmt.currency })}
-                  defaultValue={
-                    settings.depositType === "percent"
-                      ? String(settings.depositValue)
-                      : centsToInput(settings.depositValue)
-                  }
-                />
-              </div>
-            </div>
+              <p className="text-sm text-ink/70">
+                {t("depositRefundRule", { hours: settings.cancellationDeadlineHours })}
+              </p>
+            </DepositFields>
           ) : (
             <>
               <p className="text-ink/70">{t("depositUnavailable")}</p>
@@ -176,6 +193,7 @@ export default async function SettingsPage({
           )}
         </Section>
         <Section title={t("summaries")}>
+          <p className="text-sm text-ink/70">{t("summariesTo", { email: page.session.user.email })}</p>
           <CheckboxField
             name="dailySummaryEnabled"
             label={t("daily", { time: hourLabel(String(dailyTime)) })}
@@ -202,11 +220,42 @@ export default async function SettingsPage({
               {t("reviewRequestHelp", { months: Math.max(1, Math.round(reviewCooldownDays / 30)) })}
             </p>
             {!page.business.googlePlaceId && (
-              <p className="mt-2 text-sm font-semibold text-[#b4372a]">{t("reviewRequestNoPlace")}</p>
+              <p className="mt-2 text-sm font-semibold text-[#b4372a]">
+                {t.rich("reviewRequestNoPlace", {
+                  link: (chunks) => (
+                    <Link href={`${page.base}/plus/demandes`} className="underline">
+                      {chunks}
+                    </Link>
+                  ),
+                })}
+              </p>
             )}
           </Section>
         )}
       </ActionForm>
+      <section aria-labelledby="autres-reglages" className="space-y-3">
+        <h2 id="autres-reglages" className="font-display text-[1.2rem] font-semibold text-night">
+          {t("others.title")}
+        </h2>
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {OTHER_SETTINGS.map((item) => (
+            <li key={item.key}>
+              <Link
+                href={`${page.base}${item.path}`}
+                className="flex min-h-14 items-center justify-between gap-3 rounded-2xl border border-hairline bg-white px-4 py-3 transition hover:border-accent/40"
+              >
+                <span>
+                  <span className="block font-medium text-night">{t(`others.${item.key}`)}</span>
+                  <span className="block text-sm text-ink-soft">{t(`others.${item.key}Hint`)}</span>
+                </span>
+                <span aria-hidden="true" className="text-accent">
+                  →
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
     </div>
   );
 }

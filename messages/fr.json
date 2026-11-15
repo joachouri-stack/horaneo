@@ -115,14 +115,38 @@
             "text": "SMS et e-mail"
           },
           "cover": {
-            "online": { "title": "Réservations", "text": "en ligne" },
-            "payments": { "title": "Paiements", "text": "sécurisés" },
-            "clients": { "title": "Gestion", "text": "des clients" },
-            "stats": { "title": "Statistiques", "text": "en temps réel" },
-            "reminders": { "title": "Rappels automatiques", "text": "SMS et e-mail" },
-            "newClients": { "title": "Nouveaux clients", "value": "+20 %" },
-            "reviews": { "title": "Avis clients", "value": "4,8" },
-            "site": { "title": "Un site professionnel", "text": "créé pour vous, prêt en quelques jours" }
+            "online": {
+              "title": "Réservations",
+              "text": "en ligne"
+            },
+            "payments": {
+              "title": "Paiements",
+              "text": "sécurisés"
+            },
+            "clients": {
+              "title": "Gestion",
+              "text": "des clients"
+            },
+            "stats": {
+              "title": "Statistiques",
+              "text": "en temps réel"
+            },
+            "reminders": {
+              "title": "Rappels automatiques",
+              "text": "SMS et e-mail"
+            },
+            "newClients": {
+              "title": "Nouveaux clients",
+              "value": "+20 %"
+            },
+            "reviews": {
+              "title": "Avis clients",
+              "value": "4,8"
+            },
+            "site": {
+              "title": "Un site professionnel",
+              "text": "créé pour vous, prêt en quelques jours"
+            }
           },
           "strip": [
             {
@@ -3510,18 +3534,17 @@
       "onlineOn": "Réservation en ligne ouverte.",
       "onlineOff": "Réservation en ligne coupée : votre site est en mode vitrine.",
       "booking": "Règles de réservation",
-      "minNotice": "Réservation en ligne au plus tard (heures avant le rendez-vous)",
+      "minNotice": "Les clients peuvent réserver en ligne jusqu'à",
       "maxAdvance": "Les clients peuvent réserver jusqu'à",
       "interval": "Créneaux proposés toutes les",
       "minutes": "{count} minutes",
       "maxServices": "Prestations maximum par rendez-vous",
-      "cancellation": "Les clients peuvent annuler ou déplacer en ligne jusqu'à (heures avant le rendez-vous)",
+      "cancellation": "Les clients peuvent annuler ou déplacer en ligne jusqu'à",
       "deposit": "Acompte",
       "depositEnabled": "Demander un acompte à la réservation",
       "depositType": "Type d'acompte",
       "percent": "Pourcentage du prix",
       "fixed": "Montant fixe",
-      "depositValue": "Valeur (% ou {currency})",
       "depositUnavailable": "L'acompte en ligne n'est pas inclus dans votre pack.",
       "summaries": "Résumés par e-mail",
       "daily": "Résumé du lendemain, chaque soir vers {time}",
@@ -3530,12 +3553,32 @@
       "depositStripeLink": "Ouvrir mon compte Stripe",
       "depositStripeResume": "Compléter mon compte Stripe",
       "depositPlatformOff": "Le paiement en ligne n'est pas encore disponible sur la plateforme : aucun acompte ne sera demandé pour l'instant. Vous pouvez déjà le régler, il s'appliquera dès l'ouverture.",
-      "depositRefundRule": "Remboursé automatiquement si le client annule dans le délai ; conservé sinon ou en cas d'absence.",
+      "depositRefundRule": "Remboursé automatiquement si le client annule {hours, plural, =0 {avant le rendez-vous} other {au moins # h avant le rendez-vous}} ; conservé sinon ou en cas d'absence.",
       "reviewsTitle": "Avis Google",
       "reviewRequest": "Demander un avis Google après chaque rendez-vous",
       "reviewRequestHelp": "Quelques heures après un rendez-vous marqué « Venu », le client reçoit un e-mail de remerciement avec un lien direct pour laisser un avis sur votre fiche Google. Une seule demande par client tous les {months} mois.",
-      "reviewRequestNoPlace": "Votre fiche Google n'est pas encore reliée à votre site : aucune demande ne partira tant qu'elle ne l'est pas. Écrivez-nous depuis « Demander une modification du site ».",
-      "advanceDays": "{days, select, 7 {1 semaine à l'avance} 14 {2 semaines à l'avance} 30 {1 mois à l'avance} 60 {2 mois à l'avance} 90 {3 mois à l'avance} 180 {6 mois à l'avance} 365 {1 an à l'avance} other {{days} jours à l'avance}}"
+      "reviewRequestNoPlace": "Votre fiche Google n'est pas encore reliée à votre site : aucune demande ne partira tant qu'elle ne l'est pas. <link>Demandez-nous de la relier</link>.",
+      "advanceDays": "{days, select, 7 {1 semaine à l'avance} 14 {2 semaines à l'avance} 30 {1 mois à l'avance} 60 {2 mois à l'avance} 90 {3 mois à l'avance} 180 {6 mois à l'avance} 365 {1 an à l'avance} other {{days} jours à l'avance}}",
+      "delayNone": "Jusqu'au dernier moment",
+      "delayHours": "{count, plural, one {# heure} other {# heures}} avant le rendez-vous",
+      "delayMinutes": "{count} minutes avant le rendez-vous",
+      "bookingOffNote": "La réservation en ligne est coupée : ces règles s'appliqueront quand vous la rouvrirez.",
+      "depositPercentLabel": "Pourcentage (%)",
+      "depositPercentHint": "Part du prix de la réservation demandée en acompte (30 = 30 % du prix).",
+      "depositAmountLabel": "Montant ({currency})",
+      "depositAmountHint": "Même montant demandé à chaque réservation, quel que soit le prix.",
+      "summariesTo": "Envoyés aux gérantes de l'établissement, dont vous ({email}).",
+      "others": {
+        "title": "Autres réglages",
+        "hours": "Horaires d'ouverture",
+        "hoursHint": "Jours et heures où l'on peut réserver",
+        "team": "Équipe",
+        "teamHint": "Membres, horaires et accès",
+        "payments": "Paiements en ligne",
+        "paymentsHint": "Compte Stripe pour les acomptes",
+        "subscription": "Abonnement",
+        "subscriptionHint": "Votre pack et vos factures"
+      }
     },
     "requests": {
       "title": "Demandes de modification",
