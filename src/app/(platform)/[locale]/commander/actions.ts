@@ -35,6 +35,18 @@ export async function submitOrderAction(
   const locale = resolveLocale(await getLocale());
   const base = `${publicAppUrl()}/${locale}/commander`;
   let target: string;
+  // Tous les champs vides signalés d'un coup (et non un seul à la fois), chacun sous son champ.
+  const required = [
+    ...(session ? [] : ["firstName", "lastName", "email"]),
+    "businessName",
+    "activity",
+    "phone",
+  ];
+  const missing = required.filter((name) => !String(data.get(name) ?? "").trim());
+  if (missing.length > 0) {
+    if (data.get("acceptTerms") !== "on") missing.push("acceptTerms");
+    return { ok: false, error: "invalid", field: missing[0], fields: missing };
+  }
   try {
     // Conditions générales de vente acceptées (case obligatoire, vérifiée aussi ici).
     if (data.get("acceptTerms") !== "on") throw new AppError("terms_required", "acceptTerms");

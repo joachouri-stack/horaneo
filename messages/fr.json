@@ -4560,7 +4560,8 @@
       "label": "Nos engagements",
       "monthly": "Mensuel sans engagement",
       "support": "Assistance humaine sur WhatsApp",
-      "secure": "Paiement sécurisé par Stripe"
+      "secure": "Paiement sécurisé par Stripe",
+      "yearly": "Annuel : {months, plural, one {# mois offert} other {# mois offerts}}"
     },
     "formula": "Formule (packs payants)",
     "formulaHint": "Vous choisissez : votre abonnement mensuel est le même dans les deux cas.",
@@ -4578,7 +4579,10 @@
     "billing": "Paiement",
     "billingMonthly": "Chaque mois",
     "billingYearly": "À l'année{months, plural, =0 {} one { · # mois offert} other { · # mois offerts}}",
-    "billingYearlyHint": "Payé en une fois pour 12 mois, renouvelé chaque année.{options, select, yes { Les options se facturent au mois.} other {}} Non remboursable en cas de résiliation : vos services restent actifs jusqu'à la fin de l'année payée."
+    "billingYearlyHint": "Payé en une fois pour 12 mois, renouvelé chaque année.{options, select, yes { Les options se facturent au mois.} other {}} Non remboursable en cas de résiliation : vos services restent actifs jusqu'à la fin de l'année payée.",
+    "billingMonthlyHint": "Sans engagement, résiliable chaque mois.",
+    "firstCharge": "Premier prélèvement le {date} : {amount}{ttc, select, yes { TTC} other {}}, puis {interval, select, year {chaque année} other {chaque mois}}.",
+    "launchOfferMonthly": "Payez à l'année pour recevoir : {offer} ({remaining, plural, one {# place restante} other {# places restantes}})."
   },
   "callback": {
     "metaTitle": "Être rappelé",

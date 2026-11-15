@@ -3,6 +3,7 @@ import { PLATFORM_CURRENCY } from "@/config/billing";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
 import { TextField } from "@/components/admin/fields";
+import { EmailSuggestion } from "@/components/auth/EmailSuggestion";
 import { OrderChoices } from "@/components/marketing/OrderChoices";
 import { PlatformHeader } from "@/components/layout/PlatformHeader";
 import { ui } from "@/components/ui/styles";
@@ -107,6 +108,11 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
       {
         id: offer.id,
         yearlyOnly,
+        planCode: offer.planCode,
+        monthlyText: t("launchOfferMonthly", {
+          offer: pickLocalized(offer.title, locale),
+          remaining: offer.remaining,
+        }),
         text: t("launchOffer", {
           offer: pickLocalized(offer.title, locale),
           plan: pickLocalized(plan.name, locale),
@@ -117,6 +123,9 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
     ];
   });
   const paidOnly = orderable.every((plan) => plan.priceCents > 0);
+  // Fin de l'essai gratuit (premier prélèvement), à partir d'aujourd'hui.
+  const trialEnd = new Date();
+  trialEnd.setDate(trialEnd.getDate() + trialDays);
 
   return (
     <>
@@ -137,6 +146,7 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
         <div className={ui.card}>
           <ActionForm
             action={submitOrderAction}
+            noValidate
             submitLabel={paidOnly ? t("submitPaid") : t("submit")}
             className="space-y-5"
           >
@@ -168,6 +178,12 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
               display={display}
               vatPercent={vatPercent}
               trialDays={trialDays}
+              // Fin de l'essai : date du premier prélèvement, annoncée avec son montant.
+              firstCharge={new Intl.DateTimeFormat(locale, {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              }).format(trialEnd)}
               offers={offerNotes}
               labels={{
                 plan: t("plan"),
@@ -178,6 +194,7 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
                 perYear: tHome("perYear", { display }),
                 billing: t("billing"),
                 monthly: t("billingMonthly"),
+                monthlyHint: t("billingMonthlyHint"),
                 yearly: t("billingYearly", { months: yearly.freeMonths }),
                 // La mention des options n'apparaît que si des options se commandent ici.
                 yearlyHint: t("billingYearlyHint", {
@@ -254,15 +271,17 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
                   <TextField name="firstName" autoComplete="given-name" label={t("firstName")} required />
                   <TextField name="lastName" autoComplete="family-name" label={t("lastName")} required />
                 </div>
-                <TextField
-                  name="email"
-                  type="email"
-                  inputMode="email"
-                  autoComplete="email"
-                  label={t("email")}
-                  hint={t("emailHint")}
-                  required
-                />
+                <EmailSuggestion>
+                  <TextField
+                    name="email"
+                    type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    label={t("email")}
+                    hint={t("emailHint")}
+                    required
+                  />
+                </EmailSuggestion>
               </>
             )}
             <TextField name="businessName" autoComplete="organization" label={t("businessName")} required />
@@ -292,14 +311,20 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
             {/* Ce qui rassure juste avant de payer. */}
             <ul aria-label={t("reassurance.label")} className="grid gap-2 text-sm text-night sm:grid-cols-3">
               {(commitment === 0
-                ? (["monthly", "support", "secure"] as const)
+                ? (["monthly", "yearly", "support", "secure"] as const)
                 : (["support", "secure"] as const)
               ).map((key) => (
-                <li key={key} className="flex items-center gap-2">
+                // « Mensuel sans engagement » ou « Annuel » : selon le paiement choisi plus haut.
+                <li
+                  key={key}
+                  data-monthly-only={key === "monthly" || undefined}
+                  data-yearly-only={key === "yearly" || undefined}
+                  className="flex items-center gap-2"
+                >
                   <svg aria-hidden="true" viewBox="0 0 20 20" className="h-4 w-4 shrink-0 fill-success">
                     <path d="M8.1 14.3 3.8 10l1.4-1.4 2.9 2.9 6.7-6.7 1.4 1.4z" />
                   </svg>
-                  {t(`reassurance.${key}`)}
+                  {t(`reassurance.${key}`, { months: yearly.freeMonths })}
                 </li>
               ))}
             </ul>
