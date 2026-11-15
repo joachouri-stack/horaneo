@@ -2,15 +2,19 @@ import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import type { Solution } from "@/modules/billing/grid";
 import {
+  ArrowLine,
   BagLine,
   BellLine,
   BoxLine,
   CalendarLine,
   CapLine,
+  CardLine,
   ChartLine,
+  CheckLine,
   LockLine,
   PercentLine,
   PlayLine,
+  StarLine,
   StoreLine,
   TagLine,
   UsersLine,
@@ -22,9 +26,95 @@ import {
  * données d'exemple (traductions). Couleurs : accent de la solution.
  */
 /** Photo de couverture d'une solution, à la place de l'aperçu dessiné (public/images). */
-const COVERS: Partial<Record<Solution, { src: string; width: number; height: number }>> = {
-  booking: { src: "/images/couverture-sirine-v2.webp", width: 1536, height: 1024 },
+const COVERS: Partial<Record<Solution, { src: string; width: number; height: number; bubbles?: boolean }>> = {
+  booking: { src: "/images/couverture-sirine-v2.webp", width: 1536, height: 1024, bubbles: true },
 };
+
+/*
+ * Bulles posées sur la photo de la solution Réservation (textes : `booking.cover.*`). Tailles en
+ * cqw : elles suivent la largeur de la photo. Sur un petit écran, seules les
+ * principales restent, pour ne pas masquer l'ordinateur et le téléphone.
+ */
+const BUBBLE =
+  "absolute flex items-center gap-[1.2cqw] rounded-[1.6cqw] border border-white/80 bg-white/90 py-[1cqw] pl-[1cqw] pr-[1.8cqw] shadow-[0_2cqw_4cqw_-1.5cqw_rgba(5,8,30,.55),0_0_0_1px_rgba(123,63,228,.08)] backdrop-blur";
+const BUBBLE_ICON =
+  "flex size-[max(4.4cqw,1.6rem)] flex-none items-center justify-center rounded-[1.1cqw] bg-[#efeaff] text-violet";
+const ICON = "size-[max(2.5cqw,0.9rem)]";
+const BUBBLE_TITLE = "block text-[max(1.9cqw,0.62rem)] font-semibold leading-tight text-night";
+const BUBBLE_TEXT = "block text-[max(1.6cqw,0.56rem)] leading-tight text-ink-soft";
+
+async function BookingCoverBubbles() {
+  const t = await getTranslations("home.solutions.items.booking");
+  const side = [
+    { key: "online" as const, Icon: CalendarLine, top: "top-[12%]" },
+    { key: "payments" as const, Icon: CardLine, top: "top-[24%]" },
+    { key: "clients" as const, Icon: UsersLine, top: "top-[36%]" },
+    { key: "stats" as const, Icon: ChartLine, top: "top-[48%]" },
+  ];
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+      {side.map(({ key, Icon, top }) => (
+        <div key={key} className={`${BUBBLE} left-[2.5%] ${top} @max-md:hidden`}>
+          <span className={BUBBLE_ICON}>
+            <Icon className={ICON} />
+          </span>
+          <span>
+            <span className={BUBBLE_TITLE}>{t(`cover.${key}.title`)}</span>
+            <span className={BUBBLE_TEXT}>{t(`cover.${key}.text`)}</span>
+          </span>
+        </div>
+      ))}
+      <div className={`${BUBBLE} right-[2%] top-[2.5%]`}>
+        <span className={BUBBLE_ICON}>
+          <BellLine className={ICON} />
+        </span>
+        <span>
+          <span className={BUBBLE_TITLE}>{t("cover.reminders.title")}</span>
+          <span className={BUBBLE_TEXT}>{t("cover.reminders.text")}</span>
+        </span>
+      </div>
+      <div className={`${BUBBLE} right-[1.5%] top-[17%] flex-col items-start gap-[0.8cqw] @max-md:hidden`}>
+        <span className="flex items-center gap-[1cqw]">
+          <span className={BUBBLE_TITLE}>{t("cover.newClients.title")}</span>
+          <span className="text-[max(1.7cqw,0.58rem)] font-semibold text-[#1f9d63]">
+            {t("cover.newClients.value")}
+          </span>
+        </span>
+        <span className="flex h-[4.5cqw] items-end gap-[0.7cqw]">
+          {[28, 42, 55, 70, 100].map((h) => (
+            <span
+              key={h}
+              style={{ height: `${h}%` }}
+              className="w-[1.6cqw] rounded-[0.4cqw] bg-[linear-gradient(180deg,var(--color-violet),var(--color-azure-dark))]"
+            />
+          ))}
+        </span>
+      </div>
+      <div className={`${BUBBLE} left-[30%] top-[0.5%] @max-md:hidden`}>
+        <span className={BUBBLE_ICON}>
+          <StarLine className={`${ICON} fill-[#f5b301] text-[#f5b301]`} />
+        </span>
+        <span>
+          <span className={BUBBLE_TITLE}>{t("cover.reviews.title")}</span>
+          <span className="flex items-center gap-[0.6cqw] text-[max(1.6cqw,0.56rem)] font-semibold text-night">
+            {t("cover.reviews.value")}
+            <span className="tracking-[0.1em] text-[#f5b301]">★★★★★</span>
+          </span>
+        </span>
+      </div>
+      <div className={`${BUBBLE} bottom-[3%] left-[2.5%] pr-[1.4cqw]`}>
+        <span className="flex size-[max(4.4cqw,1.6rem)] flex-none items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--color-violet),var(--color-azure-dark))] text-white">
+          <CheckLine className={ICON} />
+        </span>
+        <span>
+          <span className={BUBBLE_TITLE}>{t("cover.site.title")}</span>
+          <span className={BUBBLE_TEXT}>{t("cover.site.text")}</span>
+        </span>
+        <ArrowLine className={`${ICON} ml-[1cqw] text-violet`} />
+      </div>
+    </div>
+  );
+}
 
 export async function SolutionVisual({ solution }: { solution: Solution }) {
   const t = await getTranslations(`home.solutions.items.${solution}`);
@@ -33,15 +123,18 @@ export async function SolutionVisual({ solution }: { solution: Solution }) {
   if (cover)
     return (
       // S'adapte à la largeur : pleine largeur sur téléphone et tablette, colonne de droite sur ordinateur.
-      <Image
-        src={cover.src}
-        width={cover.width}
-        height={cover.height}
-        alt={tAll("visual", { solution: t("name") })}
-        sizes="(min-width: 1024px) 40rem, 100vw"
-        preload
-        className="mx-auto h-auto w-full max-w-[40rem] rounded-[1.4rem] object-cover"
-      />
+      <div className="@container relative mx-auto w-full max-w-[40rem]">
+        <Image
+          src={cover.src}
+          width={cover.width}
+          height={cover.height}
+          alt={tAll("visual", { solution: t("name") })}
+          sizes="(min-width: 1024px) 40rem, 100vw"
+          preload
+          className="h-auto w-full rounded-[1.4rem] object-cover"
+        />
+        {cover.bubbles && <BookingCoverBubbles />}
+      </div>
     );
   const menu = t.raw("mock.menu") as string[];
   const events = t.raw("mock.events") as string[];

@@ -114,6 +114,16 @@
             "title": "Rappels automatiques",
             "text": "SMS et e-mail"
           },
+          "cover": {
+            "online": { "title": "Réservations", "text": "en ligne" },
+            "payments": { "title": "Paiements", "text": "sécurisés" },
+            "clients": { "title": "Gestion", "text": "des clients" },
+            "stats": { "title": "Statistiques", "text": "en temps réel" },
+            "reminders": { "title": "Rappels automatiques", "text": "SMS et e-mail" },
+            "newClients": { "title": "Nouveaux clients", "value": "+20 %" },
+            "reviews": { "title": "Avis clients", "value": "4,8" },
+            "site": { "title": "Un site professionnel", "text": "créé pour vous, prêt en quelques jours" }
+          },
           "strip": [
             {
               "title": "Réservation en ligne 24 h/24",
