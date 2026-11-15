@@ -3457,7 +3457,12 @@
         "noCost": "coût non renseigné"
       },
       "upgradeTitle": "Passez aux statistiques détaillées",
-      "upgradeText": "Courbes jour par jour, répartition par prestation et par membre de l'équipe, heures les plus demandées et objectifs du mois."
+      "upgradeText": "Courbes jour par jour, répartition par prestation et par membre de l'équipe, heures les plus demandées et objectifs du mois.",
+      "tabsLabel": "Parties des statistiques",
+      "tabs": {
+        "ca": "Chiffre d'affaires",
+        "rdv": "Rendez-vous"
+      }
     },
     "team": {
       "title": "Équipe",
