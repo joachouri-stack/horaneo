@@ -48,7 +48,12 @@ export default async function StatsPage({
   const tCommon = await getTranslations("common");
   const tz = page.tenant.timezone;
   const current = utcToLocal(new Date(), tz).date.slice(0, 7);
-  const requested = (await searchParams).mois;
+  const query = await searchParams;
+  const requested = query.mois;
+  // Deux onglets : chiffre d'affaires (par défaut) ou rendez-vous ; un seul est calculé et affiché.
+  const tab: "ca" | "rdv" = query.vue === "rdv" ? "rdv" : "ca";
+  const statsLink = (month: string, view: "ca" | "rdv" = tab) =>
+    `${page.base}/plus/statistiques?mois=${month}${view === "rdv" ? "&vue=rdv" : ""}`;
   const period =
     typeof requested === "string" && /^\d{4}-(0[1-9]|1[0-2])$/.test(requested) && requested <= current
       ? requested
@@ -61,8 +66,8 @@ export default async function StatsPage({
     previous: await monthStats(tx, page.tenantId, shift(period, -1), tz, page.locale),
     details: await monthDetails(tx, page.tenantId, period, tz),
     goals: await getStatsGoals(tx, page.tenantId),
-    sales: insights ? await monthSales(tx, page.tenantId, period, tz, page.locale) : null,
-    occupancy: insights ? await monthOccupancy(tx, page.tenantId, period, tz) : null,
+    sales: insights && tab === "ca" ? await monthSales(tx, page.tenantId, period, tz, page.locale) : null,
+    occupancy: insights && tab === "rdv" ? await monthOccupancy(tx, page.tenantId, period, tz) : null,
   }));
   const label = new Intl.DateTimeFormat(page.locale, {
     month: "long",
@@ -279,22 +284,14 @@ export default async function StatsPage({
           <p className="mt-1 text-ink-soft">{t("subtitle")}</p>
         </div>
         <div className="flex items-center gap-1 rounded-xl border border-hairline bg-white p-1">
-          <Link
-            href={`${page.base}/plus/statistiques?mois=${shift(period, -1)}`}
-            aria-label={t("previous")}
-            className={navButton}
-          >
+          <Link href={statsLink(shift(period, -1))} aria-label={t("previous")} className={navButton}>
             <DashIcon d="M15 6l-6 6 6 6" className="h-5 w-5" />
           </Link>
           <span className="min-w-36 px-2 text-center font-medium text-night first-letter:uppercase">
             {label}
           </span>
           {period < current ? (
-            <Link
-              href={`${page.base}/plus/statistiques?mois=${shift(period, 1)}`}
-              aria-label={t("next")}
-              className={navButton}
-            >
+            <Link href={statsLink(shift(period, 1))} aria-label={t("next")} className={navButton}>
               <DashIcon d="M9 6l6 6-6 6" className="h-5 w-5" />
             </Link>
           ) : (
@@ -363,6 +360,22 @@ export default async function StatsPage({
         />
       </div>
 
+      {/* Onglets : une seule partie des statistiques à la fois. */}
+      {detailed && (
+        <nav aria-label={t("tabsLabel")} className="flex rounded-xl bg-[#eceff5] p-1">
+          {(["ca", "rdv"] as const).map((value) => (
+            <Link
+              key={value}
+              href={statsLink(period, value)}
+              aria-current={tab === value ? "page" : undefined}
+              className="flex min-h-11 flex-1 items-center justify-center rounded-lg px-3 text-[0.9375rem] font-medium text-ink-soft transition hover:text-night aria-[current=page]:bg-white aria-[current=page]:text-night aria-[current=page]:shadow-[0_1px_3px_rgba(15,24,48,.12)]"
+            >
+              {t(`tabs.${value}`)}
+            </Link>
+          ))}
+        </nav>
+      )}
+
       {!detailed ? (
         <section className={`${panel} bg-gradient-to-br from-white to-accent-soft/60`}>
           <h2 className="font-display text-[1.2rem] font-semibold text-night">{t("upgradeTitle")}</h2>
@@ -376,199 +389,211 @@ export default async function StatsPage({
       ) : (
         <>
           {/* Objectifs du mois. */}
-          <section aria-labelledby="objectifs" className={panel}>
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <h2 id="objectifs" className="font-display text-[1.2rem] font-semibold text-night">
-                  {t("goals.title")}
-                </h2>
-                <p className="text-sm text-ink-soft">{t("goals.intro")}</p>
-              </div>
-            </div>
-            {goalRings.length > 0 ? (
-              <div className="mt-6 grid grid-cols-3 gap-3 sm:gap-6">
-                {goalRings.map((ring) => (
-                  <GoalRing
-                    key={ring.key}
-                    label={ring.label}
-                    value={ring.value}
-                    goal={ring.goal}
-                    color={ring.color}
-                    valueText={ring.valueText}
-                    goalText={ring.goalText}
-                    remainingText={
-                      ring.value >= ring.goal
-                        ? t("goals.reached")
-                        : t("goals.remaining", { value: ring.remaining })
-                    }
-                  />
-                ))}
-              </div>
-            ) : null}
-            <details
-              className={`group ${goalRings.length > 0 ? "mt-5 border-t border-hairline pt-4" : "mt-1"}`}
-            >
-              <summary className="inline-flex min-h-11 cursor-pointer list-none items-center gap-2 font-medium text-accent [&::-webkit-details-marker]:hidden">
-                {goalRings.length > 0 ? t("goals.edit") : t("goals.set")}
-                <DashIcon d="M6 9l6 6 6-6" className="h-4 w-4 transition group-open:rotate-180" />
-              </summary>
-              <ActionForm
-                action={updateStatsGoalsAction}
-                submitLabel={tCommon("save")}
-                className="mt-4 space-y-4"
-              >
-                <Hidden values={{ tenantId: page.tenantId }} />
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <TextField
-                    name="revenue"
-                    inputMode="decimal"
-                    label={t("goals.revenue", { currency: page.fmt.currency })}
-                    defaultValue={goals.revenueCents ? centsToInput(goals.revenueCents) : ""}
-                  />
-                  <TextField
-                    name="appointments"
-                    inputMode="numeric"
-                    label={t("goals.appointments")}
-                    defaultValue={goals.appointments ?? ""}
-                  />
-                  <TextField
-                    name="newCustomers"
-                    inputMode="numeric"
-                    label={t("goals.newCustomers")}
-                    defaultValue={goals.newCustomers ?? ""}
-                  />
+          {tab === "ca" && (
+            <section aria-labelledby="objectifs" className={panel}>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h2 id="objectifs" className="font-display text-[1.2rem] font-semibold text-night">
+                    {t("goals.title")}
+                  </h2>
+                  <p className="text-sm text-ink-soft">{t("goals.intro")}</p>
                 </div>
-                <p className="text-sm text-ink-soft">{t("goals.hint")}</p>
-              </ActionForm>
-            </details>
-          </section>
+              </div>
+              {goalRings.length > 0 ? (
+                <div className="mt-6 grid grid-cols-3 gap-3 sm:gap-6">
+                  {goalRings.map((ring) => (
+                    <GoalRing
+                      key={ring.key}
+                      label={ring.label}
+                      value={ring.value}
+                      goal={ring.goal}
+                      color={ring.color}
+                      valueText={ring.valueText}
+                      goalText={ring.goalText}
+                      remainingText={
+                        ring.value >= ring.goal
+                          ? t("goals.reached")
+                          : t("goals.remaining", { value: ring.remaining })
+                      }
+                    />
+                  ))}
+                </div>
+              ) : null}
+              <details
+                className={`group ${goalRings.length > 0 ? "mt-5 border-t border-hairline pt-4" : "mt-1"}`}
+              >
+                <summary className="inline-flex min-h-11 cursor-pointer list-none items-center gap-2 font-medium text-accent [&::-webkit-details-marker]:hidden">
+                  {goalRings.length > 0 ? t("goals.edit") : t("goals.set")}
+                  <DashIcon d="M6 9l6 6 6-6" className="h-4 w-4 transition group-open:rotate-180" />
+                </summary>
+                <ActionForm
+                  action={updateStatsGoalsAction}
+                  submitLabel={tCommon("save")}
+                  className="mt-4 space-y-4"
+                >
+                  <Hidden values={{ tenantId: page.tenantId }} />
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <TextField
+                      name="revenue"
+                      inputMode="decimal"
+                      label={t("goals.revenue", { currency: page.fmt.currency })}
+                      defaultValue={goals.revenueCents ? centsToInput(goals.revenueCents) : ""}
+                    />
+                    <TextField
+                      name="appointments"
+                      inputMode="numeric"
+                      label={t("goals.appointments")}
+                      defaultValue={goals.appointments ?? ""}
+                    />
+                    <TextField
+                      name="newCustomers"
+                      inputMode="numeric"
+                      label={t("goals.newCustomers")}
+                      defaultValue={goals.newCustomers ?? ""}
+                    />
+                  </div>
+                  <p className="text-sm text-ink-soft">{t("goals.hint")}</p>
+                </ActionForm>
+              </details>
+            </section>
+          )}
 
           {/* Courbes jour par jour. */}
-          <div className="grid gap-6 xl:grid-cols-2">
-            <section aria-labelledby="par-jour" className={`${panel} min-w-0`}>
-              <h2 id="par-jour" className="font-display text-[1.1rem] font-semibold text-night">
-                {t("dailyTitle")}
-              </h2>
-              <LineChart
-                id="rdv"
-                summary={t("dailySummary")}
-                labels={details.days.map((day) => String(Number(day.date.slice(8))))}
-                series={[
-                  { label: t("online"), color: ONLINE, values: details.days.map((day) => day.online) },
-                  { label: t("salon"), color: SALON, values: details.days.map((day) => day.manual) },
-                ]}
-              />
-            </section>
-            <section aria-labelledby="ca-jour" className={`${panel} min-w-0`}>
-              <h2 id="ca-jour" className="font-display text-[1.1rem] font-semibold text-night">
-                {t("revenueTitle")}
-              </h2>
-              <LineChart
-                id="ca"
-                summary={t("revenueSummary")}
-                labels={details.days.map((day) => String(Number(day.date.slice(8))))}
-                format={(value) => shortMoney(value)}
-                series={[
-                  {
-                    label: t("revenue"),
-                    color: REVENUE,
-                    values: details.days.map((day) => day.revenueCents),
-                  },
-                ]}
-              />
-            </section>
+          <div className="grid gap-6">
+            {tab === "rdv" && (
+              <section aria-labelledby="par-jour" className={`${panel} min-w-0`}>
+                <h2 id="par-jour" className="font-display text-[1.1rem] font-semibold text-night">
+                  {t("dailyTitle")}
+                </h2>
+                <LineChart
+                  id="rdv"
+                  summary={t("dailySummary")}
+                  labels={details.days.map((day) => String(Number(day.date.slice(8))))}
+                  series={[
+                    { label: t("online"), color: ONLINE, values: details.days.map((day) => day.online) },
+                    { label: t("salon"), color: SALON, values: details.days.map((day) => day.manual) },
+                  ]}
+                />
+              </section>
+            )}
+            {tab === "ca" && (
+              <section aria-labelledby="ca-jour" className={`${panel} min-w-0`}>
+                <h2 id="ca-jour" className="font-display text-[1.1rem] font-semibold text-night">
+                  {t("revenueTitle")}
+                </h2>
+                <LineChart
+                  id="ca"
+                  summary={t("revenueSummary")}
+                  labels={details.days.map((day) => String(Number(day.date.slice(8))))}
+                  format={(value) => shortMoney(value)}
+                  series={[
+                    {
+                      label: t("revenue"),
+                      color: REVENUE,
+                      values: details.days.map((day) => day.revenueCents),
+                    },
+                  ]}
+                />
+              </section>
+            )}
           </div>
 
           {/* Répartitions. */}
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            <section aria-labelledby="prestations" className={`${panel} min-w-0`}>
-              <h2 id="prestations" className="font-display text-[1.05rem] font-semibold text-night">
-                {t("servicesTitle")}
-              </h2>
-              {servicesTotal === 0 ? (
-                <p className="mt-4 text-ink-soft">{t("none")}</p>
-              ) : (
-                <Donut
-                  items={[
-                    ...stats.topServices.map(([name, value]) => ({ label: name, value })),
-                    ...(othersCount > 0 ? [{ label: t("others"), value: othersCount }] : []),
-                  ]}
-                  total={servicesTotal + Math.max(othersCount, 0)}
-                  centerLabel={t("servicesUnit", { count: servicesTotal })}
-                />
-              )}
-            </section>
-            <section aria-labelledby="equipe" className={`${panel} min-w-0`}>
-              <h2 id="equipe" className="font-display text-[1.05rem] font-semibold text-night">
-                {t("teamTitle")}
-              </h2>
-              {details.staff.length === 0 ? (
-                <p className="mt-4 text-ink-soft">{t("none")}</p>
-              ) : (
-                <Donut
-                  items={details.staff.map((member) => ({
-                    label: `${member.name} · ${shortMoney(member.revenueCents)}`,
-                    value: member.count,
-                    color: member.color,
-                  }))}
-                  total={details.staff.reduce((sum, member) => sum + member.count, 0)}
-                  centerLabel={t("teamUnit", { count: stats.appointments })}
-                />
-              )}
-            </section>
-            <div className="min-w-0 space-y-6 md:col-span-2 xl:col-span-1">
-              <section aria-labelledby="canal" className={`${panel} min-w-0`}>
-                <h2 id="canal" className="font-display text-[1.05rem] font-semibold text-night">
-                  {t("channelTitle")}
+          {tab === "rdv" && (
+            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+              <section aria-labelledby="prestations" className={`${panel} min-w-0`}>
+                <h2 id="prestations" className="font-display text-[1.05rem] font-semibold text-night">
+                  {t("servicesTitle")}
                 </h2>
-                <SplitBar
-                  left={{ label: t("online"), value: stats.online }}
-                  right={{ label: t("salon"), value: stats.manual }}
+                {servicesTotal === 0 ? (
+                  <p className="mt-4 text-ink-soft">{t("none")}</p>
+                ) : (
+                  <Donut
+                    items={[
+                      ...stats.topServices.map(([name, value]) => ({ label: name, value })),
+                      ...(othersCount > 0 ? [{ label: t("others"), value: othersCount }] : []),
+                    ]}
+                    total={servicesTotal + Math.max(othersCount, 0)}
+                    centerLabel={t("servicesUnit", { count: servicesTotal })}
+                  />
+                )}
+              </section>
+              <section aria-labelledby="equipe" className={`${panel} min-w-0`}>
+                <h2 id="equipe" className="font-display text-[1.05rem] font-semibold text-night">
+                  {t("teamTitle")}
+                </h2>
+                {details.staff.length === 0 ? (
+                  <p className="mt-4 text-ink-soft">{t("none")}</p>
+                ) : (
+                  <Donut
+                    items={details.staff.map((member) => ({
+                      label: `${member.name} · ${shortMoney(member.revenueCents)}`,
+                      value: member.count,
+                      color: member.color,
+                    }))}
+                    total={details.staff.reduce((sum, member) => sum + member.count, 0)}
+                    centerLabel={t("teamUnit", { count: stats.appointments })}
+                  />
+                )}
+              </section>
+              <div className="min-w-0 space-y-6 md:col-span-2 xl:col-span-1">
+                <section aria-labelledby="canal" className={`${panel} min-w-0`}>
+                  <h2 id="canal" className="font-display text-[1.05rem] font-semibold text-night">
+                    {t("channelTitle")}
+                  </h2>
+                  <SplitBar
+                    left={{ label: t("online"), value: stats.online }}
+                    right={{ label: t("salon"), value: stats.manual }}
+                  />
+                </section>
+                <section aria-labelledby="clientes-mois" className={`${panel} min-w-0`}>
+                  <h2 id="clientes-mois" className="font-display text-[1.05rem] font-semibold text-night">
+                    {t("loyaltyTitle")}
+                  </h2>
+                  <SplitBar
+                    left={{ label: t("returning"), value: details.returningCustomers }}
+                    right={{ label: t("firstTime"), value: details.customers - details.returningCustomers }}
+                  />
+                </section>
+              </div>
+            </div>
+          )}
+
+          {/* Jours et heures les plus chargés. */}
+          {tab === "rdv" && (
+            <div className="grid gap-6 lg:grid-cols-2">
+              <section aria-labelledby="jours" className={`${panel} min-w-0`}>
+                <h2 id="jours" className="font-display text-[1.1rem] font-semibold text-night">
+                  {t("weekdaysTitle")}
+                </h2>
+                <RevenueBars
+                  showValues
+                  days={details.weekdays.map((count, index) => ({
+                    label: weekdayName
+                      .format(new Date(`${addDays(MONDAY, index)}T12:00:00Z`))
+                      .replace(".", ""),
+                    value: String(count),
+                    cents: count,
+                    today: count > 0 && count === busiest,
+                  }))}
                 />
               </section>
-              <section aria-labelledby="clientes-mois" className={`${panel} min-w-0`}>
-                <h2 id="clientes-mois" className="font-display text-[1.05rem] font-semibold text-night">
-                  {t("loyaltyTitle")}
+              <section aria-labelledby="heures" className={`${panel} min-w-0`}>
+                <h2 id="heures" className="font-display text-[1.1rem] font-semibold text-night">
+                  {t("hoursTitle")}
                 </h2>
-                <SplitBar
-                  left={{ label: t("returning"), value: details.returningCustomers }}
-                  right={{ label: t("firstTime"), value: details.customers - details.returningCustomers }}
+                <HourHeat
+                  hours={details.hours}
+                  from={8}
+                  to={20}
+                  label={(hour, count) => t("hourLabel", { hour, count })}
                 />
               </section>
             </div>
-          </div>
-
-          {/* Jours et heures les plus chargés. */}
-          <div className="grid gap-6 lg:grid-cols-2">
-            <section aria-labelledby="jours" className={`${panel} min-w-0`}>
-              <h2 id="jours" className="font-display text-[1.1rem] font-semibold text-night">
-                {t("weekdaysTitle")}
-              </h2>
-              <RevenueBars
-                showValues
-                days={details.weekdays.map((count, index) => ({
-                  label: weekdayName.format(new Date(`${addDays(MONDAY, index)}T12:00:00Z`)).replace(".", ""),
-                  value: String(count),
-                  cents: count,
-                  today: count > 0 && count === busiest,
-                }))}
-              />
-            </section>
-            <section aria-labelledby="heures" className={`${panel} min-w-0`}>
-              <h2 id="heures" className="font-display text-[1.1rem] font-semibold text-night">
-                {t("hoursTitle")}
-              </h2>
-              <HourHeat
-                hours={details.hours}
-                from={8}
-                to={20}
-                label={(hour, count) => t("hourLabel", { hour, count })}
-              />
-            </section>
-          </div>
+          )}
 
           {/* Sans la fonction « remplissage et rentabilité » : une ligne pour la faire connaître. */}
-          {!insights && (
+          {tab === "ca" && !insights && (
             <section className={`${panel} bg-gradient-to-br from-white to-accent-soft/60`}>
               <h2 className="font-display text-[1.2rem] font-semibold text-night">{t("insightsTitle")}</h2>
               <p className="mt-2 text-ink-soft">
@@ -581,7 +606,7 @@ export default async function StatsPage({
           )}
 
           {/* Taux de remplissage : temps réservé / temps de travail prévu. */}
-          {occupancy && (
+          {tab === "rdv" && occupancy && (
             <section aria-labelledby="remplissage" className={`${panel} min-w-0`}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0 max-w-2xl">
@@ -663,41 +688,45 @@ export default async function StatsPage({
           )}
 
           {/* Chiffre d'affaires et marge par prestation, puis par produit si la boutique a vendu. */}
-          {sales && (
-            <div className={`grid gap-6 ${sales.products.lines.length > 0 ? "xl:grid-cols-2" : ""}`}>
-              {salesTable("ca-prestations", sales.services, {
-                title: t("sales.servicesTitle"),
-                intro: t("sales.servicesIntro"),
-                item: t("sales.service"),
-                quantity: t("sales.count"),
-                basis: t("sales.marginBasisServices", {
-                  counted: sales.services.withCost,
-                  total: sales.services.lines.length,
-                }),
-                empty: t("sales.marginEmptyServices"),
-                costsHref: `${page.base}/site/prestations`,
-                after:
-                  sales.upcomingServices.count > 0
-                    ? t("sales.upcoming", {
-                        count: sales.upcomingServices.count,
-                        amount: money(sales.upcomingServices.revenueCents),
-                      })
-                    : undefined,
-              })}
-              {sales.products.lines.length > 0 &&
-                salesTable("ca-produits", sales.products, {
-                  title: t("sales.productsTitle"),
-                  intro: t("sales.productsIntro"),
-                  item: t("sales.product"),
-                  quantity: t("sales.quantity"),
-                  basis: t("sales.marginBasisProducts", {
-                    counted: sales.products.withCost,
-                    total: sales.products.lines.length,
-                  }),
-                  empty: t("sales.marginEmptyProducts"),
-                  costsHref: `${page.base}/plus/boutique`,
-                })}
-            </div>
+          {tab === "ca" && (
+            <>
+              {sales && (
+                <div className={`grid gap-6 ${sales.products.lines.length > 0 ? "xl:grid-cols-2" : ""}`}>
+                  {salesTable("ca-prestations", sales.services, {
+                    title: t("sales.servicesTitle"),
+                    intro: t("sales.servicesIntro"),
+                    item: t("sales.service"),
+                    quantity: t("sales.count"),
+                    basis: t("sales.marginBasisServices", {
+                      counted: sales.services.withCost,
+                      total: sales.services.lines.length,
+                    }),
+                    empty: t("sales.marginEmptyServices"),
+                    costsHref: `${page.base}/site/prestations`,
+                    after:
+                      sales.upcomingServices.count > 0
+                        ? t("sales.upcoming", {
+                            count: sales.upcomingServices.count,
+                            amount: money(sales.upcomingServices.revenueCents),
+                          })
+                        : undefined,
+                  })}
+                  {sales.products.lines.length > 0 &&
+                    salesTable("ca-produits", sales.products, {
+                      title: t("sales.productsTitle"),
+                      intro: t("sales.productsIntro"),
+                      item: t("sales.product"),
+                      quantity: t("sales.quantity"),
+                      basis: t("sales.marginBasisProducts", {
+                        counted: sales.products.withCost,
+                        total: sales.products.lines.length,
+                      }),
+                      empty: t("sales.marginEmptyProducts"),
+                      costsHref: `${page.base}/plus/boutique`,
+                    })}
+                </div>
+              )}
+            </>
           )}
         </>
       )}
