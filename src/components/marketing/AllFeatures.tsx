@@ -11,7 +11,9 @@ type FeaturePlan = { code: string; features: PlanFeatures; limits: PlanLimits };
  * « Voir toutes les fonctionnalités » : la liste complète, rangée par thème, repliée par
  * défaut (pas de JavaScript : details / summary). Même catalogue que le comparatif des packs
  * (lignes incluses dans au moins un pack) ; les lignes propres à une solution suivent la
- * solution choisie ([data-only]) ; rien des solutions masquées. Fonctions annoncées : « Bientôt ».
+ * solution choisie ([data-only]) ; rien des solutions masquées. Les fonctions annoncées
+ * (« Bientôt ») sont regroupées à part, en fin de liste, pour que les thèmes ne montrent
+ * que ce qui est disponible aujourd'hui.
  */
 export async function AllFeatures({
   plans,
@@ -29,14 +31,17 @@ export async function AllFeatures({
     getTranslations("home.plans"),
   ]);
   const hidden = new Set<string>(SOLUTIONS.filter((code) => !shown.includes(code)));
-  const groups = gridComparison(plans, new Set(soon))
+  const visible = gridComparison(plans, new Set(soon))
     .filter((group) => !hidden.has(group.category))
     .map((group) => ({
       ...group,
       rows: group.rows.filter((row) => !row.solution || !hidden.has(row.solution)),
-    }))
+    }));
+  const groups = visible
+    .map((group) => ({ ...group, rows: group.rows.filter((row) => !row.soon) }))
     .filter((group) => group.rows.length > 0);
-  if (groups.length === 0) return null;
+  const upcoming = visible.flatMap((group) => group.rows.filter((row) => row.soon));
+  if (groups.length === 0 && upcoming.length === 0) return null;
 
   return (
     <details className="group mt-8 lg:mt-10">
@@ -71,14 +76,7 @@ export async function AllFeatures({
                     className="flex items-start gap-2.5 text-mk-small leading-snug text-[#2d3446]"
                   >
                     <CheckLine className="mt-0.5 size-4 flex-none text-violet" />
-                    <span>
-                      {tGrid(`rows.${row.key}.label` as "rows.photos.label")}
-                      {row.soon && (
-                        <span className="ml-2 inline-block rounded-full bg-mist-50 px-2 py-px align-[1px] text-mk-note text-ink-soft">
-                          {tPlans("soonTag")}
-                        </span>
-                      )}
-                    </span>
+                    <span>{tGrid(`rows.${row.key}.label` as "rows.photos.label")}</span>
                   </li>
                 ))}
               </ul>
@@ -86,6 +84,27 @@ export async function AllFeatures({
           );
         })}
       </div>
+      {/* Fonctions annoncées : un seul encadré discret, après ce qui est disponible. */}
+      {upcoming.length > 0 && (
+        <section
+          aria-label={t("soonTitle")}
+          className="mt-4 rounded-2xl border border-dashed border-[#d9cffd] bg-[#faf8ff] p-5"
+        >
+          <h3 className="font-display text-mk-body font-semibold text-night">{t("soonTitle")}</h3>
+          <p className="mt-1 text-mk-small text-ink-soft">{t("soonIntro")}</p>
+          <ul className="mt-4 grid gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
+            {upcoming.map((row) => (
+              <li
+                key={row.key}
+                data-only={row.solution ?? undefined}
+                className="text-mk-small leading-snug text-ink-soft"
+              >
+                {tGrid(`rows.${row.key}.label` as "rows.photos.label")}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <p className="mt-6 text-center">
         <Link
           href="/comparatif"

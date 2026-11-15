@@ -885,7 +885,9 @@
       "all": {
         "show": "Voir toutes les fonctionnalités",
         "hide": "Masquer la liste",
-        "compare": "Comparer les packs en détail"
+        "compare": "Comparer les packs en détail",
+        "soonTitle": "Bientôt disponible",
+        "soonIntro": "Ces fonctions arrivent prochainement. Elles seront incluses dans les packs indiqués sur le comparatif."
       }
     },
     "comparison": {
