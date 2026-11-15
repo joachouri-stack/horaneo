@@ -2,7 +2,7 @@ import { and, asc, count, eq } from "drizzle-orm";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
 import { assets, products, productVariants, tenants } from "@/db/schema";
-import { priceInput } from "@/modules/catalog/services";
+import { costInput, priceInput } from "@/modules/catalog/services";
 import { setLocalized } from "@/modules/content/localized";
 import { AppError } from "@/modules/errors";
 import { retireAsset } from "@/modules/media/assets";
@@ -32,6 +32,8 @@ export const productInput = z.object({
     .optional()
     .transform((value) => value || undefined)
     .pipe(priceInput.optional()),
+  /** Coût de revient (statistiques de marge seulement) : vide = non renseigné. */
+  cost: costInput,
   /** Stock : vide = non suivi (toujours disponible), sinon un nombre entier. */
   stock: z
     .string()
@@ -98,6 +100,7 @@ export async function saveProduct(
     category: input.category,
     priceCents: input.price,
     compareAtPriceCents: input.compareAtPrice ?? null,
+    ...(input.cost !== undefined && { costCents: input.cost }),
     currency,
     stockQuantity: input.stock,
     isActive: input.isActive,

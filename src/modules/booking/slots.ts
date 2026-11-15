@@ -74,6 +74,17 @@ function intersect(a: Window[], b: Window[]): Window[] {
 const overlaps = (start: Date, end: Date, intervals: Interval[]) =>
   intervals.some((interval) => start < interval.end && interval.start < end);
 
+/** Horaires d'un membre valables un jour donné (jour de la semaine et période de validité). */
+export function schedulesOn<T extends StaffInput["schedules"][number]>(schedules: T[], date: string): T[] {
+  const weekday = isoWeekday(date);
+  return schedules.filter(
+    (schedule) =>
+      schedule.weekday === weekday &&
+      (!schedule.validFrom || schedule.validFrom <= date) &&
+      (!schedule.validUntil || date <= schedule.validUntil),
+  );
+}
+
 /** Le jour est-il réservable (ni passé, ni au-delà du délai maximum) ? */
 export function isBookableDate(date: string, now: Date, rules: SlotRules): boolean {
   const today = utcToLocal(now, rules.timezone).date;
@@ -95,14 +106,10 @@ export function computeDaySlots(input: DaySlotsInput): Slot[] {
   const byTime = new Map<number, Slot>();
   for (const member of input.staff) {
     const own = windowsFor(
-      member.schedules
-        .filter(
-          (schedule) =>
-            schedule.weekday === weekday &&
-            (!schedule.validFrom || schedule.validFrom <= date) &&
-            (!schedule.validUntil || date <= schedule.validUntil),
-        )
-        .map((schedule) => ({ start: schedule.startsAt, end: schedule.endsAt })),
+      schedulesOn(member.schedules, date).map((schedule) => ({
+        start: schedule.startsAt,
+        end: schedule.endsAt,
+      })),
     );
     for (const [windowStart, windowEnd] of intersect(opening, own)) {
       const first = Math.ceil(windowStart / rules.slotIntervalMinutes) * rules.slotIntervalMinutes;

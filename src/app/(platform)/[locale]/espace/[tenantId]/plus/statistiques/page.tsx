@@ -19,7 +19,8 @@ import { firstPlanWith } from "@/modules/billing/plans";
 import { addDays, utcToLocal } from "@/modules/booking/time";
 import { getStatsGoals } from "@/modules/stats/goals";
 import { trendPercent } from "@/modules/stats/dashboard";
-import { monthDetails, monthStats } from "@/modules/stats/month";
+import type { SalesBreakdown } from "@/modules/stats/margins";
+import { monthDetails, monthOccupancy, monthSales, monthStats } from "@/modules/stats/month";
 import { updateStatsGoalsAction } from "../../actions";
 
 const shift = (period: string, delta: number) => {
@@ -53,11 +54,14 @@ export default async function StatsPage({
       ? requested
       : current;
   const detailed = Boolean(page.tenant.features.stats);
-  const { stats, previous, details, goals } = await page.db(async (tx) => ({
+  const { stats, previous, details, goals, sales, occupancy } = await page.db(async (tx) => ({
     stats: await monthStats(tx, page.tenantId, period, tz, page.locale),
     previous: await monthStats(tx, page.tenantId, shift(period, -1), tz, page.locale),
     details: await monthDetails(tx, page.tenantId, period, tz),
     goals: await getStatsGoals(tx, page.tenantId),
+    // Chiffre d'affaires par prestation / produit, marges et remplissage : statistiques détaillées.
+    sales: detailed ? await monthSales(tx, page.tenantId, period, tz, page.locale) : null,
+    occupancy: detailed ? await monthOccupancy(tx, page.tenantId, period, tz) : null,
   }));
   const label = new Intl.DateTimeFormat(page.locale, {
     month: "long",
@@ -115,6 +119,93 @@ export default async function StatsPage({
       remaining: String(Math.max(goals.newCustomers - stats.newCustomers, 0)),
     },
   ].filter((item): item is Exclude<typeof item, null | 0 | undefined> => Boolean(item));
+  const percent = (rate: number | null) => (rate === null ? null : `${Math.round(rate * 100)} %`);
+  const hours = (minutes: number) => t("occupancy.hours", { hours: Math.round(minutes / 60) });
+  const th = "pb-2 font-medium text-ink-soft";
+  const td = "border-t border-hairline py-2.5";
+  const num = "pl-3 text-right tabular-nums whitespace-nowrap";
+  const salesTable = (
+    id: string,
+    breakdown: SalesBreakdown,
+    labels: { title: string; intro: string; item: string; quantity: string; basis: string; empty: string },
+  ) => (
+    <section aria-labelledby={id} className={`${panel} min-w-0`}>
+      <h2 id={id} className="font-display text-[1.1rem] font-semibold text-night">
+        {labels.title}
+      </h2>
+      <p className="text-sm text-ink-soft">{labels.intro}</p>
+      {breakdown.lines.length === 0 ? (
+        <p className="mt-4 text-ink-soft">{t("none")}</p>
+      ) : (
+        <>
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full text-left text-[0.9375rem]">
+              <thead>
+                <tr>
+                  <th scope="col" className={th}>
+                    {labels.item}
+                  </th>
+                  <th scope="col" className={`${th} ${num}`}>
+                    {labels.quantity}
+                  </th>
+                  <th scope="col" className={`${th} ${num}`}>
+                    {t("sales.revenue")}
+                  </th>
+                  <th scope="col" className={`${th} ${num}`}>
+                    {t("sales.margin")}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {breakdown.lines.map((line) => (
+                  <tr key={line.key}>
+                    <th scope="row" className={`${td} font-normal text-night`}>
+                      {line.name}
+                    </th>
+                    <td className={`${td} ${num}`}>{line.quantity}</td>
+                    <td className={`${td} ${num}`}>{money(line.revenueCents)}</td>
+                    <td className={`${td} ${num}`}>
+                      {line.marginCents === null ? (
+                        <span className="text-sm text-ink-soft">{t("sales.noCost")}</span>
+                      ) : (
+                        money(line.marginCents)
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="font-semibold text-night">
+                  <th scope="row" className={`${td} text-left`}>
+                    {t("sales.total")}
+                  </th>
+                  <td className={`${td} ${num}`}>
+                    {breakdown.lines.reduce((sum, line) => sum + line.quantity, 0)}
+                  </td>
+                  <td className={`${td} ${num}`}>{money(breakdown.revenueCents)}</td>
+                  <td className={`${td} ${num}`}>
+                    {breakdown.withCost > 0 ? money(breakdown.marginCents) : "—"}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          <p className="mt-3 text-sm text-ink-soft">
+            {breakdown.withCost > 0 ? (
+              <>
+                <span className="font-medium text-night">
+                  {t("sales.marginTotal", { amount: money(breakdown.marginCents) })}
+                </span>{" "}
+                ({labels.basis}). {t("sales.marginHint")}
+              </>
+            ) : (
+              labels.empty
+            )}
+          </p>
+        </>
+      )}
+    </section>
+  );
   const navButton =
     "flex size-10 items-center justify-center rounded-lg text-night transition hover:bg-accent-soft hover:text-accent";
 
@@ -401,6 +492,112 @@ export default async function StatsPage({
               />
             </section>
           </div>
+
+          {/* Taux de remplissage : temps réservé / temps de travail prévu. */}
+          {occupancy && (
+            <section aria-labelledby="remplissage" className={`${panel} min-w-0`}>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0 max-w-2xl">
+                  <h2 id="remplissage" className="font-display text-[1.1rem] font-semibold text-night">
+                    {t("occupancy.title")}
+                  </h2>
+                  <p className="text-sm text-ink-soft">{t("occupancy.intro")}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-ink-soft">{t("occupancy.team")}</p>
+                  <p className="font-display text-[1.75rem] font-semibold text-night tabular-nums">
+                    {percent(occupancy.rate) ?? "—"}
+                  </p>
+                  <p className="text-sm text-ink-soft">
+                    {occupancy.rate === null
+                      ? t("occupancy.noHours")
+                      : t("occupancy.summary", {
+                          booked: hours(occupancy.bookedMinutes),
+                          available: hours(occupancy.availableMinutes),
+                        })}
+                  </p>
+                </div>
+              </div>
+              {occupancy.staff.length === 0 ? (
+                <p className="mt-4 text-ink-soft">{t("none")}</p>
+              ) : (
+                <div className="mt-4 overflow-x-auto">
+                  <table className="w-full text-left text-[0.9375rem]">
+                    <thead>
+                      <tr>
+                        <th scope="col" className={th}>
+                          {t("occupancy.member")}
+                        </th>
+                        <th scope="col" className={`${th} ${num}`}>
+                          {t("occupancy.booked")}
+                        </th>
+                        <th scope="col" className={`${th} ${num}`}>
+                          {t("occupancy.available")}
+                        </th>
+                        <th scope="col" className={`${th} ${num}`}>
+                          {t("occupancy.rate")}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {occupancy.staff.map((member) => (
+                        <tr key={member.id}>
+                          <th scope="row" className={`${td} font-normal text-night`}>
+                            <span className="inline-flex items-center gap-2">
+                              <span
+                                aria-hidden="true"
+                                className="size-2.5 shrink-0 rounded-full bg-accent"
+                                style={member.color ? { backgroundColor: member.color } : undefined}
+                              />
+                              {member.name}
+                            </span>
+                          </th>
+                          <td className={`${td} ${num}`}>{hours(member.bookedMinutes)}</td>
+                          <td className={`${td} ${num}`}>{hours(member.availableMinutes)}</td>
+                          <td className={`${td} ${num} font-semibold text-night`}>
+                            {percent(member.rate) ?? (
+                              <span className="text-sm font-normal text-ink-soft">
+                                {t("occupancy.noHours")}
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* Chiffre d'affaires et marge par prestation, puis par produit si la boutique a vendu. */}
+          {sales && (
+            <div className={`grid gap-6 ${sales.products.lines.length > 0 ? "xl:grid-cols-2" : ""}`}>
+              {salesTable("ca-prestations", sales.services, {
+                title: t("sales.servicesTitle"),
+                intro: t("sales.servicesIntro"),
+                item: t("sales.service"),
+                quantity: t("sales.count"),
+                basis: t("sales.marginBasisServices", {
+                  counted: sales.services.withCost,
+                  total: sales.services.lines.length,
+                }),
+                empty: t("sales.marginEmptyServices"),
+              })}
+              {sales.products.lines.length > 0 &&
+                salesTable("ca-produits", sales.products, {
+                  title: t("sales.productsTitle"),
+                  intro: t("sales.productsIntro"),
+                  item: t("sales.product"),
+                  quantity: t("sales.quantity"),
+                  basis: t("sales.marginBasisProducts", {
+                    counted: sales.products.withCost,
+                    total: sales.products.lines.length,
+                  }),
+                  empty: t("sales.marginEmptyProducts"),
+                })}
+            </div>
+          )}
         </>
       )}
     </div>

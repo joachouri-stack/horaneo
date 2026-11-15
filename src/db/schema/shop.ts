@@ -38,6 +38,11 @@ export const products = pgTable(
     priceCents: cents().notNull(),
     /** Prix avant promotion (prix barré) ; vide : pas de promotion. */
     compareAtPriceCents: cents(),
+    /**
+     * Coût de revient (prix d'achat), facultatif : sert seulement aux statistiques de marge
+     * de la gérante, jamais affiché à la clientèle.
+     */
+    costCents: cents(),
     currency: currency().notNull().default("EUR"),
     /** Quantité en stock ; vide : stock non suivi (toujours disponible). */
     stockQuantity: integer(),
@@ -58,6 +63,7 @@ export const products = pgTable(
       foreignColumns: [assets.tenantId, assets.id],
     }).onDelete("restrict"),
     check("products_price", sql`${t.priceCents} >= 0`),
+    check("products_cost", sql`${t.costCents} IS NULL OR ${t.costCents} >= 0`),
     check("products_stock", sql`${t.stockQuantity} IS NULL OR ${t.stockQuantity} >= 0`),
     check(
       "products_compare_at_price",

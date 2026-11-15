@@ -2,7 +2,17 @@ import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { withPlatform, withTenant } from "@/db/access";
 import type { Transaction } from "@/db/client";
-import { appointments, assets, authSessions, customers, payments, usageCounters } from "@/db/schema";
+import {
+  appointments,
+  assets,
+  authSessions,
+  customers,
+  payments,
+  products,
+  shopOrderItems,
+  shopOrders,
+  usageCounters,
+} from "@/db/schema";
 import { setPlatformAdmin } from "@/db/admin-role";
 import {
   cancelByManager,
@@ -37,7 +47,7 @@ import {
 import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
 import { createTimeOff } from "@/modules/schedule/time-off";
 import { getStatsGoals, updateStatsGoals } from "@/modules/stats/goals";
-import { monthDetails, monthStats } from "@/modules/stats/month";
+import { monthDetails, monthOccupancy, monthSales, monthStats } from "@/modules/stats/month";
 import { replaceStaffSchedules } from "@/modules/team/schedules";
 import { toolsOverview } from "@/modules/stats/tools";
 import { deleteStaff, listStaff, saveStaff, setStaffPhoto } from "@/modules/team/staff";
@@ -803,6 +813,123 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
       expect(details.hours[10] + details.hours[14]).toBe(2);
       expect(details.averageBasketCents).toBe(7000);
       expect(details).toMatchObject({ customers: 2, returningCustomers: 0 });
+    });
+
+    it("chiffre d'affaires et marge par prestation et par produit, taux de remplissage", async () => {
+      const s = await setup();
+      const a = await onlineBooking(s.id, s.massage.id, at("10:00"));
+      await onlineBooking(s.id, s.massage.id, at("14:00"));
+      await onlineBooking(s.id, s.massage.id, at("15:00"));
+      await asManager(s.id, (tx) => setAttendance(tx, s.id, a.appointmentId, "no_show"));
+      // Coût de revient de la prestation (seulement pour les marges) : 25 € → marge 45 € × 2.
+      await asManager(s.id, (tx) =>
+        saveService(
+          tx,
+          s.id,
+          { name: "Massage", durationMinutes: 60, price: "70", cost: "25" },
+          s.massage.id,
+        ),
+      );
+      // Sans champ « cost » : le coût n'est pas effacé ; vide : non renseigné.
+      await asManager(s.id, (tx) =>
+        saveService(tx, s.id, { name: "Massage", durationMinutes: 60, price: "70" }, s.massage.id),
+      );
+      const [booked] = await owner.select().from(appointments).where(eq(appointments.id, a.appointmentId));
+      const businessId = booked.businessId;
+      // Boutique : une commande payée (2 bougies avec coût, 1 savon sans coût), une remboursée (exclue).
+      const [candle, soap] = await owner
+        .insert(products)
+        .values([
+          { tenantId: s.id, businessId, name: { fr: "Bougie" }, priceCents: 1500, costCents: 600 },
+          { tenantId: s.id, businessId, name: { fr: "Savon" }, priceCents: 800 },
+        ])
+        .returning();
+      const order = (status: "paid" | "refunded") => ({
+        tenantId: s.id,
+        businessId,
+        status,
+        customerName: "Camille",
+        customerEmail: "camille@example.com",
+        totalCents: 3800,
+        paidAt: at("11:00"),
+      });
+      const [paid, refunded] = await owner
+        .insert(shopOrders)
+        .values([order("paid"), order("refunded")])
+        .returning();
+      await owner.insert(shopOrderItems).values(
+        [paid, refunded].flatMap((row) => [
+          {
+            tenantId: s.id,
+            businessId,
+            orderId: row.id,
+            productId: candle.id,
+            name: "Bougie",
+            unitPriceCents: 1500,
+            quantity: 2,
+          },
+          {
+            tenantId: s.id,
+            businessId,
+            orderId: row.id,
+            productId: soap.id,
+            name: "Savon",
+            unitPriceCents: 800,
+            quantity: 1,
+          },
+        ]),
+      );
+      const sales = await asManager(s.id, (tx) => monthSales(tx, s.id, "2026-10", TZ, "fr"));
+      expect(sales.services).toMatchObject({ revenueCents: 14000, marginCents: 9000, withCost: 1 });
+      expect(sales.services.lines).toEqual([
+        {
+          key: s.massage.id,
+          name: "Massage",
+          quantity: 2,
+          revenueCents: 14000,
+          costCents: 5000,
+          marginCents: 9000,
+        },
+      ]);
+      expect(sales.products).toMatchObject({ revenueCents: 3800, marginCents: 1800, withCost: 1 });
+      expect(sales.products.lines.map((line) => [line.name, line.quantity, line.marginCents])).toEqual([
+        ["Bougie", 2, 1800],
+        ["Savon", 1, null],
+      ]);
+
+      // Remplissage : Léa et Inès n'ont pas d'horaires → ouverture (mardi 9 h-18 h, 4 mardis).
+      // Léa : créneau bloqué le 13 (3 h) ; fermeture de l'établissement le 27 (une journée).
+      await asManager(s.id, (tx) =>
+        createTimeOff(tx, s.id, {
+          kind: "block",
+          staffId: s.lea.id,
+          date: "2026-10-13",
+          from: "09:00",
+          to: "12:00",
+        }),
+      );
+      await asManager(s.id, (tx) =>
+        createTimeOff(tx, s.id, { kind: "closure", startDate: "2026-10-27", endDate: "2026-10-27" }),
+      );
+      // Inès : ses propres horaires (mercredi 10 h-12 h, 4 mercredis) remplacent l'ouverture.
+      await asManager(s.id, (tx) =>
+        replaceStaffSchedules(tx, s.id, s.ines!.id, [{ weekday: 3, opensAt: "10:00", closesAt: "12:00" }]),
+      );
+      const occupancy = await asManager(s.id, (tx) => monthOccupancy(tx, s.id, "2026-10", TZ));
+      const lea = occupancy.staff.find((member) => member.id === s.lea.id)!;
+      const ines = occupancy.staff.find((member) => member.id === s.ines!.id)!;
+      // Absence comprise : le créneau était occupé (3 × 60 min).
+      expect(lea).toMatchObject({ bookedMinutes: 180, availableMinutes: 4 * 540 - 180 - 540 });
+      expect(lea.rate).toBeCloseTo(180 / 1440);
+      expect(ines).toMatchObject({ bookedMinutes: 0, availableMinutes: 480, rate: 0 });
+      expect(occupancy).toMatchObject({ bookedMinutes: 180, availableMinutes: 1920 });
+      // Mois sans horaires disponibles (fermeture tout le mois, Inès sans mercredi) : pas de division par zéro.
+      await asManager(s.id, (tx) =>
+        createTimeOff(tx, s.id, { kind: "closure", startDate: "2026-11-01", endDate: "2026-11-30" }),
+      );
+      const closed = await asManager(s.id, (tx) => monthOccupancy(tx, s.id, "2026-11", TZ));
+      expect(closed.rate).toBeNull();
+      expect(closed.staff.every((member) => member.rate === null)).toBe(true);
     });
 
     it("rendez-vous terminé supprimé : il sort des statistiques ; à venir ou payé en ligne : refusé", async () => {

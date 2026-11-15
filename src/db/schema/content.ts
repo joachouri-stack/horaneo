@@ -154,6 +154,11 @@ export const services = pgTable(
     /** Temps de battement après la prestation, invisible pour la cliente. */
     bufferMinutes: smallint().notNull().default(0),
     priceCents: cents().notNull(),
+    /**
+     * Coût de revient (produits utilisés…), facultatif : sert seulement aux statistiques de
+     * marge de la gérante, jamais affiché à la clientèle.
+     */
+    costCents: cents(),
     currency: currency().notNull().default("EUR"),
     /** Affiche « à partir de » devant le prix. */
     priceFrom: boolean().notNull().default(false),
@@ -175,6 +180,7 @@ export const services = pgTable(
     check("services_duration", sql`${t.durationMinutes} between 5 and 1440`),
     check("services_buffer", sql`${t.bufferMinutes} between 0 and 240`),
     check("services_price", sql`${t.priceCents} >= 0`),
+    check("services_cost", sql`${t.costCents} IS NULL OR ${t.costCents} >= 0`),
   ],
 );
 

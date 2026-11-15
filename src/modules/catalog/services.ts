@@ -157,6 +157,17 @@ export const priceInput = z
   .regex(/^\d{1,6}([.,]\d{1,2})?$/)
   .transform((value) => Math.round(Number(value.replace(",", ".")) * 100));
 
+/**
+ * Coût de revient facultatif, saisi comme un prix (sert seulement aux statistiques de marge,
+ * jamais affiché à la clientèle) : vide → null (non renseigné) ; absent → undefined (inchangé).
+ */
+export const costInput = z
+  .string()
+  .trim()
+  .optional()
+  .transform((value) => (value === undefined ? undefined : value || null))
+  .pipe(priceInput.nullable().optional());
+
 export const serviceInput = z.object({
   name: z.string().trim().min(1).max(100),
   description: z.string().trim().max(1000).optional(),
@@ -164,6 +175,7 @@ export const serviceInput = z.object({
   durationMinutes: z.coerce.number().int().min(5).max(1440),
   bufferMinutes: z.coerce.number().int().min(0).max(240).default(0),
   price: priceInput,
+  cost: costInput,
   priceFrom: z.boolean().default(false),
   isOnlineBookable: z.boolean().default(true),
   isActive: z.boolean().default(true),
@@ -190,6 +202,7 @@ export async function saveService(
     durationMinutes: input.durationMinutes,
     bufferMinutes: input.bufferMinutes,
     priceCents: input.price,
+    ...(input.cost !== undefined && { costCents: input.cost }),
     currency,
     priceFrom: input.priceFrom,
     isOnlineBookable: input.isOnlineBookable,
