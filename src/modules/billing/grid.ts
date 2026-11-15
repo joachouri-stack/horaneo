@@ -57,6 +57,8 @@ const ROWS: RowDef[] = [
   // Site vitrine : remplacé par le site multipage quand le pack l'inclut.
   { key: "miniSite", category: "site", always: true, unless: "fullSite" },
   { key: "fullSite", category: "site", feature: "fullSite" },
+  // Tous les packs : le site est créé par l'équipe (puis modifiable par le client).
+  { key: "siteCreation", category: "site", always: true },
   { key: "setupAssistance", category: "site", feature: "setupAssistance" },
   { key: "photos", category: "site", limit: "photos", always: true },
   { key: "services", category: "site", limit: "services", always: true },
@@ -188,6 +190,7 @@ const MAX_MISSING = 3;
  */
 const CARD_ORDER = [
   "fullSite",
+  "siteCreation",
   "bookings",
   "onlinePayment",
   "emailReminders",

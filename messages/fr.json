@@ -353,7 +353,8 @@
         "badge": "Offre limitée",
         "title": "Tablette offerte",
         "label": "Tablette professionnelle offerte",
-        "conditions": "Conditions de l'offre"
+        "conditions": "Conditions de l'offre",
+        "yearlyOnly": "{title} avec le paiement à l'année"
       },
       "compare": "Voir le comparatif détaillé",
       "quotaNote": "Tout ce que comprend chaque pack est indiqué sur sa carte. Rien n'est jamais facturé sans votre accord.",
@@ -580,8 +581,8 @@
           "card": "Site multipage personnalisable"
         },
         "setupAssistance": {
-          "label": "Configuration accompagnée du site",
-          "card": "Configuration accompagnée"
+          "label": "Accompagnement personnalisé à la prise en main",
+          "card": "Accompagnement personnalisé"
         },
         "photos": {
           "label": "Photos de la galerie",
@@ -797,6 +798,10 @@
         "priorityHumanSupport": {
           "label": "Assistance humaine prioritaire",
           "card": "Assistance humaine prioritaire"
+        },
+        "siteCreation": {
+          "label": "Création de votre site par notre équipe",
+          "card": "Site créé pour vous par notre équipe"
         }
       }
     },
@@ -938,7 +943,10 @@
       "forSolution": " – {solution}",
       "titleFor": "Comparatif des fonctionnalités – {solution}",
       "feature": "Fonctionnalité",
-      "pickPack": "Pack affiché"
+      "pickPack": "Pack affiché",
+      "upcoming": "Bientôt disponible",
+      "upcomingHint": "Fonctions en préparation, pas encore disponibles : elles seront ajoutées aux packs cochés.",
+      "order": "Créer mon site"
     },
     "faq": {
       "title": "Questions fréquentes",
@@ -2198,7 +2206,7 @@
         "helpCenter": "Centre d'aide",
         "ticketSupport": "Assistance par ticket",
         "priorityHumanSupport": "Assistance humaine prioritaire",
-        "setupAssistance": "Configuration accompagnée du site",
+        "setupAssistance": "Accompagnement personnalisé à la prise en main",
         "freeDomain": "Nom de domaine inclus pour la création (sous conditions)",
         "maintenance": "Maintenance du site incluse",
         "securityProtection": "Protection contre les cyberattaques",
