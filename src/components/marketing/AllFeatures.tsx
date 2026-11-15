@@ -25,11 +25,7 @@ export async function AllFeatures({
   /** Solutions présentées sur la page : rien des autres (masquées dans les réglages). */
   shown: readonly Solution[];
 }) {
-  const [t, tGrid, tPlans] = await Promise.all([
-    getTranslations("home.benefits.all"),
-    getTranslations("home.grid"),
-    getTranslations("home.plans"),
-  ]);
+  const [t, tGrid] = await Promise.all([getTranslations("home.benefits.all"), getTranslations("home.grid")]);
   const hidden = new Set<string>(SOLUTIONS.filter((code) => !shown.includes(code)));
   const visible = gridComparison(plans, new Set(soon))
     .filter((group) => !hidden.has(group.category))
