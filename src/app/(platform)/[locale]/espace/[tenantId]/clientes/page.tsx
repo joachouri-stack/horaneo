@@ -1,8 +1,7 @@
 import { getTranslations } from "next-intl/server";
-import { DASH_ICONS, DashIcon, StatCard, panel } from "@/components/manager/DashboardWidgets";
+import { DASH_ICONS, DashIcon, panel } from "@/components/manager/DashboardWidgets";
 import { initials } from "@/components/manager/DayTimeline";
 import { ui } from "@/components/ui/styles";
-import { CUSTOMER_SEGMENTS } from "@/config/customers";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
 import {
@@ -12,7 +11,6 @@ import {
   type CustomerSegment,
   type CustomerSort,
 } from "@/modules/customers/customers";
-import { canAccess } from "@/modules/team/access";
 import { formatPhone } from "@/modules/phone";
 
 /** Fiches affichées d'abord, puis ajoutées à chaque « Afficher plus » (plafond pour le téléphone). */
@@ -82,10 +80,9 @@ export default async function CustomersPage({
   const moreHref = () => listHref({ n: shown + PAGE_SIZE });
   const href = (next: CustomerSegment) => listHref({ groupe: next });
   // Export du fichier clients (page « Exporter ») : la gérante seulement.
-  const canExport = canAccess(page.space, "owner");
 
   return (
-    // Sur téléphone, la recherche et la liste d'abord ; les chiffres clés passent en bas.
+    // Recherche d'abord (sur téléphone), puis les filtres et la liste : les nombres sont sur les filtres.
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
@@ -95,14 +92,6 @@ export default async function CustomersPage({
           <p className="mt-1 text-ink-soft">{t("subtitle")}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          {canExport && (
-            <Link
-              href={`${page.base}/plus/exporter`}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-hairline bg-white px-4 text-[0.95rem] font-medium text-night transition hover:border-accent-line hover:text-accent"
-            >
-              {t("export")}
-            </Link>
-          )}
           <Link
             href={`${page.base}/clientes/nouvelle`}
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-accent px-5 text-[0.95rem] font-medium text-white shadow-[0_1px_2px_rgba(15,24,48,.08)] transition hover:bg-accent-strong"
@@ -111,37 +100,6 @@ export default async function CustomersPage({
             {t("new")}
           </Link>
         </div>
-      </div>
-
-      <div className="order-last grid grid-cols-2 gap-3 lg:order-none lg:grid-cols-4 lg:gap-4">
-        <StatCard
-          icon={DASH_ICONS.users}
-          tone="indigo"
-          label={t("statAll")}
-          value={String(counts.all)}
-          sub={t("statAllSub", { count: counts.visited })}
-        />
-        <StatCard
-          icon={DASH_ICONS.star}
-          tone="violet"
-          label={t("statLoyal")}
-          value={String(counts.loyal)}
-          sub={t("statLoyalSub", { visits: CUSTOMER_SEGMENTS.loyalVisits })}
-        />
-        <StatCard
-          icon={DASH_ICONS.plus}
-          tone="green"
-          label={t("statNew")}
-          value={String(counts.new)}
-          sub={t("statNewSub", { days: CUSTOMER_SEGMENTS.newDays })}
-        />
-        <StatCard
-          icon={DASH_ICONS.clock}
-          tone="amber"
-          label={t("statInactive")}
-          value={String(counts.inactive)}
-          sub={t("statInactiveSub", { days: CUSTOMER_SEGMENTS.inactiveDays })}
-        />
       </div>
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -173,7 +131,7 @@ export default async function CustomersPage({
             );
           })}
         </nav>
-        <form method="get" role="search" className="flex gap-2 lg:w-96">
+        <form method="get" role="search" className="order-first flex gap-2 lg:order-last lg:w-96">
           {segment !== "all" && <input type="hidden" name="groupe" value={segment} />}
           {sort !== "name" && <input type="hidden" name="tri" value={sort} />}
           <label htmlFor="q" className="sr-only">

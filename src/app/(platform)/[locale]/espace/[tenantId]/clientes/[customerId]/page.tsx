@@ -220,7 +220,8 @@ export default async function CustomerPage({
           )}
         </section>
 
-        {loyalty?.config.included && (
+        {/* Fidélité : seulement quand le programme est actif (ou qu'un bon reste à utiliser). */}
+        {loyalty?.config.included && (loyalty.config.enabled || loyalty.summary?.reward) && (
           <section className={`${ui.card} space-y-4`} aria-labelledby="fidelite">
             <h2 id="fidelite" className="text-lg font-semibold">
               {tLoyalty("card")}
@@ -323,81 +324,75 @@ export default async function CustomerPage({
           </div>
         </details>
 
-        {/* Fusion d'une fiche en double : réservée à la gérante, avec confirmation. */}
+        {/* Actions rares (fiche en double, suppression) : rangées sous « Plus d'actions », gérante seulement. */}
         {isOwner && (
           <details className={`${panel} group`}>
-            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 font-display text-[1.1rem] font-semibold text-night">
-              {t("merge.title")}
+            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 font-display text-[1.1rem] font-semibold text-night [&::-webkit-details-marker]:hidden">
+              {t("moreActions")}
               <span aria-hidden="true" className="text-ink-soft transition group-open:rotate-180">
                 ▾
               </span>
             </summary>
-            <p className="mt-2 text-sm text-ink/70">{t("merge.hint", { name })}</p>
-            {duplicates.length === 0 ? (
-              <p className="mt-4 rounded-xl bg-mist-50 px-4 py-3 text-sm text-ink/70">{t("merge.none")}</p>
-            ) : (
-              <ActionForm
-                action={mergeCustomerAction}
-                submitLabel={t("merge.submit")}
-                confirm={t("merge.confirm", { name })}
-                successMessage={t("merge.done")}
-                variant="secondary"
-                className="mt-4 space-y-4"
-              >
-                <Hidden values={{ tenantId: page.tenantId, id: customer.id }} />
-                <fieldset className="space-y-2">
-                  <legend className="sr-only">{t("merge.choose")}</legend>
-                  {duplicates.map((other) => (
-                    <label
-                      key={other.id}
-                      className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border-2 border-hairline px-4 py-3 has-[:checked]:border-night"
-                    >
-                      <input
-                        type="radio"
-                        name="removeId"
-                        value={other.id}
-                        required
-                        className="h-5 w-5 shrink-0 accent-navy"
-                      />
-                      <span className="min-w-0 flex-1">
-                        <span className="block font-medium text-night">
-                          {[other.firstName, other.lastName].filter(Boolean).join(" ")}
-                        </span>
-                        <span className="block truncate text-sm text-ink/70">
-                          {[other.phone ? formatPhone(other.phone) : null, other.email]
-                            .filter(Boolean)
-                            .join(" · ")}
-                          {" · "}
-                          {t("merge.createdOn", { date: page.fmt.short(other.createdAt) })}
-                        </span>
-                      </span>
-                    </label>
-                  ))}
-                </fieldset>
-              </ActionForm>
-            )}
+            <div className="mt-4 space-y-6">
+              {duplicates.length > 0 && (
+                <div>
+                  <h2 className="font-semibold text-night">{t("merge.title")}</h2>
+                  <p className="mt-1 text-sm text-ink/70">{t("merge.hint", { name })}</p>
+                  <ActionForm
+                    action={mergeCustomerAction}
+                    submitLabel={t("merge.submit")}
+                    confirm={t("merge.confirm", { name })}
+                    successMessage={t("merge.done")}
+                    variant="secondary"
+                    className="mt-4 space-y-4"
+                  >
+                    <Hidden values={{ tenantId: page.tenantId, id: customer.id }} />
+                    <fieldset className="space-y-2">
+                      <legend className="sr-only">{t("merge.choose")}</legend>
+                      {duplicates.map((other) => (
+                        <label
+                          key={other.id}
+                          className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border-2 border-hairline px-4 py-3 has-[:checked]:border-night"
+                        >
+                          <input
+                            type="radio"
+                            name="removeId"
+                            value={other.id}
+                            required
+                            className="h-5 w-5 shrink-0 accent-navy"
+                          />
+                          <span className="min-w-0 flex-1">
+                            <span className="block font-medium text-night">
+                              {[other.firstName, other.lastName].filter(Boolean).join(" ")}
+                            </span>
+                            <span className="block truncate text-sm text-ink/70">
+                              {[other.phone ? formatPhone(other.phone) : null, other.email]
+                                .filter(Boolean)
+                                .join(" · ")}
+                              {" · "}
+                              {t("merge.createdOn", { date: page.fmt.short(other.createdAt) })}
+                            </span>
+                          </span>
+                        </label>
+                      ))}
+                    </fieldset>
+                  </ActionForm>
+                </div>
+              )}
+              <div>
+                <h2 className="font-semibold text-night">{t("delete")}</h2>
+                <p className="mb-4 mt-1 text-sm text-ink/70">{t("deleteHint")}</p>
+                <ActionForm
+                  action={deleteCustomerAction}
+                  submitLabel={t("delete")}
+                  confirm={t("deleteConfirm", { name })}
+                  variant="dangerOutline"
+                >
+                  <Hidden values={{ tenantId: page.tenantId, id: customer.id }} />
+                </ActionForm>
+              </div>
+            </div>
           </details>
-        )}
-
-        {/* Suppression : réservée à la gérante, avec confirmation. */}
-        {isOwner && (
-          <section
-            aria-labelledby="supprimer"
-            className="rounded-[1.4rem] border border-[#f1c5bf] bg-white p-5 sm:p-6"
-          >
-            <h2 id="supprimer" className="font-display text-[1.1rem] font-semibold text-night">
-              {t("delete")}
-            </h2>
-            <p className="mb-4 mt-1 text-sm text-ink/70">{t("deleteHint")}</p>
-            <ActionForm
-              action={deleteCustomerAction}
-              submitLabel={t("delete")}
-              confirm={t("deleteConfirm", { name })}
-              variant="dangerOutline"
-            >
-              <Hidden values={{ tenantId: page.tenantId, id: customer.id }} />
-            </ActionForm>
-          </section>
         )}
       </div>
     </div>

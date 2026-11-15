@@ -2971,6 +2971,7 @@
       "refundHint": "Le remboursement part immédiatement sur la carte du client (5 à 10 jours pour apparaître). Sans remboursement, l'acompte reste acquis.",
       "discount": "Réduction : {amount}",
       "messages": "Messages au client",
+      "messagesCount": "{count, plural, one {# e-mail ou SMS envoyé au client} other {# e-mails ou SMS envoyés au client}}",
       "messageStatus": {
         "queued": "en attente",
         "sent": "envoyé",
@@ -3101,14 +3102,6 @@
       "noHistory": "Aucun rendez-vous.",
       "book": "Prendre un rendez-vous",
       "subtitle": "Votre fichier clients : visites, fidélité et clients à relancer.",
-      "statAll": "Clients",
-      "statAllSub": "{count, plural, =0 {Aucun encore venu} one {# déjà venu} other {# déjà venus}}",
-      "statLoyal": "Fidèles",
-      "statLoyalSub": "{visits} visites ou plus",
-      "statNew": "Nouveaux",
-      "statNewSub": "Arrivées ces {days} derniers jours",
-      "statInactive": "À relancer",
-      "statInactiveSub": "Pas revenus depuis {days} jours",
       "filters": "Filtrer les clients",
       "filter": {
         "all": "Tous",
@@ -3143,7 +3136,6 @@
       "delete": "Supprimer le client",
       "deleteHint": "Définitif. S'il a déjà eu des rendez-vous, ses coordonnées sont effacées mais ses rendez-vous restent dans votre historique et votre chiffre d'affaires.",
       "deleteConfirm": "Supprimer {name} ? Cette action est définitive.",
-      "export": "Exporter",
       "sortBy": "Trier par :",
       "sort": {
         "name": "Nom",
@@ -3153,15 +3145,15 @@
       "clearSearch": "Effacer la recherche",
       "createFromSearch": "Créer ce client",
       "merge": {
-        "title": "Fusionner avec une autre fiche",
+        "title": "Fiche en double ?",
         "hint": "Une même personne enregistrée deux fois ? Choisissez la fiche en double : ses rendez-vous, sa fidélité et ses notes passent sur la fiche de {name}, puis la fiche en double est supprimée.",
-        "none": "Aucune autre fiche ne ressemble à celle-ci (même téléphone, e-mail ou nom).",
         "choose": "Fiche en double à réunir avec celle-ci",
         "createdOn": "créée le {date}",
         "submit": "Fusionner",
         "confirm": "Réunir la fiche choisie avec celle de {name} ? La fiche en double sera supprimée. Cette action est définitive.",
         "done": "Fiches fusionnées."
-      }
+      },
+      "moreActions": "Plus d'actions"
     },
     "site": {
       "title": "Mon site",
