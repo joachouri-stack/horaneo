@@ -53,7 +53,7 @@ import { DATE_PATTERN, localToUtc } from "@/modules/booking/time";
 import { deleteCategory, deleteService, saveCategory, saveService } from "@/modules/catalog/services";
 import { MANAGER_PAGE_KEYS, PAGE_TEXT_FIELDS, updatePageTexts } from "@/modules/content/pages";
 import { deleteTestimonial, saveTestimonial } from "@/modules/content/testimonials";
-import { deleteCustomer, saveCustomer, searchCustomers } from "@/modules/customers/customers";
+import { deleteCustomer, mergeCustomers, saveCustomer, searchCustomers } from "@/modules/customers/customers";
 import { assertSitePhoto, restoreAsset, retireAsset, uploadAsset, uploadLogo } from "@/modules/media/assets";
 import { parseInterval } from "@/modules/billing/yearly";
 import { AppError } from "@/modules/errors";
@@ -343,6 +343,18 @@ export async function deleteCustomerAction(_previous: Previous, data: FormData) 
   if (!result.ok) return result;
   redirect({ href: `/espace/${tenantId}/clientes`, locale: resolveLocale(await getLocale()) });
   return result;
+}
+
+/**
+ * Fusionne une fiche en double dans celle-ci (gérante principale seulement) : passe par
+ * le rôle plateforme, car l'historique de fidélité n'est jamais modifiable depuis l'espace.
+ */
+export async function mergeCustomerAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const keepId = idOf(data)!;
+  return managerPlatformMutation(tenantId, "customer.merged", (tx) =>
+    mergeCustomers(tx, tenantId, { keepId, removeId: form.text(data, "removeId") }),
+  );
 }
 
 // ─── Mon site ─────────────────────────────────────────────────────────────────

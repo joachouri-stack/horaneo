@@ -7,9 +7,12 @@ import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
 import {
   CUSTOMER_SEGMENT_KEYS,
+  CUSTOMER_SORT_KEYS,
   customerDirectory,
   type CustomerSegment,
+  type CustomerSort,
 } from "@/modules/customers/customers";
+import { canAccess } from "@/modules/team/access";
 import { formatPhone } from "@/modules/phone";
 
 /** Fiches affichées d'abord, puis ajoutées à chaque « Afficher plus » (plafond pour le téléphone). */
@@ -49,6 +52,9 @@ export default async function CustomersPage({
   const segment: CustomerSegment = CUSTOMER_SEGMENT_KEYS.includes(query.groupe as CustomerSegment)
     ? (query.groupe as CustomerSegment)
     : "all";
+  const sort: CustomerSort = CUSTOMER_SORT_KEYS.includes(query.tri as CustomerSort)
+    ? (query.tri as CustomerSort)
+    : "name";
   const t = await getTranslations("manager.customers");
   const tCommon = await getTranslations("common");
   const now = new Date();
@@ -58,23 +64,25 @@ export default async function CustomersPage({
     customers: list,
     counts,
     matching,
-  } = await page.db((tx) => customerDirectory(tx, page.tenantId, { query: q, segment, now, limit: shown }));
+  } = await page.db((tx) =>
+    customerDirectory(tx, page.tenantId, { query: q, segment, sort, now, limit: shown }),
+  );
 
-  const moreHref = () => {
+  /** Lien de la liste : groupe, recherche et tri gardés sauf ceux changés. */
+  const listHref = (changes: { groupe?: CustomerSegment; q?: string; tri?: CustomerSort; n?: number }) => {
+    const next = { groupe: segment, q, tri: sort, ...changes };
     const search = new URLSearchParams();
-    if (segment !== "all") search.set("groupe", segment);
-    if (q) search.set("q", q);
-    search.set("n", String(shown + PAGE_SIZE));
-    return `${page.base}/clientes?${search.toString()}`;
-  };
-
-  const href = (next: CustomerSegment) => {
-    const search = new URLSearchParams();
-    if (next !== "all") search.set("groupe", next);
-    if (q) search.set("q", q);
+    if (next.groupe !== "all") search.set("groupe", next.groupe);
+    if (next.q) search.set("q", next.q);
+    if (next.tri !== "name") search.set("tri", next.tri);
+    if (changes.n) search.set("n", String(changes.n));
     const text = search.toString();
     return `${page.base}/clientes${text ? `?${text}` : ""}`;
   };
+  const moreHref = () => listHref({ n: shown + PAGE_SIZE });
+  const href = (next: CustomerSegment) => listHref({ groupe: next });
+  // Export du fichier clients (page « Exporter ») : la gérante seulement.
+  const canExport = canAccess(page.space, "owner");
 
   return (
     // Sur téléphone, la recherche et la liste d'abord ; les chiffres clés passent en bas.
@@ -86,13 +94,23 @@ export default async function CustomersPage({
           </h1>
           <p className="mt-1 text-ink-soft">{t("subtitle")}</p>
         </div>
-        <Link
-          href={`${page.base}/clientes/nouvelle`}
-          className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-accent px-5 text-[0.95rem] font-medium text-white shadow-[0_1px_2px_rgba(15,24,48,.08)] transition hover:bg-accent-strong"
-        >
-          <DashIcon d={DASH_ICONS.plus} className="h-5 w-5" />
-          {t("new")}
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          {canExport && (
+            <Link
+              href={`${page.base}/plus/exporter`}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-hairline bg-white px-4 text-[0.95rem] font-medium text-night transition hover:border-accent-line hover:text-accent"
+            >
+              {t("export")}
+            </Link>
+          )}
+          <Link
+            href={`${page.base}/clientes/nouvelle`}
+            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-accent px-5 text-[0.95rem] font-medium text-white shadow-[0_1px_2px_rgba(15,24,48,.08)] transition hover:bg-accent-strong"
+          >
+            <DashIcon d={DASH_ICONS.plus} className="h-5 w-5" />
+            {t("new")}
+          </Link>
+        </div>
       </div>
 
       <div className="order-last grid grid-cols-2 gap-3 lg:order-none lg:grid-cols-4 lg:gap-4">
@@ -127,8 +145,11 @@ export default async function CustomersPage({
       </div>
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        {/* Téléphone : les quatre filtres tiennent sur une ligne, sans défilement. */}
-        <nav aria-label={t("filters")} className="grid grid-cols-4 gap-1.5 sm:flex sm:gap-2">
+        {/* Téléphone : les filtres défilent de côté s'ils ne tiennent pas, sans se serrer. */}
+        <nav
+          aria-label={t("filters")}
+          className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0 sm:pb-0"
+        >
           {CUSTOMER_SEGMENT_KEYS.map((key) => {
             const active = key === segment;
             return (
@@ -136,7 +157,7 @@ export default async function CustomersPage({
                 key={key}
                 href={href(key)}
                 aria-current={active ? "page" : undefined}
-                className={`inline-flex min-h-10 min-w-0 items-center justify-center gap-1 whitespace-nowrap rounded-full border px-1 text-sm font-medium transition sm:shrink-0 sm:gap-2 sm:px-4 sm:text-[0.9375rem] ${
+                className={`inline-flex min-h-10 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-full border px-3.5 text-[0.9375rem] font-medium transition sm:px-4 ${
                   active
                     ? "border-night bg-night text-white"
                     : "border-hairline bg-white text-night hover:border-accent-line"
@@ -144,7 +165,7 @@ export default async function CustomersPage({
               >
                 {t(`filter.${key}`)}
                 <span
-                  className={`hidden rounded-full px-1 text-[0.8125rem] tabular-nums min-[360px]:inline sm:px-1.5 sm:text-[0.8125rem] ${active ? "bg-white/20" : "bg-mist-50 text-ink-soft"}`}
+                  className={`rounded-full px-1.5 text-[0.8125rem] tabular-nums ${active ? "bg-white/20" : "bg-mist-50 text-ink-soft"}`}
                 >
                   {counts[key]}
                 </span>
@@ -154,6 +175,7 @@ export default async function CustomersPage({
         </nav>
         <form method="get" role="search" className="flex gap-2 lg:w-96">
           {segment !== "all" && <input type="hidden" name="groupe" value={segment} />}
+          {sort !== "name" && <input type="hidden" name="tri" value={sort} />}
           <label htmlFor="q" className="sr-only">
             {t("search")}
           </label>
@@ -186,8 +208,38 @@ export default async function CustomersPage({
         </form>
       </div>
 
+      {/* Tri de la liste. */}
+      {list.length > 1 && (
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="text-ink/70">{t("sortBy")}</span>
+          {CUSTOMER_SORT_KEYS.map((key) => (
+            <Link
+              key={key}
+              href={listHref({ tri: key })}
+              aria-current={key === sort ? "true" : undefined}
+              className="inline-flex min-h-10 items-center rounded-full border border-hairline bg-white px-3.5 font-medium text-night transition hover:border-accent-line aria-[current=true]:border-night aria-[current=true]:bg-night aria-[current=true]:text-white"
+            >
+              {t(`sort.${key}`)}
+            </Link>
+          ))}
+        </div>
+      )}
+
       {list.length === 0 ? (
-        <p className={`${panel} text-ink-soft`}>{segment === "all" ? t("empty") : t("emptyFilter")}</p>
+        <div className={`${panel} space-y-4`}>
+          <p className="text-ink-soft">{segment === "all" ? t("empty") : t("emptyFilter")}</p>
+          {/* Recherche sans résultat : l'effacer, ou créer la fiche. */}
+          {q && (
+            <div className="flex flex-wrap gap-2">
+              <Link href={listHref({ q: "" })} className={`${ui.secondaryButton} sm:w-auto`}>
+                {t("clearSearch")}
+              </Link>
+              <Link href={`${page.base}/clientes/nouvelle`} className={`${ui.primaryButton} sm:w-auto`}>
+                {t("createFromSearch")}
+              </Link>
+            </div>
+          )}
+        </div>
       ) : (
         <div className={`${panel} !p-0`}>
           {/* En-têtes du tableau, sur ordinateur seulement. */}
@@ -260,7 +312,11 @@ export default async function CustomersPage({
                     {/* Ordinateur : colonnes. */}
                     <span className="hidden text-night tabular-nums lg:block">{customer.visits}</span>
                     <span className="hidden text-night tabular-nums lg:block">
-                      {page.fmt.money(customer.spentCents)}
+                      {customer.spentCents > 0 ? (
+                        page.fmt.money(customer.spentCents)
+                      ) : (
+                        <span className="text-ink-soft">{t("noNextVisit")}</span>
+                      )}
                     </span>
                     <span className="hidden text-[0.9375rem] text-ink-soft lg:block">
                       {customer.lastVisit ? page.fmt.short(customer.lastVisit) : t("never")}
