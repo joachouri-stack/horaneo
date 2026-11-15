@@ -6,7 +6,7 @@ import { listServices } from "@/modules/catalog/services";
 import { listStaff } from "@/modules/team/staff";
 import { withPlatform } from "@/db/access";
 import { listCollaborators } from "@/modules/team/access";
-import { deleteStaffAction, saveStaffAction, staffPhotoAction } from "../../actions";
+import { saveStaffAction } from "../../actions";
 
 export default async function ManagerTeamPage({
   params,
@@ -36,7 +36,7 @@ export default async function ManagerTeamPage({
         limit={page.tenant.limits.members}
         staff={staff}
         services={services}
-        actions={{ save: saveStaffAction, remove: deleteStaffAction, photo: staffPhotoAction }}
+        actions={{ save: saveStaffAction }}
         base={page.base}
         withAccess={withAccess}
       />

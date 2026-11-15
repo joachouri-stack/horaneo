@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { CheckboxField, SelectField, TextField } from "@/components/admin/fields";
+import { SelectField, TextField, ToggleField } from "@/components/admin/fields";
 
 type DepositType = "percent" | "fixed";
 
@@ -37,7 +37,7 @@ export function DepositFields({
         if (target.name === "depositType") setKind(target.value as DepositType);
       }}
     >
-      <CheckboxField name="depositEnabled" label={t("depositEnabled")} defaultChecked={enabled} />
+      <ToggleField name="depositEnabled" label={t("depositEnabled")} defaultChecked={enabled} />
       <div className="space-y-4" hidden={!on}>
         {children}
         <div className="grid gap-4 sm:grid-cols-2">
