@@ -71,6 +71,7 @@ export const FEATURE_KEYS = [
   "advancedBranding",
   "premiumBranding",
   "advancedStats",
+  "performanceInsights",
   "advancedSeo",
   "richContent",
   "advancedPresentation",

@@ -123,6 +123,8 @@ const ROWS: RowDef[] = [
   { key: "basicStats", category: "stats", always: true },
   { key: "stats", category: "stats", feature: "stats" },
   { key: "reports", category: "stats", feature: "monthlySummary" },
+  { key: "occupancy", category: "stats", feature: "performanceInsights" },
+  { key: "profitability", category: "stats", feature: "performanceInsights" },
   // Hébergement et domaines
   { key: "hosting", category: "hosting", feature: "mobileReady" },
   { key: "subdomain", category: "hosting", always: true, detail: true },
@@ -197,6 +199,8 @@ const CARD_ORDER = [
   "freeDomain",
   "setupAssistance",
   "loyalty",
+  "occupancy",
+  "profitability",
   "reports",
   "priorityHumanSupport",
 ];

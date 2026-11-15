@@ -101,6 +101,8 @@ export type PlanFeatures = {
   premiumBranding?: boolean;
   /** Statistiques et référencement avancés, gestion enrichie des contenus. */
   advancedStats?: boolean;
+  /** Taux de remplissage de l'équipe, chiffre d'affaires et marge par prestation et par produit. */
+  performanceInsights?: boolean;
   advancedSeo?: boolean;
   richContent?: boolean;
   /** Fonctionnalités de présentation avancées (Premium). */

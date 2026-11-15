@@ -247,6 +247,7 @@ const NONE = {
   advancedBranding: false,
   premiumBranding: false,
   advancedStats: false,
+  performanceInsights: false,
   advancedSeo: false,
   richContent: false,
   advancedPresentation: false,
@@ -456,6 +457,8 @@ const GRID_PRO = {
 
 const GRID_BUSINESS = {
   ...GRID_PRO,
+  // Remplissage de l'équipe, chiffre d'affaires et marge par prestation : réservés au Business.
+  performanceInsights: true,
   setupAssistance: true,
   advancedCrm: true,
   marketingAutomation: true,

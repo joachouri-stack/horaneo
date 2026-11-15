@@ -749,6 +749,14 @@
           "label": "Rapports détaillés mensuels",
           "card": "Rapport mensuel de votre activité"
         },
+        "occupancy": {
+          "label": "Taux de remplissage de l'équipe",
+          "card": "Taux de remplissage de l'équipe"
+        },
+        "profitability": {
+          "label": "Chiffre d'affaires et marge par prestation et par produit",
+          "card": "Chiffre d'affaires et marge par prestation"
+        },
         "hosting": {
           "label": "Hébergement sécurisé (HTTPS, pare-feu)",
           "card": "Hébergement et connexion sécurisée inclus"
@@ -2177,6 +2185,7 @@
         "advancedBranding": "Personnalisation graphique avancée",
         "premiumBranding": "Personnalisation premium",
         "advancedStats": "Statistiques avancées",
+        "performanceInsights": "Remplissage et rentabilité (CA et marge par prestation)",
         "advancedSeo": "Référencement (SEO) avancé",
         "richContent": "Gestion enrichie des contenus",
         "advancedPresentation": "Fonctionnalités de présentation avancées",
@@ -3277,6 +3286,8 @@
       "previous": "Mois précédent",
       "next": "Mois suivant",
       "detailed": "Les statistiques détaillées sont incluses {plan, select, none {dans un pack supérieur} other {à partir du pack {plan}}}.",
+      "insightsTitle": "Remplissage et rentabilité",
+      "insightsUpgrade": "Le taux de remplissage de votre équipe, et le chiffre d'affaires et la marge de chaque prestation sont inclus {plan, select, none {dans un pack supérieur} other {à partir du pack {plan}}}.",
       "subtitle": "Votre activité en un coup d'œil, comparée au mois précédent.",
       "averageBasket": "Panier moyen",
       "onlineRate": "Réservé en ligne",
