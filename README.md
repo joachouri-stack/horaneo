@@ -198,7 +198,7 @@ Une même adresse e-mail donne toujours le même compte, quel que soit le moyen 
 | Gérante         | être rattachée à un établissement (table `memberships`, créée par l'administratrice) | `/fr/espace` |
 | Administratrice | `pnpm admin:grant email` sur le serveur, jamais depuis le site                       | `/fr/admin`  |
 
-**Espace admin** : à la première connexion, l'administratrice active la double vérification en scannant un QR code avec une application d'authentification (Google Authenticator…). Elle reçoit aussi 8 codes de secours. Ensuite, un code à 6 chiffres est demandé à chaque nouvelle session, puis toutes les 12 heures. Une personne qui n'est pas administratrice reçoit une page « introuvable ». Connexions, échecs et activations sont journalisés.
+**Espace admin** : à la première connexion, l'administratrice active la double vérification en scannant un QR code avec une application d'authentification (Google Authenticator…). Elle reçoit aussi 8 codes de secours. Ensuite, un code à 6 chiffres est demandé à chaque nouvelle session, puis tous les 7 jours sur le même appareil. Une personne qui n'est pas administratrice reçoit une page « introuvable ». Connexions, échecs et activations sont journalisés.
 
 **Limitation des tentatives** : 5 liens magiques par adresse IP toutes les 15 minutes, et 5 codes de double vérification toutes les 5 minutes. Derrière Cloudflare, mettre `CLIENT_IP_HEADERS=cf-connecting-ip`.
 

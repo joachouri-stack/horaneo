@@ -77,7 +77,7 @@ describe("accès à l'espace admin", () => {
     ).toBe("setup_required");
   });
 
-  it("exige un code pour chaque session, renouvelé toutes les 12 heures", () => {
+  it("exige un code pour chaque session, renouvelé tous les 7 jours", () => {
     expect(
       decideAdminAccess({ isPlatformAdmin: true, twoFactorConfirmed: true, sessionVerifiedAt: null, now }),
     ).toBe("verification_required");
@@ -87,6 +87,16 @@ describe("accès à l'espace admin", () => {
     ).toBe("verification_required");
     expect(
       decideAdminAccess({ isPlatformAdmin: true, twoFactorConfirmed: true, sessionVerifiedAt: now, now }),
+    ).toBe("granted");
+    // Saisi il y a 6 jours sur le même appareil : pas de nouveau code.
+    const sixDaysAgo = new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000);
+    expect(
+      decideAdminAccess({
+        isPlatformAdmin: true,
+        twoFactorConfirmed: true,
+        sessionVerifiedAt: sixDaysAgo,
+        now,
+      }),
     ).toBe("granted");
   });
 });
