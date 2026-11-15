@@ -748,7 +748,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 {/* La photo seule, sans cadre blanc autour : coins arrondis et ombre portée. */}
                 <div className="-mx-2 overflow-hidden rounded-[1rem] shadow-[0_40px_90px_-40px_rgba(15,24,48,.55)] sm:mx-0 sm:rounded-[1.2rem] lg:rounded-[1.8rem]">
                   <Image
-                    src="/images/espace-de-gestion-sirine.webp"
+                    src="/images/espace-de-gestion-sirine-v2.webp"
                     width={1672}
                     height={941}
                     alt={t("dashboard.alt")}
