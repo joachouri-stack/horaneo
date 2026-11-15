@@ -477,6 +477,13 @@
       "when": 1794755781080,
       "tag": "0067_service_product_cost",
       "breakpoints": true
+    },
+    {
+      "idx": 68,
+      "version": "7",
+      "when": 1794758058708,
+      "tag": "0068_business_price_46_ht",
+      "breakpoints": true
     }
   ]
 }

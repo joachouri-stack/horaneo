@@ -22,7 +22,7 @@ L'état se règle dans `/admin/reglages` (Solutions).
 |---|---|---|
 | Basic | 0 € | Fiche pro, 10 réservations/mois, 50 contacts, 10 photos, 1 utilisateur, rappels e-mail, domaine connectable |
 | Pro | 39,90 €/mois | Site multipage, réservations et contacts illimités, 3 collaborateurs, plannings, Stripe et acomptes, 100 SMS/mois, codes promo, avis Google, statistiques avancées, assistance par ticket |
-| Business | 79 €/mois | Configuration accompagnée, collaborateurs illimités, fidélisation, cartes cadeaux, 300 SMS/mois, rapports, nom de domaine offert, assistance prioritaire ; outils IA (quotas réglés, « Bientôt ») |
+| Business | 46 € HT/mois | Configuration accompagnée, collaborateurs illimités, fidélisation, cartes cadeaux, 300 SMS/mois, rapports, nom de domaine offert, assistance prioritaire ; outils IA (quotas réglés, « Bientôt ») |
 
 - Prix, quotas et fonctions : `/admin/packs` (base de données). Rien n'est écrit dans les composants.
 - Prix affichés hors taxes (réglage `prices_display`), deux formules : sans engagement ou 12 mois (`commitment_months`, `offer_no_commitment`), sans frais de création.
