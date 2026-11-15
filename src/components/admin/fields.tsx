@@ -201,6 +201,41 @@ export function ToggleField({
   );
 }
 
+/** Choix multiple en pastilles (ex. prestations d'un membre) : touchée, la pastille se colore. */
+export function ChipCheckboxes({
+  name,
+  legend,
+  options,
+  defaultValues,
+}: {
+  name: string;
+  legend: string;
+  options: { value: string; label: string }[];
+  defaultValues: string[];
+}) {
+  return (
+    <fieldset>
+      <legend className="mb-2 font-medium text-night">{legend}</legend>
+      <div className="flex flex-wrap gap-2">
+        {options.map((option) => (
+          <label key={option.value} className="cursor-pointer">
+            <input
+              type="checkbox"
+              name={name}
+              value={option.value}
+              defaultChecked={defaultValues.includes(option.value)}
+              className="peer sr-only"
+            />
+            <span className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-hairline bg-white px-4 text-[0.9375rem] text-night transition peer-checked:border-accent peer-checked:bg-accent peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-accent peer-focus-visible:ring-offset-2">
+              {option.label}
+            </span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
+
 export function Section({
   title,
   children,

@@ -3466,12 +3466,21 @@
       "schedule": "Horaires de travail",
       "scheduleHint": "Les créneaux proposés en ligne tiennent compte de ces horaires et des horaires d'ouverture.",
       "subtitle": "Les membres de votre équipe, leurs jours de travail et leurs prestations.",
-      "active": "Actif",
+      "addMember": "Ajouter un membre",
+      "servicesCount": "{count, plural, one {# prestation} other {# prestations}}",
+      "servicesLegend": "Prestations qu'il ou elle réalise",
+      "activeHint": "Éteint : n'apparaît plus dans les réservations en ligne.",
+      "deleteMember": "Supprimer ce membre",
+      "tabsLabel": "Parties de la fiche",
+      "tabs": {
+        "infos": "Infos",
+        "horaires": "Horaires",
+        "acces": "Accès"
+      },
       "inactive": "Inactif",
       "daysSpan": "Du {from} au {to}",
       "noSchedule": "Aucun horaire de travail",
       "noServices": "Aucune prestation choisie",
-      "moreServices": "+ {count}",
       "addPhoto": "Ajouter une photo",
       "changePhoto": "Changer la photo",
       "removePhoto": "Retirer la photo",
@@ -3479,7 +3488,7 @@
       "full": "Limite de votre pack atteinte",
       "access": {
         "title": "Accès à l'espace",
-        "intro": "Donnez à {name} son propre accès à votre espace {product}. La connexion se fait avec l'adresse e-mail (un lien ou un code est envoyé, sans mot de passe à retenir), et l'espace ne montre que ce que vous cochez ci-dessous.",
+        "intro": "Donnez à {name} son propre accès à votre espace {product}. La connexion se fait avec l'adresse e-mail (un lien ou un code est envoyé, sans mot de passe à retenir), et l'espace ne montre que ce que vous activez ci-dessous.",
         "email": "Adresse e-mail",
         "agenda": "Agenda",
         "agendaOwn": "Seulement ses propres rendez-vous",
@@ -3506,8 +3515,7 @@
         "remove": "Retirer l'accès",
         "removeConfirm": "Retirer l'accès de {name} à l'espace ? Ses rendez-vous restent dans l'agenda.",
         "removed": "Accès retiré.",
-        "badge": "Accès à l'espace",
-        "manage": "Accès à l'espace"
+        "badge": "Accès à l'espace"
       }
     },
     "subscription": {
