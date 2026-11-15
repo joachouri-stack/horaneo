@@ -425,6 +425,7 @@ export async function saveServiceAction(_previous: Previous, data: FormData) {
           durationMinutes: form.text(data, "durationMinutes") as unknown as number,
           bufferMinutes: (form.optional(data, "bufferMinutes") ?? "0") as unknown as number,
           price: form.text(data, "price"),
+          cost: form.text(data, "cost"),
           priceFrom: form.bool(data, "priceFrom"),
           isOnlineBookable: form.bool(data, "isOnlineBookable"),
           isActive: form.bool(data, "isActive"),

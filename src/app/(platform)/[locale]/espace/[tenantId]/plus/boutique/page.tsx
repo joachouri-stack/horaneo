@@ -84,6 +84,14 @@ export default async function ShopPage({ params }: PageProps<"/[locale]/espace/[
           />
         </div>
         <TextField
+          id={`cost-${key}`}
+          name="cost"
+          inputMode="decimal"
+          label={t("cost", { currency: page.fmt.currency })}
+          hint={t("costHint")}
+          defaultValue={product?.costCents == null ? undefined : centsToInput(product.costCents)}
+        />
+        <TextField
           id={`stock-${key}`}
           name="stock"
           inputMode="numeric"

@@ -9,6 +9,7 @@ type Service = {
   durationMinutes: number;
   bufferMinutes: number;
   priceCents: number;
+  costCents: number | null;
   priceFrom: boolean;
   isOnlineBookable: boolean;
   isActive: boolean;
@@ -66,6 +67,14 @@ export async function ServiceFields({
         label={t("buffer")}
         hint={t("bufferHint")}
         defaultValue={service?.bufferMinutes ?? 0}
+      />
+      <TextField
+        id={`${idPrefix}-cost`}
+        name="cost"
+        inputMode="decimal"
+        label={t("cost")}
+        hint={t("costHint")}
+        defaultValue={service?.costCents == null ? "" : centsToInput(service.costCents)}
       />
       <div className="sm:col-span-2">
         <TextArea
