@@ -49,6 +49,49 @@ export default async function GiftCardsPage({
   const visible = data.cards.filter((card) => filter === "all" || card.state === (filter as GiftCardState));
   const settings = data.settings;
 
+  // Cartes pas encore proposées sur le site : les réglages d'abord (rien à encaisser pour l'instant).
+  const settingsFirst = available && !settings.giftCardsEnabled;
+  const settingsSection = available && (
+    <Section title={t("settingsTitle")} collapsible={!settingsFirst} open={settingsFirst}>
+      <ActionForm action={saveGiftCardSettingsAction} submitLabel={tCommon("save")} className="space-y-4">
+        <Hidden values={{ tenantId: page.tenantId }} />
+        <ToggleSection name="enabled" label={t("enabled")} defaultChecked={settings.giftCardsEnabled}>
+          <TextField
+            name="validityMonths"
+            type="number"
+            inputMode="numeric"
+            label={t("validityMonths")}
+            defaultValue={settings.giftCardValidityMonths}
+            required
+          />
+          <TextField
+            name="amounts"
+            label={t("amounts")}
+            defaultValue={settings.giftCardAmounts.map(centsToInput).join(", ")}
+            required
+          />
+          <div className="grid grid-cols-2 gap-3">
+            <TextField
+              name="min"
+              inputMode="decimal"
+              label={t("min")}
+              defaultValue={centsToInput(settings.giftCardMinCents)}
+              required
+            />
+            <TextField
+              name="max"
+              inputMode="decimal"
+              label={t("max")}
+              defaultValue={centsToInput(settings.giftCardMaxCents)}
+              required
+            />
+          </div>
+          <p className="text-sm text-ink/70">{t("rules")}</p>
+        </ToggleSection>
+      </ActionForm>
+    </Section>
+  );
+
   return (
     <div className="space-y-6">
       <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
@@ -65,6 +108,8 @@ export default async function GiftCardsPage({
           </Link>
         </p>
       )}
+
+      {settingsFirst && settingsSection}
 
       {/* Encaisser une carte au salon : un bouton, le formulaire s'ouvre au toucher. */}
       <details className={`${ui.card} group`}>
@@ -132,46 +177,7 @@ export default async function GiftCardsPage({
         )}
       </Section>
 
-      {available && (
-        <Section title={t("settingsTitle")} collapsible>
-          <ActionForm action={saveGiftCardSettingsAction} submitLabel={tCommon("save")} className="space-y-4">
-            <Hidden values={{ tenantId: page.tenantId }} />
-            <ToggleSection name="enabled" label={t("enabled")} defaultChecked={settings.giftCardsEnabled}>
-              <TextField
-                name="validityMonths"
-                type="number"
-                inputMode="numeric"
-                label={t("validityMonths")}
-                defaultValue={settings.giftCardValidityMonths}
-                required
-              />
-              <TextField
-                name="amounts"
-                label={t("amounts")}
-                defaultValue={settings.giftCardAmounts.map(centsToInput).join(", ")}
-                required
-              />
-              <div className="grid grid-cols-2 gap-3">
-                <TextField
-                  name="min"
-                  inputMode="decimal"
-                  label={t("min")}
-                  defaultValue={centsToInput(settings.giftCardMinCents)}
-                  required
-                />
-                <TextField
-                  name="max"
-                  inputMode="decimal"
-                  label={t("max")}
-                  defaultValue={centsToInput(settings.giftCardMaxCents)}
-                  required
-                />
-              </div>
-              <p className="text-sm text-ink/70">{t("rules")}</p>
-            </ToggleSection>
-          </ActionForm>
-        </Section>
-      )}
+      {!settingsFirst && settingsSection}
     </div>
   );
 }

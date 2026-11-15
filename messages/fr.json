@@ -1702,7 +1702,7 @@
       "steps": {
         "coordonnees": "Coordonnées",
         "modele": "Métier et modèle",
-        "logo": "Logo et couleurs",
+        "logo": "Logo, textes et photos",
         "prestations": "Prestations",
         "horaires": "Horaires",
         "apercu": "Aperçu du site",
@@ -1716,7 +1716,7 @@
         "coordonnees": "Coordonnées",
         "entreprises": "Entreprises",
         "modele": "Modèle",
-        "logo": "Logo et couleurs",
+        "logo": "Mon site",
         "prestations": "Prestations",
         "equipe": "Équipe",
         "horaires": "Horaires",
@@ -1863,7 +1863,10 @@
         "preview": "Aperçu",
         "previewButton": "Réserver",
         "contrastWarning": "Attention : le texte sera peu lisible sur cette couleur.",
-        "file": "Fichier du logo"
+        "file": "Fichier du logo",
+        "suggestedTitle": "Couleurs proposées d'après le logo",
+        "suggestApply": "Appliquer ces couleurs",
+        "custom": "Couleurs personnalisées (code couleur)"
       },
       "services": {
         "title": "Prestations",
@@ -2129,6 +2132,14 @@
         "todo": "À compléter",
         "allSet": "Tout est prêt : vous pouvez mettre le site en ligne.",
         "notYet": "Vous pouvez déjà mettre le site en ligne, mais pensez à compléter les points marqués « ! »."
+      },
+      "siteEditor": {
+        "team": "Équipe",
+        "teamSummary": "Les membres présentés sur le site",
+        "pages": "Textes avancés et référencement",
+        "pagesSummary": "Toutes les pages, titres Google, publication",
+        "photos": "Toutes les photos",
+        "photosSummary": "Photos de l'équipe, des prestations et autres emplacements"
       }
     },
     "requests": {
@@ -3649,7 +3660,8 @@
       "exportHint": "Avant de changer de pack ou de résilier, vous pouvez télécharger toutes vos données : clients, rendez-vous, prestations et paiements.",
       "exportLink": "Exporter mes données",
       "exportLocked": "L'export de vos données (clients, rendez-vous, paiements) est inclus dans les packs Pro et Business. Si vous résiliez, il s'ouvre pour vous jusqu'à la fin de votre abonnement.",
-      "exportBeforeLeaving": "Avant de partir, téléchargez vos données : clients, rendez-vous, prestations et paiements. L'export reste ouvert jusqu'à la fin de votre abonnement, quel que soit votre pack."
+      "exportBeforeLeaving": "Avant de partir, téléchargez vos données : clients, rendez-vous, prestations et paiements. L'export reste ouvert jusqu'à la fin de votre abonnement, quel que soit votre pack.",
+      "upcoming": "+ {count, plural, one {# fonction bientôt disponible} other {# fonctions bientôt disponibles}}"
     },
     "settings": {
       "title": "Réglages",
@@ -3885,7 +3897,7 @@
       "settingsTitle": "Réglages",
       "enabled": "Proposer les cartes cadeaux sur mon site",
       "validityMonths": "Durée de validité (en mois)",
-      "amounts": "Montants proposés (€, en chiffres ronds, séparés par des espaces, ex. 30 50 80)",
+      "amounts": "Montants proposés (€, en chiffres ronds, séparés par des virgules, ex. 30, 50, 80)",
       "min": "Montant libre minimum (€)",
       "max": "Montant libre maximum (€)",
       "rules": "Règles affichées à l'achat et dans vos conditions de vente : utilisable en plusieurs fois (le solde est conservé), non remboursable, non échangeable contre de l'argent."
@@ -3930,7 +3942,8 @@
         "preview": "Aperçu du message",
         "sampleName": "Camille",
         "unavailable": "Les souhaits d'anniversaire avec réduction sont inclus {plan, select, none {dans un pack supérieur} other {à partir du pack {plan}}}."
-      }
+      },
+      "seePlans": "Voir les packs"
     },
     "customerData": {
       "title": "Demandes des clients (données)",
@@ -3961,7 +3974,7 @@
       "intro": "Les réservations en ligne, annulations et reports de vos clients, sur les {days} derniers jours.",
       "empty": "Aucune notification pour le moment. Vous verrez ici les réservations, annulations et reports faits par vos clients.",
       "new": "Nouveau",
-      "newBooking": "Nouvelle réservation de {customer}",
+      "newBooking": "Nouvelle réservation : {customer}",
       "cancelled": "{customer} a annulé son rendez-vous",
       "rescheduled": "{customer} a déplacé son rendez-vous",
       "giftCardSold": "Carte cadeau achetée par {customer}",

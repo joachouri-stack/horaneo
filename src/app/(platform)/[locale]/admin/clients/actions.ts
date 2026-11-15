@@ -19,9 +19,16 @@ import {
   saveCategory,
   saveService,
 } from "@/modules/catalog/services";
-import { SITE_PAGE_KEYS, PAGE_TEXT_FIELDS, updatePage } from "@/modules/content/pages";
+import {
+  MANAGER_PAGE_KEYS,
+  PAGE_TEXT_FIELDS,
+  replaceHomeCover,
+  SITE_PAGE_KEYS,
+  updatePage,
+  updatePageTexts,
+} from "@/modules/content/pages";
 import { deleteTestimonial, saveTestimonial } from "@/modules/content/testimonials";
-import { restoreAsset, retireAsset, uploadAsset, uploadLogo } from "@/modules/media/assets";
+import { moveAsset, restoreAsset, retireAsset, uploadAsset, uploadLogo } from "@/modules/media/assets";
 import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
 import { deleteStaff, saveStaff } from "@/modules/team/staff";
 import {
@@ -39,6 +46,7 @@ import {
 } from "@/modules/tenants/domains";
 import {
   changeStatus,
+  setBrandPalette,
   updateAppearance,
   updateContactBar,
   updateIdentity,
@@ -556,10 +564,60 @@ export async function uploadPhotoAction(_previous: Previous, data: FormData) {
 export async function photoAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   const id = idOf(data)!;
-  const operation = z.enum(["retire", "restore"]).parse(form.text(data, "operation"));
+  const operation = z.enum(["retire", "restore", "up", "down"]).parse(form.text(data, "operation"));
   return adminMutation(
-    { action: `asset.${operation}d`, tenantId, targetType: "asset", targetId: id },
-    (tx) => (operation === "retire" ? retireAsset(tx, tenantId, id) : restoreAsset(tx, tenantId, id)),
+    {
+      action: operation === "up" || operation === "down" ? "asset.moved" : `asset.${operation}d`,
+      tenantId,
+      targetType: "asset",
+      targetId: id,
+    },
+    async (tx) => {
+      // Monter ou descendre : place de la photo parmi celles du même emplacement.
+      if (operation === "up" || operation === "down") await moveAsset(tx, tenantId, id, operation);
+      else if (operation === "retire") await retireAsset(tx, tenantId, id);
+      else await restoreAsset(tx, tenantId, id);
+    },
+  );
+}
+
+// ─── Éditeur du site (même écran que « Mon site » de la gérante) ─────────────
+
+/** Palette de couleurs choisie d'un clic. */
+export async function savePaletteAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return adminMutation({ action: "brand.palette_updated", tenantId }, (tx) =>
+    setBrandPalette(tx, tenantId, { palette: form.text(data, "palette") }),
+  );
+}
+
+/** Grande photo de l'accueil : envoyée, puis mise à la place de l'ancienne. */
+export async function uploadHomeCoverAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const bytes = (await form.file(data, "file")) ?? new Uint8Array();
+  return adminMutation({ action: "page.cover_updated", tenantId }, async (tx, context) => {
+    const asset = await uploadAsset(tx, storage(), tenantId, {
+      bytes,
+      kind: "cover",
+      uploadedByUserId: context.userId,
+      alt: form.optional(data, "alt"),
+    });
+    await replaceHomeCover(tx, tenantId, asset.id);
+    return { assetId: asset.id };
+  });
+}
+
+/** Textes d'une page modifiés dans l'éditeur : seuls les champs affichés (ni référencement, ni publication). */
+export async function savePageTextsAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const pageKey = z.enum(MANAGER_PAGE_KEYS).parse(form.text(data, "pageKey"));
+  const texts = Object.fromEntries(
+    PAGE_TEXT_FIELDS[pageKey]
+      .filter((field) => data.has(`text.${field}`))
+      .map((field) => [field, form.text(data, `text.${field}`)]),
+  );
+  return adminMutation({ action: "page.texts_updated", tenantId, details: { pageKey } }, (tx) =>
+    updatePageTexts(tx, tenantId, { pageKey, texts }),
   );
 }
 

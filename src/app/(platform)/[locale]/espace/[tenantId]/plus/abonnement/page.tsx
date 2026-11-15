@@ -95,6 +95,8 @@ export default async function SubscriptionPage({
   };
   // L'espace gérante est celui de la solution Réservation (seule ouverte à la souscription).
   const forBooking = (line: CardLine) => !line.solution || line.solution === "booking";
+  /** Lignes visibles sur chaque carte de pack ; le reste se déplie. */
+  const CARD_LINES = 6;
   const planName = (code: string) =>
     pickLocalized(data.plans.find((item) => item.code === code)?.name ?? null, page.locale);
   const currentPrice = current?.priceCents ?? 0;
@@ -475,17 +477,43 @@ export default async function SubscriptionPage({
                           ✓ {tPlans("everythingIn", { plan: planName(card.previous) })}
                         </li>
                       )}
-                      {[...card.included, ...card.upcoming].filter(forBooking).map((item) => (
-                        <li key={item.key}>
-                          ✓ {lineText(item)}
-                          {item.soon && (
-                            <span className="ml-1.5 rounded-full bg-navy/5 px-1.5 py-px text-[0.8125rem] text-ink/70">
-                              {tPlans("soonTag")}
-                            </span>
-                          )}
-                        </li>
-                      ))}
+                      {card.included
+                        .filter(forBooking)
+                        .slice(0, CARD_LINES)
+                        .map((item) => (
+                          <li key={item.key}>✓ {lineText(item)}</li>
+                        ))}
                     </ul>
+                    {/* Le reste du pack, replié : la carte reste courte (même contenu que le site). */}
+                    {card.included.filter(forBooking).length > CARD_LINES && (
+                      <details className="mt-2 text-sm">
+                        <summary className="inline-flex min-h-11 cursor-pointer items-center font-semibold text-accent">
+                          {tPlans("showAll")}
+                        </summary>
+                        <ul className="mt-1 grid gap-1 text-ink/80 sm:grid-cols-2">
+                          {card.included
+                            .filter(forBooking)
+                            .slice(CARD_LINES)
+                            .map((item) => (
+                              <li key={item.key}>✓ {lineText(item)}</li>
+                            ))}
+                        </ul>
+                      </details>
+                    )}
+                    {/* Fonctions annoncées : une ligne repliée, sans quantités (elles n'existent pas encore). */}
+                    {card.upcoming.filter(forBooking).length > 0 && (
+                      <details className="mt-1 text-sm">
+                        <summary className="inline-flex min-h-11 cursor-pointer items-center text-ink/70">
+                          {t("upcoming", { count: card.upcoming.filter(forBooking).length })}
+                        </summary>
+                        <p className="mt-1 text-ink/70">
+                          {card.upcoming
+                            .filter(forBooking)
+                            .map((item) => tGrid(`rows.${item.key}.label` as "rows.photos.label"))
+                            .join(" · ")}
+                        </p>
+                      </details>
+                    )}
                     {!live &&
                       plan.priceCents > 0 &&
                       !isCurrent &&
