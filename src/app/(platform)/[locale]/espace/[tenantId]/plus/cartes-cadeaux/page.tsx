@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
-import { CheckboxField, Hidden, Section, TextField } from "@/components/admin/fields";
+import { Hidden, Section, TextField, ToggleSection } from "@/components/admin/fields";
 import { ui } from "@/components/ui/styles";
 import { Link } from "@/i18n/navigation";
 import { centsToInput } from "@/lib/format";
@@ -66,20 +66,29 @@ export default async function GiftCardsPage({
         </p>
       )}
 
-      <Section title={t("redeemTitle")}>
-        <ActionForm
-          action={redeemGiftCardAction}
-          submitLabel={t("redeem")}
-          confirm={t("redeemConfirm")}
-          resetOnSuccess
-          className="space-y-4"
-        >
-          <Hidden values={{ tenantId: page.tenantId }} />
-          <TextField name="code" label={t("code")} required />
-          <TextField name="amount" inputMode="decimal" label={t("amount")} required />
-          <TextField name="note" label={t("note")} />
-        </ActionForm>
-      </Section>
+      {/* Encaisser une carte au salon : un bouton, le formulaire s'ouvre au toucher. */}
+      <details className={`${ui.card} group`}>
+        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+          <span className="text-lg font-semibold text-night">{t("redeemTitle")}</span>
+          <span aria-hidden="true" className="text-ink/50 transition group-open:rotate-180">
+            ▾
+          </span>
+        </summary>
+        <div className="mt-4">
+          <ActionForm
+            action={redeemGiftCardAction}
+            submitLabel={t("redeem")}
+            confirm={t("redeemConfirm")}
+            resetOnSuccess
+            className="space-y-4"
+          >
+            <Hidden values={{ tenantId: page.tenantId }} />
+            <TextField name="code" label={t("code")} required />
+            <TextField name="amount" inputMode="decimal" label={t("amount")} required />
+            <TextField name="note" label={t("note")} />
+          </ActionForm>
+        </div>
+      </details>
 
       <Section title={t("listTitle")}>
         <nav className="mb-4 flex flex-wrap gap-2">
@@ -124,41 +133,42 @@ export default async function GiftCardsPage({
       </Section>
 
       {available && (
-        <Section title={t("settingsTitle")}>
+        <Section title={t("settingsTitle")} collapsible>
           <ActionForm action={saveGiftCardSettingsAction} submitLabel={tCommon("save")} className="space-y-4">
             <Hidden values={{ tenantId: page.tenantId }} />
-            <CheckboxField name="enabled" label={t("enabled")} defaultChecked={settings.giftCardsEnabled} />
-            <TextField
-              name="validityMonths"
-              type="number"
-              inputMode="numeric"
-              label={t("validityMonths")}
-              defaultValue={settings.giftCardValidityMonths}
-              required
-            />
-            <TextField
-              name="amounts"
-              label={t("amounts")}
-              defaultValue={settings.giftCardAmounts.map(centsToInput).join(", ")}
-              required
-            />
-            <div className="grid grid-cols-2 gap-3">
+            <ToggleSection name="enabled" label={t("enabled")} defaultChecked={settings.giftCardsEnabled}>
               <TextField
-                name="min"
-                inputMode="decimal"
-                label={t("min")}
-                defaultValue={centsToInput(settings.giftCardMinCents)}
+                name="validityMonths"
+                type="number"
+                inputMode="numeric"
+                label={t("validityMonths")}
+                defaultValue={settings.giftCardValidityMonths}
                 required
               />
               <TextField
-                name="max"
-                inputMode="decimal"
-                label={t("max")}
-                defaultValue={centsToInput(settings.giftCardMaxCents)}
+                name="amounts"
+                label={t("amounts")}
+                defaultValue={settings.giftCardAmounts.map(centsToInput).join(", ")}
                 required
               />
-            </div>
-            <p className="text-sm text-ink/70">{t("rules")}</p>
+              <div className="grid grid-cols-2 gap-3">
+                <TextField
+                  name="min"
+                  inputMode="decimal"
+                  label={t("min")}
+                  defaultValue={centsToInput(settings.giftCardMinCents)}
+                  required
+                />
+                <TextField
+                  name="max"
+                  inputMode="decimal"
+                  label={t("max")}
+                  defaultValue={centsToInput(settings.giftCardMaxCents)}
+                  required
+                />
+              </div>
+              <p className="text-sm text-ink/70">{t("rules")}</p>
+            </ToggleSection>
           </ActionForm>
         </Section>
       )}

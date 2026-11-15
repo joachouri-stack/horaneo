@@ -36,7 +36,8 @@
     "none": "Aucun",
     "continue": "Continuer",
     "confirmDelete": "Confirmer la suppression ?",
-    "quoted": "« {text} »"
+    "quoted": "« {text} »",
+    "moreOptions": "Plus d'options"
   },
   "languages": {
     "fr": "Français",
@@ -3921,7 +3922,7 @@
       },
       "birthday": {
         "title": "Anniversaire de vos clients",
-        "intro": "Le jour de son anniversaire, chaque client qui a donné sa date reçoit un e-mail à votre nom avec un code de réduction personnel, valable une seule fois sur la prestation de son choix. La date se donne en réservant en ligne ou depuis l'espace client ; vous pouvez aussi la noter sur la fiche.",
+        "intro": "Le jour de son anniversaire, le client reçoit un e-mail avec un code de réduction personnel, valable une fois. Il faut que sa date de naissance soit connue (donnée en réservant, ou notée sur sa fiche).",
         "enabled": "Souhaiter l'anniversaire de mes clients avec une réduction",
         "percent": "Réduction offerte (%)",
         "days": "Validité du code (jours)",

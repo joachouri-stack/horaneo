@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext, useContext, useState } from "react";
 import { ui } from "@/components/ui/styles";
 
 /** Champs de formulaire de l'espace admin (gros, lisibles sur téléphone). */
@@ -198,6 +198,41 @@ export function ToggleField({
         />
       </span>
     </label>
+  );
+}
+
+/**
+ * Interrupteur qui ouvre ses réglages : les champs n'apparaissent que lorsqu'il est activé
+ * (cachés, ils restent dans le formulaire et sont enregistrés tels quels).
+ */
+export function ToggleSection({
+  name,
+  label,
+  hint,
+  defaultChecked,
+  children,
+}: {
+  name: string;
+  label: string;
+  hint?: string;
+  defaultChecked?: boolean;
+  children: React.ReactNode;
+}) {
+  const [on, setOn] = useState(Boolean(defaultChecked));
+  return (
+    <div className="space-y-4">
+      <div
+        onChange={(event) => {
+          const target = event.target as HTMLInputElement;
+          if (target.name === name) setOn(target.checked);
+        }}
+      >
+        <ToggleField name={name} label={label} hint={hint} defaultChecked={defaultChecked} />
+      </div>
+      <div className="space-y-4" hidden={!on}>
+        {children}
+      </div>
+    </div>
   );
 }
 
