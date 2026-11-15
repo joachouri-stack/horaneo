@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
-import { CheckboxField, Hidden, SelectField, TextField } from "@/components/admin/fields";
+import { Hidden, SelectField, TextField, ToggleField } from "@/components/admin/fields";
 import { ui } from "@/components/ui/styles";
 import { centsToInput } from "@/lib/format";
 import { managerPage } from "@/lib/manager/page";
@@ -59,31 +59,41 @@ export default async function PromoCodesPage({
             required
           />
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <TextField
-            id={`from-${key}`}
-            name="validFrom"
-            type="date"
-            label={t("validFrom")}
-            defaultValue={code?.validFromDate}
-          />
-          <TextField
-            id={`until-${key}`}
-            name="validUntil"
-            type="date"
-            label={t("validUntil")}
-            defaultValue={code?.validUntilDate}
-          />
-        </div>
-        <TextField
-          id={`max-${key}`}
-          name="maxUses"
-          type="number"
-          inputMode="numeric"
-          label={t("maxUses")}
-          defaultValue={code?.maxUses ?? undefined}
-        />
-        <CheckboxField name="isActive" label={t("isActive")} defaultChecked={code?.isActive ?? true} />
+        <ToggleField name="isActive" label={t("isActive")} defaultChecked={code?.isActive ?? true} />
+        <details className="group/opts rounded-xl bg-mist-50 px-4">
+          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between font-medium text-night [&::-webkit-details-marker]:hidden">
+            {tCommon("moreOptions")}
+            <span aria-hidden="true" className="text-ink/50 transition group-open/opts:rotate-180">
+              ▾
+            </span>
+          </summary>
+          <div className="space-y-4 pb-4">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <TextField
+                id={`from-${key}`}
+                name="validFrom"
+                type="date"
+                label={t("validFrom")}
+                defaultValue={code?.validFromDate}
+              />
+              <TextField
+                id={`until-${key}`}
+                name="validUntil"
+                type="date"
+                label={t("validUntil")}
+                defaultValue={code?.validUntilDate}
+              />
+            </div>
+            <TextField
+              id={`max-${key}`}
+              name="maxUses"
+              type="number"
+              inputMode="numeric"
+              label={t("maxUses")}
+              defaultValue={code?.maxUses ?? undefined}
+            />
+          </div>
+        </details>
       </>
     );
   };
@@ -118,16 +128,34 @@ export default async function PromoCodesPage({
       ) : (
         <>
           <p className="text-ink/80">{t("intro")}</p>
+          {/* Ajout : un bouton en haut, le formulaire s'ouvre au toucher. */}
+          <details className="group">
+            <summary
+              className={`${ui.primaryButton} cursor-pointer list-none group-open:hidden [&::-webkit-details-marker]:hidden`}
+            >
+              + {t("new")}
+            </summary>
+            <div className={ui.card}>
+              <h2 className="text-lg font-semibold text-night">{t("new")}</h2>
+              <ActionForm
+                action={savePromoCodeAction}
+                submitLabel={tCommon("save")}
+                resetOnSuccess
+                className="mt-4 space-y-4"
+              >
+                {fields(null)}
+              </ActionForm>
+            </div>
+          </details>
           {codes.length === 0 ? (
             <p className="text-ink/70">{t("empty")}</p>
           ) : (
             <ul className="space-y-3">
               {codes.map((code) => (
                 <li key={code.id}>
-                  <details className={`${ui.card} group`}>
-                    {/* Sans le triangle du navigateur : une flèche à droite, comme ailleurs. */}
-                    <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
-                      <span>
+                  <details name="code" className={`${ui.card} group`}>
+                    <summary className="flex cursor-pointer list-none items-center gap-3 [&::-webkit-details-marker]:hidden">
+                      <span className="min-w-0 flex-1">
                         <span
                           className={`block text-lg font-semibold ${code.isActive ? "text-night" : "text-ink/70"}`}
                         >
@@ -135,16 +163,12 @@ export default async function PromoCodesPage({
                         </span>
                         <span className="block text-sm text-ink/70">{summary(code)}</span>
                       </span>
-                      <svg
+                      <span
                         aria-hidden="true"
-                        viewBox="0 0 24 24"
-                        className="size-5 shrink-0 text-ink/60 transition group-open:rotate-180"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
+                        className="shrink-0 text-ink/50 transition group-open:rotate-180"
                       >
-                        <path d="M6 9l6 6 6-6" />
-                      </svg>
+                        ▾
+                      </span>
                     </summary>
                     <ActionForm
                       action={savePromoCodeAction}
@@ -167,19 +191,6 @@ export default async function PromoCodesPage({
               ))}
             </ul>
           )}
-          <details className={ui.card} open={codes.length === 0}>
-            <summary className="flex min-h-11 cursor-pointer items-center text-lg font-semibold text-night">
-              + {t("new")}
-            </summary>
-            <ActionForm
-              action={savePromoCodeAction}
-              submitLabel={tCommon("save")}
-              resetOnSuccess
-              className="mt-4 space-y-4"
-            >
-              {fields(null)}
-            </ActionForm>
-          </details>
         </>
       )}
     </div>

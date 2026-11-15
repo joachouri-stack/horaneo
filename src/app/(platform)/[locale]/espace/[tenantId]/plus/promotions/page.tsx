@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
-import { CheckboxField, Hidden, SelectField, TextField } from "@/components/admin/fields";
+import { ChipCheckboxes, Hidden, SelectField, TextField } from "@/components/admin/fields";
 import { ui } from "@/components/ui/styles";
 import { pickLocalized } from "@/i18n/locales";
 import { centsToInput } from "@/lib/format";
@@ -43,20 +43,15 @@ export default async function PromotionsPage({
           defaultValue={promotion ? pickLocalized(promotion.title, locale) : undefined}
           required
         />
-        <fieldset>
-          <legend className="mb-2 font-semibold">{t("services")}</legend>
-          <div className="grid gap-1 sm:grid-cols-2">
-            {services.map((service) => (
-              <CheckboxField
-                key={service.id}
-                name="serviceIds"
-                value={service.id}
-                label={`${pickLocalized(service.name, locale)} · ${page.fmt.money(service.priceCents)}`}
-                defaultChecked={promotion?.serviceIds.includes(service.id)}
-              />
-            ))}
-          </div>
-        </fieldset>
+        <ChipCheckboxes
+          name="serviceIds"
+          legend={t("services")}
+          options={services.map((service) => ({
+            value: service.id,
+            label: `${pickLocalized(service.name, locale)} · ${page.fmt.money(service.priceCents)}`,
+          }))}
+          defaultValues={promotion?.serviceIds ?? []}
+        />
         <div className="grid grid-cols-2 gap-3">
           <SelectField
             id={`type-${key}`}
@@ -122,7 +117,26 @@ export default async function PromotionsPage({
       ) : (
         <>
           <p className="text-ink/80">{t("intro")}</p>
-          <p className="text-sm text-ink/70">{t("referenceRule")}</p>
+          {/* Ajout : un bouton en haut, le formulaire s'ouvre au toucher. */}
+          <details className="group">
+            <summary
+              className={`${ui.primaryButton} cursor-pointer list-none group-open:hidden [&::-webkit-details-marker]:hidden`}
+            >
+              + {t("new")}
+            </summary>
+            <div className={ui.card}>
+              <h2 className="text-lg font-semibold text-night">{t("new")}</h2>
+              <p className="mt-1 text-sm text-ink/70">{t("referenceRule")}</p>
+              <ActionForm
+                action={savePromotionAction}
+                submitLabel={tCommon("save")}
+                resetOnSuccess
+                className="mt-4 space-y-4"
+              >
+                {fields(null)}
+              </ActionForm>
+            </div>
+          </details>
           {promotions.length === 0 ? (
             <p className="text-ink/70">{t("empty")}</p>
           ) : (
@@ -131,24 +145,32 @@ export default async function PromotionsPage({
                 const state = stateOf(promotion);
                 return (
                   <li key={promotion.id}>
-                    <details className={ui.card}>
-                      <summary className="cursor-pointer">
-                        <span
-                          className={`block text-lg font-semibold ${state === "ended" ? "text-ink/70" : "text-night"}`}
-                        >
-                          {pickLocalized(promotion.title, locale)}{" "}
-                          <span className="text-sm font-semibold text-ink/70">· {t(`state.${state}`)}</span>
+                    <details name="promotion" className={`${ui.card} group`}>
+                      <summary className="flex cursor-pointer list-none items-center gap-3 [&::-webkit-details-marker]:hidden">
+                        <span className="min-w-0 flex-1">
+                          <span
+                            className={`block text-lg font-semibold ${state === "ended" ? "text-ink/70" : "text-night"}`}
+                          >
+                            {pickLocalized(promotion.title, locale)}{" "}
+                            <span className="text-sm font-semibold text-ink/70">· {t(`state.${state}`)}</span>
+                          </span>
+                          <span className="block text-sm text-ink/70">
+                            {t("summary", {
+                              value:
+                                promotion.discountType === "percent"
+                                  ? `− ${promotion.discountValue} %`
+                                  : `− ${page.fmt.money(promotion.discountValue)}`,
+                              from: dateLabel(promotion.startsOn),
+                              until: dateLabel(promotion.endsOn),
+                              count: promotion.serviceIds.length,
+                            })}
+                          </span>
                         </span>
-                        <span className="block text-sm text-ink/70">
-                          {t("summary", {
-                            value:
-                              promotion.discountType === "percent"
-                                ? `− ${promotion.discountValue} %`
-                                : `− ${page.fmt.money(promotion.discountValue)}`,
-                            from: dateLabel(promotion.startsOn),
-                            until: dateLabel(promotion.endsOn),
-                            count: promotion.serviceIds.length,
-                          })}
+                        <span
+                          aria-hidden="true"
+                          className="shrink-0 text-ink/50 transition group-open:rotate-180"
+                        >
+                          ▾
                         </span>
                       </summary>
                       <ActionForm
@@ -173,19 +195,6 @@ export default async function PromotionsPage({
               })}
             </ul>
           )}
-          <details className={ui.card} open={promotions.length === 0}>
-            <summary className="flex min-h-11 cursor-pointer items-center text-lg font-semibold text-night">
-              + {t("new")}
-            </summary>
-            <ActionForm
-              action={savePromotionAction}
-              submitLabel={tCommon("save")}
-              resetOnSuccess
-              className="mt-4 space-y-4"
-            >
-              {fields(null)}
-            </ActionForm>
-          </details>
         </>
       )}
     </div>
