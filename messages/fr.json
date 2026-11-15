@@ -3641,11 +3641,9 @@
       "title": "Réglages",
       "onlineTitle": "Réservation en ligne",
       "onlineEnabled": "Accepter les réservations en ligne",
-      "onlineHelp": "Décochez si vous voulez seulement un site vitrine : les boutons « Réserver » deviennent « Appeler » (ou « Nous écrire »). Vous pouvez toujours noter vos rendez-vous dans votre agenda, et les rendez-vous déjà pris restent valables.",
+      "onlineHelp": "Éteint, votre site devient une vitrine : vos clients vous appellent ou vous écrivent. Les rendez-vous déjà pris restent valables.",
       "onlineNotInPlan": "Votre pack ne comprend pas la réservation en ligne : vos clients vous appellent ou vous écrivent depuis votre site.",
       "onlineUpgrade": "Ajouter la réservation en ligne (changer de pack)",
-      "onlineOn": "Réservation en ligne ouverte.",
-      "onlineOff": "Réservation en ligne coupée : votre site est en mode vitrine.",
       "booking": "Règles de réservation",
       "minNotice": "Les clients peuvent réserver en ligne jusqu'à",
       "maxAdvance": "Les clients peuvent réserver jusqu'à",
@@ -3673,7 +3671,7 @@
       "depositRefundRule": "Remboursé automatiquement si le client annule {hours, plural, =0 {avant le rendez-vous} other {au moins # h avant le rendez-vous}} ; conservé sinon ou en cas d'absence.",
       "reviewsTitle": "Avis Google",
       "reviewRequest": "Demander un avis Google après chaque rendez-vous",
-      "reviewRequestHelp": "Quelques heures après un rendez-vous marqué « Venu », le client reçoit un e-mail de remerciement avec un lien direct pour laisser un avis sur votre fiche Google. Une seule demande par client tous les {months} mois.",
+      "reviewRequestHelp": "Le client reçoit un e-mail avec un lien vers votre fiche Google quelques heures après sa venue. Au plus une demande tous les {months} mois.",
       "reviewRequestNoPlace": "Votre fiche Google n'est pas encore reliée à votre site : aucune demande ne partira tant qu'elle ne l'est pas. <link>Demandez-nous de la relier</link>.",
       "advanceDays": "{days, select, 7 {1 semaine à l'avance} 14 {2 semaines à l'avance} 30 {1 mois à l'avance} 60 {2 mois à l'avance} 90 {3 mois à l'avance} 180 {6 mois à l'avance} 365 {1 an à l'avance} other {{days} jours à l'avance}}",
       "delayNone": "Jusqu'au dernier moment",
@@ -3684,18 +3682,7 @@
       "depositPercentHint": "Part du prix de la réservation demandée en acompte (30 = 30 % du prix).",
       "depositAmountLabel": "Montant ({currency})",
       "depositAmountHint": "Même montant demandé à chaque réservation, quel que soit le prix.",
-      "summariesTo": "Envoyés aux gérantes de l'établissement, dont vous ({email}).",
-      "others": {
-        "title": "Autres réglages",
-        "hours": "Horaires d'ouverture",
-        "hoursHint": "Jours et heures où l'on peut réserver",
-        "team": "Équipe",
-        "teamHint": "Membres, horaires et accès",
-        "payments": "Paiements en ligne",
-        "paymentsHint": "Compte Stripe pour les acomptes",
-        "subscription": "Abonnement",
-        "subscriptionHint": "Votre pack et vos factures"
-      }
+      "summariesTo": "Envoyés aux gérantes de l'établissement, dont vous ({email})."
     },
     "requests": {
       "title": "Demandes de modification",

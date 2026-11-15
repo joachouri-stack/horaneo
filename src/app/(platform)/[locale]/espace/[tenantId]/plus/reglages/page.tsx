@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
-import { CheckboxField, Hidden, Section, SelectField } from "@/components/admin/fields";
+import { Hidden, Section, SelectField, ToggleField } from "@/components/admin/fields";
 import { DepositFields } from "@/components/manager/DepositFields";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
@@ -23,14 +23,6 @@ const NOTICE_MINUTES = [0, 30, 60, 120, 240, 720, 1440, 2880];
 const CANCELLATION_HOURS = [0, 2, 12, 24, 48, 72];
 const withCurrent = (list: number[], current: number) =>
   list.includes(current) ? list : [...list, current].sort((a, b) => a - b);
-
-/** Autres pages de réglages, rappelées en bas de page. */
-const OTHER_SETTINGS = [
-  { key: "hours", path: "/site/horaires" },
-  { key: "team", path: "/plus/equipe" },
-  { key: "payments", path: "/plus/paiements" },
-  { key: "subscription", path: "/plus/abonnement" },
-] as const;
 
 /** Réglages de la réservation en ligne, de l'acompte et des résumés : un seul bouton « Enregistrer ». */
 export default async function SettingsPage({
@@ -92,20 +84,16 @@ export default async function SettingsPage({
         ) : (
           <Section title={t("onlineTitle")}>
             <Hidden values={{ onlineBookingShown: "1" }} />
-            <p
-              className={`font-semibold ${settings.onlineBookingEnabled ? "text-success" : "text-[#b4372a]"}`}
-            >
-              {settings.onlineBookingEnabled ? t("onlineOn") : t("onlineOff")}
-            </p>
-            <CheckboxField
+            <ToggleField
               name="onlineBookingEnabled"
               label={t("onlineEnabled")}
+              hint={t("onlineHelp")}
               defaultChecked={settings.onlineBookingEnabled}
             />
-            <p className="text-sm text-ink/70">{t("onlineHelp")}</p>
           </Section>
         )}
-        <Section title={t("booking")}>
+        {/* Règles rarement modifiées : repliées. */}
+        <Section title={t("booking")} collapsible>
           {bookingOff && <p className="text-sm text-ink/70">{t("bookingOffNote")}</p>}
           <div className="grid gap-4 sm:grid-cols-2">
             <SelectField
@@ -209,14 +197,14 @@ export default async function SettingsPage({
         </Section>
         <Section title={t("summaries")}>
           <p className="text-sm text-ink/70">{t("summariesTo", { email: page.session.user.email })}</p>
-          <CheckboxField
+          <ToggleField
             name="dailySummaryEnabled"
             label={t("daily", { time: hourLabel(String(dailyTime)) })}
             defaultChecked={settings.dailySummaryEnabled}
           />
           {/* Bilan du mois : seulement si le pack l'envoie. */}
           {page.tenant.features.monthlySummary && (
-            <CheckboxField
+            <ToggleField
               name="monthlySummaryEnabled"
               label={t("monthly", { time: hourLabel(String(monthlyTime)) })}
               defaultChecked={settings.monthlySummaryEnabled}
@@ -226,14 +214,12 @@ export default async function SettingsPage({
         {/* Demande d'avis Google : seulement si le pack inclut les avis Google. */}
         {page.tenant.features.googleReviews && (
           <Section title={t("reviewsTitle")}>
-            <CheckboxField
+            <ToggleField
               name="reviewRequestEnabled"
               label={t("reviewRequest")}
+              hint={t("reviewRequestHelp", { months: Math.max(1, Math.round(reviewCooldownDays / 30)) })}
               defaultChecked={settings.reviewRequestEnabled}
             />
-            <p className="text-sm text-ink/70">
-              {t("reviewRequestHelp", { months: Math.max(1, Math.round(reviewCooldownDays / 30)) })}
-            </p>
             {!page.business.googlePlaceId && (
               <p className="mt-2 text-sm font-semibold text-[#b4372a]">
                 {t.rich("reviewRequestNoPlace", {
@@ -248,29 +234,6 @@ export default async function SettingsPage({
           </Section>
         )}
       </ActionForm>
-      <section aria-labelledby="autres-reglages" className="space-y-3">
-        <h2 id="autres-reglages" className="font-display text-[1.2rem] font-semibold text-night">
-          {t("others.title")}
-        </h2>
-        <ul className="grid gap-3 sm:grid-cols-2">
-          {OTHER_SETTINGS.map((item) => (
-            <li key={item.key}>
-              <Link
-                href={`${page.base}${item.path}`}
-                className="flex min-h-14 items-center justify-between gap-3 rounded-2xl border border-hairline bg-white px-4 py-3 transition hover:border-accent/40"
-              >
-                <span>
-                  <span className="block font-medium text-night">{t(`others.${item.key}`)}</span>
-                  <span className="block text-sm text-ink-soft">{t(`others.${item.key}Hint`)}</span>
-                </span>
-                <span aria-hidden="true" className="text-accent">
-                  →
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
     </div>
   );
 }
