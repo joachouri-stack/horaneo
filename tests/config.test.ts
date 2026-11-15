@@ -55,7 +55,7 @@ describe("valeurs de départ des packs", () => {
       ["basic", 0, false],
       ["starter", 1999, true],
       ["pro", 3290, true],
-      ["business", 7900, true],
+      ["business", 4600, true],
     ]);
     expect(DEFAULT_PLATFORM_SETTINGS.prices_display).toBe("HT");
   });

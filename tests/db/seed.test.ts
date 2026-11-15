@@ -33,7 +33,7 @@ describe.skipIf(!hasTestDatabase)("valeurs de départ en base", () => {
     expect(sold.map((plan) => [plan.code, plan.priceCents])).toEqual([
       ["starter", 1999],
       ["pro", 3290],
-      ["business", 7900],
+      ["business", 4600],
     ]);
     // Aucuns frais de création, réservation incluse dans les trois packs.
     for (const plan of sold) {
