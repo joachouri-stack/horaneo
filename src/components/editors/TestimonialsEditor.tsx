@@ -1,7 +1,7 @@
 import { ui } from "@/components/ui/styles";
 import { getTranslations } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
-import { CheckboxField, Hidden, Section, TextArea, TextField } from "@/components/admin/fields";
+import { Hidden, Section, StarRating, TextArea, TextField, ToggleField } from "@/components/admin/fields";
 import { pickLocalized } from "@/i18n/locales";
 import type { ActionResult } from "@/lib/actions/result";
 import type { listTestimonials } from "@/modules/content/testimonials";
@@ -51,31 +51,53 @@ export async function TestimonialsEditor({
         defaultValue={item.authorName}
         required
       />
-      <TextField
-        id={`${prefix}-rating`}
-        name="rating"
-        type="number"
-        inputMode="numeric"
-        label={t("rating")}
-        defaultValue={item.rating}
-      />
+      <StarRating name="rating" legend={t("rating")} defaultValue={item.rating} idPrefix={prefix} />
       <div className="sm:col-span-2">
         <TextArea id={`${prefix}-text`} name="text" label={t("text")} defaultValue={item.text} required />
       </div>
-      <CheckboxField name="isPublished" label={t("published")} defaultChecked={item.isPublished} />
+      <div className="sm:col-span-2">
+        <ToggleField name="isPublished" label={t("published")} defaultChecked={item.isPublished} />
+      </div>
     </div>
   );
 
   return (
     <Section title={t("title")} level={headingLevel}>
+      {/* Nouveau témoignage : un bouton en haut, le formulaire s'ouvre au toucher. */}
+      <details className="group mb-5">
+        <summary
+          className={`${ui.primaryButton} cursor-pointer list-none group-open:hidden sm:w-auto [&::-webkit-details-marker]:hidden`}
+        >
+          + {t("new")}
+        </summary>
+        <div className="rounded-xl border border-accent-line p-4">
+          <h3 className="mb-4 text-lg font-semibold text-night">{t("new")}</h3>
+          <ActionForm action={actions.save} submitLabel={tCommon("add")} resetOnSuccess>
+            <Hidden values={{ tenantId }} />
+            {fields({ authorName: "", text: "", rating: 5, isPublished: true }, "new")}
+          </ActionForm>
+        </div>
+      </details>
       {items.length === 0 && <p className="text-ink/70">{t("empty")}</p>}
       <ul className="space-y-3">
         {items.map((item) => (
           <li key={item.id}>
-            <details className="rounded-lg border border-navy/10 p-4">
-              <summary className="cursor-pointer py-2.5 font-semibold text-night">
-                {item.authorName}
-                {item.rating ? ` · ${"★".repeat(item.rating)}` : ""}
+            <details name="temoignage" className="group rounded-lg border border-navy/10 p-4">
+              <summary className="flex cursor-pointer list-none items-center gap-3 py-2.5 [&::-webkit-details-marker]:hidden">
+                <span className="min-w-0 flex-1 font-semibold text-night">
+                  {item.authorName}
+                  {item.rating ? (
+                    <span className="ml-2 text-[#e0a526]">{"★".repeat(item.rating)}</span>
+                  ) : null}
+                  {!item.isPublished && (
+                    <span className="ml-2 rounded-full bg-navy/5 px-2 py-0.5 text-xs font-medium text-ink/70">
+                      {t("hiddenBadge")}
+                    </span>
+                  )}
+                </span>
+                <span aria-hidden="true" className="shrink-0 text-ink/50 transition group-open:rotate-180">
+                  ▾
+                </span>
               </summary>
               <div className="mt-4 space-y-4">
                 <ActionForm action={actions.save} submitLabel={tCommon("save")}>
@@ -96,20 +118,6 @@ export async function TestimonialsEditor({
           </li>
         ))}
       </ul>
-      {/* Nouveau témoignage : formulaire replié, la liste reste courte. */}
-      <details className="mt-6 border-t border-navy/10 pt-6">
-        <summary
-          className={`${ui.secondaryButton} cursor-pointer list-none sm:w-auto [&::-webkit-details-marker]:hidden`}
-        >
-          + {t("new")}
-        </summary>
-        <div className="mt-4">
-          <ActionForm action={actions.save} submitLabel={tCommon("add")} resetOnSuccess>
-            <Hidden values={{ tenantId }} />
-            {fields({ authorName: "", text: "", rating: 5, isPublished: true }, "new")}
-          </ActionForm>
-        </div>
-      </details>
     </Section>
   );
 }

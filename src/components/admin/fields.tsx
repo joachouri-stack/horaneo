@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
+import { createContext, Fragment, useContext, useState } from "react";
 import { ui } from "@/components/ui/styles";
 
 /** Champs de formulaire de l'espace admin (gros, lisibles sur téléphone). */
@@ -233,6 +233,47 @@ export function ToggleSection({
         {children}
       </div>
     </div>
+  );
+}
+
+/** Note de 1 à 5 en étoiles à toucher (envoyée comme un nombre). */
+export function StarRating({
+  name,
+  legend,
+  defaultValue,
+  idPrefix,
+}: {
+  name: string;
+  legend: string;
+  defaultValue?: number | null;
+  idPrefix: string;
+}) {
+  // Ordre inversé + flex-row-reverse : une étoile cochée colore aussi celles d'avant.
+  return (
+    <fieldset>
+      <legend className="mb-1 font-medium text-night">{legend}</legend>
+      <div className="flex flex-row-reverse justify-end">
+        {[5, 4, 3, 2, 1].map((value) => (
+          <Fragment key={value}>
+            <input
+              type="radio"
+              id={`${idPrefix}-${name}-${value}`}
+              name={name}
+              value={value}
+              defaultChecked={(defaultValue ?? 0) === value}
+              className="peer sr-only [&:checked~label]:text-[#e0a526]"
+            />
+            <label
+              htmlFor={`${idPrefix}-${name}-${value}`}
+              className="flex size-11 cursor-pointer items-center justify-center text-[1.75rem] leading-none text-navy/20 transition peer-checked:text-[#e0a526] peer-focus-visible:ring-2 peer-focus-visible:ring-accent"
+            >
+              <span aria-hidden="true">★</span>
+              <span className="sr-only">{value}</span>
+            </label>
+          </Fragment>
+        ))}
+      </div>
+    </fieldset>
   );
 }
 

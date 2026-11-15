@@ -2017,9 +2017,10 @@
         "new": "Nouveau témoignage",
         "author": "Prénom de la cliente",
         "text": "Témoignage",
-        "rating": "Note (1 à 5)",
+        "rating": "Note",
         "published": "Publié",
-        "empty": "Aucun témoignage pour le moment."
+        "empty": "Aucun témoignage pour le moment.",
+        "hiddenBadge": "Non publié"
       },
       "viewAsClient": "Voir son espace",
       "businessPicker": {
