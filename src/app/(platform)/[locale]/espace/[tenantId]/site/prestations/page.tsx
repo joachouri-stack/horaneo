@@ -25,6 +25,7 @@ export default async function ManagerServicesPage({
         {t("services")}
       </h1>
       <ServicesEditor
+        variant="manager"
         tenantId={page.tenantId}
         locale={page.tenant.defaultLocale}
         limit={page.tenant.limits.services}

@@ -159,6 +159,48 @@ export function CheckboxField({
   );
 }
 
+/**
+ * Interrupteur marche/arrêt : même envoi qu'une case à cocher (« on » quand activé),
+ * pour les réglages qui s'allument ou s'éteignent. Toute la ligne est cliquable.
+ */
+export function ToggleField({
+  name,
+  label,
+  hint,
+  defaultChecked,
+}: {
+  name: string;
+  label: string;
+  hint?: string;
+  defaultChecked?: boolean;
+}) {
+  return (
+    <label className="flex min-h-12 cursor-pointer items-center justify-between gap-4 py-1 text-ink">
+      <span className="min-w-0">
+        <span className="block">{label}</span>
+        {hint && <span className="block text-sm text-ink/70">{hint}</span>}
+      </span>
+      <span className="relative inline-flex shrink-0">
+        <input
+          type="checkbox"
+          role="switch"
+          name={name}
+          defaultChecked={defaultChecked}
+          className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+        />
+        <span
+          aria-hidden="true"
+          className="h-7 w-12 rounded-full bg-navy/20 transition peer-checked:bg-accent peer-focus-visible:ring-2 peer-focus-visible:ring-accent peer-focus-visible:ring-offset-2"
+        />
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute left-0.5 top-0.5 size-6 rounded-full bg-white shadow transition peer-checked:translate-x-5"
+        />
+      </span>
+    </label>
+  );
+}
+
 export function Section({
   title,
   children,
