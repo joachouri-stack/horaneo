@@ -654,7 +654,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           </section>
 
           {/* Exemple de site : maquette d'un établissement fictif (présentée comme un exemple par l'étiquette). */}
-          <section aria-labelledby="titre-exemple" className="px-4 pt-20 sm:px-6 lg:pt-28">
+          <section aria-labelledby="titre-exemple" className="px-4 pt-12 sm:px-6 lg:pt-16">
             <div className="mx-auto max-w-[72rem] 2xl:max-w-[85rem]">
               <div className="mx-auto max-w-[46rem] text-center">
                 {/* Titre et texte déjà écrits dans la photo : gardés pour Google et les lecteurs d'écran. */}
@@ -663,7 +663,8 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 </h2>
                 <p className="sr-only">{t("example.text")}</p>
               </div>
-              <figure data-reveal className="mt-10 lg:mt-12">
+              {/* Rien de visible au-dessus de la photo (titre dans l'image) : pas de marge en plus. */}
+              <figure data-reveal>
                 <div className="-mx-2 overflow-hidden rounded-[1rem] shadow-[0_40px_90px_-40px_rgba(15,24,48,.55)] sm:mx-0 sm:rounded-[1.2rem] lg:rounded-[1.8rem]">
                   <Image
                     src="/images/exemple-site-sirine.webp"
@@ -682,7 +683,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           <section
             data-only="booking"
             aria-labelledby="titre-tableau"
-            className="relative isolate px-4 pt-20 sm:px-6 lg:pt-28"
+            className="relative isolate px-4 pt-14 sm:px-6 lg:pt-20"
           >
             <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-40 -z-10 h-[40rem]">
               <div className="hn-drift absolute left-[10%] top-20 size-[26rem] rounded-full bg-accent/15 blur-[100px]" />
@@ -718,7 +719,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           </section>
 
           {/* Comment ça marche : le « clé en main » en 3 étapes, juste avant les prix. */}
-          <section aria-labelledby="titre-etapes" className="px-4 pt-20 sm:px-6 lg:pt-28">
+          <section aria-labelledby="titre-etapes" className="px-4 pt-14 sm:px-6 lg:pt-20">
             <div className="mx-auto max-w-[72rem] 2xl:max-w-[85rem]">
               <div className="mx-auto max-w-[46rem] text-center">
                 <h2 id="titre-etapes" data-reveal className={`${TITLE} hn-balance text-mk-h2 leading-[1.1]`}>
@@ -840,7 +841,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           <section
             id="fonctionnalites"
             aria-labelledby="titre-fonctionnalites"
-            className="mx-auto max-w-[75rem] scroll-mt-20 px-4 pt-20 sm:px-6 lg:pt-28 2xl:max-w-[88rem]"
+            className="mx-auto max-w-[75rem] scroll-mt-20 px-4 pt-14 sm:px-6 lg:pt-20 2xl:max-w-[88rem]"
           >
             <div className="flex flex-col items-center text-center">
               <h2
@@ -891,7 +892,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           {data.showcase.length > 0 && (
             <section
               aria-labelledby="titre-temoignages"
-              className="mx-auto max-w-[75rem] 2xl:max-w-[88rem] px-4 pt-20 sm:px-6 lg:pt-28"
+              className="mx-auto max-w-[75rem] 2xl:max-w-[88rem] px-4 pt-14 sm:px-6 lg:pt-20"
             >
               <h2
                 id="titre-temoignages"
