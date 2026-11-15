@@ -235,6 +235,10 @@ export function HourHeat({
         return (
           <li key={hour} className="flex flex-col items-center gap-1.5">
             <span className="sr-only">{label(hour, count)}</span>
+            {/* Nombre de rendez-vous au-dessus de la case (lisible quelle que soit sa teinte). */}
+            <span aria-hidden="true" className="h-5 text-[0.8125rem] font-semibold text-night tabular-nums">
+              {count > 0 ? count : ""}
+            </span>
             <span
               aria-hidden="true"
               title={label(hour, count)}

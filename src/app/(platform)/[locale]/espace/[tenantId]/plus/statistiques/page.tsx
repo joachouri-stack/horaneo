@@ -119,7 +119,12 @@ export default async function StatsPage({
       remaining: String(Math.max(goals.newCustomers - stats.newCustomers, 0)),
     },
   ].filter((item): item is Exclude<typeof item, null | 0 | undefined> => Boolean(item));
-  const percent = (rate: number | null) => (rate === null ? null : `${Math.round(rate * 100)} %`);
+  const percent = (rate: number | null) =>
+    rate === null
+      ? null
+      : rate > 0 && Math.round(rate * 100) === 0
+        ? t("occupancy.lessThanOne")
+        : `${Math.round(rate * 100)} %`;
   const hours = (minutes: number) => t("occupancy.hours", { hours: Math.round(minutes / 60) });
   const th = "pb-2 font-medium text-ink-soft";
   const td = "border-t border-hairline py-2.5";
@@ -127,7 +132,16 @@ export default async function StatsPage({
   const salesTable = (
     id: string,
     breakdown: SalesBreakdown,
-    labels: { title: string; intro: string; item: string; quantity: string; basis: string; empty: string },
+    labels: {
+      title: string;
+      intro: string;
+      item: string;
+      quantity: string;
+      basis: string;
+      empty: string;
+      costsHref: string;
+      after?: string;
+    },
   ) => (
     <section aria-labelledby={id} className={`${panel} min-w-0`}>
       <h2 id={id} className="font-display text-[1.1rem] font-semibold text-night">
@@ -138,7 +152,37 @@ export default async function StatsPage({
         <p className="mt-4 text-ink-soft">{t("none")}</p>
       ) : (
         <>
-          <div className="mt-4 overflow-x-auto">
+          {/* Téléphone : une fiche par ligne, sans tableau à faire défiler. */}
+          <ul className="mt-4 divide-y divide-hairline sm:hidden">
+            {breakdown.lines.map((line) => (
+              <li key={line.key} className="py-2.5">
+                <p className="text-night">{line.name}</p>
+                <p className="mt-0.5 text-sm text-ink-soft tabular-nums">
+                  {labels.quantity} : {line.quantity} · {t("sales.revenue")} : {money(line.revenueCents)} ·{" "}
+                  {t("sales.margin")} : {line.marginCents === null ? "—" : money(line.marginCents)}
+                </p>
+              </li>
+            ))}
+            <li className="py-2.5 font-semibold text-night">
+              <p>{t("sales.total")}</p>
+              <p className="mt-0.5 text-sm tabular-nums">
+                {labels.quantity} : {breakdown.lines.reduce((sum, line) => sum + line.quantity, 0)} ·{" "}
+                {t("sales.revenue")} : {money(breakdown.revenueCents)}
+                {breakdown.withCost > 0 && (
+                  <>
+                    {" "}
+                    · {t("sales.margin")} : {money(breakdown.marginCents)}
+                  </>
+                )}
+              </p>
+            </li>
+          </ul>
+          <div
+            className="mt-4 hidden overflow-x-auto sm:block"
+            role="region"
+            aria-labelledby={id}
+            tabIndex={0}
+          >
             <table className="w-full text-left text-[0.9375rem]">
               <thead>
                 <tr>
@@ -166,7 +210,10 @@ export default async function StatsPage({
                     <td className={`${td} ${num}`}>{money(line.revenueCents)}</td>
                     <td className={`${td} ${num}`}>
                       {line.marginCents === null ? (
-                        <span className="text-sm text-ink-soft">{t("sales.noCost")}</span>
+                        <span className="text-ink-soft">
+                          <span aria-hidden="true">—</span>
+                          <span className="sr-only">{t("sales.noCost")}</span>
+                        </span>
                       ) : (
                         money(line.marginCents)
                       )}
@@ -201,8 +248,20 @@ export default async function StatsPage({
             ) : (
               labels.empty
             )}
+            {breakdown.withCost < breakdown.lines.length && (
+              <>
+                {" "}
+                <Link href={labels.costsHref} className="font-medium text-accent hover:underline">
+                  {t("sales.setCosts")}
+                </Link>
+              </>
+            )}
           </p>
+          {labels.after && <p className="mt-2 text-sm text-ink-soft">{labels.after}</p>}
         </>
+      )}
+      {breakdown.lines.length === 0 && labels.after && (
+        <p className="mt-2 text-sm text-ink-soft">{labels.after}</p>
       )}
     </section>
   );
@@ -251,6 +310,19 @@ export default async function StatsPage({
           label={t("revenue")}
           value={money(stats.revenueCents)}
           trend={<Trend value={trendPercent(stats.revenueCents, previous.revenueCents)} label={vs} />}
+          sub={
+            <>
+              {stats.upcomingRevenueCents > 0 && (
+                <span className="block">
+                  {t("revenueUpcoming", { amount: money(stats.upcomingRevenueCents) })}
+                </span>
+              )}
+              {stats.shopRevenueCents > 0 && (
+                <span className="block">{t("revenueShop", { amount: money(stats.shopRevenueCents) })}</span>
+              )}
+              <span className="block">{t("revenueNote")}</span>
+            </>
+          }
         />
         <StatCard
           icon={DASH_ICONS.calendar}
@@ -331,10 +403,10 @@ export default async function StatsPage({
                   />
                 ))}
               </div>
-            ) : (
-              <p className="mt-4 rounded-2xl bg-mist-50 px-4 py-3 text-ink-soft">{t("goals.empty")}</p>
-            )}
-            <details className="group mt-5 border-t border-hairline pt-4">
+            ) : null}
+            <details
+              className={`group ${goalRings.length > 0 ? "mt-5 border-t border-hairline pt-4" : "mt-1"}`}
+            >
               <summary className="inline-flex min-h-11 cursor-pointer list-none items-center gap-2 font-medium text-accent [&::-webkit-details-marker]:hidden">
                 {goalRings.length > 0 ? t("goals.edit") : t("goals.set")}
                 <DashIcon d="M6 9l6 6 6-6" className="h-4 w-4 transition group-open:rotate-180" />
@@ -472,6 +544,7 @@ export default async function StatsPage({
                 {t("weekdaysTitle")}
               </h2>
               <RevenueBars
+                showValues
                 days={details.weekdays.map((count, index) => ({
                   label: weekdayName.format(new Date(`${addDays(MONDAY, index)}T12:00:00Z`)).replace(".", ""),
                   value: String(count),
@@ -521,7 +594,12 @@ export default async function StatsPage({
               {occupancy.staff.length === 0 ? (
                 <p className="mt-4 text-ink-soft">{t("none")}</p>
               ) : (
-                <div className="mt-4 overflow-x-auto">
+                <div
+                  className="mt-4 overflow-x-auto"
+                  role="region"
+                  aria-labelledby="remplissage"
+                  tabIndex={0}
+                >
                   <table className="w-full text-left text-[0.9375rem]">
                     <thead>
                       <tr>
@@ -583,6 +661,14 @@ export default async function StatsPage({
                   total: sales.services.lines.length,
                 }),
                 empty: t("sales.marginEmptyServices"),
+                costsHref: `${page.base}/site/prestations`,
+                after:
+                  sales.upcomingServices.count > 0
+                    ? t("sales.upcoming", {
+                        count: sales.upcomingServices.count,
+                        amount: money(sales.upcomingServices.revenueCents),
+                      })
+                    : undefined,
               })}
               {sales.products.lines.length > 0 &&
                 salesTable("ca-produits", sales.products, {
@@ -595,6 +681,7 @@ export default async function StatsPage({
                     total: sales.products.lines.length,
                   }),
                   empty: t("sales.marginEmptyProducts"),
+                  costsHref: `${page.base}/plus/boutique`,
                 })}
             </div>
           )}
