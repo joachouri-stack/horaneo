@@ -78,7 +78,13 @@ export function CartView({
       <ul className="divide-y divide-site-border rounded-site border border-site-border bg-site-card">
         {view.lines.map((line) => (
           <li key={line.key} className="flex gap-4 p-4">
-            <Link href={line.href} className="size-20 shrink-0 overflow-hidden rounded-site bg-site-panel">
+            {/* Photo : même lien que le nom juste à côté, ignoré au clavier et par les lecteurs d'écran. */}
+            <Link
+              href={line.href}
+              aria-hidden="true"
+              tabIndex={-1}
+              className="size-20 shrink-0 overflow-hidden rounded-site bg-site-panel"
+            >
               {line.photoUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={line.photoUrl} alt="" className="h-full w-full object-cover" />

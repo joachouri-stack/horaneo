@@ -16,6 +16,7 @@ import {
   markOrderCollected,
   markOrderReady,
   listShopOrders,
+  openShopOrdersCount,
   orderReference,
   startShopCheckout,
   syncShopOrderPayment,
@@ -266,12 +267,16 @@ describe.skipIf(!hasTestDatabase)("boutique : commandes et paiement", () => {
       return order.id;
     };
     const first = await pay(1);
+    expect(await s.site((tx) => openShopOrdersCount(tx, s.id))).toBe(1);
     expect(await s.site((tx) => markOrderReady(tx, s.id, first))).toEqual({ status: "ready" });
+    // Prête : toujours à traiter tant qu'elle n'est pas retirée.
+    expect(await s.site((tx) => openShopOrdersCount(tx, s.id))).toBe(1);
     // Pas deux fois « prête ».
     expect(await errorCode(s.site((tx) => markOrderReady(tx, s.id, first)))).toBe(
       "shop_order_not_modifiable",
     );
     expect(await s.site((tx) => markOrderCollected(tx, s.id, first))).toEqual({ status: "collected" });
+    expect(await s.site((tx) => openShopOrdersCount(tx, s.id))).toBe(0);
     const ready = await owner
       .select()
       .from(messageLog)

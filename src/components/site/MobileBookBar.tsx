@@ -51,7 +51,7 @@ export async function MobileBookBar({
       mode={mode}
       fallback={fallback}
       pages={byPath}
-      hiddenOn={[SITE_PATHS.booking, SITE_PATHS.appointment, SITE_PATHS.giftCard]}
+      hiddenOn={[SITE_PATHS.booking, SITE_PATHS.appointment, SITE_PATHS.giftCard, SITE_PATHS.cart]}
     />
   );
 }
