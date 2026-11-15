@@ -93,23 +93,28 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">): Prom
   };
 }
 
-/** Questions fréquentes, dans l'ordre (textes : home.faq.items.<clé>). */
+/**
+ * Questions fréquentes, dans l'ordre (textes : home.faq.items.<clé>) : les plus
+ * utiles d'abord ; au-delà de FAQ_SHOWN, les autres se déplient (« Voir plus »).
+ */
 const FAQ = [
-  "basic",
-  "setup",
-  "creation",
+  "prices",
   "commitment",
   "cancel",
-  "prices",
+  "setup",
+  "creation",
+  "data",
+  "basic",
   "domain",
   "quotas",
   "change",
   "support",
-  "data",
   "solutions",
   "ai",
   "tablet",
 ] as const;
+
+const FAQ_SHOWN = 6;
 
 /** Fonctions d'IA : la question de la FAQ à leur sujet ne s'affiche que si l'une est encore « Bientôt ». */
 const AI_FEATURES = ["aiChatbot", "aiTexts", "aiImages", "whatsappAssistant"];
@@ -285,6 +290,15 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     q: t(`faq.items.${key}.q`, faqValues),
     a: t(`faq.items.${key}.a`, faqValues),
   }));
+  const faqItem = (item: (typeof faq)[number], open: boolean) => (
+    <details key={item.key} open={open} className="group">
+      <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 py-4 font-medium text-night [&::-webkit-details-marker]:hidden">
+        {item.q}
+        <PlusLine className="size-5 flex-none text-coral transition-transform group-open:rotate-45 motion-reduce:transition-none" />
+      </summary>
+      <p className="pb-5 pr-8 text-[1.0625rem] text-ink-soft">{item.a}</p>
+    </details>
+  );
   const structuredData = [
     {
       "@context": "https://schema.org",
@@ -501,6 +515,10 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     className="h-auto w-full drop-shadow-[0_0_40px_rgba(123,63,228,.55)]"
                   />
                 </div>
+                {/* Données d'exemple : signalé, pour ne pas les prendre pour de vrais chiffres. */}
+                <p className="absolute inset-x-0 -bottom-7 text-center text-mk-note text-white/70">
+                  {t("sampleData")}
+                </p>
                 <div
                   className={`hn-float -left-1 top-[10%] sm:-left-6 lg:left-auto lg:-right-10 lg:top-[14%] absolute flex items-center gap-3 rounded-2xl border border-white/70 bg-white/95 py-2.5 pl-2.5 pr-5 shadow-[0_20px_40px_-18px_rgba(5,8,30,.75),0_0_0_1px_rgba(123,63,228,.08)] backdrop-blur`}
                 >
@@ -756,6 +774,9 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     className="h-auto w-full"
                   />
                 </div>
+                <figcaption className="mt-3 text-center text-mk-note text-ink-soft">
+                  {t("sampleData")}
+                </figcaption>
               </figure>
             </div>
           </section>
@@ -999,16 +1020,24 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 {t("faq.contact")}
               </a>
             </div>
-            <div data-reveal className="divide-y divide-hairline border-y border-hairline">
-              {faq.map((item, index) => (
-                <details key={item.key} open={index === 0} className="group">
-                  <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 py-4 font-medium text-night [&::-webkit-details-marker]:hidden">
-                    {item.q}
-                    <PlusLine className="size-5 flex-none text-coral transition-transform group-open:rotate-45 motion-reduce:transition-none" />
+            <div data-reveal>
+              <div className="divide-y divide-hairline border-y border-hairline">
+                {faq.slice(0, FAQ_SHOWN).map((item, index) => faqItem(item, index === 0))}
+              </div>
+              {/* Les autres questions, repliées : la liste reste courte sur téléphone. */}
+              {faq.length > FAQ_SHOWN && (
+                <details className="group/more">
+                  <summary className="mt-4 inline-flex min-h-11 cursor-pointer list-none items-center gap-2 font-medium text-navy underline decoration-coral decoration-2 underline-offset-4 hover:text-coral-dark [&::-webkit-details-marker]:hidden">
+                    <span className="group-open/more:hidden">
+                      {t("faq.more", { count: faq.length - FAQ_SHOWN })}
+                    </span>
+                    <span className="hidden group-open/more:inline">{t("faq.less")}</span>
                   </summary>
-                  <p className="pb-5 pr-8 text-[1.0625rem] text-ink-soft">{item.a}</p>
+                  <div className="mt-2 divide-y divide-hairline border-y border-hairline">
+                    {faq.slice(FAQ_SHOWN).map((item) => faqItem(item, false))}
+                  </div>
                 </details>
-              ))}
+              )}
             </div>
           </div>
         </section>

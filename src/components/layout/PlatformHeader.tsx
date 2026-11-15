@@ -6,10 +6,10 @@ import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { HeaderShell } from "./HeaderShell";
 
-/** Liens du menu : sections de l'accueil, sauf « Fonctionnalités » qui ouvre la page du tableau. */
+/** Liens du menu : sections de l'accueil (le tableau complet s'ouvre depuis « Fonctionnalités »). */
 export const NAV = [
   { key: "solutions", href: { pathname: "/", hash: "solutions" } },
-  { key: "features", href: { pathname: "/comparatif" } },
+  { key: "features", href: { pathname: "/", hash: "fonctionnalites" } },
   { key: "pricing", href: { pathname: "/", hash: "tarifs" } },
 ] as const;
 

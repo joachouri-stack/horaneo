@@ -91,7 +91,8 @@ export async function PlanCards({
   const money = (cents: number) => formatMoney(cents, PLATFORM_CURRENCY, locale);
   // Prix des cartes : partie entière en grand, centimes et devise en petit.
   const bigPrice = (cents: number, gold: boolean, className: string, tailClass = "") => {
-    const { lead, tail } = moneyParts(cents, PLATFORM_CURRENCY, locale);
+    // Prix payants toujours avec centimes (« 46,00 € » à côté de « 19,99 € ») ; gratuit : « 0 € ».
+    const { lead, tail } = moneyParts(cents, PLATFORM_CURRENCY, locale, { cents: cents > 0 });
     return (
       <span
         className={`font-display font-semibold leading-none tracking-[-0.035em] tabular-nums ${gold ? "hn-gold" : className}`}

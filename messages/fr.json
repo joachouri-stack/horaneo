@@ -78,7 +78,7 @@
       "points": [
         "Textes, images et logo modifiables",
         "Hébergement et sécurité inclus",
-        "Assistance 7 j/7 sur WhatsApp"
+        "Assistance humaine sur WhatsApp"
       ],
       "visualAlt": "Aperçu de l'espace de gestion sur téléphone : rendez-vous du jour (données d'exemple)",
       "float": {
@@ -774,8 +774,8 @@
           "card": "Centre d'aide"
         },
         "technicalSupport247": {
-          "label": "Service technique 24 h/24, 7 j/7",
-          "card": "Service technique 24 h/24, 7 j/7"
+          "label": "Service technique inclus",
+          "card": "Service technique inclus"
         },
         "whatsappSupport": {
           "label": "Assistance par WhatsApp",
@@ -992,7 +992,9 @@
           "q": "Mes données m'appartiennent-elles ?",
           "a": "Oui. {exportPlan, select, none {Vous téléchargez vous-même en un clic, depuis votre espace, votre fichier clients, vos rendez-vous et vos paiements, y compris si vous quittez {product}.} other {Dès le pack {exportPlan}, vous téléchargez vous-même en un clic, depuis votre espace, votre fichier clients, vos rendez-vous et vos paiements. Sur les autres packs, ils vous sont remis sur simple demande, y compris si vous quittez {product}.}}"
         }
-      }
+      },
+      "more": "{count, plural, one {Voir # autre question} other {Voir les # autres questions}}",
+      "less": "Masquer les autres questions"
     },
     "final": {
       "title": "Prêt à lancer votre site ?",
@@ -1001,7 +1003,7 @@
       "noCommitment": "Sans engagement : résiliable chaque mois",
       "updates": "Mises à jour et maintenance incluses",
       "support": "Assistance par WhatsApp",
-      "support247": "Assistance WhatsApp · service technique 7 j/7"
+      "support247": "Assistance humaine sur WhatsApp"
     },
     "options": {
       "requires": "Nécessite : {names}",
@@ -1055,7 +1057,8 @@
       "trustpilotWrite": "Laisser un avis sur Trustpilot",
       "trustpilotNote": "Trustpilot est une plateforme d'avis indépendante : chacun peut y laisser son avis, nous ne pouvons pas le modifier.",
       "mailSubject": "Mon avis sur {product}"
-    }
+    },
+    "sampleData": "Exemple : données fictives"
   },
   "site": {
     "account": {
@@ -2190,7 +2193,7 @@
         "maintenance": "Maintenance du site incluse",
         "securityProtection": "Protection contre les cyberattaques",
         "logoCreation": "Création du logo et de l'icône du site",
-        "technicalSupport247": "Service technique 24 h/24, 7 j/7",
+        "technicalSupport247": "Service technique inclus",
         "staffPlanning": "Gestion des plannings des collaborateurs",
         "customerFile": "Fichier clients : historique et notes",
         "dataExport": "Export des données (clientes, rendez-vous, paiements)",
@@ -3489,7 +3492,7 @@
         "maintenance": "Maintenance du site incluse",
         "securityProtection": "Protection contre les cyberattaques",
         "logoCreation": "Création du logo et de l'icône du site",
-        "technicalSupport247": "Service technique 24 h/24, 7 j/7"
+        "technicalSupport247": "Service technique inclus"
       },
       "overLimit": "Au-delà de votre pack : rien n'est supprimé, mais vous ne pouvez plus en ajouter.",
       "primaryOnly": "L'abonnement est commun à tout le site : il se gère depuis l'espace de l'établissement principal. Vous voyez ici le pack en cours et l'utilisation du site.",
@@ -4445,7 +4448,7 @@
     "reassurance": {
       "label": "Nos engagements",
       "monthly": "Mensuel sans engagement",
-      "support": "Assistance 7 j/7 sur WhatsApp",
+      "support": "Assistance humaine sur WhatsApp",
       "secure": "Paiement sécurisé par Stripe"
     },
     "formula": "Formule (packs payants)",
