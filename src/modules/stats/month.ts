@@ -18,13 +18,20 @@ import { addDays, isoWeekday, localToUtc, utcToLocal } from "@/modules/booking/t
 import { salesBreakdown } from "./margins";
 import { availableMinutes, fillRate } from "./occupancy";
 
-/** Statistiques d'un mois (AAAA-MM) dans le fuseau de l'établissement. */
+/**
+ * Statistiques d'un mois (AAAA-MM) dans le fuseau de l'établissement.
+ * `revenueCents` compte tous les rendez-vous du mois (après code promo, absences
+ * exclues), y compris ceux qui n'ont pas encore eu lieu : `upcomingRevenueCents`
+ * en donne la part à venir (après `now`). `shopRevenueCents` : ventes payées de la
+ * boutique dans le mois, à part.
+ */
 export async function monthStats(
   tx: Transaction,
   tenantId: string,
   period: string,
   timezone: string,
   locale: Locale,
+  now: Date = new Date(),
 ) {
   const [year, month] = period.split("-").map(Number);
   const first = `${period}-01`;
@@ -37,6 +44,7 @@ export async function monthStats(
       status: appointments.status,
       source: appointments.source,
       totalCents: appointments.totalCents,
+      startsAt: appointments.startsAt,
     })
     .from(appointments)
     .where(
@@ -48,6 +56,17 @@ export async function monthStats(
       ),
     );
   const active = rows.filter((row) => row.status !== "cancelled");
+  const [{ value: shopRevenueCents }] = await tx
+    .select({ value: sql<number>`coalesce(sum(${shopOrders.totalCents}), 0)::int` })
+    .from(shopOrders)
+    .where(
+      and(
+        eq(shopOrders.tenantId, tenantId),
+        inArray(shopOrders.status, ["paid", "ready", "collected"]),
+        gte(shopOrders.paidAt, from),
+        lt(shopOrders.paidAt, to),
+      ),
+    );
   const items = active.length
     ? await tx
         .select({ name: appointmentItems.serviceName, appointmentId: appointmentItems.appointmentId })
@@ -77,6 +96,10 @@ export async function monthStats(
     revenueCents: active
       .filter((row) => row.status !== "no_show")
       .reduce((sum, row) => sum + row.totalCents, 0),
+    upcomingRevenueCents: active
+      .filter((row) => row.status !== "no_show" && row.startsAt > now)
+      .reduce((sum, row) => sum + row.totalCents, 0),
+    shopRevenueCents,
     newCustomers,
     topServices: [...topServices.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5),
     nextPeriodStart: addDays(next, 0),
@@ -189,8 +212,9 @@ function monthRange(period: string, timezone: string) {
 
 /**
  * Chiffre d'affaires et marge du mois par prestation et par produit de la boutique.
- * - Prestations : lignes des rendez-vous du mois (prix figé à la réservation, avant code
- *   promo), hors rendez-vous annulés, expirés et absences — comme le chiffre d'affaires.
+ * - Prestations : lignes des rendez-vous du mois déjà passés (prix figé à la réservation,
+ *   avant code promo), hors rendez-vous annulés, expirés et absences ; celles des
+ *   rendez-vous encore à venir sont seulement comptées dans `upcomingServices`.
  * - Produits : articles des commandes payées dans le mois (payées, prêtes ou retirées ;
  *   annulées et remboursées exclues), prix unitaire × quantité.
  * La marge utilise le coût de revient ACTUEL de la prestation ou du produit (pas
@@ -202,13 +226,15 @@ export async function monthSales(
   period: string,
   timezone: string,
   locale: Locale,
+  now: Date = new Date(),
 ) {
   const { from, to } = monthRange(period, timezone);
-  const serviceItems = await tx
+  const bookedItems = await tx
     .select({
       serviceId: appointmentItems.serviceId,
       name: appointmentItems.serviceName,
       priceCents: appointmentItems.priceCents,
+      startsAt: appointments.startsAt,
     })
     .from(appointmentItems)
     .innerJoin(appointments, eq(appointments.id, appointmentItems.appointmentId))
@@ -221,6 +247,9 @@ export async function monthSales(
       ),
     )
     .orderBy(asc(appointments.startsAt), asc(appointmentItems.position));
+  // Seules les prestations déjà passées sont « réalisées » ; les suivantes sont à venir.
+  const serviceItems = bookedItems.filter((item) => item.startsAt <= now);
+  const upcomingItems = bookedItems.filter((item) => item.startsAt > now);
   const serviceIds = [...new Set(serviceItems.flatMap((item) => (item.serviceId ? [item.serviceId] : [])))];
   const serviceCosts = serviceIds.length
     ? await tx
@@ -267,6 +296,10 @@ export async function monthSales(
       }),
       new Map(serviceCosts.map((row) => [row.id, row.costCents])),
     ),
+    upcomingServices: {
+      count: upcomingItems.length,
+      revenueCents: upcomingItems.reduce((sum, item) => sum + item.priceCents, 0),
+    },
     products: salesBreakdown(
       productItems.map((item) => ({
         key: item.productId ?? `name:${item.name}`,

@@ -3086,7 +3086,11 @@
       "deleteConfirm": "Supprimer {name} ? Cette action est définitive.",
       "export": "Exporter",
       "sortBy": "Trier par :",
-      "sort": { "name": "Nom", "lastVisit": "Dernière visite", "spent": "Dépensé" },
+      "sort": {
+        "name": "Nom",
+        "lastVisit": "Dernière visite",
+        "spent": "Dépensé"
+      },
       "clearSearch": "Effacer la recherche",
       "createFromSearch": "Créer ce client",
       "merge": {
@@ -3237,6 +3241,9 @@
       "noShows": "Absences",
       "noShowRate": "Taux d'absence",
       "revenue": "Chiffre d'affaires",
+      "revenueUpcoming": "dont {amount} à venir",
+      "revenueShop": "+ {amount} de boutique",
+      "revenueNote": "Après codes promo",
       "newCustomers": "Nouveaux clients",
       "topServices": "Prestations les plus réservées",
       "none": "Pas encore de données ce mois-ci.",
@@ -3251,7 +3258,6 @@
       "goals": {
         "title": "Objectifs du mois",
         "intro": "Fixez vos objectifs : votre progression s'affiche ici chaque mois.",
-        "empty": "Aucun objectif pour l'instant.",
         "edit": "Modifier mes objectifs",
         "set": "Fixer mes objectifs",
         "revenue": "Chiffre d'affaires ({currency})",
@@ -3288,11 +3294,12 @@
         "available": "Disponible",
         "rate": "Remplissage",
         "hours": "{hours} h",
-        "noHours": "pas d'horaires"
+        "noHours": "pas d'horaires",
+        "lessThanOne": "moins de 1 %"
       },
       "sales": {
         "servicesTitle": "Chiffre d'affaires par prestation",
-        "servicesIntro": "Prestations réalisées ce mois-ci (hors annulations et absences), au prix de la réservation, avant code promo.",
+        "servicesIntro": "Prestations déjà réalisées ce mois-ci (hors annulations et absences), au prix de la réservation, avant code promo.",
         "productsTitle": "Ventes de la boutique par produit",
         "productsIntro": "Commandes payées ce mois-ci.",
         "service": "Prestation",
@@ -3302,13 +3309,15 @@
         "revenue": "CA",
         "margin": "Marge",
         "total": "Total",
-        "noCost": "coût non renseigné",
         "marginTotal": "Marge totale : {amount}",
         "marginBasisServices": "calculée sur {counted, plural, one {# prestation} other {# prestations}} sur {total}",
         "marginBasisProducts": "calculée sur {counted, plural, one {# produit} other {# produits}} sur {total}",
         "marginEmptyServices": "Renseignez le coût de revient de vos prestations pour voir vos marges.",
         "marginEmptyProducts": "Renseignez le coût de revient de vos produits pour voir vos marges.",
-        "marginHint": "Marge = chiffre d'affaires − coût de revient actuel de la prestation ou du produit."
+        "marginHint": "Marge = chiffre d'affaires − coût de revient actuel de la prestation ou du produit.",
+        "setCosts": "Renseigner les coûts de revient",
+        "upcoming": "Encore {count, plural, one {# prestation} other {# prestations}} à venir ce mois-ci ({amount}).",
+        "noCost": "coût non renseigné"
       },
       "upgradeTitle": "Passez aux statistiques détaillées",
       "upgradeText": "Courbes jour par jour, répartition par prestation et par membre de l'équipe, heures les plus demandées et objectifs du mois."

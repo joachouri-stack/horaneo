@@ -910,6 +910,15 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
         ["Bougie", 2, 1800],
         ["Savon", 1, null],
       ]);
+      // Avant les rendez-vous : prestations seulement « à venir », pas encore réalisées.
+      const early = new Date("2026-10-01T00:00:00Z");
+      const ahead = await asManager(s.id, (tx) => monthSales(tx, s.id, "2026-10", TZ, "fr", early));
+      expect(ahead.services.lines).toEqual([]);
+      expect(ahead.upcomingServices).toEqual({ count: 2, revenueCents: 14000 });
+      expect(sales.upcomingServices).toEqual({ count: 0, revenueCents: 0 });
+      // Chiffres clés : ventes payées de la boutique à part (commande remboursée exclue).
+      const month = await asManager(s.id, (tx) => monthStats(tx, s.id, "2026-10", TZ, "fr", early));
+      expect(month).toMatchObject({ shopRevenueCents: 3800, upcomingRevenueCents: month.revenueCents });
 
       // Remplissage : Léa et Inès n'ont pas d'horaires → ouverture (mardi 9 h-18 h, 4 mardis).
       // Léa : créneau bloqué le 13 (3 h) ; fermeture de l'établissement le 27 (une journée).

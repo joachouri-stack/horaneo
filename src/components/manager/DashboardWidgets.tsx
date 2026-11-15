@@ -93,17 +93,22 @@ export function StatCard({
           </span>
           {trend}
         </p>
-        {sub && <p className="mt-1.5 line-clamp-2 text-sm leading-snug text-ink-soft">{sub}</p>}
+        {sub && <p className="mt-1.5 line-clamp-3 text-sm leading-snug text-ink-soft">{sub}</p>}
       </div>
     </div>
   );
 }
 
-/** Histogramme des 7 derniers jours : aujourd'hui en couleur pleine, valeur au survol et pour le lecteur d'écran. */
+/**
+ * Histogramme des 7 derniers jours : aujourd'hui en couleur pleine, valeur au survol
+ * (ou toujours affichée avec `showValues`) et pour le lecteur d'écran.
+ */
 export function RevenueBars({
   days,
+  showValues = false,
 }: {
   days: { label: string; value: string; cents: number; today: boolean }[];
+  showValues?: boolean;
 }) {
   const max = Math.max(1, ...days.map((day) => day.cents));
   return (
@@ -115,7 +120,11 @@ export function RevenueBars({
           </span>
           <span
             aria-hidden="true"
-            className="pointer-events-none whitespace-nowrap rounded-md bg-night px-1.5 py-0.5 text-[0.8125rem] text-white opacity-0 transition group-hover:opacity-100"
+            className={
+              showValues
+                ? "whitespace-nowrap text-[0.8125rem] font-medium text-night tabular-nums"
+                : "pointer-events-none whitespace-nowrap rounded-md bg-night px-1.5 py-0.5 text-[0.8125rem] text-white opacity-0 transition group-hover:opacity-100"
+            }
           >
             {day.value}
           </span>
@@ -212,7 +221,11 @@ export function SplitBar({
   const share = total ? Math.round((left.value / total) * 100) : 0;
   return (
     <div className="mt-4 space-y-3">
-      <div className="flex h-3 overflow-hidden rounded-full bg-[#eef1f6]" aria-hidden="true">
+      {/* Fond de la couleur de droite dès qu'il y a des données : la barre n'a jamais l'air vide. */}
+      <div
+        className={`flex h-3 overflow-hidden rounded-full ${total ? "bg-[#c3c9d8]" : "bg-[#eef1f6]"}`}
+        aria-hidden="true"
+      >
         <span className="h-full rounded-full bg-accent" style={{ width: `${share}%` }} />
       </div>
       <dl className="grid grid-cols-2 gap-3 text-sm">
