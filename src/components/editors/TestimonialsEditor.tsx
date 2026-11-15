@@ -1,3 +1,4 @@
+import { ui } from "@/components/ui/styles";
 import { getTranslations } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
 import { CheckboxField, Hidden, Section, TextArea, TextField } from "@/components/admin/fields";
@@ -95,13 +96,20 @@ export async function TestimonialsEditor({
           </li>
         ))}
       </ul>
-      <div className="mt-6 border-t border-navy/10 pt-6">
-        <h3 className="mb-4 text-lg font-bold">{t("new")}</h3>
-        <ActionForm action={actions.save} submitLabel={tCommon("add")} resetOnSuccess>
-          <Hidden values={{ tenantId }} />
-          {fields({ authorName: "", text: "", rating: 5, isPublished: true }, "new")}
-        </ActionForm>
-      </div>
+      {/* Nouveau témoignage : formulaire replié, la liste reste courte. */}
+      <details className="mt-6 border-t border-navy/10 pt-6">
+        <summary
+          className={`${ui.secondaryButton} cursor-pointer list-none sm:w-auto [&::-webkit-details-marker]:hidden`}
+        >
+          + {t("new")}
+        </summary>
+        <div className="mt-4">
+          <ActionForm action={actions.save} submitLabel={tCommon("add")} resetOnSuccess>
+            <Hidden values={{ tenantId }} />
+            {fields({ authorName: "", text: "", rating: 5, isPublished: true }, "new")}
+          </ActionForm>
+        </div>
+      </details>
     </Section>
   );
 }

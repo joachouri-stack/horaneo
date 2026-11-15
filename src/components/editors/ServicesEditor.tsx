@@ -41,6 +41,8 @@ export async function ServicesEditor({
     deleteService: Action;
     /** Envoi d'un logo depuis la catégorie (espace admin). */
     addCategoryLogo?: Action;
+    /** Place d'une catégorie ou d'une prestation (« monter » ou « descendre »). */
+    move?: Action;
   };
 }) {
   const [t, tCommon] = await Promise.all([
@@ -53,12 +55,44 @@ export async function ServicesEditor({
     ...CATEGORY_ICONS.map((icon) => ({ value: icon, label: t(`icons.${icon}`) })),
   ];
   const categoryOptions = categories.map((category) => ({ value: category.id, label: text(category.name) }));
+  // Prestations rangées par catégorie (dans l'ordre des catégories), puis celles sans catégorie.
+  const groups = [
+    ...categories.map((category) => ({
+      key: category.id,
+      title: text(category.name),
+      items: services.filter((service) => service.categoryId === category.id),
+    })),
+    {
+      key: "none",
+      title: categories.length > 0 ? t("noCategory") : null,
+      items: services.filter(
+        (service) =>
+          !service.categoryId || !categories.some((category) => category.id === service.categoryId),
+      ),
+    },
+  ].filter((group) => group.items.length > 0);
+  /** « Monter » / « Descendre » d'une catégorie ou d'une prestation, si l'espace le permet. */
+  const moveButtons = (kind: "category" | "service", id: string, index: number, count: number) =>
+    actions.move && count > 1 ? (
+      <div className="mt-1 flex gap-x-4">
+        {index > 0 && (
+          <ActionForm action={actions.move} submitLabel={`↑ ${t("moveUp")}`} variant="link">
+            <Hidden values={{ tenantId, businessId, id, kind, direction: "up" }} />
+          </ActionForm>
+        )}
+        {index < count - 1 && (
+          <ActionForm action={actions.move} submitLabel={`↓ ${t("moveDown")}`} variant="link">
+            <Hidden values={{ tenantId, businessId, id, kind, direction: "down" }} />
+          </ActionForm>
+        )}
+      </div>
+    ) : null;
 
   return (
     <>
       <Section title={t("categories")}>
         <ul className="divide-y divide-navy/10">
-          {categories.map((category) => (
+          {categories.map((category, categoryIndex) => (
             <li key={category.id} className="py-2">
               <details className="group">
                 <summary className="flex min-h-12 cursor-pointer list-none items-center gap-3 font-semibold text-night [&::-webkit-details-marker]:hidden">
@@ -185,6 +219,7 @@ export async function ServicesEditor({
                   </ActionForm>
                 </div>
               </details>
+              {moveButtons("category", category.id, categoryIndex, categories.length)}
             </li>
           ))}
         </ul>
@@ -211,61 +246,80 @@ export async function ServicesEditor({
         }
       >
         {services.length === 0 && <p className="text-ink/70">{t("empty")}</p>}
-        <ul className="space-y-3">
-          {services.map((service) => (
-            <li key={service.id}>
-              <details className="rounded-lg border border-navy/10 p-4">
-                <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 [&::-webkit-details-marker]:hidden">
-                  <span className="min-w-0">
-                    <span className="block font-semibold text-night">
-                      {text(service.name)}
-                      {!service.isActive && (
-                        <span className="ml-2 text-sm font-normal text-ink/70">({t("disabled")})</span>
-                      )}
-                    </span>
-                    <span className="block text-sm text-ink/70">
-                      {t("minutes", { count: service.durationMinutes })} ·{" "}
-                      {formatMoney(service.priceCents, service.currency, locale)}
-                    </span>
-                  </span>
-                  <span className="ml-auto shrink-0 text-sm font-semibold text-coral-dark underline">
-                    {tCommon("edit")}
-                  </span>
-                </summary>
-                <div className="mt-4 space-y-4">
-                  <ActionForm action={actions.saveService} submitLabel={tCommon("save")}>
-                    <Hidden values={{ tenantId, businessId, id: service.id }} />
-                    <ServiceFields
-                      idPrefix={service.id}
-                      categories={categoryOptions}
-                      service={{
-                        ...service,
-                        name: text(service.name),
-                        description: text(service.description),
-                      }}
-                    />
-                  </ActionForm>
-                  <ActionForm
-                    action={actions.deleteService}
-                    submitLabel={tCommon("delete")}
-                    variant="danger"
-                    className=""
-                    confirm={tCommon("confirmDelete")}
-                  >
-                    <Hidden values={{ tenantId, businessId, id: service.id }} />
-                  </ActionForm>
-                </div>
-              </details>
-            </li>
+        <div className="space-y-6">
+          {groups.map((group) => (
+            <div key={group.key}>
+              {group.title && (
+                <h3 className="mb-2 text-sm font-semibold uppercase tracking-[0.06em] text-ink/70">
+                  {group.title}
+                </h3>
+              )}
+              <ul className="space-y-3">
+                {group.items.map((service, serviceIndex) => (
+                  <li key={service.id}>
+                    <details className="rounded-lg border border-navy/10 p-4">
+                      <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 [&::-webkit-details-marker]:hidden">
+                        <span className="min-w-0">
+                          <span className="block font-semibold text-night">
+                            {text(service.name)}
+                            {!service.isActive && (
+                              <span className="ml-2 text-sm font-normal text-ink/70">({t("disabled")})</span>
+                            )}
+                          </span>
+                          <span className="block text-sm text-ink/70">
+                            {t("minutes", { count: service.durationMinutes })} ·{" "}
+                            {formatMoney(service.priceCents, service.currency, locale)}
+                          </span>
+                        </span>
+                        <span className="ml-auto shrink-0 text-sm font-semibold text-coral-dark underline">
+                          {tCommon("edit")}
+                        </span>
+                      </summary>
+                      <div className="mt-4 space-y-4">
+                        <ActionForm action={actions.saveService} submitLabel={tCommon("save")}>
+                          <Hidden values={{ tenantId, businessId, id: service.id }} />
+                          <ServiceFields
+                            idPrefix={service.id}
+                            categories={categoryOptions}
+                            service={{
+                              ...service,
+                              name: text(service.name),
+                              description: text(service.description),
+                            }}
+                          />
+                        </ActionForm>
+                        <ActionForm
+                          action={actions.deleteService}
+                          submitLabel={tCommon("delete")}
+                          variant="danger"
+                          className=""
+                          confirm={tCommon("confirmDelete")}
+                        >
+                          <Hidden values={{ tenantId, businessId, id: service.id }} />
+                        </ActionForm>
+                      </div>
+                    </details>
+                    {moveButtons("service", service.id, serviceIndex, group.items.length)}
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
-        </ul>
-        <div className="mt-6 border-t border-navy/10 pt-6">
-          <h3 className="mb-4 text-lg font-bold">{t("newService")}</h3>
-          <ActionForm action={actions.saveService} submitLabel={tCommon("add")} resetOnSuccess>
-            <Hidden values={{ tenantId, businessId }} />
-            <ServiceFields idPrefix="new" categories={categoryOptions} />
-          </ActionForm>
         </div>
+        {/* Nouvelle prestation : formulaire replié, la liste reste courte. */}
+        <details className="group mt-6 border-t border-navy/10 pt-6">
+          <summary
+            className={`${ui.secondaryButton} cursor-pointer list-none sm:w-auto [&::-webkit-details-marker]:hidden`}
+          >
+            + {t("newService")}
+          </summary>
+          <div className="mt-4">
+            <ActionForm action={actions.saveService} submitLabel={tCommon("add")} resetOnSuccess>
+              <Hidden values={{ tenantId, businessId }} />
+              <ServiceFields idPrefix="new" categories={categoryOptions} />
+            </ActionForm>
+          </div>
+        </details>
       </Section>
     </>
   );

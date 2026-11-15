@@ -1,3 +1,4 @@
+import { reorderedPositions } from "@/modules/ordering";
 import { randomUUID } from "node:crypto";
 import { and, asc, desc, eq, gt, notInArray } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
@@ -164,4 +165,23 @@ export async function listRetiredAssets(tx: Transaction, tenantId: string, optio
       ),
     )
     .orderBy(desc(assets.updatedAt));
+}
+
+/** Change la place d'une photo parmi celles du même emplacement (ex. la galerie). */
+export async function moveAsset(
+  tx: Transaction,
+  tenantId: string,
+  assetId: string,
+  direction: "up" | "down",
+) {
+  const all = await listActiveAssets(tx, tenantId, { photosOnly: true });
+  const current = all.find((item) => item.id === assetId);
+  if (!current) throw new AppError("not_found");
+  const sameKind = all.filter((item) => item.kind === current.kind);
+  const updates = reorderedPositions(sameKind, assetId, direction) ?? [];
+  for (const update of updates)
+    await tx
+      .update(assets)
+      .set({ sortOrder: update.sortOrder })
+      .where(and(eq(assets.tenantId, tenantId), eq(assets.id, update.id)));
 }

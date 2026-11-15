@@ -17,7 +17,7 @@ import { getSlotsForRange, loadBookingContext, onlineStaff } from "@/modules/boo
 import { createBooking } from "@/modules/booking/create";
 import { updateBookingSettings } from "@/modules/booking/settings";
 import { localToUtc } from "@/modules/booking/time";
-import { saveService } from "@/modules/catalog/services";
+import { listServices, moveService, saveService } from "@/modules/catalog/services";
 import {
   customerDirectory,
   deleteCustomer,
@@ -502,6 +502,20 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
           asManager(s.id, (tx) => updateAppointmentTotal(tx, s.id, booked.appointmentId, "999999")),
         ),
       ).toBe("invalid");
+    });
+  });
+
+  describe("ordre des prestations", () => {
+    it("la gérante fait monter une prestation : l'ordre change sur le site", async () => {
+      const s = await setup();
+      const before = await asManager(s.id, (tx) => listServices(tx, s.id));
+      expect(before.map((row) => row.id)).toEqual([s.massage.id, s.surPlace.id]);
+      await asManager(s.id, (tx) => moveService(tx, s.id, s.surPlace.id, "up"));
+      const after = await asManager(s.id, (tx) => listServices(tx, s.id));
+      expect(after.map((row) => row.id)).toEqual([s.surPlace.id, s.massage.id]);
+      // Déjà en tête : rien ne change.
+      await asManager(s.id, (tx) => moveService(tx, s.id, s.surPlace.id, "up"));
+      expect((await asManager(s.id, (tx) => listServices(tx, s.id)))[0].id).toBe(s.surPlace.id);
     });
   });
 
