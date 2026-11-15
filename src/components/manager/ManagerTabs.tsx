@@ -135,7 +135,7 @@ export function ManagerTabs({
             ))}
         </ul>
         <div>
-          <p className="px-3 pb-2 text-[0.8125rem] font-medium uppercase tracking-[0.08em] text-ink-soft/80">
+          <p className="px-3 pb-2 text-[0.8125rem] font-medium uppercase tracking-[0.08em] text-ink-soft">
             {t("more")}
           </p>
           <ul className="space-y-1">
