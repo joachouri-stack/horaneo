@@ -140,6 +140,16 @@ export function BookingFlow(props: Props) {
   const [promoError, setPromoError] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
   const [giftOpen, setGiftOpen] = useState(Boolean(props.initialGiftCode));
+  // Champs facultatifs ouverts (code promo, anniversaire, autre personne, message).
+  const [openFields, setOpenFields] = useState<string[]>([]);
+  const openOptional = (key: string) => setOpenFields((current) => [...current, key]);
+  /** Champ facultatif affiché : ouvert, déjà rempli, ou à corriger. */
+  const isOpen = (key: "promo" | "birthday" | "beneficiary" | "note", filled = false) =>
+    filled ||
+    openFields.includes(key) ||
+    (key === "birthday" && fieldError?.field === "birthDay") ||
+    (key === "beneficiary" && fieldError?.field === "beneficiaryName") ||
+    (key === "note" && fieldError?.field === "note");
   const [giftCode, setGiftCode] = useState(props.initialGiftCode ?? "");
   const [gift, setGift] = useState<GiftPreview | null>(null);
   const [giftError, setGiftError] = useState<string | null>(null);
@@ -499,11 +509,15 @@ export function BookingFlow(props: Props) {
       {/* ─── 1. Prestations ─── */}
       {step === "services" && (
         <section aria-labelledby="titre-etape" className="space-y-4">
-          <h2 id="titre-etape" ref={headingRef} tabIndex={-1} className={headingClass}>
-            {props.maxServices > 1
-              ? t("services.chooseMany", { max: props.maxServices })
-              : t("services.choose")}
-          </h2>
+          {/* Titre court (une ligne sur téléphone) ; le nombre maximum en dessous. */}
+          <div>
+            <h2 id="titre-etape" ref={headingRef} tabIndex={-1} className={headingClass}>
+              {props.maxServices > 1 ? t("services.chooseMany") : t("services.choose")}
+            </h2>
+            {props.maxServices > 1 && (
+              <p className="mt-1 text-site-muted">{t("services.maxHint", { max: props.maxServices })}</p>
+            )}
+          </div>
           {[...new Set(props.services.map((service) => service.categoryName))].map((category) => (
             <fieldset key={category ?? "none"} className="min-w-0 space-y-2">
               {category !== null && (
@@ -639,65 +653,6 @@ export function BookingFlow(props: Props) {
             price={price}
             onChangeSlot={() => setStep("slot")}
           />
-          {props.promoEnabled && (
-            <div>
-              <label htmlFor="b-promo" className="mb-2 block font-semibold text-site-text">
-                {t("details.promo")}
-              </label>
-              {promo ? (
-                <p className="flex flex-wrap items-center gap-3" role="status">
-                  <span>
-                    {t("details.promoApplied", {
-                      code: promo.code,
-                      amount: money(promo.discountCents, props.currency, props.locale),
-                    })}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPromo(null);
-                      setPromoCode("");
-                      if (gift) void applyGiftCard(undefined);
-                    }}
-                    className={linkClass}
-                  >
-                    {t("details.promoRemove")}
-                  </button>
-                </p>
-              ) : (
-                <div className="flex gap-2">
-                  <input
-                    id="b-promo"
-                    value={promoCode}
-                    onChange={(event) => setPromoCode(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter") {
-                        event.preventDefault();
-                        void applyPromo();
-                      }
-                    }}
-                    maxLength={30}
-                    autoComplete="off"
-                    autoCapitalize="characters"
-                    aria-describedby={promoError ? "b-promo-error" : undefined}
-                    className={`${inputClass} min-w-0 flex-1 uppercase`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => void applyPromo()}
-                    className="min-h-12 shrink-0 rounded-site border border-site-button px-4 font-semibold text-site-text"
-                  >
-                    {t("details.promoApply")}
-                  </button>
-                </div>
-              )}
-              {promoError && (
-                <p id="b-promo-error" role="alert" className="mt-1 font-semibold text-site-text">
-                  {siteError(promoError)}
-                </p>
-              )}
-            </div>
-          )}
           <form onSubmit={submit} className="space-y-4">
             {/* Champ piège pour les robots : invisible pour les personnes. */}
             <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
@@ -754,59 +709,6 @@ export function BookingFlow(props: Props) {
                 error={fieldMessage("phone")}
               />
             </div>
-            {
-              <fieldset aria-describedby="b-birthday-hint">
-                <legend className="mb-2 block font-semibold text-site-text">{t("details.birthday")}</legend>
-                <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-3">
-                  <div>
-                    <label htmlFor="b-birthDay" className="sr-only">
-                      {t("details.birthdayDay")}
-                    </label>
-                    <select
-                      id="b-birthDay"
-                      name="birthDay"
-                      value={contact.birthDay}
-                      onChange={(event) => update("birthDay", event.target.value)}
-                      aria-invalid={fieldError?.field === "birthDay" || undefined}
-                      className={`${inputClass} scroll-mt-28`}
-                    >
-                      <option value="">{t("details.birthdayDay")}</option>
-                      {Array.from({ length: 31 }, (_, i) => (
-                        <option key={i + 1} value={String(i + 1)}>
-                          {i + 1}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label htmlFor="b-birthMonth" className="sr-only">
-                      {t("details.birthdayMonth")}
-                    </label>
-                    <select
-                      id="b-birthMonth"
-                      name="birthMonth"
-                      value={contact.birthMonth}
-                      onChange={(event) => update("birthMonth", event.target.value)}
-                      aria-invalid={fieldError?.field === "birthDay" || undefined}
-                      className={inputClass}
-                    >
-                      <option value="">{t("details.birthdayMonth")}</option>
-                      {birthMonthNames(props.locale).map((item) => (
-                        <option key={item.month} value={String(item.month)}>
-                          {item.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                {fieldError?.field === "birthDay" && (
-                  <p className="mt-1 font-semibold text-site-text">{fieldMessage("birthDay")}</p>
-                )}
-                <p id="b-birthday-hint" className="mt-1 text-sm text-site-muted">
-                  {t(props.birthdayOffer ? "details.birthdayHint" : "details.birthdayHintPlain")}
-                </p>
-              </fieldset>
-            }
             {props.giftCardsEnabled && (
               <div>
                 {!giftOpen && !gift ? (
@@ -885,34 +787,200 @@ export function BookingFlow(props: Props) {
                 )}
               </div>
             )}
-            <Field
-              name="beneficiaryName"
-              label={fieldLabels.beneficiaryName}
-              hint={t("details.beneficiaryHint")}
-              autoComplete="off"
-              value={contact.beneficiaryName}
-              onChange={(value) => update("beneficiaryName", value)}
-              error={fieldMessage("beneficiaryName")}
-            />
-            <div>
-              <label htmlFor="b-note" className="mb-2 block font-semibold text-site-text">
-                {t("details.note")}
-              </label>
-              <textarea
-                id="b-note"
-                name="note"
-                rows={2}
-                maxLength={500}
-                value={contact.note}
-                onChange={(event) => update("note", event.target.value)}
-                aria-invalid={fieldError?.field === "note" || undefined}
-                aria-describedby={fieldError?.field === "note" ? "b-note-error" : undefined}
-                className={inputClass}
-              />
-              {fieldError?.field === "note" && (
-                <p id="b-note-error" className="mt-1 font-semibold text-site-text">
-                  {fieldMessage("note")}
-                </p>
+            {/* Champs facultatifs : repliés derrière un lien, pour un formulaire court. */}
+            <div className="flex flex-col items-start gap-1">
+              {props.promoEnabled &&
+                (isOpen("promo", Boolean(promo) || Boolean(promoError)) ? (
+                  <div>
+                    <label htmlFor="b-promo" className="mb-2 block font-semibold text-site-text">
+                      {t("details.promo")}
+                    </label>
+                    {promo ? (
+                      <p className="flex flex-wrap items-center gap-3" role="status">
+                        <span>
+                          {t("details.promoApplied", {
+                            code: promo.code,
+                            amount: money(promo.discountCents, props.currency, props.locale),
+                          })}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPromo(null);
+                            setPromoCode("");
+                            if (gift) void applyGiftCard(undefined);
+                          }}
+                          className={linkClass}
+                        >
+                          {t("details.promoRemove")}
+                        </button>
+                      </p>
+                    ) : (
+                      <div className="flex gap-2">
+                        <input
+                          id="b-promo"
+                          value={promoCode}
+                          onChange={(event) => setPromoCode(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter") {
+                              event.preventDefault();
+                              void applyPromo();
+                            }
+                          }}
+                          maxLength={30}
+                          autoComplete="off"
+                          autoCapitalize="characters"
+                          aria-describedby={promoError ? "b-promo-error" : undefined}
+                          className={`${inputClass} min-w-0 flex-1 uppercase`}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => void applyPromo()}
+                          className="min-h-12 shrink-0 rounded-site border border-site-button px-4 font-semibold text-site-text"
+                        >
+                          {t("details.promoApply")}
+                        </button>
+                      </div>
+                    )}
+                    {promoError && (
+                      <p id="b-promo-error" role="alert" className="mt-1 font-semibold text-site-text">
+                        {siteError(promoError)}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    aria-expanded={false}
+                    onClick={() => openOptional("promo")}
+                    className={linkClass}
+                  >
+                    {t("details.more.promo")}
+                  </button>
+                ))}
+              {isOpen("birthday", Boolean(contact.birthDay || contact.birthMonth)) ? (
+                <>
+                  {
+                    <fieldset aria-describedby="b-birthday-hint">
+                      <legend className="mb-2 block font-semibold text-site-text">
+                        {t("details.birthday")}
+                      </legend>
+                      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-3">
+                        <div>
+                          <label htmlFor="b-birthDay" className="sr-only">
+                            {t("details.birthdayDay")}
+                          </label>
+                          <select
+                            id="b-birthDay"
+                            name="birthDay"
+                            value={contact.birthDay}
+                            onChange={(event) => update("birthDay", event.target.value)}
+                            aria-invalid={fieldError?.field === "birthDay" || undefined}
+                            className={`${inputClass} scroll-mt-28`}
+                          >
+                            <option value="">{t("details.birthdayDay")}</option>
+                            {Array.from({ length: 31 }, (_, i) => (
+                              <option key={i + 1} value={String(i + 1)}>
+                                {i + 1}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label htmlFor="b-birthMonth" className="sr-only">
+                            {t("details.birthdayMonth")}
+                          </label>
+                          <select
+                            id="b-birthMonth"
+                            name="birthMonth"
+                            value={contact.birthMonth}
+                            onChange={(event) => update("birthMonth", event.target.value)}
+                            aria-invalid={fieldError?.field === "birthDay" || undefined}
+                            className={inputClass}
+                          >
+                            <option value="">{t("details.birthdayMonth")}</option>
+                            {birthMonthNames(props.locale).map((item) => (
+                              <option key={item.month} value={String(item.month)}>
+                                {item.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      {fieldError?.field === "birthDay" && (
+                        <p className="mt-1 font-semibold text-site-text">{fieldMessage("birthDay")}</p>
+                      )}
+                      <p id="b-birthday-hint" className="mt-1 text-sm text-site-muted">
+                        {t(props.birthdayOffer ? "details.birthdayHint" : "details.birthdayHintPlain")}
+                      </p>
+                    </fieldset>
+                  }
+                </>
+              ) : (
+                <button
+                  type="button"
+                  aria-expanded={false}
+                  onClick={() => openOptional("birthday")}
+                  className={linkClass}
+                >
+                  {t("details.more.birthday")}
+                </button>
+              )}
+              {isOpen("beneficiary", Boolean(contact.beneficiaryName)) ? (
+                <>
+                  <Field
+                    name="beneficiaryName"
+                    label={fieldLabels.beneficiaryName}
+                    hint={t("details.beneficiaryHint")}
+                    autoComplete="off"
+                    value={contact.beneficiaryName}
+                    onChange={(value) => update("beneficiaryName", value)}
+                    error={fieldMessage("beneficiaryName")}
+                  />
+                </>
+              ) : (
+                <button
+                  type="button"
+                  aria-expanded={false}
+                  onClick={() => openOptional("beneficiary")}
+                  className={linkClass}
+                >
+                  {t("details.more.beneficiary")}
+                </button>
+              )}
+              {isOpen("note", Boolean(contact.note)) ? (
+                <>
+                  <div>
+                    <label htmlFor="b-note" className="mb-2 block font-semibold text-site-text">
+                      {t("details.note")}
+                    </label>
+                    <textarea
+                      id="b-note"
+                      name="note"
+                      rows={2}
+                      maxLength={500}
+                      value={contact.note}
+                      onChange={(event) => update("note", event.target.value)}
+                      aria-invalid={fieldError?.field === "note" || undefined}
+                      aria-describedby={fieldError?.field === "note" ? "b-note-error" : undefined}
+                      className={inputClass}
+                    />
+                    {fieldError?.field === "note" && (
+                      <p id="b-note-error" className="mt-1 font-semibold text-site-text">
+                        {fieldMessage("note")}
+                      </p>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  aria-expanded={false}
+                  onClick={() => openOptional("note")}
+                  className={linkClass}
+                >
+                  {t("details.more.note")}
+                </button>
               )}
             </div>
             <label className="flex items-start gap-3 text-site-text">

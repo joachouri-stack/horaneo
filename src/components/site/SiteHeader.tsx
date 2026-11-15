@@ -6,6 +6,7 @@ import { ctaLabelKey, siteCta } from "@/modules/site/cta";
 import { SITE_PATHS } from "@/modules/site/paths";
 import { CartLink } from "@/components/shop/CartLink";
 import { BookButton } from "./BookButton";
+import { HideOnPaths } from "./HideOnPaths";
 import { AccountLink, accountMenuLink, ProLink, proMenuLink } from "./AccountLink";
 import { MobileMenu } from "./MobileMenu";
 import { SiteImage } from "./SiteImage";
@@ -78,7 +79,16 @@ export async function SiteHeader({
           <ProLink />
           <AccountLink site={site} />
           {site.shopBusinessIds.length > 0 && <CartLink />}
-          {showBook && cta && <BookButton href={cta.href} label={t(ctaLabelKey(cta))} size="sm" />}
+          {/* Bouton « Réserver » masqué pendant la réservation (il ferait recommencer). */}
+          {showBook &&
+            cta &&
+            (cta.href.startsWith(SITE_PATHS.booking) ? (
+              <HideOnPaths prefixes={[SITE_PATHS.booking]}>
+                <BookButton href={cta.href} label={t(ctaLabelKey(cta))} size="sm" />
+              </HideOnPaths>
+            ) : (
+              <BookButton href={cta.href} label={t(ctaLabelKey(cta))} size="sm" />
+            ))}
           <MobileMenu links={[...links, ...(await accountMenuLink(site)), ...(await proMenuLink())]} />
         </div>
       </div>
