@@ -216,8 +216,20 @@ export default async function AppointmentPage({
         </div>
       )}
 
-      <section className={ui.card}>
-        <ActionForm action={updateNoteAction} submitLabel={tCommon("save")} variant="secondary">
+      {/* Note interne : repliée tant qu'elle est vide. */}
+      <details className={`${ui.card} group`} open={Boolean(item.internalNote)}>
+        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 font-semibold text-night [&::-webkit-details-marker]:hidden">
+          {t("appointment.internalNote")}
+          <span aria-hidden="true" className="text-ink-soft transition group-open:rotate-180">
+            ▾
+          </span>
+        </summary>
+        <ActionForm
+          action={updateNoteAction}
+          submitLabel={tCommon("save")}
+          variant="secondary"
+          className="mt-3 space-y-4"
+        >
           <Hidden values={hidden} />
           <TextArea
             name="internalNote"
@@ -226,11 +238,16 @@ export default async function AppointmentPage({
             rows={2}
           />
         </ActionForm>
-      </section>
+      </details>
 
       {messages.length > 0 && (
-        <section className={ui.card}>
-          <h2 className="text-sm font-semibold uppercase text-ink/70">{t("appointment.messages")}</h2>
+        <details className={`${ui.card} group`}>
+          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 font-semibold text-night [&::-webkit-details-marker]:hidden">
+            {t("appointment.messagesCount", { count: messages.length })}
+            <span aria-hidden="true" className="text-ink-soft transition group-open:rotate-180">
+              ▾
+            </span>
+          </summary>
           <ul className="mt-2 divide-y divide-navy/10">
             {messages.map((message) => (
               <li key={message.id} className="flex flex-wrap justify-between gap-x-3 py-2">
@@ -246,7 +263,7 @@ export default async function AppointmentPage({
               </li>
             ))}
           </ul>
-        </section>
+        </details>
       )}
 
       {item.status === "confirmed" && (
