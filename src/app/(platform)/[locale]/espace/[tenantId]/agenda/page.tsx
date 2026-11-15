@@ -393,7 +393,7 @@ export default async function AgendaPage({
         <div className={`flex ${options.wide ? "min-w-fit" : "w-full"}`}>
           {/* Heures. */}
           <div
-            className="sticky left-0 z-20 w-14 shrink-0 border-r border-hairline bg-white"
+            className="sticky left-0 z-20 w-12 shrink-0 border-r border-hairline bg-white sm:w-14"
             aria-hidden="true"
           >
             <div className="h-14 border-b border-hairline" />
@@ -587,7 +587,7 @@ export default async function AgendaPage({
     return {
       key: member.id,
       header: (
-        <span className="flex min-w-0 items-center gap-2">
+        <span className="flex w-full min-w-0 items-center gap-2 sm:w-auto">
           <span
             aria-hidden="true"
             className="flex size-8 shrink-0 items-center justify-center rounded-full text-[0.8125rem] font-semibold text-white"
@@ -600,7 +600,8 @@ export default async function AgendaPage({
               {member.name}
               {member.inactive && <span className="font-normal text-ink-soft"> ({t("inactiveStaff")})</span>}
             </span>
-            <span className="block text-[0.8125rem] text-ink-soft">
+            {/* Téléphone : colonnes étroites, seulement le nom. */}
+            <span className="block text-[0.8125rem] text-ink-soft max-sm:hidden">
               {t("dayCount", { count: memberAppointments.length })}
             </span>
           </span>
@@ -608,7 +609,7 @@ export default async function AgendaPage({
             <Link
               href={`${page.base}/rendez-vous/nouveau?date=${date}&membre=${member.id}`}
               aria-label={`${t("add")} · ${member.name}`}
-              className="ml-1 flex size-8 shrink-0 items-center justify-center rounded-lg text-ink-soft hover:bg-accent-soft hover:text-accent"
+              className="ml-auto flex size-8 shrink-0 items-center justify-center rounded-lg text-ink-soft hover:bg-accent-soft hover:text-accent sm:ml-1"
             >
               <DashIcon d={DASH_ICONS.plus} className="h-4 w-4" />
             </Link>
@@ -627,11 +628,14 @@ export default async function AgendaPage({
       {hoursOf(date).length === 0 && appointments.length === 0 && (
         <p className="rounded-2xl border border-hairline bg-white px-5 py-4 text-ink-soft">{t("closed")}</p>
       )}
-      {/* Téléphone : liste lisible (comme la semaine) ; frise horaire à partir de la tablette. */}
-      <div className="hidden sm:block">
+      {/*
+        Plusieurs membres : une colonne par membre, côte à côte, aussi sur téléphone
+        (au-delà de deux, la frise défile de côté). Un seul membre sur téléphone : liste lisible.
+      */}
+      <div className={columns.length > 1 ? "" : "hidden sm:block"}>
         {grid(columns, { nowColumn: date === today ? "*" : null, wide: columns.length > 2 })}
       </div>
-      <div className="space-y-2 sm:hidden">
+      <div className={columns.length > 1 ? "hidden" : "space-y-2 sm:hidden"}>
         {dayOffOf(date).map((off) => (
           <p key={off.id} className="rounded-xl bg-[#f1f2f5] px-4 py-2 text-sm text-ink-soft">
             {t(`timeOff.${off.kind}`)} · {off.staffName ?? ""} {off.reason ? `· ${off.reason}` : ""}
