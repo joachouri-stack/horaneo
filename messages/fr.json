@@ -56,8 +56,8 @@
     "cta": "Créer mon site",
     "hero": {
       "badge": "Site web + réservation en ligne",
-      "title": "Un site pro pour votre",
-      "titleAccent": "activité.",
+      "title": "Plus de clients,",
+      "titleAccent": "moins de gestion.",
       "titleWords": [
         "institut",
         "salon",
@@ -69,7 +69,8 @@
         "atelier",
         "boutique"
       ],
-      "subtitle": "Nous créons votre site à votre image. Vos clients réservent en ligne 24 h/24, et vous le modifiez vous-même en quelques clics.",
+      "subtitle": "Nous créons votre site professionnel, clé en main. Vos clients réservent seuls, et vous gérez tout depuis votre téléphone.",
+      "ctaTrial": "Essayer gratuitement",
       "offer": "Dès {price} {display} par mois",
       "offerTtc": "soit {price} TTC",
       "goLive": "{days, plural, =0 {} one {Site en ligne en # jour ouvré} other {Site en ligne en # jours ouvrés}}",

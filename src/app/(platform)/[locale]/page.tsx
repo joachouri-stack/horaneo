@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import type { PlanFeatures } from "@/db/schema";
 import { pickLocalized } from "@/i18n/locales";
 import { formatMoney } from "@/lib/format";
-import { ttcHintCents } from "@/modules/billing/vat";
 import Image from "next/image";
 import { connection } from "next/server";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -53,7 +52,6 @@ import { AllFeatures } from "@/components/marketing/AllFeatures";
 import { TestimonialCard } from "@/components/marketing/TestimonialCard";
 import { PlanCards } from "@/components/marketing/PlanCards";
 import { RevealOnScroll } from "@/components/marketing/RevealOnScroll";
-import { RotatingWord } from "@/components/marketing/RotatingWord";
 import { TargetsMarquee } from "@/components/marketing/TargetsMarquee";
 import { BillingToggle, SolutionScope, SolutionTabs } from "@/components/marketing/SolutionScope";
 import { SolutionVisual } from "@/components/marketing/SolutionVisual";
@@ -228,8 +226,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
   const soonShown = shown.filter(isSoon);
   // Premier pack de la grille (le moins cher) : bouton « Créer mon site » et question de la FAQ.
   const first = [...data.plans].sort((a, b) => a.priceCents - b.priceCents)[0];
-  // Prix d'entrée TTC, en petit à côté du prix HT (seulement si les prix sont affichés HT avec TVA).
-  const firstTtcCents = first ? ttcHintCents(first.priceCents, data.display, data.vatPercent) : null;
   const contact = config.SUPPORT_EMAIL ?? `support@${config.MAIN_DOMAIN}`;
   const startHref = { pathname: "/commander" as const, query: first ? { pack: first.code } : {} };
   // Nom du premier pack qui inclut une fonction (« Dès le pack … ») ; « none » si le premier
@@ -368,43 +364,29 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   </span>
                   <span className="truncate">{t("hero.badge")}</span>
                 </p>
-                {/* Sur téléphone, le titre suit la largeur de l'écran : une phrase par ligne. */}
+                {/* Promesse en deux lignes courtes, aussi sur téléphone : le résultat, puis le bénéfice. */}
                 <h1
-                  className={`${TITLE} hn-up-2 mt-5 text-[clamp(2rem,10.5vw,2.75rem)] leading-[1.06] !text-white [--color-accent:#6f8dff] [--color-accent-strong:#8fb0ff] [--color-coral:#b08cff] sm:text-mk-h1 sm:leading-[1.04]`}
+                  className={`${TITLE} hn-up-2 mt-5 text-[clamp(2rem,9vw,2.75rem)] leading-[1.06] !text-white [--color-accent:#6f8dff] [--color-accent-strong:#8fb0ff] [--color-coral:#b08cff] sm:text-mk-h1 sm:leading-[1.04]`}
                 >
-                  {/* La fin du titre change toute seule (institut, salon…) ; titre complet pour les lecteurs d'écran. */}
-                  <span aria-hidden="true" className="hn-balance block">
-                    {t("hero.title")}
-                  </span>
-                  <RotatingWord words={t.raw("hero.titleWords") as string[]} />
-                  <span className="sr-only">
-                    {t("hero.title")} {t("hero.titleAccent")}
-                  </span>
+                  <span className="block">{t("hero.title")}</span>
+                  <span className="hn-grad-text block">{t("hero.titleAccent")}</span>
                 </h1>
                 <p className="hn-up-3 mt-4 max-w-[34rem] text-mk-lead leading-normal text-white/70 sm:mt-5 sm:leading-relaxed">
                   {t("hero.subtitle")}
                 </p>
                 <div className="hn-up-4 mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:items-center">
                   <Link href={startHref} className={`${HERO_PRIMARY} justify-center`}>
-                    {t("cta")}
+                    {data.trialDays > 0 ? t("hero.ctaTrial") : t("cta")}
                     <ArrowLine className="size-[18px] transition-transform group-hover:translate-x-0.5" />
                   </Link>
-                  {/* Sur téléphone, une seule ligne sous le bouton : prix d'entrée (réglages) et lien vers les tarifs. */}
+                  {/* Sur téléphone, un simple lien sous le bouton, vers les tarifs. */}
                   {first && (
                     <a
                       href="#tarifs"
-                      className="-mt-1 flex min-h-11 items-center justify-center gap-2 text-mk-small sm:hidden"
+                      className={`-mt-1 flex min-h-11 items-center justify-center gap-1 text-mk-small font-medium sm:hidden ${ON_DARK_ACCENT}`}
                     >
-                      <span className="font-medium text-white">
-                        {t("hero.offer", { price: faqValues.price, display: data.display })}
-                      </span>
-                      <span aria-hidden="true" className="text-white/50">
-                        ·
-                      </span>
-                      <span className={`inline-flex items-center gap-1 font-medium ${ON_DARK_ACCENT}`}>
-                        {t("hero.pricing")}
-                        <ArrowLine className="size-4" />
-                      </span>
+                      {t("hero.pricing")}
+                      <ArrowLine className="size-4" />
                     </a>
                   )}
                   {/* La démonstration n'apparaît que si une adresse est réglée dans l'admin.
@@ -429,32 +411,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     </a>
                   )}
                 </div>
-                {/* Essai gratuit (réglage) : le premier argument, juste sous les boutons. */}
-                {data.trialDays > 0 && (
-                  <p className="hn-up-4 mt-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.08] px-3.5 py-1.5 text-mk-small font-medium text-white">
-                    <GiftLine className="size-4 text-champagne" />
-                    {t("plans.trial", { days: data.trialDays })}
-                  </p>
-                )}
-                {/* Prix d'entrée et délai de mise en ligne, tirés des réglages. */}
-                {first && (
-                  <p className="hn-up-4 mt-4 hidden flex-wrap items-center gap-x-2 gap-y-1 text-mk-small text-white/60 sm:flex">
-                    <span className="font-medium text-white">
-                      {t("hero.offer", { price: faqValues.price, display: data.display })}
-                    </span>
-                    {firstTtcCents !== null && (
-                      <span>
-                        ({t("hero.offerTtc", { price: formatMoney(firstTtcCents, first.currency, locale) })})
-                      </span>
-                    )}
-                    {data.goLiveDays > 0 && (
-                      <>
-                        <span aria-hidden="true">·</span>
-                        <span>{t("hero.goLive", { days: data.goLiveDays })}</span>
-                      </>
-                    )}
-                  </p>
-                )}
                 <ul className="hn-up-4 mt-6 flex flex-col gap-3 text-mk-body text-white/85 sm:mt-8">
                   {(t.raw("hero.points") as string[]).map((point) => (
                     <li key={point} className="flex items-center gap-3">
