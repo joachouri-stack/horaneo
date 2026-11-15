@@ -1701,7 +1701,7 @@
       "steps": {
         "coordonnees": "Coordonnées",
         "modele": "Métier et modèle",
-        "logo": "Logo et couleurs",
+        "logo": "Logo, textes et photos",
         "prestations": "Prestations",
         "horaires": "Horaires",
         "apercu": "Aperçu du site",
@@ -1715,7 +1715,7 @@
         "coordonnees": "Coordonnées",
         "entreprises": "Entreprises",
         "modele": "Modèle",
-        "logo": "Logo et couleurs",
+        "logo": "Mon site",
         "prestations": "Prestations",
         "equipe": "Équipe",
         "horaires": "Horaires",
@@ -1862,7 +1862,10 @@
         "preview": "Aperçu",
         "previewButton": "Réserver",
         "contrastWarning": "Attention : le texte sera peu lisible sur cette couleur.",
-        "file": "Fichier du logo"
+        "file": "Fichier du logo",
+        "suggestedTitle": "Couleurs proposées d'après le logo",
+        "suggestApply": "Appliquer ces couleurs",
+        "custom": "Couleurs personnalisées (code couleur)"
       },
       "services": {
         "title": "Prestations",
@@ -2128,6 +2131,14 @@
         "todo": "À compléter",
         "allSet": "Tout est prêt : vous pouvez mettre le site en ligne.",
         "notYet": "Vous pouvez déjà mettre le site en ligne, mais pensez à compléter les points marqués « ! »."
+      },
+      "siteEditor": {
+        "team": "Équipe",
+        "teamSummary": "Les membres présentés sur le site",
+        "pages": "Textes avancés et référencement",
+        "pagesSummary": "Toutes les pages, titres Google, publication",
+        "photos": "Toutes les photos",
+        "photosSummary": "Photos de l'équipe, des prestations et autres emplacements"
       }
     },
     "requests": {
