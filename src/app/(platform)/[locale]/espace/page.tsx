@@ -71,22 +71,22 @@ export default async function AccountPage({ params }: PageProps<"/[locale]/espac
             )}
           </section>
         ) : managed.length === 0 ? (
-          // Connectée avec une adresse sans espace (ancien compte, autre adresse) : on le dit, et on
-          // propose de changer de compte avant de proposer un pack.
+          // Adresse sans établissement : le plus souvent une nouvelle visiteuse (créer son site), parfois
+          // une gérante connectée avec une autre adresse que celle de son espace (changer d'adresse).
           <section className={ui.card}>
             <h2 className="text-xl font-semibold">{t("noTenantTitle")}</h2>
             <p className="mt-2">{t("noTenantBody", { email: user.email })}</p>
-            <SignOutButton
-              to="/connexion"
-              label={t("noTenantSwitch")}
-              className={`mt-6 ${ui.primaryButton} sm:w-auto`}
-            />
-            <p className="mt-6 text-ink/70">
-              {t("noTenantNew")}{" "}
-              <Link href={{ pathname: "/", hash: "tarifs" }} className="font-semibold text-night underline">
-                {t("noTenantCta")}
-              </Link>
-            </p>
+            <Link href={{ pathname: "/", hash: "tarifs" }} className={`mt-6 ${ui.primaryButton} sm:w-auto`}>
+              {t("noTenantCta")}
+            </Link>
+            <div className="mt-6 border-t border-hairline pt-5">
+              <p className="text-ink/70">{t("noTenantExisting")}</p>
+              <SignOutButton
+                to="/connexion"
+                label={t("noTenantSwitch")}
+                className={`mt-3 ${ui.secondaryButton} sm:w-auto`}
+              />
+            </div>
           </section>
         ) : (
           <section className={ui.card}>
