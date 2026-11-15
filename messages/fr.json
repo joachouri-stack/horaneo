@@ -2954,6 +2954,16 @@
       "previous": "Précédent",
       "next": "Suivant",
       "allStaff": "Toute l'équipe",
+      "addAt": "Nouveau rendez-vous à {time}",
+      "notWorking": "Ne travaille pas",
+      "memberShown": "agenda affiché",
+      "memberHidden": "agenda masqué",
+      "icons": {
+        "attended": "Client venu",
+        "pending": "Paiement de l'acompte en attente",
+        "deposit": "Acompte payé",
+        "online": "Réservé en ligne"
+      },
       "inactiveStaff": "désactivé",
       "empty": "Aucun rendez-vous.",
       "closed": "Fermé",

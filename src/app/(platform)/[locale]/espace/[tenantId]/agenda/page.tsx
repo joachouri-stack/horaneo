@@ -6,7 +6,7 @@ import { agendaMembersCookie } from "@/lib/manager/agenda-members";
 import { eq } from "drizzle-orm";
 import { DASH_ICONS, DashIcon } from "@/components/manager/DashboardWidgets";
 import { DayTimeline, initials } from "@/components/manager/DayTimeline";
-import { openingHours, staffMembers } from "@/db/schema";
+import { openingHours, staffMembers, staffSchedules } from "@/db/schema";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
 import { agendaStaffFilter } from "@/modules/team/access";
@@ -45,7 +45,15 @@ type GridColumn = {
   timeOff: { id: string; kind: string; from: number; to: number }[];
   /** Plages fermées (minutes depuis minuit), grisées. */
   closed: { from: number; to: number }[];
+  /** Créneaux vides cliquables : nouveau rendez-vous ce jour-là (et pour ce membre). */
+  slot?: { date: string; staffId: string | null };
 };
+
+/** Coche (client venu). */
+const CHECK_ICON = "M5 12l5 5L20 7";
+
+/** Pas des créneaux cliquables de la frise (minutes). */
+const SLOT_MINUTES = 30;
 
 /**
  * Agenda : vue jour (une colonne par membre), semaine (sept colonnes sur
@@ -98,6 +106,7 @@ export default async function AgendaPage({
     timeOffList: loadedTimeOff,
     staff,
     hours,
+    schedules,
     colors,
   } = await page.db(async (tx) => ({
     appointments: await listAgenda(tx, page.tenantId, {
@@ -109,6 +118,8 @@ export default async function AgendaPage({
     timeOffList: await listTimeOff(tx, page.tenantId, range.start, range.end, memberFilter),
     staff: (await loadBookingContext(tx, page.tenantId)).staff,
     hours: await tx.select().from(openingHours).where(eq(openingHours.tenantId, page.tenantId)),
+    // Horaires de travail de chaque membre (en-têtes et plages grisées de la vue Jour).
+    schedules: await tx.select().from(staffSchedules).where(eq(staffSchedules.tenantId, page.tenantId)),
     // Couleur de chaque membre (en-têtes de colonnes et filtres).
     colors: new Map(
       (
@@ -232,8 +243,8 @@ export default async function AgendaPage({
           <RememberAgendaMembers tenantId={page.tenantId} value={membersParam} />
           <Link
             href={link({ membres: ALL_MEMBERS })}
-            aria-pressed={!selected}
-            className="flex min-h-10 shrink-0 items-center rounded-full border border-hairline bg-white px-4 text-[0.9375rem] font-medium text-night aria-pressed:border-night aria-pressed:bg-night aria-pressed:text-white"
+            aria-current={!selected ? "true" : undefined}
+            className="flex min-h-10 shrink-0 items-center rounded-full border border-hairline bg-white px-4 text-[0.9375rem] font-medium text-night aria-[current=true]:border-night aria-[current=true]:bg-night aria-[current=true]:text-white"
           >
             {t("allStaff")}
           </Link>
@@ -256,6 +267,8 @@ export default async function AgendaPage({
                   {initials(member.name)}
                 </span>
                 {member.name}
+                {/* État annoncé aux lecteurs d'écran (affiché ou masqué). */}
+                <span className="sr-only"> · {shown ? t("memberShown") : t("memberHidden")}</span>
               </>
             );
             const chipClass = `flex min-h-10 shrink-0 items-center gap-2 rounded-full border py-1 pl-1.5 pr-4 text-[0.9375rem] font-medium ${
@@ -264,7 +277,7 @@ export default async function AgendaPage({
                 : "border-hairline bg-white/60 text-ink/70 line-through"
             }`;
             return href ? (
-              <Link key={member.id} href={href} aria-pressed={shown} className={chipClass}>
+              <Link key={member.id} href={href} className={chipClass}>
                 {chip}
               </Link>
             ) : (
@@ -416,11 +429,9 @@ export default async function AgendaPage({
   const height = (lastHour - firstHour) * HOUR_HEIGHT;
   const nowMinute = minutesOf(now);
 
-  /** Plages hors horaires d'ouverture d'un jour (grisées), en minutes. */
-  const closedOf = (day: string) => {
-    const open = hoursOf(day)
-      .map((range) => ({ from: timeToMinutes(range.opensAt), to: timeToMinutes(range.closesAt) }))
-      .sort((a, b) => a.from - b.from);
+  /** Plages de la frise en dehors de ces plages ouvertes, en minutes. */
+  const gapsOutside = (ranges: { from: number; to: number }[]) => {
+    const open = [...ranges].sort((a, b) => a.from - b.from);
     if (open.length === 0) return [{ from: firstHour * 60, to: lastHour * 60 }];
     const gaps: { from: number; to: number }[] = [];
     let cursor = firstHour * 60;
@@ -431,6 +442,34 @@ export default async function AgendaPage({
     if (cursor < lastHour * 60) gaps.push({ from: cursor, to: lastHour * 60 });
     return gaps;
   };
+  /** Plages hors horaires d'ouverture d'un jour (grisées), en minutes. */
+  const closedOf = (day: string) =>
+    gapsOutside(
+      hoursOf(day).map((range) => ({
+        from: timeToMinutes(range.opensAt),
+        to: timeToMinutes(range.closesAt),
+      })),
+    );
+  /**
+   * Horaires de travail d'un membre ce jour-là (minutes), ou null s'il n'a aucun horaire
+   * enregistré (rien n'est alors grisé ni affiché pour lui).
+   */
+  const workOf = (memberId: string, day: string) => {
+    const own = schedules.filter((row) => row.staffId === memberId);
+    if (own.length === 0) return null;
+    return own
+      .filter(
+        (row) =>
+          row.weekday === isoWeekday(day) &&
+          (!row.validFrom || row.validFrom <= day) &&
+          (!row.validUntil || day <= row.validUntil),
+      )
+      .map((row) => ({ from: timeToMinutes(row.startsAt), to: timeToMinutes(row.endsAt) }))
+      .sort((a, b) => a.from - b.from);
+  };
+  /** Heure courte des en-têtes (colonnes étroites sur téléphone) : « 10h », « 10h30 ». */
+  const clock = (minutes: number) =>
+    `${Math.floor(minutes / 60)}h${minutes % 60 ? String(minutes % 60).padStart(2, "0") : ""}`;
   const timeOffOf = (day: string, memberId: string | null) => {
     const { start: dayStart, end: dayEnd } = dayRange(day, tz);
     return dayOffOf(day)
@@ -442,6 +481,27 @@ export default async function AgendaPage({
         to: off.endsAt >= dayEnd ? lastHour * 60 : minutesOf(off.endsAt),
       }));
   };
+
+  /** Petites icônes d'état : acompte payé, client venu, paiement en attente, réservé en ligne. */
+  const stateIcons = (item: AgendaAppointment) =>
+    [
+      item.status === "attended" && { key: "attended", d: CHECK_ICON, className: "text-success" },
+      item.status === "pending_payment" && {
+        key: "pending",
+        d: DASH_ICONS.clock,
+        className: "text-[#a15c00]",
+      },
+      item.depositCents > 0 &&
+        (item.status === "confirmed" || item.status === "attended") && {
+          key: "deposit",
+          d: DASH_ICONS.euro,
+          className: "text-success",
+        },
+      item.source === "online" && { key: "online", d: DASH_ICONS.globe, className: "text-ink-soft" },
+    ].filter(
+      (icon): icon is { key: "attended" | "pending" | "deposit" | "online"; d: string; className: string } =>
+        Boolean(icon),
+    );
 
   const grid = (columns: GridColumn[], options: { nowColumn: string | null; wide: boolean }) => (
     <div className="overflow-hidden rounded-[1.4rem] border border-hairline bg-white">
@@ -490,10 +550,40 @@ export default async function AgendaPage({
                       />
                     </div>
                   ))}
+                  {/*
+                    Créneau vide : un clic ouvre un nouveau rendez-vous déjà rempli (jour, heure,
+                    membre). Hors du parcours au clavier : le bouton « + » de la colonne suffit.
+                  */}
+                  {column.slot &&
+                    Array.from({ length: ((lastHour - firstHour) * 60) / SLOT_MINUTES }, (_, index) => {
+                      const from = firstHour * 60 + index * SLOT_MINUTES;
+                      const to = from + SLOT_MINUTES;
+                      const blocked = [...column.closed, ...column.timeOff].some(
+                        (gap) => gap.from < to && gap.to > from,
+                      );
+                      if (blocked) return null;
+                      const time = `${String(Math.floor(from / 60)).padStart(2, "0")}:${String(from % 60).padStart(2, "0")}`;
+                      const search = new URLSearchParams({ date: column.slot!.date, heure: time });
+                      if (column.slot!.staffId) search.set("membre", column.slot!.staffId);
+                      return (
+                        <Link
+                          key={time}
+                          href={`${page.base}/rendez-vous/nouveau?${search.toString()}`}
+                          tabIndex={-1}
+                          aria-label={t("addAt", { time })}
+                          className="group absolute inset-x-0 flex items-start px-2 pt-0.5 text-[0.75rem] font-medium text-accent hover:bg-accent-soft/60"
+                          style={{ top: top(from), height: top(to) - top(from) }}
+                        >
+                          <span aria-hidden="true" className="opacity-0 group-hover:opacity-100">
+                            + {time}
+                          </span>
+                        </Link>
+                      );
+                    })}
                   {/* Hors horaires d'ouverture : grisé. */}
-                  {column.closed.map((gap) => (
+                  {column.closed.map((gap, index) => (
                     <div
-                      key={`${gap.from}-${gap.to}`}
+                      key={`${index}-${gap.from}-${gap.to}`}
                       aria-hidden="true"
                       className="absolute inset-x-0 bg-[repeating-linear-gradient(45deg,#fafbfd,#fafbfd_6px,#f3f5f9_6px,#f3f5f9_12px)]"
                       style={{ top: top(gap.from), height: top(gap.to) - top(gap.from) }}
@@ -532,9 +622,15 @@ export default async function AgendaPage({
                         <span className="flex items-center gap-1 text-[0.8125rem] text-ink-soft tabular-nums">
                           {page.fmt.time(item.startsAt)}
                           {place.lanes === 1 && <> – {page.fmt.time(item.endsAt)}</>}
-                          {item.source === "online" && place.lanes === 1 && (
-                            <DashIcon d={DASH_ICONS.globe} className="ml-auto h-3 w-3 shrink-0" />
-                          )}
+                          {/* État du rendez-vous en un coup d'œil (lu aussi par les lecteurs d'écran). */}
+                          <span className="ml-auto flex shrink-0 items-center gap-0.5">
+                            {stateIcons(item).map((icon) => (
+                              <span key={icon.key} title={t(`icons.${icon.key}`)} className={icon.className}>
+                                <DashIcon d={icon.d} className="h-3.5 w-3.5" />
+                                <span className="sr-only">{t(`icons.${icon.key}`)}</span>
+                              </span>
+                            ))}
+                          </span>
                         </span>
                         <span className="block truncate font-medium text-night">{item.customerName}</span>
                         {!compact && (
@@ -590,18 +686,24 @@ export default async function AgendaPage({
       appointments: onDay(day),
       timeOff: timeOffOf(day, memberFilter),
       closed: closedOf(day),
+      // Un seul membre affiché : le nouveau rendez-vous est pour lui.
+      slot: { date: day, staffId: ownStaff ?? (selected?.size === 1 ? [...selected][0] : null) },
     }));
     return (
       <div className="space-y-5">
         {header}
         <div className="hidden lg:block">{grid(columns, { nowColumn: today, wide: false })}</div>
-        <div className="space-y-5 lg:hidden">
+        <div className="space-y-3 lg:hidden">
           {visibleDays.map((day) => {
             const dayAppointments = onDay(day);
             const dayOff = dayOffOf(day);
             const label = page.fmt.day(instant(day));
             return (
-              <section key={day} aria-label={label} className="space-y-2">
+              <section
+                key={day}
+                aria-label={label}
+                className="space-y-2 border-b border-hairline pb-2 last:border-b-0"
+              >
                 <h2 className="flex items-baseline justify-between gap-2">
                   <Link
                     href={link({ date: day, vue: "jour" })}
@@ -609,8 +711,11 @@ export default async function AgendaPage({
                   >
                     {label}
                   </Link>
+                  {/* Jour vide : une seule ligne (« Fermé » ou « aucun rendez-vous »). */}
                   <span className="text-sm text-ink-soft">
-                    {t("dayCount", { count: dayAppointments.length })}
+                    {dayAppointments.length === 0 && hoursOf(day).length === 0
+                      ? t("closed")
+                      : t("dayCount", { count: dayAppointments.length })}
                   </span>
                 </h2>
                 {dayOff.map((off) => (
@@ -618,9 +723,7 @@ export default async function AgendaPage({
                     {t(`timeOff.${off.kind}`)} · {off.staffName ?? ""} {off.reason ? `· ${off.reason}` : ""}
                   </p>
                 ))}
-                {dayAppointments.length === 0 && dayOff.length === 0 ? (
-                  <p className="text-sm text-ink-soft">{t("empty")}</p>
-                ) : (
+                {dayAppointments.length > 0 && (
                   <DayTimeline
                     items={dayAppointments}
                     tenantId={page.tenantId}
@@ -640,6 +743,14 @@ export default async function AgendaPage({
   // ─── Jour : frise horaire, une colonne par membre ──────────────────────────
   const columns: GridColumn[] = members.map((member) => {
     const memberAppointments = appointments.filter((item) => item.staffId === member.id);
+    // Horaires du membre ce jour-là : sous son prénom, et grisés en dehors.
+    const work = member.inactive ? null : workOf(member.id, date);
+    const workLabel =
+      work === null
+        ? null
+        : work.length === 0
+          ? t("notWorking")
+          : work.map((range) => `${clock(range.from)}–${clock(range.to)}`).join(", ");
     return {
       key: member.id,
       header: (
@@ -656,9 +767,13 @@ export default async function AgendaPage({
               {member.name}
               {member.inactive && <span className="font-normal text-ink-soft"> ({t("inactiveStaff")})</span>}
             </span>
-            {/* Téléphone : colonnes étroites, seulement le nom. */}
-            <span className="block text-[0.8125rem] text-ink-soft max-sm:hidden">
-              {t("dayCount", { count: memberAppointments.length })}
+            {/* Horaires du jour ; le nombre de rendez-vous à partir de la tablette. */}
+            <span className="block truncate text-[0.8125rem] text-ink-soft">
+              {workLabel}
+              <span className="max-sm:hidden">
+                {workLabel && " · "}
+                {t("dayCount", { count: memberAppointments.length })}
+              </span>
             </span>
           </span>
           {!member.inactive && (
@@ -674,7 +789,8 @@ export default async function AgendaPage({
       ),
       appointments: memberAppointments,
       timeOff: timeOffOf(date, member.id),
-      closed: closedOf(date),
+      closed: work === null ? closedOf(date) : [...closedOf(date), ...gapsOutside(work)],
+      slot: member.inactive ? undefined : { date, staffId: member.id },
     };
   });
 
