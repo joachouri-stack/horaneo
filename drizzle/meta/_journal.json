@@ -484,6 +484,13 @@
       "when": 1794758058708,
       "tag": "0068_business_price_46_ht",
       "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1794760440194,
+      "tag": "0069_business_performance_insights",
+      "breakpoints": true
     }
   ]
 }

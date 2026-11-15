@@ -54,14 +54,15 @@ export default async function StatsPage({
       ? requested
       : current;
   const detailed = Boolean(page.tenant.features.stats);
+  // Remplissage, chiffre d'affaires et marge par prestation / produit : fonction de pack à part (Business).
+  const insights = detailed && Boolean(page.tenant.features.performanceInsights);
   const { stats, previous, details, goals, sales, occupancy } = await page.db(async (tx) => ({
     stats: await monthStats(tx, page.tenantId, period, tz, page.locale),
     previous: await monthStats(tx, page.tenantId, shift(period, -1), tz, page.locale),
     details: await monthDetails(tx, page.tenantId, period, tz),
     goals: await getStatsGoals(tx, page.tenantId),
-    // Chiffre d'affaires par prestation / produit, marges et remplissage : statistiques détaillées.
-    sales: detailed ? await monthSales(tx, page.tenantId, period, tz, page.locale) : null,
-    occupancy: detailed ? await monthOccupancy(tx, page.tenantId, period, tz) : null,
+    sales: insights ? await monthSales(tx, page.tenantId, period, tz, page.locale) : null,
+    occupancy: insights ? await monthOccupancy(tx, page.tenantId, period, tz) : null,
   }));
   const label = new Intl.DateTimeFormat(page.locale, {
     month: "long",
@@ -565,6 +566,19 @@ export default async function StatsPage({
               />
             </section>
           </div>
+
+          {/* Sans la fonction « remplissage et rentabilité » : une ligne pour la faire connaître. */}
+          {!insights && (
+            <section className={`${panel} bg-gradient-to-br from-white to-accent-soft/60`}>
+              <h2 className="font-display text-[1.2rem] font-semibold text-night">{t("insightsTitle")}</h2>
+              <p className="mt-2 text-ink-soft">
+                {t("insightsUpgrade", {
+                  plan:
+                    (await page.db((tx) => firstPlanWith(tx, "performanceInsights", page.locale))) ?? "none",
+                })}
+              </p>
+            </section>
+          )}
 
           {/* Taux de remplissage : temps réservé / temps de travail prévu. */}
           {occupancy && (
