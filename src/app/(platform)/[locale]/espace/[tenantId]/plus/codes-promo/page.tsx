@@ -124,14 +124,27 @@ export default async function PromoCodesPage({
             <ul className="space-y-3">
               {codes.map((code) => (
                 <li key={code.id}>
-                  <details className={ui.card}>
-                    <summary className="cursor-pointer">
-                      <span
-                        className={`block text-lg font-semibold ${code.isActive ? "text-night" : "text-ink/70"}`}
-                      >
-                        {code.code}
+                  <details className={`${ui.card} group`}>
+                    {/* Sans le triangle du navigateur : une flèche à droite, comme ailleurs. */}
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+                      <span>
+                        <span
+                          className={`block text-lg font-semibold ${code.isActive ? "text-night" : "text-ink/70"}`}
+                        >
+                          {code.code}
+                        </span>
+                        <span className="block text-sm text-ink/70">{summary(code)}</span>
                       </span>
-                      <span className="block text-sm text-ink/70">{summary(code)}</span>
+                      <svg
+                        aria-hidden="true"
+                        viewBox="0 0 24 24"
+                        className="size-5 shrink-0 text-ink/60 transition group-open:rotate-180"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path d="M6 9l6 6 6-6" />
+                      </svg>
                     </summary>
                     <ActionForm
                       action={savePromoCodeAction}

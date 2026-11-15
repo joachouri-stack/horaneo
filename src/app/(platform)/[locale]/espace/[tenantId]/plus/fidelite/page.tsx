@@ -4,6 +4,7 @@ import { CheckboxField, Hidden, Section, TextField } from "@/components/admin/fi
 import { ui } from "@/components/ui/styles";
 import { centsToInput } from "@/lib/format";
 import { managerPage } from "@/lib/manager/page";
+import { Link } from "@/i18n/navigation";
 import { firstPlanWith } from "@/modules/billing/plans";
 import { loyaltyConfig } from "@/modules/loyalty/loyalty";
 import { birthdayOfferConfig } from "@/modules/promo/birthday";
@@ -77,7 +78,12 @@ export default async function LoyaltyPage({
           </Section>
         </>
       ) : (
-        <p className={ui.card}>{t("unavailable", { plan: await planWith("loyalty") })}</p>
+        <p className={ui.card}>
+          {t("unavailable", { plan: await planWith("loyalty") })}{" "}
+          <Link href={`${page.base}/plus/abonnement`} className="font-semibold text-accent underline">
+            {t("seePlans")}
+          </Link>
+        </p>
       )}
 
       {birthday.included ? (
@@ -119,7 +125,12 @@ export default async function LoyaltyPage({
           </ActionForm>
         </Section>
       ) : (
-        <p className={ui.card}>{t("birthday.unavailable", { plan: await planWith("promoCodes") })}</p>
+        <p className={ui.card}>
+          {t("birthday.unavailable", { plan: await planWith("promoCodes") })}{" "}
+          <Link href={`${page.base}/plus/abonnement`} className="font-semibold text-accent underline">
+            {t("seePlans")}
+          </Link>
+        </p>
       )}
     </div>
   );
