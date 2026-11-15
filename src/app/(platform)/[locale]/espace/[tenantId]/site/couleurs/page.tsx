@@ -4,7 +4,9 @@ import { Hidden } from "@/components/admin/fields";
 import { SharedContentNotice } from "@/components/manager/SharedContentNotice";
 import { ui } from "@/components/ui/styles";
 import { BRAND_PALETTES, type BrandPaletteKey } from "@/config/site";
-import { readableTextOn } from "@/lib/colors";
+import { eq } from "drizzle-orm";
+import { tenants } from "@/db/schema";
+import { buildTheme } from "@/modules/site/theme";
 import { managerPage } from "@/lib/manager/page";
 import { savePaletteAction } from "../../actions";
 
@@ -28,15 +30,22 @@ export default async function ManagerColorsPage({
     BRAND_PALETTES[key].primary === colors?.primary?.toLowerCase() &&
     BRAND_PALETTES[key].secondary === colors?.secondary?.toLowerCase();
   const selected = keys.find((key) => sameAs(key, current));
-  const sample = (primary: string) => (
-    <span
-      aria-hidden="true"
-      className="rounded-lg px-2.5 py-1 text-sm font-semibold"
-      style={{ background: primary, color: readableTextOn(primary) }}
-    >
-      {t("sample")}
-    </span>
+  // Ambiance du site : l'aperçu montre le bouton exactement comme sur le site (contraste corrigé).
+  const [{ theme }] = await page.db((tx) =>
+    tx.select({ theme: tenants.theme }).from(tenants).where(eq(tenants.id, page.tenantId)),
   );
+  const sample = (primary: string, secondary: string) => {
+    const { button, onButton } = buildTheme(theme, { primary, secondary }).colors;
+    return (
+      <span
+        aria-hidden="true"
+        className="rounded-lg px-2.5 py-1 text-sm font-semibold"
+        style={{ background: button, color: onButton }}
+      >
+        {t("sample")}
+      </span>
+    );
+  };
   const swatch = (primary: string, secondary: string) => (
     <span aria-hidden="true" className="flex flex-none items-center gap-1.5">
       <span className="size-8 rounded-full border border-black/10" style={{ background: primary }} />
@@ -69,7 +78,7 @@ export default async function ManagerColorsPage({
                   />
                   {swatch(original.primary, original.secondary)}
                   <span className="min-w-0 flex-1 font-medium text-night">{t("original")}</span>
-                  {sample(original.primary)}
+                  {sample(original.primary, original.secondary)}
                 </label>
               )}
               {keys.map((key) => {
@@ -86,7 +95,7 @@ export default async function ManagerColorsPage({
                     />
                     {swatch(primary, secondary)}
                     <span className="min-w-0 flex-1 font-medium text-night">{t(`palettes.${key}`)}</span>
-                    {sample(primary)}
+                    {sample(primary, secondary)}
                   </label>
                 );
               })}

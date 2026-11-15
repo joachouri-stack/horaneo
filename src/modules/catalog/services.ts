@@ -5,6 +5,7 @@ import { assets, serviceCategories, services, staffServices, tenants } from "@/d
 import { setLocalized } from "@/modules/content/localized";
 import { slugify } from "@/modules/tenants/slug";
 import { CATEGORY_ICONS } from "./icons";
+import { reorderedPositions } from "@/modules/ordering";
 import { AppError } from "@/modules/errors";
 import { assertQuota } from "@/modules/quotas";
 
@@ -272,4 +273,39 @@ export async function deleteService(tx: Transaction, tenantId: string, serviceId
     await tx.update(services).set({ isActive: false }).where(eq(services.id, serviceId));
     return { deleted: false };
   }
+}
+
+/** Change la place d'une catégorie dans la liste (« monter » ou « descendre »). */
+export async function moveCategory(
+  tx: Transaction,
+  tenantId: string,
+  categoryId: string,
+  direction: "up" | "down",
+) {
+  const updates = reorderedPositions(await listCategories(tx, tenantId), categoryId, direction);
+  if (!updates) throw new AppError("not_found");
+  for (const update of updates)
+    await tx
+      .update(serviceCategories)
+      .set({ sortOrder: update.sortOrder })
+      .where(and(eq(serviceCategories.tenantId, tenantId), eq(serviceCategories.id, update.id)));
+}
+
+/** Change la place d'une prestation parmi celles de sa catégorie (« monter » ou « descendre »). */
+export async function moveService(
+  tx: Transaction,
+  tenantId: string,
+  serviceId: string,
+  direction: "up" | "down",
+) {
+  const all = await listServices(tx, tenantId);
+  const current = all.find((item) => item.id === serviceId);
+  if (!current) throw new AppError("not_found");
+  const sameCategory = all.filter((item) => item.categoryId === current.categoryId);
+  const updates = reorderedPositions(sameCategory, serviceId, direction) ?? [];
+  for (const update of updates)
+    await tx
+      .update(services)
+      .set({ sortOrder: update.sortOrder })
+      .where(and(eq(services.tenantId, tenantId), eq(services.id, update.id)));
 }

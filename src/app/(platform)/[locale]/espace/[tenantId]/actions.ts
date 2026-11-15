@@ -50,11 +50,25 @@ import { getSlotsForRange, loadBookingContext } from "@/modules/booking/availabi
 import { setOnlineBooking, updateBookingSettings } from "@/modules/booking/settings";
 import { disableCalendarFeed, renewCalendarFeed } from "@/modules/agenda/calendar-feed";
 import { DATE_PATTERN, localToUtc } from "@/modules/booking/time";
-import { deleteCategory, deleteService, saveCategory, saveService } from "@/modules/catalog/services";
+import {
+  deleteCategory,
+  deleteService,
+  moveCategory,
+  moveService,
+  saveCategory,
+  saveService,
+} from "@/modules/catalog/services";
 import { MANAGER_PAGE_KEYS, PAGE_TEXT_FIELDS, updatePageTexts } from "@/modules/content/pages";
 import { deleteTestimonial, saveTestimonial } from "@/modules/content/testimonials";
 import { deleteCustomer, mergeCustomers, saveCustomer, searchCustomers } from "@/modules/customers/customers";
-import { assertSitePhoto, restoreAsset, retireAsset, uploadAsset, uploadLogo } from "@/modules/media/assets";
+import {
+  assertSitePhoto,
+  moveAsset,
+  restoreAsset,
+  retireAsset,
+  uploadAsset,
+  uploadLogo,
+} from "@/modules/media/assets";
 import { parseInterval } from "@/modules/billing/yearly";
 import { AppError } from "@/modules/errors";
 import {
@@ -373,6 +387,18 @@ export async function deleteCategoryAction(_previous: Previous, data: FormData) 
   );
 }
 
+/** Place d'une catégorie ou d'une prestation (« monter » ou « descendre »). */
+export async function moveCatalogAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const direction = form.text(data, "direction") === "up" ? "up" : "down";
+  const kind = form.text(data, "kind") === "category" ? "category" : "service";
+  return managerMutation(tenantId, "site", `${kind}.moved`, (tx) =>
+    kind === "category"
+      ? moveCategory(tx, tenantId, idOf(data)!, direction)
+      : moveService(tx, tenantId, idOf(data)!, direction),
+  );
+}
+
 export async function saveServiceAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   return managerMutation(tenantId, "site", "service.saved", (tx) =>
@@ -471,10 +497,12 @@ export async function uploadLogoAction(_previous: Previous, data: FormData) {
 export async function photoAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   const id = idOf(data)!;
-  const operation = z.enum(["retire", "restore"]).parse(form.text(data, "operation"));
+  const operation = z.enum(["retire", "restore", "up", "down"]).parse(form.text(data, "operation"));
   return managerMutation(tenantId, "site", `asset.${operation}`, async (tx, context) => {
     await assertPrimaryBusiness(tx, tenantId, context.businessId, "site_content_primary_only");
     await assertSitePhoto(tx, tenantId, id);
+    // Monter ou descendre : place de la photo parmi celles du même emplacement.
+    if (operation === "up" || operation === "down") return moveAsset(tx, tenantId, id, operation);
     return operation === "retire" ? retireAsset(tx, tenantId, id) : restoreAsset(tx, tenantId, id);
   });
 }
