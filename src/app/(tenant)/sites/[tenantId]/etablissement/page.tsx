@@ -10,6 +10,7 @@ import { institutePhotos, isAtelier } from "@/modules/site/data";
 import { requireSection } from "@/lib/site/guards";
 import { getSite } from "@/lib/site/load";
 import { SITE_PATHS } from "@/modules/site/paths";
+import { PageBookBanner } from "@/components/site/WellnessHome";
 
 export async function generateMetadata({
   params,
@@ -112,6 +113,9 @@ export default async function AboutPage({ params }: PageProps<"/sites/[tenantId]
           <TeamGrid site={site} />
         </section>
       )}
+      <div className="mt-12">
+        <PageBookBanner site={site} />
+      </div>
     </main>
   );
 }

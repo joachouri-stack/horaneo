@@ -4,6 +4,7 @@ import { formatMoney } from "@/lib/format";
 import type { SiteCategory, SiteData } from "@/modules/site/data";
 import { heroSecondPhoto, siteReviews } from "@/modules/site/data";
 import { formatClock, formatDuration, openDaysSpan, openStatus } from "@/modules/site/format";
+import { ctaLabelKey, siteCta } from "@/modules/site/cta";
 import { categoryPath, SITE_PATHS } from "@/modules/site/paths";
 import { BookButton } from "./BookButton";
 import { Stars } from "./GoogleReviews";
@@ -296,5 +297,17 @@ export async function BookBanner({ site, cta }: { site: Site; cta: { href: strin
         {cta.label}
       </Link>
     </section>
+  );
+}
+
+/**
+ * Bandeau de fin de page (Établissement, Galerie, Avis) : réserver sans remonter
+ * en haut de la page. Le bouton suit le réglage du site (Réserver, Appeler, Nous écrire).
+ */
+export async function PageBookBanner({ site }: { site: Site }) {
+  const t = await getTranslations("site");
+  const target = siteCta(site);
+  return (
+    <BookBanner site={site} cta={target ? { href: target.href, label: t(ctaLabelKey(target)) } : null} />
   );
 }

@@ -8,7 +8,13 @@ import { getSite } from "@/lib/site/load";
 import { SITE_PATHS } from "@/modules/site/paths";
 
 // Lien personnel : jamais indexé, jamais transmis aux sites externes.
-export const metadata: Metadata = { robots: { index: false, follow: false }, referrer: "no-referrer" };
+export async function generateMetadata({
+  params,
+}: PageProps<"/sites/[tenantId]/mes-rendez-vous/connexion">): Promise<Metadata> {
+  const site = await getSite((await params).tenantId);
+  const t = await getTranslations({ locale: site.locale, namespace: "site.account" });
+  return { title: t("metaTitle"), robots: { index: false, follow: false }, referrer: "no-referrer" };
+}
 
 /** Arrivée par le lien reçu par e-mail : un bouton ouvre l'espace sur cet appareil. */
 export default async function CustomerLinkPage({

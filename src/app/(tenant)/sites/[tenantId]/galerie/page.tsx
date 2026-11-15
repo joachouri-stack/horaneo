@@ -4,6 +4,7 @@ import { GalleryGrid, PageTitle } from "@/components/site/blocks";
 import { requireSection } from "@/lib/site/guards";
 import { getSite } from "@/lib/site/load";
 import { SITE_PATHS } from "@/modules/site/paths";
+import { PageBookBanner } from "@/components/site/WellnessHome";
 
 export async function generateMetadata({
   params,
@@ -26,6 +27,9 @@ export default async function GalleryPage({ params }: PageProps<"/sites/[tenantI
     <main id="contenu" className="mx-auto max-w-6xl px-4 py-12">
       <PageTitle title={t("title")} intro={site.pages.gallery?.texts.intro} />
       <GalleryGrid site={site} />
+      <div className="mt-12">
+        <PageBookBanner site={site} />
+      </div>
     </main>
   );
 }

@@ -43,7 +43,8 @@ export async function TeamGrid({ site }: { site: Site }) {
 export function GalleryGrid({ site, limit }: { site: Site; limit?: number }) {
   const photos = limit ? site.gallery.slice(0, limit) : site.gallery;
   return (
-    <ul className="grid grid-cols-2 gap-3 md:grid-cols-3">
+    // 4 photos : une seule rangée sur ordinateur (pas de photo seule sur une deuxième ligne).
+    <ul className={`grid grid-cols-2 gap-3 ${photos.length === 4 ? "md:grid-cols-4" : "md:grid-cols-3"}`}>
       {photos.map((photo, index) => (
         <li key={photo.key}>
           <SiteImage

@@ -6,6 +6,7 @@ import { requireSection } from "@/lib/site/guards";
 import { getSite } from "@/lib/site/load";
 import { siteReviews } from "@/modules/site/data";
 import { SITE_PATHS } from "@/modules/site/paths";
+import { PageBookBanner } from "@/components/site/WellnessHome";
 
 export async function generateMetadata({ params }: PageProps<"/sites/[tenantId]/avis">): Promise<Metadata> {
   const site = await getSite((await params).tenantId);
@@ -33,6 +34,9 @@ export default async function TestimonialsPage({ params }: PageProps<"/sites/[te
         </section>
       )}
       {site.testimonials.length > 0 && <TestimonialList site={site} />}
+      <div className="mt-12">
+        <PageBookBanner site={site} />
+      </div>
     </main>
   );
 }
