@@ -5,12 +5,12 @@ import sharp from "sharp";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
 import { withPlatform, withTenant } from "@/db/access";
-import { sitePages, tenants } from "@/db/schema";
+import { assets, sitePages, tenants } from "@/db/schema";
 import type { Transaction } from "@/db/client";
 import { createLocalStorage } from "@/lib/storage/local";
 import type { FileStorage } from "@/lib/storage/types";
 import { saveCategory, saveService } from "@/modules/catalog/services";
-import { updatePage, updatePageTexts } from "@/modules/content/pages";
+import { replaceHomeCover, updatePage, updatePageTexts } from "@/modules/content/pages";
 import { saveTestimonial } from "@/modules/content/testimonials";
 import { retireAsset, uploadAsset, uploadLogo } from "@/modules/media/assets";
 import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
@@ -188,6 +188,29 @@ describe.skipIf(!hasTestDatabase)("site d'un client : données affichées", () =
         ),
       ),
     ).toBe("42501");
+  });
+
+  it("grande photo de l'accueil : la nouvelle remplace l'ancienne, mise de côté et récupérable", async () => {
+    const tenant = await newTenant("serenite");
+    const asManager = <T>(fn: (tx: Transaction) => Promise<T>) => withTenant(tenant.id, fn, app);
+    const upload = () =>
+      asManager(async (tx) =>
+        uploadAsset(tx, store, tenant.id, { bytes: await png(), kind: "cover", uploadedByUserId: null }),
+      );
+    const first = await upload();
+    await asManager((tx) => replaceHomeCover(tx, tenant.id, first.id));
+    expect((await load(tenant.id))!.pages.home?.photo?.key).toBe(first.storageKey);
+    const second = await upload();
+    await asManager((tx) => replaceHomeCover(tx, tenant.id, second.id));
+    expect((await load(tenant.id))!.pages.home?.photo?.key).toBe(second.storageKey);
+    const [old] = await owner.select().from(assets).where(eq(assets.id, first.id));
+    expect(old).toMatchObject({ status: "replaced", replacedById: second.id });
+    expect(old.purgeAfter).not.toBeNull();
+    // Photo d'un autre site : refusée.
+    const other = await newTenant("serenite");
+    await expect(
+      withTenant(other.id, (tx) => replaceHomeCover(tx, other.id, second.id), app),
+    ).rejects.toThrow();
   });
 
   it("textes de présentation : la gérante les modifie, sans toucher au référencement ni à la publication", async () => {

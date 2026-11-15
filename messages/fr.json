@@ -3199,10 +3199,98 @@
         "file": "Nouveau logo",
         "choose": "Choisir un logo",
         "chosen": "Fichier choisi : {name}",
-        "hint": "PNG, SVG, JPEG ou WebP, envoyé en entier. Il remplace tout de suite le logo de votre site.",
+        "hint": "PNG, SVG, JPEG ou WebP. Il remplace tout de suite le logo de votre site.",
         "send": "Changer mon logo",
         "sending": "Envoi…",
-        "done": "Logo enregistré : votre site est à jour."
+        "done": "Logo enregistré : votre site est à jour.",
+        "change": "Changer le logo"
+      },
+      "editor": {
+        "title": "Mon site",
+        "statusLive": "En ligne",
+        "statusDraft": "En préparation",
+        "view": "Voir mon site",
+        "saved": "Enregistré : l'aperçu est à jour.",
+        "tabs": {
+          "edit": "Modifier",
+          "preview": "Aperçu"
+        },
+        "phone": "Téléphone",
+        "desktop": "Ordinateur",
+        "device": "Format de l'aperçu",
+        "loading": "Chargement de l'aperçu…",
+        "frameTitle": "Aperçu de votre site",
+        "previewTitle": "Aperçu de votre site",
+        "sharedContent": "Le logo, les couleurs, les textes et les photos sont communs à tout le site : ils se modifient depuis l'espace de l'établissement principal.",
+        "request": "Une mise en page particulière ?",
+        "requestCta": "Demander une modification",
+        "brand": {
+          "title": "Logo et couleurs",
+          "summary": "Votre logo et les couleurs de votre site",
+          "logo": "Logo",
+          "colors": "Couleurs"
+        },
+        "home": {
+          "title": "Accueil",
+          "summary": "La grande photo, l'accroche et la présentation",
+          "cover": "Grande photo",
+          "coverHint": "La photo en haut de votre page d'accueil.",
+          "noCover": "Pas encore de photo",
+          "addCover": "Ajouter une photo",
+          "changeCover": "Changer la photo"
+        },
+        "about": {
+          "title": "Votre établissement",
+          "summary": "Présentez votre lieu et votre façon de travailler"
+        },
+        "gallery": {
+          "title": "Photos",
+          "summaryEmpty": "Ajoutez des photos de votre lieu et de vos réalisations",
+          "empty": "Pas encore de photo dans votre galerie.",
+          "add": "Ajouter une photo",
+          "added": "Photo ajoutée : l'aperçu est à jour.",
+          "remove": "Retirer",
+          "orderHint": "Les flèches changent l'ordre des photos sur votre site.",
+          "retired": "{count, plural, one {# photo retirée, récupérable quelques jours} other {# photos retirées, récupérables quelques jours}}"
+        },
+        "services": {
+          "title": "Prestations et prix",
+          "summary": "{count, plural, =0 {Ajoutez vos prestations} one {# prestation} other {# prestations}}"
+        },
+        "hours": {
+          "title": "Horaires",
+          "summary": "Ouvert : {days}",
+          "none": "Indiquez vos horaires d'ouverture"
+        },
+        "practical": {
+          "title": "Infos pratiques",
+          "summary": "Accès, parking, transports"
+        },
+        "testimonials": {
+          "title": "Avis clients",
+          "summary": "{count, plural, =0 {Aucun avis affiché} one {# avis affiché} other {# avis affichés}}"
+        },
+        "fields": {
+          "home": {
+            "badge": "Petite phrase au-dessus du titre (facultatif)",
+            "tagline": "Phrase d'accroche",
+            "taglineAccent": "Mots mis en valeur après l'accroche (facultatif)",
+            "intro": "Présentation"
+          },
+          "about": {
+            "title": "Titre",
+            "body": "Texte"
+          },
+          "practical": {
+            "access": "Accès, parking, transports"
+          }
+        },
+        "placeholders": {
+          "badge": "Ex. : Institut de beauté à Lyon",
+          "tagline": "Ex. : Une parenthèse de calme au cœur de la ville",
+          "taglineAccent": "Ex. : rien que pour vous",
+          "aboutTitle": "Ex. : Notre institut"
+        }
       }
     },
     "photos": {

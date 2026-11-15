@@ -1,88 +1,431 @@
+import { createHash } from "node:crypto";
+import { and, eq } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
+import { ActionForm } from "@/components/admin/ActionForm";
+import { Hidden, TextArea, TextField } from "@/components/admin/fields";
+import {
+  CameraLine,
+  ClockLine,
+  FileLine,
+  LayoutLine,
+  PaletteLine,
+  StarLine,
+  StoreLine,
+  TagLine,
+} from "@/components/marketing/line-icons";
 import { LogoUpload } from "@/components/manager/LogoUpload";
+import { PhotoCropUpload } from "@/components/manager/PhotoCropUpload";
+import { PaletteChooser, type PaletteOption } from "@/components/manager/site-editor/PaletteChooser";
+import { SiteBlock, SiteBlockLink } from "@/components/manager/site-editor/SiteBlock";
+import { SiteEditorShell } from "@/components/manager/site-editor/SiteEditorShell";
+import { SiteGallery } from "@/components/manager/site-editor/SiteGallery";
 import { ui } from "@/components/ui/styles";
+import { BRAND_PALETTES, type BrandPaletteKey } from "@/config/site";
+import { authSecret } from "@/config/env";
 import { assets, tenantDomains } from "@/db/schema";
+import { pickLocalized, type LocalizedText } from "@/i18n/locales";
 import { Link } from "@/i18n/navigation";
+import { resolveLocale } from "@/i18n/translator";
 import { managerPage } from "@/lib/manager/page";
 import { storage } from "@/lib/storage";
+import { createPreviewToken, PREVIEW_PARAM } from "@/lib/tenancy/preview";
 import { tenantSiteUrl } from "@/lib/tenancy/urls";
-import { and, eq } from "drizzle-orm";
-import { uploadLogoAction } from "../actions";
+import { listServices } from "@/modules/catalog/services";
+import { getPages, type PageContent } from "@/modules/content/pages";
+import { listTestimonials } from "@/modules/content/testimonials";
+import { listActiveAssets, listRetiredAssets } from "@/modules/media/assets";
+import { listOpeningHours } from "@/modules/schedule/opening-hours";
+import { buildTheme } from "@/modules/site/theme";
+import {
+  photoAction,
+  savePageTextsAction,
+  savePaletteAction,
+  uploadHomeCoverAction,
+  uploadLogoAction,
+  uploadPhotoAction,
+} from "../actions";
 
-/** « Mon site » : ce que la gérante modifie elle-même (dont le logo), et le reste par demande. */
+const ICON = "size-5";
+
+/** Texte court pour un résumé : la première ligne, coupée proprement. */
+function excerpt(value: string, max = 70) {
+  const line =
+    value
+      .split("\n")
+      .find((part) => part.trim())
+      ?.trim() ?? "";
+  return line.length > max ? `${line.slice(0, max - 1).trimEnd()}…` : line;
+}
+
+/**
+ * « Mon site » : les blocs du site dans l'ordre où les clients les voient, chacun modifiable sur
+ * place, et l'aperçu du site à côté, rechargé après chaque enregistrement.
+ */
 export default async function MySitePage({ params }: PageProps<"/[locale]/espace/[tenantId]/site">) {
   const page = await managerPage(params, "site");
-  const t = await getTranslations("manager.site");
-  const [primary] = await page.db((tx) =>
-    tx
-      .select({ hostname: tenantDomains.hostname })
-      .from(tenantDomains)
-      .where(and(eq(tenantDomains.tenantId, page.tenantId), eq(tenantDomains.isPrimary, true))),
-  );
-  const logoId = page.tenant.brand.logoAssetId;
-  const [logo] = logoId
-    ? await page.db((tx) =>
-        tx.select({ storageKey: assets.storageKey }).from(assets).where(eq(assets.id, logoId)),
-      )
-    : [];
-  const links = [
-    { href: "/site/prestations", label: t("services") },
-    { href: "/site/horaires", label: t("hours") },
-    { href: "/site/photos", label: t("photos") },
-    { href: "/site/textes", label: t("texts.link") },
-    { href: "/site/couleurs", label: t("colors.link") },
-    ...(page.tenant.features.testimonials ? [{ href: "/site/temoignages", label: t("testimonials") }] : []),
+  const [t, tColors, tCommon] = await Promise.all([
+    getTranslations("manager.site.editor"),
+    getTranslations("manager.site.colors"),
+    getTranslations("common"),
+  ]);
+  const contentLocale = resolveLocale(page.tenant.defaultLocale);
+  const primaryBusiness = page.business.isPrimary;
+  const data = await page.db(async (tx) => {
+    const [domains, services, hours, testimonials, pages, active, retired] = await Promise.all([
+      tx
+        .select({
+          hostname: tenantDomains.hostname,
+          isPrimary: tenantDomains.isPrimary,
+          type: tenantDomains.type,
+        })
+        .from(tenantDomains)
+        .where(eq(tenantDomains.tenantId, page.tenantId)),
+      listServices(tx, page.tenantId),
+      listOpeningHours(tx, page.tenantId),
+      listTestimonials(tx, page.tenantId),
+      getPages(tx, page.tenantId),
+      listActiveAssets(tx, page.tenantId, { photosOnly: true }),
+      listRetiredAssets(tx, page.tenantId, { photosOnly: true }),
+    ]);
+    const logoId = page.tenant.brand.logoAssetId;
+    const [logo] = logoId
+      ? await tx
+          .select({ storageKey: assets.storageKey })
+          .from(assets)
+          .where(and(eq(assets.id, logoId), eq(assets.tenantId, page.tenantId)))
+      : [];
+    return { domains, services, hours, testimonials, pages, active, retired, logo };
+  });
+  const store = storage();
+
+  // Aperçu : le site en ligne, ou (site pas encore publié) l'adresse provisoire avec un jeton d'aperçu.
+  const draft = page.tenant.status === "draft";
+  const primary = data.domains.find((domain) => domain.isPrimary);
+  const host = draft ? (data.domains.find((domain) => domain.type === "subdomain") ?? primary) : primary;
+  const live = page.tenant.status === "active" && primary;
+  const previewSrc = host
+    ? draft
+      ? `${tenantSiteUrl(host.hostname)}/?${PREVIEW_PARAM}=${createPreviewToken(page.tenantId, authSecret())}`
+      : live
+        ? tenantSiteUrl(host.hostname)
+        : null
+    : null;
+
+  // Textes des pages, dans la langue du site.
+  const content = (key: string) =>
+    (data.pages.find((item) => item.pageKey === key)?.content ?? {}) as PageContent;
+  const text = (key: string, field: string) =>
+    pickLocalized(content(key)[field] as LocalizedText | undefined, contentLocale);
+  const home = content("home");
+  const coverId = typeof home.coverAssetId === "string" ? home.coverAssetId : null;
+  const cover = coverId ? data.active.find((asset) => asset.id === coverId) : undefined;
+  const atelier = page.tenant.templateKey === "atelier";
+
+  // Couleurs : palettes proposées (et celles d'origine du site), bouton montré comme sur le site.
+  const { colors: currentColors, originalColors } = page.tenant.brand;
+  const original = originalColors ?? currentColors;
+  const keys = Object.keys(BRAND_PALETTES) as BrandPaletteKey[];
+  const sameAs = (key: BrandPaletteKey, colors?: { primary?: string; secondary?: string }) =>
+    BRAND_PALETTES[key].primary === colors?.primary?.toLowerCase() &&
+    BRAND_PALETTES[key].secondary === colors?.secondary?.toLowerCase();
+  const option = (value: string, label: string, primaryColor: string, secondary: string): PaletteOption => {
+    const { button, onButton } = buildTheme(page.tenant.theme, { primary: primaryColor, secondary }).colors;
+    return { value, label, primary: primaryColor, secondary, button, onButton };
+  };
+  const paletteOptions: PaletteOption[] = [
+    ...(original?.primary && original.secondary && !keys.some((key) => sameAs(key, original))
+      ? [option("original", tColors("original"), original.primary, original.secondary)]
+      : []),
+    ...keys.map((key) =>
+      option(key, tColors(`palettes.${key}`), BRAND_PALETTES[key].primary, BRAND_PALETTES[key].secondary),
+    ),
   ];
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
-            {t("title")}
-          </h1>
-          <p className="mt-1 text-ink/70">{t("intro")}</p>
-        </div>
-        {/* Voir le résultat après une modification : bien visible, en haut. */}
-        {primary && page.tenant.status === "active" && (
-          <a
-            href={tenantSiteUrl(primary.hostname)}
-            target="_blank"
-            rel="noreferrer"
-            className={`${ui.primaryButton} sm:w-auto`}
-          >
-            {t("view")} ↗
-          </a>
+  const selectedPalette = keys.find((key) => sameAs(key, currentColors)) ?? "original";
+
+  // Résumés des blocs fermés.
+  const gallery = data.active.filter((asset) => asset.kind === "gallery");
+  const galleryRetired = data.retired.filter((asset) => asset.kind === "gallery");
+  const openDays = [...new Set(data.hours.map((range) => range.weekday))].sort((a, b) => a - b);
+  const dayName = (weekday: number) =>
+    // 5 janvier 2026 : un lundi (jour 1).
+    new Intl.DateTimeFormat(page.locale, { weekday: "short", timeZone: "UTC" }).format(
+      new Date(Date.UTC(2026, 0, 4 + weekday)),
+    );
+  const activeServices = data.services.filter((service) => service.isActive).length;
+  const publishedTestimonials = data.testimonials.filter((item) => item.isPublished).length;
+  const saved = t("saved");
+
+  const textForm = (
+    pageKey: "home" | "about" | "practical",
+    fields: { name: string; long?: boolean; placeholder?: string; hint?: string }[],
+  ) => (
+    <ActionForm action={savePageTextsAction} submitLabel={tCommon("save")} successMessage={saved}>
+      <Hidden values={{ tenantId: page.tenantId, pageKey }} />
+      <div className="space-y-4">
+        {fields.map((field) =>
+          field.long ? (
+            <TextArea
+              key={field.name}
+              id={`${pageKey}-${field.name}`}
+              name={`text.${field.name}`}
+              label={t(`fields.${pageKey}.${field.name}` as "fields.home.intro")}
+              hint={field.hint}
+              defaultValue={text(pageKey, field.name)}
+              rows={4}
+            />
+          ) : (
+            <TextField
+              key={field.name}
+              id={`${pageKey}-${field.name}`}
+              name={`text.${field.name}`}
+              label={t(`fields.${pageKey}.${field.name}` as "fields.home.intro")}
+              hint={field.hint}
+              placeholder={field.placeholder}
+              defaultValue={text(pageKey, field.name)}
+            />
+          ),
         )}
       </div>
-      <ul className="grid gap-3 sm:grid-cols-2">
-        {links.map((link) => (
-          <li key={link.href}>
-            <Link href={`${page.base}${link.href}`} className={`${ui.secondaryButton} justify-between`}>
-              {link.label} <span aria-hidden="true">→</span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-      {/* Logo commun à tout le site : changé depuis l'établissement principal. */}
-      <section className={ui.card}>
-        <h2 className="text-lg font-semibold">{t("logo.title")}</h2>
-        {page.business.isPrimary ? (
-          <LogoUpload
-            tenantId={page.tenantId}
-            logoUrl={logo ? storage().publicUrl(logo.storageKey) : null}
-            action={uploadLogoAction}
-          />
-        ) : (
-          <p className="mt-1 text-ink/70">{t("sharedContent")}</p>
-        )}
-      </section>
-      <section className={ui.card}>
-        <h2 className="text-lg font-semibold">{t("requestTitle")}</h2>
-        <p className="mt-1 text-ink/70">{t("requestText")}</p>
-        <Link href={`${page.base}/plus/demandes`} className={`mt-4 ${ui.primaryButton} sm:w-auto`}>
-          {t("requestCta")}
-        </Link>
-      </section>
+    </ActionForm>
+  );
+
+  const header = (
+    <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center gap-3">
+        <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
+          {t("title")}
+        </h1>
+        <span
+          className={`inline-flex items-center gap-1.5 text-sm font-medium ${live ? "text-success" : "text-ink/70"}`}
+        >
+          <span aria-hidden="true" className={`size-2 rounded-full ${live ? "bg-success" : "bg-ink/40"}`} />
+          {live ? t("statusLive") : t("statusDraft")}
+        </span>
+      </div>
+      {live && host && (
+        <a
+          href={tenantSiteUrl(host.hostname)}
+          target="_blank"
+          rel="noreferrer"
+          className={`${ui.secondaryButton} sm:w-auto`}
+        >
+          {t("view")} ↗
+        </a>
+      )}
     </div>
+  );
+
+  const services = (
+    <SiteBlockLink
+      title={t("services.title")}
+      summary={t("services.summary", { count: activeServices })}
+      icon={<TagLine className={ICON} />}
+      href={`${page.base}/site/prestations`}
+    />
+  );
+  const hours = (
+    <SiteBlockLink
+      title={t("hours.title")}
+      summary={
+        openDays.length > 0 ? t("hours.summary", { days: openDays.map(dayName).join(", ") }) : t("hours.none")
+      }
+      icon={<ClockLine className={ICON} />}
+      href={`${page.base}/site/horaires`}
+    />
+  );
+  const request = (
+    <p className="px-1 pt-1 text-sm text-ink/70">
+      {t("request")}{" "}
+      <Link href={`${page.base}/plus/demandes`} className="font-semibold text-night underline">
+        {t("requestCta")}
+      </Link>
+    </p>
+  );
+
+  const labels = {
+    edit: t("tabs.edit"),
+    preview: t("tabs.preview"),
+    phone: t("phone"),
+    desktop: t("desktop"),
+    device: t("device"),
+    loading: t("loading"),
+    frameTitle: t("frameTitle"),
+    previewTitle: t("previewTitle"),
+  };
+  // Empreinte du contenu du site : elle change après chaque enregistrement, et l'aperçu se recharge.
+  const version = createHash("sha1")
+    .update(
+      JSON.stringify([
+        page.tenant.brand,
+        data.pages.map((item) => [item.pageKey, item.content, item.isPublished]),
+        data.active.map((asset) => [asset.id, asset.sortOrder]),
+        data.services.map((service) => [service.id, service.updatedAt]),
+        data.hours,
+        data.testimonials.map((item) => [item.id, item.updatedAt]),
+      ]),
+    )
+    .digest("hex")
+    .slice(0, 12);
+
+  // Établissement secondaire : le contenu du site se gère depuis l'établissement principal.
+  if (!primaryBusiness) {
+    return (
+      <>
+        {header}
+        <SiteEditorShell previewSrc={previewSrc} version={version} labels={labels}>
+          <p className={ui.card}>{t("sharedContent")}</p>
+          {services}
+          {hours}
+          {request}
+        </SiteEditorShell>
+      </>
+    );
+  }
+
+  return (
+    <>
+      {header}
+      <SiteEditorShell previewSrc={previewSrc} version={version} labels={labels}>
+        <SiteBlock
+          title={t("brand.title")}
+          icon={<PaletteLine className={ICON} />}
+          summary={t("brand.summary")}
+        >
+          <div>
+            <h3 className="font-semibold text-night">{t("brand.logo")}</h3>
+            <LogoUpload
+              tenantId={page.tenantId}
+              logoUrl={data.logo ? store.publicUrl(data.logo.storageKey) : null}
+              action={uploadLogoAction}
+            />
+          </div>
+          <div className="border-t border-hairline pt-4">
+            <h3 className="mb-1 font-semibold text-night">{t("brand.colors")}</h3>
+            <p className="mb-3 text-sm text-ink/70">{tColors("intro")}</p>
+            <PaletteChooser
+              tenantId={page.tenantId}
+              options={paletteOptions}
+              selected={selectedPalette}
+              sampleLabel={tColors("sample")}
+              doneLabel={saved}
+              action={savePaletteAction}
+            />
+          </div>
+        </SiteBlock>
+
+        <SiteBlock
+          title={t("home.title")}
+          icon={<LayoutLine className={ICON} />}
+          summary={excerpt(text("home", "tagline")) || t("home.summary")}
+          defaultOpen
+        >
+          <div className="flex items-start gap-4">
+            <div className="aspect-video w-28 flex-none overflow-hidden rounded-xl bg-mist-50 sm:w-40">
+              {cover ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={store.publicUrl(cover.storageKey)} alt="" className="size-full object-cover" />
+              ) : (
+                <span className="flex size-full items-center justify-center p-2 text-center text-sm text-ink/60">
+                  {t("home.noCover")}
+                </span>
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="font-semibold text-night">{t("home.cover")}</h3>
+              <p className="mb-3 text-sm text-ink/70">{t("home.coverHint")}</p>
+              <PhotoCropUpload
+                tenantId={page.tenantId}
+                action={uploadHomeCoverAction}
+                kind="cover"
+                chooseLabel={t(cover ? "home.changeCover" : "home.addCover")}
+                doneLabel={saved}
+              />
+            </div>
+          </div>
+          <div className="border-t border-hairline pt-4">
+            {textForm("home", [
+              ...(atelier ? [{ name: "badge", placeholder: t("placeholders.badge") }] : []),
+              { name: "tagline", placeholder: t("placeholders.tagline") },
+              ...(atelier ? [{ name: "taglineAccent", placeholder: t("placeholders.taglineAccent") }] : []),
+              { name: "intro", long: true },
+            ])}
+          </div>
+        </SiteBlock>
+
+        <SiteBlock
+          title={t("about.title")}
+          icon={<StoreLine className={ICON} />}
+          summary={
+            [text("about", "title"), excerpt(text("about", "body"), 50)].filter(Boolean).join(" · ") ||
+            t("about.summary")
+          }
+        >
+          {textForm("about", [
+            { name: "title", placeholder: t("placeholders.aboutTitle") },
+            { name: "body", long: true },
+          ])}
+        </SiteBlock>
+
+        <SiteBlock
+          title={t("gallery.title")}
+          icon={<CameraLine className={ICON} />}
+          summary={
+            gallery.length > 0 ? (
+              <span className="mt-1 flex gap-1.5">
+                {gallery.slice(0, 5).map((photo) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={photo.id}
+                    src={store.publicUrl(photo.storageKey)}
+                    alt=""
+                    loading="lazy"
+                    className="size-8 rounded-lg object-cover"
+                  />
+                ))}
+                {gallery.length > 5 && (
+                  <span className="flex size-8 items-center justify-center rounded-lg bg-mist-50 text-xs font-semibold text-night">
+                    +{gallery.length - 5}
+                  </span>
+                )}
+              </span>
+            ) : (
+              t("gallery.summaryEmpty")
+            )
+          }
+        >
+          <SiteGallery
+            tenantId={page.tenantId}
+            locale={page.locale}
+            contentLocale={page.tenant.defaultLocale}
+            limit={page.tenant.limits.photos}
+            photos={gallery}
+            retired={galleryRetired}
+            photoAction={photoAction}
+            uploadAction={uploadPhotoAction}
+          />
+        </SiteBlock>
+
+        {services}
+        {hours}
+
+        <SiteBlock
+          title={t("practical.title")}
+          icon={<FileLine className={ICON} />}
+          summary={excerpt(text("practical", "access")) || t("practical.summary")}
+        >
+          {textForm("practical", [{ name: "access", long: true }])}
+        </SiteBlock>
+
+        {page.tenant.features.testimonials && (
+          <SiteBlockLink
+            title={t("testimonials.title")}
+            summary={t("testimonials.summary", { count: publishedTestimonials })}
+            icon={<StarLine className={ICON} />}
+            href={`${page.base}/site/temoignages`}
+          />
+        )}
+        {request}
+      </SiteEditorShell>
+    </>
   );
 }

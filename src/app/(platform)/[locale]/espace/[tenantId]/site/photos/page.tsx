@@ -1,35 +1,8 @@
-import { PhotosEditor } from "@/components/editors/PhotosEditor";
-import { SharedContentNotice } from "@/components/manager/SharedContentNotice";
-import { PhotoCropUpload } from "@/components/manager/PhotoCropUpload";
-import { managerPage } from "@/lib/manager/page";
-import { listActiveAssets, listRetiredAssets } from "@/modules/media/assets";
-import { photoAction, uploadPhotoAction } from "../../actions";
+import { redirect } from "@/i18n/navigation";
+import { resolveLocale } from "@/i18n/translator";
 
-/** Photos : ajout avec recadrage, retrait, restauration pendant quelques jours. */
-export default async function ManagerPhotosPage({
-  params,
-}: PageProps<"/[locale]/espace/[tenantId]/site/photos">) {
-  const page = await managerPage(params, "site");
-  // Photos communes au site : modifiées depuis l'entreprise principale seulement.
-  if (!page.business.isPrimary) return <SharedContentNotice />;
-  const { active, retired } = await page.db(async (tx) => ({
-    active: await listActiveAssets(tx, page.tenantId, { photosOnly: true }),
-    retired: await listRetiredAssets(tx, page.tenantId, { photosOnly: true }),
-  }));
-  return (
-    <div className="space-y-6">
-      <PhotosEditor
-        tenantId={page.tenantId}
-        locale={page.locale}
-        contentLocale={page.tenant.defaultLocale}
-        limit={page.tenant.limits.photos}
-        active={active}
-        retired={retired}
-        photoAction={photoAction}
-        reorder
-        headingLevel={1}
-        uploader={<PhotoCropUpload tenantId={page.tenantId} action={uploadPhotoAction} />}
-      />
-    </div>
-  );
+/** Ancienne page, réunie dans « Mon site » (les liens déjà envoyés y mènent toujours). */
+export default async function Moved({ params }: PageProps<"/[locale]/espace/[tenantId]/site/photos">) {
+  const { locale, tenantId } = await params;
+  redirect({ href: `/espace/${tenantId}/site`, locale: resolveLocale(locale) });
 }
