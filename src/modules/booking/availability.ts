@@ -22,7 +22,7 @@ import { AppError } from "@/modules/errors";
 import { currentPeriod } from "@/modules/tenants/queries";
 import { usageCounters } from "@/db/schema";
 import { activePromotionPrices } from "@/modules/promotions/promotions";
-import { computeTotals } from "./pricing";
+import { computeTotals, withBreak } from "./pricing";
 import { computeDaySlots, type Interval, type Slot, type StaffInput } from "./slots";
 import { addDays, localToUtc } from "./time";
 
@@ -114,7 +114,7 @@ export function resolveServices(context: BookingContext, serviceIds: string[], {
     throw new AppError("service_unavailable", "serviceIds");
   }
   const list = chosen as NonNullable<(typeof chosen)[number]>[];
-  return { services: list, totals: computeTotals(list) };
+  return { services: list, totals: withBreak(computeTotals(list), context.settings.breakMinutes) };
 }
 
 /**

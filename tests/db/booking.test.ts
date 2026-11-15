@@ -175,6 +175,29 @@ describe.skipIf(!hasTestDatabase)("moteur de réservation", () => {
       expect(await errorCode(slotTimes(s.id, [s.massage.id, s.soin.id]))).toBe("too_many_services");
     });
 
+    it("pause entre deux rendez-vous : gardée libre avant et après chaque rendez-vous", async () => {
+      const s = await setup();
+      await owner
+        .update(businessSettings)
+        .set({ breakMinutes: 30 })
+        .where(eq(businessSettings.tenantId, s.id));
+      const result = await book(s.id, { serviceIds: [s.soin.id], staffId: s.lea.id, start: at("10:00") });
+      const [row] = await owner.select().from(appointments).where(eq(appointments.id, result.appointmentId));
+      expect(row.blockedUntil.toISOString()).toBe(at("11:00").toISOString()); // 10 h 30 + 30 min de pause
+      const times = await slotTimes(s.id, [s.soin.id], s.lea.id);
+      expect(times).toContain("09:00"); // fini à 9 h 30, pause jusqu'à 10 h
+      expect(times).not.toContain("09:30");
+      expect(times).not.toContain("10:30");
+      expect(times).toContain("11:00");
+      // Le massage (battement de 15 min) garde la pause de 30 min, plus longue.
+      const massage = await book(s.id, { serviceIds: [s.massage.id], staffId: s.lea.id, start: at("14:00") });
+      const [late] = await owner
+        .select()
+        .from(appointments)
+        .where(eq(appointments.id, massage.appointmentId));
+      expect(late.blockedUntil.toISOString()).toBe(at("15:30").toISOString());
+    });
+
     it("tient compte des congés et des fermetures", async () => {
       const s = await setup();
       await owner.insert(timeOff).values({

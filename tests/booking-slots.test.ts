@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeDeposit, computeTotals } from "@/modules/booking/pricing";
+import { computeDeposit, computeTotals, withBreak } from "@/modules/booking/pricing";
 import {
   chooseLeastLoaded,
   computeDaySlots,
@@ -310,6 +310,14 @@ describe("totaux et acompte", () => {
       totalCents: 9000,
       currency: "EUR",
     });
+  });
+
+  it("pause entre deux rendez-vous : au moins la pause, sans s'ajouter au battement", () => {
+    const totals = { durationMinutes: 60, bufferMinutes: 10, totalCents: 5000, currency: "EUR" };
+    expect(withBreak(totals, 0).bufferMinutes).toBe(10);
+    expect(withBreak(totals, 15).bufferMinutes).toBe(15);
+    expect(withBreak({ ...totals, bufferMinutes: 20 }, 15).bufferMinutes).toBe(20);
+    expect(withBreak(totals, 15).durationMinutes).toBe(60);
   });
 
   it("acompte de 30 % ou montant fixe, jamais plus que le total", () => {

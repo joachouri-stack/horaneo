@@ -23,6 +23,15 @@ export function computeTotals(services: PricedService[]) {
   };
 }
 
+/**
+ * Pause entre deux rendez-vous (réglage de l'établissement) : le temps gardé libre après le
+ * rendez-vous est au moins cette pause. Les temps de battement des prestations s'appliquent s'ils
+ * sont plus longs ; les deux ne s'additionnent pas.
+ */
+export function withBreak<T extends { bufferMinutes: number }>(totals: T, breakMinutes: number): T {
+  return { ...totals, bufferMinutes: Math.max(totals.bufferMinutes, breakMinutes) };
+}
+
 export type DepositSettings = {
   depositEnabled: boolean;
   depositType: "percent" | "fixed";

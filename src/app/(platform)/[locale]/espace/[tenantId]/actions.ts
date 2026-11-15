@@ -607,6 +607,7 @@ export async function updateSettingsAction(_previous: Previous, data: FormData) 
       maxAdvanceDays: form.text(data, "maxAdvanceDays"),
       slotIntervalMinutes: form.text(data, "slotIntervalMinutes"),
       maxServicesPerBooking: form.text(data, "maxServicesPerBooking"),
+      breakMinutes: form.text(data, "breakMinutes"),
       cancellationDeadlineHours: form.text(data, "cancellationDeadlineHours"),
       depositEnabled: form.bool(data, "depositEnabled"),
       depositType: form.text(data, "depositType") as "percent",
