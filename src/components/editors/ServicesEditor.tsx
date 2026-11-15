@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { ui } from "@/components/ui/styles";
 import { ActionForm } from "@/components/admin/ActionForm";
 import { CheckboxField, Hidden, Section, SelectField, TextArea, TextField } from "@/components/admin/fields";
+import { MoveButtons } from "@/components/admin/MoveButtons";
 import { ServiceFields } from "@/components/admin/ServiceFields";
 import { pickLocalized, type LocalizedText } from "@/i18n/locales";
 import type { ActionResult } from "@/lib/actions/result";
@@ -24,6 +25,7 @@ export async function ServicesEditor({
   services,
   logoOptions,
   actions,
+  variant = "admin",
 }: {
   tenantId: string;
   /** Entreprise modifiée (espace admin, site à plusieurs entreprises). */
@@ -44,6 +46,8 @@ export async function ServicesEditor({
     /** Place d'une catégorie ou d'une prestation (« monter » ou « descendre »). */
     move?: Action;
   };
+  /** « manager » : présentation simplifiée de l'espace gérante (prestations d'abord, catégories repliées). */
+  variant?: "admin" | "manager";
 }) {
   const [t, tCommon] = await Promise.all([
     getTranslations("admin.tenant.services"),
@@ -87,6 +91,196 @@ export async function ServicesEditor({
         )}
       </div>
     ) : null;
+
+  if (variant === "manager") {
+    const moveLabels = { up: t("moveUp"), down: t("moveDown") };
+    const activeCount = services.filter((service) => service.isActive).length;
+    return (
+      <>
+        <section className={`${ui.card} space-y-5`}>
+          {limit !== null && limit !== undefined && (
+            <p className="text-sm text-ink/70">{t("quota", { used: activeCount, limit })}</p>
+          )}
+          {/* Ajout : un bouton, le formulaire s'ouvre au toucher. */}
+          <details className="group">
+            <summary
+              className={`${ui.primaryButton} cursor-pointer list-none group-open:hidden [&::-webkit-details-marker]:hidden`}
+            >
+              + {t("addService")}
+            </summary>
+            <div className="rounded-xl border border-accent-line p-4">
+              <h2 className="mb-4 text-lg font-semibold text-night">{t("newService")}</h2>
+              <ActionForm action={actions.saveService} submitLabel={tCommon("add")} resetOnSuccess>
+                <Hidden values={{ tenantId, businessId }} />
+                <ServiceFields idPrefix="new" categories={categoryOptions} simple />
+              </ActionForm>
+            </div>
+          </details>
+          {services.length === 0 && <p className="text-ink/70">{t("empty")}</p>}
+          {groups.map((group) => (
+            <div key={group.key}>
+              {group.title && (
+                <h3 className="mb-2 text-sm font-semibold uppercase tracking-[0.06em] text-ink/70">
+                  {group.title}
+                </h3>
+              )}
+              <ul className="space-y-2">
+                {group.items.map((service, serviceIndex) => (
+                  <li key={service.id} className="flex items-start gap-1">
+                    <details
+                      name="prestation"
+                      className="group min-w-0 flex-1 rounded-xl border border-navy/10 bg-white open:border-accent-line"
+                    >
+                      <summary className="flex min-h-16 cursor-pointer list-none items-center gap-3 px-4 py-2 [&::-webkit-details-marker]:hidden">
+                        <span className="min-w-0 flex-1">
+                          <span
+                            className={`block truncate font-semibold ${service.isActive ? "text-night" : "text-ink/50"}`}
+                          >
+                            {text(service.name)}
+                          </span>
+                          <span className="block text-sm text-ink/70">
+                            {t("minutes", { count: service.durationMinutes })} ·{" "}
+                            {formatMoney(service.priceCents, service.currency, locale)}
+                          </span>
+                          {(!service.isActive || !service.isOnlineBookable) && (
+                            <span className="mt-1 inline-block rounded-full bg-navy/5 px-2 py-0.5 text-xs font-medium text-ink/70">
+                              {!service.isActive ? t("hiddenBadge") : t("notOnlineBadge")}
+                            </span>
+                          )}
+                        </span>
+                        <span
+                          aria-hidden="true"
+                          className="shrink-0 text-ink/50 transition group-open:rotate-180"
+                        >
+                          ▾
+                        </span>
+                      </summary>
+                      <div className="space-y-4 border-t border-navy/10 p-4">
+                        <ActionForm action={actions.saveService} submitLabel={tCommon("save")}>
+                          <Hidden values={{ tenantId, businessId, id: service.id }} />
+                          <ServiceFields
+                            idPrefix={service.id}
+                            categories={categoryOptions}
+                            simple
+                            service={{
+                              ...service,
+                              name: text(service.name),
+                              description: text(service.description),
+                            }}
+                          />
+                        </ActionForm>
+                        <ActionForm
+                          action={actions.deleteService}
+                          submitLabel={t("deleteService")}
+                          variant="danger"
+                          className=""
+                          confirm={tCommon("confirmDelete")}
+                        >
+                          <Hidden values={{ tenantId, businessId, id: service.id }} />
+                        </ActionForm>
+                      </div>
+                    </details>
+                    {actions.move && group.items.length > 1 && (
+                      <MoveButtons
+                        action={actions.move}
+                        values={{ tenantId, businessId, id: service.id, kind: "service" }}
+                        canUp={serviceIndex > 0}
+                        canDown={serviceIndex < group.items.length - 1}
+                        labels={moveLabels}
+                      />
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </section>
+
+        {/* Catégories : moins souvent modifiées, repliées en bas de page. */}
+        <details className={`${ui.card} group`}>
+          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+            <span>
+              <span className="block text-lg font-semibold text-night">{t("manageCategories")}</span>
+              <span className="block text-sm text-ink/70">{t("categoriesHint")}</span>
+            </span>
+            <span aria-hidden="true" className="shrink-0 text-ink/50 transition group-open:rotate-180">
+              ▾
+            </span>
+          </summary>
+          <div className="mt-4 space-y-4">
+            <ul className="space-y-2">
+              {categories.map((category, categoryIndex) => (
+                <li key={category.id} className="flex items-start gap-1">
+                  <details
+                    name="categorie"
+                    className="group/cat min-w-0 flex-1 rounded-xl border border-navy/10 open:border-accent-line"
+                  >
+                    <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 px-4 [&::-webkit-details-marker]:hidden">
+                      <span className="min-w-0 flex-1 truncate font-semibold text-night">
+                        {text(category.name)}
+                      </span>
+                      <span
+                        aria-hidden="true"
+                        className="shrink-0 text-ink/50 transition group-open/cat:rotate-180"
+                      >
+                        ▾
+                      </span>
+                    </summary>
+                    <div className="space-y-4 border-t border-navy/10 p-4">
+                      <ActionForm action={actions.saveCategory} submitLabel={tCommon("save")}>
+                        <Hidden values={{ tenantId, businessId, id: category.id }} />
+                        <TextField
+                          id={`cat-${category.id}`}
+                          name="name"
+                          label={t("categoryName")}
+                          defaultValue={text(category.name)}
+                          required
+                        />
+                        <TextField
+                          id={`cat-desc-${category.id}`}
+                          name="description"
+                          label={t("categoryDescription")}
+                          defaultValue={text(category.description)}
+                        />
+                      </ActionForm>
+                      <ActionForm
+                        action={actions.deleteCategory}
+                        submitLabel={t("deleteCategory")}
+                        variant="danger"
+                        className=""
+                        confirm={tCommon("confirmDelete")}
+                      >
+                        <Hidden values={{ tenantId, businessId, id: category.id }} />
+                      </ActionForm>
+                    </div>
+                  </details>
+                  {actions.move && categories.length > 1 && (
+                    <MoveButtons
+                      action={actions.move}
+                      values={{ tenantId, businessId, id: category.id, kind: "category" }}
+                      canUp={categoryIndex > 0}
+                      canDown={categoryIndex < categories.length - 1}
+                      labels={moveLabels}
+                    />
+                  )}
+                </li>
+              ))}
+            </ul>
+            <ActionForm
+              action={actions.saveCategory}
+              submitLabel={t("addCategory")}
+              variant="secondary"
+              resetOnSuccess
+              className="space-y-3"
+            >
+              <Hidden values={{ tenantId, businessId }} />
+              <TextField id="new-category-name" name="name" label={t("newCategory")} required />
+            </ActionForm>
+          </div>
+        </details>
+      </>
+    );
+  }
 
   return (
     <>
