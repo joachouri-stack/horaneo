@@ -35,6 +35,50 @@ export function InstallAppBanner({
   if (mode === "hidden") return null;
   const headingId = inline ? "installer-application-rdv" : "installer-application";
 
+  // Après une réservation : une ligne discrète, le rendez-vous reste au premier plan.
+  if (inline)
+    return (
+      <aside
+        aria-labelledby={headingId}
+        className="mt-6 rounded-site border border-site-border p-3 text-site-text sm:hidden"
+      >
+        <div className="flex items-center gap-3">
+          {/* eslint-disable-next-line @next/next/no-img-element -- icône générée, déjà à la bonne taille */}
+          <img src={iconUrl} alt="" width={36} height={36} className="size-9 shrink-0 rounded-[0.6rem]" />
+          <h2 id={headingId} className="min-w-0 flex-1 text-sm font-semibold">
+            {labels.title}
+          </h2>
+          {!showSteps && (
+            <button
+              type="button"
+              onClick={install}
+              className="inline-flex min-h-11 shrink-0 items-center rounded-site border border-site-button px-3 text-sm font-semibold"
+            >
+              {labels.install}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={later}
+            aria-label={labels.close}
+            className="-mr-1 flex size-11 shrink-0 items-center justify-center text-site-muted"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              className="size-4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
+              <path d="M6 6l12 12M18 6 6 18" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
+        {showSteps && <p className="mt-2 rounded-site bg-site-surface p-3 text-sm">{labels.iosHowTo}</p>}
+      </aside>
+    );
+
   return (
     <aside
       aria-labelledby={headingId}

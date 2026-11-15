@@ -492,7 +492,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 <div className="relative mx-auto w-[15rem] sm:w-[17rem] lg:w-[16.5rem] xl:w-[18rem] 2xl:w-[20rem]">
                   {/* Image du téléphone complet (cadre compris, fond transparent) : halo violet autour. */}
                   <Image
-                    src="/images/accueil-telephone.webp"
+                    src="/images/accueil-telephone-v2.webp"
                     width={860}
                     height={1756}
                     alt={t("hero.visualAlt")}
