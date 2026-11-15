@@ -138,7 +138,8 @@ export function PackColumns({
       <div
         role="group"
         aria-label={label}
-        className="mb-4 grid grid-flow-col gap-1 rounded-xl bg-mist-50 p-1 md:hidden"
+        // Collé sous l'en-tête du site pendant qu'on fait défiler le tableau : on sait quel pack on lit.
+        className="sticky top-[4.25rem] z-20 mb-4 grid grid-flow-col gap-1 rounded-xl bg-mist-50 p-1 shadow-[0_6px_16px_-10px_rgba(15,24,48,.35)] md:hidden"
       >
         {packs.map((name, index) => (
           <button

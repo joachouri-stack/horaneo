@@ -88,7 +88,8 @@ export async function PlanCards({
   const t = await getTranslations("home.plans");
   const tGrid = await getTranslations("home.grid");
   const soonSet = new Set(soon);
-  const money = (cents: number) => formatMoney(cents, PLATFORM_CURRENCY, locale);
+  // Prix des packs comparés côte à côte : toujours avec centimes (« 552,00 € », « 92,00 € »).
+  const money = (cents: number) => formatMoney(cents, PLATFORM_CURRENCY, locale, { cents: true });
   // Prix des cartes : partie entière en grand, centimes et devise en petit.
   const bigPrice = (cents: number, gold: boolean, className: string, tailClass = "") => {
     // Prix payants toujours avec centimes (« 46,00 € » à côté de « 19,99 € ») ; gratuit : « 0 € ».
@@ -373,8 +374,19 @@ export async function PlanCards({
               </div>
             )}
 
+            {/* Offre réservée au paiement à l'année : en mensuel, une ligne le dit au lieu de la promettre. */}
+            {offer && offer.requiresCommitment && withYearly && (
+              <p
+                data-billing-only="month"
+                className={`relative mt-6 flex items-center gap-2 text-[0.9375rem] leading-snug ${muted}`}
+              >
+                <TabletLine className="size-5 flex-none" />
+                {t("tablet.yearlyOnly", { title: pickLocalized(offer.title, locale) })}
+              </p>
+            )}
             {offer && (
               <div
+                data-billing-only={offer.requiresCommitment && withYearly ? "year" : undefined}
                 className={`relative mt-6 flex items-center gap-3 rounded-xl border p-3.5 ${featured ? "border-champagne/30 bg-white/[0.04]" : top ? "border-champagne/40 bg-champagne-soft/60" : "border-accent-line bg-accent-soft/60"}`}
               >
                 <span
@@ -457,7 +469,10 @@ export async function PlanCards({
                 </p>
               )}
               {offer && (
-                <details className={`group mt-2 text-center text-[0.875rem] leading-snug ${muted}`}>
+                <details
+                  data-billing-only={offer.requiresCommitment && withYearly ? "year" : undefined}
+                  className={`group mt-2 text-center text-[0.875rem] leading-snug ${muted}`}
+                >
                   <summary
                     className={`inline-flex min-h-11 cursor-pointer list-none items-center underline underline-offset-2 [&::-webkit-details-marker]:hidden ${featured ? "hover:text-champagne" : "hover:text-accent-strong"}`}
                   >
