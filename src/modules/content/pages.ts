@@ -1,9 +1,10 @@
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
-import { sitePages, tenants } from "@/db/schema";
+import { assets, sitePages, tenants } from "@/db/schema";
 import type { LocalizedText } from "@/i18n/locales";
 import { AppError } from "@/modules/errors";
+import { retireAsset } from "@/modules/media/assets";
 import { setLocalized } from "./localized";
 
 /**
@@ -140,4 +141,37 @@ export async function updatePage(tx: Transaction, tenantId: string, raw: z.input
     .where(eq(sitePages.id, page.id))
     .returning();
   return updated;
+}
+
+/**
+ * Grande photo de l'accueil changée par la gérante : la nouvelle photo (déjà envoyée) prend la
+ * place de l'ancienne, qui est retirée (restaurable quelques jours) si elle ne sert plus ailleurs.
+ */
+export async function replaceHomeCover(tx: Transaction, tenantId: string, assetId: string) {
+  const [asset] = await tx
+    .select({ id: assets.id })
+    .from(assets)
+    .where(and(eq(assets.id, assetId), eq(assets.tenantId, tenantId), eq(assets.status, "active")));
+  if (!asset) throw new AppError("not_found");
+  const { page } = await loadPage(tx, tenantId, "home");
+  const content: PageContent = { ...((page.content as PageContent) ?? {}) };
+  const previous = typeof content.coverAssetId === "string" ? content.coverAssetId : null;
+  content.coverAssetId = assetId;
+  await tx.update(sitePages).set({ content }).where(eq(sitePages.id, page.id));
+  if (!previous || previous === assetId) return;
+  // L'ancienne photo sert peut-être encore ailleurs (photo de la page « L'établissement ») : on la garde.
+  const others = await tx
+    .select({ content: sitePages.content })
+    .from(sitePages)
+    .where(eq(sitePages.tenantId, tenantId));
+  const stillUsed = others.some((other) =>
+    Object.values((other.content as PageContent) ?? {}).some((value) => value === previous),
+  );
+  const [old] = await tx
+    .select({ kind: assets.kind, status: assets.status })
+    .from(assets)
+    .where(and(eq(assets.id, previous), eq(assets.tenantId, tenantId)));
+  if (!stillUsed && old?.kind === "cover" && old.status === "active") {
+    await retireAsset(tx, tenantId, previous, assetId);
+  }
 }

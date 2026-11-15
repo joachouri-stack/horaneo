@@ -58,7 +58,12 @@ import {
   saveCategory,
   saveService,
 } from "@/modules/catalog/services";
-import { MANAGER_PAGE_KEYS, PAGE_TEXT_FIELDS, updatePageTexts } from "@/modules/content/pages";
+import {
+  MANAGER_PAGE_KEYS,
+  PAGE_TEXT_FIELDS,
+  replaceHomeCover,
+  updatePageTexts,
+} from "@/modules/content/pages";
 import { deleteTestimonial, saveTestimonial } from "@/modules/content/testimonials";
 import { deleteCustomer, mergeCustomers, saveCustomer, searchCustomers } from "@/modules/customers/customers";
 import {
@@ -461,6 +466,23 @@ export async function uploadPhotoAction(_previous: Previous, data: FormData) {
   });
 }
 
+/** Grande photo de l'accueil : envoyée, puis mise à la place de l'ancienne. */
+export async function uploadHomeCoverAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const bytes = (await form.file(data, "file")) ?? new Uint8Array();
+  return managerMutation(tenantId, "site", "page.cover_updated", async (tx, context) => {
+    await assertPrimaryBusiness(tx, tenantId, context.businessId, "site_content_primary_only");
+    const { id: assetId } = await uploadAsset(tx, storage(), tenantId, {
+      bytes,
+      kind: "cover",
+      uploadedByUserId: context.userId,
+      alt: form.optional(data, "alt"),
+    });
+    await replaceHomeCover(tx, tenantId, assetId);
+    return { assetId };
+  });
+}
+
 /** Couleurs du site : palette choisie par la gérante. */
 export async function savePaletteAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
@@ -474,8 +496,11 @@ export async function savePaletteAction(_previous: Previous, data: FormData) {
 export async function savePageTextsAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   const pageKey = z.enum(MANAGER_PAGE_KEYS).parse(form.text(data, "pageKey"));
+  // Seuls les champs affichés sont enregistrés : un champ absent du formulaire garde son texte.
   const texts = Object.fromEntries(
-    PAGE_TEXT_FIELDS[pageKey].map((field) => [field, form.text(data, `text.${field}`)]),
+    PAGE_TEXT_FIELDS[pageKey]
+      .filter((field) => data.has(`text.${field}`))
+      .map((field) => [field, form.text(data, `text.${field}`)]),
   );
   return managerMutation(tenantId, "site", "page.texts_updated", async (tx, context) => {
     await assertPrimaryBusiness(tx, tenantId, context.businessId, "site_content_primary_only");

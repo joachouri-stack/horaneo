@@ -2,7 +2,7 @@
 
 import { MAX_UPLOAD_BYTES } from "@/config/uploads";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useId, useState } from "react";
 import Cropper, { type Area } from "react-easy-crop";
 import { ui } from "@/components/ui/styles";
 import type { ActionResult } from "@/lib/actions/result";
@@ -20,6 +20,12 @@ const KINDS = ["gallery", "cover", "staff", "service", "other"] as const;
 type Props = {
   tenantId: string;
   action: (previous: ActionResult<unknown> | null, data: FormData) => Promise<ActionResult<unknown>>;
+  /** Emplacement imposé (ex. la galerie, ou la grande photo de l'accueil) : la liste est masquée. */
+  kind?: (typeof KINDS)[number];
+  /** Texte du bouton de choix (par défaut « Choisir une photo »). */
+  chooseLabel?: string;
+  /** Message affiché après l'envoi (par défaut « Enregistré »). */
+  doneLabel?: string;
 };
 
 /** Recadre la zone choisie dans une image (côté navigateur), au plus 2400 px de large. */
@@ -48,12 +54,14 @@ async function cropToBlob(source: string, area: Area): Promise<Blob> {
  * Ajout d'une photo par la gérante : choix de l'emplacement, recadrage au bon
  * format avec aperçu, puis envoi. Le serveur compresse et nettoie ensuite l'image.
  */
-export function PhotoCropUpload({ tenantId, action }: Props) {
+export function PhotoCropUpload({ tenantId, action, kind: fixedKind, chooseLabel, doneLabel }: Props) {
   const t = useTranslations("manager.photos");
   const tPhotos = useTranslations("admin.tenant.photos");
   const tErrors = useTranslations("errors");
   const tCommon = useTranslations("common");
-  const [kind, setKind] = useState<(typeof KINDS)[number]>("gallery");
+  const [kind, setKind] = useState<(typeof KINDS)[number]>(fixedKind ?? "gallery");
+  // Identifiants propres : plusieurs envois de photos peuvent être sur la même page.
+  const uid = useId();
   const [file, setFile] = useState<File | null>(null);
   const [source, setSource] = useState<string | null>(null);
   const [canCrop, setCanCrop] = useState(true);
@@ -106,29 +114,31 @@ export function PhotoCropUpload({ tenantId, action }: Props) {
     setPending(false);
     if (result.ok) {
       reset();
-      setMessage({ ok: true, text: tCommon("saved") });
+      setMessage({ ok: true, text: doneLabel ?? tCommon("saved") });
     } else setMessage({ ok: false, text: tErrors(result.error) });
   }
 
   return (
     <div className="space-y-4">
-      <div>
-        <label htmlFor="photo-kind" className={ui.label}>
-          {tPhotos("kind")}
-        </label>
-        <select
-          id="photo-kind"
-          value={kind}
-          onChange={(event) => setKind(event.target.value as (typeof KINDS)[number])}
-          className={ui.input}
-        >
-          {KINDS.map((value) => (
-            <option key={value} value={value}>
-              {tPhotos(`kinds.${value}`)}
-            </option>
-          ))}
-        </select>
-      </div>
+      {!fixedKind && (
+        <div>
+          <label htmlFor={`${uid}-kind`} className={ui.label}>
+            {tPhotos("kind")}
+          </label>
+          <select
+            id={`${uid}-kind`}
+            value={kind}
+            onChange={(event) => setKind(event.target.value as (typeof KINDS)[number])}
+            className={ui.input}
+          >
+            {KINDS.map((value) => (
+              <option key={value} value={value}>
+                {tPhotos(`kinds.${value}`)}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {!source ? (
         <label className={`${ui.secondaryButton} cursor-pointer`}>
@@ -138,7 +148,7 @@ export function PhotoCropUpload({ tenantId, action }: Props) {
             className="sr-only"
             onChange={(event) => choose(event.target.files?.[0])}
           />
-          📷 {t("choose")}
+          📷 {chooseLabel ?? t("choose")}
         </label>
       ) : (
         <div className="space-y-3">
@@ -183,11 +193,11 @@ export function PhotoCropUpload({ tenantId, action }: Props) {
             <p className="text-sm text-ink/70">{t("noCrop")}</p>
           )}
           <div>
-            <label htmlFor="photo-alt" className={ui.label}>
+            <label htmlFor={`${uid}-alt`} className={ui.label}>
               {tPhotos("alt")}
             </label>
             <input
-              id="photo-alt"
+              id={`${uid}-alt`}
               value={alt}
               onChange={(event) => setAlt(event.target.value)}
               className={ui.input}

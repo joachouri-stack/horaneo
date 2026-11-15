@@ -25,7 +25,7 @@ function parentOf(
 }
 
 /**
- * Zone de contenu de l'espace gérante : l'accueil, l'agenda, la liste des clientes, les outils,
+ * Zone de contenu de l'espace gérante : l'accueil, l'agenda, la liste des clientes, « Mon site », les outils,
  * l'équipe et les statistiques prennent toute la largeur sur ordinateur ; les autres pages (formulaires,
  * listes) restent étroites.
  */
@@ -39,6 +39,8 @@ export function ManagerMain({ tenantId, children }: { tenantId: string; children
     pathname === base ||
     pathname.startsWith(`${base}/agenda`) ||
     pathname === `${base}/clientes` ||
+    // « Mon site » : les blocs à modifier et l'aperçu côte à côte.
+    pathname === `${base}/site` ||
     pathname === `${base}/plus` ||
     pathname === `${base}/plus/equipe` ||
     pathname.startsWith(`${base}/plus/statistiques`);
