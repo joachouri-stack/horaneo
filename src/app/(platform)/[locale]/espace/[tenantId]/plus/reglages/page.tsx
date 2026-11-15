@@ -6,7 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
 import { paymentGateway } from "@/lib/payments/stripe";
 import { paymentSetup } from "@/modules/payments/connect";
-import { getBookingSettings, SLOT_INTERVALS } from "@/modules/booking/settings";
+import { BREAK_MINUTES, getBookingSettings, SLOT_INTERVALS } from "@/modules/booking/settings";
 import { planAllowsBooking } from "@/modules/billing/features";
 import { centsToInput } from "@/lib/format";
 import { getPlatformSetting } from "@/modules/settings";
@@ -134,6 +134,21 @@ export default async function SettingsPage({
               options={SLOT_INTERVALS.map((value) => ({
                 value: String(value),
                 label: t("minutes", { count: value }),
+              }))}
+            />
+            <SelectField
+              name="breakMinutes"
+              label={t("break")}
+              hint={t("breakHint")}
+              defaultValue={String(settings.breakMinutes)}
+              options={BREAK_MINUTES.map((value) => ({
+                value: String(value),
+                label:
+                  value === 0
+                    ? t("breakNone")
+                    : value % 60 === 0
+                      ? t("breakHours", { count: value / 60 })
+                      : t("minutes", { count: value }),
               }))}
             />
             <SelectField

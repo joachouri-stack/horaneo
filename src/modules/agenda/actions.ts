@@ -16,7 +16,8 @@ import {
 import { assignManageToken } from "@/modules/booking/create";
 import { isValidBirthday } from "@/modules/customers/birthday";
 import { findSamePerson } from "@/modules/customers/customers";
-import { computeTotals } from "@/modules/booking/pricing";
+import { computeTotals, withBreak } from "@/modules/booking/pricing";
+import { getBookingSettings } from "@/modules/booking/settings";
 import { addMinutes } from "@/modules/booking/time";
 import { creditBackForAppointment } from "@/modules/giftcards/giftcards";
 import { AppError } from "@/modules/errors";
@@ -232,7 +233,8 @@ export async function createManualAppointment(
     throw new AppError("service_unavailable", "serviceIds");
   const ordered = input.serviceIds.map((id) => chosen.find((service) => service.id === id)!);
   await assertStaffDoesServices(tx, tenantId, input.staffId, input.serviceIds);
-  const totals = computeTotals(ordered);
+  const { breakMinutes } = await getBookingSettings(tx, tenantId);
+  const totals = withBreak(computeTotals(ordered), breakMinutes);
 
   let customerId = input.customerId;
   if (customerId) {

@@ -9,6 +9,8 @@ import { getTenantPlan } from "@/modules/quotas";
 /** Règles de réservation et préférences, réglables par la gérante. */
 
 export const SLOT_INTERVALS = [5, 10, 15, 20, 30, 60] as const;
+/** Pauses proposées entre deux rendez-vous, en minutes (0 = aucune). */
+export const BREAK_MINUTES = [0, 5, 10, 15, 20, 30, 45, 60] as const;
 
 export const bookingSettingsInput = z.object({
   minNoticeHours: z.coerce.number().min(0).max(168),
@@ -18,6 +20,11 @@ export const bookingSettingsInput = z.object({
     .int()
     .refine((value) => (SLOT_INTERVALS as readonly number[]).includes(value)),
   maxServicesPerBooking: z.coerce.number().int().min(1).max(3),
+  breakMinutes: z.coerce
+    .number()
+    .int()
+    .refine((value) => (BREAK_MINUTES as readonly number[]).includes(value))
+    .default(0),
   cancellationDeadlineHours: z.coerce.number().int().min(0).max(168),
   depositEnabled: z.boolean(),
   depositType: z.enum(["percent", "fixed"]),
@@ -73,6 +80,7 @@ export async function updateBookingSettings(
       maxAdvanceDays: input.maxAdvanceDays,
       slotIntervalMinutes: input.slotIntervalMinutes,
       maxServicesPerBooking: input.maxServicesPerBooking,
+      breakMinutes: input.breakMinutes,
       cancellationDeadlineHours: input.cancellationDeadlineHours,
       depositEnabled: input.depositEnabled,
       depositType: input.depositType,

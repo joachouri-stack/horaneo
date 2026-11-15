@@ -371,6 +371,35 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
       );
     });
 
+    it("garde la pause entre deux rendez-vous après un ajout manuel", async () => {
+      const s = await setup();
+      await asManager(s.id, (tx) =>
+        updateBookingSettings(tx, s.id, {
+          minNoticeHours: "0",
+          maxAdvanceDays: "30",
+          slotIntervalMinutes: "15",
+          maxServicesPerBooking: "2",
+          cancellationDeadlineHours: "24",
+          breakMinutes: "15",
+          depositEnabled: false,
+          depositType: "percent",
+          depositValue: "30",
+          dailySummaryEnabled: true,
+          monthlySummaryEnabled: true,
+        } as never),
+      );
+      const result = await asManager(s.id, (tx) =>
+        createManualAppointment(tx, s.id, {
+          serviceIds: [s.surPlace.id],
+          staffId: s.lea.id,
+          start: at("10:00"),
+          newCustomer: { firstName: "Zoé", phone: "06 11 22 33 44" },
+        }),
+      );
+      const [row] = await owner.select().from(appointments).where(eq(appointments.id, result.appointmentId));
+      expect(row.blockedUntil.getTime() - row.endsAt.getTime()).toBe(15 * 60_000);
+    });
+
     it("refuse un chevauchement avec un autre rendez-vous du membre", async () => {
       const s = await setup();
       await onlineBooking(s.id, s.massage.id, at("10:00"));
@@ -743,8 +772,11 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
 
     it("enregistre les règles de réservation", async () => {
       const s = await setup();
-      const updated = await asManager(s.id, (tx) => updateBookingSettings(tx, s.id, base as never));
+      const updated = await asManager(s.id, (tx) =>
+        updateBookingSettings(tx, s.id, { ...base, breakMinutes: "15" } as never),
+      );
       expect(updated).toMatchObject({
+        breakMinutes: 15,
         minNoticeMinutes: 180,
         maxAdvanceDays: 30,
         slotIntervalMinutes: 30,
@@ -773,6 +805,10 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
           ),
         ),
       ).toBe("feature_unavailable");
+      // Pause non proposée (7 min) : refusée par la validation.
+      await expect(
+        asManager(s.id, (tx) => updateBookingSettings(tx, s.id, { ...base, breakMinutes: "7" } as never)),
+      ).rejects.toThrow();
       // Intervalle non proposé (7 min) : refusé par la validation.
       await expect(
         asManager(s.id, (tx) =>

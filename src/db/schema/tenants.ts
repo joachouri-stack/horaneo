@@ -241,6 +241,8 @@ export const businessSettings = pgTable(
     /** Pourcentage (30 = 30 %) ou montant fixe en centimes, selon depositType. */
     depositValue: integer().notNull().default(30),
     holdMinutes: smallint().notNull().default(10),
+    /** Pause gardée libre après chaque rendez-vous (minutes) : personne ne peut réserver juste après. */
+    breakMinutes: smallint().notNull().default(0),
     dailySummaryEnabled: boolean().notNull().default(true),
     monthlySummaryEnabled: boolean().notNull().default(true),
     /** Demande d'avis Google envoyée à la cliente après un rendez-vous marqué « venue ». */
@@ -294,6 +296,7 @@ export const businessSettings = pgTable(
     check("tenant_settings_deposit_value", sql`${t.depositValue} >= 0`),
     check("tenant_settings_deposit_percent", sql`${t.depositType} <> 'percent' or ${t.depositValue} <= 100`),
     check("tenant_settings_hold", sql`${t.holdMinutes} between 1 and 60`),
+    check("business_settings_break", sql`${t.breakMinutes} between 0 and 120`),
     check("business_settings_gift_validity", sql`${t.giftCardValidityMonths} between 1 and 60`),
     check("business_settings_loyalty_visits", sql`${t.loyaltyVisitsRequired} between 2 and 50`),
     check("business_settings_loyalty_validity", sql`${t.loyaltyRewardValidityDays} between 7 and 730`),
