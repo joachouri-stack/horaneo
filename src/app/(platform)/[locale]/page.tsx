@@ -165,9 +165,6 @@ const FEATURE_TILES = [
 
 const TITLE = "font-display font-semibold tracking-[-0.025em] text-night";
 
-/** Point corail devant les badges de section : le rappel du point du « o » de la marque. */
-const EYEBROW_DOT = <span aria-hidden="true" className="size-1.5 flex-none rounded-full bg-coral" />;
-
 /** Titre dont le point (ou le point d'interrogation) final passe en corail, comme le point du logo. */
 function coralStop(text: string) {
   const stop = text.at(-1);
@@ -179,8 +176,6 @@ function coralStop(text: string) {
     </>
   );
 }
-const EYEBROW =
-  "inline-flex items-center gap-2 rounded-full bg-coral/10 px-3 py-1 text-[0.875rem] font-medium uppercase tracking-[0.08em] text-coral-dark";
 const PRIMARY =
   "hn-shine group inline-flex min-h-12 items-center gap-2 rounded-xl bg-accent px-5 text-[1.0625rem] font-medium text-white shadow-[0_12px_24px_-14px_var(--accent)] transition hover:-translate-y-px hover:bg-accent-strong motion-reduce:transition-none";
 /** Accroche sur fond bleu nuit : bouton principal au dégradé du logo, secondaire translucide. */
@@ -560,16 +555,13 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 <div key={code} data-only={code} className="pt-10 lg:pt-14">
                   <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-14">
                     <div data-reveal className="min-w-0">
-                      <p className={EYEBROW}>
-                        {EYEBROW_DOT}
-                        {t(`solutions.items.${code}.badge`)}
-                        {isSoon(code) && (
-                          <span className="rounded-full bg-white px-2 py-px text-mk-note normal-case tracking-normal text-ink-soft">
-                            {t("solutions.soon")}
-                          </span>
-                        )}
-                      </p>
-                      <h3 className={`${TITLE} hn-balance mt-4 text-mk-h2 leading-[1.1]`}>
+                      {/* Solution en préparation : seule l'étiquette « Bientôt » reste au-dessus du titre. */}
+                      {isSoon(code) && (
+                        <p className="mb-4 inline-flex rounded-full bg-mist-50 px-2.5 py-0.5 text-mk-note text-ink-soft">
+                          {t("solutions.soon")}
+                        </p>
+                      )}
+                      <h3 className={`${TITLE} hn-balance text-mk-h2 leading-[1.1]`}>
                         {t(`solutions.items.${code}.title`)}
                         <br />
                         <span className="hn-grad-text">
@@ -665,10 +657,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           <section aria-labelledby="titre-exemple" className="px-4 pt-20 sm:px-6 lg:pt-28">
             <div className="mx-auto max-w-[72rem] 2xl:max-w-[85rem]">
               <div className="mx-auto max-w-[46rem] text-center">
-                <p data-reveal className={EYEBROW}>
-                  {EYEBROW_DOT}
-                  {t("example.badge")}
-                </p>
                 {/* Titre et texte déjà écrits dans la photo : gardés pour Google et les lecteurs d'écran. */}
                 <h2 id="titre-exemple" className="sr-only">
                   {t("example.title")} {t("example.titleAccent")}
@@ -702,15 +690,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             </div>
             <div className="mx-auto max-w-[72rem] 2xl:max-w-[85rem]">
               <div className="mx-auto max-w-[46rem] text-center">
-                <p data-reveal className={EYEBROW}>
-                  {EYEBROW_DOT}
-                  {t("dashboard.badge")}
-                </p>
-                <h2
-                  id="titre-tableau"
-                  data-reveal
-                  className={`${TITLE} hn-balance mt-4 text-mk-h2 leading-[1.1]`}
-                >
+                <h2 id="titre-tableau" data-reveal className={`${TITLE} hn-balance text-mk-h2 leading-[1.1]`}>
                   {t("dashboard.title")}{" "}
                   <span className="hn-grad-text block">{coralStop(t("dashboard.titleAccent"))}</span>
                 </h2>
@@ -741,15 +721,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           <section aria-labelledby="titre-etapes" className="px-4 pt-20 sm:px-6 lg:pt-28">
             <div className="mx-auto max-w-[72rem] 2xl:max-w-[85rem]">
               <div className="mx-auto max-w-[46rem] text-center">
-                <p data-reveal className={EYEBROW}>
-                  {EYEBROW_DOT}
-                  {t("steps.badge")}
-                </p>
-                <h2
-                  id="titre-etapes"
-                  data-reveal
-                  className={`${TITLE} hn-balance mt-4 text-mk-h2 leading-[1.1]`}
-                >
+                <h2 id="titre-etapes" data-reveal className={`${TITLE} hn-balance text-mk-h2 leading-[1.1]`}>
                   {t("steps.title")}{" "}
                   <span className="hn-grad-text block">{coralStop(t("steps.titleAccent"))}</span>
                 </h2>
@@ -871,14 +843,10 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             className="mx-auto max-w-[75rem] scroll-mt-20 px-4 pt-20 sm:px-6 lg:pt-28 2xl:max-w-[88rem]"
           >
             <div className="flex flex-col items-center text-center">
-              <p data-reveal className={EYEBROW}>
-                {EYEBROW_DOT}
-                {t("benefits.badge")}
-              </p>
               <h2
                 id="titre-fonctionnalites"
                 data-reveal
-                className={`${TITLE} hn-balance mt-4 text-mk-h2 leading-[1.1]`}
+                className={`${TITLE} hn-balance text-mk-h2 leading-[1.1]`}
               >
                 {t("growth.title")} <span className="hn-grad-text">{coralStop(t("growth.titleAccent"))}</span>
               </h2>
@@ -925,14 +893,10 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               aria-labelledby="titre-temoignages"
               className="mx-auto max-w-[75rem] 2xl:max-w-[88rem] px-4 pt-20 sm:px-6 lg:pt-28"
             >
-              <p data-reveal className={EYEBROW}>
-                {EYEBROW_DOT}
-                {t("showcase.badge")}
-              </p>
               <h2
                 id="titre-temoignages"
                 data-reveal
-                className={`${TITLE} mt-4 max-w-[44rem] text-mk-h2 leading-[1.1]`}
+                className={`${TITLE} max-w-[44rem] text-mk-h2 leading-[1.1]`}
               >
                 {t("showcase.title")}{" "}
                 <span className="hn-grad-text">{coralStop(t("showcase.titleAccent"))}</span>
