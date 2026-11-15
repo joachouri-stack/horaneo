@@ -1,32 +1,21 @@
 import { getTranslations } from "next-intl/server";
-import {
-  DASH_ICONS,
-  DashIcon,
-  Donut,
-  panel,
-  RevenueBars,
-  SplitBar,
-  StatCard,
-  Trend,
-} from "@/components/manager/DashboardWidgets";
+import { DASH_ICONS, DashIcon, panel, StatCard, Trend } from "@/components/manager/DashboardWidgets";
 import { DayTimeline } from "@/components/manager/DayTimeline";
 import { InstallAppCard } from "@/components/manager/InstallAppCard";
 import { PushReminder } from "@/components/manager/PushReminder";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
-import { dayRange, todaySummary, upcomingAppointments } from "@/modules/agenda/queries";
+import { todaySummary, upcomingAppointments } from "@/modules/agenda/queries";
 import { smsUsage } from "@/modules/messages/sms-usage";
-import { reviewsCacheByBusiness } from "@/modules/reviews/google";
 import { getPlatformSetting } from "@/modules/settings";
 import { dashboardStats, trendPercent } from "@/modules/stats/dashboard";
-import { monthStats } from "@/modules/stats/month";
 import { openShopOrdersCount } from "@/modules/shop/orders";
 import { agendaStaffFilter, canAccess } from "@/modules/team/access";
 
 /**
- * Accueil de l'espace gérante (tableau de bord) : salutation et actions, chiffres
- * clés, agenda du jour (ou prochains rendez-vous), chiffre d'affaires des 7 derniers
- * jours, répartition des prestations et part des réservations en ligne du mois.
+ * Accueil de l'espace gérante : salutation et actions, rappels utiles, agenda du jour
+ * (ou prochains rendez-vous) et trois chiffres clés. Les graphiques détaillés sont
+ * sur la page Statistiques, pour que l'accueil reste centré sur la journée.
  */
 export default async function TodayPage({ params }: PageProps<"/[locale]/espace/[tenantId]">) {
   const page = await managerPage(params, "agenda");
@@ -37,14 +26,13 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
   const staffId = agendaStaffFilter(page.space);
   const showStats = canAccess(page.space, "stats");
   const isOwner = canAccess(page.space, "owner");
-  const [summary, sms, warningPercent, stats, reviews] = await page.db(
+  const [summary, sms, warningPercent, stats] = await page.db(
     async (tx) =>
       [
         await todaySummary(tx, page.tenantId, tz, page.locale, now, staffId),
         await smsUsage(tx, page.tenantId),
         await getPlatformSetting(tx, "sms_warning_percent"),
         await dashboardStats(tx, page.tenantId, tz, now),
-        (await reviewsCacheByBusiness(tx, page.tenantId)).get(page.businessId),
       ] as const,
   );
   // Commandes de la boutique à traiter : rappel en haut de l'accueil.
@@ -52,9 +40,6 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
     page.tenant.features.commerce && canAccess(page.space, "shop")
       ? await page.db((tx) => openShopOrdersCount(tx, page.tenantId))
       : 0;
-  const month = await page.db((tx) =>
-    monthStats(tx, page.tenantId, stats.today.slice(0, 7), tz, page.locale),
-  );
   // Journée vide : on montre les prochains rendez-vous plutôt qu'un écran vide.
   const upcoming =
     summary.appointments.length === 0
@@ -72,12 +57,8 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
     month: "short",
     timeZone: tz,
   });
-  const weekday = new Intl.DateTimeFormat(page.locale, { weekday: "short", timeZone: tz });
   const firstName = page.session.user.name?.trim().split(/\s+/)[0] ?? "";
   const online = summary.appointments.filter((item) => item.source === "online").length;
-  const monthTotal = month.online + month.manual;
-  const servicesTotal = month.topServices.reduce((sum, [, count]) => sum + count, 0);
-  const rating = reviews?.fetchedAt && reviews.rating !== null ? reviews : null;
   // Alerte SMS : à partir du seuil du quota du mois, sauf si des SMS achetés prennent le relais.
   const smsAlert =
     isOwner && sms && sms.limit !== null && sms.limit > 0 && sms.packsRemaining === 0
@@ -89,8 +70,6 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
       : null;
 
   return (
-    // Sur téléphone, l'agenda du jour passe juste après les actions, avant les chiffres
-    // et les rappels ; sur ordinateur, l'ordre d'origine (tout tient à l'écran).
     <div className="flex flex-col gap-6">
       {/* Salutation et actions principales. */}
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -137,96 +116,8 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
         </p>
       )}
 
-      {/* Rappel tant que les notifications ne sont pas activées sur cet appareil (gérante seulement). */}
-      {page.role !== "admin" && (
-        <div className="order-3 space-y-6 empty:hidden lg:order-none">
-          <InstallAppCard
-            iconUrl="/api/app/icon/192"
-            labels={{
-              title: t("install.title"),
-              text: t("install.text"),
-              install: t("install.install"),
-              later: t("install.later"),
-              iosHowTo: t("install.iosHowTo"),
-            }}
-          />
-          {isOwner && (
-            <PushReminder
-              href={`${page.base}/notifications`}
-              labels={{
-                title: t("pushReminder.title"),
-                text: t("pushReminder.text"),
-                action: t("pushReminder.action"),
-                later: t("pushReminder.later"),
-              }}
-            />
-          )}
-        </div>
-      )}
-
-      {/* Chiffres clés (collaborateur sans accès aux statistiques : le nombre de rendez-vous seulement). */}
-      {showStats ? (
-        <div
-          className={`order-2 grid grid-cols-2 gap-3 sm:gap-4 lg:order-none [&>*:last-child:nth-child(odd)]:col-span-2 xl:[&>*:last-child:nth-child(odd)]:col-span-1 ${rating ? "xl:grid-cols-5" : "xl:grid-cols-4"}`}
-        >
-          <StatCard
-            icon={DASH_ICONS.calendar}
-            tone="indigo"
-            label={t("appointments")}
-            value={String(summary.count)}
-            sub={t("newBookings", { count: summary.newBookings })}
-          />
-          <StatCard
-            icon={DASH_ICONS.euro}
-            tone="green"
-            label={t("revenue")}
-            value={page.fmt.money(summary.revenueCents)}
-            sub={t("todayOnline", { count: online })}
-          />
-          <StatCard
-            icon={DASH_ICONS.users}
-            tone="violet"
-            label={t("newCustomers")}
-            value={String(stats.newCustomers)}
-            sub={t("last7")}
-            trend={
-              <Trend
-                value={trendPercent(stats.newCustomers, stats.previousNewCustomers)}
-                label={t("trendLabel")}
-              />
-            }
-          />
-          <StatCard
-            icon={DASH_ICONS.globe}
-            tone="teal"
-            label={t("onlineRate")}
-            value={`${monthTotal ? Math.round((month.online / monthTotal) * 100) : 0} %`}
-            sub={t("onlineRateSub", { online: month.online, total: monthTotal })}
-          />
-          {rating && (
-            <StatCard
-              icon={DASH_ICONS.star}
-              tone="amber"
-              label={t("reviews")}
-              value={(rating.rating ?? 0).toLocaleString(page.locale, { maximumFractionDigits: 1 })}
-              sub={t("reviewsCount", { count: rating.total })}
-            />
-          )}
-        </div>
-      ) : (
-        <div className="order-2 grid grid-cols-2 gap-3 sm:gap-4 lg:order-none xl:grid-cols-4">
-          <StatCard
-            icon={DASH_ICONS.calendar}
-            tone="indigo"
-            label={t("appointments")}
-            value={String(summary.count)}
-            sub={t("newBookings", { count: summary.newBookings })}
-          />
-        </div>
-      )}
-
-      <div className={`order-1 grid gap-6 lg:order-none ${showStats ? "lg:grid-cols-3" : ""}`}>
-        {/* Agenda du jour. */}
+      <div className={`grid gap-6 ${showStats ? "lg:grid-cols-3" : ""}`}>
+        {/* Agenda du jour : le cœur de l'accueil. */}
         <section
           aria-labelledby="rdv-du-jour"
           className={`${panel} min-w-0 ${showStats ? "lg:col-span-2" : ""}`}
@@ -285,67 +176,67 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
           )}
         </section>
 
+        {/* Deux chiffres clés, sans graphique (le nombre de rendez-vous est déjà dans l'agenda). */}
         {showStats && (
-          <div className="min-w-0 space-y-6">
-            {/* Chiffre d'affaires des 7 derniers jours. */}
-            <section aria-labelledby="ca-semaine" className={panel}>
-              <h2 id="ca-semaine" className="font-display text-[1.1rem] font-semibold text-night">
-                {t("revenueTitle")}
-              </h2>
-              <p className="text-sm text-ink-soft">{t("last7")}</p>
-              <p className="mt-3 flex flex-wrap items-baseline gap-2">
-                <span className="font-display text-[1.9rem] font-semibold leading-none tracking-[-0.02em] text-night tabular-nums">
-                  {page.fmt.money(stats.weekCents)}
-                </span>
-                <Trend
-                  value={trendPercent(stats.weekCents, stats.previousWeekCents)}
-                  label={t("trendLabel")}
-                />
-              </p>
-              <RevenueBars
-                days={stats.revenue.map((day) => {
-                  const instant = dayRange(day.date, tz).start;
-                  return {
-                    label: weekday.format(instant).replace(".", ""),
-                    value: page.fmt.money(day.cents),
-                    cents: day.cents,
-                    today: day.date === stats.today,
-                  };
-                })}
+          <aside aria-label={t("keyFigures")} className="min-w-0 space-y-3">
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
+              <StatCard
+                icon={DASH_ICONS.euro}
+                tone="green"
+                label={t("revenue")}
+                value={page.fmt.money(summary.revenueCents)}
+                sub={t("todayOnline", { count: online })}
               />
-            </section>
-
-            {/* Répartition des prestations du mois. */}
-            <section aria-labelledby="prestations-mois" className={panel}>
-              <h2 id="prestations-mois" className="font-display text-[1.1rem] font-semibold text-night">
-                {t("servicesTitle")}
-              </h2>
-              <p className="text-sm text-ink-soft">{t("thisMonth")}</p>
-              {servicesTotal === 0 ? (
-                <p className="mt-4 text-[0.9375rem] text-ink-soft">{t("noData")}</p>
-              ) : (
-                <Donut
-                  items={month.topServices.map(([label, value]) => ({ label, value }))}
-                  total={servicesTotal}
-                  centerLabel={t("servicesUnit", { count: servicesTotal })}
-                />
-              )}
-            </section>
-
-            {/* Réservations du mois : en ligne ou ajoutées au salon. */}
-            <section aria-labelledby="canal-mois" className={panel}>
-              <h2 id="canal-mois" className="font-display text-[1.1rem] font-semibold text-night">
-                {t("channelTitle")}
-              </h2>
-              <p className="text-sm text-ink-soft">{t("thisMonth")}</p>
-              <SplitBar
-                left={{ label: t("online"), value: month.online }}
-                right={{ label: t("salon"), value: month.manual }}
+              <StatCard
+                icon={DASH_ICONS.chart}
+                tone="violet"
+                label={t("weekRevenue")}
+                value={page.fmt.money(stats.weekCents)}
+                sub={
+                  <Trend
+                    value={trendPercent(stats.weekCents, stats.previousWeekCents)}
+                    label={t("trendLabel")}
+                  />
+                }
               />
-            </section>
-          </div>
+            </div>
+            <Link
+              href={`${page.base}/plus/statistiques`}
+              className="inline-flex min-h-12 w-full items-center justify-center gap-1.5 rounded-xl border border-hairline bg-white px-4 text-[0.95rem] font-medium text-accent transition hover:border-accent-line"
+            >
+              {t("statsLink")}
+              <DashIcon d={DASH_ICONS.arrow} className="h-4 w-4" />
+            </Link>
+          </aside>
         )}
       </div>
+
+      {/* Rappels tant que l'application ou les notifications ne sont pas activées (gérante seulement). */}
+      {page.role !== "admin" && (
+        <div className="space-y-6 empty:hidden">
+          <InstallAppCard
+            iconUrl="/api/app/icon/192"
+            labels={{
+              title: t("install.title"),
+              text: t("install.text"),
+              install: t("install.install"),
+              later: t("install.later"),
+              iosHowTo: t("install.iosHowTo"),
+            }}
+          />
+          {isOwner && (
+            <PushReminder
+              href={`${page.base}/notifications`}
+              labels={{
+                title: t("pushReminder.title"),
+                text: t("pushReminder.text"),
+                action: t("pushReminder.action"),
+                later: t("pushReminder.later"),
+              }}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -16,6 +16,7 @@ export const DASH_ICONS = {
   plus: "M12 5v14M5 12h14",
   arrow: "M5 12h14M13.5 6.5 19 12l-5.5 5.5",
   clock: "M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0",
+  chart: "M4 20h16M7 16v-4M12 16V8M17 16v-7",
 } as const;
 
 export function DashIcon({ d, className = "h-5 w-5" }: { d: string; className?: string }) {
