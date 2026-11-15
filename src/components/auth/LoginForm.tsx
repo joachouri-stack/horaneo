@@ -7,6 +7,7 @@ import { ui } from "@/components/ui/styles";
 import { Link } from "@/i18n/navigation";
 import { verifyLoginCodeAction } from "@/app/(platform)/[locale]/connexion/actions";
 import { authClient } from "@/lib/auth/client";
+import { suggestEmail } from "@/lib/auth/email-typos";
 import type { SocialProviderId } from "@/lib/auth/providers";
 
 type Props = {
@@ -64,7 +65,11 @@ export function LoginForm({ providers, callbackPath, errorPath, intro }: Props) 
   // Renvoi de l'e-mail : possible après une courte attente.
   const [wait, setWait] = useState(0);
   const [resent, setResent] = useState(false);
+  // Adresse saisie, gardée en cas d'erreur et quand on revient pour en changer.
+  const [email, setEmail] = useState("");
   const emailRef = useRef<HTMLInputElement>(null);
+  const suggestion = suggestEmail(email.trim());
+  const emailInvalid = state.step === "form" && state.error === "invalidEmail";
 
   // Ordinateur (souris) : le champ e-mail est prêt à la saisie. Pas sur téléphone (clavier ouvert d'office).
   useEffect(() => {
@@ -94,21 +99,27 @@ export function LoginForm({ providers, callbackPath, errorPath, intro }: Props) 
     }
   }
 
-  async function sendMagicLink(formData: FormData) {
-    const email = String(formData.get("email") ?? "").trim();
-    if (!EMAIL.test(email)) {
+  // onSubmit (et non action) : le champ garde l'adresse saisie en cas d'erreur.
+  async function sendMagicLink(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const address = email.trim();
+    if (!EMAIL.test(address)) {
       setState({ step: "form", error: "invalidEmail" });
+      // Retour dans le champ, pour corriger sans tout retaper.
+      emailRef.current?.focus();
       return;
     }
     setPending(true);
     const { error } = await authClient.signIn.magicLink({
-      email,
+      email: address,
       callbackURL: callbackPath,
       newUserCallbackURL: callbackPath,
       errorCallbackURL: `${errorPath}?erreur=lien`,
     });
     setPending(false);
-    setState(error ? { step: "form", error: errorFromStatus(error.status) } : { step: "sent", email });
+    setState(
+      error ? { step: "form", error: errorFromStatus(error.status) } : { step: "sent", email: address },
+    );
     if (!error) {
       setWait(RESEND_DELAY_SECONDS);
       setResent(false);
@@ -185,6 +196,11 @@ export function LoginForm({ providers, callbackPath, errorPath, intro }: Props) 
             required
             placeholder="123456"
             className={`${ui.input} text-center font-mono text-2xl tracking-[0.4em]`}
+            // 6 chiffres tapés ou collés : connexion sans avoir à appuyer sur le bouton.
+            onInput={(event) => {
+              const input = event.currentTarget;
+              if (!pending && input.value.replace(/\D/g, "").length === 6) input.form?.requestSubmit();
+            }}
           />
           <button type="submit" disabled={pending} className={ui.primaryButton}>
             {pending ? t("checking") : t("codeSubmit")}
@@ -222,7 +238,7 @@ export function LoginForm({ providers, callbackPath, errorPath, intro }: Props) 
       {intro}
       <div className="mt-8 space-y-6">
         {state.error && (
-          <p role="alert" className={ui.error}>
+          <p id="login-error" role="alert" className={ui.error}>
             {t(`errors.${state.error}`)}
           </p>
         )}
@@ -251,7 +267,7 @@ export function LoginForm({ providers, callbackPath, errorPath, intro }: Props) 
           </>
         )}
 
-        <form action={sendMagicLink} noValidate className="space-y-4">
+        <form onSubmit={sendMagicLink} noValidate className="space-y-4">
           <div>
             <label htmlFor="email" className={ui.label}>
               {t("emailLabel")}
@@ -264,9 +280,36 @@ export function LoginForm({ providers, callbackPath, errorPath, intro }: Props) 
               inputMode="email"
               autoComplete="email"
               required
+              value={email}
+              onChange={(event) => {
+                setEmail(event.target.value);
+                if (emailInvalid) setState({ step: "form" });
+              }}
+              aria-invalid={emailInvalid || undefined}
+              aria-describedby={emailInvalid ? "login-error" : suggestion ? "email-suggestion" : undefined}
               placeholder={t("emailPlaceholder")}
-              className={ui.input}
+              className={`${ui.input} ${emailInvalid ? "border-[#b4372a] ring-2 ring-[#b4372a]/20" : ""}`}
             />
+            {/* Faute de frappe probable (« gmial.com ») : correction d'un toucher. */}
+            {suggestion && (
+              <p id="email-suggestion" aria-live="polite" className="mt-2 text-sm text-ink/80">
+                {t.rich("didYouMean", {
+                  email: suggestion,
+                  fix: (chunks) => (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEmail(suggestion);
+                        emailRef.current?.focus();
+                      }}
+                      className="inline-flex min-h-11 items-center font-semibold text-night underline"
+                    >
+                      {chunks}
+                    </button>
+                  ),
+                })}
+              </p>
+            )}
           </div>
           <button type="submit" disabled={pending} className={ui.primaryButton}>
             {pending ? t("sending") : t("sendLink")}

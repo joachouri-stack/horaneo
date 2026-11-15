@@ -1560,7 +1560,8 @@
     "resent": "Un nouvel e-mail vient d'être envoyé.",
     "signupTitle": "Créez votre compte",
     "signupSubtitle": "Sans mot de passe : {social, select, both {continuez avec Google ou Apple, ou recevez un lien par e-mail} google {continuez avec Google, ou recevez un lien par e-mail} apple {continuez avec Apple, ou recevez un lien par e-mail} other {recevez simplement un lien par e-mail}}. Si vous avez déjà un compte, vous retrouverez votre espace.",
-    "chosenPack": "Pack choisi : {name}"
+    "chosenPack": "Pack choisi : {name}",
+    "didYouMean": "Vouliez-vous dire <fix>{email}</fix> ?"
   },
   "account": {
     "metaTitle": "Mon espace",
