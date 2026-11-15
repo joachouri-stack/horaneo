@@ -85,7 +85,7 @@ export function createAuth(database: Database) {
     },
     // Connexion gardée jusqu'à la déconnexion : la durée repart à chaque visite (une fois par jour),
     // au maximum que les navigateurs acceptent pour un cookie (400 jours). L'espace admin garde en
-    // plus sa double vérification toutes les 12 heures.
+    // plus sa double vérification, redemandée tous les 7 jours sur chaque appareil.
     session: {
       expiresIn: SESSION_MAX_AGE_SECONDS,
       updateAge: 60 * 60 * 24,

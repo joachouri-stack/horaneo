@@ -2,11 +2,12 @@
  * Règle d'accès à l'espace admin :
  * 1. être administratrice (sinon la page « n'existe pas ») ;
  * 2. avoir configuré la double vérification ;
- * 3. avoir saisi un code pour cette session, il y a moins de 12 heures.
+ * 3. avoir saisi un code pour cette session, il y a moins de 7 jours.
  */
 export type AdminAccess = "granted" | "not_found" | "setup_required" | "verification_required";
 
-export const ADMIN_VERIFICATION_TTL_MS = 12 * 60 * 60 * 1000;
+/** Le code est redemandé au plus tard 7 jours après sa saisie sur un appareil. */
+export const ADMIN_VERIFICATION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 export function decideAdminAccess(input: {
   isPlatformAdmin: boolean;
