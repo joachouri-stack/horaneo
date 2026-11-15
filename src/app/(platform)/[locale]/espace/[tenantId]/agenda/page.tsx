@@ -1,5 +1,8 @@
 import type { ReactNode } from "react";
 import { getTranslations } from "next-intl/server";
+import { cookies } from "next/headers";
+import { RememberAgendaMembers } from "@/components/manager/RememberAgendaMembers";
+import { agendaMembersCookie } from "@/lib/manager/agenda-members";
 import { eq } from "drizzle-orm";
 import { DASH_ICONS, DashIcon } from "@/components/manager/DashboardWidgets";
 import { DayTimeline, initials } from "@/components/manager/DayTimeline";
@@ -23,6 +26,8 @@ const HOUR_HEIGHT = 72; // pixels par heure dans les vues jour et semaine
 const VIEW_PARAM = { day: "jour", week: "semaine", month: "mois" } as const;
 const MONTH_PREVIEW = 3; // rendez-vous écrits dans une case du mois (écran large)
 const DEFAULT_COLOR = "#3a4bb8";
+/** Valeur du lien et du choix gardé : toute l'équipe. */
+const ALL_MEMBERS = "tous";
 
 /** Nombre de jours entre deux dates AAAA-MM-JJ. */
 function daysBetween(from: string, to: string) {
@@ -60,9 +65,20 @@ export default async function AgendaPage({
   const view = query.vue === "semaine" ? "week" : query.vue === "mois" ? "month" : "day";
   // Collaborateur limité à son agenda : toujours son membre, quel que soit le lien.
   const ownStaff = agendaStaffFilter(page.space);
-  const memberFilter =
-    ownStaff ??
-    (typeof query.membre === "string" && /^[0-9a-f-]{36}$/i.test(query.membre) ? query.membre : null);
+  // Membres affichés, choisis par la gérante (boutons à allumer ou éteindre) : lien
+  // « ?membres=a,b », sinon le dernier choix gardé sur l'appareil, sinon toute l'équipe.
+  // « ?membre=a » (un seul membre) reste accepté pour les anciens liens.
+  const UUID = /^[0-9a-f-]{36}$/i;
+  const savedMembers = (await cookies()).get(agendaMembersCookie(page.tenantId))?.value;
+  const rawMembers =
+    typeof query.membres === "string"
+      ? query.membres
+      : typeof query.membre === "string"
+        ? query.membre
+        : (savedMembers ?? "");
+  const requested = [...new Set(rawMembers.split(",").filter((id) => UUID.test(id)))];
+  // Collaborateur limité : la base ne renvoie que ses rendez-vous. Sinon tout, trié ensuite.
+  const memberFilter = ownStaff;
   // La semaine commence le lundi. Le mois : semaines entières, du lundi avant le 1er au dimanche après le dernier jour.
   const monthFirst = addMonths(date, 0);
   const monthWeeks = Math.ceil(
@@ -77,7 +93,13 @@ export default async function AgendaPage({
   const days = view === "week" ? 7 : view === "month" ? monthWeeks * 7 : 1;
   const range = dayRange(start, tz, days);
 
-  const { appointments, timeOffList, staff, hours, colors } = await page.db(async (tx) => ({
+  const {
+    appointments: loadedAppointments,
+    timeOffList: loadedTimeOff,
+    staff,
+    hours,
+    colors,
+  } = await page.db(async (tx) => ({
     appointments: await listAgenda(tx, page.tenantId, {
       from: range.start,
       to: range.end,
@@ -97,6 +119,17 @@ export default async function AgendaPage({
       ).map((row) => [row.id, row.color]),
     ),
   }));
+  // Membres choisis (parmi l'équipe active) ; aucun ou tous : toute l'équipe.
+  const chosen = ownStaff ? [] : requested.filter((id) => staff.some((member) => member.id === id));
+  const selected = chosen.length > 0 && chosen.length < staff.length ? new Set(chosen) : null;
+  const appointments = selected
+    ? loadedAppointments.filter((item) => selected.has(item.staffId))
+    : loadedAppointments;
+  // Fermetures de l'établissement (sans membre) : toujours affichées.
+  const timeOffList = selected
+    ? loadedTimeOff.filter((off) => off.staffId === null || selected.has(off.staffId))
+    : loadedTimeOff;
+  const membersParam = selected ? [...selected].join(",") : ALL_MEMBERS;
   // Membres désactivés qui ont encore des rendez-vous sur la période : une colonne
   // pour eux aussi, sinon leurs rendez-vous disparaîtraient de la vue Jour.
   const inactive = [
@@ -118,10 +151,14 @@ export default async function AgendaPage({
     })),
     ...inactive,
   ];
-  const members = memberFilter ? allColumns.filter((member) => member.id === memberFilter) : allColumns;
+  const members = memberFilter
+    ? allColumns.filter((member) => member.id === memberFilter)
+    : selected
+      ? allColumns.filter((member) => selected.has(member.id))
+      : allColumns;
 
   const link = (changes: Record<string, string | null>) => {
-    const next = { date, vue: VIEW_PARAM[view], membre: memberFilter, ...changes };
+    const next = { date, vue: VIEW_PARAM[view], membres: ownStaff ? null : membersParam, ...changes };
     const search = new URLSearchParams(
       Object.entries(next).filter((entry): entry is [string, string] => Boolean(entry[1])),
     );
@@ -191,32 +228,51 @@ export default async function AgendaPage({
       </div>
       {staff.length > 1 && !ownStaff && (
         <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
+          {/* Dernier choix gardé sur cet appareil. */}
+          <RememberAgendaMembers tenantId={page.tenantId} value={membersParam} />
           <Link
-            href={link({ membre: null })}
-            aria-current={!memberFilter ? "page" : undefined}
-            className="flex min-h-10 shrink-0 items-center rounded-full border border-hairline bg-white px-4 text-[0.9375rem] font-medium text-night aria-[current=page]:border-night aria-[current=page]:bg-night aria-[current=page]:text-white"
+            href={link({ membres: ALL_MEMBERS })}
+            aria-pressed={!selected}
+            className="flex min-h-10 shrink-0 items-center rounded-full border border-hairline bg-white px-4 text-[0.9375rem] font-medium text-night aria-pressed:border-night aria-pressed:bg-night aria-pressed:text-white"
           >
             {t("allStaff")}
           </Link>
-          {allColumns
-            .filter((member) => !member.inactive)
-            .map((member) => (
-              <Link
-                key={member.id}
-                href={link({ membre: member.id })}
-                aria-current={memberFilter === member.id ? "page" : undefined}
-                className="flex min-h-10 shrink-0 items-center gap-2 rounded-full border border-hairline bg-white py-1 pl-1.5 pr-4 text-[0.9375rem] font-medium text-night aria-[current=page]:border-night aria-[current=page]:bg-night aria-[current=page]:text-white"
-              >
+          {/* Chaque membre s'allume ou s'éteint ; au moins un reste affiché. */}
+          {staff.map((member) => {
+            const shown = !selected || selected.has(member.id);
+            const current = selected ? [...selected] : staff.map((item) => item.id);
+            const next = shown ? current.filter((id) => id !== member.id) : [...current, member.id];
+            const href =
+              next.length === 0
+                ? null
+                : link({ membres: next.length === staff.length ? ALL_MEMBERS : next.join(",") });
+            const chip = (
+              <>
                 <span
                   aria-hidden="true"
-                  className="flex size-7 items-center justify-center rounded-full text-[0.8125rem] font-semibold text-white"
-                  style={{ backgroundColor: member.color ?? DEFAULT_COLOR }}
+                  className={`flex size-7 items-center justify-center rounded-full text-[0.8125rem] font-semibold text-white ${shown ? "" : "opacity-40"}`}
+                  style={{ backgroundColor: colors.get(member.id) ?? DEFAULT_COLOR }}
                 >
                   {initials(member.name)}
                 </span>
                 {member.name}
+              </>
+            );
+            const chipClass = `flex min-h-10 shrink-0 items-center gap-2 rounded-full border py-1 pl-1.5 pr-4 text-[0.9375rem] font-medium ${
+              shown
+                ? "border-night bg-white text-night"
+                : "border-hairline bg-white/60 text-ink/70 line-through"
+            }`;
+            return href ? (
+              <Link key={member.id} href={href} aria-pressed={shown} className={chipClass}>
+                {chip}
               </Link>
-            ))}
+            ) : (
+              <span key={member.id} aria-disabled="true" className={chipClass}>
+                {chip}
+              </span>
+            );
+          })}
         </div>
       )}
     </div>
