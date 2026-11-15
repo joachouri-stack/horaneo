@@ -25,6 +25,11 @@ type Props = {
   stickySubmit?: boolean;
   /** Position du bouton collé (par défaut tout en bas ; au-dessus des onglets de l'espace gérante). */
   stickyBottomClass?: string;
+  /**
+   * Pas de bulles du navigateur pour les champs vides : l'action renvoie la liste des
+   * champs à compléter, affichés en français sous chaque champ.
+   */
+  noValidate?: boolean;
 };
 
 /** Champs en erreur du résultat (un seul ou plusieurs). */
@@ -56,6 +61,7 @@ export function ActionForm({
   successMessage,
   stickySubmit,
   stickyBottomClass = "bottom-0",
+  noValidate,
 }: Props) {
   const t = useTranslations();
   const locale = useLocale();
@@ -155,6 +161,7 @@ export function ActionForm({
     <form
       ref={formRef}
       action={formAction}
+      noValidate={noValidate}
       className={className ?? "space-y-4"}
       onSubmit={(event) => {
         // Envoi géré ici plutôt que par React : sinon le formulaire est vidé après
