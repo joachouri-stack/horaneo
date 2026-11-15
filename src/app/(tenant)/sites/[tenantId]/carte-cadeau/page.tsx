@@ -48,10 +48,25 @@ export default async function GiftCardPage({
   );
 
   if (sellers.length === 0) {
+    const tSite = await getTranslations("site");
+    const contact = site.tenant.phone
+      ? { href: `tel:${site.tenant.phone}`, label: "call" as const }
+      : site.tenant.email
+        ? { href: `mailto:${site.tenant.email}`, label: "write" as const }
+        : null;
     return (
       <main id="contenu" className="mx-auto max-w-2xl px-4 py-14">
         {title}
         <p className="text-lg">{t("unavailable")}</p>
+        {/* Contacter l'établissement d'un geste (téléphone, sinon e-mail). */}
+        {contact && (
+          <a
+            href={contact.href}
+            className="mt-6 inline-flex min-h-12 items-center rounded-site bg-site-button px-6 font-semibold text-site-on-button transition hover:opacity-90"
+          >
+            {tSite(contact.label)}
+          </a>
+        )}
       </main>
     );
   }

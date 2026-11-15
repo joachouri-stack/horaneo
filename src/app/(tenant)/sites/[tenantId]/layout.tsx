@@ -42,7 +42,12 @@ export async function generateMetadata({ params }: LayoutProps<"/sites/[tenantId
   return {
     metadataBase: new URL(siteBaseUrl(site)),
     title: {
-      default: home?.seoTitle || [home?.texts.badge, site.tenant.name].filter(Boolean).join(" · "),
+      // Sans titre choisi : le nom et l'accroche (ce que propose l'établissement), pour Google.
+      default:
+        home?.seoTitle ||
+        [home?.texts.badge, site.tenant.name, !home?.texts.badge && home?.texts.tagline]
+          .filter(Boolean)
+          .join(" · "),
       template: `%s · ${site.tenant.name}`,
     },
     description: homeDescription(home),

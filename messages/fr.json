@@ -1160,7 +1160,8 @@
       "birthdayDay": "Jour",
       "birthdayMonth": "Mois",
       "birthdaySave": "Enregistrer",
-      "birthdaySaved": "C'est noté, merci !"
+      "birthdaySaved": "C'est noté, merci !",
+      "metaTitle": "Mes rendez-vous"
     },
     "suspended": "Ce site est temporairement indisponible. Merci de contacter l'établissement par téléphone.",
     "book": "Réserver",
