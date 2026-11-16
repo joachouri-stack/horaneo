@@ -837,8 +837,9 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           <section aria-labelledby="titre-activites" className="px-4 pt-14 sm:px-6 lg:pt-20">
             <div
               data-reveal
-              className="mx-auto max-w-[60rem] rounded-[1.4rem] border border-hairline bg-white p-6 text-center shadow-[0_16px_40px_-28px_rgba(15,24,48,.35)] sm:p-8"
+              className="relative mx-auto max-w-[60rem] rounded-[1.4rem] bg-white p-6 text-center shadow-[0_20px_50px_-30px_rgba(123,63,228,.45)] sm:p-8"
             >
+              <span aria-hidden="true" className="hn-ring hn-ring-brand" />
               <h2 id="titre-activites" className={`${TITLE} text-mk-card leading-snug`}>
                 {t("activities.title")}
               </h2>
