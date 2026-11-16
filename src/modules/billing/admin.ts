@@ -295,6 +295,7 @@ export const settingsInput = z.object({
     .pipe(z.union([z.literal(""), z.url({ protocol: /^https?$/ })])),
   go_live_delay_days: settingNumber(z.number().int().min(0).max(60)),
   trial_days: settingNumber(z.number().int().min(0).max(60)),
+  referral_reward_months: settingNumber(z.number().int().min(0).max(12)),
   deposit_commission_percent: settingNumber(z.number().min(0).max(20)),
   retention_days_after_cancel: settingNumber(z.number().int().min(0).max(365)),
   replaced_asset_retention_days: settingNumber(z.number().int().min(1).max(90)),

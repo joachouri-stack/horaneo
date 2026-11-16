@@ -33,6 +33,8 @@ export function createFakeBilling() {
   >();
   const taxRates: { id: string; percent: number; inclusive: boolean }[] = [];
   const calls: string[] = [];
+  /** Crédits accordés aux clients (mois offerts du parrainage). */
+  const credits: (Parameters<BillingGateway["creditCustomer"]>[0] & { id: string })[] = [];
 
   const planOfPrice = (priceId: string) =>
     prices.get(priceId)?.metadata.plan_id ?? /^price_([0-9a-f-]{36})_/.exec(priceId)?.[1] ?? null;
@@ -170,6 +172,15 @@ export function createFakeBilling() {
     async createPortal({ customerId }) {
       return { url: `https://billing.stripe.test/portal/${customerId}` };
     },
+    async creditCustomer(input) {
+      calls.push("creditCustomer");
+      // Même clé : même crédit (comme Stripe avec une clé d'idempotence).
+      const existing = credits.find((credit) => credit.idempotencyKey === input.idempotencyKey);
+      if (existing) return { id: existing.id };
+      const id = next("cbtxn");
+      credits.push({ id, ...input });
+      return { id };
+    },
   };
 
   return {
@@ -184,6 +195,7 @@ export function createFakeBilling() {
     },
     taxRates,
     calls,
+    credits,
     /** La gérante paie sur la page Stripe : l'abonnement est créé. */
     completeCheckout(checkoutId: string, start: Date) {
       const checkout = checkouts.get(checkoutId)!;

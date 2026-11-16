@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { getLocale } from "next-intl/server";
 import { publicAppUrl } from "@/config/env";
 import { withPlatform } from "@/db/access";
@@ -14,6 +14,7 @@ import { sendQueuedSoon } from "@/lib/jobs/tick";
 import { billingGateway } from "@/lib/payments/stripe-billing";
 import { createRateLimiter } from "@/lib/rate-limit";
 import { AppError } from "@/modules/errors";
+import { REFERRAL_COOKIE } from "@/modules/billing/referral-link";
 import { parseInterval } from "@/modules/billing/yearly";
 import { findOrCreateOrderCustomer } from "@/modules/orders/customer";
 import { createOrder } from "@/modules/orders/orders";
@@ -73,6 +74,8 @@ export async function submitOrderAction(
           withCommitment: data.get("commitment") !== "no",
           optionCodes: data.get("billing") === "year" ? [] : data.getAll("options").map(String),
           billingInterval: parseInterval(data.get("billing")),
+          // Lien de parrainage suivi avant la commande (vérifié par le module).
+          referralCode: (await cookies()).get(REFERRAL_COOKIE)?.value,
           locale,
         },
         billingGateway(),

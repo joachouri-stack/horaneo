@@ -11,6 +11,7 @@ const GROUPS = {
     { href: "/admin/packs", key: "plans" },
     // « Options » (/admin/options) : retiré du menu, les fonctions passent par les packs.
     { href: "/admin/offres", key: "launchOffers" },
+    { href: "/admin/parrainages", key: "referrals" },
   ],
   settings: [
     { href: "/admin/reglages", key: "settingsPage" },

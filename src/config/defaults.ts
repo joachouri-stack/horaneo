@@ -18,6 +18,11 @@ export const DEFAULT_PLATFORM_SETTINGS = {
    * L'abonnement n'est prélevé qu'à la fin de l'essai ; l'engagement commence après l'essai.
    */
   trial_days: 30,
+  /**
+   * Parrainage : mois d'abonnement offerts à la cliente qui recommande Sirine, une fois
+   * que la nouvelle cliente a payé son premier mois (0 = parrainage désactivé).
+   */
+  referral_reward_months: 1,
   /** Durée d'engagement en mois (0 = sans engagement). */
   commitment_months: 0,
   /** Préavis avant d'appliquer le nouveau prix d'un pack à un abonné (après la fin de son engagement), en jours. */

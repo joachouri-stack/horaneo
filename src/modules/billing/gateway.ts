@@ -86,4 +86,12 @@ export interface BillingGateway {
   /** Fin programmée de l'abonnement (null : annule la fin programmée). */
   setCancelAt(input: { subscriptionId: string; at: Date | null }): Promise<BillingSubscription>;
   createPortal(input: { customerId: string; returnUrl: string }): Promise<{ url: string }>;
+  /** Crédit sur le compte du client (TTC), déduit de ses prochaines factures (ex. mois offert). */
+  creditCustomer(input: {
+    customerId: string;
+    amountCents: number;
+    currency: string;
+    description: string;
+    idempotencyKey: string;
+  }): Promise<{ id: string }>;
 }

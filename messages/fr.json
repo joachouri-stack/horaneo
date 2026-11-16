@@ -13,6 +13,7 @@
   },
   "billing": {
     "setupFeeLabel": "Frais de création du site",
+    "referralCreditLabel": "Parrainage : {months, plural, one {# mois offert} other {# mois offerts}}",
     "smsPackLabel": "{count} SMS supplémentaires"
   },
   "common": {
@@ -1629,7 +1630,8 @@
       "todo": "À traiter",
       "settingsPage": "Réglages",
       "options": "Options",
-      "launchOffers": "Offres de lancement"
+      "launchOffers": "Offres de lancement",
+      "referrals": "Parrainages"
     },
     "dashboard": {
       "activeClients": "Clients en ligne",
@@ -2335,6 +2337,8 @@
       "go_live_delay_days": "Délai de mise en ligne annoncé (jours ouvrés)",
       "trial_days": "Essai gratuit à la première souscription (jours, 0 = pas d'essai)",
       "trialHint": "L'abonnement n'est prélevé qu'à la fin de l'essai (un éventuel engagement commence après). La carte est enregistrée à la commande. Une annulation pendant l'essai arrête tout, sans prélèvement de l'abonnement.",
+      "referral_reward_months": "Parrainage : mois offerts à la marraine (0 = parrainage désactivé)",
+      "referralHint": "Accordés quand la nouvelle cliente a payé son premier mois (après l'essai) : le montant du mois de pack de la marraine est déduit de ses prochaines factures.",
       "payments": "Paiements et données",
       "deposit_commission_percent": "Commission sur les acomptes (%)",
       "retention_days_after_cancel": "Site en ligne après la fin de l'abonnement (jours)",
@@ -2522,6 +2526,24 @@
       "onSale": "proposée",
       "notOnSale": "pas proposée",
       "edit": "Modifier"
+    },
+    "referrals": {
+      "title": "Parrainages",
+      "intro": "Chaque cliente a un lien de parrainage dans son espace (Plus → Parrainage). Quand une nouvelle cliente commande par ce lien et paie son premier mois, la marraine reçoit {months, plural, one {# mois offert, déduit} other {# mois offerts, déduits}} automatiquement de ses prochaines factures Stripe. Réglage : Réglages → Prix, essai et paiement.",
+      "disabled": "Le parrainage est désactivé (0 mois offert dans les Réglages) : les liens des clientes n'ont plus d'effet.",
+      "none": "Aucun parrainage pour l'instant.",
+      "pair": "{sponsor} a parrainé {referred}",
+      "months": "{months, plural, one {# mois offert} other {# mois offerts}}",
+      "credited": "{amount} crédités",
+      "statuses": {
+        "pending": "En attente du premier paiement",
+        "rewarded": "Accordé",
+        "manual": "À accorder à la main (marraine sans abonnement Stripe)",
+        "cancelled": "Annulé (commande refusée)"
+      },
+      "grant": "Marquer comme accordé",
+      "confirmGrant": "Confirmer que les mois offerts ont bien été accordés à {name} ?",
+      "granted": "Parrainage marqué comme accordé."
     },
     "launchOffers": {
       "title": "Offres de lancement",
@@ -3328,6 +3350,7 @@
       "team": "Équipe",
       "unavailability": "Indisponibilités",
       "subscription": "Abonnement",
+      "referral": "Parrainage",
       "settings": "Réglages",
       "requests": "Demander une modification du site",
       "help": "Aide",
@@ -3360,6 +3383,7 @@
         "loyalty": "Un avantage offert après un nombre de visites.",
         "payments": "Acomptes versés directement sur votre compte.",
         "subscription": "Votre pack et votre utilisation du mois.",
+        "referral": "Recommandez-nous et gagnez des mois offerts.",
         "settings": "Réservation en ligne, horaires et informations.",
         "requests": "Mise en page sur mesure : demandez un changement.",
         "customerData": "Copies et suppressions demandées par vos clients.",
@@ -3724,6 +3748,25 @@
         "done": "Faite",
         "rejected": "Refusée"
       }
+    },
+    "referral": {
+      "title": "Parrainage",
+      "subtitle": "Recommandez {product} à une autre professionnelle : {months, plural, one {# mois d'abonnement offert} other {# mois d'abonnement offerts}} pour vous, à chaque nouvelle cliente.",
+      "linkTitle": "Votre lien de parrainage",
+      "linkLabel": "Lien à partager",
+      "copy": "Copier",
+      "copied": "Copié",
+      "whatsapp": "Partager sur WhatsApp",
+      "shareMessage": "Je te recommande {product} pour ton site et tes réservations en ligne : {link}",
+      "notLive": "Votre lien sera disponible dès que votre site sera en ligne.",
+      "statsTitle": "Vos parrainages",
+      "pending": "En attente du premier paiement",
+      "earned": "Mois offerts gagnés",
+      "monthsValue": "{months, plural, =0 {0 mois} other {# mois}}",
+      "howTitle": "Comment ça marche",
+      "how1": "Partagez votre lien à une professionnelle qui veut son site.",
+      "how2": "Elle commande son pack en passant par votre lien (il reste valable {days} jours sur son téléphone ou son ordinateur).",
+      "how3": "Dès qu'elle a payé son premier mois, après son essai gratuit, {months, plural, one {# mois de votre pack est déduit} other {# mois de votre pack sont déduits}} de vos prochaines factures."
     },
     "help": {
       "title": "Aide",

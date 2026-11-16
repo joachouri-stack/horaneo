@@ -7,6 +7,7 @@ import { managerPage } from "@/lib/manager/page";
 import { canAccess, type ManagerArea } from "@/modules/team/access";
 import type { PlanFeatures } from "@/db/schema";
 import { dataExportAllowed } from "@/modules/export/business-data";
+import { referralRewardMonths } from "@/modules/billing/referrals";
 import { toolsOverview } from "@/modules/stats/tools";
 
 /** Pictogrammes des rubriques (traits, même style que les onglets du bas). */
@@ -28,6 +29,7 @@ const ICONS = {
     "M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7z",
   payments: "M2 7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zM2 10h20M6 15h4",
   subscription: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M9 13h6M9 17h6",
+  referral: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M19 8v6M22 11h-6",
   settings: "M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M16 4v4M10 10v4M16 16v4",
   requests: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
   customerData: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10",
@@ -74,6 +76,7 @@ const GROUPS: { key: "activity" | "sell" | "account" | "support"; items: Item[] 
     items: [
       { key: "payments", href: "/plus/paiements", area: "owner", feature: "onlinePayment" },
       { key: "subscription", href: "/plus/abonnement", area: "owner" },
+      { key: "referral", href: "/plus/parrainage", area: "owner" },
       { key: "settings", href: "/plus/reglages", area: "owner" },
       { key: "export", href: "/plus/exporter", area: "owner" },
     ],
@@ -118,6 +121,8 @@ export default async function MorePage({ params }: PageProps<"/[locale]/espace/[
   const counts = await page.db((tx) => toolsOverview(tx, page.tenantId, page.tenant.timezone));
   // Export : packs qui le comprennent, ou abonnement en cours de résiliation.
   const canExport = await page.db((tx) => dataExportAllowed(tx, page.tenantId, page.tenant.features));
+  // Parrainage : rubrique affichée seulement s'il est activé (mois offerts réglés dans l'admin).
+  const referralOn = (await page.db((tx) => referralRewardMonths(tx))) > 0;
   return (
     <div className="space-y-8">
       <div>
@@ -133,6 +138,7 @@ export default async function MorePage({ params }: PageProps<"/[locale]/espace/[
           (item) =>
             canAccess(page.space, item.area) &&
             (item.key !== "export" || canExport) &&
+            (item.key !== "referral" || referralOn) &&
             (!item.feature || [item.feature].flat().some((feature) => page.tenant.features[feature])),
         ),
       }))
