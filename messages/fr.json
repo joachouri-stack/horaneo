@@ -1076,7 +1076,12 @@
       "trustpilotNote": "Trustpilot est une plateforme d'avis indépendante : chacun peut y laisser son avis, nous ne pouvons pas le modifier.",
       "mailSubject": "Mon avis sur {product}"
     },
-    "sampleData": "Exemple : données fictives"
+    "sampleData": "Exemple : données fictives",
+    "activities": {
+      "title": "Vous vendez des produits, des formations ou des services ?",
+      "text": "Votre site s'adapte à votre activité : vos services et prestations dans tous les packs{plans, select, none {.} other {, et avec les packs {plans}, une boutique en ligne (paiement en ligne, retrait ou livraison) et des pages pour présenter vos formations.}}",
+      "cta": "Être rappelé"
+    }
   },
   "site": {
     "account": {
