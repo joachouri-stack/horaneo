@@ -1,8 +1,7 @@
-import { tenantLimits } from "@/modules/billing/entitlements";
 import { and, desc, eq, sql } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
 import { getTranslator, resolveLocale } from "@/i18n/translator";
-import { plans, smsPacks, tenants, type PlanLimits } from "@/db/schema";
+import { plans, smsPacks, tenants } from "@/db/schema";
 import { AppError } from "@/modules/errors";
 import { getPlatformSetting } from "@/modules/settings";
 import type { BillingGateway } from "./gateway";
@@ -31,15 +30,17 @@ export async function listSmsPacks(tx: Transaction, tenantId: string) {
     .orderBy(desc(smsPacks.paidAt));
 }
 
-/** Seuls les packs qui comprennent des SMS peuvent en ajouter (pas le Basic). */
+/**
+ * Recharges de SMS : pour tous les packs payants, y compris ceux sans SMS inclus
+ * (le Starter : SMS uniquement en option). Pas pour le pack gratuit.
+ */
 export async function canBuySmsPacks(tx: Transaction, tenantId: string) {
   const [row] = await tx
-    .select({ limits: tenantLimits })
+    .select({ priceCents: plans.priceCents })
     .from(tenants)
     .innerJoin(plans, eq(plans.id, tenants.planId))
     .where(eq(tenants.id, tenantId));
-  const limit = (row?.limits as PlanLimits | undefined)?.smsPerMonth;
-  return limit === null || (limit !== undefined && limit > 0);
+  return (row?.priceCents ?? 0) > 0;
 }
 
 /** Prépare l'achat d'un pack et renvoie l'adresse de la page de paiement Stripe. */

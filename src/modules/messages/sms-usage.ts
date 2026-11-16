@@ -82,8 +82,8 @@ export async function reserveSms(
   const plan = await tenantPlan(tx, tenantId);
   if (!plan) return null;
   const limit = plan.limit;
-  // Pack sans SMS (Basic) : ni quota, ni packs achetés utilisables.
-  if (limit !== null && limit !== undefined && limit <= 0) return null;
+  // Pack sans SMS inclus (Starter) : seulement les recharges achetées, sans alerte de quota du mois.
+  const hasQuota = limit === null || limit === undefined || limit > 0;
   const period = currentPeriod(plan.timezone, now);
   await tx.insert(usageCounters).values({ tenantId, period }).onConflictDoNothing();
   const [counter] = await tx
@@ -104,7 +104,7 @@ export async function reserveSms(
       .orderBy(asc(smsPacks.paidAt), asc(smsPacks.id))
       .for("update");
     if (packs.reduce((sum, pack) => sum + pack.remaining, 0) < missing) {
-      await queueQuotaAlert(tx, tenantId, period, 100, before, limit!);
+      if (hasQuota) await queueQuotaAlert(tx, tenantId, period, 100, before, limit!);
       return null;
     }
     for (const pack of packs) {
@@ -128,7 +128,7 @@ export async function reserveSms(
     })
     .where(and(eq(usageCounters.tenantId, tenantId), eq(usageCounters.period, period)));
 
-  if (limit !== null && limit !== undefined) {
+  if (limit !== null && limit !== undefined && hasQuota) {
     const after = before + fromQuota;
     const percent = Number(await getPlatformSetting(tx, "sms_warning_percent"));
     const warnAt = Math.ceil((limit * percent) / 100);

@@ -359,6 +359,35 @@ describe.skipIf(!hasTestDatabase)("SMS et engagement", () => {
       expect(await platform((tx) => reserveSms(tx, s.id, NOW))).toBeNull();
     });
 
+    it("pack payant sans SMS inclus (Starter) : recharge achetée, puis utilisée pour les rappels", async () => {
+      // Le Starter : pack payant sans SMS inclus.
+      expect((await planOf("starter")).limits.smsPerMonth).toBe(0);
+      const s = await setup("starter");
+      // Sans recharge : ni SMS, ni rappel par SMS (le rappel par e-mail part de son côté).
+      expect(await platform((tx) => reserveSms(tx, s.id, NOW))).toBeNull();
+      const checkoutId = await buyPack(s.id);
+      await send({
+        kind: "checkout_completed",
+        subscriptionId: null,
+        checkoutId,
+        paymentStatus: "paid",
+        metadata: billing.payments.get(checkoutId)!.metadata,
+      });
+      const [pack] = await owner.select().from(smsPacks).where(eq(smsPacks.tenantId, s.id));
+      expect(pack).toMatchObject({ status: "paid", remaining: 100 });
+      await book(s);
+      await dispatch(s.id);
+      fake.clear();
+      const evening = localToUtc("2026-10-07", "18:05", TZ);
+      await platform((tx) => queueSmsReminders(tx, evening));
+      expect(await dispatch(s.id, evening)).toMatchObject({ sent: 1, blocked: 0 });
+      expect(fake.sms).toHaveLength(1);
+      expect(await asTenant(s.id, (tx) => smsUsage(tx, s.id, NOW))).toMatchObject({
+        used: 0,
+        packsRemaining: 99,
+      });
+    });
+
     it("fin de l'abonnement : les SMS achetés ne sont plus disponibles", async () => {
       const s = await setup("basic");
       const essentiel = await planOf("essentiel");

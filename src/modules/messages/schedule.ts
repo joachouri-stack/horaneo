@@ -1,4 +1,5 @@
 import { tenantFeatures, tenantLimits } from "@/modules/billing/entitlements";
+import { packsRemaining } from "./sms-usage";
 import { and, eq, gte, isNotNull, isNull, lt, lte, or, sql } from "drizzle-orm";
 import { declareBusiness } from "@/db/access";
 import type { Transaction } from "@/db/client";
@@ -104,13 +105,16 @@ export async function queueEmailReminders(tx: Transaction, now: Date) {
   return rows.length;
 }
 
-/** Rappel par SMS la veille à 18 h (packs avec SMS), un seul par rendez-vous. */
+/** Rappel par SMS la veille à 18 h (SMS du pack ou recharges achetées), un seul par rendez-vous. */
 export async function queueSmsReminders(tx: Transaction, now: Date) {
   const time = await getPlatformSetting(tx, "sms_reminder_time");
   let count = 0;
   for (const tenant of await activeTenants(tx)) {
     const smsLimit = tenant.limits.smsPerMonth;
-    if (smsLimit !== null && smsLimit !== undefined && smsLimit <= 0) continue;
+    // Sans SMS inclus (Starter) : rappels seulement s'il reste des SMS achetés en option.
+    if (smsLimit !== null && smsLimit !== undefined && smsLimit <= 0) {
+      if ((await packsRemaining(tx, tenant.id)) === 0) continue;
+    }
     const { open, local } = inWindow(now, tenant.timezone, time);
     if (!open) continue;
     const tomorrow = addDays(local.date, 1);

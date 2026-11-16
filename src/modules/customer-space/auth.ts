@@ -64,7 +64,7 @@ function secretHash(codeId: string, channel: CustomerChannel, secret: string) {
   return channel === "email" ? sha256(secret) : sha256(`${codeId}:${secret}`);
 }
 
-/** Le pack inclut des SMS, et il en reste ce mois-ci (quota ou packs achetés). */
+/** Il reste des SMS ce mois-ci : quota du pack, ou recharges achetées (seules, pour un pack sans SMS inclus). */
 export async function smsLoginAvailable(tx: Transaction, tenantId: string, period: string) {
   const [row] = await tx
     .select({ limits: tenantLimits, sent: usageCounters.smsSent })
@@ -74,7 +74,7 @@ export async function smsLoginAvailable(tx: Transaction, tenantId: string, perio
     .where(eq(tenants.id, tenantId));
   if (!row) return false;
   const limit = (row.limits as PlanLimits).smsPerMonth;
-  if (limit !== null && limit !== undefined && limit <= 0) return false;
+  if (limit !== null && limit !== undefined && limit <= 0) return (await packsRemaining(tx, tenantId)) > 0;
   if (limit === null || limit === undefined || (row.sent ?? 0) < limit) return true;
   // Quota du mois épuisé : les SMS achetés en plus prennent le relais.
   return (await packsRemaining(tx, tenantId)) > 0;
