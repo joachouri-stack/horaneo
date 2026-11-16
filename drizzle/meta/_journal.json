@@ -505,6 +505,13 @@
       "when": 1794846568196,
       "tag": "0071_referrals",
       "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1794853882550,
+      "tag": "0072_starter_setup_assistance",
+      "breakpoints": true
     }
   ]
 }

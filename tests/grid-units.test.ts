@@ -87,7 +87,9 @@ describe("grille des packs : une seule source pour les cartes et le comparatif",
     expect(card.upcoming.map((line) => line.key)).toEqual(
       expect.arrayContaining(["multilingual", "chatbotQuestions"]),
     );
-    expect(gridCard(pro, GRID, SOON).included.map((line) => line.key)).toContain("setupAssistance");
+    // Accompagnement à la prise en main : inclus dès le Starter, donc pas répété sur le Pro.
+    expect(gridCard(starter, GRID, SOON).included.map((line) => line.key)).toContain("setupAssistance");
+    expect(gridCard(pro, GRID, SOON).included.map((line) => line.key)).not.toContain("setupAssistance");
     // Cartes cadeaux et nom de domaine : en tête de la carte Pro, sans être répétés sur le Business.
     expect(
       gridCard(pro, GRID, SOON)
