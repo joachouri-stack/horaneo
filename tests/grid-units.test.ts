@@ -74,19 +74,18 @@ describe("grille des packs : une seule source pour les cartes et le comparatif",
     const card = gridCard(business, GRID, SOON);
     expect(card.previous).toBe("pro");
     expect(card.included.every((line) => !line.soon)).toBe(true);
-    expect(card.included.map((line) => line.key)).not.toContain("aiChatbot");
-    expect(card.upcoming.map((line) => line.key)).toContain("aiChatbot");
+    // Chatbot et site multilingue : inclus dans le Business, sans « Bientôt ».
+    expect(card.included.map((line) => line.key)).toEqual(
+      expect.arrayContaining(["aiChatbot", "chatbotQuestions", "multilingual"]),
+    );
+    expect(card.upcoming.map((line) => line.key)).not.toContain("aiChatbot");
     expect(card.included.map((line) => line.key)).toContain("sms");
     expect(gridCard(starter, GRID, SOON).missing.length).toBeLessThanOrEqual(3);
-    // Pro : « Non inclus » ne liste que des fonctions disponibles aujourd'hui (3 au plus) ;
-    // la traduction et le chatbot, annoncés « Bientôt », figurent sur la carte Business.
+    // Pro : « Non inclus » ne liste que des fonctions disponibles aujourd'hui (3 au plus).
     const proCard = gridCard(pro, GRID, SOON);
     expect(proCard.upcoming.map((line) => line.key)).toEqual(["commerce", "formation"]);
     expect(proCard.missing.every((line) => !line.soon)).toBe(true);
     expect(proCard.missing).toHaveLength(3);
-    expect(card.upcoming.map((line) => line.key)).toEqual(
-      expect.arrayContaining(["multilingual", "chatbotQuestions"]),
-    );
     // Accompagnement à la prise en main : inclus dès le Starter, donc pas répété sur le Pro.
     expect(gridCard(starter, GRID, SOON).included.map((line) => line.key)).toContain("setupAssistance");
     expect(gridCard(pro, GRID, SOON).included.map((line) => line.key)).not.toContain("setupAssistance");

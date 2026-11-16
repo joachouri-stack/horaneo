@@ -105,7 +105,6 @@ describe("valeurs de départ des packs", () => {
     for (const key of [
       "commerce",
       "formation",
-      "aiChatbot",
       "whatsappAssistant",
       "aiTexts",
       "aiImages",
