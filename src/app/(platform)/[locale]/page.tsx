@@ -466,10 +466,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     className="h-auto w-full drop-shadow-[0_0_40px_rgba(123,63,228,.55)]"
                   />
                 </div>
-                {/* Données d'exemple : signalé, pour ne pas les prendre pour de vrais chiffres. */}
-                <p className="absolute inset-x-0 -bottom-7 text-center text-mk-note text-white/70">
-                  {t("sampleData")}
-                </p>
                 <div
                   className={`hn-float -left-1 top-[10%] sm:-left-6 lg:left-auto lg:-right-10 lg:top-[14%] absolute flex items-center gap-3 rounded-2xl border border-white/70 bg-white/95 py-2.5 pl-2.5 pr-5 shadow-[0_20px_40px_-18px_rgba(5,8,30,.75),0_0_0_1px_rgba(123,63,228,.08)] backdrop-blur`}
                 >
@@ -711,9 +707,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     className="h-auto w-full"
                   />
                 </div>
-                <figcaption className="mt-3 text-center text-mk-note text-ink-soft">
-                  {t("sampleData")}
-                </figcaption>
               </figure>
             </div>
           </section>
