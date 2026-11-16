@@ -63,6 +63,9 @@ const ROWS: RowDef[] = [
   { key: "photos", category: "site", limit: "photos", always: true },
   { key: "services", category: "site", limit: "services", always: true },
   { key: "localSeo", category: "site", feature: "localSeo" },
+  // Faits à la main par l'équipe au démarrage (Pro et Business).
+  { key: "searchConsole", category: "site", feature: "searchConsole" },
+  { key: "googleBusiness", category: "site", feature: "googleBusiness" },
   { key: "favicon", category: "site", feature: "logoCreation" },
   { key: "responsive", category: "site", feature: "mobileReady" },
   { key: "advancedSeo", category: "site", feature: "advancedSeo" },
@@ -200,6 +203,8 @@ const CARD_ORDER = [
   "favicon",
   "giftCards",
   "freeDomain",
+  "googleBusiness",
+  "searchConsole",
   "setupAssistance",
   "loyalty",
   "occupancy",

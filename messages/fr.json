@@ -600,6 +600,14 @@
           "label": "Référencement optimisé",
           "card": "Référencement optimisé"
         },
+        "searchConsole": {
+          "label": "Site déclaré à Google (Search Console)",
+          "card": "Site déclaré à Google"
+        },
+        "googleBusiness": {
+          "label": "Fiche Google Business créée ou optimisée, et reliée au site",
+          "card": "Fiche Google Business créée et reliée au site"
+        },
         "favicon": {
           "label": "Création du logo et de l'icône du site (onglet du navigateur, écran d'accueil)",
           "card": "Création du logo et de l'icône du site"

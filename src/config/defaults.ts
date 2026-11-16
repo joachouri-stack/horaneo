@@ -439,6 +439,9 @@ const GRID_STARTER = {
 
 const GRID_PRO = {
   ...GRID_STARTER,
+  // Référencement : site déclaré à Google et fiche Google Business, faits par l'équipe au démarrage.
+  searchConsole: true,
+  googleBusiness: true,
   brandingFooter: false,
   fullSite: true,
   sitePages: true,
