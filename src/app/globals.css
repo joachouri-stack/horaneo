@@ -364,6 +364,19 @@ form:not(:has(input[name="billing"][value="year"]:checked)) [data-yearly-only] {
   mask-composite: exclude;
   pointer-events: none;
 }
+/* Encadré de l'accueil : liseré au dégradé du logo (violet → bleu) qui tourne lentement. */
+.hn-ring-brand {
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--hn-angle),
+    rgb(123 63 228 / 0.15),
+    var(--color-violet) 12%,
+    rgb(123 63 228 / 0.15) 28%,
+    rgb(47 128 255 / 0.15) 55%,
+    var(--color-azure) 67%,
+    rgb(47 128 255 / 0.15) 82%
+  );
+}
 .hn-edge {
   position: absolute;
   inset: 0;
