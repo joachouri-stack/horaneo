@@ -1079,8 +1079,7 @@
     "sampleData": "Exemple : données fictives",
     "activities": {
       "title": "Vous vendez des produits, des formations ou des services ?",
-      "text": "Votre site s'adapte à votre activité : vos services et prestations dans tous les packs{plans, select, none {.} other {, et avec les packs {plans}, une boutique en ligne (paiement en ligne, retrait ou livraison) et des pages pour présenter vos formations.}}",
-      "cta": "Être rappelé"
+      "text": "Un site pour vos services, votre boutique en ligne ou vos formations.{plans, select, none {} other { La boutique et les formations sont incluses dans les packs {plans}.}}"
     }
   },
   "site": {

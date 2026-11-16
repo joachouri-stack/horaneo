@@ -845,20 +845,14 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           <section aria-labelledby="titre-activites" className="px-4 pt-14 sm:px-6 lg:pt-20">
             <div
               data-reveal
-              className="mx-auto flex max-w-[60rem] flex-col items-start gap-5 rounded-[1.4rem] border border-hairline bg-white p-6 shadow-[0_16px_40px_-28px_rgba(15,24,48,.35)] sm:flex-row sm:items-center sm:justify-between sm:p-8"
+              className="mx-auto max-w-[60rem] rounded-[1.4rem] border border-hairline bg-white p-6 text-center shadow-[0_16px_40px_-28px_rgba(15,24,48,.35)] sm:p-8"
             >
-              <div className="min-w-0">
-                <h2 id="titre-activites" className={`${TITLE} text-mk-card leading-snug`}>
-                  {t("activities.title")}
-                </h2>
-                <p className="mt-2 max-w-[38rem] text-ink-soft">
-                  {t("activities.text", { plans: commercePlans || "none" })}
-                </p>
-              </div>
-              <Link href="/rappel" className={`${PRIMARY} flex-none`}>
-                {t("activities.cta")}
-                <ArrowLine className="size-[18px] transition-transform group-hover:translate-x-0.5" />
-              </Link>
+              <h2 id="titre-activites" className={`${TITLE} text-mk-card leading-snug`}>
+                {t("activities.title")}
+              </h2>
+              <p className="mx-auto mt-2 max-w-[38rem] text-ink-soft">
+                {t("activities.text", { plans: commercePlans || "none" })}
+              </p>
             </div>
           </section>
 
