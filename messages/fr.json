@@ -1079,7 +1079,7 @@
     "sampleData": "Exemple : données fictives",
     "activities": {
       "title": "Vous vendez des produits, des formations ou des services ?",
-      "text": "Un site pour vos services, votre boutique en ligne ou vos formations.{plans, select, none {} other { La boutique et les formations sont incluses dans les packs {plans}.}}"
+      "text": "Un site complet, inclus dans tous les packs, avec la maintenance et les mises à jour."
     }
   },
   "site": {

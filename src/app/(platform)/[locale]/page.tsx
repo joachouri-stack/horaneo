@@ -227,14 +227,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     return plan ? pickLocalized(plan.name, locale) : "none";
   };
 
-  // Packs qui incluent la boutique en ligne (« Pro et Business »), tirés des réglages des packs.
-  const commercePlans = new Intl.ListFormat(locale, { type: "conjunction" }).format(
-    [...data.plans]
-      .sort((a, b) => a.priceCents - b.priceCents)
-      .filter((plan) => plan.features.commerce)
-      .map((plan) => pickLocalized(plan.name, locale)),
-  );
-
   const faqValues = {
     months: data.commitment,
     display: data.display,
@@ -850,9 +842,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               <h2 id="titre-activites" className={`${TITLE} text-mk-card leading-snug`}>
                 {t("activities.title")}
               </h2>
-              <p className="mx-auto mt-2 max-w-[38rem] text-ink-soft">
-                {t("activities.text", { plans: commercePlans || "none" })}
-              </p>
+              <p className="mx-auto mt-2 max-w-[38rem] text-ink-soft">{t("activities.text")}</p>
             </div>
           </section>
 
