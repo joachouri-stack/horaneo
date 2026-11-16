@@ -11,18 +11,15 @@ import { PlatformHeader } from "@/components/layout/PlatformHeader";
 import {
   ArrowLine,
   BellLine,
-  BoxLine,
   CalendarLine,
   GlobeLine,
   CardLine,
-  ChartLine,
   CheckLine,
   ClockLine,
   DownloadLine,
   StarLine,
   FileLine,
   GiftLine,
-  LockLine,
   MegaphoneLine,
   PlayCircleLine,
   PlayLine,
@@ -32,7 +29,6 @@ import {
   SparkleLine,
   StoreLine,
   TagLine,
-  TrendLine,
   UsersLine,
   AwardLine,
   CapLine,
@@ -138,13 +134,6 @@ const TARGET_ICONS: Record<string, typeof CheckLine> = {
   experts: BriefcaseLine,
   organizations: UsersLine,
   courseCreators: PlayLine,
-};
-
-/** Pictogrammes du bandeau de fonctions de chaque solution (dans l'ordre des textes). */
-const STRIP: Record<Solution, (typeof CheckLine)[]> = {
-  booking: [ClockLine, BellLine, CardLine, CalendarLine, UsersLine, ChartLine],
-  commerce: [StoreLine, BoxLine, LockLine, FileLine, TagLine, GiftLine],
-  formation: [PlayLine, FileLine, CapLine, AwardLine, TrendLine, CardLine],
 };
 
 /** Pictogrammes des quatre usages de l'espace de gestion (dans l'ordre des textes). */
@@ -616,18 +605,18 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                         text: string;
                         tag?: string;
                       }[]
-                    ).map((item, index) => {
-                      const Icon = STRIP[code][index] ?? CheckLine;
+                    ).map((item) => {
                       return (
                         <li
                           key={item.title}
                           data-reveal
                           className="group flex w-[80%] flex-none snap-start flex-col items-start gap-2.5 rounded-2xl border border-hairline bg-white p-4 shadow-[0_10px_24px_-18px_rgba(15,24,48,.35)] transition duration-300 motion-reduce:transition-none sm:w-auto sm:flex-row sm:gap-4 sm:p-4 sm:shadow-[0_1px_2px_rgba(15,24,48,.04)] sm:hover:-translate-y-1 sm:hover:border-coral/40 sm:hover:shadow-[0_14px_30px_-18px_rgba(232,80,63,.45)] lg:p-5"
                         >
-                          {/* Icône blanche dans un rond au dégradé du logo (violet → bleu). */}
-                          <span className="flex size-9 flex-none items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--color-violet),var(--color-azure-dark))] text-white shadow-[0_8px_18px_-8px_rgba(123,63,228,.8)] sm:size-10">
-                            <Icon className="size-[18px] sm:size-5" />
-                          </span>
+                          {/* Le « S » du logo Sirine en tête de chaque bloc. */}
+                          <SirineMark
+                            sizes="48px"
+                            className="size-9 flex-none drop-shadow-[0_8px_16px_rgba(123,63,228,.35)] sm:size-10"
+                          />
                           <span className="min-w-0">
                             <span className="block font-display text-mk-body font-semibold leading-snug text-night">
                               {item.title}
