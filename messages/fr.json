@@ -817,7 +817,7 @@
         },
         "create": {
           "title": "Nous créons votre site",
-          "text": "Envoyez-nous vos photos, vos prestations et vos horaires : votre site est prêt {days, plural, =0 {en quelques jours} one {en # jour ouvré} other {en # jours ouvrés}}."
+          "text": "Envoyez-nous vos photos, vos prestations et vos horaires : votre site est prêt en quelques jours."
         },
         "book": {
           "title": "Vos clients réservent",
