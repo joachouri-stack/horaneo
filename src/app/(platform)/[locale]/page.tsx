@@ -227,6 +227,14 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     return plan ? pickLocalized(plan.name, locale) : "none";
   };
 
+  // Packs qui incluent la boutique en ligne (« Pro et Business »), tirés des réglages des packs.
+  const commercePlans = new Intl.ListFormat(locale, { type: "conjunction" }).format(
+    [...data.plans]
+      .sort((a, b) => a.priceCents - b.priceCents)
+      .filter((plan) => plan.features.commerce)
+      .map((plan) => pickLocalized(plan.name, locale)),
+  );
+
   const faqValues = {
     months: data.commitment,
     display: data.display,
@@ -831,6 +839,21 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               trialDays={data.trialDays}
             />
             <p className="mt-6 text-center text-[0.9375rem] text-ink-soft">{t("plans.quotaNote")}</p>
+          </section>
+
+          {/* Autres activités : vente de produits, formations, services (packs qui incluent la boutique). */}
+          <section aria-labelledby="titre-activites" className="px-4 pt-14 sm:px-6 lg:pt-20">
+            <div
+              data-reveal
+              className="mx-auto max-w-[60rem] rounded-[1.4rem] border border-hairline bg-white p-6 text-center shadow-[0_16px_40px_-28px_rgba(15,24,48,.35)] sm:p-8"
+            >
+              <h2 id="titre-activites" className={`${TITLE} text-mk-card leading-snug`}>
+                {t("activities.title")}
+              </h2>
+              <p className="mx-auto mt-2 max-w-[38rem] text-ink-soft">
+                {t("activities.text", { plans: commercePlans || "none" })}
+              </p>
+            </div>
           </section>
 
           {/* Fonctionnalités : une seule partie, peu de texte. Titre centré, puis des tuiles compactes
