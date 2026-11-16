@@ -433,11 +433,12 @@ const GRID_STARTER = {
   logoCreation: true,
   technicalSupport247: true,
   ticketSupport: true,
+  // Accompagnement personnalisé à la prise en main : inclus dans tous les packs.
+  setupAssistance: true,
 } satisfies PlanFeatures;
 
 const GRID_PRO = {
   ...GRID_STARTER,
-  setupAssistance: true,
   brandingFooter: false,
   fullSite: true,
   sitePages: true,
