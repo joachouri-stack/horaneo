@@ -512,6 +512,13 @@
       "when": 1794853882550,
       "tag": "0072_starter_setup_assistance",
       "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1794855302754,
+      "tag": "0073_pro_seo_google",
+      "breakpoints": true
     }
   ]
 }
