@@ -519,6 +519,13 @@
       "when": 1794855302754,
       "tag": "0073_pro_seo_google",
       "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "7",
+      "when": 1794862069840,
+      "tag": "0074_business_chatbot_multilingual",
+      "breakpoints": true
     }
   ]
 }
