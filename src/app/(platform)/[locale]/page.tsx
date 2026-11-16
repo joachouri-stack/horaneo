@@ -519,6 +519,33 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             </div>
           </section>
 
+          {/* Métiers visés, juste sous l'accroche : le visiteur voit tout de suite que c'est pour lui. */}
+          <section aria-labelledby="titre-metiers" className="px-4 pt-10 sm:px-6 lg:pt-12">
+            <div className="mx-auto max-w-[72rem] 2xl:max-w-[85rem]">
+              {shown.map((code) => (
+                <div key={code} data-only={code} data-reveal>
+                  <h2
+                    id={code === shown[0] ? "titre-metiers" : undefined}
+                    className="text-center text-mk-small font-medium text-night"
+                  >
+                    {t(`solutions.items.${code}.targetsTitle`)}
+                  </h2>
+                  <div className="mt-3">
+                    <TargetsMarquee
+                      label={t("solutions.for")}
+                      items={Object.entries(
+                        t.raw(`solutions.items.${code}.targets`) as Record<string, string>,
+                      ).map(([key, label]) => {
+                        const Icon = TARGET_ICONS[key] ?? CheckLine;
+                        return { key, label, icon: <Icon className="size-4" /> };
+                      })}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
           {/* Choisissez votre solution */}
           <section id="solutions" aria-labelledby="titre-solutions" className="scroll-mt-20 px-4 sm:px-6">
             <div className="mx-auto max-w-[72rem] 2xl:max-w-[85rem]">
@@ -556,21 +583,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                       <p className="mt-4 max-w-[32rem] text-mk-lead text-ink-soft">
                         {t(`solutions.items.${code}.text`)}
                       </p>
-                      {/* Métiers visés, chacun avec son pictogramme : le visiteur repère le sien d'un coup d'œil. */}
-                      <p className="mt-6 text-mk-small font-medium text-night">
-                        {t(`solutions.items.${code}.targetsTitle`)}
-                      </p>
-                      <div className="mt-3">
-                        <TargetsMarquee
-                          label={t("solutions.for")}
-                          items={Object.entries(
-                            t.raw(`solutions.items.${code}.targets`) as Record<string, string>,
-                          ).map(([key, label]) => {
-                            const Icon = TARGET_ICONS[key] ?? CheckLine;
-                            return { key, label, icon: <Icon className="size-4" /> };
-                          })}
-                        />
-                      </div>
                       {/* Solution disponible : pas de boutons ici, « Créer mon site » et « Voir les tarifs »
                           sont déjà dans l'accroche juste au-dessus. Solution annoncée : demande de rappel. */}
                       {isSoon(code) && (
