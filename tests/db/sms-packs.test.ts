@@ -360,29 +360,9 @@ describe.skipIf(!hasTestDatabase)("SMS et engagement", () => {
     });
 
     it("pack payant sans SMS inclus (Starter) : recharge achetée, puis utilisée pour les rappels", async () => {
-      // Pack payant de test, sans SMS inclus (comme le Starter).
-      const essentiel = await planOf("essentiel");
-      const {
-        id: _id,
-        createdAt: _c,
-        updatedAt: _u,
-        stripePriceId: _p,
-        stripeProductId: _r,
-        ...rest
-      } = essentiel;
-      void [_id, _c, _u, _p, _r];
-      await owner
-        .insert(plans)
-        .values({
-          ...rest,
-          code: "test-sans-sms",
-          isPublic: false,
-          stripeYearlyPriceId: null,
-          stripeYearlyPriceCents: null,
-          limits: { ...essentiel.limits, smsPerMonth: 0 },
-        })
-        .onConflictDoNothing();
-      const s = await setup("test-sans-sms");
+      // Le Starter : pack payant sans SMS inclus.
+      expect((await planOf("starter")).limits.smsPerMonth).toBe(0);
+      const s = await setup("starter");
       // Sans recharge : ni SMS, ni rappel par SMS (le rappel par e-mail part de son côté).
       expect(await platform((tx) => reserveSms(tx, s.id, NOW))).toBeNull();
       const checkoutId = await buyPack(s.id);
