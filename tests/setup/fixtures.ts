@@ -218,15 +218,20 @@ export async function createTenantWithData(db: TestDb, label: string) {
     quantity: 1,
   });
   await db.insert(s.subscriptions).values({ tenantId, planId: plan.id, status: "active" });
-  await db.insert(s.orders).values({
-    userId: user.id,
-    planId: plan.id,
-    businessName: `Institut ${label}`,
-    activity: "beauté",
-    phone: "+33612345678",
-    status: "done",
-    tenantId,
-  });
+  const [order] = await db
+    .insert(s.orders)
+    .values({
+      userId: user.id,
+      planId: plan.id,
+      businessName: `Institut ${label}`,
+      activity: "beauté",
+      phone: "+33612345678",
+      status: "done",
+      tenantId,
+    })
+    .returning();
+  // Parrainage dont ce site est la marraine.
+  await db.insert(s.referrals).values({ tenantId, orderId: order.id, rewardMonths: 1, status: "rewarded" });
 
   await db.insert(s.messageLog).values({
     businessId,

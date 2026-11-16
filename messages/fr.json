@@ -2529,7 +2529,7 @@
     },
     "referrals": {
       "title": "Parrainages",
-      "intro": "Chaque cliente a un lien de parrainage dans son espace (Plus → Parrainage). Quand une nouvelle cliente commande par ce lien et paie son premier mois, la marraine reçoit {months, plural, one {# mois offert} other {# mois offerts}}, déduits automatiquement de ses prochaines factures Stripe. Réglage : Réglages → Prix, essai et paiement.",
+      "intro": "Chaque cliente a un lien de parrainage dans son espace (Plus → Parrainage). Quand une nouvelle cliente commande par ce lien et paie son premier mois, la marraine reçoit {months, plural, one {# mois offert, déduit} other {# mois offerts, déduits}} automatiquement de ses prochaines factures Stripe. Réglage : Réglages → Prix, essai et paiement.",
       "disabled": "Le parrainage est désactivé (0 mois offert dans les Réglages) : les liens des clientes n'ont plus d'effet.",
       "none": "Aucun parrainage pour l'instant.",
       "pair": "{sponsor} a parrainé {referred}",
