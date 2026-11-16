@@ -35,6 +35,7 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
       "sms_warning_percent",
       "go_live_delay_days",
       "trial_days",
+      "referral_reward_months",
       "deposit_commission_percent",
       "retention_days_after_cancel",
       "replaced_asset_retention_days",
@@ -111,6 +112,7 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
             {field("price_change_notice_days", "number", t("priceChangeHint"))}
             {field("go_live_delay_days")}
             {field("trial_days", "number", t("trialHint"))}
+            {field("referral_reward_months", "number", t("referralHint"))}
             {/* Utile seulement avec une durée d'engagement : sinon la valeur actuelle est gardée, sans case. */}
             {Number(s.commitment_months) > 0 ? (
               <CheckboxField

@@ -2,6 +2,7 @@ import type { Transaction } from "@/db/client";
 import { processEventOnce, type EventOutcome } from "@/modules/payments/webhooks";
 import { markOrderPaid } from "@/modules/orders/orders";
 import type { BillingGateway, BillingSubscription } from "./gateway";
+import { rewardReferral } from "./referrals";
 import { confirmSmsPack } from "./sms-packs";
 import { applyInvoicePaid, applyPaymentFailed, applySubscription } from "./subscriptions";
 
@@ -20,7 +21,12 @@ export type BillingEvent = {
       paymentStatus?: string;
       metadata?: Record<string, string>;
     }
-  | { kind: "invoice_paid"; subscriptionId: string | null }
+  | {
+      kind: "invoice_paid";
+      subscriptionId: string | null;
+      /** Montant réglé (0 : facture de l'essai gratuit). */
+      amountPaidCents?: number;
+    }
   | {
       kind: "invoice_failed";
       subscriptionId: string | null;
@@ -64,10 +70,17 @@ export async function handleBillingEvent(
         }
         return applied.outcome;
       }
-      case "invoice_paid":
-        return event.subscriptionId
-          ? (await applyInvoicePaid(tx, { subscriptionId: event.subscriptionId })).outcome
-          : null;
+      case "invoice_paid": {
+        if (!event.subscriptionId) return null;
+        const paid = await applyInvoicePaid(tx, { subscriptionId: event.subscriptionId });
+        // Premier vrai paiement d'une nouvelle cliente parrainée : mois offerts à la marraine.
+        const referral = await rewardReferral(
+          tx,
+          { subscriptionId: event.subscriptionId, amountPaidCents: event.amountPaidCents ?? 0 },
+          gateway,
+        );
+        return referral?.outcome ?? paid.outcome;
+      }
       case "invoice_failed":
         return event.subscriptionId
           ? (

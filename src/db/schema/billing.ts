@@ -308,6 +308,8 @@ export const orders = pgTable(
     rejectionReason: text(),
     /** Renseigné quand l'administratrice a créé le site. */
     tenantId: uuid().references(() => tenants.id, { onDelete: "set null" }),
+    /** Cliente qui a recommandé Sirine (lien de parrainage suivi avant la commande). */
+    referrerTenantId: uuid().references(() => tenants.id, { onDelete: "set null" }),
     ...timestamps(),
   },
   (t) => [
@@ -466,5 +468,47 @@ export const smsPacks = pgTable(
       "sms_packs_quantities",
       sql`${t.quantity} > 0 and ${t.remaining} >= 0 and ${t.remaining} <= ${t.quantity} and ${t.priceCents} >= 0`,
     ),
+  ],
+);
+
+// ─── Parrainage : une cliente recommande Sirine, elle gagne des mois offerts ─
+
+export const referralStatusEnum = pgEnum("referral_status", [
+  /** Commande payée par la filleule (souvent en essai) : en attente de son premier vrai paiement. */
+  "pending",
+  /** Mois offerts crédités sur le compte Stripe de la marraine. */
+  "rewarded",
+  /** Pas d'abonnement Stripe en cours chez la marraine : à accorder à la main par l'équipe. */
+  "manual",
+  /** Commande refusée : pas de récompense. */
+  "cancelled",
+]);
+
+/**
+ * Parrainages : un par commande parrainée. `tenantId` est la marraine (elle lit
+ * les siens) ; seul le rôle plateforme les crée et les fait avancer.
+ */
+export const referrals = pgTable(
+  "referrals",
+  {
+    id: id(),
+    tenantId: uuid()
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    orderId: uuid()
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    status: referralStatusEnum().notNull().default("pending"),
+    /** Mois offerts promis (réglage au moment du parrainage). */
+    rewardMonths: integer().notNull(),
+    /** Montant crédité chez Stripe (TTC), une fois accordé. */
+    creditCents: integer(),
+    rewardedAt: utc(),
+    ...timestamps(),
+  },
+  (t) => [
+    uniqueIndex("referrals_order_key").on(t.orderId),
+    index("referrals_tenant_idx").on(t.tenantId),
+    check("referrals_months", sql`${t.rewardMonths} >= 0`),
   ],
 );

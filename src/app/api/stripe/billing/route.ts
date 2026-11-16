@@ -37,7 +37,12 @@ function translate(event: Stripe.Event): BillingEvent {
       };
     }
     case "invoice.paid":
-      return { ...base, kind: "invoice_paid", subscriptionId: invoiceSubscription(event.data.object) };
+      return {
+        ...base,
+        kind: "invoice_paid",
+        subscriptionId: invoiceSubscription(event.data.object),
+        amountPaidCents: event.data.object.amount_paid ?? 0,
+      };
     case "invoice.payment_failed": {
       const invoice = event.data.object;
       return {

@@ -1,4 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server";
+import {
+  isReferralCode,
+  REFERRAL_COOKIE,
+  REFERRAL_COOKIE_DAYS,
+  REFERRAL_PARAM,
+} from "@/modules/billing/referral-link";
 import createIntlMiddleware from "next-intl/middleware";
 import { authSecret, env } from "@/config/env";
 import { platformLocaleRedirect } from "@/i18n/redirects";
@@ -99,7 +105,7 @@ async function route(request: NextRequest): Promise<NextResponse> {
         const localeRedirect = platformLocaleRedirect(url);
         if (localeRedirect) return NextResponse.redirect(localeRedirect.url, localeRedirect.status);
       }
-      return intl(request);
+      return rememberReferral(url, await intl(request));
     case "tenant": {
       // La connexion n'existe que sur le domaine principal.
       if (hasPrefix(url.pathname, "/api/auth")) return notFound();
@@ -145,6 +151,21 @@ async function route(request: NextRequest): Promise<NextResponse> {
       return NextResponse.rewrite(target, { request: { headers } });
     }
   }
+}
+
+/** Lien de parrainage (?parrain=…) : le code est retenu jusqu'à la commande. */
+function rememberReferral(url: URL, response: NextResponse): NextResponse {
+  const code = url.searchParams.get(REFERRAL_PARAM);
+  if (isReferralCode(code)) {
+    response.cookies.set(REFERRAL_COOKIE, code, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: url.protocol === "https:",
+      path: "/",
+      maxAge: REFERRAL_COOKIE_DAYS * 24 * 3600,
+    });
+  }
+  return response;
 }
 
 /** En développement, nom.horaneo.com devient nom.localhost:<port>. */

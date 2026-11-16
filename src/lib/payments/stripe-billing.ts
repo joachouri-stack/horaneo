@@ -267,6 +267,20 @@ export function createStripeBilling(secretKey: string): BillingGateway {
       });
       return { url: session.url };
     },
+
+    async creditCustomer(input) {
+      // Montant négatif : crédit en faveur du client, appliqué aux prochaines factures.
+      const transaction = await stripe.customers.createBalanceTransaction(
+        input.customerId,
+        {
+          amount: -input.amountCents,
+          currency: input.currency.toLowerCase(),
+          description: input.description,
+        },
+        { idempotencyKey: input.idempotencyKey },
+      );
+      return { id: transaction.id };
+    },
   };
 }
 

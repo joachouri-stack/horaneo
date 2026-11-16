@@ -9,8 +9,11 @@ export function CopyLink({
   label,
   copyLabel,
   copiedLabel,
+  id = "calendar-link",
 }: {
   value: string;
+  /** Identifiant du champ (un par lien sur la page). */
+  id?: string;
   label: string;
   copyLabel: string;
   copiedLabel: string;
@@ -27,12 +30,12 @@ export function CopyLink({
   };
   return (
     <div className="space-y-2">
-      <label htmlFor="calendar-link" className="font-semibold text-night">
+      <label htmlFor={id} className="font-semibold text-night">
         {label}
       </label>
       <div className="flex gap-2">
         <input
-          id="calendar-link"
+          id={id}
           readOnly
           value={value}
           onFocus={(event) => event.currentTarget.select()}

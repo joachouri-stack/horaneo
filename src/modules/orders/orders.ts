@@ -12,6 +12,7 @@ import {
   reserveForOrder,
 } from "@/modules/billing/launch-offers";
 import { resolveOptions } from "@/modules/billing/option-total";
+import { cancelReferralOfOrder, recordReferral, referrerFromCode } from "@/modules/billing/referrals";
 import { ensureOptionPrice, listPlanOptions, pricedOption } from "@/modules/billing/options";
 import { applySubscription, ensurePlanPrice, ensureTaxRate } from "@/modules/billing/subscriptions";
 import { AppError } from "@/modules/errors";
@@ -46,6 +47,8 @@ export const orderInput = z.object({
   optionCodes: z.array(z.string().max(40)).max(20).default([]),
   /** Facturation : chaque mois, ou à l'année (réduction réglée dans l'admin). */
   billingInterval: z.enum(["month", "year"]).default("month"),
+  /** Code du lien de parrainage suivi avant la commande (identifiant du site de la marraine). */
+  referralCode: z.string().max(63).optional(),
 });
 
 export type OrderInput = z.input<typeof orderInput>;
@@ -108,6 +111,7 @@ export async function createOrder(
   if (yearly && (plan.priceCents <= 0 || !(await getPlatformSetting(tx, "yearly_billing_enabled"))))
     throw new AppError("invalid", "billingInterval");
   if (yearly && optionCodes.length > 0) throw new AppError("option_monthly_only", "optionCodes");
+  const referrerTenantId = await referrerFromCode(tx, input.referralCode);
   const values = {
     planId: plan.id,
     optionCodes,
@@ -121,6 +125,8 @@ export async function createOrder(
     phone: phone ?? input.phone,
     currentWebsite: input.currentWebsite ?? null,
     locale: input.locale,
+    // Parrainage : la marraine est retenue (une commande reprise garde la sienne sans nouveau lien).
+    ...(referrerTenantId ? { referrerTenantId } : {}),
   };
   const free = plan.priceCents <= 0;
   // Une commande payante non réglée est reprise (nouveau choix ou nouvelles coordonnées).
@@ -239,6 +245,8 @@ export async function markOrderPaid(
     .where(eq(orders.id, order.id));
   // Place de l'offre de lancement confirmée par le premier paiement (éligibilité vérifiée ensuite).
   await confirmOrderClaim(tx, order.id, now);
+  // Commande parrainée : les mois offerts attendent le premier vrai paiement (après l'essai).
+  await recordReferral(tx, order.id);
   await queueOrderAlerts(tx, order.id, order.locale);
   return { outcome: "paid" as const };
 }
@@ -386,6 +394,7 @@ export async function rejectOrder(
     .set({ status: "rejected", rejectionReason: reason.trim().slice(0, 500) || null })
     .where(eq(orders.id, order.id));
   await releaseOrderClaim(tx, order.id);
+  await cancelReferralOfOrder(tx, order.id);
   await queueMessage(tx, {
     tenantId: null,
     template: "account.order_rejected",
