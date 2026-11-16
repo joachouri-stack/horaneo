@@ -359,6 +359,55 @@ describe.skipIf(!hasTestDatabase)("SMS et engagement", () => {
       expect(await platform((tx) => reserveSms(tx, s.id, NOW))).toBeNull();
     });
 
+    it("pack payant sans SMS inclus (Starter) : recharge achetée, puis utilisée pour les rappels", async () => {
+      // Pack payant de test, sans SMS inclus (comme le Starter).
+      const essentiel = await planOf("essentiel");
+      const {
+        id: _id,
+        createdAt: _c,
+        updatedAt: _u,
+        stripePriceId: _p,
+        stripeProductId: _r,
+        ...rest
+      } = essentiel;
+      void [_id, _c, _u, _p, _r];
+      await owner
+        .insert(plans)
+        .values({
+          ...rest,
+          code: "test-sans-sms",
+          isPublic: false,
+          stripeYearlyPriceId: null,
+          stripeYearlyPriceCents: null,
+          limits: { ...essentiel.limits, smsPerMonth: 0 },
+        })
+        .onConflictDoNothing();
+      const s = await setup("test-sans-sms");
+      // Sans recharge : ni SMS, ni rappel par SMS (le rappel par e-mail part de son côté).
+      expect(await platform((tx) => reserveSms(tx, s.id, NOW))).toBeNull();
+      const checkoutId = await buyPack(s.id);
+      await send({
+        kind: "checkout_completed",
+        subscriptionId: null,
+        checkoutId,
+        paymentStatus: "paid",
+        metadata: billing.payments.get(checkoutId)!.metadata,
+      });
+      const [pack] = await owner.select().from(smsPacks).where(eq(smsPacks.tenantId, s.id));
+      expect(pack).toMatchObject({ status: "paid", remaining: 100 });
+      await book(s);
+      await dispatch(s.id);
+      fake.clear();
+      const evening = localToUtc("2026-10-07", "18:05", TZ);
+      await platform((tx) => queueSmsReminders(tx, evening));
+      expect(await dispatch(s.id, evening)).toMatchObject({ sent: 1, blocked: 0 });
+      expect(fake.sms).toHaveLength(1);
+      expect(await asTenant(s.id, (tx) => smsUsage(tx, s.id, NOW))).toMatchObject({
+        used: 0,
+        packsRemaining: 99,
+      });
+    });
+
     it("fin de l'abonnement : les SMS achetés ne sont plus disponibles", async () => {
       const s = await setup("basic");
       const essentiel = await planOf("essentiel");
