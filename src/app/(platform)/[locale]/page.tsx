@@ -650,21 +650,23 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           </section>
 
           {/* Exemple de site : maquette d'un établissement fictif (présentée comme un exemple par l'étiquette). */}
-          <section aria-labelledby="titre-exemple" className="px-4 pt-12 sm:px-6 lg:pt-16">
+          <section aria-labelledby="titre-exemple" className="px-4 pt-14 sm:px-6 lg:pt-20">
             <div className="mx-auto max-w-[72rem] 2xl:max-w-[85rem]">
+              {/* Titre et texte au-dessus de la photo, comme les autres parties (la photo n'a plus de texte). */}
               <div className="mx-auto max-w-[46rem] text-center">
-                {/* Titre et texte déjà écrits dans la photo : gardés pour Google et les lecteurs d'écran. */}
-                <h2 id="titre-exemple" className="sr-only">
-                  {t("example.title")} {t("example.titleAccent")}
+                <h2 id="titre-exemple" data-reveal className={`${TITLE} hn-balance text-mk-h2 leading-[1.1]`}>
+                  {t("example.title")}{" "}
+                  <span className="hn-grad-text block">{coralStop(t("example.titleAccent"))}</span>
                 </h2>
-                <p className="sr-only">{t("example.text")}</p>
+                <p data-reveal className="mt-4 text-mk-lead text-ink-soft">
+                  {t("example.text")}
+                </p>
               </div>
-              {/* Rien de visible au-dessus de la photo (titre dans l'image) : pas de marge en plus. */}
-              <figure data-reveal>
+              <figure data-reveal className="mt-10 lg:mt-12">
                 <div className="-mx-2 overflow-hidden rounded-[1rem] shadow-[0_40px_90px_-40px_rgba(15,24,48,.55)] sm:mx-0 sm:rounded-[1.2rem] lg:rounded-[1.8rem]">
                   <Image
-                    src="/images/exemple-site-sirine.webp"
-                    width={1536}
+                    src="/images/exemple-site-sirine-v2.webp"
+                    width={1535}
                     height={1024}
                     alt={t("example.alt")}
                     sizes="(min-width: 1536px) 85rem, (min-width: 1152px) 72rem, 100vw"
