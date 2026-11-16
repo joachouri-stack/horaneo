@@ -843,7 +843,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               <h2 id="titre-activites" className={`${TITLE} text-mk-card leading-snug`}>
                 {t("activities.title")}
               </h2>
-              <p className="mx-auto mt-2 max-w-[38rem] text-ink-soft">{t("activities.text")}</p>
+              <p className="mx-auto mt-2 max-w-[38rem] text-balance text-ink-soft">{t("activities.text")}</p>
             </div>
           </section>
 
