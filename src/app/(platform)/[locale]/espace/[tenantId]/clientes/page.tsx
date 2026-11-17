@@ -93,6 +93,12 @@ export default async function CustomersPage({
         </div>
         <div className="flex flex-wrap gap-2">
           <Link
+            href={`${page.base}/clientes/importer`}
+            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-hairline bg-white px-5 text-[0.95rem] font-medium text-night transition hover:border-accent-line"
+          >
+            {t("importLink")}
+          </Link>
+          <Link
             href={`${page.base}/clientes/nouvelle`}
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-accent px-5 text-[0.95rem] font-medium text-white shadow-[0_1px_2px_rgba(15,24,48,.08)] transition hover:bg-accent-strong"
           >

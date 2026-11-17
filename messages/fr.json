@@ -3245,7 +3245,49 @@
         "confirm": "Réunir la fiche choisie avec celle de {name} ? La fiche en double sera supprimée. Cette action est définitive.",
         "done": "Fiches fusionnées."
       },
-      "moreActions": "Plus d'actions"
+      "moreActions": "Plus d'actions",
+      "importLink": "Importer",
+      "import": {
+        "title": "Importer des clients",
+        "intro": "Reprenez votre fichier clients d'un autre logiciel ou d'un tableau Excel, sans rien retaper.",
+        "fileLabel": "Votre fichier (CSV)",
+        "fileHint": "Dans Excel : Fichier → Enregistrer sous → « CSV (séparateur : point-virgule) ». La première ligne doit contenir les titres des colonnes (Prénom, Nom, Téléphone, E-mail…).",
+        "fileEmpty": "Ce fichier ne contient aucun client. Vérifiez qu'il s'agit bien d'un fichier CSV avec une ligne de titres.",
+        "found": "{count, plural, one {# client trouvé} other {# clients trouvés}} dans le fichier.",
+        "columnsTitle": "Colonnes reconnues",
+        "columnsHint": "Vérifiez que chaque information correspond à la bonne colonne de votre fichier.",
+        "skip": "— Ne pas importer",
+        "fields": {
+          "firstName": "Prénom",
+          "lastName": "Nom",
+          "fullName": "Nom complet (prénom et nom ensemble)",
+          "phone": "Téléphone",
+          "email": "E-mail",
+          "birthday": "Anniversaire (date de naissance)",
+          "notes": "Notes"
+        },
+        "previewTitle": "Aperçu des premières lignes",
+        "birthdayNote": "Seuls le jour et le mois de l'anniversaire sont gardés, jamais l'année.",
+        "consent": "Ces clients ont accepté de recevoir mes offres par e-mail et SMS",
+        "consentHint": "Cochez seulement si c'est vrai. Sinon, ils ne recevront que les messages liés à leurs rendez-vous (confirmations, rappels).",
+        "submit": "{count, plural, one {Importer # client} other {Importer # clients}}",
+        "progress": "Import en cours… {done} sur {total}",
+        "doneTitle": "Import terminé",
+        "created": "{count, plural, =0 {Aucun client ajouté} one {# client ajouté} other {# clients ajoutés}}",
+        "duplicates": "{count, plural, one {# déjà dans votre fichier (non recopié)} other {# déjà dans votre fichier (non recopiés)}}",
+        "invalid": "{count, plural, one {# ligne ignorée} other {# lignes ignorées}}",
+        "problemsTitle": "Lignes ignorées",
+        "problem": {
+          "name": "Ligne {line} : prénom manquant.",
+          "contact": "Ligne {line} : ni téléphone ni e-mail.",
+          "phone": "Ligne {line} : numéro de téléphone non valable.",
+          "email": "Ligne {line} : adresse e-mail non valable."
+        },
+        "moreProblems": "D'autres lignes ont été ignorées pour les mêmes raisons.",
+        "quotaReached": "La limite de clients de votre pack est atteinte : les clients suivants n'ont pas été importés.",
+        "again": "Importer un autre fichier",
+        "back": "Voir mes clients"
+      }
     },
     "site": {
       "title": "Mon site",

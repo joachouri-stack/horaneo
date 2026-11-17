@@ -19,6 +19,7 @@ import { redirect as redirectTo } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { publicAppUrl } from "@/config/env";
 import { z } from "zod";
+import { importCustomers, type importCustomersInput } from "@/modules/customers/import";
 import { redirect } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/translator";
 import type { ActionResult } from "@/lib/actions/result";
@@ -317,6 +318,13 @@ export async function deleteTimeOffAction(_previous: Previous, data: FormData) {
 }
 
 // ─── Clientes ─────────────────────────────────────────────────────────────────
+
+/** Import d'un fichier clients, par lots (le navigateur découpe les gros fichiers). */
+export async function importCustomersAction(tenantId: string, input: z.input<typeof importCustomersInput>) {
+  return managerMutation(uuid.parse(tenantId), "customers", "customer.imported", (tx) =>
+    importCustomers(tx, tenantId, input),
+  );
+}
 
 export async function saveCustomerAction(
   _previous: Previous,
