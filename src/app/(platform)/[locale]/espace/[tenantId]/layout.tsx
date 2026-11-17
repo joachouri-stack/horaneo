@@ -24,7 +24,10 @@ export async function generateMetadata({
 }: LayoutProps<"/[locale]/espace/[tenantId]">): Promise<Metadata> {
   const locale = resolveLocale((await params).locale);
   const product = env().PRODUCT_NAME;
+  const t = await getTranslations({ locale, namespace: "manager" });
   return {
+    // Titre de l'onglet : « Mon espace · Sirine » (au lieu de l'accroche du site commercial).
+    title: t("metaTitle"),
     robots: { index: false, follow: false },
     manifest: `/api/app/manifest?l=${locale}`,
     appleWebApp: { capable: true, title: product, statusBarStyle: "default" },

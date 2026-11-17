@@ -3179,6 +3179,8 @@
       "never": "Pas encore venu",
       "visits": "Visites",
       "noShows": "Absences",
+      "visitsStat": "{count, plural, one {Visite} other {Visites}}",
+      "noShowsStat": "{count, plural, one {Absence} other {Absences}}",
       "spent": "Dépensé",
       "notes": "Notes",
       "notesHint": "Préférences, habitudes… Visible uniquement par vous. Évitez les informations de santé.",
