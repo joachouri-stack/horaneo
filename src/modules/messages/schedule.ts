@@ -19,6 +19,7 @@ import { birthdaysCelebratedOn } from "@/modules/customers/birthday";
 import { createPersonalPromoCode } from "@/modules/promo/codes";
 import { getPlatformSetting } from "@/modules/settings";
 import { DEFAULT_WINBACK } from "@/config/defaults";
+import { expireStaleHolds } from "@/modules/booking/create";
 import { queueMessage } from "./queue";
 
 /**
@@ -82,7 +83,12 @@ export async function queueEmailReminders(tx: Transaction, now: Date) {
   // Pas de rappel à moins de 2 h : il arriverait trop tard pour être utile.
   const earliest = new Date(now.getTime() + 2 * 3_600_000);
   const rows = await tx
-    .select({ id: appointments.id, tenantId: appointments.tenantId, locale: appointments.locale })
+    .select({
+      id: appointments.id,
+      tenantId: appointments.tenantId,
+      locale: appointments.locale,
+      startsAt: appointments.startsAt,
+    })
     .from(appointments)
     .innerJoin(tenants, eq(tenants.id, appointments.tenantId))
     .where(
@@ -93,6 +99,8 @@ export async function queueEmailReminders(tx: Transaction, now: Date) {
         lte(appointments.startsAt, horizon),
         // Pris moins de 24 h avant : la confirmation vient d'arriver, pas besoin de rappel.
         lte(appointments.createdAt, sql`${appointments.startsAt} - make_interval(hours => ${hours})`),
+        // Rappel déjà envoyé avant que la clé ne porte l'horaire (ancien format).
+        sql`not exists (select 1 from ${messageLog} m where m.dedupe_key = 'customer.reminder_email:' || ${appointments.id})`,
       ),
     );
   for (const row of rows) {
@@ -101,6 +109,8 @@ export async function queueEmailReminders(tx: Transaction, now: Date) {
       template: "customer.reminder_email",
       appointmentId: row.id,
       locale: row.locale,
+      // Un rappel par horaire : un rendez-vous déplacé par la gérante a de nouveau le sien.
+      dedupeKey: `customer.reminder_email:${row.id}:${row.startsAt.toISOString()}`,
     });
   }
   return rows.length;
@@ -120,7 +130,7 @@ export async function queueSmsReminders(tx: Transaction, now: Date) {
     if (!open) continue;
     const tomorrow = addDays(local.date, 1);
     const rows = await tx
-      .select({ id: appointments.id, locale: appointments.locale })
+      .select({ id: appointments.id, locale: appointments.locale, startsAt: appointments.startsAt })
       .from(appointments)
       .where(
         and(
@@ -130,6 +140,7 @@ export async function queueSmsReminders(tx: Transaction, now: Date) {
           lt(appointments.startsAt, localToUtc(addDays(tomorrow, 1), "00:00", tenant.timezone)),
           // Pris moins de 24 h avant : pas de rappel (décision n° 6), la confirmation vient d'arriver.
           lte(appointments.createdAt, sql`${appointments.startsAt} - interval '24 hours'`),
+          sql`not exists (select 1 from ${messageLog} m where m.dedupe_key = 'customer.reminder_sms:' || ${appointments.id})`,
         ),
       );
     for (const row of rows) {
@@ -138,6 +149,7 @@ export async function queueSmsReminders(tx: Transaction, now: Date) {
         template: "customer.reminder_sms",
         appointmentId: row.id,
         locale: row.locale,
+        dedupeKey: `customer.reminder_sms:${row.id}:${row.startsAt.toISOString()}`,
       });
     }
     count += rows.length;
@@ -236,6 +248,8 @@ export async function queueBirthdayOffers(tx: Transaction, now: Date) {
           eq(customers.businessId, business.id),
           isNull(customers.anonymizedAt),
           isNotNull(customers.email),
+          // A demandé à ne plus recevoir d'offres (lien des e-mails).
+          isNull(customers.marketingOptOutAt),
           or(...days.map((day) => and(eq(customers.birthMonth, day.month), eq(customers.birthDay, day.day)))),
           sql`not exists (select 1 from ${messageLog} m where m.dedupe_key = 'customer.birthday:' || ${customers.id} || ':' || ${year})`,
         ),
@@ -326,6 +340,7 @@ export async function queueWinbacks(tx: Transaction, now: Date) {
           isNull(customers.anonymizedAt),
           isNotNull(customers.email),
           eq(customers.emailConsent, true),
+          isNull(customers.marketingOptOutAt),
           // Déjà un rendez-vous prévu : pas besoin de relancer.
           sql`not exists (select 1 from ${appointments} f where f.customer_id = ${customers.id} and f.status in ('confirmed', 'pending_payment') and f.starts_at > ${now.toISOString()}::timestamptz)`,
         ),
@@ -368,12 +383,17 @@ export async function queueWinbacks(tx: Transaction, now: Date) {
   return count;
 }
 
-/** Libère les créneaux retenus pendant un paiement qui n'a pas abouti (tous les établissements). */
+/**
+ * Libère les créneaux retenus pendant un paiement qui n'a pas abouti (tous les
+ * établissements), en rendant le code promo et la réservation du mois qu'ils avaient
+ * comptés (comme lors d'une réservation sur le site).
+ */
 export async function expireAllHolds(tx: Transaction, now: Date) {
-  const rows = await tx
-    .update(appointments)
-    .set({ status: "expired" })
-    .where(and(eq(appointments.status, "pending_payment"), lte(appointments.holdExpiresAt, now)))
-    .returning({ id: appointments.id });
-  return rows.length;
+  const stale = await tx
+    .selectDistinct({ tenantId: appointments.tenantId })
+    .from(appointments)
+    .where(and(eq(appointments.status, "pending_payment"), lte(appointments.holdExpiresAt, now)));
+  let count = 0;
+  for (const { tenantId } of stale) count += await expireStaleHolds(tx, tenantId, now);
+  return count;
 }

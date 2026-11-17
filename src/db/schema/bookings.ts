@@ -59,6 +59,11 @@ export const customers = pgTable(
     emailConsent: boolean().notNull().default(false),
     smsConsent: boolean().notNull().default(false),
     consentAt: utc(),
+    /**
+     * Le client a demandé à ne plus recevoir d'offres (lien des e-mails) : plus de relance
+     * ni d'e-mail d'anniversaire, jusqu'à ce qu'il redonne son accord en réservant.
+     */
+    marketingOptOutAt: utc(),
     /** Données effacées à sa demande : la fiche reste pour l'historique, sans coordonnées. */
     anonymizedAt: utc(),
     /** Anniversaire : mois (1 à 12) et jour seulement, jamais l'année (minimisation des données). */

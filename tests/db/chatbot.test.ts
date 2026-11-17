@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { withTenant } from "@/db/access";
 import * as s from "@/db/schema";
 import { chatbotOffered, isNewConversation, prepareChat } from "@/modules/chatbot/chat";
+import { conversationToken, isValidConversation } from "@/modules/chatbot/conversation";
 import { chatbotSettings, setChatbotEnabled } from "@/modules/chatbot/settings";
 import { FIND_SLOTS, runChatTool } from "@/modules/chatbot/tools";
 import { AppError } from "@/modules/errors";
@@ -71,15 +72,14 @@ describe.skipIf(!hasTestDatabase)("chatbot du site", () => {
       }),
     ).rejects.toThrow();
     expect(isNewConversation(question("Bonjour"))).toBe(true);
-    expect(
-      isNewConversation({
-        messages: [
-          { role: "user", content: "a" },
-          { role: "assistant", content: "b" },
-          { role: "user", content: "c" },
-        ],
-      }),
-    ).toBe(false);
+    const longer = [
+      { role: "user" as const, content: "a" },
+      { role: "assistant" as const, content: "b" },
+      { role: "user" as const, content: "c" },
+    ];
+    expect(isNewConversation({ messages: longer, conversation: "jeton" })).toBe(false);
+    // Historique sans jeton de conversation : compté comme une nouvelle conversation.
+    expect(isNewConversation({ messages: longer })).toBe(true);
   });
 
   it("la gérante peut couper l'assistant : plus de bulle ni de réponse ; compteur du mois", async () => {
@@ -144,5 +144,15 @@ describe.skipIf(!hasTestDatabase)("chatbot du site", () => {
     const offline = await search({ service_id: service.id, from_date: "2027-01-04", days: 1 });
     expect(offline.link).toBeNull();
     expect(offline.result).toMatch(/cannot be booked online/);
+  });
+
+  it("jeton de conversation : signé pour ce site, valable une heure", () => {
+    const tenantId = "01a1a85b-0d03-74a1-bb3f-7f973dbc59cb";
+    const now = new Date("2026-11-17T10:00:00Z");
+    const token = conversationToken(tenantId, now);
+    expect(isValidConversation(token, tenantId, new Date("2026-11-17T10:30:00Z"))).toBe(true);
+    expect(isValidConversation(token, tenantId, new Date("2026-11-17T11:00:01Z"))).toBe(false);
+    expect(isValidConversation(token, "01a1a85b-0d03-74a1-bb3f-7f973dbc59cc", now)).toBe(false);
+    expect(isValidConversation(`${Date.now()}.abc.faux`, tenantId, now)).toBe(false);
   });
 });

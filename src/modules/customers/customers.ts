@@ -502,7 +502,7 @@ export async function possibleDuplicates(tx: Transaction, tenantId: string, cust
 export async function mergeCustomers(
   tx: Transaction,
   tenantId: string,
-  input: { keepId: string; removeId: string },
+  input: { keepId: string; removeId: string; businessId?: string },
 ) {
   const keepId = z.uuid().parse(input.keepId);
   const removeId = z.uuid().parse(input.removeId);
@@ -519,7 +519,14 @@ export async function mergeCustomers(
     );
   const keep = rows.find((row) => row.id === keepId);
   const remove = rows.find((row) => row.id === removeId);
-  if (!keep || !remove || keep.businessId !== remove.businessId) throw new AppError("not_found");
+  // Deux fiches de la même entreprise, celle de la gérante quand elle est donnée (rôle plateforme).
+  if (
+    !keep ||
+    !remove ||
+    keep.businessId !== remove.businessId ||
+    (input.businessId !== undefined && keep.businessId !== input.businessId)
+  )
+    throw new AppError("not_found");
 
   const moved = { customerId: keepId };
   await tx
@@ -560,6 +567,11 @@ export async function mergeCustomers(
     [keep.consentAt, remove.consentAt]
       .filter((date): date is Date => date !== null)
       .sort((a, b) => b.getTime() - a.getTime())[0] ?? null;
+  const optOutAt =
+    [keep.marketingOptOutAt, remove.marketingOptOutAt]
+      .filter((date): date is Date => date !== null)
+      .sort((a, b) => b.getTime() - a.getTime())[0] ?? null;
+  const optedOut = optOutAt !== null && (consentAt === null || optOutAt > consentAt);
   const [merged] = await tx
     .update(customers)
     .set({
@@ -567,9 +579,11 @@ export async function mergeCustomers(
       phone: keep.phone ?? remove.phone,
       email: keep.email ?? remove.email,
       notes: [keep.notes, remove.notes].filter(Boolean).join("\n\n") || null,
-      emailConsent: keep.emailConsent || remove.emailConsent,
-      smsConsent: keep.smsConsent || remove.smsConsent,
+      // Une demande de ne plus recevoir d'offres plus récente que le dernier accord l'emporte.
+      emailConsent: (keep.emailConsent || remove.emailConsent) && !optedOut,
+      smsConsent: (keep.smsConsent || remove.smsConsent) && !optedOut,
       consentAt,
+      marketingOptOutAt: optOutAt,
       ...birthday,
     })
     .where(eq(customers.id, keepId))

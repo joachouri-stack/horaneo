@@ -634,6 +634,7 @@ async function renderBirthday(
   )
     return { kind: "skip", reason: "code_unusable" };
   if (customer.anonymizedAt || !customer.email) return { kind: "skip", reason: "no_email" };
+  if (customer.marketingOptOutAt) return { kind: "skip", reason: "no_consent" };
   const locale = resolveLocale(row.locale);
   const t = await getTranslator(locale);
   const siteUrl = tenant.siteUrl ?? options.appUrl;
@@ -661,6 +662,10 @@ async function renderBirthday(
     action: { label: t("notifications.customer.birthday.action"), url: bookingUrl },
     after: until ? [t("notifications.customer.birthday.validity", { date: until })] : [],
     footer: tenantFooter(tenant),
+    unsubscribe: {
+      label: t("notifications.customer.winback.unsubscribe"),
+      url: `${siteUrl}${SITE_PATHS.unsubscribe}?t=${unsubscribeToken({ businessId: customer.businessId, customerId: customer.id })}`,
+    },
   });
   return {
     kind: "email",
@@ -702,7 +707,7 @@ async function renderWinback(
   if (!found) return { kind: "skip", reason: "no_customer" };
   const { customer } = found;
   if (customer.anonymizedAt || !customer.email) return { kind: "skip", reason: "no_email" };
-  if (!customer.emailConsent) return { kind: "skip", reason: "no_consent" };
+  if (!customer.emailConsent || customer.marketingOptOutAt) return { kind: "skip", reason: "no_consent" };
   if (found.booked) return { kind: "skip", reason: "already_booked" };
   const [code] = promoCodeId
     ? await tx

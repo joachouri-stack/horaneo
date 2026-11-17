@@ -24,6 +24,8 @@ export function ChatWidget({ businessName, contact }: { businessName: string; co
   const [turns, setTurns] = useState<Turn[]>([]);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
+  // Jeton remis par le serveur à la première question, renvoyé avec les suivantes.
+  const [conversation, setConversation] = useState<string | undefined>(undefined);
   const [pending, startTransition] = useTransition();
   const list = useRef<HTMLOListElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
@@ -48,11 +50,13 @@ export function ChatWidget({ businessName, contact }: { businessName: string; co
       while (history.length > 0 && history[0].role !== "user") history = history.slice(1);
       const result = await askAssistantAction({
         messages: history.map(({ role, content }) => ({ role, content })),
+        conversation,
       });
       if (!result.ok) {
         setError(tErrors(result.error));
         return;
       }
+      setConversation(result.conversation);
       setTurns((current) => [
         ...current,
         { role: "assistant", content: result.reply ?? t("fallback"), links: result.links },

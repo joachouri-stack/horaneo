@@ -200,7 +200,11 @@ export async function requestPlanChange(
     const priceId = await ensurePlanPrice(tx, target.id, gateway, interval);
     // Formule choisie : avec engagement (frais du pack), ou sans (frais de création en plus).
     // À l'année, les 12 mois sont payés d'avance : c'est un engagement, sans frais de création.
-    const withCommitment = interval === "year" || (urls.withCommitment ?? true);
+    // Même règle qu'à la commande : sans engagement seulement si l'offre est proposée.
+    const months = Number(await getPlatformSetting(tx, "commitment_months"));
+    const noCommitmentOffered = Boolean(await getPlatformSetting(tx, "offer_no_commitment"));
+    const withCommitment =
+      interval === "year" || (months > 0 && ((urls.withCommitment ?? true) || !noCommitmentOffered));
     const setupFeeCents = await creationFeeFor(tx, target, withCommitment);
     const checkout = await gateway
       .createCheckout({

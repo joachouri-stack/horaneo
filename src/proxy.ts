@@ -182,5 +182,13 @@ function devLocation(location: string, url: URL): string {
 export const config = {
   // Tout sauf les fichiers techniques de Next.js et les fichiers avec extension.
   // Plus sitemap.xml et robots.txt, propres à chaque site client.
-  matcher: ["/((?!_next|_vercel|.*\\..*).*)", "/sitemap.xml", "/robots.txt"],
+  // Les adresses internes (/sites, /platform-seo) passent toujours par le proxy, même avec
+  // un point : elles ne doivent jamais être servies directement.
+  matcher: [
+    "/((?!_next|_vercel|.*\\..*).*)",
+    "/sitemap.xml",
+    "/robots.txt",
+    "/sites/:path*",
+    "/platform-seo/:path*",
+  ],
 };

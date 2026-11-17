@@ -111,12 +111,18 @@ export async function applyPaymentIntent(
   const [payment] = await tx
     .select()
     .from(payments)
-    .where(and(eq(payments.tenantId, tenantId), eq(payments.stripePaymentIntentId, intent.id)));
+    .where(and(eq(payments.tenantId, tenantId), eq(payments.stripePaymentIntentId, intent.id)))
+    // Navigateur et événement Stripe en même temps : l'un attend l'autre.
+    .for("update");
   if (!payment) return { outcome: "unknown_payment" as const };
+  // Réussite déjà appliquée (navigateur ou événement précédent) : rien à refaire. Sans
+  // cela, un événement Stripe renvoyé plus tard rembourserait un acompte que la gérante
+  // a choisi de garder en annulant, ou compterait deux fois le code promo.
+  if (payment.status === "succeeded")
+    return { outcome: "succeeded" as const, appointmentId: payment.appointmentId };
 
   const next = STATUS_MAP[intent.status] ?? (options.failed ? "failed" : payment.status);
-  // Un paiement réussi ne revient jamais en arrière.
-  if (payment.status !== "succeeded" && next !== payment.status) {
+  if (next !== payment.status) {
     await tx.update(payments).set({ status: next }).where(eq(payments.id, payment.id));
   }
   if (intent.status !== "succeeded" || !payment.appointmentId) return { outcome: next };

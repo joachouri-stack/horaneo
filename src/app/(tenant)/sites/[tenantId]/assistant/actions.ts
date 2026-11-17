@@ -6,6 +6,7 @@ import { chatModel } from "@/lib/ai/anthropic";
 import { currentSiteTenant, publicLimits } from "@/lib/site/current";
 import { consumeQuota } from "@/modules/billing/usage";
 import { chatInput, isNewConversation, prepareChat } from "@/modules/chatbot/chat";
+import { conversationToken, isValidConversation } from "@/modules/chatbot/conversation";
 import { type BookingLink, chatTools, runChatTool } from "@/modules/chatbot/tools";
 import { AppError, type AppErrorCode } from "@/modules/errors";
 
@@ -15,7 +16,8 @@ import { AppError, type AppErrorCode } from "@/modules/errors";
  */
 
 export type ChatResult =
-  { ok: true; reply: string | null; links: BookingLink[] } | { ok: false; error: AppErrorCode };
+  | { ok: true; reply: string | null; links: BookingLink[]; conversation: string }
+  | { ok: false; error: AppErrorCode };
 
 /** Boutons « Réserver » affichés au plus sous une réponse. */
 const MAX_LINKS = 3;
@@ -28,10 +30,14 @@ export async function askAssistantAction(raw: z.input<typeof chatInput>): Promis
     if (!model) throw new AppError("chatbot_unavailable");
     // Informations de l'établissement relues maintenant (prix, horaires… à jour).
     const request = await withTenant(site.tenantId, (tx) => prepareChat(tx, site.tenantId, raw));
-    // Nouvelle conversation : comptée dans le quota du mois (refusée s'il est atteint).
-    if (isNewConversation(raw)) {
+    // Nouvelle conversation (ou jeton absent, faux, expiré) : comptée dans le quota du mois
+    // (refusée s'il est atteint), et un jeton est remis pour les questions suivantes.
+    let conversation = raw.conversation ?? "";
+    if (isNewConversation(raw) || !isValidConversation(conversation, site.tenantId)) {
       await withPlatform((tx) => consumeQuota(tx, site.tenantId, "aiChatConversations"));
+      conversation = conversationToken(site.tenantId);
     }
+    if (!publicLimits.chatConversation.attempt(conversation)) throw new AppError("rate_limited");
     // Créneaux libres consultés à la demande du modèle ; chaque recherche donne un lien Réserver.
     const links: BookingLink[] = [];
     const answer = await model.reply({
@@ -49,8 +55,8 @@ export async function askAssistantAction(raw: z.input<typeof chatInput>): Promis
         return result;
       },
     });
-    if (answer.kind !== "text") return { ok: true, reply: null, links: [] };
-    return { ok: true, reply: answer.text, links: links.slice(-MAX_LINKS) };
+    if (answer.kind !== "text") return { ok: true, reply: null, links: [], conversation };
+    return { ok: true, reply: answer.text, links: links.slice(-MAX_LINKS), conversation };
   } catch (error) {
     if (error instanceof AppError) return { ok: false, error: error.code };
     if (error instanceof z.ZodError) return { ok: false, error: "invalid" };

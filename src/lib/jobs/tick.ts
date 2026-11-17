@@ -7,6 +7,7 @@ import { googlePlacesProvider } from "@/lib/reviews/google-places";
 import { refreshGoogleReviews } from "@/modules/reviews/google";
 import { billingGateway } from "@/lib/payments/stripe-billing";
 import { applyPriceChanges } from "@/modules/billing/price-change";
+import { expireAllShopHolds } from "@/modules/shop/orders";
 import { storage } from "@/lib/storage";
 import { purgeReplacedAssets } from "@/modules/media/purge";
 import { dispatchMessages } from "@/modules/messages/dispatch";
@@ -45,6 +46,8 @@ export async function runTick(now = new Date()) {
   running = true;
   try {
     const expired = await platform((tx) => expireAllHolds(tx, now));
+    // Paniers de la boutique non payés à temps : stock remis en vente.
+    const shopExpired = await platform((tx) => expireAllShopHolds(tx, now));
     const emailReminders = await platform((tx) => queueEmailReminders(tx, now));
     const smsReminders = await platform((tx) => queueSmsReminders(tx, now));
     const summaries = await platform((tx) => queueSummaries(tx, now));
@@ -67,6 +70,7 @@ export async function runTick(now = new Date()) {
     return {
       alreadyRunning: false as const,
       expired,
+      shopExpired,
       emailReminders,
       smsReminders,
       summaries,

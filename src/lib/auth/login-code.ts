@@ -16,8 +16,24 @@ import { authVerifications } from "@/db/schema";
  */
 
 export const LOGIN_CODE_MAX_ATTEMPTS = 5;
+/**
+ * Mauvais codes permis par adresse et par heure, toutes demandes confondues : redemander
+ * un e-mail ne redonne pas d'essais au-delà (pas de recherche du code par force brute).
+ * Le lien de l'e-mail, lui, reste utilisable.
+ */
+export const LOGIN_CODE_MAX_FAILURES_PER_HOUR = 15;
+const HOUR_MS = 60 * 60 * 1000;
 
-type PendingCode = { requestId: string; attempts: number };
+type PendingCode = {
+  requestId: string;
+  attempts: number;
+  /** Mauvais codes des demandes précédentes de l'heure en cours. */
+  failures?: number;
+  /** Début de l'heure en cours (millisecondes). */
+  since?: number;
+  /** Trop de mauvais codes pour cette demande : code refusé, lien seul utilisable. */
+  locked?: boolean;
+};
 
 const identifierFor = (email: string) => `login-code:${email.trim().toLowerCase()}`;
 
@@ -43,10 +59,23 @@ export async function createLinkToken(email: string, ttlSeconds: number, databas
   const requestId = randomUUID();
   const identifier = identifierFor(email);
   await withPlatform(async (tx) => {
+    // Mauvais codes de l'heure en cours reportés sur la nouvelle demande.
+    const [previous] = await tx
+      .select()
+      .from(authVerifications)
+      .where(eq(authVerifications.identifier, identifier))
+      .orderBy(desc(authVerifications.createdAt))
+      .limit(1)
+      .for("update");
+    const before = previous ? (JSON.parse(previous.value) as PendingCode) : null;
+    const now = Date.now();
+    const sameHour = before?.since !== undefined && now - before.since < HOUR_MS;
+    const failures = sameHour ? (before.failures ?? 0) + before.attempts : 0;
+    const since = sameHour ? before.since! : now;
     await tx.delete(authVerifications).where(eq(authVerifications.identifier, identifier));
     await tx.insert(authVerifications).values({
       identifier,
-      value: JSON.stringify({ requestId, attempts: 0 } satisfies PendingCode),
+      value: JSON.stringify({ requestId, attempts: 0, failures, since } satisfies PendingCode),
       expiresAt: new Date(Date.now() + ttlSeconds * 1000),
     });
   }, database);
@@ -77,6 +106,8 @@ export async function checkLoginCode(
       .for("update");
     if (!row) return { ok: false, reason: "invalid" };
     const pending = JSON.parse(row.value) as PendingCode;
+    if (pending.locked || (pending.failures ?? 0) + pending.attempts >= LOGIN_CODE_MAX_FAILURES_PER_HOUR)
+      return { ok: false, reason: "locked" };
     const token = linkTokenFor(pending.requestId);
     const expected = Buffer.from(loginCodeFor(token));
     const given = Buffer.from(typed.padEnd(6, "x").slice(0, 6));
@@ -86,7 +117,11 @@ export async function checkLoginCode(
     }
     const attempts = pending.attempts + 1;
     if (attempts >= LOGIN_CODE_MAX_ATTEMPTS) {
-      await tx.delete(authVerifications).where(eq(authVerifications.id, row.id));
+      // Gardée (verrouillée) : ses mauvais codes comptent pour la prochaine demande.
+      await tx
+        .update(authVerifications)
+        .set({ value: JSON.stringify({ ...pending, attempts, locked: true } satisfies PendingCode) })
+        .where(eq(authVerifications.id, row.id));
       return { ok: false, reason: "locked" };
     }
     await tx

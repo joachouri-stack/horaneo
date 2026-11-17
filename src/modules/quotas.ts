@@ -54,6 +54,8 @@ export async function assertQuota(tx: Transaction, tenantId: string, key: QuotaK
   const { limits } = await getTenantPlan(tx, tenantId);
   const limit = limits[LIMIT_FIELD[key]];
   if (limit === null || limit === undefined) return;
+  // Deux ajouts simultanés ne dépassent pas la limite du pack (compte puis ajout).
+  await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`limit:${tenantId}:${key}`}))`);
   if ((await countUsage(tx, tenantId, key)) + adding > limit) throw new AppError("quota_reached", key);
 }
 

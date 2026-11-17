@@ -178,8 +178,8 @@ export async function moveAppointment(
       appointmentId: appointment.id,
       locale: appointment.locale,
       data: { previousStartsAt: appointment.startsAt.toISOString() },
-      // Plusieurs déplacements possibles : un message par nouvel horaire.
-      dedupeKey: `customer.moved:${appointment.id}:${target.start.toISOString()}`,
+      // Chaque déplacement prévient la cliente (aller-retour compris).
+      dedupeKey: null,
     });
   }
   return { from: appointment.startsAt, to: target.start };

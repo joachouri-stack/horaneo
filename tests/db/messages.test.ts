@@ -309,7 +309,7 @@ describe.skipIf(!hasTestDatabase)("messages automatiques", () => {
         .from(users)
         .where(eq(users.email, s.managerEmail));
       const device = (name: string) => ({
-        endpoint: `https://push.example.com/${s.slug}/${name}`,
+        endpoint: `https://fcm.googleapis.com/fcm/send/${s.slug}-${name}`,
         keys: {
           p256dh: Buffer.alloc(65, 4).toString("base64url"),
           auth: Buffer.alloc(16, 1).toString("base64url"),

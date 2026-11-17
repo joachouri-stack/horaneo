@@ -643,8 +643,8 @@
           "card": "Agenda en ligne et plannings de l'équipe"
         },
         "socialBooking": {
-          "label": "Bouton de réservation pour les réseaux sociaux",
-          "card": "Bouton de réservation pour vos réseaux sociaux"
+          "label": "Lien de réservation à partager sur vos réseaux sociaux",
+          "card": "Lien de réservation pour vos réseaux sociaux"
         },
         "customerSpace": {
           "label": "Espace client (rendez-vous, historique)",
@@ -1001,7 +1001,7 @@
         },
         "ai": {
           "q": "Les outils d'intelligence artificielle sont-ils déjà disponibles ?",
-          "a": "Pas encore : le chatbot, l'assistant WhatsApp et la génération de textes et d'images sont en préparation et marqués « Bientôt » sur les packs. Ils seront inclus selon votre pack, comme indiqué sur chaque carte."
+          "a": "Le chatbot de votre site est déjà disponible dans les packs qui l'incluent : il répond aux questions de vos clients et leur propose vos créneaux libres. L'assistant WhatsApp et la génération de textes et d'images sont en préparation et marqués « Bientôt » sur les packs."
         },
         "tablet": {
           "q": "Comment fonctionne l'offre tablette ?",
@@ -1301,11 +1301,11 @@
       "controller": "Responsable du traitement",
       "controllerText": "{name} est responsable des données personnelles collectées sur ce site.",
       "data": "Données collectées",
-      "dataText": "Lors d'une réservation : vos nom, prénom, adresse e-mail, numéro de téléphone et, le cas échéant, votre message, ainsi que l'historique de vos rendez-vous. Lors de l'achat d'une carte cadeau : les nom et e-mail de l'acheteur et du bénéficiaire. Pour l'espace client : votre e-mail ou numéro, utilisé seulement pour vous connecter. Aucune donnée n'est collectée si vous consultez simplement le site.",
+      "dataText": "Lors d'une réservation : vos nom, prénom, adresse e-mail, numéro de téléphone, votre date d'anniversaire si vous la donnez (jour et mois) et, le cas échéant, votre message, ainsi que l'historique de vos rendez-vous et votre fidélité. Lors d'un achat (carte cadeau, boutique) : les nom et coordonnées de l'acheteur, du bénéficiaire et l'adresse de livraison s'il y a lieu. Pour l'espace client : votre e-mail ou numéro, utilisé seulement pour vous connecter. Si vous posez une question à l'assistant du site, votre message est traité pour y répondre, puis n'est pas conservé.",
       "purpose": "Utilisation",
-      "purposeText": "Ces données servent uniquement à gérer vos rendez-vous : confirmation, rappel, modification ou annulation. Elles ne sont jamais vendues. Les messages commerciaux ne vous sont envoyés qu'avec votre accord.",
+      "purposeText": "Ces données servent à gérer vos rendez-vous (confirmation, rappel, modification ou annulation), vos achats et vos avantages (fidélité, carte cadeau). Elles ne sont jamais vendues. Les offres commerciales ne vous sont envoyées qu'avec votre accord, et chacune contient un lien pour ne plus en recevoir.",
       "processor": "Sous-traitant",
-      "processorText": "Le site et les réservations sont gérés par le service {product}, qui agit pour le compte de l'établissement. Les paiements d'acompte sont traités par Stripe, et les e-mails et SMS sont envoyés par Brevo.",
+      "processorText": "Le site et les réservations sont gérés par le service {product}, qui agit pour le compte de l'établissement. Les paiements sont traités par Stripe, les e-mails et SMS sont envoyés par Brevo, et les questions posées à l'assistant du site sont traitées par Anthropic (États-Unis, avec les garanties prévues par le RGPD). La carte du plan d'accès est fournie par OpenStreetMap.",
       "retention": "Durée de conservation",
       "retentionText": "Vos données sont conservées pendant la durée de la relation avec l'établissement, puis au maximum 3 ans après votre dernier rendez-vous.",
       "rights": "Vos droits",
