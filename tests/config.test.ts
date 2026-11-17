@@ -76,12 +76,12 @@ describe("valeurs de départ des packs", () => {
     expect(grid.starter.limits).toMatchObject({ members: 2 });
   });
 
-  it("Pro : 3 collaborateurs, 100 SMS, paiements ; Business : SMS en option, quotas des outils IA", () => {
+  it("Pro : 3 collaborateurs, 100 SMS, paiements ; Business : 100 SMS, quotas des outils IA", () => {
     expect(grid.pro.limits).toMatchObject({ members: 3, smsPerMonth: 100, aiChatConversations: 0 });
     expect(grid.pro.features).toMatchObject({ onlinePayment: true, commerce: true, formation: true });
     expect(grid.business.limits).toMatchObject({
       members: null,
-      smsPerMonth: 0,
+      smsPerMonth: 100,
       aiChatConversations: 500,
       whatsappConversations: 200,
       aiTexts: 100,
