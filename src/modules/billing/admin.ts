@@ -296,6 +296,8 @@ export const settingsInput = z.object({
   go_live_delay_days: settingNumber(z.number().int().min(0).max(60)),
   trial_days: settingNumber(z.number().int().min(0).max(60)),
   referral_reward_months: settingNumber(z.number().int().min(0).max(12)),
+  /** Modèle d'IA du chatbot des sites. */
+  chatbot_model: z.enum(["claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5"]),
   deposit_commission_percent: settingNumber(z.number().min(0).max(20)),
   retention_days_after_cancel: settingNumber(z.number().int().min(0).max(365)),
   replaced_asset_retention_days: settingNumber(z.number().int().min(1).max(90)),

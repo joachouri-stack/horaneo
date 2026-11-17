@@ -26,6 +26,7 @@
     "jobs:tick": "tsx src/jobs/tick.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.9.0",
     "@fontsource-variable/bricolage-grotesque": "^5.3.0",
     "@fontsource-variable/cormorant-garamond": "^5.3.0",
     "@fontsource-variable/fraunces": "^5.3.0",

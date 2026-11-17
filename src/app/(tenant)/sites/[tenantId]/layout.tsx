@@ -19,6 +19,9 @@ import { APP_PATHS, businessPath, SITE_PATHS } from "@/modules/site/paths";
 import { homeDescription, localBusinessJsonLd, serializeJsonLd } from "@/modules/site/seo";
 import { buildTheme, themeCssVariables } from "@/modules/site/theme";
 // Polices fournies avec le projet : la construction ne dépend pas du réseau.
+import { ChatWidget } from "@/components/site/ChatWidget";
+import { chatModel } from "@/lib/ai/anthropic";
+import { formatPhone } from "@/modules/phone";
 import "@fontsource-variable/inter/wght.css";
 import "@fontsource-variable/cormorant-garamond/wght.css";
 import "@fontsource-variable/fraunces/wght.css";
@@ -139,6 +142,15 @@ export default async function TenantLayout({ children, params }: LayoutProps<"/s
                   : []
               }
             />
+          )}
+          {/* Chatbot : pack qui le comprend et clé du fournisseur d'IA renseignée. */}
+          {site.tenant.status === "active" && site.features.aiChatbot && chatModel() && (
+            <HideOnPaths prefixes={[SITE_PATHS.booking, SITE_PATHS.appointment, SITE_PATHS.giftCard]}>
+              <ChatWidget
+                businessName={site.tenant.name}
+                contact={site.tenant.phone ? formatPhone(site.tenant.phone) : site.tenant.email}
+              />
+            </HideOnPaths>
           )}
           {site.tenant.status === "active" && (
             // Pas pendant une réservation ou un paiement : la cliente reste concentrée.

@@ -36,6 +36,7 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
       "go_live_delay_days",
       "trial_days",
       "referral_reward_months",
+      "chatbot_model",
       "deposit_commission_percent",
       "retention_days_after_cancel",
       "replaced_asset_retention_days",
@@ -113,6 +114,18 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
             {field("go_live_delay_days")}
             {field("trial_days", "number", t("trialHint"))}
             {field("referral_reward_months", "number", t("referralHint"))}
+            {/* Chatbot des sites : modèle d'IA (qualité ou économie). */}
+            <SelectField
+              name="chatbot_model"
+              label={t("chatbot_model")}
+              defaultValue={String(s.chatbot_model)}
+              hint={t("chatbotModelHint")}
+              options={[
+                { value: "claude-opus-5-5", label: t("chatbotModels.opus") },
+                { value: "claude-sonnet-5-5", label: t("chatbotModels.sonnet") },
+                { value: "claude-haiku-5-5", label: t("chatbotModels.haiku") },
+              ]}
+            />
             {/* Utile seulement avec une durée d'engagement : sinon la valeur actuelle est gardée, sans case. */}
             {Number(s.commitment_months) > 0 ? (
               <CheckboxField

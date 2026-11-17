@@ -1092,6 +1092,21 @@
     }
   },
   "site": {
+    "chat": {
+      "open": "Une question ?",
+      "close": "Fermer",
+      "title": "Assistant de {name}",
+      "subtitle": "Assistant automatique · réponses instantanées",
+      "welcome": "Bonjour ! Posez votre question sur nos prestations, nos prix, nos horaires ou l'accès.",
+      "placeholder": "Votre question…",
+      "send": "Envoyer",
+      "thinking": "L'assistant écrit…",
+      "you": "Vous",
+      "assistant": "Assistant",
+      "fallback": "Je ne peux pas répondre à cette question. Le mieux est de contacter directement l'établissement.",
+      "contactHint": "Vous pouvez aussi nous joindre au {contact}.",
+      "disclaimer": "Assistant automatique : les réponses peuvent contenir des erreurs. Ne partagez pas d'informations personnelles."
+    },
     "account": {
       "title": "Mes rendez-vous",
       "navLink": "Mes rendez-vous",
@@ -2346,6 +2361,13 @@
       "trial_days": "Essai gratuit à la première souscription (jours, 0 = pas d'essai)",
       "trialHint": "L'abonnement n'est prélevé qu'à la fin de l'essai (un éventuel engagement commence après). La carte est enregistrée à la commande. Une annulation pendant l'essai arrête tout, sans prélèvement de l'abonnement.",
       "referral_reward_months": "Parrainage : mois offerts à la marraine (0 = parrainage désactivé)",
+      "chatbot_model": "Chatbot des sites : modèle d'IA",
+      "chatbotModelHint": "Facturé par Anthropic selon l'usage (clé ANTHROPIC_API_KEY dans Coolify). Opus : meilleures réponses, le plus cher ; Haiku : environ 20 fois moins cher, bien pour les questions simples.",
+      "chatbotModels": {
+        "opus": "Claude Opus 5.5 (meilleure qualité)",
+        "sonnet": "Claude Sonnet 5.5 (équilibré)",
+        "haiku": "Claude Haiku 5.5 (économique)"
+      },
       "referralHint": "Accordés quand la nouvelle cliente a payé son premier mois (après l'essai) : le montant du mois de pack de la marraine est déduit de ses prochaines factures.",
       "payments": "Paiements et données",
       "deposit_commission_percent": "Commission sur les acomptes (%)",
@@ -2630,6 +2652,7 @@
     "cancellation_deadline_passed": "Le délai pour annuler ou déplacer en ligne est dépassé. Merci d'appeler l'établissement.",
     "booking_not_modifiable": "Ce rendez-vous ne peut plus être modifié : il a peut-être déjà été annulé ou déplacé. Utilisez le lien du dernier e-mail reçu, ou contactez l'établissement.",
     "rate_limited": "Trop de tentatives. Merci de patienter quelques minutes.",
+    "chatbot_unavailable": "L'assistant ne peut pas répondre pour le moment. Réessayez dans un instant ou contactez directement l'établissement.",
     "promo_code_invalid": "Ce code promo n'est pas valable.",
     "promo_code_already_used": "Vous avez déjà utilisé ce code promo : il ne peut servir qu'une fois par personne.",
     "promo_code_taken": "Ce code existe déjà.",

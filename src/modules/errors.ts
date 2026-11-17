@@ -13,6 +13,7 @@ export class AppError extends Error {
 
 export type AppErrorCode =
   | "invalid"
+  | "chatbot_unavailable"
   | "personal_setting"
   | "forbidden_area"
   | "customer_has_upcoming"
