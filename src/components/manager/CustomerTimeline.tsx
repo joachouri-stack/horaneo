@@ -41,6 +41,7 @@ const STYLE: Record<TimelineEvent["kind"], { icon: keyof typeof PATH; tone: stri
   "customer.review_request": { icon: "star", tone: "bg-[#fdf3e2] text-[#8a5212]" },
   "customer.payment_refunded": { icon: "euro", tone: "bg-mist-50 text-ink-soft" },
   "customer.birthday": { icon: "cake", tone: "bg-[#fbe8ee] text-[#9c3458]" },
+  "customer.winback": { icon: "mail", tone: "bg-accent-soft text-accent-strong" },
   shop_order: { icon: "bag", tone: "bg-[#e3f4ee] text-[#1f7a5f]" },
 };
 

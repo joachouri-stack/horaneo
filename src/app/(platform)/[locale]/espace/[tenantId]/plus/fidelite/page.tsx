@@ -8,7 +8,8 @@ import { Link } from "@/i18n/navigation";
 import { firstPlanWith } from "@/modules/billing/plans";
 import { loyaltyConfig } from "@/modules/loyalty/loyalty";
 import { birthdayOfferConfig } from "@/modules/promo/birthday";
-import { saveBirthdayOfferAction, saveLoyaltySettingsAction } from "../../actions";
+import { winbackConfig } from "@/modules/promo/winback";
+import { saveBirthdayOfferAction, saveLoyaltySettingsAction, saveWinbackAction } from "../../actions";
 
 /**
  * Réglages du programme de fidélité de l'entreprise (pack qui l'inclut) et de
@@ -18,14 +19,19 @@ export default async function LoyaltyPage({
   params,
 }: PageProps<"/[locale]/espace/[tenantId]/plus/fidelite">) {
   const page = await managerPage(params, "marketing");
-  const [t, tCommon, tNotifications] = await Promise.all([
+  const [t, tCommon, tNotifications, tWinbackMail] = await Promise.all([
     getTranslations("manager.loyalty"),
     getTranslations("common"),
     getTranslations("notifications.customer.birthday"),
+    getTranslations("notifications.customer.winback"),
   ]);
-  const [config, birthday] = await page.db(
+  const [config, birthday, winback] = await page.db(
     async (tx) =>
-      [await loyaltyConfig(tx, page.tenantId), await birthdayOfferConfig(tx, page.tenantId)] as const,
+      [
+        await loyaltyConfig(tx, page.tenantId),
+        await birthdayOfferConfig(tx, page.tenantId),
+        await winbackConfig(tx, page.tenantId),
+      ] as const,
   );
   const planWith = async (feature: "loyalty" | "promoCodes") =>
     (await page.db((tx) => firstPlanWith(tx, feature, page.locale))) ?? "none";
@@ -129,6 +135,70 @@ export default async function LoyaltyPage({
       ) : (
         <p className={ui.card}>
           {t("birthday.unavailable", { plan: await planWith("promoCodes") })}{" "}
+          <Link href={`${page.base}/plus/abonnement`} className="font-semibold text-accent underline">
+            {t("seePlans")}
+          </Link>
+        </p>
+      )}
+
+      {winback.included ? (
+        <Section title={t("winback.title")}>
+          <p className="mb-4 text-ink/80">{t("winback.intro")}</p>
+          <ActionForm action={saveWinbackAction} submitLabel={tCommon("save")} className="space-y-4">
+            <Hidden values={{ tenantId: page.tenantId }} />
+            <ToggleSection name="enabled" label={t("winback.enabled")} defaultChecked={winback.enabled}>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <TextField
+                  name="afterDays"
+                  type="number"
+                  inputMode="numeric"
+                  label={t("winback.afterDays")}
+                  hint={t("winback.afterDaysHint")}
+                  defaultValue={String(winback.afterDays)}
+                  id="f-winback-afterDays"
+                  required
+                />
+                <TextField
+                  name="discountPercent"
+                  type="number"
+                  inputMode="numeric"
+                  label={t("winback.percent")}
+                  hint={t("winback.percentHint")}
+                  defaultValue={String(winback.discountPercent)}
+                  id="f-winback-discountPercent"
+                  required
+                />
+                <TextField
+                  name="validityDays"
+                  type="number"
+                  inputMode="numeric"
+                  label={t("winback.days")}
+                  hint={t("winback.daysHint")}
+                  defaultValue={String(winback.validityDays)}
+                  id="f-winback-validityDays"
+                  required
+                />
+              </div>
+              <p className="text-[0.9375rem] text-ink-soft">{t("winback.consentNote")}</p>
+              {/* Aperçu : les textes mêmes de l'e-mail, avec les réglages enregistrés. */}
+              <figure className="rounded-[var(--radius-card)] border-2 border-dashed border-navy/20 bg-mist-50 p-4">
+                <figcaption className="text-sm font-semibold text-ink/70">{t("winback.preview")}</figcaption>
+                <p className="mt-2 font-semibold text-night">
+                  {tWinbackMail("subject", { firstName: t("winback.sampleName"), business: businessName })}
+                </p>
+                <p className="mt-1 text-ink/80">{tWinbackMail("intro", { business: businessName })}</p>
+                {winback.discountPercent > 0 && (
+                  <p className="mt-1 text-ink/80">
+                    {tWinbackMail("offer", { percent: winback.discountPercent })}
+                  </p>
+                )}
+              </figure>
+            </ToggleSection>
+          </ActionForm>
+        </Section>
+      ) : (
+        <p className={ui.card}>
+          {t("winback.unavailable", { plan: await planWith("promoCodes") })}{" "}
           <Link href={`${page.base}/plus/abonnement`} className="font-semibold text-accent underline">
             {t("seePlans")}
           </Link>

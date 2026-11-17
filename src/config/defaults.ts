@@ -124,6 +124,8 @@ export const DEFAULT_PLATFORM_SETTINGS = {
   monthly_summary_time: "08:00",
   /** Heure locale de l'e-mail d'anniversaire envoyé aux clientes (offre de l'entreprise). */
   birthday_message_time: "09:00",
+  /** Heure locale de l'e-mail de relance des clients qui ne sont pas revenus. */
+  winback_message_time: "10:00",
   /** Demande d'avis Google : heures après la fin du rendez-vous. */
   review_request_delay_hours: 3,
   /** Pas de demande si le rendez-vous est marqué « venue » plus de ce nombre de jours après. */
@@ -156,6 +158,24 @@ export const DEFAULT_BIRTHDAY_OFFER = {
   validityDays: 30,
   /** Caractères aléatoires du code personnel (après le préfixe traduit). */
   codeLength: 6,
+} as const;
+
+/**
+ * Relance des clients qui ne reviennent plus (réglages de départ, modifiables par la
+ * gérante dans Plus → Fidélité). ATTENTION : aussi valeurs par défaut des colonnes
+ * `winback_*` de business_settings (drizzle/0078_customer_winback.sql).
+ */
+export const DEFAULT_WINBACK = {
+  /** Relance après ce nombre de jours sans visite (30 à 365). */
+  afterDays: 60,
+  /** Réduction offerte, en pourcentage (0 : simple message, sans code). */
+  discountPercent: 10,
+  /** Durée de validité du code personnel, en jours (1 à 90). */
+  validityDays: 30,
+  /** Absence au-delà de laquelle on ne relance plus (cliente partie depuis trop longtemps), en jours. */
+  maxAbsenceDays: 365,
+  /** E-mails de relance préparés au plus par entreprise à chaque passage de la tâche planifiée. */
+  perRun: 100,
 } as const;
 
 export type SolutionSetting = {

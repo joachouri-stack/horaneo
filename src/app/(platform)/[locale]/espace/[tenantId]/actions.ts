@@ -19,6 +19,8 @@ import { redirect as redirectTo } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { publicAppUrl } from "@/config/env";
 import { z } from "zod";
+import { setWinback } from "@/modules/promo/winback";
+import { importCustomers, type importCustomersInput } from "@/modules/customers/import";
 import { redirect } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/translator";
 import type { ActionResult } from "@/lib/actions/result";
@@ -317,6 +319,13 @@ export async function deleteTimeOffAction(_previous: Previous, data: FormData) {
 }
 
 // ─── Clientes ─────────────────────────────────────────────────────────────────
+
+/** Import d'un fichier clients, par lots (le navigateur découpe les gros fichiers). */
+export async function importCustomersAction(tenantId: string, input: z.input<typeof importCustomersInput>) {
+  return managerMutation(uuid.parse(tenantId), "customers", "customer.imported", (tx) =>
+    importCustomers(tx, tenantId, input),
+  );
+}
 
 export async function saveCustomerAction(
   _previous: Previous,
@@ -1006,6 +1015,18 @@ export async function saveBirthdayOfferAction(_previous: Previous, data: FormDat
   return managerMutation(tenantId, "marketing", "birthday_offer.settings", (tx) =>
     setBirthdayOffer(tx, tenantId, {
       enabled: form.bool(data, "enabled"),
+      discountPercent: form.text(data, "discountPercent"),
+      validityDays: form.text(data, "validityDays"),
+    }),
+  );
+}
+
+export async function saveWinbackAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "marketing", "winback.settings", (tx) =>
+    setWinback(tx, tenantId, {
+      enabled: form.bool(data, "enabled"),
+      afterDays: form.text(data, "afterDays"),
       discountPercent: form.text(data, "discountPercent"),
       validityDays: form.text(data, "validityDays"),
     }),

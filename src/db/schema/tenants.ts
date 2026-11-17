@@ -19,7 +19,7 @@ import {
 } from "drizzle-orm/pg-core";
 import type { LocalizedText } from "@/i18n/locales";
 import { currency, id, timestamps, utc } from "./_helpers";
-import { DEFAULT_BIRTHDAY_OFFER } from "../../config/defaults";
+import { DEFAULT_BIRTHDAY_OFFER, DEFAULT_WINBACK } from "../../config/defaults";
 import { plans } from "./platform";
 
 /**
@@ -279,6 +279,14 @@ export const businessSettings = pgTable(
     birthdayDiscountPercent: smallint().notNull().default(DEFAULT_BIRTHDAY_OFFER.discountPercent),
     /** Validité du code personnel, en jours. */
     birthdayOfferDays: smallint().notNull().default(DEFAULT_BIRTHDAY_OFFER.validityDays),
+    // Relance des clients qui ne reviennent plus (pack avec les codes promo) : e-mail automatique.
+    winbackEnabled: boolean().notNull().default(false),
+    /** Relance après ce nombre de jours sans visite ni rendez-vous prévu. */
+    winbackAfterDays: smallint().notNull().default(DEFAULT_WINBACK.afterDays),
+    /** Réduction du code personnel, en pourcentage (0 : message sans code). */
+    winbackDiscountPercent: smallint().notNull().default(DEFAULT_WINBACK.discountPercent),
+    /** Validité du code personnel, en jours. */
+    winbackOfferDays: smallint().notNull().default(DEFAULT_WINBACK.validityDays),
     // Boutique (pack qui l'inclut) : retrait sur place et/ou livraison.
     shopPickupEnabled: boolean().notNull().default(true),
     shopDeliveryEnabled: boolean().notNull().default(false),
@@ -308,6 +316,9 @@ export const businessSettings = pgTable(
     ),
     check("business_settings_birthday_percent", sql`${t.birthdayDiscountPercent} between 1 and 100`),
     check("business_settings_birthday_days", sql`${t.birthdayOfferDays} between 1 and 90`),
+    check("business_settings_winback_after", sql`${t.winbackAfterDays} between 30 and 365`),
+    check("business_settings_winback_percent", sql`${t.winbackDiscountPercent} between 0 and 100`),
+    check("business_settings_winback_days", sql`${t.winbackOfferDays} between 1 and 90`),
     check("business_settings_shop_fulfillment", sql`${t.shopPickupEnabled} or ${t.shopDeliveryEnabled}`),
     check("business_settings_shop_fee", sql`${t.shopDeliveryFeeCents} >= 0`),
     check(
