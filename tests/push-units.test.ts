@@ -35,6 +35,11 @@ describe("appareil à abonner", () => {
 
   it("refuse une adresse non https ou des clés de mauvaise longueur", () => {
     expect(deviceInput.safeParse({ ...valid, endpoint: "http://exemple.fr/x" }).success).toBe(false);
+    // Adresse hors des services de notification (réseau interne) : refusée.
+    expect(deviceInput.safeParse({ ...valid, endpoint: "https://10.0.0.5/x" }).success).toBe(false);
+    expect(deviceInput.safeParse({ ...valid, endpoint: "https://web.push.apple.com/abc" }).success).toBe(
+      true,
+    );
     expect(deviceInput.safeParse({ ...valid, keys: { ...valid.keys, p256dh: "BTest" } }).success).toBe(false);
     expect(deviceInput.safeParse({ ...valid, keys: { ...valid.keys, auth: "aTest" } }).success).toBe(false);
   });

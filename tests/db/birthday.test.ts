@@ -194,6 +194,14 @@ describe.skipIf(!hasTestDatabase)("offre d'anniversaire", () => {
       }
     });
 
+    it("rien pour une cliente qui a demandé à ne plus recevoir d'offres", async () => {
+      const s = await setup();
+      await addCustomer(s, { birthMonth: 10, birthDay: 5, marketingOptOutAt: NOW });
+      await platform((tx) => queueBirthdayOffers(tx, at(TODAY)));
+      expect(await birthdayMessages(s.id)).toHaveLength(0);
+      expect(await personalCodes(s.id)).toHaveLength(0);
+    });
+
     it("les clientes nées un 29 février sont fêtées le 28 les années non bissextiles", async () => {
       const s = await setup();
       const leap = await addCustomer(s, { birthMonth: 2, birthDay: 29 });

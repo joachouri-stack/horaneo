@@ -23,6 +23,8 @@ export const CHAT_MAX_TOKENS = 1000;
 
 export const chatInput = z
   .object({
+    /** Jeton de conversation remis par le serveur (absent à la première question). */
+    conversation: z.string().max(200).optional(),
     messages: z
       .array(
         z.object({
@@ -50,7 +52,7 @@ export const chatInput = z
 
 /** Nouvelle conversation : le premier message du visiteur (c'est elle qui est comptée). */
 export function isNewConversation(raw: z.input<typeof chatInput>) {
-  return raw.messages.length === 1;
+  return raw.messages.length === 1 || !raw.conversation;
 }
 
 function instructions(input: {

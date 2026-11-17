@@ -1,5 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
+import { isPushServiceUrl } from "@/config/push";
 import type { Transaction } from "@/db/client";
 import { pushSubscriptions } from "@/db/schema";
 import { queueMessage } from "@/modules/messages/queue";
@@ -18,7 +19,10 @@ const keyOf = (bytes: number) =>
     .refine((value) => Buffer.from(value, "base64url").length === bytes);
 
 export const deviceInput = z.object({
-  endpoint: z.url({ protocol: /^https$/ }).max(1000),
+  endpoint: z
+    .url({ protocol: /^https$/ })
+    .max(1000)
+    .refine(isPushServiceUrl),
   keys: z.object({ p256dh: keyOf(65), auth: keyOf(16) }),
 });
 

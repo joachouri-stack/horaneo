@@ -144,6 +144,20 @@ export async function expireShopHolds(tx: Transaction, tenantId: string, now: Da
 }
 
 /**
+ * Toutes les commandes non payées à temps (tâche planifiée, rôle plateforme) : le stock
+ * retenu par un panier abandonné revient en vente sans attendre une autre commande.
+ */
+export async function expireAllShopHolds(tx: Transaction, now: Date) {
+  const tenantsWithStale = await tx
+    .selectDistinct({ tenantId: shopOrders.tenantId })
+    .from(shopOrders)
+    .where(and(eq(shopOrders.status, "pending_payment"), lt(shopOrders.holdExpiresAt, now)));
+  let count = 0;
+  for (const { tenantId } of tenantsWithStale) count += await expireShopHolds(tx, tenantId, now);
+  return count;
+}
+
+/**
  * Commande : panier relu en base, stock réservé, commande « en attente de paiement »
  * et paiement créé sur le compte Stripe de l'entreprise (déclarée dans la transaction).
  */

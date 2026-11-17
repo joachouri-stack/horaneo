@@ -215,7 +215,8 @@ export async function getSlotsForRange(
         and(
           eq(appointments.tenantId, context.tenant.id),
           inArray(appointments.staffId, staffIds),
-          inArray(appointments.status, ["confirmed", "pending_payment"]),
+          // Rendez-vous en cours déjà marqué « venue » : le créneau reste occupé.
+          inArray(appointments.status, ["confirmed", "attended", "pending_payment"]),
           lt(appointments.startsAt, rangeEnd),
           gt(appointments.blockedUntil, rangeStart),
         ),
@@ -237,7 +238,7 @@ export async function getSlotsForRange(
   const active = appointmentRows.filter(
     (row) =>
       row.id !== options.excludeAppointmentId &&
-      (row.status === "confirmed" || (row.holdExpiresAt !== null && row.holdExpiresAt > options.now)),
+      (row.status !== "pending_payment" || (row.holdExpiresAt !== null && row.holdExpiresAt > options.now)),
   );
 
   const staffInputs: StaffInput[] = candidates.map((member) => ({
@@ -308,7 +309,7 @@ export async function bookedMinutesOn(tx: Transaction, context: BookingContext, 
     .where(
       and(
         eq(appointments.businessId, context.business.id),
-        inArray(appointments.status, ["confirmed", "pending_payment"]),
+        inArray(appointments.status, ["confirmed", "attended", "pending_payment"]),
         lt(appointments.startsAt, dayEnd),
         gt(appointments.endsAt, dayStart),
       ),

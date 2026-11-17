@@ -48,6 +48,13 @@ describe("fichier clients à importer", () => {
     expect(parseBirthday("1990-02-29")).toEqual({ birthMonth: 2, birthDay: 29 });
     expect(parseBirthday("31/04/1990")).toBeNull();
     expect(parseBirthday("demain")).toBeNull();
+    // Numéros de ligne du fichier : lignes vides et cellules sur plusieurs lignes comprises.
+    const withGaps = parseCsv('Prénom;Notes\n\nCamille;"ligne 1\nligne 2"\nNina;\n');
+    const mapped = mapRows(withGaps, guessColumns(withGaps[0]));
+    expect(mapped.map((row) => [row.firstName, row.line])).toEqual([
+      ["Camille", 3],
+      ["Nina", 5],
+    ]);
   });
 });
 

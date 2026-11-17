@@ -3,7 +3,11 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { setPlatformAdmin } from "@/db/admin-role";
 import { adminTwoFactors, auditLog, authSessions, users } from "@/db/schema";
 import { createAuth, type Auth } from "@/lib/auth/auth";
-import { checkLoginCode, LOGIN_CODE_MAX_ATTEMPTS } from "@/lib/auth/login-code";
+import {
+  checkLoginCode,
+  LOGIN_CODE_MAX_ATTEMPTS,
+  LOGIN_CODE_MAX_FAILURES_PER_HOUR,
+} from "@/lib/auth/login-code";
 import { totpCodeAt } from "@/lib/auth/totp";
 import {
   beginTwoFactorSetup,
@@ -170,6 +174,29 @@ describe.skipIf(!hasTestDatabase)("connexion", () => {
       }
       expect(await checkLoginCode(email, wrong, app)).toEqual({ ok: false, reason: "locked" });
       expect((await checkLoginCode(email, code, app)).ok).toBe(false);
+    });
+
+    it("redemander un e-mail ne redonne pas d'essais au-delà de la limite de l'heure", async () => {
+      const email = uniqueEmail("code-force");
+      let blocked = false;
+      for (let round = 0; round < 5 && !blocked; round++) {
+        await requestMagicLink(email);
+        const code = lastCode();
+        const wrong = code === "000000" ? "111111" : "000000";
+        for (let i = 0; i < LOGIN_CODE_MAX_ATTEMPTS; i++) {
+          const result = await checkLoginCode(email, wrong, app);
+          if (result.ok) throw new Error("code faux accepté");
+        }
+        // Limite de l'heure atteinte : même le bon code d'une nouvelle demande est refusé.
+        await requestMagicLink(email);
+        const fresh = lastCode();
+        const total = (round + 1) * LOGIN_CODE_MAX_ATTEMPTS;
+        if (total >= LOGIN_CODE_MAX_FAILURES_PER_HOUR) {
+          expect(await checkLoginCode(email, fresh, app)).toEqual({ ok: false, reason: "locked" });
+          blocked = true;
+        }
+      }
+      expect(blocked).toBe(true);
     });
 
     it("une nouvelle demande remplace l'ancien code", async () => {

@@ -75,8 +75,8 @@ export async function customerTimeline(
   const events: TimelineEvent[] = [];
   const startOf = new Map(rdvs.map((rdv) => [rdv.id, rdv.startsAt]));
   for (const rdv of rdvs) {
-    // Réservation en attente de paiement jamais réglée : pas un vrai rendez-vous.
-    if (rdv.status === "pending_payment") continue;
+    // Réservation en attente de paiement, ou jamais réglée (expirée) : pas un vrai rendez-vous.
+    if (rdv.status === "pending_payment" || rdv.status === "expired") continue;
     events.push({
       id: `booked:${rdv.id}`,
       at: rdv.createdAt,

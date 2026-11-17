@@ -73,6 +73,8 @@ export async function consumeQuota(
   amount = 1,
   now = new Date(),
 ) {
+  // Deux consommations simultanées ne dépassent pas le crédit (vérification puis ajout).
+  await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`quota:${tenantId}:${key}`}))`);
   const status = await quotaStatus(tx, tenantId, key, now);
   if (status.included === 0 && status.extra === 0) throw new AppError("feature_unavailable", key);
   if (status.remaining !== null && status.remaining < amount) throw new AppError("quota_reached", key);

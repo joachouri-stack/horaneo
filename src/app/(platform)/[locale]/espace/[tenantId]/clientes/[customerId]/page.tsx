@@ -152,8 +152,8 @@ export default async function CustomerPage({
         </div>
         <dl className="grid grid-cols-3 divide-x divide-hairline rounded-2xl bg-mist-50 py-3">
           {[
-            { label: t("visits"), value: String(stats.visits) },
-            { label: t("noShows"), value: String(stats.noShows) },
+            { label: t("visitsStat", { count: stats.visits }), value: String(stats.visits) },
+            { label: t("noShowsStat", { count: stats.noShows }), value: String(stats.noShows) },
             { label: t("spent"), value: page.fmt.money(stats.spentCents) },
           ].map((stat) => (
             <div key={stat.label} className="flex min-w-0 flex-col-reverse items-center px-1 text-center">

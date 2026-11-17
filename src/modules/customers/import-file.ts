@@ -36,13 +36,28 @@ function detectSeparator(text: string) {
   return counts[0].count > 0 ? counts[0].sep : ";";
 }
 
+/** Lignes lues, avec le numéro de ligne du fichier où chacune commence (pour le bilan). */
+export type CsvRows = string[][] & { lines?: number[] };
+
 /** Tableau de cellules (guillemets et retours à la ligne entre guillemets gérés). Lignes vides ignorées. */
-export function parseCsv(text: string): string[][] {
+export function parseCsv(text: string): CsvRows {
   const sep = detectSeparator(text);
   const rows: string[][] = [];
+  const lines: number[] = [];
   let row: string[] = [];
   let cell = "";
   let quoted = false;
+  let line = 1;
+  let rowLine = 1;
+  const endRow = () => {
+    row.push(cell);
+    cell = "";
+    if (row.some((value) => value.trim() !== "")) {
+      rows.push(row.map((value) => value.trim()));
+      lines.push(rowLine);
+    }
+    row = [];
+  };
   for (let i = 0; i < text.length; i += 1) {
     const char = text[i];
     if (quoted) {
@@ -50,23 +65,24 @@ export function parseCsv(text: string): string[][] {
         cell += '"';
         i += 1;
       } else if (char === '"') quoted = false;
-      else cell += char;
+      else {
+        if (char === "\n") line += 1;
+        cell += char;
+      }
     } else if (char === '"' && cell === "") quoted = true;
     else if (char === sep) {
       row.push(cell);
       cell = "";
     } else if (char === "\n" || char === "\r") {
       if (char === "\r" && text[i + 1] === "\n") i += 1;
-      row.push(cell);
-      cell = "";
-      if (row.some((value) => value.trim() !== "")) rows.push(row);
-      row = [];
+      endRow();
+      line += 1;
+      rowLine = line;
       if (rows.length > IMPORT_MAX_ROWS) break;
     } else cell += char;
   }
-  row.push(cell);
-  if (row.some((value) => value.trim() !== "")) rows.push(row);
-  return rows.map((cells) => cells.map((value) => value.trim()));
+  endRow();
+  return Object.assign(rows, { lines });
 }
 
 /** Titre de colonne simplifié : minuscules, sans accents ni ponctuation. */
@@ -163,7 +179,7 @@ export type ImportRow = {
 };
 
 /** Lignes du fichier (sans la ligne des titres) mises dans les champs choisis. */
-export function mapRows(rows: string[][], columns: Record<ImportField, number | null>): ImportRow[] {
+export function mapRows(rows: CsvRows, columns: Record<ImportField, number | null>): ImportRow[] {
   const cell = (row: string[], field: ImportField) => {
     const index = columns[field];
     return index === null ? "" : (row[index] ?? "").trim();
@@ -185,7 +201,8 @@ export function mapRows(rows: string[][], columns: Record<ImportField, number | 
     }
     const birthday = parseBirthday(cell(row, "birthday"));
     return {
-      line: index + 2,
+      // Numéro de ligne dans le fichier (lignes vides et cellules sur plusieurs lignes comprises).
+      line: rows.lines?.[index + 1] ?? index + 2,
       firstName: firstName.slice(0, 80),
       lastName: lastName.slice(0, 80),
       phone: cell(row, "phone").slice(0, 40),

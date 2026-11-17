@@ -19,6 +19,7 @@ import { redirect as redirectTo } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { publicAppUrl } from "@/config/env";
 import { z } from "zod";
+import { canAccess } from "@/modules/team/access";
 import { setWinback } from "@/modules/promo/winback";
 import { importCustomers, type importCustomersInput } from "@/modules/customers/import";
 import { redirect } from "@/i18n/navigation";
@@ -260,9 +261,18 @@ export async function freeSlotsAction(tenantId: string, serviceIds: string[], st
 }
 
 export async function searchCustomersAction(tenantId: string, query: string) {
-  return managerQuery(uuid.parse(tenantId), "agenda", (tx) =>
-    searchCustomers(tx, tenantId, z.string().max(80).parse(query), 8),
-  );
+  return managerQuery(uuid.parse(tenantId), "agenda", async (tx, { space }) => {
+    const found = await searchCustomers(tx, tenantId, z.string().max(80).parse(query), 8);
+    // Collaborateur sans accès au fichier clients : le nom pour choisir, pas les coordonnées
+    // (seulement la fin du numéro, pour distinguer deux homonymes).
+    if (canAccess(space, "customers")) return found;
+    return found.map((row) => ({
+      ...row,
+      email: null,
+      phone: row.phone ? `•• ${row.phone.slice(-2)}` : null,
+      lastVisit: null,
+    }));
+  });
 }
 
 // ─── Indisponibilités ─────────────────────────────────────────────────────────
@@ -381,8 +391,8 @@ export async function deleteCustomerAction(_previous: Previous, data: FormData) 
 export async function mergeCustomerAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
   const keepId = idOf(data)!;
-  return managerPlatformMutation(tenantId, "customer.merged", (tx) =>
-    mergeCustomers(tx, tenantId, { keepId, removeId: form.text(data, "removeId") }),
+  return managerPlatformMutation(tenantId, "customer.merged", (tx, { businessId }) =>
+    mergeCustomers(tx, tenantId, { keepId, removeId: form.text(data, "removeId"), businessId }),
   );
 }
 

@@ -72,7 +72,9 @@ export async function refundDeposit(
       paymentIntentId: payment.stripePaymentIntentId,
       amountCents: remainingCents,
       metadata: { tenant_id: tenantId, refund_id: row.id, appointment_id: appointmentId },
-      idempotencyKey: `refund-${row.id}`,
+      // Clé stable (paiement et montant déjà remboursé) : si la transaction échoue après
+      // le remboursement chez Stripe, le nouvel essai retrouve le même remboursement.
+      idempotencyKey: `refund-${payment.id}-${payment.amountCents - remainingCents}`,
     });
   } catch (error) {
     console.error("[remboursement]", error);

@@ -115,6 +115,7 @@ export async function expireStaleHolds(tx: Transaction, tenantId: string, now: D
       source: appointments.source,
     });
   await adjustHoldUsage(tx, tenantId, expired, "release", now);
+  return expired.length;
 }
 
 /**
@@ -175,7 +176,10 @@ async function upsertCustomer(
     .select()
     .from(customers)
     .where(and(eq(customers.tenantId, context.tenant.id), sql`lower(${customers.email}) = ${input.email}`));
-  const consent = input.marketingConsent ? { emailConsent: true, smsConsent: true, consentAt: now } : {};
+  // Accord redonné en réservant : il remplace une ancienne demande de ne plus recevoir d'offres.
+  const consent = input.marketingConsent
+    ? { emailConsent: true, smsConsent: true, consentAt: now, marketingOptOutAt: null }
+    : {};
   // Anniversaire saisi (facultatif) : les deux ou rien, une date qui existe. Gardé même sans
   // offre d'anniversaire active, pour que l'entreprise puisse la proposer plus tard.
   const given = input.birthMonth != null || input.birthDay != null;
