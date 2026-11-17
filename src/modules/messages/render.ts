@@ -36,6 +36,7 @@ import { loadShopOrder, orderReference } from "@/modules/shop/orders";
 import { addMinutes } from "@/modules/booking/time";
 import { depositSummary } from "@/modules/payments/refunds";
 import { formatPhone } from "@/modules/phone";
+import { unsubscribeToken } from "@/modules/customers/unsubscribe";
 import { formatDuration } from "@/modules/site/format";
 import { getPlatformSetting } from "@/modules/settings";
 import { monthStats } from "@/modules/stats/month";
@@ -300,6 +301,7 @@ export async function renderMessage(
   )
     return renderShopOrder(tx, row, template, tenant, options);
   if (template === "customer.birthday") return renderBirthday(tx, row, tenant, options);
+  if (template === "customer.winback") return renderWinback(tx, row, tenant, options);
   if (template === "collaborator.invite") return renderCollaboratorInvite(tx, row, tenant, options);
   if (template.startsWith("manager.")) return renderManager(tx, row, template, tenant, options);
   return renderCustomer(tx, row, template, tenant, options);
@@ -664,6 +666,95 @@ async function renderBirthday(
     kind: "email",
     to: [customer.email],
     subject: t("notifications.customer.birthday.subject", { firstName: customer.firstName }),
+    html,
+    text,
+    fromName: tenant.name,
+    replyTo: tenant.email,
+  };
+}
+
+// ─── Relance ──────────────────────────────────────────────────────────────────
+
+/**
+ * Relance d'un client qui n'est pas revenu (offre de l'entreprise), avec son code
+ * personnel si la gérante offre une réduction. Rien si, entre-temps, il a repris
+ * rendez-vous, retiré son accord pour les offres ou n'a plus d'e-mail.
+ */
+async function renderWinback(
+  tx: Transaction,
+  row: MessageRow,
+  tenant: TenantInfo,
+  options: RenderOptions,
+): Promise<Rendered> {
+  const { customerId, promoCodeId } = row.data as { customerId?: string; promoCodeId?: string };
+  if (!customerId) return { kind: "skip", reason: "no_customer" };
+  const [found] = await tx
+    .select({
+      customer: customers,
+      businessId: businesses.id,
+      businessName: businesses.name,
+      multi: sql<boolean>`(select count(*) > 1 from ${businesses} b where b.tenant_id = ${customers.tenantId})`,
+      booked: sql<boolean>`exists (select 1 from ${appointments} a where a.customer_id = ${customers.id} and a.status in ('confirmed', 'pending_payment') and a.starts_at > ${options.now.toISOString()}::timestamptz)`,
+    })
+    .from(customers)
+    .innerJoin(businesses, eq(businesses.id, customers.businessId))
+    .where(and(eq(customers.tenantId, tenant.id), eq(customers.id, customerId)));
+  if (!found) return { kind: "skip", reason: "no_customer" };
+  const { customer } = found;
+  if (customer.anonymizedAt || !customer.email) return { kind: "skip", reason: "no_email" };
+  if (!customer.emailConsent) return { kind: "skip", reason: "no_consent" };
+  if (found.booked) return { kind: "skip", reason: "already_booked" };
+  const [code] = promoCodeId
+    ? await tx
+        .select()
+        .from(promoCodes)
+        .where(and(eq(promoCodes.tenantId, tenant.id), eq(promoCodes.id, promoCodeId)))
+    : [];
+  if (
+    promoCodeId &&
+    (!code ||
+      !code.isActive ||
+      (code.validUntil && code.validUntil <= options.now) ||
+      (code.maxUses !== null && code.usedCount >= code.maxUses))
+  )
+    return { kind: "skip", reason: "code_unusable" };
+  const locale = resolveLocale(row.locale);
+  const t = await getTranslator(locale);
+  const siteUrl = tenant.siteUrl ?? options.appUrl;
+  const business = found.multi ? found.businessName : tenant.name;
+  const bookingUrl = `${siteUrl}${SITE_PATHS.booking}${found.multi ? `?avec=${found.businessId}` : ""}`;
+  const lastDay = code?.validUntil ? new Date(code.validUntil.getTime() - 60_000) : null;
+  const until = lastDay
+    ? new Intl.DateTimeFormat(locale, {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        timeZone: tenant.timezone,
+      }).format(lastDay)
+    : "";
+  const { html, text } = renderEmail({
+    locale,
+    brandName: tenant.name,
+    logoUrl: logoUrlOf(tenant, options),
+    color: tenant.color,
+    title: t("notifications.customer.winback.title", { firstName: customer.firstName }),
+    paragraphs: [
+      t("notifications.customer.winback.intro", { business }),
+      ...(code ? [t("notifications.customer.winback.offer", { percent: code.discountValue })] : []),
+    ],
+    highlight: code?.code,
+    action: { label: t("notifications.customer.winback.action"), url: bookingUrl },
+    after: until ? [t("notifications.customer.winback.validity", { date: until })] : [],
+    footer: tenantFooter(tenant),
+    unsubscribe: {
+      label: t("notifications.customer.winback.unsubscribe"),
+      url: `${siteUrl}${SITE_PATHS.unsubscribe}?t=${unsubscribeToken({ businessId: customer.businessId, customerId: customer.id })}`,
+    },
+  });
+  return {
+    kind: "email",
+    to: [customer.email],
+    subject: t("notifications.customer.winback.subject", { firstName: customer.firstName, business }),
     html,
     text,
     fromName: tenant.name,

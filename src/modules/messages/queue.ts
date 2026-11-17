@@ -26,6 +26,7 @@ export const MESSAGE_TEMPLATES = [
   "customer.login_code",
   "customer.review_request",
   "customer.birthday",
+  "customer.winback",
   // À la gérante
   "manager.new_booking",
   "manager.cancelled",

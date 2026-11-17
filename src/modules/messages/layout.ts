@@ -24,6 +24,8 @@ export type EmailContent = {
   links?: { label: string; url: string }[];
   after?: string[];
   footer: string[];
+  /** E-mails commerciaux : lien pour ne plus recevoir d'offres, sous le pied de page. */
+  unsubscribe?: { label: string; url: string };
 };
 
 const DEFAULT_COLOR = "#0B1033";
@@ -104,6 +106,7 @@ export function renderEmail(content: EmailContent) {
         ${links}
         ${(content.after ?? []).map((text) => row(escapeHtml(text), "font-size:15px;line-height:1.5;padding-bottom:10px;color:#444")).join("\n        ")}
         ${row(content.footer.map(escapeHtml).join("<br>"), "font-size:13px;color:#6b6b6b;line-height:1.5;padding-top:16px;border-top:1px solid #eee")}
+        ${content.unsubscribe ? row(`<a href="${escapeHtml(content.unsubscribe.url)}" style="color:#6b6b6b">${escapeHtml(content.unsubscribe.label)}</a>`, "font-size:13px;line-height:1.5;padding-top:8px") : ""}
       </table>
     </td></tr>
   </table>
@@ -125,6 +128,7 @@ export function renderEmail(content: EmailContent) {
     "",
     "--",
     ...content.footer,
+    ...(content.unsubscribe ? ["", `${content.unsubscribe.label} : ${content.unsubscribe.url}`] : []),
   ].join("\n");
   return { html, text };
 }

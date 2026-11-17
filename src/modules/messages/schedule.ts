@@ -1,6 +1,6 @@
 import { tenantFeatures, tenantLimits } from "@/modules/billing/entitlements";
 import { packsRemaining } from "./sms-usage";
-import { and, eq, gte, isNotNull, isNull, lt, lte, or, sql } from "drizzle-orm";
+import { and, eq, gte, inArray, isNotNull, isNull, lt, lte, or, sql } from "drizzle-orm";
 import { declareBusiness } from "@/db/access";
 import type { Transaction } from "@/db/client";
 import {
@@ -18,6 +18,7 @@ import { addDays, localToUtc, timeToMinutes, utcToLocal } from "@/modules/bookin
 import { birthdaysCelebratedOn } from "@/modules/customers/birthday";
 import { createPersonalPromoCode } from "@/modules/promo/codes";
 import { getPlatformSetting } from "@/modules/settings";
+import { DEFAULT_WINBACK } from "@/config/defaults";
 import { queueMessage } from "./queue";
 
 /**
@@ -257,6 +258,108 @@ export async function queueBirthdayOffers(tx: Transaction, now: Date) {
         locale: customer.locale,
         data: { promoCodeId: code.id },
         dedupeKey: birthdayDedupeKey(customer.id, year),
+      });
+      count += 1;
+    }
+  }
+  await declareBusiness(tx, null);
+  return count;
+}
+
+/** Clé unique de la relance : une seule par client et par absence (date de sa dernière visite). */
+export function winbackDedupeKey(customerId: string, lastVisitDate: string) {
+  return `customer.winback:${customerId}:${lastVisitDate}`;
+}
+
+/**
+ * Relance des clients qui ne reviennent plus (heure réglée dans l'admin, fuseau de
+ * chaque site) : pour chaque entreprise qui l'a activée, sur un site en ligne dont le
+ * pack a les codes promo, chaque client venu pour la dernière fois il y a plus que le
+ * délai choisi (mais moins d'un an), sans rendez-vous prévu, qui a accepté de recevoir
+ * des offres et qui a un e-mail, reçoit un message (avec un code personnel si la gérante
+ * offre une réduction). Une seule relance par absence : s'il revient puis s'absente
+ * de nouveau, il pourra être relancé une autre fois.
+ */
+export async function queueWinbacks(tx: Transaction, now: Date) {
+  const time = await getPlatformSetting(tx, "winback_message_time");
+  const rows = await tx
+    .select({
+      id: businessSettings.businessId,
+      tenantId: tenants.id,
+      timezone: tenants.timezone,
+      defaultLocale: tenants.defaultLocale,
+      features: tenantFeatures,
+      afterDays: businessSettings.winbackAfterDays,
+      discountPercent: businessSettings.winbackDiscountPercent,
+      validityDays: businessSettings.winbackOfferDays,
+    })
+    .from(businessSettings)
+    .innerJoin(tenants, eq(tenants.id, businessSettings.tenantId))
+    .innerJoin(plans, eq(plans.id, tenants.planId))
+    .where(and(eq(tenants.status, "active"), eq(businessSettings.winbackEnabled, true)));
+  let count = 0;
+  for (const business of rows) {
+    if (!(business.features as PlanFeatures).promoCodes) continue;
+    if (!inWindow(now, business.timezone, time).open) continue;
+    await declareBusiness(tx, business.id);
+    // Deux tâches simultanées ne créent pas deux codes pour le même client.
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`winback:${business.id}`}))`);
+    const cutoff = new Date(now.getTime() - business.afterDays * 86_400_000);
+    const oldest = new Date(now.getTime() - DEFAULT_WINBACK.maxAbsenceDays * 86_400_000);
+    const lastVisit = sql<Date>`max(${appointments.startsAt})`;
+    const lastVisitDate = sql<string>`to_char(max(${appointments.startsAt}) at time zone 'UTC', 'YYYY-MM-DD')`;
+    const absent = await tx
+      .select({ id: customers.id, locale: customers.locale, lastVisitDate })
+      .from(customers)
+      .innerJoin(
+        appointments,
+        and(
+          eq(appointments.customerId, customers.id),
+          inArray(appointments.status, ["confirmed", "attended"]),
+          lte(appointments.startsAt, now),
+        ),
+      )
+      .where(
+        and(
+          eq(customers.tenantId, business.tenantId),
+          eq(customers.businessId, business.id),
+          isNull(customers.anonymizedAt),
+          isNotNull(customers.email),
+          eq(customers.emailConsent, true),
+          // Déjà un rendez-vous prévu : pas besoin de relancer.
+          sql`not exists (select 1 from ${appointments} f where f.customer_id = ${customers.id} and f.status in ('confirmed', 'pending_payment') and f.starts_at > ${now.toISOString()}::timestamptz)`,
+        ),
+      )
+      .groupBy(customers.id)
+      .having(
+        and(
+          lte(lastVisit, sql`${cutoff.toISOString()}::timestamptz`),
+          gte(lastVisit, sql`${oldest.toISOString()}::timestamptz`),
+          sql`not exists (select 1 from ${messageLog} m where m.dedupe_key = 'customer.winback:' || ${customers.id} || ':' || ${lastVisitDate})`,
+        ),
+      )
+      .limit(DEFAULT_WINBACK.perRun);
+    if (absent.length === 0) continue;
+    const t = await getTranslator(resolveLocale(business.defaultLocale));
+    for (const customer of absent) {
+      const code =
+        business.discountPercent > 0
+          ? await createPersonalPromoCode(tx, business.tenantId, {
+              businessId: business.id,
+              customerId: customer.id,
+              discountPercent: business.discountPercent,
+              validityDays: business.validityDays,
+              prefix: t("notifications.customer.winback.codePrefix"),
+              now,
+            })
+          : null;
+      await queueMessage(tx, {
+        tenantId: business.tenantId,
+        businessId: business.id,
+        template: "customer.winback",
+        locale: customer.locale,
+        data: code ? { customerId: customer.id, promoCodeId: code.id } : { customerId: customer.id },
+        dedupeKey: winbackDedupeKey(customer.id, customer.lastVisitDate),
       });
       count += 1;
     }

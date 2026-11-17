@@ -20,6 +20,7 @@ const MESSAGE_KINDS = [
   "customer.review_request",
   "customer.payment_refunded",
   "customer.birthday",
+  "customer.winback",
 ] as const;
 
 const SENT = ["sent", "delivered"] as const;
@@ -124,7 +125,7 @@ export async function customerTimeline(
         sql`(${ids.length > 0 ? inArray(messageLog.appointmentId, ids) : sql`false`} or ${like(
           messageLog.dedupeKey,
           `customer.birthday:${customer.id}:%`,
-        )})`,
+        )} or ${like(messageLog.dedupeKey, `customer.winback:${customer.id}:%`)})`,
       ),
     );
   for (const message of messages) {

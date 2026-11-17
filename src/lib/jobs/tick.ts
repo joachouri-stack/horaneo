@@ -13,6 +13,7 @@ import { dispatchMessages } from "@/modules/messages/dispatch";
 import {
   expireAllHolds,
   queueBirthdayOffers,
+  queueWinbacks,
   queueEmailReminders,
   queueSmsReminders,
   queueSummaries,
@@ -49,6 +50,8 @@ export async function runTick(now = new Date()) {
     const summaries = await platform((tx) => queueSummaries(tx, now));
     // Anniversaires du jour (offre de l'entreprise), à l'heure réglée dans l'admin.
     const birthdays = await platform((tx) => queueBirthdayOffers(tx, now));
+    // Clients qui ne sont pas revenus depuis le délai choisi par l'entreprise.
+    const winbacks = await platform((tx) => queueWinbacks(tx, now));
     const purged = await purgeReplacedAssets(platform, storage(), now);
     // Avis Google : chaque fiche relue une fois par jour au plus.
     const reviews = await platform((tx) => refreshGoogleReviews(tx, googlePlacesProvider(), now));
@@ -68,6 +71,7 @@ export async function runTick(now = new Date()) {
       smsReminders,
       summaries,
       birthdays,
+      winbacks,
       purged,
       reviews,
       prices,

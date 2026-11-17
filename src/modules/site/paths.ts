@@ -21,6 +21,8 @@ export const SITE_PATHS = {
   appointment: "/rendez-vous",
   /** Espace des clientes : leurs rendez-vous, cartes cadeaux et fidélité. */
   account: "/mes-rendez-vous",
+  /** Lien des e-mails d'offres : ne plus en recevoir (/desabonnement?t=<jeton>). */
+  unsubscribe: "/desabonnement",
   /** Accès des professionnelles à leur espace de gestion (renvoie vers la connexion). */
   pro: "/espace-pro",
 } as const;

@@ -194,7 +194,7 @@ export function CustomerImport({ tenantId, listHref }: { tenantId: string; listH
                     <tr key={row.line} className="border-t border-hairline">
                       <td className="px-1 py-1.5">{row.firstName || "—"}</td>
                       <td className="px-1 py-1.5">{row.lastName || "—"}</td>
-                      <td className="px-1 py-1.5">{row.phone || "—"}</td>
+                      <td className="whitespace-nowrap px-1 py-1.5">{row.phone || "—"}</td>
                       <td className="px-1 py-1.5 break-all">{row.email || "—"}</td>
                       <td className="px-1 py-1.5">
                         {row.birthDay && row.birthMonth

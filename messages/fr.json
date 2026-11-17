@@ -1539,6 +1539,13 @@
       "cancellation": "Conditions d'annulation et de report des rendez-vous chez {name}.",
       "legal": "Mentions légales du site de {name}.",
       "privacy": "Politique de confidentialité de {name} : données collectées et vos droits."
+    },
+    "unsubscribe": {
+      "title": "Vos préférences",
+      "intro": "Vous ne souhaitez plus recevoir les offres de {name} par e-mail ni par SMS ? Les messages liés à vos rendez-vous (confirmations, rappels) continueront d'arriver.",
+      "confirm": "Ne plus recevoir les offres",
+      "done": "C'est fait : vous ne recevrez plus les offres de {name}. Les messages liés à vos rendez-vous continueront d'arriver.",
+      "invalid": "Ce lien n'est pas valable. Pour ne plus recevoir les offres de {name}, contactez directement l'établissement."
     }
   },
   "emails": {
@@ -2437,6 +2444,7 @@
       "yearly_free_months": "Mois offerts pour le paiement à l'année",
       "yearlyHint": "2 = 10 mois payés pour 12. Un changement s'applique aux nouvelles souscriptions, puis aux abonnés annuels à la fin de leur engagement, après préavis.",
       "birthday_message_time": "Heure de l'e-mail d'anniversaire à la clientèle",
+      "winback_message_time": "Heure de l'e-mail de relance des clients qui ne sont pas revenus",
       "saved": "Réglages enregistrés.",
       "pricesDisplayHint": "TTC : vos prix incluent la TVA. HT : la TVA est ajoutée au prix affiché lors du paiement.",
       "pricesTtc": "TTC (toutes taxes comprises)",
@@ -3050,7 +3058,8 @@
         "customer_moved": "Déplacé par vous (e-mail)",
         "customer_payment_refunded": "Remboursement (e-mail)",
         "customer_review_request": "Demande d'avis Google (e-mail)",
-        "customer_birthday": "Joyeux anniversaire (e-mail)"
+        "customer_birthday": "Joyeux anniversaire (e-mail)",
+        "customer_winback": "Relance « Vous nous manquez » (e-mail)"
       },
       "editTotal": "Modifier le montant",
       "totalField": "Montant réglé par le client",
@@ -3189,7 +3198,8 @@
           "customer_review_request": "Demande d'avis envoyée",
           "customer_payment_refunded": "Remboursement envoyé",
           "customer_birthday": "Message d'anniversaire envoyé",
-          "shop_order": "Commande sur la boutique ({amount})"
+          "shop_order": "Commande sur la boutique ({amount})",
+          "customer_winback": "Relance « Vous nous manquez » envoyée"
         }
       },
       "book": "Prendre un rendez-vous",
@@ -4110,7 +4120,22 @@
         "sampleName": "Camille",
         "unavailable": "Les souhaits d'anniversaire avec réduction sont inclus {plan, select, none {dans un pack supérieur} other {à partir du pack {plan}}}."
       },
-      "seePlans": "Voir les packs"
+      "seePlans": "Voir les packs",
+      "winback": {
+        "title": "Relance des clients qui ne reviennent plus",
+        "intro": "Quand un client n'est pas revenu depuis un moment et n'a pas de rendez-vous prévu, il reçoit automatiquement un e-mail « Vous nous manquez », avec une réduction si vous le souhaitez. Une seule relance par absence.",
+        "enabled": "Relancer automatiquement mes clients qui ne reviennent plus",
+        "afterDays": "Relancer après (jours sans visite)",
+        "afterDaysHint": "Entre 30 et 365 jours. Par exemple 60 jours, soit environ 2 mois.",
+        "percent": "Réduction offerte (%)",
+        "percentHint": "Mettez 0 pour envoyer le message sans réduction.",
+        "days": "Validité du code (jours)",
+        "daysHint": "Entre 1 et 90 jours à partir de l'envoi.",
+        "consentNote": "Seuls les clients qui ont accepté de recevoir vos offres sont relancés (case cochée en réservant, ou confirmée lors d'un import). Chaque e-mail contient un lien pour ne plus en recevoir.",
+        "preview": "Aperçu du message",
+        "sampleName": "Camille",
+        "unavailable": "La relance automatique des clients est incluse {plan, select, none {dans un pack supérieur} other {à partir du pack {plan}}}."
+      }
     },
     "customerData": {
       "title": "Demandes des clients (données)",
@@ -4430,6 +4455,16 @@
         "action": "Réserver",
         "validity": "Valable jusqu'au {date}, une seule fois, en réservant en ligne ou sur place.",
         "codePrefix": "ANNIV"
+      },
+      "winback": {
+        "subject": "{firstName}, vous nous manquez !",
+        "title": "Vous nous manquez, {firstName} !",
+        "intro": "Cela fait un moment que nous ne vous avons pas vu chez {business}. Nous serions ravis de vous accueillir de nouveau.",
+        "offer": "Pour votre retour, profitez de {percent} % de réduction sur la prestation de votre choix avec votre code personnel :",
+        "action": "Prendre rendez-vous",
+        "validity": "Valable jusqu'au {date}, une seule fois, en réservant en ligne ou sur place.",
+        "unsubscribe": "Ne plus recevoir nos offres",
+        "codePrefix": "RETOUR"
       }
     },
     "manager": {
