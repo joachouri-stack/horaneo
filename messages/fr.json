@@ -3413,6 +3413,7 @@
       "unavailability": "Indisponibilités",
       "subscription": "Abonnement",
       "referral": "Parrainage",
+      "assistant": "Assistant du site",
       "settings": "Réglages",
       "requests": "Demander une modification du site",
       "help": "Aide",
@@ -3446,6 +3447,7 @@
         "payments": "Acomptes versés directement sur votre compte.",
         "subscription": "Votre pack et votre utilisation du mois.",
         "referral": "Recommandez-nous et gagnez des mois offerts.",
+        "assistant": "Il répond à vos clients sur votre site, 24 h/24.",
         "settings": "Réservation en ligne, horaires et informations.",
         "requests": "Mise en page sur mesure : demandez un changement.",
         "customerData": "Copies et suppressions demandées par vos clients.",
@@ -3810,6 +3812,24 @@
         "done": "Faite",
         "rejected": "Refusée"
       }
+    },
+    "assistant": {
+      "title": "Assistant du site",
+      "intro": "Une bulle « Une question ? » sur votre site répond à vos clients 24 h/24, à partir de vos prestations, prix, horaires et informations.",
+      "notConfigured": "L'assistant n'est pas encore disponible : il s'affichera dès que le service sera activé par notre équipe.",
+      "settingsTitle": "Sur votre site",
+      "enabled": "Afficher l'assistant sur mon site",
+      "enabledHint": "Désactivé, la bulle disparaît de votre site.",
+      "saved": "Réglage enregistré.",
+      "usageTitle": "Conversations ce mois-ci",
+      "used": "{used} sur {allowed}",
+      "usedUnlimited": "{used}",
+      "resets": "Le compteur repart à zéro le {date}.",
+      "limitReached": "Limite du mois atteinte : la bulle propose de vous contacter directement jusqu'à la remise à zéro.",
+      "howTitle": "Bon à savoir",
+      "how1": "Ses réponses suivent ce qui est dans votre espace : gardez vos prestations, prix et horaires à jour.",
+      "how2": "Il ne réserve pas lui-même : il invite à utiliser le bouton Réserver, ou à vous contacter s'il ne sait pas.",
+      "how3": "Les conversations ne sont pas conservées : seul leur nombre est compté."
     },
     "referral": {
       "title": "Parrainage",

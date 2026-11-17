@@ -540,6 +540,13 @@
       "when": 1794918636602,
       "tag": "0076_pro_chatbot",
       "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "7",
+      "when": 1794920177547,
+      "tag": "0077_chatbot_enabled",
+      "breakpoints": true
     }
   ]
 }

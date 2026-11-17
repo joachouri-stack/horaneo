@@ -99,6 +99,7 @@ import type { Transaction } from "@/db/client";
 import { tenants } from "@/db/schema";
 import { resolveDataRequest } from "@/modules/customer-space/space";
 import { adjustLoyalty, setLoyaltySettings, redeemReward } from "@/modules/loyalty/loyalty";
+import { setChatbotEnabled } from "@/modules/chatbot/settings";
 import { parseMoney } from "@/modules/money";
 import { eq } from "drizzle-orm";
 
@@ -989,6 +990,14 @@ export async function saveLoyaltySettingsAction(_previous: Previous, data: FormD
       rewardCents: amount ? parseMoney(amount) : undefined,
       validityDays: form.text(data, "validityDays") as unknown as number,
     }),
+  );
+}
+
+/** Assistant du site (chatbot) : la gérante l'active ou le coupe. */
+export async function saveChatbotSettingsAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "owner", "chatbot.settings", (tx) =>
+    setChatbotEnabled(tx, tenantId, { enabled: form.bool(data, "enabled") }),
   );
 }
 

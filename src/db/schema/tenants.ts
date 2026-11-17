@@ -263,6 +263,8 @@ export const businessSettings = pgTable(
       .default(sql`'{3000,5000,10000}'`),
     giftCardMinCents: integer().notNull().default(1000),
     giftCardMaxCents: integer().notNull().default(50000),
+    /** Chatbot du site (pack qui l'inclut) : la gérante peut le couper. Activé par défaut. */
+    chatbotEnabled: boolean().notNull().default(true),
     // Fidélité (pack qui l'inclut) : un point par rendez-vous honoré.
     loyaltyEnabled: boolean().notNull().default(false),
     loyaltyVisitsRequired: smallint().notNull().default(10),

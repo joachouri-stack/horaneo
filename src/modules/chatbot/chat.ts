@@ -1,10 +1,11 @@
 import { z } from "zod";
 import type { Transaction } from "@/db/client";
 import type { Locale } from "@/i18n/locales";
-import { assertFeature } from "@/modules/quotas";
+import { AppError } from "@/modules/errors";
 import { getPlatformSetting } from "@/modules/settings";
 import { chatbotFacts } from "./context";
 import type { ChatTurn } from "./model";
+import { chatbotSettings } from "./settings";
 
 /**
  * Chatbot du site d'un établissement (pack qui comprend « aiChatbot ») :
@@ -82,7 +83,10 @@ export async function prepareChat(
   raw: z.input<typeof chatInput>,
   { now = new Date() }: { now?: Date } = {},
 ) {
-  await assertFeature(tx, tenantId, "aiChatbot");
+  // Compris dans le pack, et laissé activé par la gérante.
+  const settings = await chatbotSettings(tx, tenantId);
+  if (!settings.included) throw new AppError("feature_unavailable", "aiChatbot");
+  if (!settings.enabled) throw new AppError("chatbot_unavailable");
   const input = chatInput.parse(raw);
   const facts = await chatbotFacts(tx, tenantId);
   const locale = facts.locale;
@@ -101,11 +105,10 @@ export async function prepareChat(
   };
 }
 
-/** Le chatbot est-il proposé sur ce site ? (pack qui le comprend, avec des conversations incluses ou rechargées) */
+/** Le chatbot est-il proposé sur ce site ? (pack qui le comprend, et laissé activé par la gérante) */
 export async function chatbotOffered(tx: Transaction, tenantId: string) {
   try {
-    await assertFeature(tx, tenantId, "aiChatbot");
-    return true;
+    return (await chatbotSettings(tx, tenantId)).active;
   } catch {
     return false;
   }

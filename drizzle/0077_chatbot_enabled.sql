@@ -1,0 +1,1 @@
+ALTER TABLE "business_settings" ADD COLUMN "chatbot_enabled" boolean DEFAULT true NOT NULL;
