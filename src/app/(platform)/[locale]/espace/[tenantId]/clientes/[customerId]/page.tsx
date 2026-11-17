@@ -3,12 +3,14 @@ import { getTranslations } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
 import { Hidden, TextField } from "@/components/admin/fields";
 import { CustomerFields } from "@/components/manager/CustomerFields";
+import { CustomerTimeline } from "@/components/manager/CustomerTimeline";
 import { DASH_ICONS, DashIcon, panel } from "@/components/manager/DashboardWidgets";
 import { ui } from "@/components/ui/styles";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
 import { formatBirthday } from "@/modules/customers/birthday";
 import { getCustomer, possibleDuplicates } from "@/modules/customers/customers";
+import { customerTimeline } from "@/modules/customers/timeline";
 import { loyaltyForManager } from "@/modules/loyalty/loyalty";
 import { formatPhone } from "@/modules/phone";
 import { canAccess } from "@/modules/team/access";
@@ -60,12 +62,20 @@ export default async function CustomerPage({
   const card = await page.db((tx) => getCustomer(tx, page.tenantId, customerId, page.locale));
   if (!card) notFound();
   const loyalty = await page.db((tx) => loyaltyForManager(tx, page.tenantId, customerId));
+  const timeline = await page.db((tx) => customerTimeline(tx, page.tenantId, customerId));
   const tLoyalty = await getTranslations("manager.loyalty");
   const { customer, history, stats } = card;
   const name = [customer.firstName, customer.lastName].filter(Boolean).join(" ");
   const tz = page.tenant.timezone;
   const dayOf = new Intl.DateTimeFormat(page.locale, { day: "numeric", timeZone: tz });
   const monthOf = new Intl.DateTimeFormat(page.locale, { month: "short", timeZone: tz });
+  const appointmentDate = new Intl.DateTimeFormat(page.locale, {
+    day: "numeric",
+    month: "long",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: tz,
+  });
   const initials = (customer.firstName.charAt(0) + (customer.lastName?.charAt(0) ?? "")).toUpperCase();
   // Suppression : la gérante seulement, et pas une fiche déjà effacée.
   const isOwner = canAccess(page.space, "owner") && !customer.anonymizedAt;
@@ -218,6 +228,23 @@ export default async function CustomerPage({
               ))}
             </ul>
           )}
+        </section>
+
+        {/* Suivi : réservations, visites et messages envoyés, en frise. */}
+        <section aria-labelledby="suivi" className={panel}>
+          <h2 id="suivi" className="font-display text-[1.1rem] font-semibold text-night">
+            {t("timeline.title")}
+          </h2>
+          <p className="mb-3 mt-1 text-sm text-ink/70">{t("timeline.hint")}</p>
+          <CustomerTimeline
+            events={timeline}
+            base={page.base}
+            fmt={{
+              date: page.fmt.short,
+              dateTime: (value) => appointmentDate.format(value),
+              money: page.fmt.money,
+            }}
+          />
         </section>
 
         {/* Fidélité : seulement quand le programme est actif (ou qu'un bon reste à utiliser). */}
