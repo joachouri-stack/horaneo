@@ -440,6 +440,8 @@ const GRID_STARTER = {
 
 const GRID_PRO = {
   ...GRID_STARTER,
+  // Chatbot du site (quota de conversations plus petit que le Business).
+  aiChatbot: true,
   // Référencement : site déclaré à Google et fiche Google Business, faits par l'équipe au démarrage.
   searchConsole: true,
   googleBusiness: true,
@@ -544,6 +546,9 @@ export const DEFAULT_GRID_PLANS: PlanSeed[] = [
       services: null,
       smsPerMonth: 100,
       ...NO_AI,
+      // Chatbot du site : 100 conversations par mois (500 dans le Business).
+      aiChatConversations: 100,
+      chatbotQuestions: 0,
     },
     features: GRID_PRO,
   },
