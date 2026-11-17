@@ -560,7 +560,8 @@ export const DEFAULT_GRID_PLANS: PlanSeed[] = [
       members: null,
       photos: null,
       services: null,
-      smsPerMonth: 300,
+      // 100 SMS inclus par mois (comme le Pro), recharges de SMS en option au-delà.
+      smsPerMonth: 100,
       aiChatConversations: 500,
       whatsappConversations: 200,
       aiTexts: 100,
