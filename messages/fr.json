@@ -680,6 +680,10 @@
           "label": "Suivi clients et relances automatiques avancés",
           "card": "Suivi clients et relances avancés"
         },
+        "customerImport": {
+          "label": "Import de votre fichier clients (Excel ou ancien logiciel)",
+          "card": "Import de votre fichier clients"
+        },
         "dataExport": {
           "label": "Export de vos données (clients, rendez-vous, paiements)",
           "card": "Export de vos données"
@@ -691,6 +695,10 @@
         "birthdayOffer": {
           "label": "E-mail d'anniversaire avec code promo",
           "card": "E-mail d'anniversaire avec code promo"
+        },
+        "winback": {
+          "label": "Relance automatique des clients qui ne reviennent plus",
+          "card": "Relance automatique des clients absents"
         },
         "googleReviews": {
           "label": "Avis Google : affichage et demandes d'avis",
@@ -726,8 +734,8 @@
           "cardUnlimited": "Chatbot (questions et réponses illimitées)"
         },
         "aiChatbot": {
-          "label": "Chatbot IA : conversations libres par mois",
-          "card": "Chatbot IA ({count} conversations/mois)"
+          "label": "Chatbot sur votre site (répond aux questions et propose les créneaux libres) : conversations par mois",
+          "card": "Chatbot IA qui propose les créneaux libres ({count} conversations/mois)"
         },
         "aiTexts": {
           "label": "Textes générés par IA (par mois)",
