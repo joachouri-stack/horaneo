@@ -283,6 +283,8 @@ describe.skipIf(!hasTestDatabase)("site d'un client : données affichées", () =
       customerSpace: false,
       // Ni boutique (solution Commerce).
       commerce: false,
+      // Ni chatbot.
+      aiChatbot: false,
     });
     expect(site.shopBusinessIds).toEqual([]);
     expect(site.testimonials).toEqual([]);

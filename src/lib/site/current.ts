@@ -43,4 +43,6 @@ export const publicLimits = {
   customerIdentifier: createRateLimiter({ max: 5, windowMs: 60 * 60 * 1000 }),
   /** Saisie des codes SMS. */
   customerCode: createRateLimiter({ max: 15, windowMs: 10 * 60 * 1000 }),
+  /** Questions au chatbot (par adresse IP). */
+  chat: createRateLimiter({ max: 30, windowMs: 10 * 60 * 1000 }),
 };

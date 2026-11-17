@@ -323,6 +323,8 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
       giftCards: Boolean(features.giftCards),
       customerSpace: Boolean(features.customerSpace),
       commerce: Boolean(features.commerce),
+      /** Chatbot du site (bulle « Une question ? »). */
+      aiChatbot: Boolean(features.aiChatbot),
     },
     offers,
     /** Avis Google par entreprise (copie de moins de 30 jours ; sinon seulement le lien). */

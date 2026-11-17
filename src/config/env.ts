@@ -89,6 +89,9 @@ const envSchema = z.object({
 
   // Avis Google (Google Places API) : une clé pour tous les sites.
   GOOGLE_PLACES_API_KEY: z.string().min(1).optional(),
+
+  // Chatbot des sites (API Anthropic) : sans clé, le chatbot n'est pas proposé.
+  ANTHROPIC_API_KEY: z.string().min(1).optional(),
 });
 
 export type Env = z.infer<typeof envSchema> & { ENABLED_LOCALES: Locale[] };
