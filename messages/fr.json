@@ -1105,6 +1105,7 @@
       "assistant": "Assistant",
       "fallback": "Je ne peux pas répondre à cette question. Le mieux est de contacter directement l'établissement.",
       "contactHint": "Vous pouvez aussi nous joindre au {contact}.",
+      "book": "Réserver : {service}",
       "disclaimer": "Assistant automatique : les réponses peuvent contenir des erreurs. Ne partagez pas d'informations personnelles."
     },
     "account": {

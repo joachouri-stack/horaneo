@@ -6,6 +6,7 @@ import { chatModel } from "@/lib/ai/anthropic";
 import { currentSiteTenant, publicLimits } from "@/lib/site/current";
 import { consumeQuota } from "@/modules/billing/usage";
 import { chatInput, isNewConversation, prepareChat } from "@/modules/chatbot/chat";
+import { type BookingLink, chatTools, runChatTool } from "@/modules/chatbot/tools";
 import { AppError, type AppErrorCode } from "@/modules/errors";
 
 /**
@@ -13,7 +14,11 @@ import { AppError, type AppErrorCode } from "@/modules/errors";
  * conservé ; une nouvelle conversation compte dans le quota du mois du site.
  */
 
-export type ChatResult = { ok: true; reply: string | null } | { ok: false; error: AppErrorCode };
+export type ChatResult =
+  { ok: true; reply: string | null; links: BookingLink[] } | { ok: false; error: AppErrorCode };
+
+/** Boutons « Réserver » affichés au plus sous une réponse. */
+const MAX_LINKS = 3;
 
 export async function askAssistantAction(raw: z.input<typeof chatInput>): Promise<ChatResult> {
   try {
@@ -27,8 +32,25 @@ export async function askAssistantAction(raw: z.input<typeof chatInput>): Promis
     if (isNewConversation(raw)) {
       await withPlatform((tx) => consumeQuota(tx, site.tenantId, "aiChatConversations"));
     }
-    const answer = await model.reply(request);
-    return { ok: true, reply: answer.kind === "text" ? answer.text : null };
+    // Créneaux libres consultés à la demande du modèle ; chaque recherche donne un lien Réserver.
+    const links: BookingLink[] = [];
+    const answer = await model.reply({
+      ...request,
+      tools: chatTools,
+      runTool: async (name, input) => {
+        const { result, link } = await withTenant(site.tenantId, (tx) =>
+          runChatTool(tx, site.tenantId, name, input),
+        );
+        if (link) {
+          const index = links.findIndex((item) => item.serviceId === link.serviceId);
+          if (index >= 0) links.splice(index, 1);
+          links.push(link);
+        }
+        return result;
+      },
+    });
+    if (answer.kind !== "text") return { ok: true, reply: null, links: [] };
+    return { ok: true, reply: answer.text, links: links.slice(-MAX_LINKS) };
   } catch (error) {
     if (error instanceof AppError) return { ok: false, error: error.code };
     if (error instanceof z.ZodError) return { ok: false, error: "invalid" };

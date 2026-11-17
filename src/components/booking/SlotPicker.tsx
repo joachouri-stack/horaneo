@@ -16,6 +16,8 @@ type Props = {
   selected?: PickedSlot | null;
   /** Praticienne choisie d'avance (« Réserver à nouveau »). */
   initialStaffId?: string | null;
+  /** Jour proposé d'avance (lien de l'assistant) : les créneaux s'affichent à partir de ce jour. */
+  initialDate?: string | null;
   /** Réservation possible jusqu'à N jours : au-delà de 45, raccourci « Aller au mois de… ». */
   maxAdvanceDays?: number;
 };
@@ -60,6 +62,7 @@ export function SlotPicker({
   onError,
   selected,
   initialStaffId,
+  initialDate,
   maxAdvanceDays,
 }: Props) {
   const t = useTranslations("booking.slot");
@@ -68,7 +71,8 @@ export function SlotPicker({
       (initialStaffId && staffOptions.some((option) => option.id === initialStaffId) ? initialStaffId : null),
   );
   const [days, setDays] = useState<DayAvailability[]>([]);
-  const [pages, setPages] = useState<string[]>([]);
+  // Départ à un jour donné : « jours précédents » ramène à aujourd'hui (page vide = aujourd'hui).
+  const [pages, setPages] = useState<string[]>(initialDate ? [""] : []);
   const [date, setDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -90,7 +94,7 @@ export function SlotPicker({
   useEffect(() => {
     // Premier chargement des créneaux (14 jours à partir d'aujourd'hui).
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    void load(staffId);
+    void load(staffId, initialDate ?? undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -121,7 +125,7 @@ export function SlotPicker({
   const previousPage = () => {
     const previous = pages.at(-1);
     setPages(pages.slice(0, -1));
-    void load(staffId, previous);
+    void load(staffId, previous || undefined);
   };
 
   const current = days.find((day) => day.date === date);

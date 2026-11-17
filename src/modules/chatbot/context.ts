@@ -67,7 +67,7 @@ export async function chatbotFacts(tx: Transaction, tenantId: string) {
       );
   }
 
-  lines.push("", "Services (name — duration — price):");
+  lines.push("", "Services (name — duration — price — [id, for availability searches]):");
   if (context.services.length === 0) lines.push("- None listed.");
   for (const service of context.services) {
     const price =
@@ -82,7 +82,7 @@ export async function chatbotFacts(tx: Transaction, tenantId: string) {
         : "";
     const description = service.description ? ` — ${pickLocalized(service.description, locale)}` : "";
     lines.push(
-      `- ${pickLocalized(service.name, locale)} — ${service.durationMinutes} min — ${price}${promo}${service.isOnlineBookable ? "" : " — not bookable online (call the business)"}${description}`,
+      `- ${pickLocalized(service.name, locale)} — ${service.durationMinutes} min — ${price}${promo}${service.isOnlineBookable ? "" : " — not bookable online (call the business)"}${description} [id: ${service.id}]`,
     );
   }
 

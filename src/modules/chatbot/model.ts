@@ -11,6 +11,18 @@ export type ChatModelReply =
   /** Le modèle a refusé de répondre (sécurité) : la cliente est orientée vers l'établissement. */
   | { kind: "refused" };
 
+/** Outil que le modèle peut appeler (consultation seulement, ex. créneaux libres). */
+export type ChatToolDefinition = {
+  name: string;
+  description: string;
+  input_schema: {
+    type: "object";
+    properties: Record<string, unknown>;
+    required: string[];
+    additionalProperties: false;
+  };
+};
+
 export interface ChatModel {
   reply(input: {
     model: string;
@@ -18,5 +30,8 @@ export interface ChatModel {
     system: string;
     messages: ChatTurn[];
     maxTokens: number;
+    tools?: ChatToolDefinition[];
+    /** Exécute un outil demandé par le modèle et renvoie son résultat (texte). */
+    runTool?: (name: string, input: unknown) => Promise<string>;
   }): Promise<ChatModelReply>;
 }
