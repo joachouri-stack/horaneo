@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { withTenant } from "@/db/access";
 import * as s from "@/db/schema";
 import { chatbotOffered, isNewConversation, prepareChat } from "@/modules/chatbot/chat";
+import { chatbotSettings, setChatbotEnabled } from "@/modules/chatbot/settings";
 import { AppError } from "@/modules/errors";
 import { createTenantWithData } from "../setup/fixtures";
 import { hasTestDatabase, openAppDb, openTestDb, type TestDb } from "../setup/db";
@@ -76,5 +77,33 @@ describe.skipIf(!hasTestDatabase)("chatbot du site", () => {
         ],
       }),
     ).toBe(false);
+  });
+
+  it("la gérante peut couper l'assistant : plus de bulle ni de réponse ; compteur du mois", async () => {
+    const { tenant } = await createTenantWithData(owner, "chatbot-off");
+    const [business] = await owner.select().from(s.plans).where(eq(s.plans.code, "business"));
+    await owner.update(s.tenants).set({ planId: business.id }).where(eq(s.tenants.id, tenant.id));
+    const asTenant = <T>(fn: Parameters<typeof withTenant<T>>[1]) => withTenant(tenant.id, fn, app);
+
+    // Activé par défaut, avec le quota du pack.
+    const before = await asTenant((tx) => chatbotSettings(tx, tenant.id));
+    expect(before).toMatchObject({ included: true, enabled: true, active: true });
+    expect(before.usage).toMatchObject({ used: 0, included: 500 });
+
+    await asTenant((tx) => setChatbotEnabled(tx, tenant.id, { enabled: false }));
+    expect(await asTenant((tx) => chatbotOffered(tx, tenant.id))).toBe(false);
+    await expect(asTenant((tx) => prepareChat(tx, tenant.id, question("Bonjour")))).rejects.toMatchObject({
+      code: "chatbot_unavailable",
+    });
+
+    await asTenant((tx) => setChatbotEnabled(tx, tenant.id, { enabled: true }));
+    expect(await asTenant((tx) => chatbotOffered(tx, tenant.id))).toBe(true);
+  });
+
+  it("pack sans chatbot : le réglage est refusé", async () => {
+    const { tenant } = await createTenantWithData(owner, "chatbot-none");
+    await expect(
+      withTenant(tenant.id, (tx) => setChatbotEnabled(tx, tenant.id, { enabled: false }), app),
+    ).rejects.toMatchObject({ code: "feature_unavailable" });
   });
 });

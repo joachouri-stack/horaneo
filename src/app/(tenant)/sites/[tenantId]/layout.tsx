@@ -21,6 +21,8 @@ import { buildTheme, themeCssVariables } from "@/modules/site/theme";
 // Polices fournies avec le projet : la construction ne dépend pas du réseau.
 import { ChatWidget } from "@/components/site/ChatWidget";
 import { chatModel } from "@/lib/ai/anthropic";
+import { withTenant } from "@/db/access";
+import { chatbotOffered } from "@/modules/chatbot/chat";
 import { formatPhone } from "@/modules/phone";
 import "@fontsource-variable/inter/wght.css";
 import "@fontsource-variable/cormorant-garamond/wght.css";
@@ -84,6 +86,12 @@ export default async function TenantLayout({ children, params }: LayoutProps<"/s
   const clientMessages = Object.fromEntries(
     (["site", "booking", "errors", "weekdays"] as const).map((key) => [key, allMessages[key]]),
   );
+  // Chatbot : pack qui le comprend, laissé activé par la gérante, et clé du fournisseur d'IA renseignée.
+  const chatbotOn =
+    site.tenant.status === "active" &&
+    site.features.aiChatbot &&
+    chatModel() !== null &&
+    (await withTenant(tenantId, (tx) => chatbotOffered(tx, tenantId)));
   const theme = buildTheme(site.tenant.theme, site.tenant.colors);
   const atelier = site.tenant.templateKey === "atelier" && site.features.fullSite;
   const style = {
@@ -143,8 +151,7 @@ export default async function TenantLayout({ children, params }: LayoutProps<"/s
               }
             />
           )}
-          {/* Chatbot : pack qui le comprend et clé du fournisseur d'IA renseignée. */}
-          {site.tenant.status === "active" && site.features.aiChatbot && chatModel() && (
+          {chatbotOn && (
             <HideOnPaths prefixes={[SITE_PATHS.booking, SITE_PATHS.appointment, SITE_PATHS.giftCard]}>
               <ChatWidget
                 businessName={site.tenant.name}

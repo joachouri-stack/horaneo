@@ -30,6 +30,7 @@ const ICONS = {
   payments: "M2 7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zM2 10h20M6 15h4",
   subscription: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M9 13h6M9 17h6",
   referral: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M19 8v6M22 11h-6",
+  assistant: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2zM8 9h8M8 13h5",
   settings: "M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M16 4v4M10 10v4M16 16v4",
   requests: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
   customerData: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10",
@@ -69,6 +70,8 @@ const GROUPS: { key: "activity" | "sell" | "account" | "support"; items: Item[] 
       { key: "giftCards", href: "/plus/cartes-cadeaux", area: "marketing", feature: "giftCards" },
       // Fidélité et anniversaire des clientes (offert avec les codes promo).
       { key: "loyalty", href: "/plus/fidelite", area: "marketing", feature: ["loyalty", "promoCodes"] },
+      // Assistant du site (chatbot) : packs qui le comprennent.
+      { key: "assistant", href: "/plus/assistant", area: "owner", feature: "aiChatbot" },
     ],
   },
   {
