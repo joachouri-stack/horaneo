@@ -95,6 +95,7 @@ const ROWS: RowDef[] = [
   // Clients et collaborateurs
   { key: "customers", category: "crm", limit: "customers", always: true },
   { key: "members", category: "crm", limit: "members", always: true },
+  { key: "customerImport", category: "crm", always: true },
   // Comparatif seulement : sur les cartes, il se confondait avec le fichier clients.
   { key: "customerFollowUp", category: "crm", feature: "customerFollowUp", detail: true },
   { key: "advancedCrm", category: "crm", feature: "advancedCrm" },
@@ -102,6 +103,7 @@ const ROWS: RowDef[] = [
   // Marketing et fidélisation
   { key: "promoCodes", category: "marketing", feature: "promoCodes" },
   { key: "birthdayOffer", category: "marketing", feature: "promoCodes" },
+  { key: "winback", category: "marketing", feature: "promoCodes" },
   { key: "googleReviews", category: "marketing", feature: "googleReviews" },
   { key: "loyalty", category: "marketing", feature: "loyalty" },
   { key: "giftCards", category: "marketing", feature: "giftCards", highlight: true },
@@ -199,6 +201,7 @@ const CARD_ORDER = [
   "emailReminders",
   "sms",
   "customers",
+  "customerImport",
   "members",
   "favicon",
   "giftCards",
@@ -207,6 +210,7 @@ const CARD_ORDER = [
   "searchConsole",
   "setupAssistance",
   "loyalty",
+  "winback",
   "occupancy",
   "profitability",
   "reports",
