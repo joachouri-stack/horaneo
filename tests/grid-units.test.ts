@@ -18,11 +18,7 @@ describe("grille des packs : une seule source pour les cartes et le comparatif",
       { included: true, count: null },
       { included: true, count: null },
     ]);
-    expect(row("sms")).toEqual([
-      { included: false },
-      { included: true, count: 100 },
-      { included: true, count: 300 },
-    ]);
+    expect(row("sms")).toEqual([{ included: false }, { included: true, count: 100 }, { included: false }]);
     expect(row("aiChatbot")).toEqual([
       { included: false },
       { included: false },
@@ -79,7 +75,8 @@ describe("grille des packs : une seule source pour les cartes et le comparatif",
       expect.arrayContaining(["aiChatbot", "chatbotQuestions", "multilingual"]),
     );
     expect(card.upcoming.map((line) => line.key)).not.toContain("aiChatbot");
-    expect(card.included.map((line) => line.key)).toContain("sms");
+    // Business : aucun SMS inclus (recharges en option).
+    expect(card.included.map((line) => line.key)).not.toContain("sms");
     expect(gridCard(starter, GRID, SOON).missing.length).toBeLessThanOrEqual(3);
     // Pro : « Non inclus » ne liste que des fonctions disponibles aujourd'hui (3 au plus).
     const proCard = gridCard(pro, GRID, SOON);
