@@ -74,10 +74,9 @@ describe("grille des packs : une seule source pour les cartes et le comparatif",
     const card = gridCard(business, GRID, SOON);
     expect(card.previous).toBe("pro");
     expect(card.included.every((line) => !line.soon)).toBe(true);
-    // Chatbot et site multilingue : inclus dans le Business, sans « Bientôt ».
-    expect(card.included.map((line) => line.key)).toEqual(
-      expect.arrayContaining(["aiChatbot", "chatbotQuestions", "multilingual"]),
-    );
+    // Chatbot : inclus dans le Business, sans « Bientôt » ; site multilingue : annoncé « Bientôt ».
+    expect(card.included.map((line) => line.key)).toContain("aiChatbot");
+    expect(card.included.map((line) => line.key)).not.toContain("multilingual");
     expect(card.upcoming.map((line) => line.key)).not.toContain("aiChatbot");
     // Business : mêmes 100 SMS que le Pro, donc pas répétés sur sa carte.
     expect(card.included.map((line) => line.key)).not.toContain("sms");
