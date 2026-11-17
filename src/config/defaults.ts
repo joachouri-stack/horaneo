@@ -37,7 +37,8 @@ export const DEFAULT_PLATFORM_SETTINGS = {
     // Grille Starter, Pro, Business : modules Commerce et Formation, et outils pas encore développés.
     "commerce",
     "formation",
-    // Chatbot et site multilingue : présentés comme inclus dans le Business (choix de la direction).
+    // Chatbot : livré, présenté comme inclus. Site multilingue : pas encore développé.
+    "multilingual",
     "whatsappAssistant",
     "aiTexts",
     "aiImages",

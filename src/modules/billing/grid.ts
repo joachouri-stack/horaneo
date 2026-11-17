@@ -111,14 +111,7 @@ const ROWS: RowDef[] = [
   // Paiements
   { key: "onlinePayment", category: "payments", feature: "onlinePayment" },
   { key: "accountingExport", category: "payments", feature: "accountingExport" },
-  { key: "cashRegisterNf525", category: "payments", feature: "cashRegisterNf525" },
   // Intelligence artificielle
-  {
-    key: "chatbotQuestions",
-    category: "ai",
-    feature: "aiChatbot",
-    limit: "chatbotQuestions",
-  },
   { key: "aiChatbot", category: "ai", feature: "aiChatbot", limit: "aiChatConversations" },
   { key: "aiTexts", category: "ai", feature: "aiTexts", limit: "aiTexts" },
   { key: "aiImages", category: "ai", feature: "aiImages", limit: "aiImages" },

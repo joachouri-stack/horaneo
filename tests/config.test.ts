@@ -109,6 +109,7 @@ describe("valeurs de départ des packs", () => {
       "aiTexts",
       "aiImages",
       "cashRegisterNf525",
+      "multilingual",
     ])
       expect(DEFAULT_PLATFORM_SETTINGS.features_soon).toContain(key);
     expect(DEFAULT_LAUNCH_OFFERS[0]).toMatchObject({
