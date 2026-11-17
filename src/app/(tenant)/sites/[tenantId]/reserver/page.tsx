@@ -17,6 +17,7 @@ import { hasUsableGiftCards } from "@/modules/giftcards/giftcards";
 import { hasActivePromoCodes } from "@/modules/promo/codes";
 import { InstallAppBanner } from "@/components/site/InstallAppBanner";
 import { APP_PATHS, SITE_PATHS } from "@/modules/site/paths";
+import { DATE_PATTERN } from "@/modules/booking/time";
 
 export async function generateMetadata({
   params,
@@ -217,6 +218,9 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
         preselectedServiceId={preselected}
         preselectedStaffId={typeof query.membre === "string" ? query.membre : null}
         startAtSlot={Boolean(preselected)}
+        preselectedDate={
+          preselected && typeof query.date === "string" && DATE_PATTERN.test(query.date) ? query.date : null
+        }
         prefill={prefill}
         initialGiftCode={typeof query.carte === "string" ? query.carte.slice(0, 40) : undefined}
         deposit={{

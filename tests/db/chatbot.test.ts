@@ -4,6 +4,7 @@ import { withTenant } from "@/db/access";
 import * as s from "@/db/schema";
 import { chatbotOffered, isNewConversation, prepareChat } from "@/modules/chatbot/chat";
 import { chatbotSettings, setChatbotEnabled } from "@/modules/chatbot/settings";
+import { FIND_SLOTS, runChatTool } from "@/modules/chatbot/tools";
 import { AppError } from "@/modules/errors";
 import { createTenantWithData } from "../setup/fixtures";
 import { hasTestDatabase, openAppDb, openTestDb, type TestDb } from "../setup/db";
@@ -42,6 +43,8 @@ describe.skipIf(!hasTestDatabase)("chatbot du site", () => {
     const before = await asTenant((tx) => prepareChat(tx, tenant.id, question("Combien coûte le soin ?")));
     expect(before.model).toMatch(/^claude-/);
     expect(before.system).toContain(service.name.fr ?? "");
+    // Identifiant donné au modèle pour chercher les créneaux de la prestation.
+    expect(before.system).toContain(`[id: ${service.id}]`);
     expect(before.messages).toEqual([{ role: "user", content: "Combien coûte le soin ?" }]);
 
     // La gérante change le prix : la question suivante voit le nouveau prix.
@@ -105,5 +108,41 @@ describe.skipIf(!hasTestDatabase)("chatbot du site", () => {
     await expect(
       withTenant(tenant.id, (tx) => setChatbotEnabled(tx, tenant.id, { enabled: false }), app),
     ).rejects.toMatchObject({ code: "feature_unavailable" });
+  });
+
+  it("créneaux libres : heures du jour et lien Réserver prérempli ; refus si non réservable", async () => {
+    const { tenant, service } = await createTenantWithData(owner, "chatbot-slots");
+    const asTenant = <T>(fn: Parameters<typeof withTenant<T>>[1]) => withTenant(tenant.id, fn, app);
+    // Vendredi 1er janvier 2027 ; l'établissement est ouvert le lundi (9 h – 18 h).
+    const now = new Date("2027-01-01T08:00:00Z");
+    const search = (input: unknown) => asTenant((tx) => runChatTool(tx, tenant.id, FIND_SLOTS, input, now));
+
+    const found = await search({ service_id: service.id, from_date: "2027-01-02", days: 3 });
+    expect(found.result).toContain("2027-01-04: 09:00");
+    expect(found.result).not.toContain("2027-01-02");
+    expect(found.link).toEqual({
+      serviceId: service.id,
+      serviceName: "Soin",
+      date: "2027-01-04",
+      href: `/reserver?prestation=${service.id}&date=2027-01-04`,
+    });
+
+    // Date passée : recherche à partir d'aujourd'hui.
+    const past = await search({ service_id: service.id, from_date: "2020-01-01", days: 4 });
+    expect(past.link?.date).toBe("2027-01-04");
+
+    // Aucun jour ouvert dans la période : pas de lien.
+    const none = await search({ service_id: service.id, from_date: "2027-01-05", days: 3 });
+    expect(none.link).toBeNull();
+
+    // Entrée invalide, outil inconnu : refus sans erreur.
+    expect((await search({ service_id: "x", from_date: "demain", days: 30 })).link).toBeNull();
+    expect((await asTenant((tx) => runChatTool(tx, tenant.id, "autre", {}, now))).link).toBeNull();
+
+    // Prestation non réservable en ligne : pas de créneaux.
+    await owner.update(s.services).set({ isOnlineBookable: false }).where(eq(s.services.id, service.id));
+    const offline = await search({ service_id: service.id, from_date: "2027-01-04", days: 1 });
+    expect(offline.link).toBeNull();
+    expect(offline.result).toMatch(/cannot be booked online/);
   });
 });

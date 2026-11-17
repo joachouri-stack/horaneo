@@ -50,6 +50,8 @@ type Props = {
   /** « Réserver à nouveau » : praticienne déjà choisie et passage direct au choix du créneau. */
   preselectedStaffId?: string | null;
   startAtSlot?: boolean;
+  /** Jour proposé d'avance (lien de l'assistant du site). */
+  preselectedDate?: string | null;
   /** Cliente connectée à son espace : coordonnées déjà remplies. */
   prefill?: { firstName: string; lastName: string; email: string; phone: string } | null;
   /** Carte cadeau choisie depuis l'espace des clientes. */
@@ -621,6 +623,7 @@ export function BookingFlow(props: Props) {
             loadDays={loadDays}
             selected={slot}
             initialStaffId={props.preselectedStaffId ?? null}
+            initialDate={props.preselectedDate ?? null}
             maxAdvanceDays={props.maxAdvanceDays}
             onError={setError}
             onPick={(picked) => {

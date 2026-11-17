@@ -3,8 +3,9 @@
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { askAssistantAction } from "@/app/(tenant)/sites/[tenantId]/assistant/actions";
+import type { BookingLink } from "@/modules/chatbot/tools";
 
-type Turn = { role: "user" | "assistant"; content: string };
+type Turn = { role: "user" | "assistant"; content: string; links?: BookingLink[] };
 
 /** Longueur maximale d'une question (comme côté serveur). */
 const MAX_CHARS = 600;
@@ -45,12 +46,17 @@ export function ChatWidget({ businessName, contact }: { businessName: string; co
       // Conversation envoyée : les derniers messages, en commençant par une question.
       let history = next.slice(-MAX_TURNS);
       while (history.length > 0 && history[0].role !== "user") history = history.slice(1);
-      const result = await askAssistantAction({ messages: history });
+      const result = await askAssistantAction({
+        messages: history.map(({ role, content }) => ({ role, content })),
+      });
       if (!result.ok) {
         setError(tErrors(result.error));
         return;
       }
-      setTurns((current) => [...current, { role: "assistant", content: result.reply ?? t("fallback") }]);
+      setTurns((current) => [
+        ...current,
+        { role: "assistant", content: result.reply ?? t("fallback"), links: result.links },
+      ]);
     });
   };
 
@@ -101,6 +107,19 @@ export function ChatWidget({ businessName, contact }: { businessName: string; co
               >
                 <span className="sr-only">{turn.role === "user" ? t("you") : t("assistant")} : </span>
                 {turn.content}
+                {turn.links && turn.links.length > 0 && (
+                  <span className="mt-2.5 flex flex-col gap-2">
+                    {turn.links.map((link) => (
+                      <a
+                        key={link.serviceId}
+                        href={link.href}
+                        className="inline-flex min-h-11 items-center justify-center rounded-xl bg-site-button px-3 py-2 text-center text-sm font-semibold text-site-on-button"
+                      >
+                        {t("book", { service: link.serviceName })}
+                      </a>
+                    ))}
+                  </span>
+                )}
               </li>
             ))}
             {pending && (
