@@ -16,6 +16,15 @@ const PATH = {
   euro: "M17 6.5A7 7 0 1 0 17 17.5M4 10.5h9M4 13.5h9",
 } as const;
 
+/** Clé de traduction d'un type d'événement (sans point). */
+type KindKey =
+  | Exclude<TimelineEvent["kind"], `customer.${string}`>
+  | (TimelineEvent["kind"] extends infer K
+      ? K extends `customer.${infer R}`
+        ? `customer_${R}`
+        : never
+      : never);
+
 /** Pictogramme et couleur de chaque type d'événement. */
 const STYLE: Record<TimelineEvent["kind"], { icon: keyof typeof PATH; tone: string }> = {
   booked_online: { icon: "calendar", tone: "bg-accent-soft text-accent-strong" },
@@ -58,7 +67,9 @@ export async function CustomerTimeline({
     <ol className="relative space-y-1">
       {events.map((event, index) => {
         const style = STYLE[event.kind];
-        const label = t(`kinds.${event.kind}`, {
+        // Clés de traduction sans point (« customer.confirmation » → « customer_confirmation »).
+        const key = event.kind.replace(".", "_") as KindKey;
+        const label = t(`kinds.${key}`, {
           amount: event.amountCents !== undefined ? fmt.money(event.amountCents, event.currency) : "",
         });
         const channel = event.channel ? t("channel", { channel: event.channel }) : "";

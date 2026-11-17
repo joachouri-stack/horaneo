@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { withTenant } from "@/db/access";
 import * as s from "@/db/schema";
+import { searchAppointments } from "@/modules/agenda/queries";
 import { customerTimeline } from "@/modules/customers/timeline";
 import { createTenantWithData } from "../setup/fixtures";
 import { hasTestDatabase, openAppDb, openTestDb, type TestDb } from "../setup/db";
@@ -66,5 +67,19 @@ describe.skipIf(!hasTestDatabase)("suivi du client", () => {
     expect(
       await withTenant(b.tenant.id, (tx) => customerTimeline(tx, b.tenant.id, customer.id), app),
     ).toEqual([]);
+  });
+
+  it("agenda : « Trouver un rendez-vous » par nom ou téléphone, seulement sur son site", async () => {
+    const a = await createTenantWithData(owner, "recherche-a");
+    const b = await createTenantWithData(owner, "recherche-b");
+    const search = (tenantId: string, query: string) =>
+      withTenant(tenantId, (tx) => searchAppointments(tx, tenantId, { query, locale: "fr" }), app);
+    expect((await search(a.tenant.id, "camil")).map((row) => row.id)).toContain(a.appointment.id);
+    expect((await search(a.tenant.id, "06 12 34 56 78")).map((row) => row.id)).toContain(a.appointment.id);
+    expect(await search(a.tenant.id, "personne-inconnue")).toEqual([]);
+    // Trop court : aucune recherche.
+    expect(await search(a.tenant.id, "c")).toEqual([]);
+    // Le rendez-vous d'un autre site n'apparaît jamais.
+    expect((await search(b.tenant.id, "camil")).map((row) => row.id)).not.toContain(a.appointment.id);
   });
 });

@@ -3,15 +3,22 @@ import { getTranslations } from "next-intl/server";
 import { cookies } from "next/headers";
 import { RememberAgendaMembers } from "@/components/manager/RememberAgendaMembers";
 import { agendaMembersCookie } from "@/lib/manager/agenda-members";
-import { eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { DASH_ICONS, DashIcon } from "@/components/manager/DashboardWidgets";
 import { DayTimeline, initials } from "@/components/manager/DayTimeline";
-import { openingHours, staffMembers, staffSchedules } from "@/db/schema";
+import { assets, openingHours, staffMembers, staffSchedules } from "@/db/schema";
+import { storage } from "@/lib/storage";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
 import { agendaStaffFilter } from "@/modules/team/access";
 import { layoutLanes } from "@/modules/agenda/lanes";
-import { dayRange, listAgenda, listTimeOff, type AgendaAppointment } from "@/modules/agenda/queries";
+import {
+  dayRange,
+  listAgenda,
+  listTimeOff,
+  searchAppointments,
+  type AgendaAppointment,
+} from "@/modules/agenda/queries";
 import { loadBookingContext } from "@/modules/booking/availability";
 import {
   addDays,
@@ -35,7 +42,7 @@ function daysBetween(from: string, to: string) {
 }
 
 /** Fond teinté d'un rendez-vous : la couleur du membre, très éclaircie. */
-const tint = (color: string | null, percent = 14) =>
+const tint = (color: string | null, percent = 22) =>
   `color-mix(in srgb, ${color ?? DEFAULT_COLOR} ${percent}%, white)`;
 
 type GridColumn = {
@@ -71,6 +78,7 @@ export default async function AgendaPage({
   const today = utcToLocal(now, tz).date;
   const date = typeof query.date === "string" && DATE_PATTERN.test(query.date) ? query.date : today;
   const view = query.vue === "semaine" ? "week" : query.vue === "mois" ? "month" : "day";
+  const searchText = typeof query.q === "string" ? query.q.trim().slice(0, 80) : "";
   // Collaborateur limité à son agenda : toujours son membre, quel que soit le lien.
   const ownStaff = agendaStaffFilter(page.space);
   // Membres affichés, choisis par la gérante (boutons à allumer ou éteindre) : lien
@@ -108,6 +116,8 @@ export default async function AgendaPage({
     hours,
     schedules,
     colors,
+    photos,
+    found,
   } = await page.db(async (tx) => ({
     appointments: await listAgenda(tx, page.tenantId, {
       from: range.start,
@@ -129,7 +139,62 @@ export default async function AgendaPage({
           .where(eq(staffMembers.tenantId, page.tenantId))
       ).map((row) => [row.id, row.color]),
     ),
+    // Photo de chaque membre (en-têtes de colonnes) : clé de stockage, s'il en a une.
+    photos: await (async () => {
+      const rows = await tx
+        .select({ id: staffMembers.id, photoAssetId: staffMembers.photoAssetId })
+        .from(staffMembers)
+        .where(eq(staffMembers.tenantId, page.tenantId));
+      const ids = rows.map((row) => row.photoAssetId).filter((id) => id !== null);
+      const keys = ids.length
+        ? await tx
+            .select({ id: assets.id, storageKey: assets.storageKey })
+            .from(assets)
+            .where(
+              and(eq(assets.tenantId, page.tenantId), eq(assets.status, "active"), inArray(assets.id, ids)),
+            )
+        : [];
+      return new Map(
+        rows.map((row) => [row.id, keys.find((key) => key.id === row.photoAssetId)?.storageKey ?? null]),
+      );
+    })(),
+    // Barre « Trouver un rendez-vous » : résultats de la recherche.
+    found: searchText
+      ? await searchAppointments(tx, page.tenantId, {
+          query: searchText,
+          locale: page.locale,
+          staffId: memberFilter,
+          now,
+        })
+      : null,
   }));
+  const store = storage();
+  const photoOf = (id: string) => {
+    const key = photos.get(id);
+    return key ? store.publicUrl(key) : null;
+  };
+  /** Photo du membre (cerclée de sa couleur), ou ses initiales sur sa couleur. */
+  const avatar = (member: { id: string; name: string; color: string | null }, size: string, dim = false) => {
+    const url = photoOf(member.id);
+    const color = member.color ?? DEFAULT_COLOR;
+    return url ? (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={url}
+        alt=""
+        className={`${size} shrink-0 rounded-full object-cover ring-2 ${dim ? "opacity-40" : ""}`}
+        style={{ ["--tw-ring-color" as string]: color }}
+      />
+    ) : (
+      <span
+        aria-hidden="true"
+        className={`flex ${size} shrink-0 items-center justify-center rounded-full text-[0.8125rem] font-semibold text-white ${dim ? "opacity-40" : ""}`}
+        style={{ backgroundColor: color }}
+      >
+        {initials(member.name)}
+      </span>
+    );
+  };
   // Membres choisis (parmi l'équipe active) ; aucun ou tous : toute l'équipe.
   const chosen = ownStaff ? [] : requested.filter((id) => staff.some((member) => member.id === id));
   const selected = chosen.length > 0 && chosen.length < staff.length ? new Set(chosen) : null;
@@ -203,6 +268,30 @@ export default async function AgendaPage({
           </h1>
           <p className="text-ink-soft first-letter:uppercase">{title}</p>
         </div>
+        {/* Trouver un rendez-vous : par nom, téléphone ou e-mail du client. */}
+        <form
+          method="get"
+          role="search"
+          className="order-last flex w-full gap-2 md:order-none md:ml-auto md:w-80"
+        >
+          <input type="hidden" name="date" value={date} />
+          <input type="hidden" name="vue" value={VIEW_PARAM[view]} />
+          {!ownStaff && <input type="hidden" name="membres" value={membersParam} />}
+          <label htmlFor="agenda-search" className="sr-only">
+            {t("searchLabel")}
+          </label>
+          <input
+            id="agenda-search"
+            name="q"
+            type="search"
+            defaultValue={searchText}
+            placeholder={t("searchPlaceholder")}
+            className="min-h-11 min-w-0 flex-1 rounded-xl border border-hairline bg-white px-3.5 text-[0.9375rem] text-night placeholder:text-ink/60 focus:border-accent focus:outline-none"
+          />
+          <button type="submit" aria-label={t("searchLabel")} className={iconButton}>
+            <DashIcon d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14M20 20l-4-4" className="h-5 w-5" />
+          </button>
+        </form>
         <Link
           href={`${page.base}/rendez-vous/nouveau?date=${date}`}
           className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-accent px-4 text-[0.95rem] font-medium text-white shadow-[0_1px_2px_rgba(15,24,48,.08)] transition hover:bg-accent-strong sm:px-5"
@@ -237,6 +326,54 @@ export default async function AgendaPage({
           ))}
         </div>
       </div>
+      {found && (
+        <section
+          aria-labelledby="agenda-results"
+          className="rounded-2xl border border-hairline bg-white p-4 shadow-[0_1px_2px_rgba(15,24,48,.04)]"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 id="agenda-results" className="font-medium text-night">
+              {t("searchResults", { count: found.length, query: searchText })}
+            </h2>
+            <Link href={link({})} className="text-sm font-medium text-accent underline">
+              {t("searchClear")}
+            </Link>
+          </div>
+          {found.length > 0 && (
+            <ul className="mt-2 divide-y divide-hairline">
+              {found.map((item) => (
+                <li key={item.id}>
+                  <Link
+                    href={`${page.base}/rendez-vous/${item.id}`}
+                    className="flex items-center gap-3 rounded-xl px-1 py-2.5 transition hover:bg-mist-50"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="h-9 w-1 shrink-0 rounded-full"
+                      style={{ backgroundColor: item.staffColor ?? DEFAULT_COLOR }}
+                    />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-medium text-night">{item.customerName}</span>
+                      <span className="block truncate text-sm text-ink-soft">
+                        {item.services.join(" + ")} · {item.staffName}
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-right text-sm">
+                      <span className="block text-night first-letter:uppercase">
+                        {page.fmt.day(item.startsAt)}
+                      </span>
+                      <span className="block text-ink-soft tabular-nums">
+                        {page.fmt.time(item.startsAt)} ·{" "}
+                        {item.startsAt >= now ? t("searchUpcoming") : t("searchPast")}
+                      </span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
       {staff.length > 1 && !ownStaff && (
         <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
           {/* Dernier choix gardé sur cet appareil. */}
@@ -259,13 +396,11 @@ export default async function AgendaPage({
                 : link({ membres: next.length === staff.length ? ALL_MEMBERS : next.join(",") });
             const chip = (
               <>
-                <span
-                  aria-hidden="true"
-                  className={`flex size-7 items-center justify-center rounded-full text-[0.8125rem] font-semibold text-white ${shown ? "" : "opacity-40"}`}
-                  style={{ backgroundColor: colors.get(member.id) ?? DEFAULT_COLOR }}
-                >
-                  {initials(member.name)}
-                </span>
+                {avatar(
+                  { id: member.id, name: member.name, color: colors.get(member.id) ?? null },
+                  "size-7",
+                  !shown,
+                )}
                 {member.name}
                 {/* État annoncé aux lecteurs d'écran (affiché ou masqué). */}
                 <span className="sr-only"> · {shown ? t("memberShown") : t("memberHidden")}</span>
@@ -581,14 +716,26 @@ export default async function AgendaPage({
                       );
                     })}
                   {/* Hors horaires d'ouverture : grisé. */}
-                  {column.closed.map((gap, index) => (
-                    <div
-                      key={`${index}-${gap.from}-${gap.to}`}
-                      aria-hidden="true"
-                      className="absolute inset-x-0 bg-[repeating-linear-gradient(45deg,#fafbfd,#fafbfd_6px,#f3f5f9_6px,#f3f5f9_12px)]"
-                      style={{ top: top(gap.from), height: top(gap.to) - top(gap.from) }}
-                    />
-                  ))}
+                  {column.closed.map((gap, index) => {
+                    // Coupure au milieu de la journée (déjeuner…) : affichée comme une pause.
+                    const isBreak =
+                      gap.from > firstHour * 60 &&
+                      gap.to < lastHour * 60 &&
+                      top(gap.to) - top(gap.from) >= 22;
+                    return (
+                      <div
+                        key={`${index}-${gap.from}-${gap.to}`}
+                        className="absolute inset-x-0 bg-[repeating-linear-gradient(45deg,#fafbfd,#fafbfd_6px,#f3f5f9_6px,#f3f5f9_12px)]"
+                        style={{ top: top(gap.from), height: top(gap.to) - top(gap.from) }}
+                      >
+                        {isBreak && (
+                          <span className="m-1 inline-flex items-center gap-1 rounded-md bg-white/90 px-2 py-0.5 text-[0.8125rem] font-medium text-ink-soft shadow-[0_1px_2px_rgba(15,24,48,.06)]">
+                            {t("break")} · {clock(gap.from)}–{clock(gap.to)}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
                   {column.timeOff.map((off) => (
                     <div
                       key={off.id}
@@ -607,7 +754,7 @@ export default async function AgendaPage({
                       <Link
                         key={item.id}
                         href={`${page.base}/rendez-vous/${item.id}`}
-                        className={`absolute z-10 overflow-hidden rounded-lg border-l-[3px] px-2 py-1 text-[0.8125rem] leading-tight shadow-[0_1px_2px_rgba(15,24,48,.06)] transition hover:z-20 hover:shadow-[0_8px_20px_-10px_rgba(15,24,48,.35)] ${
+                        className={`absolute z-10 overflow-hidden rounded-lg border-l-4 px-2 py-1 text-[0.8125rem] leading-tight shadow-[0_1px_2px_rgba(15,24,48,.06)] transition hover:z-20 hover:shadow-[0_8px_20px_-10px_rgba(15,24,48,.35)] ${
                           item.status === "no_show" ? "opacity-50" : ""
                         }`}
                         style={{
@@ -619,7 +766,7 @@ export default async function AgendaPage({
                           backgroundColor: tint(item.staffColor),
                         }}
                       >
-                        <span className="flex items-center gap-1 text-[0.8125rem] text-ink-soft tabular-nums">
+                        <span className="flex items-center gap-1 text-[0.8125rem] text-ink tabular-nums">
                           {page.fmt.time(item.startsAt)}
                           {place.lanes === 1 && <> – {page.fmt.time(item.endsAt)}</>}
                           {/* État du rendez-vous en un coup d'œil (lu aussi par les lecteurs d'écran). */}
@@ -634,7 +781,7 @@ export default async function AgendaPage({
                         </span>
                         <span className="block truncate font-medium text-night">{item.customerName}</span>
                         {!compact && (
-                          <span className="block truncate text-ink-soft">{item.services.join(" + ")}</span>
+                          <span className="block truncate text-ink">{item.services.join(" + ")}</span>
                         )}
                       </Link>
                     );
@@ -755,13 +902,7 @@ export default async function AgendaPage({
       key: member.id,
       header: (
         <span className="flex w-full min-w-0 items-center gap-2 sm:w-auto">
-          <span
-            aria-hidden="true"
-            className="flex size-8 shrink-0 items-center justify-center rounded-full text-[0.8125rem] font-semibold text-white"
-            style={{ backgroundColor: member.color ?? DEFAULT_COLOR }}
-          >
-            {initials(member.name)}
-          </span>
+          {avatar(member, "size-9")}
           <span className="min-w-0 leading-tight">
             <span className="block truncate text-[0.9375rem] font-medium text-night">
               {member.name}

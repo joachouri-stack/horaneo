@@ -1,4 +1,4 @@
-import { and, asc, eq, gt, gte, inArray, isNull, lt, ne, or } from "drizzle-orm";
+import { and, asc, desc, eq, gt, gte, ilike, inArray, isNull, like, lt, ne, or } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
 import { appointmentItems, appointments, customers, staffMembers, timeOff } from "@/db/schema";
 import { pickLocalized, type Locale } from "@/i18n/locales";
@@ -21,7 +21,15 @@ export function dayRange(date: string, timezone: string, days = 1) {
 export async function listAgenda(
   tx: Transaction,
   tenantId: string,
-  options: { from: Date; to: Date; staffId?: string | null; locale: Locale; includeCancelled?: boolean },
+  options: {
+    from: Date;
+    to: Date;
+    staffId?: string | null;
+    locale: Locale;
+    includeCancelled?: boolean;
+    /** Seulement ces rendez-vous (résultats d'une recherche), quelle que soit la période. */
+    ids?: string[];
+  },
 ) {
   const rows = await tx
     .select({
@@ -53,8 +61,8 @@ export async function listAgenda(
     .where(
       and(
         eq(appointments.tenantId, tenantId),
-        lt(appointments.startsAt, options.to),
-        gt(appointments.endsAt, options.from),
+        options.ids ? inArray(appointments.id, options.ids) : lt(appointments.startsAt, options.to),
+        options.ids ? undefined : gt(appointments.endsAt, options.from),
         options.includeCancelled
           ? ne(appointments.status, "expired")
           : inArray(appointments.status, [...VISIBLE_STATUSES]),
@@ -200,4 +208,62 @@ export async function getAppointmentDetail(
     includeCancelled: true,
   });
   return list.find((item) => item.id === appointmentId) ?? null;
+}
+
+/**
+ * Recherche de rendez-vous (barre « Trouver un rendez-vous » de l'agenda) : par nom,
+ * téléphone ou e-mail du client. Les prochains d'abord (du plus proche au plus
+ * lointain), puis les passés (du plus récent au plus ancien).
+ */
+export async function searchAppointments(
+  tx: Transaction,
+  tenantId: string,
+  options: { query: string; locale: Locale; staffId?: string | null; now?: Date; limit?: number },
+) {
+  const words = options.query.trim().toLowerCase().split(/\s+/).filter(Boolean).slice(0, 4);
+  if (words.length === 0 || options.query.trim().length < 2) return [];
+  const now = options.now ?? new Date();
+  const limit = options.limit ?? 10;
+  const digits = options.query.replace(/\D/g, "");
+  // Chaque mot doit se retrouver dans le prénom, le nom, l'e-mail ou le téléphone.
+  const matches = and(
+    ...words.map((word) => {
+      const pattern = `%${word.replace(/[%_\\]/g, (char) => `\\${char}`)}%`;
+      return or(
+        ilike(customers.firstName, pattern),
+        ilike(customers.lastName, pattern),
+        ilike(customers.email, pattern),
+        digits.length >= 4 ? like(customers.phone, `%${digits.slice(-9)}%`) : undefined,
+      );
+    }),
+  );
+  const window = async (upcoming: boolean) => {
+    const rows = await tx
+      .select({ id: appointments.id, startsAt: appointments.startsAt, endsAt: appointments.endsAt })
+      .from(appointments)
+      .innerJoin(customers, eq(customers.id, appointments.customerId))
+      .where(
+        and(
+          eq(appointments.tenantId, tenantId),
+          inArray(appointments.status, [...VISIBLE_STATUSES]),
+          options.staffId ? eq(appointments.staffId, options.staffId) : undefined,
+          upcoming ? gte(appointments.startsAt, now) : lt(appointments.startsAt, now),
+          matches,
+        ),
+      )
+      .orderBy(upcoming ? asc(appointments.startsAt) : desc(appointments.startsAt))
+      .limit(limit);
+    return rows;
+  };
+  const found = [...(await window(true)), ...(await window(false))];
+  if (found.length === 0) return [];
+  // Détail complet (client, membre, prestations), dans l'ordre trouvé.
+  const detailed = await listAgenda(tx, tenantId, {
+    from: now,
+    to: now,
+    locale: options.locale,
+    ids: found.map((row) => row.id),
+  });
+  const byId = new Map(detailed.map((row) => [row.id, row]));
+  return found.map((row) => byId.get(row.id)).filter((row) => row !== undefined);
 }
