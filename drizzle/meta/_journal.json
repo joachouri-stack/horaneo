@@ -533,6 +533,13 @@
       "when": 1794880030175,
       "tag": "0075_business_sms_option",
       "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "7",
+      "when": 1794918636602,
+      "tag": "0076_pro_chatbot",
+      "breakpoints": true
     }
   ]
 }

@@ -25,7 +25,7 @@ describe("grille des packs : une seule source pour les cartes et le comparatif",
     ]);
     expect(row("aiChatbot")).toEqual([
       { included: false },
-      { included: false },
+      { included: true, count: 100 },
       { included: true, count: 500 },
     ]);
     // Starter : contacts clients illimités (la réservation en ligne ne s'arrête jamais).
