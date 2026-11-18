@@ -168,6 +168,7 @@ export async function customerDirectory(
       lastName: customers.lastName,
       phone: customers.phone,
       email: customers.email,
+      blocked: sql<boolean>`${customers.blockedAt} is not null`,
       visits,
       spentCents: sql<number>`coalesce(${stats.spentCents}, 0)`,
       lastVisit: stats.lastVisit,
@@ -448,6 +449,38 @@ export async function saveCustomer(
   }
 }
 
+export const blockInput = z.object({
+  blocked: z.boolean(),
+  reason: z.string().trim().max(300).optional(),
+});
+
+/**
+ * Bloque (ou débloque) un client : il ne peut plus réserver en ligne (reconnu par son e-mail
+ * ou son téléphone) et ne reçoit plus d'offres. La gérante peut toujours lui noter un rendez-vous.
+ */
+export async function setCustomerBlocked(
+  tx: Transaction,
+  tenantId: string,
+  customerId: string,
+  raw: z.input<typeof blockInput>,
+  now = new Date(),
+) {
+  const input = blockInput.parse(raw);
+  const [updated] = await tx
+    .update(customers)
+    .set(
+      input.blocked
+        ? { blockedAt: now, blockedReason: input.reason || null }
+        : { blockedAt: null, blockedReason: null },
+    )
+    .where(
+      and(eq(customers.tenantId, tenantId), eq(customers.id, customerId), isNull(customers.anonymizedAt)),
+    )
+    .returning({ id: customers.id });
+  if (!updated) throw new AppError("not_found");
+  return updated;
+}
+
 /**
  * Fiches qui semblent être la même personne que celle-ci (même téléphone, même e-mail,
  * ou même prénom et même nom) : proposées pour une fusion.
@@ -588,6 +621,9 @@ export async function mergeCustomers(
       smsConsent: (keep.smsConsent || remove.smsConsent) && !optedOut,
       consentAt,
       marketingOptOutAt: optOutAt,
+      // Une des deux fiches bloquée : la fiche gardée l'est aussi.
+      blockedAt: keep.blockedAt ?? remove.blockedAt,
+      blockedReason: keep.blockedAt ? keep.blockedReason : remove.blockedReason,
       ...birthday,
     })
     .where(eq(customers.id, keepId))

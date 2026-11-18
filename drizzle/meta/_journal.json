@@ -582,6 +582,13 @@
       "when": 1795032038187,
       "tag": "0082_appointment_groups",
       "breakpoints": true
+    },
+    {
+      "idx": 83,
+      "version": "7",
+      "when": 1795037411851,
+      "tag": "0083_customer_blocked",
+      "breakpoints": true
     }
   ]
 }
