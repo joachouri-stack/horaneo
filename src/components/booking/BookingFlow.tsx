@@ -616,6 +616,17 @@ export function BookingFlow(props: Props) {
               {t("change")}
             </button>
           </p>
+          {/* Arrivée directe par « Réserver » d'une prestation : on peut en ajouter d'autres. */}
+          {props.maxServices > 1 && chosen.length < props.maxServices && (
+            <button
+              type="button"
+              onClick={() => setStep("services")}
+              className="inline-flex min-h-11 items-center gap-2 rounded-site border border-site-border px-4 font-semibold text-site-text hover:border-site-button"
+            >
+              <span aria-hidden="true">+</span>
+              {t("addService")}
+            </button>
+          )}
           {errorBox}
           <SlotPicker
             locale={props.locale}
