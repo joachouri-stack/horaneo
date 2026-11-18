@@ -15,6 +15,7 @@ export type AppErrorCode =
   | "invalid"
   | "chatbot_unavailable"
   | "manual_customer_missing"
+  | "booking_group_reschedule"
   | "manual_service_missing"
   | "personal_setting"
   | "forbidden_area"

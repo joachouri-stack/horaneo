@@ -41,6 +41,7 @@ export async function monthStats(
   const rows = await tx
     .select({
       id: appointments.id,
+      groupId: appointments.groupId,
       status: appointments.status,
       source: appointments.source,
       totalCents: appointments.totalCents,
@@ -84,15 +85,17 @@ export async function monthStats(
     .where(
       and(eq(customers.tenantId, tenantId), gte(customers.createdAt, from), lt(customers.createdAt, to)),
     );
-  const noShows = rows.filter((row) => row.status === "no_show").length;
+  // Réservation à plusieurs collaboratrices : comptée une fois.
+  const bookings = (list: typeof rows) => new Set(list.map((row) => row.groupId ?? row.id)).size;
+  const noShows = bookings(rows.filter((row) => row.status === "no_show"));
   return {
     period,
-    appointments: active.length,
+    appointments: bookings(active),
     online: active.filter((row) => row.source === "online").length,
     manual: active.filter((row) => row.source === "manual").length,
     cancelled: rows.filter((row) => row.status === "cancelled").length,
     noShows,
-    noShowRate: active.length ? noShows / active.length : 0,
+    noShowRate: bookings(active) ? noShows / bookings(active) : 0,
     revenueCents: active
       .filter((row) => row.status !== "no_show")
       .reduce((sum, row) => sum + row.totalCents, 0),

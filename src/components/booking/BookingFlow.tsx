@@ -7,7 +7,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   bookAction,
   checkPromoAction,
@@ -129,6 +129,12 @@ export function BookingFlow(props: Props) {
   const [step, setStep] = useState<Step>(
     props.preselectedServiceId && props.startAtSlot ? "slot" : "services",
   );
+  // Collaboratrice choisie pour chaque prestation (plusieurs prestations), par identifiant.
+  const [plan, setPlan] = useState<Record<string, string | null>>(() =>
+    props.preselectedStaffId && props.preselectedServiceId
+      ? { [props.preselectedServiceId]: props.preselectedStaffId }
+      : {},
+  );
   const [selected, setSelected] = useState<string[]>(
     props.preselectedServiceId ? [props.preselectedServiceId] : [],
   );
@@ -198,6 +204,21 @@ export function BookingFlow(props: Props) {
   const eligibleStaff = props.staff.filter((member) =>
     selected.every((id) => member.serviceIds.includes(id)),
   );
+  // Plusieurs prestations et plusieurs personnes dans l'équipe : une collaboratrice par
+  // prestation (« sans préférence » par défaut) ; les prestations se font à la suite.
+  const planMode = chosen.length > 1 && props.staff.length > 1;
+  // Ordre des prestations : celui du choix (le même que celui envoyé au serveur).
+  const inOrder = selected
+    .map((id) => props.services.find((service) => service.id === id))
+    .filter((service): service is FlowService => Boolean(service));
+  const staffPlan = inOrder.map((service) => {
+    const wanted = plan[service.id] ?? null;
+    return wanted &&
+      props.staff.some((member) => member.id === wanted && member.serviceIds.includes(service.id))
+      ? wanted
+      : null;
+  });
+  const planKey = staffPlan.join("|");
   const steps: Step[] =
     depositCents > 0 && !gift ? ["services", "slot", "details", "done"] : ["services", "slot", "details"];
   const stepLabels: Record<Step, string> = {
@@ -224,11 +245,15 @@ export function BookingFlow(props: Props) {
     else if (selected.length < props.maxServices) setSelected([...selected, id]);
   };
 
-  const loadDays = useCallback(
-    (staffId: string | null, fromDate?: string) =>
-      getAvailabilityAction({ serviceIds: selected, staffId, fromDate, days: 14 }),
-    [selected],
-  );
+  // Mémorisation laissée au compilateur React (les créneaux se rechargent quand le choix change).
+  const loadDays = (staffId: string | null, fromDate?: string) =>
+    getAvailabilityAction({
+      serviceIds: selected,
+      staffId: planMode ? null : staffId,
+      staffPlan: planMode ? staffPlan : undefined,
+      fromDate,
+      days: 14,
+    });
 
   const update = (field: keyof Contact, value: string | boolean) => {
     setContact((current) => ({ ...current, [field]: value }));
@@ -299,7 +324,8 @@ export function BookingFlow(props: Props) {
     setFieldError(null);
     const result = await bookAction({
       serviceIds: selected,
-      staffId: slot.staffId,
+      staffId: planMode ? null : slot.staffId,
+      staffPlan: planMode ? staffPlan : undefined,
       start: slot.start,
       promoCode: promo?.code,
       giftCardCode: gift ? giftCode : undefined,
@@ -627,10 +653,48 @@ export function BookingFlow(props: Props) {
               {t("addService")}
             </button>
           )}
+          {/* Plusieurs prestations : avec qui pour chacune (à la suite, chacune dans son agenda). */}
+          {planMode && (
+            <fieldset className="min-w-0 space-y-3">
+              <legend className="mb-1 text-lg font-semibold text-site-text">
+                {t("slot.staffPerService")}
+              </legend>
+              <p className="text-sm text-site-muted">{t("slot.staffPerServiceHint")}</p>
+              {inOrder.map((service, index) => {
+                const options = props.staff.filter((member) => member.serviceIds.includes(service.id));
+                return (
+                  <div key={service.id} className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+                    <label htmlFor={`plan-${service.id}`} className="font-semibold text-site-text sm:w-1/2">
+                      {service.name}
+                    </label>
+                    <select
+                      id={`plan-${service.id}`}
+                      value={staffPlan[index] ?? ""}
+                      onChange={(event) => {
+                        setSlot(null);
+                        setPlan({ ...plan, [service.id]: event.target.value || null });
+                      }}
+                      className="min-h-11 rounded-site border border-site-border bg-site-bg px-3 text-site-text sm:w-1/2"
+                    >
+                      <option value="">{t("slot.noPreference")}</option>
+                      {options.map((member) => (
+                        <option key={member.id} value={member.id}>
+                          {member.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                );
+              })}
+            </fieldset>
+          )}
           {errorBox}
           <SlotPicker
+            key={planMode ? planKey : "single"}
             locale={props.locale}
-            staffOptions={eligibleStaff.map((member) => ({ id: member.id, name: member.name }))}
+            staffOptions={
+              planMode ? [] : eligibleStaff.map((member) => ({ id: member.id, name: member.name }))
+            }
             loadDays={loadDays}
             selected={slot}
             initialStaffId={props.preselectedStaffId ?? null}
@@ -665,6 +729,14 @@ export function BookingFlow(props: Props) {
             anyPriceFrom={anyPriceFrom}
             promo={promo}
             price={price}
+            staffNames={
+              planMode
+                ? [...new Set(staffPlan.filter((id): id is string => Boolean(id)))]
+                    .map((id) => props.staff.find((member) => member.id === id)?.name)
+                    .filter(Boolean)
+                    .join(", ") || null
+                : null
+            }
             onChangeSlot={() => setStep("slot")}
           />
           <form onSubmit={submit} className="space-y-4">
@@ -1049,6 +1121,7 @@ function Summary({
   anyPriceFrom,
   promo,
   price,
+  staffNames,
   onChangeSlot,
 }: {
   slot: PickedSlot;
@@ -1060,6 +1133,8 @@ function Summary({
   anyPriceFrom: boolean;
   promo: PromoPreview | null;
   price: (cents: number, from?: boolean) => string;
+  /** Plusieurs collaboratrices choisies (une par prestation). */
+  staffNames: string | null;
   onChangeSlot: () => void;
 }) {
   const t = useTranslations("booking");
@@ -1075,7 +1150,11 @@ function Summary({
             date: formatLongDate(deadline, locale, timezone),
             time: formatTimeOf(deadline, locale, timezone),
           });
-  const staffName = slot.staffId ? props.staff.find((member) => member.id === slot.staffId)?.name : null;
+  const staffName = staffNames
+    ? staffNames
+    : slot.staffId
+      ? props.staff.find((member) => member.id === slot.staffId)?.name
+      : null;
 
   return (
     <div className="rounded-site bg-site-panel p-4">

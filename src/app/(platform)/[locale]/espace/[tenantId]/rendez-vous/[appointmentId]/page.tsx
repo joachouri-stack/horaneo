@@ -73,6 +73,29 @@ export default async function AppointmentPage({
           })}
         </h1>
         <p className="text-ink/80">{t("appointment.with", { name: item.staffName })}</p>
+        {/* Réservation à plusieurs collaboratrices : les autres rendez-vous de la même cliente. */}
+        {item.linked.length > 0 && (
+          <div className="mt-3 rounded-xl bg-mist-50 px-4 py-3 text-[0.9375rem]">
+            <p className="font-semibold text-night">{t("appointment.linkedTitle")}</p>
+            <ul className="mt-1 space-y-1">
+              {item.linked.map((part) => (
+                <li key={part.id}>
+                  <Link
+                    href={`${page.base}/rendez-vous/${part.id}`}
+                    className="inline-flex min-h-11 items-center underline"
+                  >
+                    {t("appointment.linkedPart", {
+                      name: part.staffName,
+                      start: page.fmt.time(part.startsAt),
+                      end: page.fmt.time(part.endsAt),
+                    })}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            {!item.isLead && <p className="mt-1 text-ink/70">{t("appointment.linkedTotal")}</p>}
+          </div>
+        )}
       </div>
 
       <section className={ui.card}>

@@ -23,7 +23,14 @@ import { currentPeriod } from "@/modules/tenants/queries";
 import { usageCounters } from "@/db/schema";
 import { activePromotionPrices } from "@/modules/promotions/promotions";
 import { computeTotals, withBreak } from "./pricing";
-import { computeDaySlots, type Interval, type Slot, type StaffInput } from "./slots";
+import {
+  computeDaySlots,
+  computePlanSlots,
+  type Interval,
+  type PlanSlot,
+  type Slot,
+  type StaffInput,
+} from "./slots";
 import { addDays, localToUtc } from "./time";
 
 /**
@@ -175,21 +182,19 @@ type RangeOptions = {
   onlineOnly?: boolean;
 };
 
-/** Créneaux disponibles jour par jour, sur une période (une seule série de lectures). */
-export async function getSlotsForRange(
+/** Horaires, rendez-vous, congés et fermetures lus pour un calcul de créneaux. */
+async function loadSlotInputs(
   tx: Transaction,
   context: BookingContext,
-  options: RangeOptions,
-): Promise<Map<string, Slot[]>> {
-  const { totals } = resolveServices(context, options.serviceIds, { onlineOnly: options.onlineOnly ?? true });
-  const allowed =
-    (options.onlineOnly ?? true) ? new Set(onlineStaff(context).map((member) => member.id)) : null;
-  const candidates = eligibleStaff(context, options.serviceIds, options.staffId).filter(
-    (member) => !allowed || allowed.has(member.id),
-  );
-  const result = new Map<string, Slot[]>();
-  if (candidates.length === 0) return result;
-
+  candidates: BookingContext["staff"],
+  options: {
+    fromDate: string;
+    days: number;
+    now: Date;
+    excludeAppointmentId?: string;
+    excludeAppointmentIds?: string[];
+  },
+) {
   const timezone = context.tenant.timezone;
   const rangeStart = localToUtc(options.fromDate, "00:00", timezone);
   const rangeEnd = localToUtc(addDays(options.fromDate, options.days), "00:00", timezone);
@@ -237,6 +242,7 @@ export async function getSlotsForRange(
   // Une réservation temporaire expirée ne bloque plus le créneau.
   const active = appointmentRows.filter(
     (row) =>
+      !(options.excludeAppointmentIds ?? []).includes(row.id) &&
       row.id !== options.excludeAppointmentId &&
       (row.status !== "pending_payment" || (row.holdExpiresAt !== null && row.holdExpiresAt > options.now)),
   );
@@ -269,6 +275,26 @@ export async function getSlotsForRange(
     closesAt: range.closesAt.slice(0, 5),
   }));
 
+  return { timezone, opening, closures, staffInputs };
+}
+
+/** Créneaux disponibles jour par jour, sur une période (une seule série de lectures). */
+export async function getSlotsForRange(
+  tx: Transaction,
+  context: BookingContext,
+  options: RangeOptions,
+): Promise<Map<string, Slot[]>> {
+  const { totals } = resolveServices(context, options.serviceIds, { onlineOnly: options.onlineOnly ?? true });
+  const allowed =
+    (options.onlineOnly ?? true) ? new Set(onlineStaff(context).map((member) => member.id)) : null;
+  const candidates = eligibleStaff(context, options.serviceIds, options.staffId).filter(
+    (member) => !allowed || allowed.has(member.id),
+  );
+  const result = new Map<string, Slot[]>();
+  if (candidates.length === 0) return result;
+
+  const { timezone, opening, closures, staffInputs } = await loadSlotInputs(tx, context, candidates, options);
+
   for (let i = 0; i < options.days; i++) {
     const date = addDays(options.fromDate, i);
     result.set(
@@ -287,6 +313,62 @@ export async function getSlotsForRange(
         openingHours: opening,
         closures,
         staff: staffInputs,
+      }),
+    );
+  }
+  return result;
+}
+
+/**
+ * Plusieurs prestations à la suite, une collaboratrice par prestation (choisie, ou null pour
+ * « sans préférence ») : créneaux jour par jour, avec les membres possibles pour chacune.
+ */
+export async function getPlanSlotsForRange(
+  tx: Transaction,
+  context: BookingContext,
+  options: Omit<RangeOptions, "staffId"> & {
+    staffPlan: (string | null)[];
+    excludeAppointmentIds?: string[];
+  },
+): Promise<Map<string, PlanSlot[]>> {
+  const onlineOnly = options.onlineOnly ?? true;
+  const { services: chosen } = resolveServices(context, options.serviceIds, { onlineOnly });
+  if (options.staffPlan.length !== chosen.length) throw new AppError("invalid", "staffPlan");
+  const allowed = onlineOnly ? new Set(onlineStaff(context).map((member) => member.id)) : null;
+  const stepStaff = chosen.map((service, index) =>
+    context.staff.filter(
+      (member) =>
+        member.serviceIds.includes(service.id) &&
+        (!allowed || allowed.has(member.id)) &&
+        (!options.staffPlan[index] || member.id === options.staffPlan[index]),
+    ),
+  );
+  const result = new Map<string, PlanSlot[]>();
+  if (stepStaff.some((list) => list.length === 0)) return result;
+  const candidates = [...new Map(stepStaff.flat().map((member) => [member.id, member])).values()];
+  const { timezone, opening, closures, staffInputs } = await loadSlotInputs(tx, context, candidates, options);
+  const inputOf = new Map(staffInputs.map((input) => [input.id, input]));
+  const breakMinutes = context.settings.breakMinutes;
+  for (let i = 0; i < options.days; i++) {
+    const date = addDays(options.fromDate, i);
+    result.set(
+      date,
+      computePlanSlots({
+        date,
+        now: options.now,
+        rules: {
+          timezone,
+          minNoticeMinutes: context.settings.minNoticeMinutes,
+          maxAdvanceDays: context.settings.maxAdvanceDays,
+          slotIntervalMinutes: context.settings.slotIntervalMinutes,
+        },
+        openingHours: opening,
+        closures,
+        steps: chosen.map((service, index) => ({
+          durationMinutes: service.durationMinutes,
+          bufferMinutes: Math.max(service.bufferMinutes, breakMinutes),
+          staff: stepStaff[index].map((member) => inputOf.get(member.id)!),
+        })),
       }),
     );
   }

@@ -1,5 +1,5 @@
 import { releasePromoUse } from "@/modules/booking/holds";
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
 import { appointmentItems, appointments, staffMembers } from "@/db/schema";
 import { pickLocalized, type Locale } from "@/i18n/locales";
@@ -11,6 +11,7 @@ import type { PaymentGateway } from "@/modules/payments/gateway";
 import { refundDeposit } from "@/modules/payments/refunds";
 import { getSlotsForRange, loadBookingContext, rescheduleContext, resolveServices } from "./availability";
 import { assignManageToken, expireStaleHolds, hashManageToken, manageTokenFor } from "./create";
+import { sameBooking } from "./groups";
 import { addMinutes, utcToLocal } from "./time";
 
 /**
@@ -54,11 +55,25 @@ export async function findByManageToken(tx: Transaction, tenantId: string, token
     );
   if (!row) return null;
   const context = await loadBookingContext(tx, tenantId, row.appointment.businessId);
+  // Réservation à plusieurs collaboratrices : les prestations de toutes ses parties.
   const items = await tx
-    .select()
+    .select({
+      serviceId: appointmentItems.serviceId,
+      serviceName: appointmentItems.serviceName,
+      durationMinutes: appointmentItems.durationMinutes,
+      priceCents: appointmentItems.priceCents,
+      staffName: staffMembers.name,
+    })
     .from(appointmentItems)
-    .where(eq(appointmentItems.appointmentId, row.appointment.id))
+    .innerJoin(appointments, eq(appointments.id, appointmentItems.appointmentId))
+    .innerJoin(staffMembers, eq(staffMembers.id, appointments.staffId))
+    .where(and(eq(appointments.tenantId, tenantId), sameBooking(row.appointment)))
     .orderBy(asc(appointmentItems.position));
+  // Fin de la réservation : celle de sa dernière partie (plusieurs collaboratrices à la suite).
+  const [{ endsAt }] = await tx
+    .select({ endsAt: sql<Date>`max(${appointments.endsAt})`.mapWith(appointments.endsAt) })
+    .from(appointments)
+    .where(and(eq(appointments.tenantId, tenantId), sameBooking(row.appointment)));
   const lang = (locale ?? context.tenant.defaultLocale) as Locale;
   const movedTo = await latestReschedule(tx, tenantId, row.appointment);
   const deadline = addMinutes(row.appointment.startsAt, -context.settings.cancellationDeadlineHours * 60);
@@ -70,7 +85,12 @@ export async function findByManageToken(tx: Transaction, tenantId: string, token
       name: pickLocalized(item.serviceName, lang),
       durationMinutes: item.durationMinutes,
       priceCents: item.priceCents,
+      staffName: item.staffName,
     })),
+    /** Fin de la réservation (dernière partie). */
+    endsAt: endsAt ?? row.appointment.endsAt,
+    /** Collaboratrices de la réservation, dans l'ordre (plusieurs si les prestations sont partagées). */
+    staffNames: [...new Set(items.map((item) => item.staffName))],
     context,
     deadline,
     /** Rendez-vous déplacé par la cliente : le nouveau (dernier de la chaîne), avec son lien. */
@@ -106,6 +126,11 @@ export type ManagedAppointment = NonNullable<Awaited<ReturnType<typeof findByMan
 /** Peut-on encore annuler ou déplacer en ligne ? */
 export function canModify(managed: ManagedAppointment, now: Date) {
   return managed.appointment.status === "confirmed" && now <= managed.deadline;
+}
+
+/** Déplacement en ligne : pas pour une réservation à plusieurs collaboratrices. */
+export function canReschedule(managed: ManagedAppointment, now: Date) {
+  return canModify(managed, now) && !managed.appointment.groupId;
 }
 
 /**
@@ -146,10 +171,17 @@ export async function cancelByCustomer(
 ) {
   const managed = await findLocked(tx, tenantId, token);
   assertModifiable(managed, now);
+  // Toutes les parties de la réservation (plusieurs collaboratrices) sont annulées.
   await tx
     .update(appointments)
     .set({ status: "cancelled", cancelledAt: now, cancelledBy: "customer" })
-    .where(eq(appointments.id, managed.appointment.id));
+    .where(
+      and(
+        eq(appointments.tenantId, tenantId),
+        sameBooking(managed.appointment),
+        inArray(appointments.status, ["confirmed", "pending_payment"]),
+      ),
+    );
   await releasePromoUse(tx, tenantId, managed.appointment.promoCodeId);
   // Acompte réglé avec une carte cadeau : le montant est remis sur la carte.
   await creditBackForAppointment(tx, tenantId, managed.appointment.id);
@@ -186,6 +218,8 @@ export async function rescheduleByCustomer(
 ) {
   const managed = await findLocked(tx, tenantId, token);
   assertModifiable(managed, now);
+  // Plusieurs collaboratrices à la suite : à déplacer avec l'établissement.
+  if (managed.appointment.groupId) throw new AppError("booking_group_reschedule");
   const old = managed.appointment;
   const serviceIds = managed.items.map((item) => item.serviceId).filter((id): id is string => Boolean(id));
   if (serviceIds.length !== managed.items.length) throw new AppError("booking_not_modifiable");

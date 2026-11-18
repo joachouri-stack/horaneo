@@ -20,6 +20,7 @@ import { computeTotals, withBreak } from "@/modules/booking/pricing";
 import { getBookingSettings } from "@/modules/booking/settings";
 import { addMinutes } from "@/modules/booking/time";
 import { creditBackForAppointment } from "@/modules/giftcards/giftcards";
+import { isLead, sameBooking } from "@/modules/booking/groups";
 import { AppError } from "@/modules/errors";
 import { trackAttendance } from "@/modules/loyalty/loyalty";
 import { queueBookingConfirmed, queueMessage } from "@/modules/messages/queue";
@@ -67,8 +68,9 @@ export async function setAttendance(
   // demande d'avis envoyés trop tôt).
   if (status !== "confirmed" && appointment.startsAt > now) throw new AppError("booking_not_modifiable");
   await tx.update(appointments).set({ status }).where(eq(appointments.id, appointment.id));
-  // Fidélité : un point par rendez-vous honoré (retiré si la gérante corrige).
-  await trackAttendance(tx, tenantId, appointment, appointment.status, status);
+  // Fidélité : un point par rendez-vous honoré (retiré si la gérante corrige). Réservation à
+  // plusieurs collaboratrices : une seule visite, comptée sur sa première partie.
+  if (isLead(appointment)) await trackAttendance(tx, tenantId, appointment, appointment.status, status);
   // Demande d'avis Google, si l'entreprise l'a activée (une seule fois par rendez-vous).
   if (status === "attended" && appointment.status !== "attended")
     await queueReviewRequest(tx, tenantId, appointment, now);
@@ -83,9 +85,12 @@ export async function cancelByManager(
   reason?: string,
   payment: { refund: boolean; gateway: PaymentGateway | null } = { refund: false, gateway: null },
 ) {
-  const appointment = await loadAppointment(tx, tenantId, appointmentId, true);
-  if (!["confirmed", "pending_payment"].includes(appointment.status))
-    throw new AppError("booking_not_modifiable");
+  const part = await loadAppointment(tx, tenantId, appointmentId, true);
+  if (!["confirmed", "pending_payment"].includes(part.status)) throw new AppError("booking_not_modifiable");
+  // Réservation à plusieurs collaboratrices : annulée en entier ; l'acompte, le code promo et
+  // les messages sont portés par sa première partie.
+  const appointment =
+    part.groupId && part.groupId !== part.id ? await loadAppointment(tx, tenantId, part.groupId, true) : part;
   await tx
     .update(appointments)
     .set({
@@ -94,7 +99,13 @@ export async function cancelByManager(
       cancelledBy: "manager",
       cancellationReason: reason?.slice(0, 300) || null,
     })
-    .where(eq(appointments.id, appointment.id));
+    .where(
+      and(
+        eq(appointments.tenantId, tenantId),
+        sameBooking(part),
+        inArray(appointments.status, ["confirmed", "pending_payment"]),
+      ),
+    );
   await releasePromoUse(tx, tenantId, appointment.promoCodeId);
   const refund = payment.refund
     ? await refundDeposit(tx, tenantId, appointment.id, payment.gateway, { reason: "manager_cancelled" })

@@ -16,13 +16,14 @@ import { redeemPromo } from "@/modules/promo/codes";
 import { currentPeriod } from "@/modules/tenants/queries";
 import {
   bookedMinutesOn,
+  getPlanSlotsForRange,
   getSlotsForRange,
   loadBookingContext,
   resolveServices,
   type BookingContext,
 } from "./availability";
-import { computeDeposit } from "./pricing";
-import { chooseLeastLoaded } from "./slots";
+import { computeDeposit, computeTotals, withBreak } from "./pricing";
+import { assignPlan, chooseLeastLoaded } from "./slots";
 import { adjustHoldUsage } from "./holds";
 import { addMinutes, utcToLocal } from "./time";
 
@@ -50,6 +51,11 @@ export const bookingInput = z.object({
   serviceIds: z.array(z.uuid()).min(1).max(10),
   /** null : « sans préférence ». */
   staffId: z.uuid().nullable(),
+  /**
+   * Plusieurs prestations : une collaboratrice par prestation, dans l'ordre (null : sans
+   * préférence). Les prestations se font à la suite, chacune dans l'agenda de la sienne.
+   */
+  staffPlan: z.array(z.uuid().nullable()).max(10).optional(),
   start: z.coerce.date(),
   customer: customerInput,
   locale: z.string().min(2).max(5).default("fr"),
@@ -110,11 +116,20 @@ export async function expireStaleHolds(tx: Transaction, tenantId: string, now: D
       ),
     )
     .returning({
+      id: appointments.id,
+      groupId: appointments.groupId,
       promoCodeId: appointments.promoCodeId,
       createdAt: appointments.createdAt,
       source: appointments.source,
     });
-  await adjustHoldUsage(tx, tenantId, expired, "release", now);
+  // Réservation à plusieurs collaboratrices : comptée une fois (sur la première partie).
+  await adjustHoldUsage(
+    tx,
+    tenantId,
+    expired.filter((row) => !row.groupId || row.groupId === row.id),
+    "release",
+    now,
+  );
   return expired.length;
 }
 
@@ -274,6 +289,107 @@ function isExclusionViolation(error: unknown) {
   return (err.code ?? err.cause?.code) === "23P01";
 }
 
+type Segment = {
+  staffId: string;
+  services: ReturnType<typeof resolveServices>["services"];
+  startsAt: Date;
+  endsAt: Date;
+  blockedUntil: Date;
+};
+
+/**
+ * Parties du rendez-vous, une par collaboratrice (prestations à la suite) : une seule partie
+ * dans le cas habituel (un membre pour tout), plusieurs si la cliente a choisi des
+ * collaboratrices différentes ou si personne n'est libre pour tout à la suite.
+ */
+async function planSegments(
+  tx: Transaction,
+  context: BookingContext,
+  input: z.output<typeof bookingInput>,
+  services: ReturnType<typeof resolveServices>["services"],
+  date: string,
+  now: Date,
+  source: "online" | "manual",
+): Promise<Segment[]> {
+  const breakMinutes = context.settings.breakMinutes;
+  const multi = services.length > 1 && input.staffPlan && input.staffPlan.length === services.length;
+  if (!multi) {
+    const slots =
+      (
+        await getSlotsForRange(tx, context, {
+          serviceIds: input.serviceIds,
+          staffId: input.staffId,
+          fromDate: date,
+          days: 1,
+          now,
+          onlineOnly: source === "online",
+        })
+      ).get(date) ?? [];
+    const slot = slots.find((item) => item.start.getTime() === input.start.getTime());
+    if (!slot) throw new AppError("slot_unavailable", "start");
+    const staffId =
+      input.staffId ??
+      chooseLeastLoaded(slot.staffIds, context.staff, await bookedMinutesOn(tx, context, date, now));
+    if (!staffId || !slot.staffIds.includes(staffId)) throw new AppError("slot_unavailable", "start");
+    const totals = withBreak(computeTotals(services), breakMinutes);
+    const endsAt = addMinutes(input.start, totals.durationMinutes);
+    return [
+      {
+        staffId,
+        services,
+        startsAt: input.start,
+        endsAt,
+        blockedUntil: addMinutes(endsAt, totals.bufferMinutes),
+      },
+    ];
+  }
+  const slots =
+    (
+      await getPlanSlotsForRange(tx, context, {
+        serviceIds: services.map((service) => service.id),
+        staffPlan: input.staffPlan!,
+        fromDate: date,
+        days: 1,
+        now,
+        onlineOnly: source === "online",
+      })
+    ).get(date) ?? [];
+  const slot = slots.find((item) => item.start.getTime() === input.start.getTime());
+  if (!slot) throw new AppError("slot_unavailable", "start");
+  const plan = assignPlan(
+    slot,
+    input.staffPlan!,
+    context.staff,
+    await bookedMinutesOn(tx, context, date, now),
+  );
+  if (!plan) throw new AppError("slot_unavailable", "start");
+  // Prestations consécutives avec la même collaboratrice : une seule partie.
+  const segments: Segment[] = [];
+  let cursor = input.start;
+  services.forEach((service, index) => {
+    const end = addMinutes(cursor, service.durationMinutes);
+    const last = segments.at(-1);
+    if (last && last.staffId === plan[index]) {
+      last.services.push(service);
+      last.endsAt = end;
+    } else {
+      segments.push({
+        staffId: plan[index],
+        services: [service],
+        startsAt: cursor,
+        endsAt: end,
+        blockedUntil: end,
+      });
+    }
+    cursor = end;
+  });
+  for (const segment of segments) {
+    const buffer = segment.services.reduce((sum, service) => sum + service.bufferMinutes, 0);
+    segment.blockedUntil = addMinutes(segment.endsAt, Math.max(buffer, breakMinutes));
+  }
+  return segments;
+}
+
 export async function createBooking(
   tx: Transaction,
   tenantId: string,
@@ -300,23 +416,8 @@ export async function createBooking(
 
   // Le créneau est recalculé ici : on ne fait jamais confiance à l'écran.
   const date = utcToLocal(input.start, context.tenant.timezone).date;
-  const slots =
-    (
-      await getSlotsForRange(tx, context, {
-        serviceIds: input.serviceIds,
-        staffId: input.staffId,
-        fromDate: date,
-        days: 1,
-        now,
-        onlineOnly: source === "online",
-      })
-    ).get(date) ?? [];
-  const slot = slots.find((item) => item.start.getTime() === input.start.getTime());
-  if (!slot) throw new AppError("slot_unavailable", "start");
-  const staffId =
-    input.staffId ??
-    chooseLeastLoaded(slot.staffIds, context.staff, await bookedMinutesOn(tx, context, date, now));
-  if (!staffId || !slot.staffIds.includes(staffId)) throw new AppError("slot_unavailable", "start");
+  const segments = await planSegments(tx, context, input, services, date, now, source);
+  const staffId = segments[0].staffId;
 
   const quota = source === "online" ? await consumeOnlineQuota(tx, context, now) : null;
   if (quota === false) throw new AppError("booking_quota_reached");
@@ -345,54 +446,69 @@ export async function createBooking(
       throw new AppError("promo_code_invalid", "promoCode");
     await assertPromoUnusedBy(tx, tenantId, promo.promoCodeId, customerId);
   }
-  const endsAt = addMinutes(input.start, totals.durationMinutes);
   const pending = depositCents > 0 && !giftCardCode;
+  const holdExpiresAt = pending ? addMinutes(now, context.settings.holdMinutes) : null;
 
-  let appointment;
+  // Un rendez-vous par collaboratrice ; le premier porte le total, l'acompte, le code promo
+  // et le lien de gestion, les suivants lui sont reliés (groupId).
+  const inserted: (typeof appointments.$inferSelect)[] = [];
   try {
-    [appointment] = await tx
-      .insert(appointments)
-      .values({
-        // Même date que celle qui compte la réservation du mois (rendue au bon mois si elle expire).
-        createdAt: now,
-        tenantId,
-        customerId,
-        staffId,
-        startsAt: input.start,
-        endsAt,
-        blockedUntil: addMinutes(endsAt, totals.bufferMinutes),
-        status: pending ? "pending_payment" : "confirmed",
-        source,
-        holdExpiresAt: pending ? addMinutes(now, context.settings.holdMinutes) : null,
-        totalCents,
-        discountCents,
-        depositCents,
-        currency: totals.currency,
-        promoCodeId: promo?.promoCodeId ?? null,
-        locale: input.locale,
-        customerNote: input.customer.note || null,
-        beneficiaryName: input.customer.beneficiaryName || null,
-      })
-      .returning();
+    for (const [index, segment] of segments.entries()) {
+      const lead = index === 0;
+      const [row] = await tx
+        .insert(appointments)
+        .values({
+          // Même date que celle qui compte la réservation du mois (rendue au bon mois si elle expire).
+          createdAt: now,
+          tenantId,
+          customerId,
+          staffId: segment.staffId,
+          startsAt: segment.startsAt,
+          endsAt: segment.endsAt,
+          blockedUntil: segment.blockedUntil,
+          status: pending ? "pending_payment" : "confirmed",
+          source,
+          holdExpiresAt,
+          totalCents: lead ? totalCents : 0,
+          discountCents: lead ? discountCents : 0,
+          depositCents: lead ? depositCents : 0,
+          currency: totals.currency,
+          promoCodeId: lead ? (promo?.promoCodeId ?? null) : null,
+          groupId: lead ? null : inserted[0].id,
+          locale: input.locale,
+          customerNote: input.customer.note || null,
+          beneficiaryName: input.customer.beneficiaryName || null,
+        })
+        .returning();
+      inserted.push(row);
+    }
   } catch (error) {
     // Deux réservations au même moment : la base n'en accepte qu'une.
     if (isExclusionViolation(error)) throw new AppError("slot_unavailable", "start");
     throw error;
   }
+  if (inserted.length > 1) {
+    await tx.update(appointments).set({ groupId: inserted[0].id }).where(eq(appointments.id, inserted[0].id));
+    inserted[0] = { ...inserted[0], groupId: inserted[0].id };
+  }
+  const appointment = inserted[0];
 
   const manageToken = await assignManageToken(tx, appointment.id);
   if (giftCardCode) await redeemForBooking(tx, tenantId, giftCardCode, appointment.id, depositCents, now);
+  let position = 0;
   await tx.insert(appointmentItems).values(
-    services.map((service, index) => ({
-      tenantId,
-      appointmentId: appointment.id,
-      serviceId: service.id,
-      position: index + 1,
-      serviceName: service.name,
-      durationMinutes: service.durationMinutes,
-      bufferMinutes: service.bufferMinutes,
-      priceCents: service.priceCents,
-    })),
+    segments.flatMap((segment, index) =>
+      segment.services.map((service) => ({
+        tenantId,
+        appointmentId: inserted[index].id,
+        serviceId: service.id,
+        position: (position += 1),
+        serviceName: service.name,
+        durationMinutes: service.durationMinutes,
+        bufferMinutes: service.bufferMinutes,
+        priceCents: service.priceCents,
+      })),
+    ),
   );
 
   let payment: { clientSecret: string; accountId: string; publishableKey: string } | null = null;
@@ -439,7 +555,9 @@ export async function createBooking(
     status: appointment.status,
     staffId,
     startsAt: appointment.startsAt,
-    endsAt: appointment.endsAt,
+    endsAt: inserted.at(-1)!.endsAt,
+    /** Plusieurs collaboratrices : chaque partie du rendez-vous, dans l'ordre. */
+    segments: inserted.map((row) => ({ staffId: row.staffId, startsAt: row.startsAt, endsAt: row.endsAt })),
     totalCents: appointment.totalCents,
     depositCents: appointment.depositCents,
     /** Acompte réglé avec une carte cadeau. */

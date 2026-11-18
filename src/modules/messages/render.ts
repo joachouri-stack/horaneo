@@ -37,6 +37,7 @@ import { addMinutes } from "@/modules/booking/time";
 import { depositSummary } from "@/modules/payments/refunds";
 import { formatPhone } from "@/modules/phone";
 import { unsubscribeToken } from "@/modules/customers/unsubscribe";
+import { sameBooking } from "@/modules/booking/groups";
 import { formatDuration } from "@/modules/site/format";
 import { getPlatformSetting } from "@/modules/settings";
 import { monthStats } from "@/modules/stats/month";
@@ -133,13 +134,28 @@ async function loadAppointment(tx: Transaction, tenantId: string, appointmentId:
     .innerJoin(staffMembers, eq(staffMembers.id, appointments.staffId))
     .where(and(eq(appointments.tenantId, tenantId), eq(appointments.id, appointmentId)));
   if (!row) return null;
+  // Réservation à plusieurs collaboratrices : toutes ses prestations et ses collaboratrices,
+  // et la fin de sa dernière partie.
   const items = await tx
-    .select({ name: appointmentItems.serviceName, durationMinutes: appointmentItems.durationMinutes })
+    .select({
+      name: appointmentItems.serviceName,
+      durationMinutes: appointmentItems.durationMinutes,
+      staffName: staffMembers.name,
+      endsAt: appointments.endsAt,
+    })
     .from(appointmentItems)
-    .where(eq(appointmentItems.appointmentId, appointmentId))
+    .innerJoin(appointments, eq(appointments.id, appointmentItems.appointmentId))
+    .innerJoin(staffMembers, eq(staffMembers.id, appointments.staffId))
+    .where(and(eq(appointments.tenantId, tenantId), sameBooking(row.appointment)))
     .orderBy(asc(appointmentItems.position));
+  const groupEnd = items.reduce(
+    (latest, item) => (item.endsAt > latest ? item.endsAt : latest),
+    row.appointment.endsAt,
+  );
   return {
     ...row,
+    appointment: { ...row.appointment, endsAt: groupEnd },
+    staffName: [...new Set(items.map((item) => item.staffName))].join(", ") || row.staffName,
     services: items.map((item) => pickLocalized(item.name, locale)),
     durations: items.map((item) => item.durationMinutes),
     deposit: await depositSummary(tx, tenantId, appointmentId),

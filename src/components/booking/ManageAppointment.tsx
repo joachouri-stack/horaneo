@@ -24,6 +24,8 @@ type Props = {
   locale: string;
   timezone: string;
   canModify: boolean;
+  /** Faux pour une réservation à plusieurs collaboratrices (à déplacer avec l'établissement). */
+  canReschedule?: boolean;
   serviceIds: string[];
   staffOptions: { id: string; name: string }[];
   managePath: string;
@@ -42,6 +44,7 @@ export function ManageAppointment({
   locale,
   timezone,
   canModify,
+  canReschedule = true,
   serviceIds,
   staffOptions,
   managePath,
@@ -119,13 +122,15 @@ export function ManageAppointment({
       )}
       {mode === "idle" && (
         <div className="flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={() => setMode("reschedule")}
-            className={`${button} bg-site-button text-site-on-button`}
-          >
-            {t("reschedule")}
-          </button>
+          {canReschedule && (
+            <button
+              type="button"
+              onClick={() => setMode("reschedule")}
+              className={`${button} bg-site-button text-site-on-button`}
+            >
+              {t("reschedule")}
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setMode("confirmCancel")}

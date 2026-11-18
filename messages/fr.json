@@ -2719,7 +2719,8 @@
     "customer_exists": "Ce client existe déjà dans votre fichier (même prénom et même téléphone). Retrouvez-le avec la recherche.",
     "merge_same_customer": "Choisissez une autre fiche que celle-ci.",
     "manual_customer_missing": "Choisissez le client : touchez son nom dans la liste sous la recherche, ou créez-le avec « + Nouveau client ».",
-    "manual_service_missing": "Choisissez la prestation : touchez-la pour qu'elle devienne bleu foncé."
+    "manual_service_missing": "Choisissez la prestation : touchez-la pour qu'elle devienne bleu foncé.",
+    "booking_group_reschedule": "Ce rendez-vous se fait avec plusieurs personnes de l'équipe : pour le déplacer, contactez l'établissement."
   },
   "status": {
     "draft": "En création",
@@ -2780,7 +2781,9 @@
         "morning": "Matin",
         "afternoon": "Après-midi",
         "evening": "Soir"
-      }
+      },
+      "staffPerService": "Avec qui pour chaque prestation ?",
+      "staffPerServiceHint": "Les prestations se font l'une après l'autre, chacune avec la personne choisie."
     },
     "details": {
       "title": "Vos coordonnées",
@@ -2927,7 +2930,8 @@
       "expiredText": "L'acompte n'a pas été réglé à temps : ce créneau a été libéré et rien ne vous a été débité.",
       "creditedBack": "Le montant de l'acompte a été remis sur votre carte cadeau.",
       "duration": "Durée : {duration}",
-      "callPhone": "Appeler le {phone}"
+      "callPhone": "Appeler le {phone}",
+      "groupRescheduleHint": "Plusieurs personnes de l'équipe s'occupent de vous, l'une après l'autre. Pour déplacer ce rendez-vous, contactez l'établissement ; vous pouvez l'annuler ici."
     },
     "business": {
       "title": "Avec qui souhaitez-vous réserver ?",
@@ -3075,7 +3079,10 @@
       "editTotal": "Modifier le montant",
       "totalField": "Montant réglé par le client",
       "totalHint": "Ce montant compte dans « Dépensé » du client, votre chiffre d'affaires et vos statistiques.",
-      "totalSaved": "Montant enregistré."
+      "totalSaved": "Montant enregistré.",
+      "linkedTitle": "Même réservation, à la suite :",
+      "linkedPart": "{name} · {start} – {end}",
+      "linkedTotal": "Le total et l'acompte sont sur le premier rendez-vous de la réservation. Annuler l'un annule toute la réservation."
     },
     "manual": {
       "title": "Nouveau rendez-vous",

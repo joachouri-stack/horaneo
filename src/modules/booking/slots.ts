@@ -158,3 +158,115 @@ export function chooseLeastLoaded(
   );
   return candidates[0]?.id ?? null;
 }
+
+/**
+ * Plusieurs prestations faites à la suite, chacune par un membre (choisi, ou n'importe
+ * lequel qui la réalise) : la prestation k commence quand la k-1 se termine. Pour chaque
+ * prestation, chaque membre candidat doit être disponible pendant sa prestation (horaires,
+ * congés), et libre jusqu'à la fin de son battement (rendez-vous existants).
+ */
+export type PlanStep = { durationMinutes: number; bufferMinutes: number; staff: StaffInput[] };
+
+/** Créneau d'une suite de prestations : membres possibles pour chaque prestation, dans l'ordre. */
+export type PlanSlot = { start: Date; time: string; candidates: string[][] };
+
+export type PlanSlotsInput = Omit<DaySlotsInput, "durationMinutes" | "bufferMinutes" | "staff"> & {
+  steps: PlanStep[];
+};
+
+export function computePlanSlots(input: PlanSlotsInput): PlanSlot[] {
+  const { date, now, rules, steps } = input;
+  const total = steps.reduce((sum, step) => sum + step.durationMinutes, 0);
+  if (steps.length === 0 || total <= 0 || !isBookableDate(date, now, rules)) return [];
+  const weekday = isoWeekday(date);
+  const earliest = addMinutes(now, rules.minNoticeMinutes);
+  const opening = windowsFor(
+    input.openingHours
+      .filter((range) => range.weekday === weekday)
+      .map((range) => ({ start: range.opensAt, end: range.closesAt })),
+  );
+  // Horaires du jour de chaque membre, dans les horaires d'ouverture.
+  const windowsOf = new Map<string, Window[]>();
+  for (const step of steps) {
+    for (const member of step.staff) {
+      if (windowsOf.has(member.id)) continue;
+      const own = windowsFor(
+        schedulesOn(member.schedules, date).map((schedule) => ({
+          start: schedule.startsAt,
+          end: schedule.endsAt,
+        })),
+      );
+      windowsOf.set(member.id, intersect(opening, own));
+    }
+  }
+  const within = (windows: Window[], from: number, to: number) =>
+    windows.some(([start, end]) => start <= from && to <= end);
+
+  const result: PlanSlot[] = [];
+  for (const [windowStart, windowEnd] of opening) {
+    const first = Math.ceil(windowStart / rules.slotIntervalMinutes) * rules.slotIntervalMinutes;
+    for (let minute = first; minute + total <= windowEnd; minute += rules.slotIntervalMinutes) {
+      const start = localMinutesToUtc(date, minute, rules.timezone);
+      if (utcToLocal(start, rules.timezone).minutes !== minute) continue;
+      if (start < earliest) continue;
+      if (overlaps(start, addMinutes(start, total), input.closures)) continue;
+      const candidates: string[][] = [];
+      let offset = 0;
+      for (const step of steps) {
+        const from = minute + offset;
+        const to = from + step.durationMinutes;
+        const stepStart = addMinutes(start, offset);
+        const stepEnd = addMinutes(stepStart, step.durationMinutes);
+        const blockEnd = addMinutes(stepEnd, step.bufferMinutes);
+        candidates.push(
+          step.staff
+            .filter(
+              (member) =>
+                within(windowsOf.get(member.id) ?? [], from, to) &&
+                !overlaps(stepStart, stepEnd, member.timeOff) &&
+                !overlaps(stepStart, blockEnd, member.appointments),
+            )
+            .map((member) => member.id),
+        );
+        offset += step.durationMinutes;
+      }
+      if (candidates.every((ids) => ids.length > 0)) {
+        result.push({ start, time: utcToLocal(start, rules.timezone).time, candidates });
+      }
+    }
+  }
+  return result.sort((a, b) => a.start.getTime() - b.start.getTime());
+}
+
+/**
+ * Membres retenus pour chaque prestation d'un créneau : celui choisi par la cliente, sinon
+ * le même que la prestation précédente s'il est libre (moins d'allers-retours), sinon le
+ * moins chargé du jour. Un seul membre libre pour tout reste privilégié. Null si impossible.
+ */
+export function assignPlan(
+  slot: PlanSlot,
+  chosen: (string | null)[],
+  staff: { id: string; sortOrder: number }[],
+  bookedMinutes: Map<string, number>,
+): string[] | null {
+  if (chosen.every((id) => id === null)) {
+    const everywhere = slot.candidates.reduce((common, ids) => common.filter((id) => ids.includes(id)));
+    const single = chooseLeastLoaded(everywhere, staff, bookedMinutes);
+    if (single) return slot.candidates.map(() => single);
+  }
+  const plan: string[] = [];
+  for (let k = 0; k < slot.candidates.length; k++) {
+    const ids = slot.candidates[k];
+    const wanted = chosen[k] ?? null;
+    if (wanted) {
+      if (!ids.includes(wanted)) return null;
+      plan.push(wanted);
+      continue;
+    }
+    const previous = plan[k - 1];
+    const next = previous && ids.includes(previous) ? previous : chooseLeastLoaded(ids, staff, bookedMinutes);
+    if (!next) return null;
+    plan.push(next);
+  }
+  return plan;
+}
