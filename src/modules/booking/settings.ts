@@ -56,6 +56,25 @@ export async function getBookingSettings(tx: Transaction, tenantId: string, busi
   return settings;
 }
 
+/**
+ * Pause entre deux rendez-vous seule (réglage rapide de l'agenda) : temps gardé libre après
+ * chaque rendez-vous pour souffler ou nettoyer le matériel.
+ */
+export async function setBreakMinutes(
+  tx: Transaction,
+  tenantId: string,
+  raw: { breakMinutes: unknown },
+  businessId?: string,
+) {
+  const breakMinutes = bookingSettingsInput.shape.breakMinutes.parse(raw.breakMinutes);
+  const id = await targetBusiness(tx, businessId);
+  await tx
+    .update(businessSettings)
+    .set({ breakMinutes })
+    .where(and(eq(businessSettings.tenantId, tenantId), eq(businessSettings.businessId, id)));
+  return { breakMinutes };
+}
+
 export async function updateBookingSettings(
   tx: Transaction,
   tenantId: string,

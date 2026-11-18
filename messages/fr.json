@@ -3161,7 +3161,15 @@
       "searchPast": "Passé",
       "break": "Pause",
       "more": "{count, plural, one {+# autre} other {+# autres}}",
-      "dayCount": "{count, plural, =0 {aucun rendez-vous} one {# rendez-vous} other {# rendez-vous}}"
+      "dayCount": "{count, plural, =0 {aucun rendez-vous} one {# rendez-vous} other {# rendez-vous}}",
+      "breakSetting": {
+        "label": "Pause entre deux rendez-vous",
+        "none": "aucune",
+        "hint": "Temps gardé libre après chaque rendez-vous, pour souffler ou nettoyer le matériel : personne ne peut réserver juste après.",
+        "saved": "Enregistré : {value} après chaque rendez-vous.",
+        "savedNone": "Enregistré : pas de pause entre les rendez-vous.",
+        "change": "Modifier"
+      }
     },
     "unavailability": {
       "title": "Je ne suis pas disponible",

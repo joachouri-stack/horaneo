@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import { getTranslations } from "next-intl/server";
 import { cookies } from "next/headers";
 import { RememberAgendaMembers } from "@/components/manager/RememberAgendaMembers";
+import { BreakSetting } from "@/components/manager/BreakSetting";
+import { BREAK_MINUTES } from "@/modules/booking/settings";
 import { agendaMembersCookie } from "@/lib/manager/agenda-members";
 import { and, eq, inArray } from "drizzle-orm";
 import { DASH_ICONS, DashIcon } from "@/components/manager/DashboardWidgets";
@@ -10,7 +12,7 @@ import { assets, openingHours, staffMembers, staffSchedules } from "@/db/schema"
 import { storage } from "@/lib/storage";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
-import { agendaStaffFilter } from "@/modules/team/access";
+import { agendaStaffFilter, canAccess } from "@/modules/team/access";
 import { layoutLanes } from "@/modules/agenda/lanes";
 import {
   dayRange,
@@ -113,6 +115,7 @@ export default async function AgendaPage({
     appointments: loadedAppointments,
     timeOffList: loadedTimeOff,
     staff,
+    breakMinutes,
     hours,
     schedules,
     colors,
@@ -126,7 +129,10 @@ export default async function AgendaPage({
       locale: page.locale,
     }),
     timeOffList: await listTimeOff(tx, page.tenantId, range.start, range.end, memberFilter),
-    staff: (await loadBookingContext(tx, page.tenantId)).staff,
+    ...(await (async () => {
+      const context = await loadBookingContext(tx, page.tenantId);
+      return { staff: context.staff, breakMinutes: context.settings.breakMinutes };
+    })()),
     hours: await tx.select().from(openingHours).where(eq(openingHours.tenantId, page.tenantId)),
     // Horaires de travail de chaque membre (en-têtes et plages grisées de la vue Jour).
     schedules: await tx.select().from(staffSchedules).where(eq(staffSchedules.tenantId, page.tenantId)),
@@ -326,6 +332,10 @@ export default async function AgendaPage({
           ))}
         </div>
       </div>
+      {/* Pause entre deux rendez-vous : réglage rapide, à portée de main (gérante). */}
+      {canAccess(page.space, "owner") && (
+        <BreakSetting tenantId={page.tenantId} value={breakMinutes} options={BREAK_MINUTES} />
+      )}
       {found && (
         <section
           aria-labelledby="agenda-results"

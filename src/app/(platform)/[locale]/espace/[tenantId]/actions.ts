@@ -50,7 +50,7 @@ import {
   updateInternalNote,
 } from "@/modules/agenda/actions";
 import { getSlotsForRange, loadBookingContext } from "@/modules/booking/availability";
-import { setOnlineBooking, updateBookingSettings } from "@/modules/booking/settings";
+import { setBreakMinutes, setOnlineBooking, updateBookingSettings } from "@/modules/booking/settings";
 import { disableCalendarFeed, renewCalendarFeed } from "@/modules/agenda/calendar-feed";
 import { DATE_PATTERN, localToUtc } from "@/modules/booking/time";
 import {
@@ -657,6 +657,13 @@ export async function saveStaffScheduleAction(_previous: Previous, data: FormDat
   const tenantId = tenantIdOf(data);
   return managerMutation(tenantId, "owner", "staff.schedule", (tx) =>
     replaceStaffSchedules(tx, tenantId, idOf(data, "staffId")!, parseRanges(data)),
+  );
+}
+
+/** Pause entre deux rendez-vous, choisie depuis l'agenda (enregistrée tout de suite). */
+export async function saveBreakAction(tenantId: string, breakMinutes: number) {
+  return managerMutation(uuid.parse(tenantId), "owner", "settings.break", (tx) =>
+    setBreakMinutes(tx, tenantId, { breakMinutes }),
   );
 }
 
