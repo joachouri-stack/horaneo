@@ -2870,6 +2870,7 @@
     },
     "back": "Retour",
     "continue": "Continuer",
+    "addService": "Ajouter une prestation",
     "change": "Modifier",
     "unavailable": {
       "title": "Réservation par téléphone",
