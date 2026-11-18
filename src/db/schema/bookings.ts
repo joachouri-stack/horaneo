@@ -64,6 +64,13 @@ export const customers = pgTable(
      * ni d'e-mail d'anniversaire, jusqu'à ce qu'il redonne son accord en réservant.
      */
     marketingOptOutAt: utc(),
+    /**
+     * Client bloqué par l'établissement : plus de réservation en ligne (reconnu aussi par son
+     * téléphone), plus d'offres. La gérante peut toujours lui noter un rendez-vous.
+     */
+    blockedAt: utc(),
+    /** Motif du blocage, visible par l'établissement seulement. */
+    blockedReason: text(),
     /** Données effacées à sa demande : la fiche reste pour l'historique, sans coordonnées. */
     anonymizedAt: utc(),
     /** Anniversaire : mois (1 à 12) et jour seulement, jamais l'année (minimisation des données). */

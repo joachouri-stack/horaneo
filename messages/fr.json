@@ -2720,7 +2720,8 @@
     "merge_same_customer": "Choisissez une autre fiche que celle-ci.",
     "manual_customer_missing": "Choisissez le client : touchez son nom dans la liste sous la recherche, ou créez-le avec « + Nouveau client ».",
     "manual_service_missing": "Choisissez la prestation : touchez-la pour qu'elle devienne bleu foncé.",
-    "booking_group_reschedule": "Ce rendez-vous se fait avec plusieurs personnes de l'équipe : pour le déplacer, contactez l'établissement."
+    "booking_group_reschedule": "Ce rendez-vous se fait avec plusieurs personnes de l'équipe : pour le déplacer, contactez l'établissement.",
+    "booking_blocked": "La réservation en ligne n'est pas possible. Merci de contacter directement l'établissement."
   },
   "status": {
     "draft": "En création",
@@ -3237,7 +3238,8 @@
       "badge": {
         "loyal": "Fidèle",
         "new": "Nouveau",
-        "inactive": "À relancer"
+        "inactive": "À relancer",
+        "blocked": "Bloqué"
       },
       "colCustomer": "Client",
       "colVisits": "Visites",
@@ -3320,6 +3322,19 @@
         "quotaReached": "La limite de clients de votre pack est atteinte : les clients suivants n'ont pas été importés.",
         "again": "Importer un autre fichier",
         "back": "Voir mes clients"
+      },
+      "block": {
+        "title": "Bloquer ce client",
+        "hint": "Il ne pourra plus réserver en ligne (même avec une autre adresse e-mail, s'il donne le même téléphone) et ne recevra plus d'offres. Vous pourrez toujours lui noter un rendez-vous vous-même.",
+        "reason": "Motif (facultatif, visible par vous seulement)",
+        "reasonPlaceholder": "Ex. : absences répétées sans prévenir",
+        "submit": "Bloquer ce client",
+        "confirm": "Bloquer {name} ? Il ne pourra plus réserver en ligne.",
+        "done": "Client bloqué.",
+        "banner": "Client bloqué depuis le {date} : il ne peut plus réserver en ligne.",
+        "bannerReason": "Motif : {reason}",
+        "unblock": "Débloquer ce client",
+        "unblocked": "Client débloqué : il peut de nouveau réserver en ligne."
       }
     },
     "site": {

@@ -1,6 +1,6 @@
 import { assertQuota } from "@/modules/quotas";
 import { createHash, createHmac, hkdfSync } from "node:crypto";
-import { and, eq, lte, notInArray, sql } from "drizzle-orm";
+import { and, eq, isNotNull, lte, notInArray, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { authSecret } from "@/config/env";
 import type { Transaction } from "@/db/client";
@@ -262,6 +262,35 @@ async function upsertCustomer(
   return concurrent.id;
 }
 
+/**
+ * Réservation en ligne refusée à un client bloqué, reconnu par son e-mail ou son téléphone
+ * (une autre adresse ne suffit pas à contourner le blocage). Message neutre pour lui.
+ */
+async function assertNotBlocked(
+  tx: Transaction,
+  context: BookingContext,
+  input: z.output<typeof customerInput>,
+) {
+  let phone: string | null = null;
+  try {
+    phone = normalizePhone(input.phone, context.tenant.country, "phone");
+  } catch {
+    phone = null;
+  }
+  const [blocked] = await tx
+    .select({ id: customers.id })
+    .from(customers)
+    .where(
+      and(
+        eq(customers.tenantId, context.tenant.id),
+        isNotNull(customers.blockedAt),
+        or(sql`lower(${customers.email}) = ${input.email}`, phone ? eq(customers.phone, phone) : undefined),
+      ),
+    )
+    .limit(1);
+  if (blocked) throw new AppError("booking_blocked");
+}
+
 /** Code promo limité à une utilisation par cliente (rendez-vous annulés ou expirés exclus). */
 async function assertPromoUnusedBy(
   tx: Transaction,
@@ -439,6 +468,8 @@ export async function createBooking(
   const giftCardCode = source === "online" && input.giftCardCode ? input.giftCardCode : null;
   if (giftCardCode) await checkGiftCard(tx, tenantId, giftCardCode, depositCents, now);
 
+  // Client bloqué par l'établissement (même e-mail ou même téléphone) : pas de réservation en ligne.
+  if (source === "online") await assertNotBlocked(tx, context, input.customer);
   const customerId = await upsertCustomer(tx, context, input.customer, input.locale, now, source);
   if (promo) {
     // Code personnel (ex. anniversaire) : réservé à sa cliente, refusé pour toute autre fiche.

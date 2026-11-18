@@ -68,7 +68,13 @@ import {
   updatePageTexts,
 } from "@/modules/content/pages";
 import { deleteTestimonial, saveTestimonial } from "@/modules/content/testimonials";
-import { deleteCustomer, mergeCustomers, saveCustomer, searchCustomers } from "@/modules/customers/customers";
+import {
+  deleteCustomer,
+  mergeCustomers,
+  saveCustomer,
+  searchCustomers,
+  setCustomerBlocked,
+} from "@/modules/customers/customers";
 import {
   assertSitePhoto,
   moveAsset,
@@ -340,6 +346,15 @@ export async function deleteTimeOffAction(_previous: Previous, data: FormData) {
 export async function importCustomersAction(tenantId: string, input: z.input<typeof importCustomersInput>) {
   return managerMutation(uuid.parse(tenantId), "customers", "customer.imported", (tx) =>
     importCustomers(tx, tenantId, input),
+  );
+}
+
+/** Bloque ou débloque un client (réservation en ligne et offres). */
+export async function blockCustomerAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  const blocked = form.text(data, "blocked") === "1";
+  return managerMutation(tenantId, "customers", blocked ? "customer.blocked" : "customer.unblocked", (tx) =>
+    setCustomerBlocked(tx, tenantId, idOf(data)!, { blocked, reason: form.optional(data, "reason") }),
   );
 }
 

@@ -251,8 +251,9 @@ export async function queueBirthdayOffers(tx: Transaction, now: Date) {
           eq(customers.businessId, business.id),
           isNull(customers.anonymizedAt),
           isNotNull(customers.email),
-          // A demandé à ne plus recevoir d'offres (lien des e-mails).
+          // A demandé à ne plus recevoir d'offres (lien des e-mails), ou bloqué par l'établissement.
           isNull(customers.marketingOptOutAt),
+          isNull(customers.blockedAt),
           or(...days.map((day) => and(eq(customers.birthMonth, day.month), eq(customers.birthDay, day.day)))),
           sql`not exists (select 1 from ${messageLog} m where m.dedupe_key = 'customer.birthday:' || ${customers.id} || ':' || ${year})`,
         ),
@@ -344,6 +345,7 @@ export async function queueWinbacks(tx: Transaction, now: Date) {
           isNotNull(customers.email),
           eq(customers.emailConsent, true),
           isNull(customers.marketingOptOutAt),
+          isNull(customers.blockedAt),
           // Déjà un rendez-vous prévu : pas besoin de relancer.
           sql`not exists (select 1 from ${appointments} f where f.customer_id = ${customers.id} and f.status in ('confirmed', 'pending_payment') and f.starts_at > ${now.toISOString()}::timestamptz)`,
         ),

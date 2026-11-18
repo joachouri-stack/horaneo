@@ -18,6 +18,7 @@ import {
   adjustLoyaltyAction,
   deleteCustomerAction,
   mergeCustomerAction,
+  blockCustomerAction,
   saveCustomerAction,
   useLoyaltyRewardAction,
 } from "../../actions";
@@ -103,6 +104,15 @@ export default async function CustomerPage({
             {name}
           </h1>
         </div>
+        {/* Client bloqué : bien visible pour toute l'équipe. */}
+        {customer.blockedAt && (
+          <div role="status" className={ui.error}>
+            <p className="font-semibold">{t("block.banner", { date: page.fmt.short(customer.blockedAt) })}</p>
+            {customer.blockedReason && (
+              <p className="mt-1">{t("block.bannerReason", { reason: customer.blockedReason })}</p>
+            )}
+          </div>
+        )}
         <ul className="space-y-0.5">
           {customer.phone && (
             <li>
@@ -403,6 +413,40 @@ export default async function CustomerPage({
                         </label>
                       ))}
                     </fieldset>
+                  </ActionForm>
+                </div>
+              )}
+              {customer.blockedAt ? (
+                <div>
+                  <h2 className="font-semibold text-night">{t("block.unblock")}</h2>
+                  <ActionForm
+                    action={blockCustomerAction}
+                    submitLabel={t("block.unblock")}
+                    successMessage={t("block.unblocked")}
+                    variant="secondary"
+                    className="mt-3"
+                  >
+                    <Hidden values={{ tenantId: page.tenantId, id: customer.id, blocked: "0" }} />
+                  </ActionForm>
+                </div>
+              ) : (
+                <div>
+                  <h2 className="font-semibold text-night">{t("block.title")}</h2>
+                  <p className="mb-3 mt-1 text-sm text-ink/70">{t("block.hint")}</p>
+                  <ActionForm
+                    action={blockCustomerAction}
+                    submitLabel={t("block.submit")}
+                    confirm={t("block.confirm", { name })}
+                    successMessage={t("block.done")}
+                    variant="dangerOutline"
+                    className="space-y-3"
+                  >
+                    <Hidden values={{ tenantId: page.tenantId, id: customer.id, blocked: "1" }} />
+                    <TextField
+                      name="reason"
+                      label={t("block.reason")}
+                      placeholder={t("block.reasonPlaceholder")}
+                    />
                   </ActionForm>
                 </div>
               )}

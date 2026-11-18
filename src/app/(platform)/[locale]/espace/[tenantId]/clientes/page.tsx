@@ -37,6 +37,7 @@ const BADGES = {
   loyal: "bg-[#e8ebfa] text-[#3a4bb8]",
   new: "bg-[#e3f4ee] text-[#1f7a5f]",
   inactive: "bg-[#fdf3e2] text-[#8a5212]",
+  blocked: "bg-[#fdecea] text-[#8f2a20]",
 } as const;
 
 /** Fichier clientes : chiffres clés, filtres par groupe, recherche et liste détaillée. */
@@ -220,14 +221,16 @@ export default async function CustomersPage({
           <ul className="divide-y divide-hairline">
             {list.map((customer) => {
               const name = [customer.firstName, customer.lastName].filter(Boolean).join(" ");
-              // Une seule étiquette : à relancer, sinon fidèle, sinon nouvelle.
-              const badge = customer.inactive
-                ? "inactive"
-                : customer.loyal
-                  ? "loyal"
-                  : customer.isNew
-                    ? "new"
-                    : null;
+              // Une seule étiquette : bloqué d'abord, puis à relancer, fidèle, nouvelle.
+              const badge = customer.blocked
+                ? "blocked"
+                : customer.inactive
+                  ? "inactive"
+                  : customer.loyal
+                    ? "loyal"
+                    : customer.isNew
+                      ? "new"
+                      : null;
               return (
                 <li key={customer.id}>
                   <Link
