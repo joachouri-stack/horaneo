@@ -50,7 +50,8 @@ export function ManualAppointmentForm({ tenantId, services, staff, defaults }: P
   const t = useTranslations("manager.manual");
   const tCustomers = useTranslations("manager.customers");
   const locale = useLocale();
-  const [serviceIds, setServiceIds] = useState<string[]>([]);
+  // Une seule prestation au catalogue : déjà choisie.
+  const [serviceIds, setServiceIds] = useState<string[]>(services.length === 1 ? [services[0].id] : []);
   const eligible = staff.filter((member) => serviceIds.every((id) => member.serviceIds.includes(id)));
   const [staffId, setStaffId] = useState<string>(defaults.staffId ?? staff[0]?.id ?? "");
   const [date, setDate] = useState(defaults.date);
@@ -60,6 +61,10 @@ export function ManualAppointmentForm({ tenantId, services, staff, defaults }: P
   const [mode, setMode] = useState<"existing" | "new">("existing");
   const [query, setQuery] = useState("");
   const [found, setFound] = useState<Found[]>([]);
+  // Recherche terminée pour ce texte (pour dire « aucun client » seulement une fois la réponse reçue).
+  const [searched, setSearched] = useState("");
+  // Prénom proposé quand la cliente cherchée n'existe pas encore.
+  const [newFirstName, setNewFirstName] = useState("");
   const [customer, setCustomer] = useState<{ id: string; name: string } | null>(defaults.customer);
   const [serviceQuery, setServiceQuery] = useState("");
   // Liste des prestations repliée une fois un choix fait : l'étape « Quand ? » remonte.
@@ -84,7 +89,14 @@ export function ManualAppointmentForm({ tenantId, services, staff, defaults }: P
 
   useEffect(() => {
     if (mode !== "existing" || query.trim().length < 2) return;
-    const timer = setTimeout(() => void searchCustomersAction(tenantId, query).then(setFound), 250);
+    const timer = setTimeout(
+      () =>
+        void searchCustomersAction(tenantId, query).then((rows) => {
+          setFound(rows);
+          setSearched(query);
+        }),
+      250,
+    );
     return () => clearTimeout(timer);
   }, [tenantId, query, mode]);
 
@@ -165,16 +177,35 @@ export function ManualAppointmentForm({ tenantId, services, staff, defaults }: P
                 ))}
               </ul>
             )}
-            <button
-              type="button"
-              onClick={() => {
-                setCustomer(null);
-                setMode("new");
-              }}
-              className="inline-flex min-h-11 items-center font-semibold text-night underline"
-            >
-              + {t("newCustomer")}
-            </button>
+            {!customer && query.trim().length >= 2 && searched === query && (
+              <p className="text-sm text-ink/70">
+                {found.length > 0 ? t("tapToChoose") : t("noCustomerFound", { name: query.trim() })}
+              </p>
+            )}
+            {!customer && query.trim().length >= 2 && searched === query && found.length === 0 ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setNewFirstName(query.trim());
+                  setMode("new");
+                }}
+                className="inline-flex min-h-11 items-center font-semibold text-night underline"
+              >
+                + {t("createCustomer", { name: query.trim() })}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setCustomer(null);
+                  setNewFirstName("");
+                  setMode("new");
+                }}
+                className="inline-flex min-h-11 items-center font-semibold text-night underline"
+              >
+                + {t("newCustomer")}
+              </button>
+            )}
           </div>
         ) : (
           <div className="space-y-3">
@@ -190,6 +221,7 @@ export function ManualAppointmentForm({ tenantId, services, staff, defaults }: P
                     type={field === "email" ? "email" : field === "phone" ? "tel" : "text"}
                     autoComplete="off"
                     required={field === "firstName"}
+                    defaultValue={field === "firstName" ? newFirstName : undefined}
                     className={ui.input}
                   />
                 </div>

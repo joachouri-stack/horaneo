@@ -2717,7 +2717,9 @@
     "customer_has_upcoming": "Ce client a un rendez-vous à venir : annulez-le d'abord, puis supprimez la fiche.",
     "total_below_deposit": "Le montant ne peut pas être inférieur à l'acompte déjà payé en ligne.",
     "customer_exists": "Ce client existe déjà dans votre fichier (même prénom et même téléphone). Retrouvez-le avec la recherche.",
-    "merge_same_customer": "Choisissez une autre fiche que celle-ci."
+    "merge_same_customer": "Choisissez une autre fiche que celle-ci.",
+    "manual_customer_missing": "Choisissez le client : touchez son nom dans la liste sous la recherche, ou créez-le avec « + Nouveau client ».",
+    "manual_service_missing": "Choisissez la prestation : touchez-la pour qu'elle devienne bleu foncé."
   },
   "status": {
     "draft": "En création",
@@ -3108,7 +3110,10 @@
         "morning": "Matin",
         "afternoon": "Après-midi",
         "evening": "Fin de journée"
-      }
+      },
+      "noCustomerFound": "Aucun client « {name} » dans votre fichier.",
+      "createCustomer": "Créer « {name} »",
+      "tapToChoose": "Touchez le client dans la liste pour le choisir."
     },
     "agenda": {
       "title": "Agenda",
