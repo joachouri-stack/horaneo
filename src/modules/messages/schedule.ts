@@ -99,6 +99,8 @@ export async function queueEmailReminders(tx: Transaction, now: Date) {
         lte(appointments.startsAt, horizon),
         // Pris moins de 24 h avant : la confirmation vient d'arriver, pas besoin de rappel.
         lte(appointments.createdAt, sql`${appointments.startsAt} - make_interval(hours => ${hours})`),
+        // Réservation à plusieurs collaboratrices : un seul rappel, sur sa première partie.
+        sql`(${appointments.groupId} is null or ${appointments.groupId} = ${appointments.id})`,
         // Rappel déjà envoyé avant que la clé ne porte l'horaire (ancien format).
         sql`not exists (select 1 from ${messageLog} m where m.dedupe_key = 'customer.reminder_email:' || ${appointments.id})`,
       ),
@@ -140,6 +142,7 @@ export async function queueSmsReminders(tx: Transaction, now: Date) {
           lt(appointments.startsAt, localToUtc(addDays(tomorrow, 1), "00:00", tenant.timezone)),
           // Pris moins de 24 h avant : pas de rappel (décision n° 6), la confirmation vient d'arriver.
           lte(appointments.createdAt, sql`${appointments.startsAt} - interval '24 hours'`),
+          sql`(${appointments.groupId} is null or ${appointments.groupId} = ${appointments.id})`,
           sql`not exists (select 1 from ${messageLog} m where m.dedupe_key = 'customer.reminder_sms:' || ${appointments.id})`,
         ),
       );

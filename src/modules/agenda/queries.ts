@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gt, gte, ilike, inArray, isNull, like, lt, ne, or } from "drizzle-orm";
+import { and, asc, desc, eq, gt, gte, ilike, inArray, isNull, like, lt, ne, or, sql } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
 import { appointmentItems, appointments, customers, staffMembers, timeOff } from "@/db/schema";
 import { pickLocalized, type Locale } from "@/i18n/locales";
@@ -197,7 +197,7 @@ export async function getAppointmentDetail(
   locale: Locale,
 ) {
   const [row] = await tx
-    .select({ startsAt: appointments.startsAt })
+    .select({ startsAt: appointments.startsAt, groupId: appointments.groupId })
     .from(appointments)
     .where(and(eq(appointments.id, appointmentId), eq(appointments.tenantId, tenantId)));
   if (!row) return null;
@@ -207,7 +207,30 @@ export async function getAppointmentDetail(
     locale,
     includeCancelled: true,
   });
-  return list.find((item) => item.id === appointmentId) ?? null;
+  const item = list.find((entry) => entry.id === appointmentId);
+  if (!item) return null;
+  // Réservation à plusieurs collaboratrices : les autres parties, dans l'ordre.
+  const linked = row.groupId
+    ? await tx
+        .select({
+          id: appointments.id,
+          startsAt: appointments.startsAt,
+          endsAt: appointments.endsAt,
+          staffName: staffMembers.name,
+          lead: sql<boolean>`${appointments.id} = ${appointments.groupId}`,
+        })
+        .from(appointments)
+        .innerJoin(staffMembers, eq(staffMembers.id, appointments.staffId))
+        .where(
+          and(
+            eq(appointments.tenantId, tenantId),
+            eq(appointments.groupId, row.groupId),
+            ne(appointments.id, appointmentId),
+          ),
+        )
+        .orderBy(asc(appointments.startsAt))
+    : [];
+  return { ...item, linked, isLead: !row.groupId || row.groupId === appointmentId };
 }
 
 /**

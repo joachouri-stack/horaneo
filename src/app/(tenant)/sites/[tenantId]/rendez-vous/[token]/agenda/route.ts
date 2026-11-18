@@ -29,7 +29,7 @@ export async function GET(
   const event = appointmentEvent({
     id: managed.appointment.id,
     start: managed.appointment.startsAt,
-    end: managed.appointment.endsAt,
+    end: managed.endsAt,
     services: managed.items.map((item) => item.name),
     businessName: site.tenant.name,
     address: [tenant.addressLine1, [tenant.postalCode, tenant.city].filter(Boolean).join(" ")]

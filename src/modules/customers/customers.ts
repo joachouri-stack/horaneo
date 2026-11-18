@@ -112,7 +112,11 @@ export async function customerDirectory(
   const stats = tx
     .select({
       customerId: appointments.customerId,
-      visits: sql<number>`count(*) filter (where ${past})`.as("visits"),
+      // Réservation à plusieurs collaboratrices : une seule visite.
+      visits:
+        sql<number>`count(distinct coalesce(${appointments.groupId}, ${appointments.id})) filter (where ${past})`.as(
+          "visits",
+        ),
       spentCents: sql<number>`coalesce(sum(${appointments.totalCents}) filter (where ${past}), 0)`.as(
         "spent_cents",
       ),
@@ -247,8 +251,8 @@ export async function getCustomer(tx: Transaction, tenantId: string, customerId:
   const past = sql`${appointments.status} in ('confirmed','attended') and ${appointments.startsAt} <= now()`;
   const [totals] = await tx
     .select({
-      visits: sql<number>`count(*) filter (where ${past})`,
-      noShows: sql<number>`count(*) filter (where ${appointments.status} = 'no_show')`,
+      visits: sql<number>`count(distinct coalesce(${appointments.groupId}, ${appointments.id})) filter (where ${past})`,
+      noShows: sql<number>`count(distinct coalesce(${appointments.groupId}, ${appointments.id})) filter (where ${appointments.status} = 'no_show')`,
       spentCents: sql<number>`coalesce(sum(${appointments.totalCents}) filter (where ${past}), 0)`,
     })
     .from(appointments)

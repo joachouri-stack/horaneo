@@ -147,7 +147,8 @@ export default async function ManageAppointmentPage({
         <p className="mt-2 font-site-display text-2xl font-semibold text-site-heading">
           {t("when", { date: date(appointment.startsAt), time: time(appointment.startsAt) })}
         </p>
-        <p className="mt-1">{t("with", { name: managed.staffName })}</p>
+        <p className="mt-1">{t("with", { name: managed.staffNames.join(", ") })}</p>
+        {appointment.groupId && <p className="mt-1 text-sm text-site-muted">{t("groupRescheduleHint")}</p>}
         <h2 className="mt-4 font-semibold">{t("services")}</h2>
         <ul className="text-site-muted">
           {managed.items.map((item, index) => (
@@ -159,7 +160,7 @@ export default async function ManageAppointmentPage({
         <p className="text-site-muted">
           {tBooking("details.totalDuration", {
             duration: duration(totalMinutes),
-            time: time(appointment.endsAt),
+            time: time(managed.endsAt),
           })}
         </p>
         {appointment.discountCents > 0 && (
@@ -199,7 +200,7 @@ export default async function ManageAppointmentPage({
       </section>
 
       {/* Dans l'agenda du téléphone : la cliente ne l'oublie plus. */}
-      {status === "confirmed" && appointment.endsAt > now && (
+      {status === "confirmed" && managed.endsAt > now && (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <a
             href={appointmentCalendarPath(token)}
@@ -212,7 +213,7 @@ export default async function ManageAppointmentPage({
               appointmentEvent({
                 id: appointment.id,
                 start: appointment.startsAt,
-                end: appointment.endsAt,
+                end: managed.endsAt,
                 services: managed.items.map((item) => item.name),
                 businessName: site.tenant.name,
                 address: [
@@ -271,6 +272,7 @@ export default async function ManageAppointmentPage({
         locale={site.locale}
         timezone={timezone}
         canModify={modifiable}
+        canReschedule={modifiable && !appointment.groupId}
         serviceIds={serviceIds}
         staffOptions={staffOptions}
         managePath={SITE_PATHS.appointment}

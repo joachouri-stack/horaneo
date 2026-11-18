@@ -7,6 +7,7 @@ import { paymentGateway } from "@/lib/payments/stripe";
 import { withServicesBusiness, withTokenBusiness } from "@/lib/site/business";
 import { currentSiteTenant, publicLimits } from "@/lib/site/current";
 import {
+  getPlanSlotsForRange,
   getSlotsForRange,
   isOnlineQuotaReached,
   loadBookingContext,
@@ -45,6 +46,8 @@ export type DayAvailability = { date: string; slots: { start: string; time: stri
 const availabilityInput = z.object({
   serviceIds: z.array(z.uuid()).min(1).max(10),
   staffId: z.uuid().nullable(),
+  /** Plusieurs prestations : une collaboratrice par prestation (null : sans préférence). */
+  staffPlan: z.array(z.uuid().nullable()).max(10).optional(),
   fromDate: z.string().regex(DATE_PATTERN).optional(),
   days: z.number().int().min(1).max(14).default(14),
   /** Report d'un rendez-vous : son lien de gestion. */
@@ -81,6 +84,28 @@ export async function getAvailabilityAction(
       }
       const today = utcToLocal(now, context.tenant.timezone).date;
       const fromDate = input.fromDate && input.fromDate > today ? input.fromDate : today;
+      // Plusieurs prestations, une collaboratrice chacune : créneaux de la suite.
+      if (
+        !input.manageToken &&
+        input.staffPlan &&
+        input.staffPlan.length === serviceIds.length &&
+        serviceIds.length > 1
+      ) {
+        const planned = await getPlanSlotsForRange(tx, context, {
+          serviceIds,
+          staffPlan: input.staffPlan,
+          fromDate,
+          days: Math.min(input.days, 14),
+          now,
+        });
+        const limit = addDays(today, context.settings.maxAdvanceDays);
+        return [...planned.entries()]
+          .filter(([date]) => date <= limit)
+          .map(([date, slots]) => ({
+            date,
+            slots: slots.map((slot) => ({ start: slot.start.toISOString(), time: slot.time, staffIds: [] })),
+          }));
+      }
       const days = await getSlotsForRange(tx, context, {
         serviceIds,
         staffId: input.staffId,
@@ -108,6 +133,7 @@ export async function getAvailabilityAction(
 const bookInput = z.object({
   serviceIds: z.array(z.uuid()).min(1).max(10),
   staffId: z.uuid().nullable(),
+  staffPlan: z.array(z.uuid().nullable()).max(10).optional(),
   start: z.iso.datetime(),
   customer: z.object({
     firstName: z.string(),
@@ -155,6 +181,7 @@ export async function bookAction(raw: z.input<typeof bookInput>): Promise<Public
         {
           serviceIds: input.serviceIds,
           staffId: input.staffId,
+          staffPlan: input.staffPlan,
           start: input.start,
           customer: input.customer,
           // Langue du site : celle des e-mails et SMS envoyés ensuite à la cliente.
@@ -169,7 +196,11 @@ export async function bookAction(raw: z.input<typeof bookInput>): Promise<Public
         status: result.status as BookingConfirmation["status"],
         startsAt: result.startsAt.toISOString(),
         endsAt: result.endsAt.toISOString(),
-        staffName: context.staff.find((member) => member.id === result.staffId)?.name ?? "",
+        // Plusieurs collaboratrices : leurs prénoms, dans l'ordre.
+        staffName: [...new Set(result.segments.map((segment) => segment.staffId))]
+          .map((id) => context.staff.find((member) => member.id === id)?.name ?? "")
+          .filter(Boolean)
+          .join(", "),
         totalCents: result.totalCents,
         discountCents: result.discountCents,
         depositCents: result.depositCents,

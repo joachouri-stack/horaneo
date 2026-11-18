@@ -1,0 +1,2 @@
+ALTER TABLE "appointments" ADD COLUMN "group_id" uuid;--> statement-breakpoint
+CREATE INDEX "appointments_group_idx" ON "appointments" USING btree ("group_id") WHERE "appointments"."group_id" is not null;

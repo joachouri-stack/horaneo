@@ -1,6 +1,7 @@
 import { and, desc, eq } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
 import { appointments, businesses, payments, type PlanFeatures } from "@/db/schema";
+import { sameBooking } from "@/modules/booking/groups";
 import { adjustHoldUsage } from "@/modules/booking/holds";
 import { AppError } from "@/modules/errors";
 import { queueBookingConfirmed, queueMessage } from "@/modules/messages/queue";
@@ -134,10 +135,17 @@ export async function applyPaymentIntent(
   if (!appointment) return { outcome: "succeeded" as const };
 
   if (appointment.status === "pending_payment") {
+    // Toutes les parties de la réservation (plusieurs collaboratrices) sont confirmées.
     await tx
       .update(appointments)
       .set({ status: "confirmed", holdExpiresAt: null })
-      .where(eq(appointments.id, appointment.id));
+      .where(
+        and(
+          eq(appointments.tenantId, tenantId),
+          sameBooking(appointment),
+          eq(appointments.status, "pending_payment"),
+        ),
+      );
     await queueBookingConfirmed(tx, tenantId, appointment);
     return { outcome: "confirmed" as const, appointmentId: appointment.id };
   }
@@ -155,7 +163,13 @@ export async function applyPaymentIntent(
         await savepoint
           .update(appointments)
           .set({ status: "confirmed", holdExpiresAt: null })
-          .where(eq(appointments.id, appointment.id));
+          .where(
+            and(
+              eq(appointments.tenantId, tenantId),
+              sameBooking(appointment),
+              eq(appointments.status, "expired"),
+            ),
+          );
       });
       // Le code promo et la réservation du mois, rendus à l'expiration, sont comptés à nouveau.
       await adjustHoldUsage(tx, tenantId, [appointment], "reclaim", now);

@@ -575,6 +575,13 @@
       "when": 1794931033463,
       "tag": "0081_multilingual_soon",
       "breakpoints": true
+    },
+    {
+      "idx": 82,
+      "version": "7",
+      "when": 1795032038187,
+      "tag": "0082_appointment_groups",
+      "breakpoints": true
     }
   ]
 }

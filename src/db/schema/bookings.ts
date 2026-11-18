@@ -180,6 +180,12 @@ export const appointments = pgTable(
     cancelledBy: cancelledByEnum(),
     cancellationReason: text(),
     rescheduledFromId: uuid(),
+    /**
+     * Plusieurs prestations faites à la suite par des membres différents : un rendez-vous
+     * par membre, reliés par l'identifiant du premier (qui porte le total, l'acompte, le
+     * code promo et le lien de gestion). Vide pour un rendez-vous seul.
+     */
+    groupId: uuid(),
     locale: text().notNull().default("fr"),
     /** Prénom de la personne qui reçoit le soin, si la réservation est faite pour quelqu'un d'autre. */
     beneficiaryName: text(),
@@ -206,6 +212,9 @@ export const appointments = pgTable(
     index("appointments_tenant_starts_idx").on(t.tenantId, t.startsAt),
     index("appointments_tenant_staff_starts_idx").on(t.tenantId, t.staffId, t.startsAt),
     index("appointments_tenant_customer_idx").on(t.tenantId, t.customerId),
+    index("appointments_group_idx")
+      .on(t.groupId)
+      .where(sql`${t.groupId} is not null`),
     index("appointments_hold_idx")
       .on(t.holdExpiresAt)
       .where(sql`${t.status} = 'pending_payment'`),
