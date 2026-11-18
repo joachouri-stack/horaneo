@@ -212,6 +212,12 @@ export async function createManualAction(
 ): Promise<ActionResult<unknown>> {
   const tenantId = tenantIdOf(data);
   const customerId = idOf(data, "customerId");
+  // Messages précis plutôt que « informations incomplètes » : client non choisi dans la
+  // liste (seulement tapé), ou aucune prestation touchée.
+  if (!customerId && !form.text(data, "firstName").trim())
+    return { ok: false, error: "manual_customer_missing", field: "customerId" };
+  if (form.all(data, "serviceIds").length === 0)
+    return { ok: false, error: "manual_service_missing", field: "serviceIds" };
   const result = await managerMutation(tenantId, "agenda", "appointment.created", async (tx, { space }) => {
     assertStaffInScope(space, form.text(data, "staffId"));
     return createManualAppointment(tx, tenantId, {
