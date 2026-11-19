@@ -443,7 +443,7 @@ export default async function StatsPage({
             <label htmlFor="ca-jour-choix" className={ui.label}>
               {t("lookup.dayLabel")}
             </label>
-            <div className="flex gap-2">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
               <input
                 id="ca-jour-choix"
                 type="date"
@@ -451,9 +451,9 @@ export default async function StatsPage({
                 max={today}
                 defaultValue={lookupDay ?? today}
                 required
-                className={`${ui.input} min-w-0 flex-1`}
+                className={ui.input}
               />
-              <button type="submit" className={`${ui.primaryButton} w-auto shrink-0 px-5`}>
+              <button type="submit" className={`${ui.primaryButton} px-5`}>
                 {t("lookup.show")}
               </button>
             </div>
@@ -475,7 +475,7 @@ export default async function StatsPage({
             <input type="hidden" name="mois" value={period} />
             {tab === "rdv" && <input type="hidden" name="vue" value="rdv" />}
             <p className={ui.label}>{t("lookup.monthLabel")}</p>
-            <div className="flex gap-2">
+            <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,7rem)] gap-2">
               <label className="sr-only" htmlFor="ca-mois-m">
                 {t("lookup.month")}
               </label>
@@ -483,7 +483,7 @@ export default async function StatsPage({
                 id="ca-mois-m"
                 name="caMoisM"
                 defaultValue={(lookupMonth ?? current).slice(5)}
-                className={`${ui.input} min-w-0 flex-1`}
+                className={ui.input}
               >
                 {monthNames.map((name, index) => (
                   <option key={name} value={String(index + 1).padStart(2, "0")}>
@@ -498,7 +498,7 @@ export default async function StatsPage({
                 id="ca-mois-a"
                 name="caMoisA"
                 defaultValue={(lookupMonth ?? current).slice(0, 4)}
-                className={`${ui.input} w-28 shrink-0`}
+                className={ui.input}
               >
                 {lookupYears.map((year) => (
                   <option key={year} value={year}>
@@ -506,7 +506,7 @@ export default async function StatsPage({
                   </option>
                 ))}
               </select>
-              <button type="submit" className={`${ui.primaryButton} w-auto shrink-0 px-5`}>
+              <button type="submit" className={`${ui.primaryButton} col-span-2`}>
                 {t("lookup.show")}
               </button>
             </div>
