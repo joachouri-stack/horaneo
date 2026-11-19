@@ -3194,7 +3194,7 @@
       "isThisMonth": "Ce mois-ci",
       "monthStats": {
         "count": "{count, plural, =0 {Aucun rendez-vous} one {# rendez-vous} other {# rendez-vous}}",
-        "rest": "ce mois · {days, plural, =0 {aucun jour occupé} one {# jour occupé} other {# jours occupés}}"
+        "rest": "ce mois"
       }
     },
     "unavailability": {

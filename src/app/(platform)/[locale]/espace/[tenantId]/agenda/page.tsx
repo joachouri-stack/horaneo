@@ -503,7 +503,6 @@ export default async function AgendaPage({
     // Chiffres du mois affiché (rendez-vous du mois seulement, pas des jours voisins).
     const monthDays = gridDays.filter((day) => day.slice(0, 7) === month);
     const monthCount = monthDays.reduce((sum, day) => sum + onDay(day).length, 0);
-    const busyDays = monthDays.filter((day) => onDay(day).length > 0).length;
     return (
       <div className="space-y-5">
         {header}
@@ -552,7 +551,7 @@ export default async function AgendaPage({
               <strong className="font-semibold text-white">
                 {t("monthStats.count", { count: monthCount })}
               </strong>{" "}
-              {t("monthStats.rest", { days: busyDays })}
+              {t("monthStats.rest")}
             </p>
             <div className="relative mt-4 grid grid-cols-7" aria-hidden="true">
               {gridDays.slice(0, 7).map((day) => (
