@@ -22,7 +22,7 @@ export function BreakSetting({
   const tErrors = useTranslations("errors");
   const [current, setCurrent] = useState(value);
   const [open, setOpen] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ text: string; error: boolean } | null>(null);
   const [pending, startTransition] = useTransition();
 
   const label = (minutes: number) =>
@@ -32,17 +32,32 @@ export function BreakSetting({
         ? tSettings("breakHours", { count: minutes / 60 })
         : tSettings("minutes", { count: minutes });
 
+  /** Libellé court des boutons (« 5 min », « 1 h ») : tous sur deux lignes égales. */
+  const short = (minutes: number) =>
+    minutes === 0
+      ? t("none")
+      : minutes % 60 === 0
+        ? t("hoursShort", { count: minutes / 60 })
+        : t("minutesShort", { count: minutes });
+
+  // Exemple concret : fin d'un rendez-vous à 10:30, plus la pause.
+  const exampleEnd = 10 * 60 + 30 + current;
+  const next = `${String(Math.floor(exampleEnd / 60)).padStart(2, "0")}:${String(exampleEnd % 60).padStart(2, "0")}`;
+
   const choose = (minutes: number) => {
     setMessage(null);
     startTransition(async () => {
       const result = await saveBreakAction(tenantId, minutes);
       if (!result.ok) {
-        setMessage(tErrors(result.error));
+        setMessage({ text: tErrors(result.error), error: true });
         return;
       }
       setCurrent(minutes);
       setOpen(false);
-      setMessage(minutes === 0 ? t("savedNone") : t("saved", { value: label(minutes) }));
+      setMessage({
+        text: minutes === 0 ? t("savedNone") : t("saved", { value: label(minutes) }),
+        error: false,
+      });
     });
   };
 
@@ -69,12 +84,12 @@ export function BreakSetting({
         <span className="min-w-0 flex-1">
           {t("label")} : <strong className="font-semibold">{label(current)}</strong>
         </span>
-        <span className="text-sm font-medium text-accent underline">{t("change")}</span>
+        <span className="text-sm font-medium text-accent underline">{open ? t("close") : t("change")}</span>
       </button>
       {open && (
-        <div className="pb-2 pt-1">
-          <p className="mb-2 text-sm text-ink-soft">{t("hint")}</p>
-          <div className="flex flex-wrap gap-2">
+        <div className="space-y-3 border-t border-hairline pb-2 pt-3">
+          <p className="text-sm text-ink-soft">{t("hint")}</p>
+          <div className="grid grid-cols-4 gap-2">
             {options.map((minutes) => (
               <button
                 key={minutes}
@@ -82,17 +97,40 @@ export function BreakSetting({
                 disabled={pending}
                 onClick={() => choose(minutes)}
                 aria-pressed={current === minutes}
-                className="min-h-10 rounded-full border border-hairline px-3.5 text-[0.9375rem] font-medium text-night transition hover:border-accent-line aria-pressed:border-night aria-pressed:bg-night aria-pressed:text-white disabled:opacity-60"
+                aria-label={label(minutes)}
+                className="min-h-11 rounded-xl border border-hairline bg-white px-1 text-[0.9375rem] font-medium text-night tabular-nums transition hover:border-accent aria-pressed:border-accent aria-pressed:bg-accent aria-pressed:text-white disabled:opacity-60"
               >
-                {label(minutes)}
+                {short(minutes)}
               </button>
             ))}
           </div>
+          <p className="rounded-lg bg-mist-50 px-3 py-2 text-sm text-ink-soft">{t("example", { next })}</p>
         </div>
       )}
       {message && (
-        <p role="status" className="pb-1 text-sm text-ink-soft">
-          {message}
+        <p
+          role={message.error ? "alert" : "status"}
+          className={`flex items-center gap-1.5 pb-1 text-sm font-medium ${message.error ? "text-[#8f2a20]" : "text-success"}`}
+        >
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            className="size-4 shrink-0"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path
+              d={
+                message.error
+                  ? "M12 8v5M12 16.5v.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0"
+                  : "M5 12.5l4.5 4.5L19 7.5"
+              }
+            />
+          </svg>
+          {message.text}
         </p>
       )}
     </div>
