@@ -261,7 +261,6 @@ export async function createManualAppointment(
     if (birthdayGiven && !isValidBirthday(birthMonth ?? 0, birthDay ?? 0))
       throw new AppError("invalid", "birthDay");
     const phone = normalizePhone(input.newCustomer.phone, tenant.country, "phone");
-    if (!phone && !input.newCustomer.email) throw new AppError("invalid", "phone");
     const [byEmail] = input.newCustomer.email
       ? await tx
           .select({ id: customers.id })
