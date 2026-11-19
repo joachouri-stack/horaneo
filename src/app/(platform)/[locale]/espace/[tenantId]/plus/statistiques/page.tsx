@@ -11,7 +11,7 @@ import {
   StatCard,
   Trend,
 } from "@/components/manager/DashboardWidgets";
-import { GoalRing, HourHeat, LineChart, MiniGoalRing } from "@/components/manager/StatsCharts";
+import { BarChart, GoalRing, HourHeat, LineChart, MiniGoalRing } from "@/components/manager/StatsCharts";
 import { Link } from "@/i18n/navigation";
 import { centsToInput } from "@/lib/format";
 import { managerPage } from "@/lib/manager/page";
@@ -64,8 +64,10 @@ export default async function StatsPage({
   const { stats, previous, older, details, goals, sales, occupancy } = await page.db(async (tx) => ({
     stats: await monthStats(tx, page.tenantId, period, tz, page.locale),
     previous: await monthStats(tx, page.tenantId, shift(period, -1), tz, page.locale),
-    // Deux mois plus tôt encore : cercles des 3 mois précédents (avec « previous »).
+    // Mois −5 à −2 (avec « previous ») : cercles des 3 mois précédents et graphique des 6 derniers mois.
     older: [
+      await monthStats(tx, page.tenantId, shift(period, -5), tz, page.locale),
+      await monthStats(tx, page.tenantId, shift(period, -4), tz, page.locale),
       await monthStats(tx, page.tenantId, shift(period, -3), tz, page.locale),
       await monthStats(tx, page.tenantId, shift(period, -2), tz, page.locale),
     ],
@@ -133,13 +135,20 @@ export default async function StatsPage({
   // Les 3 mois précédents, du plus ancien au plus récent, comparés à l'objectif actuel.
   const monthShort = new Intl.DateTimeFormat(page.locale, { month: "long", timeZone: "UTC" });
   const pastMonths = [
-    { period: shift(period, -3), stats: older[0] },
-    { period: shift(period, -2), stats: older[1] },
+    { period: shift(period, -3), stats: older[2] },
+    { period: shift(period, -2), stats: older[3] },
     { period: shift(period, -1), stats: previous },
   ].map((item) => ({
     ...item,
     label: monthShort.format(new Date(`${item.period}-15T12:00:00Z`)),
   }));
+  // Les 6 derniers mois (le mois affiché en dernier) : chiffre d'affaires de chacun.
+  const monthAbbr = new Intl.DateTimeFormat(page.locale, { month: "short", timeZone: "UTC" });
+  const sixMonths = [...older, previous, stats].map((month, index) => ({
+    label: monthAbbr.format(new Date(`${shift(period, index - 5)}-15T12:00:00Z`)).replace(".", ""),
+    revenueCents: month.revenueCents,
+  }));
+  const sixMonthsAverage = Math.round(sixMonths.reduce((sum, month) => sum + month.revenueCents, 0) / 6);
   const pastValue = (key: string, month: (typeof pastMonths)[number]["stats"]) =>
     key === "revenue" ? month.revenueCents : key === "appointments" ? month.appointments : month.newCustomers;
   const percent = (rate: number | null) =>
@@ -524,22 +533,37 @@ export default async function StatsPage({
               </section>
             )}
             {tab === "ca" && (
+              <section aria-labelledby="ca-6-mois" className={`${panel} min-w-0`}>
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <h2 id="ca-6-mois" className="font-display text-[1.1rem] font-semibold text-night">
+                    {t("sixMonthsTitle")}
+                  </h2>
+                  <p className="text-sm text-ink-soft">
+                    {t("sixMonthsAverage", { value: shortMoney(sixMonthsAverage) })}
+                  </p>
+                </div>
+                <BarChart
+                  summary={t("sixMonthsSummary")}
+                  labels={sixMonths.map((month) => month.label)}
+                  values={sixMonths.map((month) => month.revenueCents)}
+                  format={(value) => shortMoney(value)}
+                  color={REVENUE}
+                  highlight={5}
+                  valueLabels
+                />
+              </section>
+            )}
+            {tab === "ca" && (
               <section aria-labelledby="ca-jour" className={`${panel} min-w-0`}>
                 <h2 id="ca-jour" className="font-display text-[1.1rem] font-semibold text-night">
                   {t("revenueTitle")}
                 </h2>
-                <LineChart
-                  id="ca"
+                <BarChart
                   summary={t("revenueSummary")}
                   labels={details.days.map((day) => String(Number(day.date.slice(8))))}
                   format={(value) => shortMoney(value)}
-                  series={[
-                    {
-                      label: t("revenue"),
-                      color: REVENUE,
-                      values: details.days.map((day) => day.revenueCents),
-                    },
-                  ]}
+                  color={REVENUE}
+                  values={details.days.map((day) => day.revenueCents)}
                 />
               </section>
             )}

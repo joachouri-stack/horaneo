@@ -3706,7 +3706,10 @@
       "tabs": {
         "ca": "Chiffre d'affaires",
         "rdv": "Rendez-vous"
-      }
+      },
+      "sixMonthsTitle": "Chiffre d'affaires des 6 derniers mois",
+      "sixMonthsSummary": "Chiffre d'affaires de chacun des 6 derniers mois, le mois affiché en dernier.",
+      "sixMonthsAverage": "Moyenne : {value} par mois"
     },
     "team": {
       "title": "Équipe",
