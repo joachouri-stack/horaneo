@@ -868,18 +868,23 @@ export default async function AgendaPage({
               return (
                 <li
                   key={day}
-                  className={`flex min-h-72 min-w-0 flex-col gap-1 border-r border-hairline px-0.5 pb-2 last:border-r-0 sm:px-1 ${
-                    closed
-                      ? "bg-[repeating-linear-gradient(45deg,#fafbfd,#fafbfd_6px,#f3f5f9_6px,#f3f5f9_12px)]"
-                      : ""
+                  className={`flex min-h-80 min-w-0 flex-col border-r border-hairline last:border-r-0 ${
+                    closed ? "bg-[#f1f3f7]" : day === today ? "bg-accent-soft/40" : ""
                   }`}
                 >
+                  {/* En-tête du jour : bandeau séparé des rendez-vous par un trait. */}
                   <Link
                     href={link({ date: day, vue: "jour" })}
                     aria-label={label}
-                    className="flex flex-col items-center py-2 leading-tight"
+                    className={`flex flex-col items-center border-b border-hairline py-2 leading-tight ${
+                      day === today ? "bg-accent-soft" : "bg-mist-50"
+                    }`}
                   >
-                    <span className="text-[0.6875rem] uppercase tracking-[0.04em] text-ink-soft">
+                    <span
+                      className={`text-[0.6875rem] font-medium uppercase tracking-[0.04em] ${
+                        day === today ? "text-accent" : "text-ink-soft"
+                      }`}
+                    >
                       {weekdayShort.format(instant(day)).replace(".", "")}
                     </span>
                     <span
@@ -890,50 +895,58 @@ export default async function AgendaPage({
                       {Number(day.slice(8))}
                     </span>
                   </Link>
-                  {dayOff.map((off) => (
-                    <Link
-                      key={off.id}
-                      href={`${page.base}/indisponibilites/${off.id}`}
-                      aria-label={`${t(`timeOff.${off.kind}`)} · ${off.staffName ?? ""} · ${tUnavailability("edit")}`}
-                      className="block rounded-md bg-[#f1f2f5] px-1 py-1 text-[10px] leading-tight text-ink-soft [overflow-wrap:anywhere] hover:bg-[#e8ebf1]"
-                    >
-                      <span className="line-clamp-2">
-                        {t(`timeOff.${off.kind}`)}
-                        {off.staffName ? ` · ${off.staffName}` : ""}
+                  {/* Lignes fines en fond pour repérer les cases, comme un agenda papier. */}
+                  <div className="flex flex-1 flex-col gap-1 bg-[linear-gradient(to_top,#eceef4_1px,transparent_1px)] bg-[length:100%_3rem] px-0.5 py-1.5 sm:px-1">
+                    {closed && (
+                      <span className="mt-1 text-center text-[10px] font-medium text-ink-soft">
+                        {t("closed")}
                       </span>
-                    </Link>
-                  ))}
-                  {dayAppointments.map((item) => (
-                    <Link
-                      key={item.id}
-                      href={`${page.base}/rendez-vous/${item.id}`}
-                      aria-label={`${page.fmt.time(item.startsAt)} · ${item.customerName}`}
-                      className={`block rounded-md border-l-[3px] px-1 py-1 leading-tight text-night transition hover:brightness-95 ${
-                        item.status === "no_show" ? "opacity-50" : ""
-                      }`}
-                      style={{
-                        borderLeftColor: item.staffColor ?? DEFAULT_COLOR,
-                        backgroundColor: tint(item.staffColor),
-                      }}
-                    >
-                      {/* Prénom puis nom, chacun sur sa ligne (coupés proprement si trop longs). */}
-                      {item.customerName
-                        .split(/\s+/)
-                        .reduce<string[]>(
-                          (lines, word, index) =>
-                            index === 0 ? [word] : [lines[0], lines[1] ? `${lines[1]} ${word}` : word],
-                          [],
-                        )
-                        .map((line, index) => (
-                          <span key={index} className="block truncate text-[11px] font-semibold">
-                            {line}
-                          </span>
-                        ))}
-                      <span className="block text-[10px] tabular-nums text-ink-soft">
-                        {page.fmt.time(item.startsAt)}
-                      </span>
-                    </Link>
-                  ))}
+                    )}
+                    {dayOff.map((off) => (
+                      <Link
+                        key={off.id}
+                        href={`${page.base}/indisponibilites/${off.id}`}
+                        aria-label={`${t(`timeOff.${off.kind}`)} · ${off.staffName ?? ""} · ${tUnavailability("edit")}`}
+                        className="block rounded-md bg-[#f1f2f5] px-1 py-1 text-[10px] leading-tight text-ink-soft [overflow-wrap:anywhere] hover:bg-[#e8ebf1]"
+                      >
+                        <span className="line-clamp-2">
+                          {t(`timeOff.${off.kind}`)}
+                          {off.staffName ? ` · ${off.staffName}` : ""}
+                        </span>
+                      </Link>
+                    ))}
+                    {dayAppointments.map((item) => (
+                      <Link
+                        key={item.id}
+                        href={`${page.base}/rendez-vous/${item.id}`}
+                        aria-label={`${page.fmt.time(item.startsAt)} · ${item.customerName}`}
+                        className={`block rounded-md border-l-[3px] px-1 py-1 leading-tight text-night transition hover:brightness-95 ${
+                          item.status === "no_show" ? "opacity-50" : ""
+                        }`}
+                        style={{
+                          borderLeftColor: item.staffColor ?? DEFAULT_COLOR,
+                          backgroundColor: tint(item.staffColor),
+                        }}
+                      >
+                        {/* Prénom puis nom, chacun sur sa ligne (coupés proprement si trop longs). */}
+                        {item.customerName
+                          .split(/\s+/)
+                          .reduce<string[]>(
+                            (lines, word, index) =>
+                              index === 0 ? [word] : [lines[0], lines[1] ? `${lines[1]} ${word}` : word],
+                            [],
+                          )
+                          .map((line, index) => (
+                            <span key={index} className="block truncate text-[11px] font-semibold">
+                              {line}
+                            </span>
+                          ))}
+                        <span className="block text-[10px] tabular-nums text-ink-soft">
+                          {page.fmt.time(item.startsAt)}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
                 </li>
               );
             })}
