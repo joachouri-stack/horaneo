@@ -12,6 +12,7 @@ import {
   Trend,
 } from "@/components/manager/DashboardWidgets";
 import { BarChart, GoalRing, HourHeat, LineChart, MiniGoalRing } from "@/components/manager/StatsCharts";
+import { ui } from "@/components/ui/styles";
 import { Link } from "@/i18n/navigation";
 import { centsToInput } from "@/lib/format";
 import { managerPage } from "@/lib/manager/page";
@@ -58,24 +59,46 @@ export default async function StatsPage({
     typeof requested === "string" && /^\d{4}-(0[1-9]|1[0-2])$/.test(requested) && requested <= current
       ? requested
       : current;
+  // Consulter le chiffre d'affaires d'un jour (« jour ») ou d'un mois (« caMoisM » + « caMoisA »).
+  const today = utcToLocal(new Date(), tz).date;
+  const lookupDay =
+    typeof query.jour === "string" && /^\d{4}-\d{2}-\d{2}$/.test(query.jour) && query.jour <= today
+      ? query.jour
+      : null;
+  const lookupMonthRaw =
+    typeof query.caMoisA === "string" && typeof query.caMoisM === "string"
+      ? `${query.caMoisA}-${query.caMoisM.padStart(2, "0")}`
+      : null;
+  const lookupMonth =
+    lookupMonthRaw && /^\d{4}-(0[1-9]|1[0-2])$/.test(lookupMonthRaw) && lookupMonthRaw <= current
+      ? lookupMonthRaw
+      : null;
   const detailed = Boolean(page.tenant.features.stats);
   // Remplissage, chiffre d'affaires et marge par prestation / produit : fonction de pack à part (Business).
   const insights = detailed && Boolean(page.tenant.features.performanceInsights);
-  const { stats, previous, older, details, goals, sales, occupancy } = await page.db(async (tx) => ({
-    stats: await monthStats(tx, page.tenantId, period, tz, page.locale),
-    previous: await monthStats(tx, page.tenantId, shift(period, -1), tz, page.locale),
-    // Mois −5 à −2 (avec « previous ») : cercles des 3 mois précédents et graphique des 6 derniers mois.
-    older: [
-      await monthStats(tx, page.tenantId, shift(period, -5), tz, page.locale),
-      await monthStats(tx, page.tenantId, shift(period, -4), tz, page.locale),
-      await monthStats(tx, page.tenantId, shift(period, -3), tz, page.locale),
-      await monthStats(tx, page.tenantId, shift(period, -2), tz, page.locale),
-    ],
-    details: await monthDetails(tx, page.tenantId, period, tz),
-    goals: await getStatsGoals(tx, page.tenantId),
-    sales: insights && tab === "ca" ? await monthSales(tx, page.tenantId, period, tz, page.locale) : null,
-    occupancy: insights && tab === "rdv" ? await monthOccupancy(tx, page.tenantId, period, tz) : null,
-  }));
+  const { stats, previous, older, details, goals, sales, occupancy, dayLookup, monthLookup } = await page.db(
+    async (tx) => ({
+      stats: await monthStats(tx, page.tenantId, period, tz, page.locale),
+      previous: await monthStats(tx, page.tenantId, shift(period, -1), tz, page.locale),
+      // Mois −5 à −2 (avec « previous ») : cercles des 3 mois précédents et graphique des 6 derniers mois.
+      older: [
+        await monthStats(tx, page.tenantId, shift(period, -5), tz, page.locale),
+        await monthStats(tx, page.tenantId, shift(period, -4), tz, page.locale),
+        await monthStats(tx, page.tenantId, shift(period, -3), tz, page.locale),
+        await monthStats(tx, page.tenantId, shift(period, -2), tz, page.locale),
+      ],
+      details: await monthDetails(tx, page.tenantId, period, tz),
+      goals: await getStatsGoals(tx, page.tenantId),
+      sales: insights && tab === "ca" ? await monthSales(tx, page.tenantId, period, tz, page.locale) : null,
+      occupancy: insights && tab === "rdv" ? await monthOccupancy(tx, page.tenantId, period, tz) : null,
+      dayLookup: lookupDay
+        ? ((await monthDetails(tx, page.tenantId, lookupDay.slice(0, 7), tz)).days[
+            Number(lookupDay.slice(8)) - 1
+          ] ?? null)
+        : null,
+      monthLookup: lookupMonth ? await monthStats(tx, page.tenantId, lookupMonth, tz, page.locale) : null,
+    }),
+  );
   const label = new Intl.DateTimeFormat(page.locale, {
     month: "long",
     year: "numeric",
@@ -89,6 +112,27 @@ export default async function StatsPage({
   const onlineRate = share(stats.online, stats.online + stats.manual);
   const vs = t("vsPrevious");
   const money = (cents: number) => page.fmt.money(cents);
+  const monthNames = Array.from({ length: 12 }, (_, index) =>
+    new Intl.DateTimeFormat(page.locale, { month: "long", timeZone: "UTC" }).format(
+      new Date(Date.UTC(2000, index, 15)),
+    ),
+  );
+  // Années proposées : les dix dernières.
+  const lookupYears = Array.from({ length: 10 }, (_, index) => String(Number(current.slice(0, 4)) - index));
+  const lookupDayLabel = lookupDay
+    ? new Intl.DateTimeFormat(page.locale, {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        timeZone: "UTC",
+      }).format(new Date(`${lookupDay}T12:00:00Z`))
+    : "";
+  const lookupMonthLabel = lookupMonth
+    ? new Intl.DateTimeFormat(page.locale, { month: "long", year: "numeric", timeZone: "UTC" }).format(
+        new Date(`${lookupMonth}-15T12:00:00Z`),
+      )
+    : "";
   const shortMoney = (cents: number) =>
     new Intl.NumberFormat(page.locale, {
       style: "currency",
@@ -385,6 +429,107 @@ export default async function StatsPage({
           sub={`${t("noShows")} : ${stats.noShows}`}
         />
       </div>
+
+      {/* Consulter le chiffre d'affaires d'un jour ou d'un mois précis. */}
+      <section aria-labelledby="consulter-ca" className={panel}>
+        <h2 id="consulter-ca" className="font-display text-[1.2rem] font-semibold text-night">
+          {t("lookup.title")}
+        </h2>
+        <p className="text-sm text-ink-soft">{t("lookup.intro")}</p>
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <form method="get" className="rounded-2xl border border-hairline p-4">
+            <input type="hidden" name="mois" value={period} />
+            {tab === "rdv" && <input type="hidden" name="vue" value="rdv" />}
+            <label htmlFor="ca-jour-choix" className={ui.label}>
+              {t("lookup.dayLabel")}
+            </label>
+            <div className="flex gap-2">
+              <input
+                id="ca-jour-choix"
+                type="date"
+                name="jour"
+                max={today}
+                defaultValue={lookupDay ?? today}
+                required
+                className={`${ui.input} min-w-0 flex-1`}
+              />
+              <button type="submit" className={`${ui.primaryButton} w-auto shrink-0 px-5`}>
+                {t("lookup.show")}
+              </button>
+            </div>
+            {lookupDay && (
+              <div className="mt-4 rounded-xl bg-accent-soft px-4 py-3" role="status">
+                <p className="text-sm text-ink-soft first-letter:uppercase">
+                  {t("lookup.dayResult", { date: lookupDayLabel })}
+                </p>
+                <p className="font-display text-[1.75rem] font-semibold leading-tight text-night tabular-nums">
+                  {money(dayLookup?.revenueCents ?? 0)}
+                </p>
+                <p className="text-sm text-ink-soft">
+                  {t("lookup.appointments", { count: (dayLookup?.online ?? 0) + (dayLookup?.manual ?? 0) })}
+                </p>
+              </div>
+            )}
+          </form>
+          <form method="get" className="rounded-2xl border border-hairline p-4">
+            <input type="hidden" name="mois" value={period} />
+            {tab === "rdv" && <input type="hidden" name="vue" value="rdv" />}
+            <p className={ui.label}>{t("lookup.monthLabel")}</p>
+            <div className="flex gap-2">
+              <label className="sr-only" htmlFor="ca-mois-m">
+                {t("lookup.month")}
+              </label>
+              <select
+                id="ca-mois-m"
+                name="caMoisM"
+                defaultValue={(lookupMonth ?? current).slice(5)}
+                className={`${ui.input} min-w-0 flex-1`}
+              >
+                {monthNames.map((name, index) => (
+                  <option key={name} value={String(index + 1).padStart(2, "0")}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+              <label className="sr-only" htmlFor="ca-mois-a">
+                {t("lookup.year")}
+              </label>
+              <select
+                id="ca-mois-a"
+                name="caMoisA"
+                defaultValue={(lookupMonth ?? current).slice(0, 4)}
+                className={`${ui.input} w-28 shrink-0`}
+              >
+                {lookupYears.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+              <button type="submit" className={`${ui.primaryButton} w-auto shrink-0 px-5`}>
+                {t("lookup.show")}
+              </button>
+            </div>
+            {lookupMonth && (
+              <div className="mt-4 rounded-xl bg-accent-soft px-4 py-3" role="status">
+                <p className="text-sm text-ink-soft">
+                  {t("lookup.monthResult", { month: lookupMonthLabel })}
+                </p>
+                <p className="font-display text-[1.75rem] font-semibold leading-tight text-night tabular-nums">
+                  {money(monthLookup?.revenueCents ?? 0)}
+                </p>
+                <p className="text-sm text-ink-soft">
+                  {t("lookup.appointments", { count: monthLookup?.appointments ?? 0 })}
+                  {" · "}
+                  <Link href={statsLink(lookupMonth)} className="font-medium text-accent underline">
+                    {t("lookup.monthStats")}
+                  </Link>
+                </p>
+              </div>
+            )}
+          </form>
+        </div>
+      </section>
 
       {/* Onglets : une seule partie des statistiques à la fois. */}
       {detailed && (
