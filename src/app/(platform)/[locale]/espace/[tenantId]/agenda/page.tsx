@@ -269,19 +269,11 @@ export default async function AgendaPage({
       : view === "week"
         ? start <= today && today <= weekEnd
         : date === today;
-  const currentLabel = t(view === "month" ? "isThisMonth" : view === "week" ? "isThisWeek" : "isToday");
-  // Libellé court entre les flèches : le jour, la semaine ou le mois affiché.
-  const shortTitle =
-    view === "month"
-      ? title
-      : view === "week"
-        ? fmt({ day: "numeric", month: "short" }).formatRange(instant(start), instant(weekEnd))
-        : fmt({ weekday: "short", day: "numeric", month: "short" }).format(instant(date));
 
   const iconButton =
     "flex size-11 items-center justify-center rounded-xl border border-hairline bg-white text-night transition hover:border-accent-line hover:text-accent";
   const segment =
-    "flex min-h-10 items-center rounded-lg px-3.5 text-[0.9375rem] font-medium text-ink-soft transition hover:text-night aria-[current=page]:bg-white aria-[current=page]:text-night aria-[current=page]:shadow-[0_1px_3px_rgba(15,24,48,.12)]";
+    "flex min-h-10 items-center justify-center rounded-xl px-3.5 text-[0.9375rem] font-medium text-ink-soft transition hover:text-night aria-[current=page]:bg-white aria-[current=page]:text-night aria-[current=page]:shadow-[0_1px_3px_rgba(15,24,48,.12)]";
 
   const header = (
     <div className="space-y-4">
@@ -290,14 +282,6 @@ export default async function AgendaPage({
           <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
             {t("title")}
           </h1>
-          <p className="flex flex-wrap items-center gap-2 text-ink-soft">
-            <span className="first-letter:uppercase">{title}</span>
-            {isCurrent && (
-              <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[0.8125rem] font-medium text-accent">
-                {currentLabel}
-              </span>
-            )}
-          </p>
         </div>
         {/* Trouver un rendez-vous : par nom, téléphone ou e-mail du client. */}
         <form
@@ -332,28 +316,7 @@ export default async function AgendaPage({
         </Link>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <Link href={link({ date: shift(-1) })} aria-label={t("previous")} className={iconButton}>
-          <DashIcon d="M15 6l-6 6 6 6" className="h-5 w-5" />
-        </Link>
-        {/* Entre les flèches : la période affichée (pas « Aujourd'hui », qui prêtait à confusion). */}
-        <p
-          aria-live="polite"
-          className="flex min-h-11 min-w-[7.5rem] items-center justify-center rounded-xl border border-hairline bg-white px-3 text-[0.9375rem] font-semibold text-night first-letter:uppercase"
-        >
-          {shortTitle}
-        </p>
-        <Link href={link({ date: shift(1) })} aria-label={t("next")} className={iconButton}>
-          <DashIcon d="M9 6l6 6-6 6" className="h-5 w-5" />
-        </Link>
-        {!isCurrent && (
-          <Link
-            href={link({ date: today })}
-            className="flex min-h-11 items-center px-1 text-[0.9375rem] font-medium text-accent underline"
-          >
-            {t("backToToday")}
-          </Link>
-        )}
-        <div className="ml-auto flex rounded-xl bg-[#eceff5] p-1">
+        <div className="grid w-full grid-cols-3 rounded-2xl bg-[#eceff5] p-1 sm:ml-auto sm:flex sm:w-auto">
           {(["day", "week", "month"] as const).map((value) => (
             <Link
               key={value}
@@ -478,27 +441,104 @@ export default async function AgendaPage({
     );
   const onDay = (day: string) => appointments.filter((item) => utcToLocal(item.startsAt, tz).date === day);
 
+  /**
+   * Bandeau bleu nuit en tête du calendrier (jour, semaine, mois) : période en grand, flèches
+   * rondes, retour à aujourd'hui, nombre de rendez-vous ; halos violet et bleu de la marque.
+   */
+  const banner = (
+    heading: ReactNode,
+    count: number,
+    rest: "rest" | "restDay" | "restWeek",
+    extra?: ReactNode,
+  ) => (
+    <div className="relative overflow-hidden bg-navy px-4 pb-3 pt-5 text-white sm:px-6">
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-20 -top-32 size-64 rounded-full bg-[radial-gradient(circle,rgba(123,63,228,.55),transparent_65%)]"
+      />
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-36 -left-24 size-60 rounded-full bg-[radial-gradient(circle,rgba(47,128,255,.45),transparent_65%)]"
+      />
+      <div className="relative flex items-center justify-between gap-3">
+        <h2
+          aria-live="polite"
+          className="font-display text-[1.35rem] font-semibold leading-tight tracking-[-0.025em] sm:text-[1.6rem]"
+        >
+          {heading}
+        </h2>
+        <div className="flex shrink-0 items-center gap-2">
+          {!isCurrent && (
+            <Link
+              href={link({ date: today })}
+              className="flex min-h-10 items-center rounded-full border border-white/15 bg-white/10 px-3 text-sm font-medium transition hover:bg-white/20"
+            >
+              {t("isToday")}
+            </Link>
+          )}
+          <Link
+            href={link({ date: shift(-1) })}
+            aria-label={t("previous")}
+            className="flex size-10 items-center justify-center rounded-full border border-white/15 bg-white/10 transition hover:bg-white/20"
+          >
+            <DashIcon d="M15 6l-6 6 6 6" className="h-5 w-5" />
+          </Link>
+          <Link
+            href={link({ date: shift(1) })}
+            aria-label={t("next")}
+            className="flex size-10 items-center justify-center rounded-full border border-white/15 bg-white/10 transition hover:bg-white/20"
+          >
+            <DashIcon d="M9 6l6 6-6 6" className="h-5 w-5" />
+          </Link>
+        </div>
+      </div>
+      <p className="relative mt-1 text-sm text-white/70">
+        <strong className="font-semibold text-white">{t("monthStats.count", { count })}</strong>{" "}
+        {t(`monthStats.${rest}`)}
+      </p>
+      {extra}
+    </div>
+  );
+  const bannerCard =
+    "overflow-hidden rounded-[1.6rem] bg-white shadow-[0_1px_2px_rgba(15,24,48,.05),0_18px_40px_-20px_rgba(11,16,51,.35)]";
+
   // ─── Mois : calendrier, une case par jour (le détail s'ouvre en vue jour) ──
   if (view === "month") {
     const gridDays = Array.from({ length: days }, (_, index) => addDays(start, index));
     const month = monthFirst.slice(0, 7);
     const openWeekdays = new Set(hours.map((range) => range.weekday));
     const weekdayName = fmt({ weekday: "short" });
+    const weekdayNarrow = fmt({ weekday: "narrow" });
+    const monthName = fmt({ month: "long" }).format(instant(monthFirst));
+    const monthYear = fmt({ year: "numeric" }).format(instant(monthFirst));
+    // Chiffres du mois affiché (rendez-vous du mois seulement, pas des jours voisins).
+    const monthDays = gridDays.filter((day) => day.slice(0, 7) === month);
+    const monthCount = monthDays.reduce((sum, day) => sum + onDay(day).length, 0);
     return (
       <div className="space-y-5">
         {header}
-        <div className="overflow-hidden rounded-[1.4rem] border border-hairline bg-white">
-          <div className="grid grid-cols-7 border-b border-hairline bg-mist-50" aria-hidden="true">
-            {gridDays.slice(0, 7).map((day) => (
-              <p
-                key={day}
-                className="py-2.5 text-center text-[0.8125rem] font-medium uppercase tracking-[0.06em] text-ink-soft"
-              >
-                {weekdayName.format(instant(day)).replace(".", "")}
-              </p>
-            ))}
-          </div>
-          <ul className="grid grid-cols-7">
+        {/* Calendrier du mois : bandeau bleu nuit aux halos de la marque, cases arrondies. */}
+        <div className={bannerCard}>
+          {banner(
+            <>
+              <span className="inline-block first-letter:uppercase">{monthName}</span>{" "}
+              <span className="text-[#a99bff]">{monthYear}</span>
+            </>,
+            monthCount,
+            "rest",
+            <div className="relative mt-4 grid grid-cols-7" aria-hidden="true">
+              {gridDays.slice(0, 7).map((day) => (
+                <p
+                  key={day}
+                  className="text-center text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-white/55"
+                >
+                  <span className="sm:hidden">{weekdayNarrow.format(instant(day))}</span>
+                  <span className="max-sm:hidden">{weekdayName.format(instant(day)).replace(".", "")}</span>
+                </p>
+              ))}
+            </div>,
+          )}
+          <ul className="grid grid-cols-7 gap-1.5 p-2.5 sm:gap-2 sm:p-3">
             {gridDays.map((day) => {
               const dayAppointments = onDay(day);
               const dayOff = dayOffOf(day);
@@ -507,39 +547,41 @@ export default async function AgendaPage({
                 dayAppointments.length === 0 &&
                 (!openWeekdays.has(isoWeekday(day)) ||
                   dayOff.some((off) => off.staffId === null && off.kind === "closure"));
+              const isToday = day === today;
               const label = `${page.fmt.day(instant(day))} · ${t("dayCount", { count: dayAppointments.length })}`;
               return (
-                <li key={day} className="border-b border-r border-hairline [&:nth-child(7n)]:border-r-0">
+                <li key={day} className={outside ? "opacity-25" : ""}>
                   <Link
                     href={link({ date: day, vue: "jour" })}
                     aria-label={label}
-                    className={`flex h-full min-h-16 flex-col gap-1 p-1 transition hover:bg-accent-soft/50 sm:min-h-28 sm:p-2 ${
-                      closed ? "bg-[#f1f3f7]" : ""
-                    } ${outside ? "opacity-60" : ""}`}
+                    className={`flex h-full min-h-14 flex-col items-center justify-center gap-1 rounded-2xl p-1 transition sm:min-h-28 sm:items-stretch sm:justify-start sm:p-2 ${
+                      isToday
+                        ? "bg-[linear-gradient(135deg,var(--color-violet),var(--color-azure))] text-white shadow-[0_10px_20px_-8px_rgba(91,63,228,.7)]"
+                        : dayAppointments.length > 0
+                          ? "bg-accent-soft hover:brightness-[.97]"
+                          : "hover:bg-mist-50"
+                    }`}
                   >
                     <span
-                      className={`flex size-7 items-center justify-center self-center rounded-full text-sm font-medium tabular-nums sm:self-start ${
-                        day === today ? "bg-accent text-white" : "text-night"
+                      className={`text-center text-base tabular-nums sm:text-left ${
+                        isToday
+                          ? "font-semibold"
+                          : closed
+                            ? "font-medium text-[#b3b9c8]"
+                            : "font-semibold text-night"
                       }`}
                     >
                       {Number(day.slice(8))}
                     </span>
-                    {/* Téléphone : une pastille par rendez-vous (couleur du membre). */}
+                    {/* Téléphone : le nombre de rendez-vous dans une pastille au dégradé. */}
                     {dayAppointments.length > 0 && (
-                      <span className="flex flex-wrap justify-center gap-0.5 sm:hidden" aria-hidden="true">
-                        {dayAppointments.slice(0, 6).map((item) => (
-                          <span
-                            key={item.id}
-                            className="size-1.5 rounded-full"
-                            style={{ backgroundColor: item.staffColor ?? DEFAULT_COLOR }}
-                          />
-                        ))}
-                      </span>
-                    )}
-                    {dayAppointments.length > 6 && (
                       <span
-                        className="text-center text-[10px] font-medium text-ink-soft sm:hidden"
                         aria-hidden="true"
+                        className={`flex h-4 min-w-[1.125rem] items-center justify-center rounded-full px-1 text-[10px] font-semibold leading-none sm:hidden ${
+                          isToday
+                            ? "bg-white text-[#5b3fe4]"
+                            : "bg-[linear-gradient(135deg,var(--color-violet),var(--color-azure))] text-white"
+                        }`}
                       >
                         {dayAppointments.length}
                       </span>
@@ -549,7 +591,7 @@ export default async function AgendaPage({
                       {dayOff.slice(0, 1).map((off) => (
                         <span
                           key={off.id}
-                          className="block truncate rounded-md bg-[#f1f2f5] px-1.5 py-0.5 text-[11px] text-ink-soft"
+                          className="block truncate rounded-md bg-[#eceef4] px-1.5 py-0.5 text-[11px] text-ink-soft"
                         >
                           {t(`timeOff.${off.kind}`)}
                         </span>
@@ -557,20 +599,19 @@ export default async function AgendaPage({
                       {dayAppointments.slice(0, MONTH_PREVIEW).map((item) => (
                         <span
                           key={item.id}
-                          className={`block truncate rounded-md border-l-[3px] px-1.5 py-0.5 text-[11px] leading-tight text-night ${
+                          className={`block truncate rounded-md border-l-[3px] bg-white px-1.5 py-0.5 text-[11px] leading-tight text-night shadow-[0_1px_2px_rgba(15,24,48,.06)] ${
                             item.status === "no_show" ? "opacity-50" : ""
                           }`}
-                          style={{
-                            borderLeftColor: item.staffColor ?? DEFAULT_COLOR,
-                            backgroundColor: tint(item.staffColor),
-                          }}
+                          style={{ borderLeftColor: item.staffColor ?? DEFAULT_COLOR }}
                         >
                           <span className="font-semibold tabular-nums">{page.fmt.time(item.startsAt)}</span>{" "}
                           {item.customerName}
                         </span>
                       ))}
                       {dayAppointments.length > MONTH_PREVIEW && (
-                        <span className="block px-1.5 text-[11px] font-medium text-accent">
+                        <span
+                          className={`block px-1.5 text-[11px] font-medium ${isToday ? "text-white" : "text-accent"}`}
+                        >
                           {t("more", { count: dayAppointments.length - MONTH_PREVIEW })}
                         </span>
                       )}
@@ -882,6 +923,13 @@ export default async function AgendaPage({
     return (
       <div className="space-y-5">
         {header}
+        <div className={bannerCard}>
+          {banner(
+            <span className="inline-block first-letter:uppercase">{title}</span>,
+            visibleDays.reduce((sum, day) => sum + onDay(day).length, 0),
+            "restWeek",
+          )}
+        </div>
         <div className="hidden lg:block">{grid(columns, { nowColumn: today, wide: false })}</div>
         {/*
           Téléphone et tablette : sept colonnes (comme un calendrier de téléphone), les
@@ -1062,6 +1110,13 @@ export default async function AgendaPage({
   return (
     <div className="space-y-5">
       {header}
+      <div className={bannerCard}>
+        {banner(
+          <span className="inline-block first-letter:uppercase">{title}</span>,
+          onDay(date).length,
+          "restDay",
+        )}
+      </div>
       {/* Jour sans horaires d'ouverture : explication, et lien vers les horaires si permis. */}
       {hoursOf(date).length === 0 && appointments.length === 0 && (
         <ClosedDayCard

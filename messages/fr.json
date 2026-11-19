@@ -3191,7 +3191,13 @@
       "backToToday": "Revenir à aujourd'hui",
       "isToday": "Aujourd'hui",
       "isThisWeek": "Cette semaine",
-      "isThisMonth": "Ce mois-ci"
+      "isThisMonth": "Ce mois-ci",
+      "monthStats": {
+        "count": "{count, plural, =0 {Aucun rendez-vous} one {# rendez-vous} other {# rendez-vous}}",
+        "rest": "ce mois",
+        "restDay": "ce jour",
+        "restWeek": "cette semaine"
+      }
     },
     "unavailability": {
       "title": "Je ne suis pas disponible",
