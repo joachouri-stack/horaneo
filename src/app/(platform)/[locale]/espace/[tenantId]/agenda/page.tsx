@@ -333,7 +333,9 @@ export default async function AgendaPage({
       </div>
       <div className="flex flex-wrap items-center gap-2">
         {/* Navigation groupée : ‹ période affichée › dans une seule pastille. */}
-        <div className="flex items-center rounded-2xl border border-hairline bg-white p-1 shadow-[0_1px_2px_rgba(15,24,48,.04)]">
+        <div
+          className={`${view === "month" ? "hidden" : "flex"} items-center rounded-2xl border border-hairline bg-white p-1 shadow-[0_1px_2px_rgba(15,24,48,.04)]`}
+        >
           <Link
             href={link({ date: shift(-1) })}
             aria-label={t("previous")}
@@ -356,7 +358,7 @@ export default async function AgendaPage({
             <DashIcon d="M9 6l6 6-6 6" className="h-5 w-5" />
           </Link>
         </div>
-        {!isCurrent && (
+        {!isCurrent && view !== "month" && (
           <Link
             href={link({ date: today })}
             className="flex min-h-11 items-center rounded-xl px-3 text-[0.9375rem] font-medium text-accent transition hover:bg-accent-soft"
@@ -495,22 +497,76 @@ export default async function AgendaPage({
     const month = monthFirst.slice(0, 7);
     const openWeekdays = new Set(hours.map((range) => range.weekday));
     const weekdayName = fmt({ weekday: "short" });
+    const weekdayNarrow = fmt({ weekday: "narrow" });
+    const monthName = fmt({ month: "long" }).format(instant(monthFirst));
+    const monthYear = fmt({ year: "numeric" }).format(instant(monthFirst));
+    // Chiffres du mois affiché (rendez-vous du mois seulement, pas des jours voisins).
+    const monthDays = gridDays.filter((day) => day.slice(0, 7) === month);
+    const monthCount = monthDays.reduce((sum, day) => sum + onDay(day).length, 0);
+    const busyDays = monthDays.filter((day) => onDay(day).length > 0).length;
     return (
       <div className="space-y-5">
         {header}
-        {/* Calendrier du mois : cases arrondies espacées, aujourd'hui au dégradé de la marque. */}
-        <div className="rounded-[1.4rem] border border-hairline bg-white p-2 shadow-[0_1px_2px_rgba(15,24,48,.04),0_8px_24px_-12px_rgba(15,24,48,.10)] sm:p-3">
-          <div className="grid grid-cols-7 pb-1" aria-hidden="true">
-            {gridDays.slice(0, 7).map((day) => (
-              <p
-                key={day}
-                className="py-2 text-center text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-ink-soft"
-              >
-                {weekdayName.format(instant(day)).replace(".", "")}
-              </p>
-            ))}
+        {/* Calendrier du mois : bandeau bleu nuit aux halos de la marque, cases arrondies. */}
+        <div className="overflow-hidden rounded-[1.6rem] bg-white shadow-[0_1px_2px_rgba(15,24,48,.05),0_18px_40px_-20px_rgba(11,16,51,.35)]">
+          <div className="relative overflow-hidden bg-navy px-4 pb-3 pt-5 text-white sm:px-6">
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute -right-20 -top-32 size-64 rounded-full bg-[radial-gradient(circle,rgba(123,63,228,.55),transparent_65%)]"
+            />
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute -bottom-36 -left-24 size-60 rounded-full bg-[radial-gradient(circle,rgba(47,128,255,.45),transparent_65%)]"
+            />
+            <div className="relative flex items-center justify-between gap-3">
+              <h2 className="font-display text-[1.6rem] font-semibold leading-tight tracking-[-0.025em]">
+                <span className="inline-block first-letter:uppercase">{monthName}</span>{" "}
+                <span className="text-[#a99bff]">{monthYear}</span>
+              </h2>
+              <div className="flex shrink-0 items-center gap-2">
+                {!isCurrent && (
+                  <Link
+                    href={link({ date: today })}
+                    className="flex min-h-10 items-center rounded-full border border-white/15 bg-white/10 px-3 text-sm font-medium transition hover:bg-white/20"
+                  >
+                    {t("isToday")}
+                  </Link>
+                )}
+                <Link
+                  href={link({ date: shift(-1) })}
+                  aria-label={t("previous")}
+                  className="flex size-10 items-center justify-center rounded-full border border-white/15 bg-white/10 transition hover:bg-white/20"
+                >
+                  <DashIcon d="M15 6l-6 6 6 6" className="h-5 w-5" />
+                </Link>
+                <Link
+                  href={link({ date: shift(1) })}
+                  aria-label={t("next")}
+                  className="flex size-10 items-center justify-center rounded-full border border-white/15 bg-white/10 transition hover:bg-white/20"
+                >
+                  <DashIcon d="M9 6l6 6-6 6" className="h-5 w-5" />
+                </Link>
+              </div>
+            </div>
+            <p className="relative mt-1 text-sm text-white/70">
+              <strong className="font-semibold text-white">
+                {t("monthStats.count", { count: monthCount })}
+              </strong>{" "}
+              {t("monthStats.rest", { days: busyDays })}
+            </p>
+            <div className="relative mt-4 grid grid-cols-7" aria-hidden="true">
+              {gridDays.slice(0, 7).map((day) => (
+                <p
+                  key={day}
+                  className="text-center text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-white/55"
+                >
+                  <span className="sm:hidden">{weekdayNarrow.format(instant(day))}</span>
+                  <span className="max-sm:hidden">{weekdayName.format(instant(day)).replace(".", "")}</span>
+                </p>
+              ))}
+            </div>
           </div>
-          <ul className="grid grid-cols-7 gap-1 sm:gap-1.5">
+          <ul className="grid grid-cols-7 gap-1.5 p-2.5 sm:gap-2 sm:p-3">
             {gridDays.map((day) => {
               const dayAppointments = onDay(day);
               const dayOff = dayOffOf(day);
@@ -522,40 +578,40 @@ export default async function AgendaPage({
               const isToday = day === today;
               const label = `${page.fmt.day(instant(day))} · ${t("dayCount", { count: dayAppointments.length })}`;
               return (
-                <li key={day}>
+                <li key={day} className={outside ? "opacity-25" : ""}>
                   <Link
                     href={link({ date: day, vue: "jour" })}
                     aria-label={label}
-                    className={`flex h-full min-h-14 flex-col items-center gap-1 rounded-xl p-1 transition hover:bg-accent-soft sm:min-h-28 sm:items-stretch sm:p-2 ${
-                      dayAppointments.length > 0 ? "bg-accent-soft/60" : ""
-                    } ${outside ? "opacity-40" : ""}`}
+                    className={`flex h-full min-h-14 flex-col items-center justify-center gap-1 rounded-2xl p-1 transition sm:min-h-28 sm:items-stretch sm:justify-start sm:p-2 ${
+                      isToday
+                        ? "bg-[linear-gradient(135deg,var(--color-violet),var(--color-azure))] text-white shadow-[0_10px_20px_-8px_rgba(91,63,228,.7)]"
+                        : dayAppointments.length > 0
+                          ? "bg-accent-soft hover:brightness-[.97]"
+                          : "hover:bg-mist-50"
+                    }`}
                   >
                     <span
-                      className={`flex size-8 items-center justify-center self-center rounded-full text-[0.9375rem] tabular-nums sm:self-start ${
+                      className={`text-center text-base tabular-nums sm:text-left ${
                         isToday
-                          ? "bg-[linear-gradient(135deg,var(--color-violet),var(--color-azure))] font-semibold text-white shadow-[0_4px_12px_-4px_rgba(91,63,228,.6)]"
+                          ? "font-semibold"
                           : closed
-                            ? "font-medium text-ink-soft/70"
+                            ? "font-medium text-[#b3b9c8]"
                             : "font-semibold text-night"
                       }`}
                     >
                       {Number(day.slice(8))}
                     </span>
-                    {/* Téléphone : une pastille par rendez-vous (couleur du membre), puis le nombre. */}
+                    {/* Téléphone : le nombre de rendez-vous dans une pastille au dégradé. */}
                     {dayAppointments.length > 0 && (
-                      <span className="flex items-center gap-0.5 sm:hidden" aria-hidden="true">
-                        {dayAppointments.slice(0, 3).map((item) => (
-                          <span
-                            key={item.id}
-                            className="size-1.5 rounded-full"
-                            style={{ backgroundColor: item.staffColor ?? DEFAULT_COLOR }}
-                          />
-                        ))}
-                        {dayAppointments.length > 3 && (
-                          <span className="text-[10px] font-semibold leading-none text-accent">
-                            +{dayAppointments.length - 3}
-                          </span>
-                        )}
+                      <span
+                        aria-hidden="true"
+                        className={`flex h-4 min-w-[1.125rem] items-center justify-center rounded-full px-1 text-[10px] font-semibold leading-none sm:hidden ${
+                          isToday
+                            ? "bg-white text-[#5b3fe4]"
+                            : "bg-[linear-gradient(135deg,var(--color-violet),var(--color-azure))] text-white"
+                        }`}
+                      >
+                        {dayAppointments.length}
                       </span>
                     )}
                     {/* Écran large : les premiers rendez-vous écrits, puis « +N autres ». */}
@@ -581,7 +637,9 @@ export default async function AgendaPage({
                         </span>
                       ))}
                       {dayAppointments.length > MONTH_PREVIEW && (
-                        <span className="block px-1.5 text-[11px] font-medium text-accent">
+                        <span
+                          className={`block px-1.5 text-[11px] font-medium ${isToday ? "text-white" : "text-accent"}`}
+                        >
                           {t("more", { count: dayAppointments.length - MONTH_PREVIEW })}
                         </span>
                       )}
