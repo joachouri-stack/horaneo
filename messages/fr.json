@@ -3177,7 +3177,8 @@
       "periods": {
         "morning": "Matin",
         "afternoon": "Après-midi"
-      }
+      },
+      "addThisDay": "Ajouter un rendez-vous ce jour"
     },
     "unavailability": {
       "title": "Je ne suis pas disponible",

@@ -482,9 +482,7 @@ export default async function AgendaPage({
                     href={link({ date: day, vue: "jour" })}
                     aria-label={label}
                     className={`flex h-full min-h-16 flex-col gap-1 p-1 transition hover:bg-accent-soft/50 sm:min-h-28 sm:p-2 ${
-                      closed
-                        ? "bg-[repeating-linear-gradient(45deg,#fafbfd,#fafbfd_6px,#f3f5f9_6px,#f3f5f9_12px)]"
-                        : ""
+                      closed ? "bg-[#f1f3f7]" : ""
                     } ${outside ? "opacity-60" : ""}`}
                   >
                     <span
@@ -1065,6 +1063,14 @@ export default async function AgendaPage({
           />
         )}
       </div>
+      {/* Téléphone : ajouter un rendez-vous ce jour, juste sous la journée. */}
+      <Link
+        href={`${page.base}/rendez-vous/nouveau?date=${date}${ownStaff ? `&membre=${ownStaff}` : ""}`}
+        className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-dashed border-accent/50 bg-white text-[0.95rem] font-medium text-accent transition hover:bg-accent-soft sm:hidden"
+      >
+        <DashIcon d={DASH_ICONS.plus} className="h-5 w-5" />
+        {t("addThisDay")}
+      </Link>
     </div>
   );
 }
