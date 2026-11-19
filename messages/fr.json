@@ -4120,7 +4120,12 @@
       "deliveryFeeHint": "Vide ou 0 : livraison gratuite.",
       "freeDeliveryFrom": "Offerte dès ({currency})",
       "freeDeliveryFromHint": "Facultatif : montant de commande à partir duquel la livraison est offerte.",
-      "seeShop": "Voir ma boutique"
+      "seeShop": "Voir ma boutique",
+      "hiddenNeedsStripe": "Votre boutique n'est pas encore visible sur votre site : pour que vos clients puissent commander et payer, ouvrez d'abord votre compte de paiement.",
+      "hiddenNeedsStripeLink": "Ouvrir mon compte de paiement",
+      "hiddenPlatformOff": "Votre boutique n'est pas encore visible sur votre site : elle ouvrira dès que le paiement en ligne sera disponible sur la plateforme.",
+      "hiddenNoPayment": "Votre boutique n'est pas visible sur votre site : le paiement en ligne n'est pas inclus dans votre pack.",
+      "hiddenNoProduct": "Ajoutez un premier produit : votre boutique apparaîtra sur votre site."
     },
     "promotions": {
       "title": "Promotions",
