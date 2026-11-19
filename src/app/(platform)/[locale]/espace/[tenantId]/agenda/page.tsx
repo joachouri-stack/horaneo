@@ -1025,11 +1025,19 @@ export default async function AgendaPage({
     };
   });
 
+  const addHref = `${page.base}/rendez-vous/nouveau?date=${date}${ownStaff ? `&membre=${ownStaff}` : ""}`;
+
   return (
     <div className="space-y-5">
       {header}
+      {/* Jour sans horaires d'ouverture : explication, et lien vers les horaires si permis. */}
       {hoursOf(date).length === 0 && appointments.length === 0 && (
-        <p className="rounded-2xl border border-hairline bg-white px-5 py-4 text-ink-soft">{t("closed")}</p>
+        <ClosedDayCard
+          title={t("closedDay.title", { weekday: fmt({ weekday: "long" }).format(instant(date)) })}
+          hint={t("closedDay.hint")}
+          action={t("closedDay.editHours")}
+          href={canAccess(page.space, "site") ? `${page.base}/site/horaires` : null}
+        />
       )}
       {/*
         Plusieurs membres : une colonne par membre, côte à côte, aussi sur téléphone
@@ -1052,7 +1060,17 @@ export default async function AgendaPage({
           </Link>
         ))}
         {onDay(date).length === 0 ? (
-          <p className="rounded-2xl border border-hairline bg-white px-5 py-4 text-ink-soft">{t("empty")}</p>
+          // Journée vide : toute la carte ajoute un rendez-vous ce jour.
+          <Link
+            href={addHref}
+            className="flex flex-col items-start gap-3 rounded-2xl border border-hairline bg-white px-5 py-4 transition hover:border-accent hover:bg-accent-soft/40"
+          >
+            <span className="text-ink-soft">{t("emptyDay.title")}</span>
+            <span className="inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-accent px-4 font-medium text-white">
+              <DashIcon d={DASH_ICONS.plus} className="h-5 w-5" />
+              {t("emptyDay.action")}
+            </span>
+          </Link>
         ) : (
           <DayTimeline
             items={onDay(date)}
@@ -1063,14 +1081,48 @@ export default async function AgendaPage({
           />
         )}
       </div>
-      {/* Téléphone : ajouter un rendez-vous ce jour, juste sous la journée. */}
+      {/* Téléphone : ajouter un rendez-vous ce jour, juste sous la journée (déjà proposé si elle est vide). */}
       <Link
-        href={`${page.base}/rendez-vous/nouveau?date=${date}${ownStaff ? `&membre=${ownStaff}` : ""}`}
-        className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-dashed border-accent/50 bg-white text-[0.95rem] font-medium text-accent transition hover:bg-accent-soft sm:hidden"
+        href={addHref}
+        className={`${columns.length > 1 || onDay(date).length > 0 ? "flex" : "hidden"} min-h-12 items-center justify-center gap-2 rounded-2xl border border-dashed border-accent/50 bg-white text-[0.95rem] font-medium text-accent transition hover:bg-accent-soft sm:hidden`}
       >
         <DashIcon d={DASH_ICONS.plus} className="h-5 w-5" />
         {t("addThisDay")}
       </Link>
     </div>
+  );
+}
+
+/** Jour sans horaires d'ouverture : ce que cela veut dire, et où le changer. */
+function ClosedDayCard({
+  title,
+  hint,
+  action,
+  href,
+}: {
+  title: string;
+  hint: string;
+  action: string;
+  href: string | null;
+}) {
+  const body = (
+    <>
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#eceef4] text-ink-soft">
+        <DashIcon d="M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0" className="h-5 w-5" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block font-semibold text-night first-letter:uppercase">{title}</span>
+        <span className="mt-0.5 block text-sm text-ink-soft">{hint}</span>
+        {href && <span className="mt-2 block text-sm font-medium text-accent underline">{action}</span>}
+      </span>
+    </>
+  );
+  const className = "flex items-start gap-3 rounded-2xl border border-hairline bg-[#f6f7fa] px-4 py-4";
+  return href ? (
+    <Link href={href} className={`${className} transition hover:border-accent`}>
+      {body}
+    </Link>
+  ) : (
+    <div className={className}>{body}</div>
   );
 }
