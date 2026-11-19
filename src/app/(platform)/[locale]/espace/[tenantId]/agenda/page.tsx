@@ -269,14 +269,6 @@ export default async function AgendaPage({
       : view === "week"
         ? start <= today && today <= weekEnd
         : date === today;
-  const currentLabel = t(view === "month" ? "isThisMonth" : view === "week" ? "isThisWeek" : "isToday");
-  // Libellé court entre les flèches : le jour, la semaine ou le mois affiché.
-  const shortTitle =
-    view === "month"
-      ? title
-      : view === "week"
-        ? fmt({ day: "numeric", month: "short" }).formatRange(instant(start), instant(weekEnd))
-        : fmt({ weekday: "short", day: "numeric", month: "short" }).format(instant(date));
 
   const iconButton =
     "flex size-11 items-center justify-center rounded-xl border border-hairline bg-white text-night transition hover:border-accent-line hover:text-accent";
@@ -290,14 +282,6 @@ export default async function AgendaPage({
           <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
             {t("title")}
           </h1>
-          <p className="flex flex-wrap items-center gap-2 text-ink-soft">
-            <span className="first-letter:uppercase">{title}</span>
-            {isCurrent && (
-              <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[0.8125rem] font-medium text-accent">
-                {currentLabel}
-              </span>
-            )}
-          </p>
         </div>
         {/* Trouver un rendez-vous : par nom, téléphone ou e-mail du client. */}
         <form
@@ -332,40 +316,6 @@ export default async function AgendaPage({
         </Link>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        {/* Navigation groupée : ‹ période affichée › dans une seule pastille. */}
-        <div
-          className={`${view === "month" ? "hidden" : "flex"} items-center rounded-2xl border border-hairline bg-white p-1 shadow-[0_1px_2px_rgba(15,24,48,.04)]`}
-        >
-          <Link
-            href={link({ date: shift(-1) })}
-            aria-label={t("previous")}
-            className="flex size-10 items-center justify-center rounded-xl text-ink-soft transition hover:bg-accent-soft hover:text-accent"
-          >
-            <DashIcon d="M15 6l-6 6 6 6" className="h-5 w-5" />
-          </Link>
-          {/* Entre les flèches : la période affichée (pas « Aujourd'hui », qui prêtait à confusion). */}
-          <p
-            aria-live="polite"
-            className="min-w-[7.5rem] px-2 text-center text-[0.9375rem] font-semibold text-night first-letter:uppercase"
-          >
-            {shortTitle}
-          </p>
-          <Link
-            href={link({ date: shift(1) })}
-            aria-label={t("next")}
-            className="flex size-10 items-center justify-center rounded-xl text-ink-soft transition hover:bg-accent-soft hover:text-accent"
-          >
-            <DashIcon d="M9 6l6 6-6 6" className="h-5 w-5" />
-          </Link>
-        </div>
-        {!isCurrent && view !== "month" && (
-          <Link
-            href={link({ date: today })}
-            className="flex min-h-11 items-center rounded-xl px-3 text-[0.9375rem] font-medium text-accent transition hover:bg-accent-soft"
-          >
-            {t("backToToday")}
-          </Link>
-        )}
         <div className="grid w-full grid-cols-3 rounded-2xl bg-[#eceff5] p-1 sm:ml-auto sm:flex sm:w-auto">
           {(["day", "week", "month"] as const).map((value) => (
             <Link
@@ -491,6 +441,67 @@ export default async function AgendaPage({
     );
   const onDay = (day: string) => appointments.filter((item) => utcToLocal(item.startsAt, tz).date === day);
 
+  /**
+   * Bandeau bleu nuit en tête du calendrier (jour, semaine, mois) : période en grand, flèches
+   * rondes, retour à aujourd'hui, nombre de rendez-vous ; halos violet et bleu de la marque.
+   */
+  const banner = (
+    heading: ReactNode,
+    count: number,
+    rest: "rest" | "restDay" | "restWeek",
+    extra?: ReactNode,
+  ) => (
+    <div className="relative overflow-hidden bg-navy px-4 pb-3 pt-5 text-white sm:px-6">
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-20 -top-32 size-64 rounded-full bg-[radial-gradient(circle,rgba(123,63,228,.55),transparent_65%)]"
+      />
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-36 -left-24 size-60 rounded-full bg-[radial-gradient(circle,rgba(47,128,255,.45),transparent_65%)]"
+      />
+      <div className="relative flex items-center justify-between gap-3">
+        <h2
+          aria-live="polite"
+          className="font-display text-[1.35rem] font-semibold leading-tight tracking-[-0.025em] sm:text-[1.6rem]"
+        >
+          {heading}
+        </h2>
+        <div className="flex shrink-0 items-center gap-2">
+          {!isCurrent && (
+            <Link
+              href={link({ date: today })}
+              className="flex min-h-10 items-center rounded-full border border-white/15 bg-white/10 px-3 text-sm font-medium transition hover:bg-white/20"
+            >
+              {t("isToday")}
+            </Link>
+          )}
+          <Link
+            href={link({ date: shift(-1) })}
+            aria-label={t("previous")}
+            className="flex size-10 items-center justify-center rounded-full border border-white/15 bg-white/10 transition hover:bg-white/20"
+          >
+            <DashIcon d="M15 6l-6 6 6 6" className="h-5 w-5" />
+          </Link>
+          <Link
+            href={link({ date: shift(1) })}
+            aria-label={t("next")}
+            className="flex size-10 items-center justify-center rounded-full border border-white/15 bg-white/10 transition hover:bg-white/20"
+          >
+            <DashIcon d="M9 6l6 6-6 6" className="h-5 w-5" />
+          </Link>
+        </div>
+      </div>
+      <p className="relative mt-1 text-sm text-white/70">
+        <strong className="font-semibold text-white">{t("monthStats.count", { count })}</strong>{" "}
+        {t(`monthStats.${rest}`)}
+      </p>
+      {extra}
+    </div>
+  );
+  const bannerCard =
+    "overflow-hidden rounded-[1.6rem] bg-white shadow-[0_1px_2px_rgba(15,24,48,.05),0_18px_40px_-20px_rgba(11,16,51,.35)]";
+
   // ─── Mois : calendrier, une case par jour (le détail s'ouvre en vue jour) ──
   if (view === "month") {
     const gridDays = Array.from({ length: days }, (_, index) => addDays(start, index));
@@ -507,52 +518,14 @@ export default async function AgendaPage({
       <div className="space-y-5">
         {header}
         {/* Calendrier du mois : bandeau bleu nuit aux halos de la marque, cases arrondies. */}
-        <div className="overflow-hidden rounded-[1.6rem] bg-white shadow-[0_1px_2px_rgba(15,24,48,.05),0_18px_40px_-20px_rgba(11,16,51,.35)]">
-          <div className="relative overflow-hidden bg-navy px-4 pb-3 pt-5 text-white sm:px-6">
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute -right-20 -top-32 size-64 rounded-full bg-[radial-gradient(circle,rgba(123,63,228,.55),transparent_65%)]"
-            />
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute -bottom-36 -left-24 size-60 rounded-full bg-[radial-gradient(circle,rgba(47,128,255,.45),transparent_65%)]"
-            />
-            <div className="relative flex items-center justify-between gap-3">
-              <h2 className="font-display text-[1.6rem] font-semibold leading-tight tracking-[-0.025em]">
-                <span className="inline-block first-letter:uppercase">{monthName}</span>{" "}
-                <span className="text-[#a99bff]">{monthYear}</span>
-              </h2>
-              <div className="flex shrink-0 items-center gap-2">
-                {!isCurrent && (
-                  <Link
-                    href={link({ date: today })}
-                    className="flex min-h-10 items-center rounded-full border border-white/15 bg-white/10 px-3 text-sm font-medium transition hover:bg-white/20"
-                  >
-                    {t("isToday")}
-                  </Link>
-                )}
-                <Link
-                  href={link({ date: shift(-1) })}
-                  aria-label={t("previous")}
-                  className="flex size-10 items-center justify-center rounded-full border border-white/15 bg-white/10 transition hover:bg-white/20"
-                >
-                  <DashIcon d="M15 6l-6 6 6 6" className="h-5 w-5" />
-                </Link>
-                <Link
-                  href={link({ date: shift(1) })}
-                  aria-label={t("next")}
-                  className="flex size-10 items-center justify-center rounded-full border border-white/15 bg-white/10 transition hover:bg-white/20"
-                >
-                  <DashIcon d="M9 6l6 6-6 6" className="h-5 w-5" />
-                </Link>
-              </div>
-            </div>
-            <p className="relative mt-1 text-sm text-white/70">
-              <strong className="font-semibold text-white">
-                {t("monthStats.count", { count: monthCount })}
-              </strong>{" "}
-              {t("monthStats.rest")}
-            </p>
+        <div className={bannerCard}>
+          {banner(
+            <>
+              <span className="inline-block first-letter:uppercase">{monthName}</span>{" "}
+              <span className="text-[#a99bff]">{monthYear}</span>
+            </>,
+            monthCount,
+            "rest",
             <div className="relative mt-4 grid grid-cols-7" aria-hidden="true">
               {gridDays.slice(0, 7).map((day) => (
                 <p
@@ -563,8 +536,8 @@ export default async function AgendaPage({
                   <span className="max-sm:hidden">{weekdayName.format(instant(day)).replace(".", "")}</span>
                 </p>
               ))}
-            </div>
-          </div>
+            </div>,
+          )}
           <ul className="grid grid-cols-7 gap-1.5 p-2.5 sm:gap-2 sm:p-3">
             {gridDays.map((day) => {
               const dayAppointments = onDay(day);
@@ -950,6 +923,13 @@ export default async function AgendaPage({
     return (
       <div className="space-y-5">
         {header}
+        <div className={bannerCard}>
+          {banner(
+            <span className="inline-block first-letter:uppercase">{title}</span>,
+            visibleDays.reduce((sum, day) => sum + onDay(day).length, 0),
+            "restWeek",
+          )}
+        </div>
         <div className="hidden lg:block">{grid(columns, { nowColumn: today, wide: false })}</div>
         {/*
           Téléphone et tablette : sept colonnes (comme un calendrier de téléphone), les
@@ -1130,6 +1110,13 @@ export default async function AgendaPage({
   return (
     <div className="space-y-5">
       {header}
+      <div className={bannerCard}>
+        {banner(
+          <span className="inline-block first-letter:uppercase">{title}</span>,
+          onDay(date).length,
+          "restDay",
+        )}
+      </div>
       {/* Jour sans horaires d'ouverture : explication, et lien vers les horaires si permis. */}
       {hoursOf(date).length === 0 && appointments.length === 0 && (
         <ClosedDayCard
