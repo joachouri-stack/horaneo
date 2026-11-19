@@ -3178,7 +3178,16 @@
         "morning": "Matin",
         "afternoon": "Après-midi"
       },
-      "addThisDay": "Ajouter un rendez-vous ce jour"
+      "addThisDay": "Ajouter un rendez-vous ce jour",
+      "closedDay": {
+        "title": "Établissement fermé le {weekday}",
+        "hint": "Aucun horaire d'ouverture ce jour-là : vos clientes ne peuvent pas réserver en ligne. Vous pouvez quand même ajouter un rendez-vous vous-même.",
+        "editHours": "Modifier mes horaires d'ouverture"
+      },
+      "emptyDay": {
+        "title": "Aucun rendez-vous ce jour",
+        "action": "Ajouter un rendez-vous"
+      }
     },
     "unavailability": {
       "title": "Je ne suis pas disponible",
