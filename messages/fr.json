@@ -3169,6 +3169,10 @@
         "saved": "Enregistré : {value} après chaque rendez-vous.",
         "savedNone": "Enregistré : pas de pause entre les rendez-vous.",
         "change": "Modifier"
+      },
+      "periods": {
+        "morning": "Matin",
+        "afternoon": "Après-midi"
       }
     },
     "unavailability": {
