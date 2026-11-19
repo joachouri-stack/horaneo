@@ -281,7 +281,7 @@ export default async function AgendaPage({
   const iconButton =
     "flex size-11 items-center justify-center rounded-xl border border-hairline bg-white text-night transition hover:border-accent-line hover:text-accent";
   const segment =
-    "flex min-h-10 items-center rounded-lg px-3.5 text-[0.9375rem] font-medium text-ink-soft transition hover:text-night aria-[current=page]:bg-white aria-[current=page]:text-night aria-[current=page]:shadow-[0_1px_3px_rgba(15,24,48,.12)]";
+    "flex min-h-10 items-center justify-center rounded-xl px-3.5 text-[0.9375rem] font-medium text-ink-soft transition hover:text-night aria-[current=page]:bg-white aria-[current=page]:text-night aria-[current=page]:shadow-[0_1px_3px_rgba(15,24,48,.12)]";
 
   const header = (
     <div className="space-y-4">
@@ -332,28 +332,39 @@ export default async function AgendaPage({
         </Link>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <Link href={link({ date: shift(-1) })} aria-label={t("previous")} className={iconButton}>
-          <DashIcon d="M15 6l-6 6 6 6" className="h-5 w-5" />
-        </Link>
-        {/* Entre les flèches : la période affichée (pas « Aujourd'hui », qui prêtait à confusion). */}
-        <p
-          aria-live="polite"
-          className="flex min-h-11 min-w-[7.5rem] items-center justify-center rounded-xl border border-hairline bg-white px-3 text-[0.9375rem] font-semibold text-night first-letter:uppercase"
-        >
-          {shortTitle}
-        </p>
-        <Link href={link({ date: shift(1) })} aria-label={t("next")} className={iconButton}>
-          <DashIcon d="M9 6l6 6-6 6" className="h-5 w-5" />
-        </Link>
+        {/* Navigation groupée : ‹ période affichée › dans une seule pastille. */}
+        <div className="flex items-center rounded-2xl border border-hairline bg-white p-1 shadow-[0_1px_2px_rgba(15,24,48,.04)]">
+          <Link
+            href={link({ date: shift(-1) })}
+            aria-label={t("previous")}
+            className="flex size-10 items-center justify-center rounded-xl text-ink-soft transition hover:bg-accent-soft hover:text-accent"
+          >
+            <DashIcon d="M15 6l-6 6 6 6" className="h-5 w-5" />
+          </Link>
+          {/* Entre les flèches : la période affichée (pas « Aujourd'hui », qui prêtait à confusion). */}
+          <p
+            aria-live="polite"
+            className="min-w-[7.5rem] px-2 text-center text-[0.9375rem] font-semibold text-night first-letter:uppercase"
+          >
+            {shortTitle}
+          </p>
+          <Link
+            href={link({ date: shift(1) })}
+            aria-label={t("next")}
+            className="flex size-10 items-center justify-center rounded-xl text-ink-soft transition hover:bg-accent-soft hover:text-accent"
+          >
+            <DashIcon d="M9 6l6 6-6 6" className="h-5 w-5" />
+          </Link>
+        </div>
         {!isCurrent && (
           <Link
             href={link({ date: today })}
-            className="flex min-h-11 items-center px-1 text-[0.9375rem] font-medium text-accent underline"
+            className="flex min-h-11 items-center rounded-xl px-3 text-[0.9375rem] font-medium text-accent transition hover:bg-accent-soft"
           >
             {t("backToToday")}
           </Link>
         )}
-        <div className="ml-auto flex rounded-xl bg-[#eceff5] p-1">
+        <div className="grid w-full grid-cols-3 rounded-2xl bg-[#eceff5] p-1 sm:ml-auto sm:flex sm:w-auto">
           {(["day", "week", "month"] as const).map((value) => (
             <Link
               key={value}
@@ -487,18 +498,19 @@ export default async function AgendaPage({
     return (
       <div className="space-y-5">
         {header}
-        <div className="overflow-hidden rounded-[1.4rem] border border-hairline bg-white">
-          <div className="grid grid-cols-7 border-b border-hairline bg-mist-50" aria-hidden="true">
+        {/* Calendrier du mois : cases arrondies espacées, aujourd'hui au dégradé de la marque. */}
+        <div className="rounded-[1.4rem] border border-hairline bg-white p-2 shadow-[0_1px_2px_rgba(15,24,48,.04),0_8px_24px_-12px_rgba(15,24,48,.10)] sm:p-3">
+          <div className="grid grid-cols-7 pb-1" aria-hidden="true">
             {gridDays.slice(0, 7).map((day) => (
               <p
                 key={day}
-                className="py-2.5 text-center text-[0.8125rem] font-medium uppercase tracking-[0.06em] text-ink-soft"
+                className="py-2 text-center text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-ink-soft"
               >
                 {weekdayName.format(instant(day)).replace(".", "")}
               </p>
             ))}
           </div>
-          <ul className="grid grid-cols-7">
+          <ul className="grid grid-cols-7 gap-1 sm:gap-1.5">
             {gridDays.map((day) => {
               const dayAppointments = onDay(day);
               const dayOff = dayOffOf(day);
@@ -507,41 +519,43 @@ export default async function AgendaPage({
                 dayAppointments.length === 0 &&
                 (!openWeekdays.has(isoWeekday(day)) ||
                   dayOff.some((off) => off.staffId === null && off.kind === "closure"));
+              const isToday = day === today;
               const label = `${page.fmt.day(instant(day))} · ${t("dayCount", { count: dayAppointments.length })}`;
               return (
-                <li key={day} className="border-b border-r border-hairline [&:nth-child(7n)]:border-r-0">
+                <li key={day}>
                   <Link
                     href={link({ date: day, vue: "jour" })}
                     aria-label={label}
-                    className={`flex h-full min-h-16 flex-col gap-1 p-1 transition hover:bg-accent-soft/50 sm:min-h-28 sm:p-2 ${
-                      closed ? "bg-[#f1f3f7]" : ""
-                    } ${outside ? "opacity-60" : ""}`}
+                    className={`flex h-full min-h-14 flex-col items-center gap-1 rounded-xl p-1 transition hover:bg-accent-soft sm:min-h-28 sm:items-stretch sm:p-2 ${
+                      dayAppointments.length > 0 ? "bg-accent-soft/60" : ""
+                    } ${outside ? "opacity-40" : ""}`}
                   >
                     <span
-                      className={`flex size-7 items-center justify-center self-center rounded-full text-sm font-medium tabular-nums sm:self-start ${
-                        day === today ? "bg-accent text-white" : "text-night"
+                      className={`flex size-8 items-center justify-center self-center rounded-full text-[0.9375rem] tabular-nums sm:self-start ${
+                        isToday
+                          ? "bg-[linear-gradient(135deg,var(--color-violet),var(--color-azure))] font-semibold text-white shadow-[0_4px_12px_-4px_rgba(91,63,228,.6)]"
+                          : closed
+                            ? "font-medium text-ink-soft/70"
+                            : "font-semibold text-night"
                       }`}
                     >
                       {Number(day.slice(8))}
                     </span>
-                    {/* Téléphone : une pastille par rendez-vous (couleur du membre). */}
+                    {/* Téléphone : une pastille par rendez-vous (couleur du membre), puis le nombre. */}
                     {dayAppointments.length > 0 && (
-                      <span className="flex flex-wrap justify-center gap-0.5 sm:hidden" aria-hidden="true">
-                        {dayAppointments.slice(0, 6).map((item) => (
+                      <span className="flex items-center gap-0.5 sm:hidden" aria-hidden="true">
+                        {dayAppointments.slice(0, 3).map((item) => (
                           <span
                             key={item.id}
                             className="size-1.5 rounded-full"
                             style={{ backgroundColor: item.staffColor ?? DEFAULT_COLOR }}
                           />
                         ))}
-                      </span>
-                    )}
-                    {dayAppointments.length > 6 && (
-                      <span
-                        className="text-center text-[10px] font-medium text-ink-soft sm:hidden"
-                        aria-hidden="true"
-                      >
-                        {dayAppointments.length}
+                        {dayAppointments.length > 3 && (
+                          <span className="text-[10px] font-semibold leading-none text-accent">
+                            +{dayAppointments.length - 3}
+                          </span>
+                        )}
                       </span>
                     )}
                     {/* Écran large : les premiers rendez-vous écrits, puis « +N autres ». */}
@@ -549,7 +563,7 @@ export default async function AgendaPage({
                       {dayOff.slice(0, 1).map((off) => (
                         <span
                           key={off.id}
-                          className="block truncate rounded-md bg-[#f1f2f5] px-1.5 py-0.5 text-[11px] text-ink-soft"
+                          className="block truncate rounded-md bg-[#eceef4] px-1.5 py-0.5 text-[11px] text-ink-soft"
                         >
                           {t(`timeOff.${off.kind}`)}
                         </span>
@@ -557,13 +571,10 @@ export default async function AgendaPage({
                       {dayAppointments.slice(0, MONTH_PREVIEW).map((item) => (
                         <span
                           key={item.id}
-                          className={`block truncate rounded-md border-l-[3px] px-1.5 py-0.5 text-[11px] leading-tight text-night ${
+                          className={`block truncate rounded-md border-l-[3px] bg-white px-1.5 py-0.5 text-[11px] leading-tight text-night shadow-[0_1px_2px_rgba(15,24,48,.06)] ${
                             item.status === "no_show" ? "opacity-50" : ""
                           }`}
-                          style={{
-                            borderLeftColor: item.staffColor ?? DEFAULT_COLOR,
-                            backgroundColor: tint(item.staffColor),
-                          }}
+                          style={{ borderLeftColor: item.staffColor ?? DEFAULT_COLOR }}
                         >
                           <span className="font-semibold tabular-nums">{page.fmt.time(item.startsAt)}</span>{" "}
                           {item.customerName}
