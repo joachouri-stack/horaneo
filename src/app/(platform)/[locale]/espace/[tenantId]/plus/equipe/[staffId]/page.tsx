@@ -154,6 +154,7 @@ export default async function StaffSchedulePage({
                 services={services}
                 contentLocale={page.tenant.defaultLocale}
                 withActive
+                servicesHref={`${page.base}/site/prestations`}
               />
             </ActionForm>
           </section>

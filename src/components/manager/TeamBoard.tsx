@@ -105,6 +105,7 @@ export async function TeamBoard({
             member={{ name: "", bio: "", color: null, isActive: true, serviceIds: [] }}
             services={services}
             contentLocale={contentLocale}
+            servicesHref={`${base}/site/prestations`}
           />
         </ActionForm>
       </details>
@@ -159,7 +160,8 @@ export async function TeamBoard({
                     {workDays(member.workDays)}
                   </span>
                   <span className="block truncate text-sm text-ink-soft">
-                    {names.length === 0 ? t("noServices") : t("servicesCount", { count: names.length })}
+                    {/* Les prestations elles-mêmes (et non leur nombre), coupées si la liste est longue. */}
+                    {names.length === 0 ? t("noServices") : names.join(" · ")}
                   </span>
                 </span>
                 <DashIcon d={DASH_ICONS.arrow} className="h-5 w-5 shrink-0 text-accent" />
@@ -182,12 +184,15 @@ export async function StaffFields({
   services,
   contentLocale,
   withActive = false,
+  servicesHref,
 }: {
   prefix: string;
   member: { name: string; bio: string; color: string | null; isActive: boolean; serviceIds: string[] };
   services: Services;
   contentLocale: string;
   withActive?: boolean;
+  /** Page des prestations : pour en créer une qui manque (massage, coupe…). */
+  servicesHref?: string;
 }) {
   const [t, tAdmin, tServices] = await Promise.all([
     getTranslations("manager.team"),
@@ -211,6 +216,14 @@ export async function StaffFields({
           options={services.map((service) => ({ value: service.id, label: text(service.name) }))}
           defaultValues={member.serviceIds}
         />
+      )}
+      {servicesHref && (
+        <p className="-mt-2 text-sm text-ink-soft">
+          {t("servicesMissing")}{" "}
+          <Link href={servicesHref} className="font-medium text-accent underline">
+            {t("servicesAdd")}
+          </Link>
+        </p>
       )}
       {withActive && (
         <div className="rounded-xl border border-navy/10 px-4">

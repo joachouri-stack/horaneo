@@ -3781,7 +3781,9 @@
         "removeConfirm": "Retirer l'accès de {name} à l'espace ? Ses rendez-vous restent dans l'agenda.",
         "removed": "Accès retiré.",
         "badge": "Accès à l'espace"
-      }
+      },
+      "servicesMissing": "Une prestation manque (par exemple un massage, une coupe ou une séance de coaching) ? Créez-la d'abord dans vos prestations : elle apparaîtra ici.",
+      "servicesAdd": "Ajouter une prestation"
     },
     "subscription": {
       "groupBooking": "Avec réservation en ligne",
