@@ -3241,12 +3241,13 @@
         "all": "Tous",
         "loyal": "Fidèles",
         "new": "Nouveaux",
-        "inactive": "À relancer"
+        "inactive": "Pas revenus depuis {months} mois",
+        "blocked": "Bloqués"
       },
       "badge": {
         "loyal": "Fidèle",
         "new": "Nouveau",
-        "inactive": "À relancer",
+        "inactive": "Pas revenu",
         "blocked": "Bloqué"
       },
       "colCustomer": "Client",
@@ -3343,7 +3344,19 @@
         "bannerReason": "Motif : {reason}",
         "unblock": "Débloquer ce client",
         "unblocked": "Client débloqué : il peut de nouveau réserver en ligne."
-      }
+      },
+      "show": "Afficher",
+      "sortLabel": "Trier",
+      "filterHint": {
+        "loyal": "Clients venus au moins {visits} fois.",
+        "new": "Clients ajoutés il y a moins de {days} jours.",
+        "inactive": "Clients déjà venus, pas revenus depuis {months} mois et sans rendez-vous prévu. Sirine les range ici toute seule.",
+        "blocked": "Clients qui ne peuvent plus réserver en ligne."
+      },
+      "winbackLink": "Ils peuvent recevoir automatiquement l'e-mail « Vous nous manquez » : régler la relance",
+      "summaryNext": "{visits} · prochaine visite le {date}",
+      "summaryLast": "{visits} · dernière visite le {date}",
+      "summaryNever": "Pas encore venu"
     },
     "site": {
       "title": "Mon site",

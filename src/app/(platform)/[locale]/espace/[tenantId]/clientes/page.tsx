@@ -12,6 +12,8 @@ import {
   type CustomerSort,
 } from "@/modules/customers/customers";
 import { formatPhone } from "@/modules/phone";
+import { CUSTOMER_SEGMENTS } from "@/config/customers";
+import { CustomerListControls } from "@/components/manager/CustomerListControls";
 
 /** Fiches affichées d'abord, puis ajoutées à chaque « Afficher plus » (plafond pour le téléphone). */
 const PAGE_SIZE = 200;
@@ -55,6 +57,8 @@ export default async function CustomersPage({
     ? (query.tri as CustomerSort)
     : "name";
   const t = await getTranslations("manager.customers");
+  // « Pas revenus depuis 2 mois » : le délai réglé, en mois.
+  const inactiveMonths = Math.max(1, Math.round(CUSTOMER_SEGMENTS.inactiveDays / 30));
   const tCommon = await getTranslations("common");
   const now = new Date();
   // Liste affichée par tranches : « Afficher plus » ajoute la tranche suivante.
@@ -110,35 +114,7 @@ export default async function CustomersPage({
       </div>
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        {/* Téléphone : les filtres défilent de côté s'ils ne tiennent pas, sans se serrer. */}
-        <nav
-          aria-label={t("filters")}
-          className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0 sm:pb-0"
-        >
-          {CUSTOMER_SEGMENT_KEYS.map((key) => {
-            const active = key === segment;
-            return (
-              <Link
-                key={key}
-                href={href(key)}
-                aria-current={active ? "page" : undefined}
-                className={`inline-flex min-h-10 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-full border px-3.5 text-[0.9375rem] font-medium transition sm:px-4 ${
-                  active
-                    ? "border-night bg-night text-white"
-                    : "border-hairline bg-white text-night hover:border-accent-line"
-                }`}
-              >
-                {t(`filter.${key}`)}
-                <span
-                  className={`rounded-full px-1.5 text-[0.8125rem] tabular-nums ${active ? "bg-white/20" : "bg-mist-50 text-ink-soft"}`}
-                >
-                  {counts[key]}
-                </span>
-              </Link>
-            );
-          })}
-        </nav>
-        <form method="get" role="search" className="order-first flex gap-2 lg:order-last lg:w-96">
+        <form method="get" role="search" className="flex gap-2 lg:w-96">
           {segment !== "all" && <input type="hidden" name="groupe" value={segment} />}
           {sort !== "name" && <input type="hidden" name="tri" value={sort} />}
           <label htmlFor="q" className="sr-only">
@@ -173,21 +149,42 @@ export default async function CustomersPage({
         </form>
       </div>
 
-      {/* Tri de la liste. */}
-      {list.length > 1 && (
-        <div className="flex flex-wrap items-center gap-2 text-sm">
-          <span className="text-ink/70">{t("sortBy")}</span>
-          {CUSTOMER_SORT_KEYS.map((key) => (
-            <Link
-              key={key}
-              href={listHref({ tri: key })}
-              aria-current={key === sort ? "true" : undefined}
-              className="inline-flex min-h-10 items-center rounded-full border border-hairline bg-white px-3.5 font-medium text-night transition hover:border-accent-line aria-[current=true]:border-night aria-[current=true]:bg-night aria-[current=true]:text-white"
-            >
-              {t(`sort.${key}`)}
-            </Link>
-          ))}
-        </div>
+      {/* Groupe affiché et ordre de la liste : deux petits menus. */}
+      <CustomerListControls
+        showLabel={t("show")}
+        sortLabel={t("sortLabel")}
+        group={segment}
+        sort={sort}
+        groups={CUSTOMER_SEGMENT_KEYS.filter(
+          (key) => key !== "blocked" || counts.blocked > 0 || segment === key,
+        ).map((key) => ({
+          value: key,
+          label: `${t(`filter.${key}`, { months: inactiveMonths })} (${counts[key]})`,
+          href: href(key),
+        }))}
+        sorts={CUSTOMER_SORT_KEYS.map((key) => ({
+          value: key,
+          label: t(`sort.${key}`),
+          href: listHref({ tri: key }),
+        }))}
+      />
+      {/* Groupe choisi : ce qu'il contient (groupes calculés automatiquement). */}
+      {segment !== "all" && (
+        <p className="-mt-2 text-[0.9375rem] text-ink-soft">
+          {t(`filterHint.${segment}`, {
+            visits: CUSTOMER_SEGMENTS.loyalVisits,
+            days: CUSTOMER_SEGMENTS.newDays,
+            months: inactiveMonths,
+          })}
+          {segment === "inactive" && (
+            <>
+              {" "}
+              <Link href={`${page.base}/plus/fidelite`} className="font-medium text-accent underline">
+                {t("winbackLink")}
+              </Link>
+            </>
+          )}
+        </p>
       )}
 
       {list.length === 0 ? (
@@ -261,19 +258,19 @@ export default async function CustomersPage({
                       </span>
                     </span>
 
-                    {/* Téléphone : résumé sous le nom. */}
-                    <span className="col-start-2 flex flex-wrap gap-x-3 gap-y-1 text-sm text-ink-soft lg:hidden">
-                      <span>
-                        {t("visitsCount", { count: customer.visits })}
-                        {customer.spentCents > 0 && ` · ${page.fmt.money(customer.spentCents)}`}
-                      </span>
-                      <span>
-                        {customer.nextVisit
-                          ? t("nextVisit", { date: page.fmt.short(customer.nextVisit) })
-                          : customer.lastVisit
-                            ? t("lastVisit", { date: page.fmt.short(customer.lastVisit) })
-                            : t("never")}
-                      </span>
+                    {/* Téléphone : une ligne de résumé sous le nom. */}
+                    <span className="col-start-2 text-sm text-ink-soft lg:hidden">
+                      {customer.nextVisit
+                        ? t("summaryNext", {
+                            visits: t("visitsCount", { count: customer.visits }),
+                            date: page.fmt.short(customer.nextVisit),
+                          })
+                        : customer.lastVisit
+                          ? t("summaryLast", {
+                              visits: t("visitsCount", { count: customer.visits }),
+                              date: page.fmt.short(customer.lastVisit),
+                            })
+                          : t("summaryNever")}
                     </span>
 
                     {/* Ordinateur : colonnes. */}

@@ -84,7 +84,7 @@ export async function findSamePerson(
   return row ?? null;
 }
 
-export const CUSTOMER_SEGMENT_KEYS = ["all", "loyal", "new", "inactive"] as const;
+export const CUSTOMER_SEGMENT_KEYS = ["all", "loyal", "new", "inactive", "blocked"] as const;
 /** Tris du fichier clients : par nom, par dernière visite (récente d'abord), par montant dépensé. */
 export const CUSTOMER_SORT_KEYS = ["name", "lastVisit", "spent"] as const;
 export type CustomerSort = (typeof CUSTOMER_SORT_KEYS)[number];
@@ -138,6 +138,7 @@ export async function customerDirectory(
     // Une cliente déjà fidèle n'est plus « nouvelle », même si sa fiche est récente.
     new: sql`${customers.createdAt} >= ${newSince} and ${visits} < ${loyalVisits}`,
     inactive: sql`${visits} > 0 and ${stats.lastVisit} < ${inactiveBefore} and ${stats.nextVisit} is null`,
+    blocked: sql`${customers.blockedAt} is not null`,
   };
 
   const q = input.query?.trim() ?? "";
@@ -203,6 +204,7 @@ export async function customerDirectory(
       loyal: sql<number>`count(*) filter (where ${segments.loyal})`,
       new: sql<number>`count(*) filter (where ${segments.new})`,
       inactive: sql<number>`count(*) filter (where ${segments.inactive})`,
+      blocked: sql<number>`count(*) filter (where ${segments.blocked})`,
     })
     .from(customers)
     .leftJoin(stats, eq(stats.customerId, customers.id))
@@ -223,6 +225,7 @@ export async function customerDirectory(
       loyal: Number(counts.loyal),
       new: Number(counts.new),
       inactive: Number(counts.inactive),
+      blocked: Number(counts.blocked),
     },
   };
 }
