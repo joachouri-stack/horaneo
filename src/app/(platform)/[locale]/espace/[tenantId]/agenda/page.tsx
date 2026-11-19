@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import { getTranslations } from "next-intl/server";
 import { cookies } from "next/headers";
 import { RememberAgendaMembers } from "@/components/manager/RememberAgendaMembers";
@@ -35,6 +35,7 @@ const HOUR_HEIGHT = 72; // pixels par heure dans les vues jour et semaine
 const VIEW_PARAM = { day: "jour", week: "semaine", month: "mois" } as const;
 const MONTH_PREVIEW = 3; // rendez-vous écrits dans une case du mois (écran large)
 const DEFAULT_COLOR = "#3a4bb8";
+const NOON = 12 * 60; // vue semaine sur téléphone : matin avant midi, après-midi ensuite
 /** Valeur du lien et du choix gardé : toute l'équipe. */
 const ALL_MEMBERS = "tous";
 
@@ -857,100 +858,122 @@ export default async function AgendaPage({
           rendez-vous de chaque jour empilés l'un sous l'autre par heure, à la couleur du membre.
         */}
         <div className="overflow-hidden rounded-[1.4rem] border border-hairline bg-white lg:hidden">
-          <ul className="grid grid-cols-7">
-            {visibleDays.map((day) => {
-              const dayAppointments = onDay(day);
-              const dayOff = dayOffOf(day);
-              const closed = dayAppointments.length === 0 && hoursOf(day).length === 0;
+          <div className="grid grid-cols-7">
+            {visibleDays.map((day, index) => {
+              const closed = onDay(day).length === 0 && hoursOf(day).length === 0;
               const label = `${page.fmt.day(instant(day))} · ${
-                closed ? t("closed") : t("dayCount", { count: dayAppointments.length })
+                closed ? t("closed") : t("dayCount", { count: onDay(day).length })
               }`;
+              // En-tête du jour : bandeau séparé des rendez-vous par un trait.
               return (
-                <li
+                <Link
                   key={day}
-                  className={`flex min-h-80 min-w-0 flex-col border-r border-hairline last:border-r-0 ${
-                    closed ? "bg-[#f1f3f7]" : day === today ? "bg-accent-soft/40" : ""
+                  href={link({ date: day, vue: "jour" })}
+                  aria-label={label}
+                  className={`flex flex-col items-center border-b border-hairline py-2 leading-tight ${index < 6 ? "border-r" : ""} ${
+                    day === today ? "bg-accent-soft" : "bg-mist-50"
                   }`}
                 >
-                  {/* En-tête du jour : bandeau séparé des rendez-vous par un trait. */}
-                  <Link
-                    href={link({ date: day, vue: "jour" })}
-                    aria-label={label}
-                    className={`flex flex-col items-center border-b border-hairline py-2 leading-tight ${
-                      day === today ? "bg-accent-soft" : "bg-mist-50"
+                  <span
+                    className={`text-[0.6875rem] font-medium uppercase tracking-[0.04em] ${
+                      day === today ? "text-accent" : "text-ink-soft"
                     }`}
                   >
-                    <span
-                      className={`text-[0.6875rem] font-medium uppercase tracking-[0.04em] ${
-                        day === today ? "text-accent" : "text-ink-soft"
-                      }`}
-                    >
-                      {weekdayShort.format(instant(day)).replace(".", "")}
-                    </span>
-                    <span
-                      className={`mt-0.5 flex size-7 items-center justify-center rounded-full text-[0.9375rem] font-semibold tabular-nums ${
-                        day === today ? "bg-accent text-white" : "text-night"
-                      }`}
-                    >
-                      {Number(day.slice(8))}
-                    </span>
-                  </Link>
-                  {/* Lignes fines en fond pour repérer les cases, comme un agenda papier. */}
-                  <div className="flex flex-1 flex-col gap-1 bg-[linear-gradient(to_top,#eceef4_1px,transparent_1px)] bg-[length:100%_3rem] px-0.5 py-1.5 sm:px-1">
-                    {closed && (
-                      <span className="mt-1 text-center text-[10px] font-medium text-ink-soft">
-                        {t("closed")}
-                      </span>
-                    )}
-                    {dayOff.map((off) => (
-                      <Link
-                        key={off.id}
-                        href={`${page.base}/indisponibilites/${off.id}`}
-                        aria-label={`${t(`timeOff.${off.kind}`)} · ${off.staffName ?? ""} · ${tUnavailability("edit")}`}
-                        className="block rounded-md bg-[#f1f2f5] px-1 py-1 text-[10px] leading-tight text-ink-soft [overflow-wrap:anywhere] hover:bg-[#e8ebf1]"
-                      >
-                        <span className="line-clamp-2">
-                          {t(`timeOff.${off.kind}`)}
-                          {off.staffName ? ` · ${off.staffName}` : ""}
-                        </span>
-                      </Link>
-                    ))}
-                    {dayAppointments.map((item) => (
-                      <Link
-                        key={item.id}
-                        href={`${page.base}/rendez-vous/${item.id}`}
-                        aria-label={`${page.fmt.time(item.startsAt)} · ${item.customerName}`}
-                        className={`block rounded-md border-l-[3px] px-1 py-1 leading-tight text-night transition hover:brightness-95 ${
-                          item.status === "no_show" ? "opacity-50" : ""
-                        }`}
-                        style={{
-                          borderLeftColor: item.staffColor ?? DEFAULT_COLOR,
-                          backgroundColor: tint(item.staffColor),
-                        }}
-                      >
-                        {/* Prénom puis nom, chacun sur sa ligne (coupés proprement si trop longs). */}
-                        {item.customerName
-                          .split(/\s+/)
-                          .reduce<string[]>(
-                            (lines, word, index) =>
-                              index === 0 ? [word] : [lines[0], lines[1] ? `${lines[1]} ${word}` : word],
-                            [],
-                          )
-                          .map((line, index) => (
-                            <span key={index} className="block truncate text-[11px] font-semibold">
-                              {line}
-                            </span>
-                          ))}
-                        <span className="block text-[10px] tabular-nums text-ink-soft">
-                          {page.fmt.time(item.startsAt)}
-                        </span>
-                      </Link>
-                    ))}
-                  </div>
-                </li>
+                    {weekdayShort.format(instant(day)).replace(".", "")}
+                  </span>
+                  <span
+                    className={`mt-0.5 flex size-7 items-center justify-center rounded-full text-[0.9375rem] font-semibold tabular-nums ${
+                      day === today ? "bg-accent text-white" : "text-night"
+                    }`}
+                  >
+                    {Number(day.slice(8))}
+                  </span>
+                </Link>
               );
             })}
-          </ul>
+            {/* Matin puis après-midi : deux rangées alignées sur toute la semaine. */}
+            {(["morning", "afternoon"] as const).map((period) => (
+              <Fragment key={period}>
+                <p
+                  className={`col-span-7 border-b border-hairline bg-white px-3 py-1 text-[0.6875rem] font-semibold uppercase tracking-[0.06em] text-ink-soft ${
+                    period === "afternoon" ? "border-t" : ""
+                  }`}
+                >
+                  {t(`periods.${period}`)}
+                </p>
+                {visibleDays.map((day, index) => {
+                  const inPeriod = (date: Date, sameDay: boolean) =>
+                    period === "morning"
+                      ? !sameDay || minutesOf(date) < NOON
+                      : sameDay && minutesOf(date) >= NOON;
+                  const dayAppointments = onDay(day).filter((item) => inPeriod(item.startsAt, true));
+                  // Absence commencée un autre jour : affichée le matin.
+                  const dayOff = dayOffOf(day).filter((off) =>
+                    inPeriod(off.startsAt, utcToLocal(off.startsAt, tz).date === day),
+                  );
+                  const closed = onDay(day).length === 0 && hoursOf(day).length === 0;
+                  return (
+                    <div
+                      key={day}
+                      className={`flex min-h-36 min-w-0 flex-col gap-1 border-hairline px-0.5 py-1.5 sm:px-1 ${index < 6 ? "border-r" : ""} ${
+                        closed ? "bg-[#f1f3f7]" : day === today ? "bg-accent-soft/40" : ""
+                      }`}
+                    >
+                      {closed && period === "morning" && (
+                        <span className="mt-1 text-center text-[10px] font-medium text-ink-soft">
+                          {t("closed")}
+                        </span>
+                      )}
+                      {dayOff.map((off) => (
+                        <Link
+                          key={off.id}
+                          href={`${page.base}/indisponibilites/${off.id}`}
+                          aria-label={`${t(`timeOff.${off.kind}`)} · ${off.staffName ?? ""} · ${tUnavailability("edit")}`}
+                          className="block rounded-md bg-[#e9ebf0] px-1 py-1 text-[10px] leading-tight text-ink-soft [overflow-wrap:anywhere] hover:bg-[#e1e4ea]"
+                        >
+                          <span className="line-clamp-2">
+                            {t(`timeOff.${off.kind}`)}
+                            {off.staffName ? ` · ${off.staffName}` : ""}
+                          </span>
+                        </Link>
+                      ))}
+                      {dayAppointments.map((item) => (
+                        <Link
+                          key={item.id}
+                          href={`${page.base}/rendez-vous/${item.id}`}
+                          aria-label={`${page.fmt.time(item.startsAt)} · ${item.customerName}`}
+                          className={`block rounded-md border-l-[3px] px-1 py-1 leading-tight text-night transition hover:brightness-95 ${
+                            item.status === "no_show" ? "opacity-50" : ""
+                          }`}
+                          style={{
+                            borderLeftColor: item.staffColor ?? DEFAULT_COLOR,
+                            backgroundColor: tint(item.staffColor),
+                          }}
+                        >
+                          {/* Prénom puis nom, chacun sur sa ligne (coupés proprement si trop longs). */}
+                          {item.customerName
+                            .split(/\s+/)
+                            .reduce<string[]>(
+                              (lines, word, index) =>
+                                index === 0 ? [word] : [lines[0], lines[1] ? `${lines[1]} ${word}` : word],
+                              [],
+                            )
+                            .map((line, index) => (
+                              <span key={index} className="block truncate text-[11px] font-semibold">
+                                {line}
+                              </span>
+                            ))}
+                          <span className="block text-[10px] tabular-nums text-ink-soft">
+                            {page.fmt.time(item.startsAt)}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  );
+                })}
+              </Fragment>
+            ))}
+          </div>
         </div>
       </div>
     );
