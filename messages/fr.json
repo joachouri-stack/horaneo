@@ -3165,10 +3165,14 @@
       "breakSetting": {
         "label": "Pause entre deux rendez-vous",
         "none": "aucune",
-        "hint": "Temps gardé libre après chaque rendez-vous, pour souffler ou nettoyer le matériel : personne ne peut réserver juste après.",
+        "hint": "Temps gardé libre après chaque rendez-vous (souffler, ranger le matériel). Personne ne peut réserver pendant ce temps.",
         "saved": "Enregistré : {value} après chaque rendez-vous.",
         "savedNone": "Enregistré : pas de pause entre les rendez-vous.",
-        "change": "Modifier"
+        "change": "Modifier",
+        "minutesShort": "{count} min",
+        "hoursShort": "{count} h",
+        "example": "Exemple : rendez-vous de 10:00 à 10:30 → prochain créneau à {next}",
+        "close": "Fermer"
       },
       "periods": {
         "morning": "Matin",
