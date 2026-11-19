@@ -3709,7 +3709,20 @@
       },
       "sixMonthsTitle": "Chiffre d'affaires des 6 derniers mois",
       "sixMonthsSummary": "Chiffre d'affaires de chacun des 6 derniers mois, le mois affiché en dernier.",
-      "sixMonthsAverage": "Moyenne : {value} par mois"
+      "sixMonthsAverage": "Moyenne : {value} par mois",
+      "lookup": {
+        "title": "Consulter mon chiffre d'affaires",
+        "intro": "Choisissez un jour ou un mois pour voir le chiffre d'affaires réalisé.",
+        "dayLabel": "Un jour",
+        "monthLabel": "Un mois",
+        "month": "Mois",
+        "year": "Année",
+        "show": "Voir",
+        "dayResult": "Chiffre d'affaires du {date}",
+        "monthResult": "Chiffre d'affaires de {month}",
+        "appointments": "{count, plural, =0 {Aucun rendez-vous} one {# rendez-vous} other {# rendez-vous}}",
+        "monthStats": "Voir les statistiques de ce mois"
+      }
     },
     "team": {
       "title": "Équipe",
