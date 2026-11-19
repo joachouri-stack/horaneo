@@ -262,6 +262,22 @@ export default async function AgendaPage({
         ? fmt({ day: "numeric", month: "long" }).formatRange(instant(start), instant(weekEnd))
         : page.fmt.day(instant(date));
 
+  // Période affichée contient-elle aujourd'hui ? (sinon : bouton pour y revenir)
+  const isCurrent =
+    view === "month"
+      ? today.slice(0, 7) === monthFirst.slice(0, 7)
+      : view === "week"
+        ? start <= today && today <= weekEnd
+        : date === today;
+  const currentLabel = t(view === "month" ? "isThisMonth" : view === "week" ? "isThisWeek" : "isToday");
+  // Libellé court entre les flèches : le jour, la semaine ou le mois affiché.
+  const shortTitle =
+    view === "month"
+      ? title
+      : view === "week"
+        ? fmt({ day: "numeric", month: "short" }).formatRange(instant(start), instant(weekEnd))
+        : fmt({ weekday: "short", day: "numeric", month: "short" }).format(instant(date));
+
   const iconButton =
     "flex size-11 items-center justify-center rounded-xl border border-hairline bg-white text-night transition hover:border-accent-line hover:text-accent";
   const segment =
@@ -274,7 +290,14 @@ export default async function AgendaPage({
           <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
             {t("title")}
           </h1>
-          <p className="text-ink-soft first-letter:uppercase">{title}</p>
+          <p className="flex flex-wrap items-center gap-2 text-ink-soft">
+            <span className="first-letter:uppercase">{title}</span>
+            {isCurrent && (
+              <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[0.8125rem] font-medium text-accent">
+                {currentLabel}
+              </span>
+            )}
+          </p>
         </div>
         {/* Trouver un rendez-vous : par nom, téléphone ou e-mail du client. */}
         <form
@@ -312,15 +335,24 @@ export default async function AgendaPage({
         <Link href={link({ date: shift(-1) })} aria-label={t("previous")} className={iconButton}>
           <DashIcon d="M15 6l-6 6 6 6" className="h-5 w-5" />
         </Link>
-        <Link
-          href={link({ date: today })}
-          className="flex min-h-11 items-center rounded-xl border border-hairline bg-white px-4 text-[0.9375rem] font-medium text-night transition hover:border-accent-line hover:text-accent"
+        {/* Entre les flèches : la période affichée (pas « Aujourd'hui », qui prêtait à confusion). */}
+        <p
+          aria-live="polite"
+          className="flex min-h-11 min-w-[7.5rem] items-center justify-center rounded-xl border border-hairline bg-white px-3 text-[0.9375rem] font-semibold text-night first-letter:uppercase"
         >
-          {t("today")}
-        </Link>
+          {shortTitle}
+        </p>
         <Link href={link({ date: shift(1) })} aria-label={t("next")} className={iconButton}>
           <DashIcon d="M9 6l6 6-6 6" className="h-5 w-5" />
         </Link>
+        {!isCurrent && (
+          <Link
+            href={link({ date: today })}
+            className="flex min-h-11 items-center px-1 text-[0.9375rem] font-medium text-accent underline"
+          >
+            {t("backToToday")}
+          </Link>
+        )}
         <div className="ml-auto flex rounded-xl bg-[#eceff5] p-1">
           {(["day", "week", "month"] as const).map((value) => (
             <Link

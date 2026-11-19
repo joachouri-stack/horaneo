@@ -3187,7 +3187,11 @@
       "emptyDay": {
         "title": "Aucun rendez-vous ce jour",
         "action": "Ajouter un rendez-vous"
-      }
+      },
+      "backToToday": "Revenir à aujourd'hui",
+      "isToday": "Aujourd'hui",
+      "isThisWeek": "Cette semaine",
+      "isThisMonth": "Ce mois-ci"
     },
     "unavailability": {
       "title": "Je ne suis pas disponible",
