@@ -11,7 +11,7 @@ import {
   StatCard,
   Trend,
 } from "@/components/manager/DashboardWidgets";
-import { GoalRing, HourHeat, LineChart } from "@/components/manager/StatsCharts";
+import { GoalRing, HourHeat, LineChart, MiniGoalRing } from "@/components/manager/StatsCharts";
 import { Link } from "@/i18n/navigation";
 import { centsToInput } from "@/lib/format";
 import { managerPage } from "@/lib/manager/page";
@@ -61,9 +61,14 @@ export default async function StatsPage({
   const detailed = Boolean(page.tenant.features.stats);
   // Remplissage, chiffre d'affaires et marge par prestation / produit : fonction de pack à part (Business).
   const insights = detailed && Boolean(page.tenant.features.performanceInsights);
-  const { stats, previous, details, goals, sales, occupancy } = await page.db(async (tx) => ({
+  const { stats, previous, older, details, goals, sales, occupancy } = await page.db(async (tx) => ({
     stats: await monthStats(tx, page.tenantId, period, tz, page.locale),
     previous: await monthStats(tx, page.tenantId, shift(period, -1), tz, page.locale),
+    // Deux mois plus tôt encore : cercles des 3 mois précédents (avec « previous »).
+    older: [
+      await monthStats(tx, page.tenantId, shift(period, -3), tz, page.locale),
+      await monthStats(tx, page.tenantId, shift(period, -2), tz, page.locale),
+    ],
     details: await monthDetails(tx, page.tenantId, period, tz),
     goals: await getStatsGoals(tx, page.tenantId),
     sales: insights && tab === "ca" ? await monthSales(tx, page.tenantId, period, tz, page.locale) : null,
@@ -125,6 +130,18 @@ export default async function StatsPage({
       remaining: String(Math.max(goals.newCustomers - stats.newCustomers, 0)),
     },
   ].filter((item): item is Exclude<typeof item, null | 0 | undefined> => Boolean(item));
+  // Les 3 mois précédents, du plus ancien au plus récent, comparés à l'objectif actuel.
+  const monthShort = new Intl.DateTimeFormat(page.locale, { month: "long", timeZone: "UTC" });
+  const pastMonths = [
+    { period: shift(period, -3), stats: older[0] },
+    { period: shift(period, -2), stats: older[1] },
+    { period: shift(period, -1), stats: previous },
+  ].map((item) => ({
+    ...item,
+    label: monthShort.format(new Date(`${item.period}-15T12:00:00Z`)),
+  }));
+  const pastValue = (key: string, month: (typeof pastMonths)[number]["stats"]) =>
+    key === "revenue" ? month.revenueCents : key === "appointments" ? month.appointments : month.newCustomers;
   const percent = (rate: number | null) =>
     rate === null
       ? null
@@ -419,6 +436,36 @@ export default async function StatsPage({
                   ))}
                 </div>
               ) : null}
+              {goalRings.length > 0 && (
+                <div className="mt-6 border-t border-hairline pt-5">
+                  <h3 className="font-medium text-night">{t("goals.previousTitle")}</h3>
+                  <p className="text-sm text-ink-soft">{t("goals.previousHint")}</p>
+                  <div className="mt-4 space-y-5">
+                    {goalRings.map((ring) => (
+                      <div key={ring.key}>
+                        {goalRings.length > 1 && (
+                          <p className="mb-2 text-sm font-medium text-ink-soft">{ring.label}</p>
+                        )}
+                        <div className="grid grid-cols-3 gap-3 sm:gap-6">
+                          {pastMonths.map((month) => {
+                            const value = pastValue(ring.key, month.stats);
+                            return (
+                              <MiniGoalRing
+                                key={month.period}
+                                monthLabel={month.label}
+                                value={value}
+                                goal={ring.goal}
+                                color={ring.color}
+                                valueText={ring.key === "revenue" ? shortMoney(value) : String(value)}
+                              />
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               <details
                 className={`group ${goalRings.length > 0 ? "mt-5 border-t border-hairline pt-4" : "mt-1"}`}
               >

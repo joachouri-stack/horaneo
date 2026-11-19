@@ -211,6 +211,50 @@ export function GoalRing({
   );
 }
 
+/** Petit cercle d'objectif d'un mois précédent : pourcentage au centre, mois et montant dessous. */
+export function MiniGoalRing({
+  monthLabel,
+  value,
+  goal,
+  color,
+  valueText,
+}: {
+  monthLabel: string;
+  value: number;
+  goal: number;
+  color: string;
+  valueText: string;
+}) {
+  const ratio = goal > 0 ? value / goal : 0;
+  const radius = 40;
+  const circumference = 2 * Math.PI * radius;
+  const shown = Math.min(ratio, 1) * circumference;
+  return (
+    <div className="flex flex-col items-center text-center">
+      <div className="relative size-16 sm:size-20">
+        <svg viewBox="0 0 100 100" className="size-full -rotate-90" aria-hidden="true">
+          <circle cx="50" cy="50" r={radius} fill="none" stroke="#eef1f6" strokeWidth="10" />
+          <circle
+            cx="50"
+            cy="50"
+            r={radius}
+            fill="none"
+            stroke={color}
+            strokeWidth="10"
+            strokeLinecap="round"
+            strokeDasharray={`${shown} ${circumference}`}
+          />
+        </svg>
+        <span className="absolute inset-0 flex items-center justify-center font-display text-[0.9375rem] font-semibold text-night tabular-nums">
+          {Math.round(ratio * 100)} %
+        </span>
+      </div>
+      <p className="mt-2 text-sm font-medium leading-tight text-night first-letter:uppercase">{monthLabel}</p>
+      <p className="text-[0.8125rem] text-ink-soft tabular-nums">{valueText}</p>
+    </div>
+  );
+}
+
 /** Heures les plus demandées : une case par heure, plus foncée quand elle est chargée. */
 export function HourHeat({
   hours,

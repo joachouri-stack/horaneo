@@ -3645,7 +3645,9 @@
         "newCustomers": "Nouveaux clients",
         "hint": "Laissez vide pour ne pas suivre cet objectif.",
         "remaining": "Encore {value} pour l'atteindre",
-        "reached": "Objectif atteint, bravo !"
+        "reached": "Objectif atteint, bravo !",
+        "previousTitle": "Les 3 mois précédents",
+        "previousHint": "Comparés à votre objectif actuel."
       },
       "dailyTitle": "Rendez-vous par jour",
       "dailySummary": "Rendez-vous par jour du mois, en ligne et ajoutés par vous.",
