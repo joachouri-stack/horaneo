@@ -394,7 +394,7 @@ export const customerInput = z.object({
   birthDay: z.union([z.string(), z.number()]).nullish(),
 });
 
-/** Crée ou modifie une fiche (au moins un téléphone ou un e-mail). La gérante peut fixer ou changer l'anniversaire. */
+/** Crée ou modifie une fiche (le prénom suffit ; téléphone et e-mail facultatifs). La gérante peut fixer ou changer l'anniversaire. */
 export async function saveCustomer(
   tx: Transaction,
   tenantId: string,
@@ -413,7 +413,6 @@ export async function saveCustomer(
     .where(eq(tenants.id, tenantId));
   if (!tenant) throw new AppError("not_found");
   const phone = normalizePhone(input.phone, tenant.country, "phone");
-  if (!phone && !input.email) throw new AppError("invalid", "phone");
   const values = {
     firstName: input.firstName,
     lastName: input.lastName || null,

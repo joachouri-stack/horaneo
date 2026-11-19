@@ -589,6 +589,13 @@
       "when": 1795037411851,
       "tag": "0083_customer_blocked",
       "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "7",
+      "when": 1795102390864,
+      "tag": "0084_customer_contact_optional",
+      "breakpoints": true
     }
   ]
 }

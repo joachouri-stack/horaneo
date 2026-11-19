@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { withPlatform, withTenant } from "@/db/access";
 import type { Transaction } from "@/db/client";
@@ -417,20 +417,22 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
       ).toBe("slot_unavailable");
     });
 
-    it("exige un téléphone ou un e-mail pour une nouvelle cliente", async () => {
+    it("nouvelle cliente avec seulement un prénom (sans téléphone ni e-mail)", async () => {
       const s = await setup();
-      expect(
-        await errorCode(
-          asManager(s.id, (tx) =>
-            createManualAppointment(tx, s.id, {
-              serviceIds: [s.massage.id],
-              staffId: s.lea.id,
-              start: at("10:00"),
-              newCustomer: { firstName: "Zoé" },
-            }),
-          ),
-        ),
-      ).toBe("invalid");
+      const created = await asManager(s.id, (tx) =>
+        createManualAppointment(tx, s.id, {
+          serviceIds: [s.massage.id],
+          staffId: s.lea.id,
+          start: at("10:00"),
+          newCustomer: { firstName: "Zoé" },
+        }),
+      );
+      expect(created).toBeTruthy();
+      const [zoe] = await owner
+        .select()
+        .from(customers)
+        .where(and(eq(customers.tenantId, s.id), eq(customers.firstName, "Zoé")));
+      expect(zoe).toMatchObject({ phone: null, email: null });
     });
   });
 
@@ -463,6 +465,13 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
         requests: 0,
         customerData: 0,
       });
+    });
+
+    it("fiche client avec seulement un prénom (sans téléphone ni e-mail)", async () => {
+      const s = await setup();
+      const created = await asManager(s.id, (tx) => saveCustomer(tx, s.id, { firstName: "Inès" }));
+      const [row] = await owner.select().from(customers).where(eq(customers.id, created.id));
+      expect(row).toMatchObject({ firstName: "Inès", phone: null, email: null });
     });
 
     it("fichier clientes : visites, dépenses et groupes (nouvelles, à relancer)", async () => {
