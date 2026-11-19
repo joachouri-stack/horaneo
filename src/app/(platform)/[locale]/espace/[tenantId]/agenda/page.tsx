@@ -441,6 +441,9 @@ export default async function AgendaPage({
     );
   const onDay = (day: string) => appointments.filter((item) => utcToLocal(item.startsAt, tz).date === day);
 
+  // Majuscule au début (« novembre » → « Novembre ») : faite dans le texte, car la règle
+  // CSS « first-letter » rend le mot invisible sur certains iPhone.
+  const capitalize = (text: string) => text.charAt(0).toLocaleUpperCase(page.locale) + text.slice(1);
   /**
    * Bandeau bleu nuit en tête du calendrier (jour, semaine, mois) : période en grand, flèches
    * rondes, retour à aujourd'hui, nombre de rendez-vous ; halos violet et bleu de la marque.
@@ -463,7 +466,7 @@ export default async function AgendaPage({
       <div className="relative flex items-center justify-between gap-3">
         <h2
           aria-live="polite"
-          className="font-display text-[1.35rem] font-semibold leading-tight tracking-[-0.025em] sm:text-[1.6rem]"
+          className="text-white font-display text-[1.35rem] font-semibold leading-tight tracking-[-0.025em] sm:text-[1.6rem]"
         >
           {heading}
         </h2>
@@ -521,8 +524,7 @@ export default async function AgendaPage({
         <div className={bannerCard}>
           {banner(
             <>
-              <span className="inline-block first-letter:uppercase">{monthName}</span>{" "}
-              <span className="text-[#a99bff]">{monthYear}</span>
+              <span>{capitalize(monthName)}</span> <span className="text-[#a99bff]">{monthYear}</span>
             </>,
             monthCount,
             "rest",
@@ -925,7 +927,7 @@ export default async function AgendaPage({
         {header}
         <div className={bannerCard}>
           {banner(
-            <span className="inline-block first-letter:uppercase">{title}</span>,
+            <span>{capitalize(title)}</span>,
             visibleDays.reduce((sum, day) => sum + onDay(day).length, 0),
             "restWeek",
           )}
@@ -1111,11 +1113,7 @@ export default async function AgendaPage({
     <div className="space-y-5">
       {header}
       <div className={bannerCard}>
-        {banner(
-          <span className="inline-block first-letter:uppercase">{title}</span>,
-          onDay(date).length,
-          "restDay",
-        )}
+        {banner(<span>{capitalize(title)}</span>, onDay(date).length, "restDay")}
       </div>
       {/* Jour sans horaires d'ouverture : explication, et lien vers les horaires si permis. */}
       {hoursOf(date).length === 0 && appointments.length === 0 && (
