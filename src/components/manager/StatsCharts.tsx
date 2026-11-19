@@ -152,6 +152,116 @@ export function LineChart({
   );
 }
 
+/** Chemin d'une barre arrondie en haut (4 unités), posée sur la ligne de base. */
+function barPath(x: number, top: number, width: number, base: number) {
+  const radius = Math.min(4, width / 2, Math.max(base - top, 0));
+  if (base - top <= 0) return "";
+  return `M ${x} ${base} V ${top + radius} Q ${x} ${top} ${x + radius} ${top} H ${x + width - radius} Q ${x + width} ${top} ${x + width} ${top + radius} V ${base} Z`;
+}
+
+/**
+ * Histogramme d'une seule série (chiffre d'affaires par jour ou par mois) : barres fines
+ * arrondies, grille discrète, info-bulle au survol de chaque barre. Une barre peut être mise
+ * en avant (le mois en cours) ; les autres gardent la même couleur, plus claire.
+ */
+export function BarChart({
+  values,
+  labels,
+  color,
+  format = (value: number) => String(value),
+  summary,
+  highlight,
+  valueLabels = false,
+}: {
+  values: number[];
+  labels: string[];
+  color: string;
+  format?: (value: number) => string;
+  summary: string;
+  /** Barre mise en avant (index) ; sans elle, toutes les barres sont pleines. */
+  highlight?: number;
+  /** Montant écrit au-dessus de chaque barre (peu de barres seulement). */
+  valueLabels?: boolean;
+}) {
+  const width = 720;
+  const height = 300;
+  const pad = { top: valueLabels ? 52 : 20, right: 16, bottom: 48, left: valueLabels ? 16 : 124 };
+  const innerW = width - pad.left - pad.right;
+  const innerH = height - pad.top - pad.bottom;
+  // Sans axe gradué (montants écrits sur les barres) : la plus haute barre prend toute la hauteur.
+  const max = valueLabels ? Math.max(1, ...values) : niceMax(Math.max(1, ...values));
+  const step = innerW / Math.max(values.length, 1);
+  const barW = Math.max(step * (valueLabels ? 0.56 : 0.64), 2);
+  const base = pad.top + innerH;
+  const y = (value: number) => base - (value / max) * innerH;
+  const ticks = [0, 0.25, 0.5, 0.75, 1].map((ratio) => ratio * max);
+  const every = values.length > 12 ? Math.max(1, Math.ceil(values.length / 6)) : 1;
+  return (
+    <figure className="mt-4">
+      <svg viewBox={`0 0 ${width} ${height}`} className="h-auto w-full" role="img" aria-label={summary}>
+        {!valueLabels &&
+          ticks.map((tick) => (
+            <g key={tick}>
+              <line
+                x1={pad.left}
+                x2={width - pad.right}
+                y1={y(tick)}
+                y2={y(tick)}
+                stroke="#e6e9f0"
+                strokeDasharray={tick === 0 ? undefined : "3 4"}
+              />
+              <text x={pad.left - 10} y={y(tick) + 6} textAnchor="end" className={AXIS_TEXT} fill="#5b6275">
+                {format(tick)}
+              </text>
+            </g>
+          ))}
+        {valueLabels && <line x1={pad.left} x2={width - pad.right} y1={base} y2={base} stroke="#e6e9f0" />}
+        {values.map((value, index) => {
+          const x = pad.left + index * step + (step - barW) / 2;
+          const muted = highlight !== undefined && index !== highlight;
+          return (
+            <g key={index} className="group">
+              {/* Zone de survol plus large que la barre. */}
+              <rect x={pad.left + index * step} y={pad.top} width={step} height={innerH} fill="transparent" />
+              {value > 0 && (
+                <path
+                  d={barPath(x, y(value), barW, base)}
+                  fill={color}
+                  fillOpacity={muted ? 0.4 : 1}
+                  className="transition-opacity group-hover:opacity-80"
+                />
+              )}
+              {valueLabels && (
+                <text
+                  x={x + barW / 2}
+                  y={y(value) - 12}
+                  textAnchor="middle"
+                  className="text-[25px] font-semibold sm:text-[17px] lg:text-[14px]"
+                  fill={muted ? "#5b6275" : "#0b1033"}
+                >
+                  {format(value)}
+                </text>
+              )}
+              {(index % every === 0 || index === values.length - 1) && (
+                <text
+                  x={x + barW / 2}
+                  y={height - 12}
+                  textAnchor="middle"
+                  className={`${AXIS_TEXT} ${index === highlight ? "font-semibold" : ""}`}
+                  fill={index === highlight ? "#0b1033" : "#5b6275"}
+                >
+                  {labels[index]}
+                </text>
+              )}
+              <title>{`${labels[index]} : ${format(value)}`}</title>
+            </g>
+          );
+        })}
+      </svg>
+    </figure>
+  );
+}
+
 /** Anneau de progression vers un objectif : pourcentage au centre, valeur et reste en dessous. */
 export function GoalRing({
   label,
