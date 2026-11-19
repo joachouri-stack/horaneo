@@ -472,7 +472,7 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
       await asManager(s.id, (tx) => saveCustomer(tx, s.id, { firstName: "Zoé", phone: "0611223344" }));
 
       const today = await asManager(s.id, (tx) => customerDirectory(tx, s.id, { now: new Date() }));
-      expect(today.counts).toEqual({ all: 2, visited: 1, loyal: 0, new: 2, inactive: 0 });
+      expect(today.counts).toEqual({ all: 2, visited: 1, loyal: 0, new: 2, inactive: 0, blocked: 0 });
       const camille = today.customers.find((row) => row.firstName === "Camille")!;
       expect(camille).toMatchObject({ visits: 1, spentCents: 7000, isNew: true, inactive: false });
       expect(camille.lastVisit?.getTime()).toBe(at("10:00").getTime());
