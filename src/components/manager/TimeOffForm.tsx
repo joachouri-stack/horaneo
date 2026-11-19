@@ -13,18 +13,30 @@ type Props = {
   staff: { id: string; name: string }[];
   today: string;
   timeZone: string;
+  /** Modification d'une indisponibilité existante : ses valeurs actuelles. */
+  initial?: {
+    id: string;
+    staffId: string | null;
+    date: string;
+    from: string;
+    to: string;
+    startDate: string;
+    endDate: string;
+    reason: string;
+  };
 };
 
 /** Bloquer un créneau, poser un congé ou fermer l'établissement ; signale les rendez-vous déjà pris. */
-export function TimeOffForm({ tenantId, kind, staff, today, timeZone }: Props) {
+export function TimeOffForm({ tenantId, kind, staff, today, timeZone, initial }: Props) {
   const t = useTranslations("manager.unavailability");
   const tErrors = useTranslations("errors");
   const tCommon = useTranslations("common");
   const [state, action, pending] = useActionState(createTimeOffAction, null as ActionResult<unknown> | null);
   const formRef = useRef<HTMLFormElement>(null);
   useEffect(() => {
-    if (state?.ok) formRef.current?.reset();
-  }, [state]);
+    // Création : le formulaire est vidé ; modification : les nouvelles valeurs restent affichées.
+    if (state?.ok && !initial) formRef.current?.reset();
+  }, [state, initial]);
   const conflictList = state?.ok
     ? ((state.data as { conflicts: { id: string; startsAt: Date | string }[] } | undefined)?.conflicts ?? [])
     : [];
@@ -67,6 +79,7 @@ export function TimeOffForm({ tenantId, kind, staff, today, timeZone }: Props) {
     >
       <input type="hidden" name="tenantId" value={tenantId} />
       <input type="hidden" name="kind" value={kind} />
+      {initial && <input type="hidden" name="id" value={initial.id} />}
       {/* Une seule personne dans l'équipe : pas de choix à faire. */}
       {kind !== "closure" && staff.length === 1 && <input type="hidden" name="staffId" value={staff[0].id} />}
       {kind !== "closure" && staff.length > 1 && (
@@ -74,7 +87,13 @@ export function TimeOffForm({ tenantId, kind, staff, today, timeZone }: Props) {
           <label htmlFor="to-staff" className={ui.label}>
             {t("staff")}
           </label>
-          <select id="to-staff" name="staffId" className={ui.input} required>
+          <select
+            id="to-staff"
+            name="staffId"
+            className={ui.input}
+            required
+            defaultValue={initial?.staffId ?? undefined}
+          >
             {staff.map((member) => (
               <option key={member.id} value={member.id}>
                 {member.name}
@@ -86,21 +105,21 @@ export function TimeOffForm({ tenantId, kind, staff, today, timeZone }: Props) {
       {kind === "block" ? (
         // Date sur toute la largeur, puis De / À : les champs restent lisibles sur téléphone.
         <div className="grid grid-cols-2 gap-3 [&>div:first-child]:col-span-2 sm:grid-cols-3 sm:[&>div:first-child]:col-span-1">
-          {field("date", t("date"), "date", today)}
-          {field("from", t("from"), "time", "12:00")}
-          {field("to", t("to"), "time", "13:00")}
+          {field("date", t("date"), "date", initial?.date ?? today)}
+          {field("from", t("from"), "time", initial?.from ?? "12:00")}
+          {field("to", t("to"), "time", initial?.to ?? "13:00")}
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
-          {field("startDate", t("startDate"), "date", today)}
-          {field("endDate", t("endDate"), "date", today)}
+          {field("startDate", t("startDate"), "date", initial?.startDate ?? today)}
+          {field("endDate", t("endDate"), "date", initial?.endDate ?? today)}
         </div>
       )}
       <div>
         <label htmlFor="to-reason" className={ui.label}>
           {t("reason")}
         </label>
-        <input id="to-reason" name="reason" className={ui.input} />
+        <input id="to-reason" name="reason" defaultValue={initial?.reason} className={ui.input} />
       </div>
       {state && !state.ok && (
         <p role="alert" className={ui.error}>

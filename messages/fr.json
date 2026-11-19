@@ -3190,7 +3190,10 @@
       "everyone": "Tout l'établissement",
       "remove": "Supprimer",
       "conflicts": "C'est enregistré, mais attention : {count, plural, one {# rendez-vous est déjà pris sur cette période. Pensez à prévenir le client ou à déplacer le rendez-vous :} other {# rendez-vous sont déjà pris sur cette période. Pensez à prévenir les clients ou à déplacer les rendez-vous :}}",
-      "removeConfirm": "Supprimer cette indisponibilité ? Les créneaux seront de nouveau proposés en ligne."
+      "removeConfirm": "Supprimer cette indisponibilité ? Les créneaux seront de nouveau proposés en ligne.",
+      "editTitle": "Modifier : {kind}",
+      "removed": "Supprimé. Ces créneaux sont de nouveau proposés en ligne.",
+      "edit": "Modifier"
     },
     "customers": {
       "title": "Clients",

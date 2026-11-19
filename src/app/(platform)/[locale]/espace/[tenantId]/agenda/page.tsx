@@ -75,6 +75,7 @@ export default async function AgendaPage({
   const page = await managerPage(params, "agenda");
   const query = await searchParams;
   const t = await getTranslations("manager.agenda");
+  const tUnavailability = await getTranslations("manager.unavailability");
   const tz = page.tenant.timezone;
   const now = new Date();
   const today = utcToLocal(now, tz).date;
@@ -747,13 +748,14 @@ export default async function AgendaPage({
                     );
                   })}
                   {column.timeOff.map((off) => (
-                    <div
+                    <Link
                       key={off.id}
-                      className="absolute inset-x-1 rounded-lg border border-dashed border-[#d5dae4] bg-[#f4f6fa] p-1.5 text-[0.8125rem] text-ink-soft"
+                      href={`${page.base}/indisponibilites/${off.id}`}
+                      className="absolute inset-x-1 rounded-lg border border-dashed border-[#d5dae4] bg-[#f4f6fa] p-1.5 text-[0.8125rem] text-ink-soft transition hover:border-accent-line"
                       style={{ top: top(off.from), height: Math.max(top(off.to) - top(off.from), 18) }}
                     >
                       {t(`timeOff.${off.kind}` as "timeOff.leave")}
-                    </div>
+                    </Link>
                   ))}
                   {column.appointments.map((item) => {
                     const place = lanes.get(item.id) ?? { lane: 0, lanes: 1 };
@@ -876,9 +878,18 @@ export default async function AgendaPage({
                   </span>
                 </h2>
                 {dayOff.map((off) => (
-                  <p key={off.id} className="rounded-xl bg-[#f1f2f5] px-4 py-2 text-sm text-ink-soft">
-                    {t(`timeOff.${off.kind}`)} · {off.staffName ?? ""} {off.reason ? `· ${off.reason}` : ""}
-                  </p>
+                  <Link
+                    key={off.id}
+                    href={`${page.base}/indisponibilites/${off.id}`}
+                    className="flex min-h-11 items-center justify-between gap-2 rounded-xl bg-[#f1f2f5] px-4 py-2 text-sm text-ink-soft transition hover:bg-[#e8ebf1]"
+                  >
+                    <span>
+                      {t(`timeOff.${off.kind}`)} · {off.staffName ?? ""} {off.reason ? `· ${off.reason}` : ""}
+                    </span>
+                    <span className="shrink-0 font-medium text-accent underline">
+                      {tUnavailability("edit")}
+                    </span>
+                  </Link>
                 ))}
                 {dayAppointments.length > 0 && (
                   <DayTimeline
@@ -960,9 +971,16 @@ export default async function AgendaPage({
       </div>
       <div className={columns.length > 1 ? "hidden" : "space-y-2 sm:hidden"}>
         {dayOffOf(date).map((off) => (
-          <p key={off.id} className="rounded-xl bg-[#f1f2f5] px-4 py-2 text-sm text-ink-soft">
-            {t(`timeOff.${off.kind}`)} · {off.staffName ?? ""} {off.reason ? `· ${off.reason}` : ""}
-          </p>
+          <Link
+            key={off.id}
+            href={`${page.base}/indisponibilites/${off.id}`}
+            className="flex min-h-11 items-center justify-between gap-2 rounded-xl bg-[#f1f2f5] px-4 py-2 text-sm text-ink-soft transition hover:bg-[#e8ebf1]"
+          >
+            <span>
+              {t(`timeOff.${off.kind}`)} · {off.staffName ?? ""} {off.reason ? `· ${off.reason}` : ""}
+            </span>
+            <span className="shrink-0 font-medium text-accent underline">{tUnavailability("edit")}</span>
+          </Link>
         ))}
         {onDay(date).length === 0 ? (
           <p className="rounded-2xl border border-hairline bg-white px-5 py-4 text-ink-soft">{t("empty")}</p>

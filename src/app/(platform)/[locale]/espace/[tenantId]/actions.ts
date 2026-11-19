@@ -99,7 +99,7 @@ import { setBirthdayOffer } from "@/modules/promo/birthday";
 import { deletePromoCode, savePromoCode } from "@/modules/promo/codes";
 import { createUpdateRequest } from "@/modules/requests/update-requests";
 import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
-import { createTimeOff, deleteTimeOff } from "@/modules/schedule/time-off";
+import { createTimeOff, deleteTimeOff, updateTimeOff } from "@/modules/schedule/time-off";
 import { updateStatsGoals } from "@/modules/stats/goals";
 import { replaceStaffSchedules } from "@/modules/team/schedules";
 import { setBrandPalette } from "@/modules/tenants/update";
@@ -324,10 +324,15 @@ export async function createTimeOffAction(
             endDate: form.text(data, "endDate"),
             reason,
           };
-  return managerMutation(tenantId, "agenda", `time_off.${kind}`, async (tx, { space }) => {
+  // Modification d'une indisponibilité existante (lien depuis l'agenda), sinon création.
+  const id = idOf(data);
+  return managerMutation(tenantId, "agenda", `time_off.${id ? "updated" : kind}`, async (tx, { space }) => {
     // Collaborateur limité à son agenda : ses propres absences seulement (pas de fermeture du salon).
     assertStaffInScope(space, input.kind === "closure" ? null : input.staffId);
-    const result = await createTimeOff(tx, tenantId, input);
+    if (id) await assertTimeOffInScope(tx, tenantId, space, id);
+    const result = id
+      ? await updateTimeOff(tx, tenantId, id, input)
+      : await createTimeOff(tx, tenantId, input);
     return { conflicts: result.conflicts };
   });
 }

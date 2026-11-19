@@ -45,7 +45,7 @@ import {
   setRequestStatus,
 } from "@/modules/requests/update-requests";
 import { replaceOpeningHours } from "@/modules/schedule/opening-hours";
-import { createTimeOff } from "@/modules/schedule/time-off";
+import { createTimeOff, getTimeOff, updateTimeOff } from "@/modules/schedule/time-off";
 import { getStatsGoals, updateStatsGoals } from "@/modules/stats/goals";
 import { monthDetails, monthOccupancy, monthSales, monthStats } from "@/modules/stats/month";
 import { replaceStaffSchedules } from "@/modules/team/schedules";
@@ -730,6 +730,45 @@ describe.skipIf(!hasTestDatabase)("espace gérante : modules", () => {
           ),
         ),
       ).toBe("hours_invalid");
+    });
+
+    it("modifie un congé : dates, motif, conflits et autre entreprise refusée", async () => {
+      const s = await setup();
+      await onlineBooking(s.id, s.massage.id, at("10:00"));
+      const { timeOff, conflicts } = await asManager(s.id, (tx) =>
+        createTimeOff(tx, s.id, {
+          kind: "leave",
+          staffId: s.lea.id,
+          startDate: "2026-10-07",
+          endDate: "2026-10-07",
+        }),
+      );
+      expect(conflicts).toHaveLength(0);
+      const updated = await asManager(s.id, (tx) =>
+        updateTimeOff(tx, s.id, timeOff.id, {
+          kind: "leave",
+          staffId: s.lea.id,
+          startDate: DAY,
+          endDate: "2026-10-08",
+          reason: "Vacances",
+        }),
+      );
+      expect(updated.timeOff.id).toBe(timeOff.id);
+      expect(updated.conflicts).toHaveLength(1);
+      const saved = await asManager(s.id, (tx) => getTimeOff(tx, s.id, timeOff.id));
+      expect(saved).toMatchObject({ reason: "Vacances", endsAt: localToUtc("2026-10-09", "00:00", TZ) });
+      const other = await setup();
+      expect(
+        await errorCode(
+          asManager(other.id, (tx) =>
+            updateTimeOff(tx, other.id, timeOff.id, {
+              kind: "closure",
+              startDate: DAY,
+              endDate: DAY,
+            }),
+          ),
+        ),
+      ).toBe("not_found");
     });
 
     it("horaires d'un membre : seule la plage indiquée est proposée", async () => {
