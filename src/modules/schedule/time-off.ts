@@ -39,7 +39,8 @@ export const timeOffInput = z.discriminatedUnion("kind", [
   }),
 ]);
 
-export async function createTimeOff(tx: Transaction, tenantId: string, raw: z.input<typeof timeOffInput>) {
+/** Période et membre d'une indisponibilité saisie (heures locales de l'établissement). */
+async function resolveTimeOff(tx: Transaction, tenantId: string, raw: z.input<typeof timeOffInput>) {
   const input = timeOffInput.parse(raw);
   const [tenant] = await tx
     .select({ timezone: tenants.timezone })
@@ -66,25 +67,63 @@ export async function createTimeOff(tx: Transaction, tenantId: string, raw: z.in
       .where(and(eq(staffMembers.id, staffId), eq(staffMembers.tenantId, tenantId)));
     if (!member) throw new AppError("not_found", "staffId");
   }
-  const [created] = await tx
-    .insert(timeOff)
-    .values({ tenantId, staffId, kind: input.kind, startsAt, endsAt, reason: input.reason || null })
-    .returning();
-  // Rendez-vous déjà pris sur cette période : à prévenir ou déplacer.
-  const conflicts = await tx
+  return { kind: input.kind, staffId, startsAt, endsAt, reason: input.reason || null };
+}
+
+/** Rendez-vous déjà pris sur cette période : à prévenir ou déplacer. */
+async function conflictsOf(
+  tx: Transaction,
+  tenantId: string,
+  period: { staffId: string | null; startsAt: Date; endsAt: Date },
+) {
+  return tx
     .select({ id: appointments.id, startsAt: appointments.startsAt })
     .from(appointments)
     .where(
       and(
         eq(appointments.tenantId, tenantId),
         inArray(appointments.status, ["confirmed", "pending_payment"]),
-        lt(appointments.startsAt, endsAt),
-        gt(appointments.endsAt, startsAt),
-        staffId ? eq(appointments.staffId, staffId) : undefined,
+        lt(appointments.startsAt, period.endsAt),
+        gt(appointments.endsAt, period.startsAt),
+        period.staffId ? eq(appointments.staffId, period.staffId) : undefined,
       ),
     )
     .orderBy(asc(appointments.startsAt));
-  return { timeOff: created, conflicts };
+}
+
+export async function createTimeOff(tx: Transaction, tenantId: string, raw: z.input<typeof timeOffInput>) {
+  const values = await resolveTimeOff(tx, tenantId, raw);
+  const [created] = await tx
+    .insert(timeOff)
+    .values({ tenantId, ...values })
+    .returning();
+  return { timeOff: created, conflicts: await conflictsOf(tx, tenantId, values) };
+}
+
+/** Modifie une indisponibilité (dates, heures, membre, motif) ; signale les rendez-vous concernés. */
+export async function updateTimeOff(
+  tx: Transaction,
+  tenantId: string,
+  timeOffId: string,
+  raw: z.input<typeof timeOffInput>,
+) {
+  const values = await resolveTimeOff(tx, tenantId, raw);
+  const [updated] = await tx
+    .update(timeOff)
+    .set(values)
+    .where(and(eq(timeOff.id, timeOffId), eq(timeOff.tenantId, tenantId)))
+    .returning();
+  if (!updated) throw new AppError("not_found");
+  return { timeOff: updated, conflicts: await conflictsOf(tx, tenantId, values) };
+}
+
+/** Une indisponibilité, avec ses dates locales (formulaire de modification). */
+export async function getTimeOff(tx: Transaction, tenantId: string, timeOffId: string) {
+  const [row] = await tx
+    .select()
+    .from(timeOff)
+    .where(and(eq(timeOff.id, timeOffId), eq(timeOff.tenantId, tenantId)));
+  return row ?? null;
 }
 
 export async function deleteTimeOff(tx: Transaction, tenantId: string, timeOffId: string) {
