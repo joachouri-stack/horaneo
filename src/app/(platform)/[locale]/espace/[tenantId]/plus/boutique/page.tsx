@@ -27,6 +27,10 @@ import {
 type ProductRow = Awaited<ReturnType<typeof listProducts>>[number];
 
 /** Boutique (solution Commerce) : la gérante crée et gère ses produits. */
+import { paymentSetup } from "@/modules/payments/connect";
+import { paymentGateway } from "@/lib/payments/stripe";
+import { Link } from "@/i18n/navigation";
+
 export default async function ShopPage({ params }: PageProps<"/[locale]/espace/[tenantId]/plus/boutique">) {
   const page = await managerPage(params, "shop");
   const [t, tCommon] = await Promise.all([getTranslations("manager.shop"), getTranslations("common")]);
@@ -46,6 +50,9 @@ export default async function ShopPage({ params }: PageProps<"/[locale]/espace/[
           ] as const,
       )
     : [[], null, undefined];
+  // Boutique visible sur le site seulement avec le paiement en ligne actif (sinon le lien mène à une page introuvable).
+  const payment = paymentSetup(page.business, page.tenant.features, paymentGateway() !== null);
+  const shopOpen = payment === "active" && products.length > 0;
   const locale = page.tenant.defaultLocale as "fr";
   const store = storage();
 
@@ -185,7 +192,7 @@ export default async function ShopPage({ params }: PageProps<"/[locale]/espace/[
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-ink/80">{t("intro")}</p>
             {/* Voir la boutique telle que les clients la voient. */}
-            {primary && page.tenant.status === "active" && products.length > 0 && (
+            {primary && page.tenant.status === "active" && shopOpen && (
               <a
                 href={`${tenantSiteUrl(primary.hostname)}${SITE_PATHS.shop}`}
                 target="_blank"
@@ -196,6 +203,25 @@ export default async function ShopPage({ params }: PageProps<"/[locale]/espace/[
               </a>
             )}
           </div>
+          {/* Pourquoi la boutique n'apparaît pas encore sur le site, et quoi faire. */}
+          {!shopOpen && (
+            <p className={`${ui.card} border-accent/30 bg-accent-soft/40`}>
+              {payment === "not_started" || payment === "incomplete" ? (
+                <>
+                  {t("hiddenNeedsStripe")}{" "}
+                  <Link href={`${page.base}/plus/paiements`} className="font-semibold text-accent underline">
+                    {t("hiddenNeedsStripeLink")}
+                  </Link>
+                </>
+              ) : payment === "platform_off" ? (
+                t("hiddenPlatformOff")
+              ) : payment === "unavailable" ? (
+                t("hiddenNoPayment")
+              ) : (
+                t("hiddenNoProduct")
+              )}
+            </p>
+          )}
           {fulfillment && (
             <details className={ui.card}>
               <summary className="flex min-h-11 cursor-pointer items-center text-lg font-semibold text-night">
