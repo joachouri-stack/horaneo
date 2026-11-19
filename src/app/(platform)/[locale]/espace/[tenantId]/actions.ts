@@ -337,12 +337,23 @@ export async function createTimeOffAction(
   });
 }
 
+/**
+ * Suppression d'une indisponibilité. Depuis sa page de modification (champ `agendaDate`),
+ * retour à l'agenda ce jour-là : la page de l'indisponibilité n'existe plus.
+ */
 export async function deleteTimeOffAction(_previous: Previous, data: FormData) {
   const tenantId = tenantIdOf(data);
-  return managerMutation(tenantId, "agenda", "time_off.deleted", async (tx, { space }) => {
+  const result = await managerMutation(tenantId, "agenda", "time_off.deleted", async (tx, { space }) => {
     await assertTimeOffInScope(tx, tenantId, space, idOf(data)!);
     return deleteTimeOff(tx, tenantId, idOf(data)!);
   });
+  const agendaDate = data.get("agendaDate");
+  if (result.ok && typeof agendaDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(agendaDate))
+    redirect({
+      href: `/espace/${tenantId}/agenda?date=${agendaDate}`,
+      locale: resolveLocale(await getLocale()),
+    });
+  return result;
 }
 
 // ─── Clientes ─────────────────────────────────────────────────────────────────

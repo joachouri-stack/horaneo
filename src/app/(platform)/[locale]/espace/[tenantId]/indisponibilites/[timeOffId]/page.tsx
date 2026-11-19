@@ -73,7 +73,7 @@ export default async function EditUnavailabilityPage({
           successMessage={t("removed")}
           variant="dangerOutline"
         >
-          <Hidden values={{ tenantId: page.tenantId, id: item.id }} />
+          <Hidden values={{ tenantId: page.tenantId, id: item.id, agendaDate: start.date }} />
         </ActionForm>
       </section>
     </div>
