@@ -6,6 +6,7 @@ import { Hidden, TextArea, TextField } from "@/components/admin/fields";
 import { PlatformFooter } from "@/components/layout/PlatformFooter";
 import { PlatformHeader } from "@/components/layout/PlatformHeader";
 import { ui } from "@/components/ui/styles";
+import { Link } from "@/i18n/navigation";
 import { withPlatform } from "@/db/access";
 import { pickLocalized } from "@/i18n/locales";
 import { resolveLocale } from "@/i18n/translator";
@@ -86,6 +87,16 @@ export default async function CallbackPage({ params, searchParams }: PageProps<"
               autoComplete="email"
             />
             <TextArea name="message" label={t("message")} rows={4} />
+            {/* Données personnelles : à quoi elles servent, avant d'envoyer. */}
+            <p className="text-sm text-ink/70">
+              {t.rich("privacy", {
+                link: (chunks) => (
+                  <Link href="/confidentialite" className="underline">
+                    {chunks}
+                  </Link>
+                ),
+              })}
+            </p>
           </ActionForm>
         </div>
       </main>

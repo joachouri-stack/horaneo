@@ -8,6 +8,9 @@ import {
   appointments,
   customerDataRequests,
   customers,
+  giftCards,
+  messageLog,
+  shopOrders,
   loyaltyEvents,
   loyaltyRewards,
   promoCodes,
@@ -296,6 +299,11 @@ export async function anonymizeCustomer(
   erasedName: string,
   now = new Date(),
 ) {
+  // Coordonnées avant effacement : retrouvées aussi dans les messages, cartes et commandes.
+  const [before] = await tx
+    .select({ email: customers.email, phone: customers.phone })
+    .from(customers)
+    .where(and(eq(customers.id, customerId), eq(customers.tenantId, tenantId)));
   const [updated] = await tx
     .update(customers)
     .set({
@@ -319,7 +327,79 @@ export async function anonymizeCustomer(
     .update(appointments)
     .set({ customerNote: null, internalNote: null })
     .where(and(eq(appointments.customerId, customerId), eq(appointments.tenantId, tenantId)));
+  await eraseContactTraces(tx, tenantId, customerId, before ?? { email: null, phone: null }, erasedName, now);
   return updated;
+}
+
+/**
+ * Traces des coordonnées d'un client effacé ailleurs que sur sa fiche : adresse ou numéro des
+ * messages déjà traités (ceux de ses rendez-vous, ou envoyés à ses coordonnées), nom du client
+ * dans les alertes, cartes cadeaux achetées ou reçues (une fois envoyées) et commandes terminées.
+ * Montants, dates et statuts restent : la comptabilité et les statistiques restent justes.
+ */
+async function eraseContactTraces(
+  tx: Transaction,
+  tenantId: string,
+  customerId: string,
+  contact: { email: string | null; phone: string | null },
+  erasedName: string,
+  now: Date,
+) {
+  const email = contact.email?.trim().toLowerCase() || null;
+  const recipients = [email, contact.phone].filter((value): value is string => Boolean(value));
+  const ownAppointments = tx
+    .select({ id: appointments.id })
+    .from(appointments)
+    .where(and(eq(appointments.tenantId, tenantId), eq(appointments.customerId, customerId)));
+  await tx
+    .update(messageLog)
+    .set({ recipient: null, data: sql`${messageLog.data} - 'customer'` })
+    .where(
+      and(
+        eq(messageLog.tenantId, tenantId),
+        ne(messageLog.status, "queued"),
+        or(
+          inArray(messageLog.appointmentId, ownAppointments),
+          recipients.length > 0 ? inArray(sql`lower(${messageLog.recipient})`, recipients) : sql`false`,
+        ),
+      ),
+    );
+  if (!email) return;
+  await tx
+    .update(giftCards)
+    .set({ purchaserName: erasedName, purchaserEmail: "" })
+    .where(and(eq(giftCards.tenantId, tenantId), sql`lower(${giftCards.purchaserEmail}) = ${email}`));
+  // Carte reçue : effacée une fois envoyée (avant, l'adresse sert encore à l'envoyer).
+  await tx
+    .update(giftCards)
+    .set({ recipientName: null, recipientEmail: null, message: null })
+    .where(
+      and(
+        eq(giftCards.tenantId, tenantId),
+        sql`lower(${giftCards.recipientEmail}) = ${email}`,
+        sql`${giftCards.sendAt} <= ${now.toISOString()}::timestamptz`,
+      ),
+    );
+  // Commandes terminées seulement : une commande en cours garde de quoi joindre le client.
+  await tx
+    .update(shopOrders)
+    .set({
+      customerName: erasedName,
+      customerEmail: "",
+      customerPhone: null,
+      note: null,
+      deliveryAddressLine1: null,
+      deliveryAddressLine2: null,
+      deliveryPostalCode: null,
+      deliveryCity: null,
+    })
+    .where(
+      and(
+        eq(shopOrders.tenantId, tenantId),
+        sql`lower(${shopOrders.customerEmail}) = ${email}`,
+        inArray(shopOrders.status, ["collected", "cancelled", "expired", "refunded"]),
+      ),
+    );
 }
 
 /**
