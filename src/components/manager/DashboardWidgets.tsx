@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { capitalize } from "@/lib/text";
 
 /**
  * Briques du tableau de bord de la gérante : cartes de chiffres, histogramme,
@@ -138,9 +139,9 @@ export function RevenueBars({
           />
           <span
             aria-hidden="true"
-            className={`text-[0.8125rem] first-letter:uppercase ${day.today ? "font-medium text-accent" : "text-ink-soft"}`}
+            className={`text-[0.8125rem] ${day.today ? "font-medium text-accent" : "text-ink-soft"}`}
           >
-            {day.label}
+            {capitalize(day.label)}
           </span>
         </li>
       ))}

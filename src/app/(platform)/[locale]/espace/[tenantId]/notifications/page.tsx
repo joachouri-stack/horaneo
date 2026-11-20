@@ -11,6 +11,7 @@ import {
   type ManagerNotification,
   type NotificationKind,
 } from "@/modules/notifications/feed";
+import { capitalize } from "@/lib/text";
 
 /** Pictogramme et couleur de chaque type de notification. */
 const STYLE: Record<NotificationKind, { icon: string; tone: string }> = {
@@ -141,9 +142,7 @@ export default async function NotificationsPage({
                     {item.unseen && <span className="sr-only">{t("new")} : </span>}
                     {title}
                   </span>
-                  {detail && (
-                    <span className="block text-sm first-letter:uppercase text-ink/80">{detail}</span>
-                  )}
+                  {detail && <span className="block text-sm text-ink/80">{capitalize(detail)}</span>}
                   <span className="mt-0.5 block text-[0.8125rem] text-ink/70">
                     {t("receivedAt", { date: received(item.at) })}
                   </span>

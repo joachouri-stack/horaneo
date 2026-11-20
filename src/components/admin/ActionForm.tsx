@@ -122,8 +122,9 @@ export function ActionForm({
       ? `${ui.primaryButton} sm:w-auto`
       : variant === "secondary"
         ? `${ui.secondaryButton} sm:w-auto`
-        : variant === "danger"
-          ? "inline-flex min-h-11 items-center font-semibold text-coral-dark underline disabled:opacity-60"
+        : // Suppression, annulation : en rouge (jamais dans la couleur des actions).
+          variant === "danger"
+          ? "inline-flex min-h-11 items-center font-semibold text-[#b4372a] underline disabled:opacity-60"
           : variant === "dangerOutline"
             ? "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#f1c5bf] bg-white px-5 font-semibold text-[#b4372a] transition hover:bg-[#fdecea] disabled:opacity-60 sm:w-auto"
             : "inline-flex min-h-11 items-center font-semibold text-night underline disabled:opacity-60";

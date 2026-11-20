@@ -11,6 +11,7 @@ import { getPlatformSetting } from "@/modules/settings";
 import { dashboardStats, trendPercent } from "@/modules/stats/dashboard";
 import { openShopOrdersCount } from "@/modules/shop/orders";
 import { agendaStaffFilter, canAccess } from "@/modules/team/access";
+import { capitalize } from "@/lib/text";
 
 /**
  * Accueil de l'espace gérante : salutation et actions, rappels utiles, agenda du jour
@@ -77,9 +78,7 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
           <h1 className="font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night sm:text-[2rem]">
             {firstName ? t("hello", { name: firstName }) : t("helloNoName")}
           </h1>
-          <p className="mt-1 text-ink-soft first-letter:uppercase">
-            {t("subtitle", { date: page.fmt.day(now) })}
-          </p>
+          <p className="mt-1 text-ink-soft">{capitalize(t("subtitle", { date: page.fmt.day(now) }))}</p>
         </div>
         <div className="flex w-full flex-col-reverse gap-2 sm:w-auto sm:flex-row">
           <Link

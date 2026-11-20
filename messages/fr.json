@@ -3162,6 +3162,7 @@
       "memberHidden": "agenda masqué",
       "icons": {
         "attended": "Client venu",
+        "noShow": "Client absent",
         "pending": "Paiement de l'acompte en attente",
         "deposit": "Acompte payé",
         "online": "Réservé en ligne"

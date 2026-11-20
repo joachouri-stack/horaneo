@@ -18,6 +18,7 @@ import { knownBusinesses } from "@/modules/customer-space/auth";
 import { loadBusinessSpace, type BusinessSpace } from "@/modules/customer-space/space";
 import { appointmentCalendarPath, SITE_PATHS } from "@/modules/site/paths";
 import { logoutAction } from "./actions";
+import { capitalize } from "@/lib/text";
 
 // Espace personnel : jamais indexé.
 export async function generateMetadata({
@@ -166,8 +167,8 @@ export default async function CustomerSpacePage({ params }: PageProps<"/sites/[t
         )}
         {upcoming.map((item) => (
           <article key={item.id} className={card}>
-            <p className="font-site-display text-2xl font-semibold first-letter:uppercase text-site-heading">
-              {t("when", { date: date(item.startsAt), time: time(item.startsAt) })}
+            <p className="font-site-display text-2xl font-semibold text-site-heading">
+              {capitalize(t("when", { date: date(item.startsAt), time: time(item.startsAt) }))}
             </p>
             <p className="mt-1 font-semibold">{serviceNames(item)}</p>
             <p className="text-site-muted">{who(item)}</p>

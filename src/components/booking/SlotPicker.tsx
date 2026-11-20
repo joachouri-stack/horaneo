@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useState } from "react";
 import type { DayAvailability, PublicResult } from "@/app/(tenant)/sites/[tenantId]/reserver/actions";
 import { dayChip } from "./format";
+import { capitalize } from "@/lib/text";
 
 export type PickedSlot = { start: string; time: string; date: string; staffId: string | null };
 
@@ -176,11 +177,11 @@ export function SlotPicker({
               id="slot-month"
               value={days[0]?.date.slice(0, 7) ?? months[0]}
               onChange={(event) => goToMonth(event.target.value)}
-              className="block min-h-12 w-full rounded-site border border-site-border bg-site-bg px-4 text-site-text first-letter:uppercase sm:w-auto"
+              className="block min-h-12 w-full rounded-site border border-site-border bg-site-bg px-4 text-site-text sm:w-auto"
             >
               {months.map((month) => (
                 <option key={month} value={month}>
-                  {monthLabel.format(new Date(`${month}-01T12:00:00Z`))}
+                  {capitalize(monthLabel.format(new Date(`${month}-01T12:00:00Z`)))}
                 </option>
               ))}
             </select>

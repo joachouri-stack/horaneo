@@ -127,7 +127,7 @@ export function TimeOffForm({ tenantId, kind, staff, today, timeZone, initial }:
         </p>
       )}
       {state?.ok && (
-        <div role="status" className={conflicts > 0 ? ui.error : ui.success}>
+        <div role="status" className={conflicts > 0 ? ui.warning : ui.success}>
           <p>{conflicts > 0 ? t("conflicts", { count: conflicts }) : tCommon("saved")}</p>
           {conflicts > 0 && (
             <ul className="mt-2 list-disc space-y-1 pl-5">

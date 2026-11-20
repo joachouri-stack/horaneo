@@ -30,6 +30,7 @@ import {
   timeToMinutes,
   utcToLocal,
 } from "@/modules/booking/time";
+import { capitalize } from "@/lib/text";
 
 const HOUR_HEIGHT = 72; // pixels par heure dans les vues jour et semaine
 const VIEW_PARAM = { day: "jour", week: "semaine", month: "mois" } as const;
@@ -61,6 +62,10 @@ type GridColumn = {
 
 /** Coche (client venu). */
 const CHECK_ICON = "M5 12l5 5L20 7";
+const CROSS_ICON = "M6 6l12 12M18 6 6 18";
+/** Cliente absente : fond hachuré gris (par-dessus la couleur), nom barré et croix rouge. */
+const NO_SHOW_CLASS =
+  "bg-[repeating-linear-gradient(135deg,rgba(255,255,255,.75)_0_5px,rgba(15,24,48,.06)_5px_10px)] text-ink-soft!";
 
 /** Pas des créneaux cliquables de la frise (minutes). */
 const SLOT_MINUTES = 30;
@@ -83,6 +88,8 @@ export default async function AgendaPage({
   const date = typeof query.date === "string" && DATE_PATTERN.test(query.date) ? query.date : today;
   const view = query.vue === "semaine" ? "week" : query.vue === "mois" ? "month" : "day";
   const searchText = typeof query.q === "string" ? query.q.trim().slice(0, 80) : "";
+  // Téléphone : champ de recherche replié derrière une loupe (l'agenda arrive plus haut).
+  const searchOpen = Boolean(searchText) || query.recherche === "1";
   // Collaborateur limité à son agenda : toujours son membre, quel que soit le lien.
   const ownStaff = agendaStaffFilter(page.space);
   // Membres affichés, choisis par la gérante (boutons à allumer ou éteindre) : lien
@@ -273,7 +280,7 @@ export default async function AgendaPage({
   const iconButton =
     "flex size-11 items-center justify-center rounded-xl border border-hairline bg-white text-night transition hover:border-accent-line hover:text-accent";
   const segment =
-    "flex min-h-10 items-center justify-center rounded-xl px-3.5 text-[0.9375rem] font-medium text-ink-soft transition hover:text-night aria-[current=page]:bg-white aria-[current=page]:text-night aria-[current=page]:shadow-[0_1px_3px_rgba(15,24,48,.12)]";
+    "flex min-h-11 items-center justify-center rounded-xl px-3.5 text-[0.9375rem] font-medium text-ink-soft transition hover:text-night aria-[current=page]:bg-white aria-[current=page]:text-night aria-[current=page]:shadow-[0_1px_3px_rgba(15,24,48,.12)]";
 
   const header = (
     <div className="space-y-4">
@@ -287,7 +294,7 @@ export default async function AgendaPage({
         <form
           method="get"
           role="search"
-          className="order-last flex w-full gap-2 md:order-none md:ml-auto md:w-80"
+          className={`order-last w-full gap-2 md:order-none md:ml-auto md:flex md:w-80 ${searchOpen ? "flex" : "hidden"}`}
         >
           <input type="hidden" name="date" value={date} />
           <input type="hidden" name="vue" value={VIEW_PARAM[view]} />
@@ -301,6 +308,7 @@ export default async function AgendaPage({
             type="search"
             defaultValue={searchText}
             placeholder={t("searchPlaceholder")}
+            autoFocus={query.recherche === "1"}
             className="min-h-11 min-w-0 flex-1 rounded-xl border border-hairline bg-white px-3.5 text-[0.9375rem] text-night placeholder:text-ink/60 focus:border-accent focus:outline-none"
           />
           <button type="submit" aria-label={t("searchLabel")} className={iconButton}>
@@ -315,8 +323,18 @@ export default async function AgendaPage({
           <span>{t("newAppointment")}</span>
         </Link>
       </div>
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="grid w-full grid-cols-3 rounded-2xl bg-[#eceff5] p-1 sm:ml-auto sm:flex sm:w-auto">
+      <div className="flex items-center gap-2">
+        {/* Téléphone : la loupe ouvre la recherche, à côté du choix de la vue. */}
+        {!searchOpen && (
+          <Link
+            href={link({ recherche: "1" })}
+            aria-label={t("searchLabel")}
+            className={`${iconButton} shrink-0 md:hidden`}
+          >
+            <DashIcon d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14M20 20l-4-4" className="h-5 w-5" />
+          </Link>
+        )}
+        <div className="grid min-w-0 flex-1 grid-cols-3 rounded-2xl bg-[#eceff5] p-1 sm:ml-auto sm:flex sm:flex-none">
           {(["day", "week", "month"] as const).map((value) => (
             <Link
               key={value}
@@ -331,7 +349,9 @@ export default async function AgendaPage({
       </div>
       {/* Pause entre deux rendez-vous : réglage rapide, à portée de main (gérante). */}
       {canAccess(page.space, "owner") && (
-        <BreakSetting tenantId={page.tenantId} value={breakMinutes} options={BREAK_MINUTES} />
+        <div className="hidden sm:block">
+          <BreakSetting tenantId={page.tenantId} value={breakMinutes} options={BREAK_MINUTES} />
+        </div>
       )}
       {found && (
         <section
@@ -366,9 +386,7 @@ export default async function AgendaPage({
                       </span>
                     </span>
                     <span className="shrink-0 text-right text-sm">
-                      <span className="block text-night first-letter:uppercase">
-                        {page.fmt.day(item.startsAt)}
-                      </span>
+                      <span className="block text-night">{capitalize(page.fmt.day(item.startsAt))}</span>
                       <span className="block text-ink-soft tabular-nums">
                         {page.fmt.time(item.startsAt)} ·{" "}
                         {item.startsAt >= now ? t("searchUpcoming") : t("searchPast")}
@@ -388,7 +406,7 @@ export default async function AgendaPage({
           <Link
             href={link({ membres: ALL_MEMBERS })}
             aria-current={!selected ? "true" : undefined}
-            className="flex min-h-10 shrink-0 items-center rounded-full border border-hairline bg-white px-4 text-[0.9375rem] font-medium text-night aria-[current=true]:border-night aria-[current=true]:bg-night aria-[current=true]:text-white"
+            className="flex min-h-11 shrink-0 items-center rounded-full border border-hairline bg-white px-4 text-[0.9375rem] font-medium text-night aria-[current=true]:border-night aria-[current=true]:bg-night aria-[current=true]:text-white"
           >
             {t("allStaff")}
           </Link>
@@ -413,7 +431,7 @@ export default async function AgendaPage({
                 <span className="sr-only"> · {shown ? t("memberShown") : t("memberHidden")}</span>
               </>
             );
-            const chipClass = `flex min-h-10 shrink-0 items-center gap-2 rounded-full border py-1 pl-1.5 pr-4 text-[0.9375rem] font-medium ${
+            const chipClass = `flex min-h-11 shrink-0 items-center gap-2 rounded-full border py-1 pl-1.5 pr-4 text-[0.9375rem] font-medium ${
               shown
                 ? "border-night bg-white text-night"
                 : "border-hairline bg-white/60 text-ink/70 line-through"
@@ -433,6 +451,13 @@ export default async function AgendaPage({
     </div>
   );
 
+  // Téléphone : réglage de la pause sous le calendrier (dans l'en-tête sur grand écran).
+  const footer = canAccess(page.space, "owner") ? (
+    <div className="sm:hidden">
+      <BreakSetting tenantId={page.tenantId} value={breakMinutes} options={BREAK_MINUTES} />
+    </div>
+  ) : null;
+
   const dayOffOf = (day: string) =>
     timeOffList.filter(
       (off) =>
@@ -441,9 +466,6 @@ export default async function AgendaPage({
     );
   const onDay = (day: string) => appointments.filter((item) => utcToLocal(item.startsAt, tz).date === day);
 
-  // Majuscule au début (« novembre » → « Novembre ») : faite dans le texte, car la règle
-  // CSS « first-letter » rend le mot invisible sur certains iPhone.
-  const capitalize = (text: string) => text.charAt(0).toLocaleUpperCase(page.locale) + text.slice(1);
   /**
    * Bandeau bleu nuit en tête du calendrier (jour, semaine, mois) : période en grand, flèches
    * rondes, retour à aujourd'hui, nombre de rendez-vous ; halos violet et bleu de la marque.
@@ -454,7 +476,7 @@ export default async function AgendaPage({
     rest: "rest" | "restDay" | "restWeek",
     extra?: ReactNode,
   ) => (
-    <div className="relative overflow-hidden bg-navy px-4 pb-3 pt-5 text-white sm:px-6">
+    <div className="relative overflow-hidden bg-navy px-4 pb-3 pt-4 text-white sm:px-6 sm:pt-5">
       <span
         aria-hidden="true"
         className="pointer-events-none absolute -right-20 -top-32 size-64 rounded-full bg-[radial-gradient(circle,rgba(123,63,228,.55),transparent_65%)]"
@@ -474,7 +496,7 @@ export default async function AgendaPage({
           {!isCurrent && (
             <Link
               href={link({ date: today })}
-              className="flex min-h-10 items-center rounded-full border border-white/15 bg-white/10 px-3 text-sm font-medium transition hover:bg-white/20"
+              className="flex min-h-11 items-center rounded-full border border-white/15 bg-white/10 px-3 text-sm font-medium transition hover:bg-white/20"
             >
               {t("isToday")}
             </Link>
@@ -482,14 +504,14 @@ export default async function AgendaPage({
           <Link
             href={link({ date: shift(-1) })}
             aria-label={t("previous")}
-            className="flex size-10 items-center justify-center rounded-full border border-white/15 bg-white/10 transition hover:bg-white/20"
+            className="flex size-11 items-center justify-center rounded-full border border-white/15 bg-white/10 transition hover:bg-white/20"
           >
             <DashIcon d="M15 6l-6 6 6 6" className="h-5 w-5" />
           </Link>
           <Link
             href={link({ date: shift(1) })}
             aria-label={t("next")}
-            className="flex size-10 items-center justify-center rounded-full border border-white/15 bg-white/10 transition hover:bg-white/20"
+            className="flex size-11 items-center justify-center rounded-full border border-white/15 bg-white/10 transition hover:bg-white/20"
           >
             <DashIcon d="M9 6l6 6-6 6" className="h-5 w-5" />
           </Link>
@@ -602,7 +624,7 @@ export default async function AgendaPage({
                         <span
                           key={item.id}
                           className={`block truncate rounded-md border-l-[3px] bg-white px-1.5 py-0.5 text-[11px] leading-tight text-night shadow-[0_1px_2px_rgba(15,24,48,.06)] ${
-                            item.status === "no_show" ? "opacity-50" : ""
+                            item.status === "no_show" ? `${NO_SHOW_CLASS} line-through` : ""
                           }`}
                           style={{ borderLeftColor: item.staffColor ?? DEFAULT_COLOR }}
                         >
@@ -624,6 +646,7 @@ export default async function AgendaPage({
             })}
           </ul>
         </div>
+        {footer}
       </div>
     );
   }
@@ -706,6 +729,7 @@ export default async function AgendaPage({
   const stateIcons = (item: AgendaAppointment) =>
     [
       item.status === "attended" && { key: "attended", d: CHECK_ICON, className: "text-success" },
+      item.status === "no_show" && { key: "noShow", d: CROSS_ICON, className: "text-[#b4372a]" },
       item.status === "pending_payment" && {
         key: "pending",
         d: DASH_ICONS.clock,
@@ -719,8 +743,13 @@ export default async function AgendaPage({
         },
       item.source === "online" && { key: "online", d: DASH_ICONS.globe, className: "text-ink-soft" },
     ].filter(
-      (icon): icon is { key: "attended" | "pending" | "deposit" | "online"; d: string; className: string } =>
-        Boolean(icon),
+      (
+        icon,
+      ): icon is {
+        key: "attended" | "noShow" | "pending" | "deposit" | "online";
+        d: string;
+        className: string;
+      } => Boolean(icon),
     );
 
   const grid = (columns: GridColumn[], options: { nowColumn: string | null; wide: boolean }) => (
@@ -841,7 +870,7 @@ export default async function AgendaPage({
                         key={item.id}
                         href={`${page.base}/rendez-vous/${item.id}`}
                         className={`absolute z-10 overflow-hidden rounded-lg border-l-4 px-2 py-1 text-[0.8125rem] leading-tight shadow-[0_1px_2px_rgba(15,24,48,.06)] transition hover:z-20 hover:shadow-[0_8px_20px_-10px_rgba(15,24,48,.35)] ${
-                          item.status === "no_show" ? "opacity-50" : ""
+                          item.status === "no_show" ? NO_SHOW_CLASS : ""
                         }`}
                         style={{
                           top: from + 1,
@@ -865,7 +894,11 @@ export default async function AgendaPage({
                             ))}
                           </span>
                         </span>
-                        <span className="block truncate font-medium text-night">{item.customerName}</span>
+                        <span
+                          className={`block truncate font-medium ${item.status === "no_show" ? "text-ink-soft line-through" : "text-night"}`}
+                        >
+                          {item.customerName}
+                        </span>
                         {!compact && (
                           <span className="block truncate text-ink">{item.services.join(" + ")}</span>
                         )}
@@ -1000,7 +1033,7 @@ export default async function AgendaPage({
                       }`}
                     >
                       {closed && period === "morning" && (
-                        <span className="mt-1 text-center text-[10px] font-medium text-ink-soft">
+                        <span className="mt-1 text-center text-[11px] font-medium text-ink-soft">
                           {t("closed")}
                         </span>
                       )}
@@ -1009,7 +1042,7 @@ export default async function AgendaPage({
                           key={off.id}
                           href={`${page.base}/indisponibilites/${off.id}`}
                           aria-label={`${t(`timeOff.${off.kind}`)} · ${off.staffName ?? ""} · ${tUnavailability("edit")}`}
-                          className="block rounded-md bg-[#e9ebf0] px-1 py-1 text-[10px] leading-tight text-ink-soft [overflow-wrap:anywhere] hover:bg-[#e1e4ea]"
+                          className="block rounded-md bg-[#e9ebf0] px-1 py-1 text-[11px] leading-tight text-ink-soft [overflow-wrap:anywhere] hover:bg-[#e1e4ea]"
                         >
                           <span className="line-clamp-2">
                             {t(`timeOff.${off.kind}`)}
@@ -1023,7 +1056,7 @@ export default async function AgendaPage({
                           href={`${page.base}/rendez-vous/${item.id}`}
                           aria-label={`${page.fmt.time(item.startsAt)} · ${item.customerName}`}
                           className={`block rounded-md border-l-[3px] px-1 py-1 leading-tight text-night transition hover:brightness-95 ${
-                            item.status === "no_show" ? "opacity-50" : ""
+                            item.status === "no_show" ? `${NO_SHOW_CLASS} line-through` : ""
                           }`}
                           style={{
                             borderLeftColor: item.staffColor ?? DEFAULT_COLOR,
@@ -1039,11 +1072,11 @@ export default async function AgendaPage({
                               [],
                             )
                             .map((line, index) => (
-                              <span key={index} className="block truncate text-[11px] font-semibold">
+                              <span key={index} className="block truncate text-[12px] font-semibold">
                                 {line}
                               </span>
                             ))}
-                          <span className="block text-[10px] tabular-nums text-ink-soft">
+                          <span className="block text-[11px] tabular-nums text-ink-soft">
                             {page.fmt.time(item.startsAt)}
                           </span>
                         </Link>
@@ -1055,6 +1088,7 @@ export default async function AgendaPage({
             ))}
           </div>
         </div>
+        {footer}
       </div>
     );
   }
@@ -1174,6 +1208,7 @@ export default async function AgendaPage({
         <DashIcon d={DASH_ICONS.plus} className="h-5 w-5" />
         {t("addThisDay")}
       </Link>
+      {footer}
     </div>
   );
 }
@@ -1196,7 +1231,7 @@ function ClosedDayCard({
         <DashIcon d="M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0" className="h-5 w-5" />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block font-semibold text-night first-letter:uppercase">{title}</span>
+        <span className="block font-semibold text-night">{capitalize(title)}</span>
         <span className="mt-0.5 block text-sm text-ink-soft">{hint}</span>
         {href && <span className="mt-2 block text-sm font-medium text-accent underline">{action}</span>}
       </span>

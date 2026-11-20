@@ -23,6 +23,7 @@ import { trendPercent } from "@/modules/stats/dashboard";
 import type { SalesBreakdown } from "@/modules/stats/margins";
 import { monthDetails, monthOccupancy, monthSales, monthStats } from "@/modules/stats/month";
 import { updateStatsGoalsAction } from "../../actions";
+import { capitalize } from "@/lib/text";
 
 const shift = (period: string, delta: number) => {
   const [year, month] = period.split("-").map(Number);
@@ -357,9 +358,7 @@ export default async function StatsPage({
           <Link href={statsLink(shift(period, -1))} aria-label={t("previous")} className={navButton}>
             <DashIcon d="M15 6l-6 6 6 6" className="h-5 w-5" />
           </Link>
-          <span className="min-w-36 px-2 text-center font-medium text-night first-letter:uppercase">
-            {label}
-          </span>
+          <span className="min-w-36 px-2 text-center font-medium text-night">{capitalize(label)}</span>
           {period < current ? (
             <Link href={statsLink(shift(period, 1))} aria-label={t("next")} className={navButton}>
               <DashIcon d="M9 6l6 6-6 6" className="h-5 w-5" />
@@ -459,8 +458,8 @@ export default async function StatsPage({
             </div>
             {lookupDay && (
               <div className="mt-4 rounded-xl bg-accent-soft px-4 py-3" role="status">
-                <p className="text-sm text-ink-soft first-letter:uppercase">
-                  {t("lookup.dayResult", { date: lookupDayLabel })}
+                <p className="text-sm text-ink-soft">
+                  {capitalize(t("lookup.dayResult", { date: lookupDayLabel }))}
                 </p>
                 <p className="font-display text-[1.75rem] font-semibold leading-tight text-night tabular-nums">
                   {money(dayLookup?.revenueCents ?? 0)}
