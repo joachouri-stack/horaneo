@@ -572,6 +572,44 @@ describe.skipIf(!hasTestDatabase)("messages automatiques", () => {
       expect(rows[0].attempts).toBe(5);
     });
 
+    it("un message repris par un autre passage pendant un envoi lent n'est pas envoyé deux fois", async () => {
+      const s = await setup();
+      await book(s);
+      fake.clear();
+      const queued = (await logOf(s.id)).filter((row) => row.status === "queued" && row.channel === "email");
+      expect(queued.length).toBeGreaterThanOrEqual(2);
+      const ids = queued.map((row) => row.id);
+      const original = fake.senders.email;
+      let nested = false;
+      // Le premier envoi « dure » plus de 10 minutes : pendant ce temps, un autre passage
+      // reprend les messages suivants (réservation expirée) et les envoie.
+      const slow = {
+        ...fake.senders,
+        async email(message: Parameters<typeof original>[0]) {
+          if (!nested) {
+            nested = true;
+            const later = new Date(Math.max(NOW.getTime(), Date.now()) + 11 * 60_000);
+            await dispatchMessages(platform, fake.senders, {
+              productName: "Horaneo",
+              appUrl: "http://localhost:3000",
+              now: later,
+              ids: ids.slice(1),
+            });
+          }
+          return original(message);
+        },
+      };
+      await dispatchMessages(platform, slow, {
+        productName: "Horaneo",
+        appUrl: "http://localhost:3000",
+        now: NOW,
+        ids,
+      });
+      expect(fake.emails).toHaveLength(ids.length);
+      const rows = (await logOf(s.id)).filter((row) => ids.includes(row.id));
+      expect(rows.every((row) => row.status === "sent")).toBe(true);
+    });
+
     it("la gérante ne voit que les messages de son établissement (base)", async () => {
       const a = await setup();
       const b = await setup();

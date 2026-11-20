@@ -368,6 +368,24 @@ describe.skipIf(!hasTestDatabase)("promotions, cartes cadeaux et avis Google", (
       expect(purchases).toHaveLength(1);
     });
 
+    it("carte remboursée depuis le tableau de bord Stripe : elle n'est plus utilisable", async () => {
+      const s = await setup();
+      const bought = await buyCard(s, "40");
+      const [card] = await owner.select().from(giftCards).where(eq(giftCards.id, bought.id));
+      const event = fake.event("refund.updated", card.stripeAccountId, {
+        id: "re_gift_dashboard",
+        status: "succeeded",
+        amount: 4000,
+        payment_intent: card.stripePaymentIntentId,
+        metadata: {},
+      });
+      expect(await platform((tx) => handleEvent(tx, event, fake.gateway))).toMatchObject({
+        detail: "gift_card_cancelled",
+      });
+      const [after] = await owner.select().from(giftCards).where(eq(giftCards.id, bought.id));
+      expect(after).toMatchObject({ status: "cancelled", balanceCents: 0 });
+    });
+
     it("refuse un montant hors limites, ou quand l'entreprise ne propose pas les cartes", async () => {
       const s = await setup();
       const attempt = (amount: string) =>

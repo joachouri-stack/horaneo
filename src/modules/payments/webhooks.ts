@@ -1,8 +1,8 @@
 import { eq, sql } from "drizzle-orm";
 import { declareBusiness } from "@/db/access";
 import type { Transaction } from "@/db/client";
-import { applyGiftCardIntent } from "@/modules/giftcards/giftcards";
-import { applyShopOrderIntent } from "@/modules/shop/orders";
+import { applyGiftCardIntent, applyGiftCardRefund } from "@/modules/giftcards/giftcards";
+import { applyShopOrderIntent, applyShopOrderRefund } from "@/modules/shop/orders";
 import { stripeEvents } from "@/db/schema";
 import { applyAccount, disconnectAccount } from "./connect";
 import { applyPaymentIntent, businessOfAccount } from "./deposits";
@@ -88,7 +88,15 @@ async function dispatch(tx: Transaction, event: GatewayEvent, gateway: PaymentGa
     return result.outcome;
   }
   if (event.type.startsWith("refund.")) {
-    return (await applyRefund(tx, tenantId, refundFrom(object))).outcome;
+    const refund = refundFrom(object);
+    const result = (await applyRefund(tx, tenantId, refund)).outcome;
+    if (result !== "unknown_payment") return result;
+    // Pas un acompte : achat de carte cadeau ou commande de la boutique.
+    return (
+      (await applyGiftCardRefund(tx, tenantId, refund)) ??
+      (await applyShopOrderRefund(tx, tenantId, refund)) ??
+      result
+    );
   }
   return null;
 }

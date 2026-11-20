@@ -262,31 +262,37 @@ export function BookingFlow(props: Props) {
     if (fieldError?.field === errorField) setFieldError(null);
   };
 
-  /** `promoCode` : le code promo à prendre en compte (l'acompte change avec lui). */
+  /**
+   * `promoCode` : le code promo à prendre en compte (l'acompte change avec lui).
+   * Renvoie la carte appliquée, ou null (rien de saisi, ou code refusé).
+   */
   async function applyGiftCard(promoCode = promo?.code) {
-    if (!giftCode.trim()) return;
+    if (!giftCode.trim()) return null;
     setGiftError(null);
     const result = await checkGiftCardAction({ code: giftCode, serviceIds: selected, promoCode });
     if (!result.ok) {
       setGift(null);
       setGiftError(result.error);
-      return;
+      return null;
     }
     setGift(result.data);
+    return result.data;
   }
 
+  /** Renvoie le code promo appliqué, ou null (rien de saisi, ou code refusé). */
   async function applyPromo() {
-    if (!promoCode.trim()) return;
+    if (!promoCode.trim()) return null;
     setPromoError(null);
     const result = await checkPromoAction({ code: promoCode, serviceIds: selected });
     if (!result.ok) {
       setPromo(null);
       setPromoError(result.error);
-      return;
+      return null;
     }
     setPromo(result.data);
     // Carte cadeau déjà appliquée : l'acompte a changé, il est recalculé.
     if (gift) void applyGiftCard(result.data.code);
+    return result.data;
   }
 
   async function paid() {
@@ -294,8 +300,8 @@ export function BookingFlow(props: Props) {
     setChecking(true);
     // Stripe peut mettre quelques secondes à confirmer : jusqu'à 5 vérifications.
     for (let attempt = 0; attempt < 5; attempt += 1) {
-      const result = await confirmPaymentAction(confirmation.manageToken);
-      if (result.ok && result.data.status === "confirmed") {
+      const result = await confirmPaymentAction(confirmation.manageToken).catch(() => null);
+      if (result?.ok && result.data.status === "confirmed") {
         setConfirmation({ ...confirmation, status: "confirmed", payment: null });
         setChecking(false);
         return;
@@ -322,13 +328,36 @@ export function BookingFlow(props: Props) {
     setPending(true);
     setError(null);
     setFieldError(null);
+    try {
+      await book(slot);
+    } catch {
+      // Connexion coupée : la réservation a pu être enregistrée (e-mail de confirmation).
+      setError("network");
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function book(picked: PickedSlot) {
+    // Code saisi sans toucher « Utiliser » : appliqué maintenant, plutôt qu'ignoré
+    // (l'acompte serait sinon débité sur la carte bancaire).
+    let promoUsed = promo;
+    if (!promoUsed && props.promoEnabled && promoCode.trim()) {
+      promoUsed = await applyPromo();
+      if (!promoUsed) return;
+    }
+    let giftUsed = Boolean(gift);
+    if (!gift && props.giftCardsEnabled && giftCode.trim()) {
+      giftUsed = Boolean(await applyGiftCard(promoUsed?.code));
+      if (!giftUsed) return;
+    }
     const result = await bookAction({
       serviceIds: selected,
-      staffId: planMode ? null : slot.staffId,
+      staffId: planMode ? null : picked.staffId,
       staffPlan: planMode ? staffPlan : undefined,
-      start: slot.start,
-      promoCode: promo?.code,
-      giftCardCode: gift ? giftCode : undefined,
+      start: picked.start,
+      promoCode: promoUsed?.code,
+      giftCardCode: giftUsed ? giftCode : undefined,
       website: contact.website,
       customer: {
         firstName: contact.firstName,
@@ -344,7 +373,6 @@ export function BookingFlow(props: Props) {
           : {}),
       },
     });
-    setPending(false);
     if (!result.ok) {
       const field = result.field?.replace(/^customer\./, "") as ContactField | undefined;
       if (field && CONTACT_FIELDS.includes(field)) {

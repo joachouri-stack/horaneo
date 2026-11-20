@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { withPlatform, withTenant } from "@/db/access";
 import type { Transaction } from "@/db/client";
@@ -6,6 +6,7 @@ import {
   appointments,
   payments,
   promoCodes,
+  messageLog,
   refunds,
   stripeEvents,
   businessSettings,
@@ -14,7 +15,7 @@ import {
 } from "@/db/schema";
 import { cancelByManager } from "@/modules/agenda/actions";
 import { createBusiness } from "@/modules/businesses/businesses";
-import { createBooking, type BookingInput } from "@/modules/booking/create";
+import { createBooking, expireStaleHolds, type BookingInput } from "@/modules/booking/create";
 import { cancelByCustomer, rescheduleByCustomer } from "@/modules/booking/manage";
 import { localToUtc } from "@/modules/booking/time";
 import { saveService } from "@/modules/catalog/services";
@@ -278,6 +279,29 @@ describe.skipIf(!hasTestDatabase)("paiements", () => {
       expect((await appointment(result.appointmentId)).status).toBe("confirmed");
     });
 
+    it("paiement au moment même où le délai expire : le rendez-vous n'est jamais perdu", async () => {
+      const s = await setup();
+      const result = await book(s);
+      let committed!: () => void;
+      const release = new Promise<void>((resolve) => (committed = resolve));
+      let expiredInTx!: () => void;
+      const expiring = new Promise<void>((resolve) => (expiredInTx = resolve));
+      // L'expiration passe le rendez-vous en « expired » mais ne valide qu'après le paiement.
+      const expiry = asTenant(s.id, async (tx) => {
+        await expireStaleHolds(tx, s.id, minutesLater(11));
+        expiredInTx();
+        await release;
+      });
+      await expiring;
+      // Le paiement arrive pendant ce temps : il attend la fin de l'expiration, puis reprend le rendez-vous.
+      const paid = payAndSync(s, result.appointmentId);
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      committed();
+      await Promise.all([expiry, paid]);
+      expect((await appointment(result.appointmentId)).status).toBe("confirmed");
+      expect((await paymentOf(result.appointmentId)).status).toBe("succeeded");
+    });
+
     it("paiement après les 10 minutes, créneau repris entre-temps : remboursement automatique", async () => {
       const s = await setup({ deposit: true });
       const first = await book(s);
@@ -496,6 +520,44 @@ describe.skipIf(!hasTestDatabase)("paiements", () => {
         refundDeposit(tx, s.id, result.appointmentId, fake.gateway, { reason: "manager_cancelled" }),
       );
       expect(rest?.amountCents).toBe(1100);
+    });
+
+    it("remboursement refusé ensuite par Stripe : la gérante est prévenue et peut rembourser à nouveau", async () => {
+      const s = await setup();
+      const result = await book(s);
+      const payment = await payAndSync(s, result.appointmentId);
+      await asTenant(s.id, (tx) =>
+        refundDeposit(tx, s.id, result.appointmentId, fake.gateway, { reason: "manager_cancelled" }),
+      );
+      const [first] = await refundsOf(payment!.id);
+      const event = fake.event("refund.failed", s.accountId, {
+        id: first.stripeRefundId,
+        status: "failed",
+        amount: first.amountCents,
+        payment_intent: payment!.stripePaymentIntentId,
+        metadata: { refund_id: first.id },
+      });
+      await platform((tx) => handleEvent(tx, event, fake.gateway));
+      const alerts = await owner
+        .select()
+        .from(messageLog)
+        .where(
+          and(
+            eq(messageLog.tenantId, s.id),
+            eq(messageLog.templateKey, "manager.refund_failed"),
+            eq(messageLog.channel, "email"),
+          ),
+        );
+      expect(alerts).toHaveLength(1);
+      expect(alerts[0].data).toMatchObject({ kind: "deposit", amountCents: 2100 });
+      // Nouvel essai : un nouveau remboursement est créé (pas celui qui a échoué).
+      const again = await asTenant(s.id, (tx) =>
+        refundDeposit(tx, s.id, result.appointmentId, fake.gateway, { reason: "manager_cancelled" }),
+      );
+      expect(again?.amountCents).toBe(2100);
+      const rows = await refundsOf(payment!.id);
+      expect(rows).toHaveLength(2);
+      expect(new Set(rows.map((row) => row.stripeRefundId)).size).toBe(2);
     });
 
     it("événement d'un compte inconnu : ignoré sans erreur", async () => {

@@ -4,6 +4,9 @@ import { sendEmail } from "@/lib/email/send";
 import { sendPush } from "@/lib/push/send";
 import type { MessageSenders, OutgoingSms } from "@/modules/messages/senders";
 
+/** Délai maximal d'une requête à Brevo. */
+const BREVO_TIMEOUT_MS = 20_000;
+
 /**
  * Envoi d'un SMS par Brevo (SMS transactionnels).
  * Sans BREVO_API_KEY : affiché dans le terminal en développement, erreur en production.
@@ -18,6 +21,8 @@ async function sendSms(sms: OutgoingSms): Promise<{ id: string | null }> {
   }
   const response = await fetch("https://api.brevo.com/v3/transactionalSMS/sms", {
     method: "POST",
+    // Pas d'attente sans fin si Brevo ne répond pas : le message est réessayé plus tard.
+    signal: AbortSignal.timeout(BREVO_TIMEOUT_MS),
     headers: {
       "api-key": config.BREVO_API_KEY,
       "content-type": "application/json",

@@ -311,9 +311,32 @@ describe.skipIf(!hasTestDatabase)("abonnements", () => {
     expect((await subscriptionOf(tenantId)).cancelAt).not.toBeNull();
   });
 
+  it("événement ancien renvoyé après la résiliation : le pack payant n'est pas rétabli", async () => {
+    const tenantId = await setup();
+    const subscriptionId = await subscribe(tenantId, "essentiel");
+    // Copie de l'abonnement encore actif (premier envoi échoué, renvoyé plus tard par Stripe).
+    const stale = billing.setStatus(subscriptionId, "active");
+    await send({ kind: "subscription", subscription: billing.setStatus(subscriptionId, "canceled") });
+    expect(await tenantPlan(tenantId)).toBe("basic");
+    await send({ kind: "subscription", subscription: stale });
+    expect(await tenantPlan(tenantId)).toBe("basic");
+    expect(await tenantStatus(tenantId)).toBe("suspended");
+  });
+
+  it("échec de prélèvement ancien reçu après un paiement réussi : pas d'alerte", async () => {
+    const tenantId = await setup();
+    const subscriptionId = await subscribe(tenantId, "essentiel");
+    await send({ kind: "invoice_failed", subscriptionId, invoiceId: "in_old", attempt: 1, error: "Refusée" });
+    const row = await subscriptionOf(tenantId);
+    expect(row.status).toBe("active");
+    expect(row.paymentFailedAt).toBeNull();
+  });
+
   it("prélèvement refusé : gérante prévenue ; réussi ensuite : alerte effacée ; impayé définitif : retour au Basic", async () => {
     const tenantId = await setup();
     const subscriptionId = await subscribe(tenantId, "essentiel");
+    // Comme chez Stripe : l'abonnement est déjà « past_due » quand l'échec est annoncé.
+    billing.setStatus(subscriptionId, "past_due");
     await send({
       kind: "invoice_failed",
       subscriptionId,
@@ -326,10 +349,12 @@ describe.skipIf(!hasTestDatabase)("abonnements", () => {
     expect(row.paymentFailedAt).not.toBeNull();
     // Le pack payant reste actif pendant les nouvelles tentatives.
     expect(await tenantPlan(tenantId)).toBe("essentiel");
+    billing.setStatus(subscriptionId, "active");
     await send({ kind: "invoice_paid", subscriptionId });
     row = await subscriptionOf(tenantId);
     expect(row.paymentFailedAt).toBeNull();
 
+    billing.setStatus(subscriptionId, "past_due");
     await send({ kind: "invoice_failed", subscriptionId, invoiceId: "in_2", attempt: 4, error: null });
     await send({ kind: "subscription", subscription: billing.setStatus(subscriptionId, "canceled") });
     expect(await tenantPlan(tenantId)).toBe("basic");

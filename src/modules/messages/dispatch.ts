@@ -45,11 +45,13 @@ async function claim(platform: PlatformRunner, now: Date, limit: number, ids?: s
       .for("update", { skipLocked: true });
     if (due.length === 0) return [];
     // Réservation de 10 minutes : si le serveur s'arrête pendant l'envoi, le message sera repris.
+    // Calculée sur l'heure réelle (le passage peut avoir commencé bien avant), et renouvelée
+    // juste avant l'envoi de chaque message (renew).
     return tx
       .update(messageLog)
       .set({
         attempts: sql`${messageLog.attempts} + 1`,
-        nextAttemptAt: new Date(now.getTime() + 10 * 60_000),
+        nextAttemptAt: reservationEnd(now),
       })
       .where(
         inArray(
@@ -59,6 +61,33 @@ async function claim(platform: PlatformRunner, now: Date, limit: number, ids?: s
       )
       .returning();
   });
+}
+
+const RESERVATION_MS = 10 * 60_000;
+
+function reservationEnd(now: Date) {
+  return new Date(Math.max(now.getTime(), Date.now()) + RESERVATION_MS);
+}
+
+/**
+ * Renouvelle la réservation d'un message juste avant de l'envoyer. Faux si une autre tâche
+ * l'a repris entre-temps (réservation expirée) : il n'est alors pas envoyé une seconde fois.
+ */
+async function renew(platform: PlatformRunner, row: MessageRow, now: Date) {
+  const renewed = await platform((tx) =>
+    tx
+      .update(messageLog)
+      .set({ nextAttemptAt: reservationEnd(now) })
+      .where(
+        and(
+          eq(messageLog.id, row.id),
+          eq(messageLog.status, "queued"),
+          eq(messageLog.attempts, row.attempts),
+        ),
+      )
+      .returning({ id: messageLog.id }),
+  );
+  return renewed.length > 0;
 }
 
 async function countEmail(tx: Transaction, tenantId: string, now: Date) {
@@ -92,7 +121,10 @@ async function processOne(
   result: DispatchResult,
 ) {
   let sms: SmsReservation | null = null;
+  // Vrai dès que le fournisseur a accepté le message : il ne doit plus jamais être renvoyé.
+  let delivered = false;
   try {
+    if (!(await renew(platform, row, options.now))) return;
     const rendered = await platform((tx) => renderMessage(tx, row, options));
     if (rendered.kind === "skip") {
       await finish(platform, row, { status: "skipped", error: rendered.reason, nextAttemptAt: null });
@@ -146,6 +178,7 @@ async function processOne(
         return;
       }
       const sent = await senders.sms({ to: rendered.to, sender: rendered.sender, text: rendered.text });
+      delivered = true;
       await finish(platform, row, {
         status: "sent",
         recipient: rendered.to,
@@ -163,6 +196,7 @@ async function processOne(
         fromName: rendered.fromName,
         replyTo: rendered.replyTo,
       });
+      delivered = true;
       await platform(async (tx) => {
         await tx
           .update(messageLog)
@@ -180,8 +214,18 @@ async function processOne(
     }
     result.sent += 1;
   } catch (error) {
-    if (sms && row.tenantId) await platform((tx) => releaseSms(tx, row.tenantId!, sms!));
     const message = (error instanceof Error ? error.message : String(error)).slice(0, 1000);
+    if (delivered) {
+      // Envoyé, mais l'enregistrement a échoué : noté comme envoyé (nouvel essai d'écriture),
+      // jamais renvoyé ni rendu au quota de SMS.
+      console.error("[messages] envoyé, enregistrement échoué", row.templateKey, row.id, message);
+      await finish(platform, row, { status: "sent", sentAt: options.now, nextAttemptAt: null }).catch(
+        () => undefined,
+      );
+      result.sent += 1;
+      return;
+    }
+    if (sms && row.tenantId) await platform((tx) => releaseSms(tx, row.tenantId!, sms!));
     console.error("[messages]", row.templateKey, row.id, message);
     if (row.attempts >= options.maxAttempts) {
       await finish(platform, row, { status: "failed", error: message, nextAttemptAt: null });

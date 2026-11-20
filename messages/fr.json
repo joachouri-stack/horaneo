@@ -1482,7 +1482,10 @@
       "new": "Nouveau",
       "discount": "−{percent} %",
       "insteadOf": "au lieu de",
-      "allCategories": "Tout"
+      "allCategories": "Tout",
+      "paymentFailedTitle": "Paiement non abouti",
+      "paymentFailed": "Votre banque a refusé le paiement : rien n'a été débité et votre panier est conservé. Vous pouvez réessayer, avec la même carte ou une autre.",
+      "backToCart": "Retour au panier"
     },
     "giftCard": {
       "navLabel": "Cartes cadeaux",
@@ -1519,7 +1522,10 @@
       "checking": "Vérification du paiement…",
       "unavailable": "Les cartes cadeaux ne sont pas proposées en ligne pour le moment. Contactez directement l'établissement.",
       "metaTitle": "Carte cadeau",
-      "thanksPending": "Dès que votre banque confirme le paiement, la carte est envoyée et vous recevez un reçu par e-mail."
+      "thanksPending": "Dès que votre banque confirme le paiement, la carte est envoyée et vous recevez un reçu par e-mail.",
+      "paymentFailedTitle": "Paiement non abouti",
+      "paymentFailed": "Votre banque a refusé le paiement : rien n'a été débité et la carte cadeau n'a pas été envoyée. Vous pouvez réessayer, avec la même carte ou une autre.",
+      "retry": "Réessayer"
     },
     "install": {
       "title": "L'application {name}",
@@ -1536,7 +1542,8 @@
     "errors": {
       "invalid": "Vérifiez vos informations (e-mail, téléphone) puis réessayez.",
       "not_found": "Ce rendez-vous est introuvable. Utilisez le lien du dernier e-mail reçu.",
-      "payments_unavailable": "Le paiement en ligne n'est pas disponible pour le moment. Contactez l'établissement pour réserver."
+      "payments_unavailable": "Le paiement en ligne n'est pas disponible pour le moment. Contactez l'établissement pour réserver.",
+      "network": "La connexion a été interrompue. Votre réservation a peut-être été enregistrée : vérifiez vos e-mails avant de réessayer."
     },
     "seo": {
       "gallery": "Découvrez {name} en photos : le lieu, les prestations et l'ambiance.",
@@ -2784,7 +2791,9 @@
         "evening": "Soir"
       },
       "staffPerService": "Avec qui pour chaque prestation ?",
-      "staffPerServiceHint": "Les prestations se font l'une après l'autre, chacune avec la personne choisie."
+      "staffPerServiceHint": "Les prestations se font l'une après l'autre, chacune avec la personne choisie.",
+      "loadFailed": "Les créneaux n'ont pas pu être chargés. Vérifiez votre connexion.",
+      "retry": "Réessayer"
     },
     "details": {
       "title": "Vos coordonnées",
@@ -2858,7 +2867,8 @@
       "checking": "Vérification du paiement…",
       "unavailable": "Le paiement en ligne n'est pas disponible pour le moment. Merci de contacter l'établissement.",
       "secureTo": "Paiement sécurisé par Stripe, versé directement à {name}.",
-      "amountLine": "{title} : {amount}"
+      "amountLine": "{title} : {amount}",
+      "interrupted": "La connexion a été interrompue pendant le paiement. Avant de réessayer, vérifiez vos e-mails : le paiement a peut-être abouti."
     },
     "confirmation": {
       "title": "C'est confirmé",
@@ -4706,6 +4716,16 @@
         "title": "Nouvelle commande en boutique",
         "intro": "{name} a commandé et payé en ligne. {mode, select, delivery {À expédier :} other {À préparer pour un retrait sur place :}}",
         "open": "Voir les commandes"
+      },
+      "refund_failed": {
+        "subject": "Remboursement refusé par Stripe : {amount}",
+        "title": "Un remboursement n'a pas abouti",
+        "intro": "Stripe n'a pas pu rembourser {amount} à {customer}. Votre client n'a donc pas reçu cet argent.",
+        "what": "Faites le remboursement depuis votre tableau de bord Stripe, ou contactez votre client pour trouver une solution.",
+        "openDeposit": "Voir le rendez-vous",
+        "openOrder": "Voir les commandes",
+        "openGiftCard": "Voir les cartes cadeaux",
+        "unknownCustomer": "votre client"
       }
     },
     "account": {

@@ -295,6 +295,36 @@ describe.skipIf(!hasTestDatabase)("boutique : commandes et paiement", () => {
     );
   });
 
+  it("commande remboursée depuis le tableau de bord Stripe : remboursée et remise en stock", async () => {
+    const s = await setup();
+    const checkout = await s.site((tx) =>
+      startShopCheckout(
+        tx,
+        s.id,
+        { ...customer, items: [{ productId: s.serum!.id, quantity: 1 }] },
+        fake.gateway,
+        NOW,
+      ),
+    );
+    const [order] = await owner.select().from(shopOrders).where(eq(shopOrders.id, checkout.orderId));
+    fake.pay(order.stripePaymentIntentId!);
+    await s.site((tx) => syncShopOrderPayment(tx, s.id, order.id, fake.gateway, later(1)));
+    const stock = await stockOf(s.serum!.id);
+    const event = fake.event("refund.updated", order.stripeAccountId, {
+      id: "re_shop_dashboard",
+      status: "succeeded",
+      amount: order.totalCents,
+      payment_intent: order.stripePaymentIntentId,
+      metadata: {},
+    });
+    expect(await platform((tx) => handleEvent(tx, event, fake.gateway))).toMatchObject({
+      detail: "shop_refunded",
+    });
+    const [after] = await owner.select().from(shopOrders).where(eq(shopOrders.id, order.id));
+    expect(after.status).toBe("refunded");
+    expect(await stockOf(s.serum!.id)).toBe(stock! + 1);
+  });
+
   it("variantes : choix obligatoire, prix et stock de la variante, remis en stock à l'annulation", async () => {
     const s = await setup();
     const shirt = await platform(

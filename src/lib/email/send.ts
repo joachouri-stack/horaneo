@@ -1,6 +1,9 @@
 import "server-only";
 import { env } from "@/config/env";
 
+/** Délai maximal d'une requête à Brevo. */
+const BREVO_TIMEOUT_MS = 20_000;
+
 /**
  * Envoi d'e-mails.
  * - Avec BREVO_API_KEY : envoi réel par Brevo.
@@ -42,6 +45,8 @@ export async function sendEmail(email: Email): Promise<{ id: string | null }> {
 
   const response = await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
+    // Pas d'attente sans fin si Brevo ne répond pas : le message est réessayé plus tard.
+    signal: AbortSignal.timeout(BREVO_TIMEOUT_MS),
     headers: {
       "api-key": config.BREVO_API_KEY,
       "content-type": "application/json",
