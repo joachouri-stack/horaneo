@@ -14,7 +14,7 @@ import {
 } from "@/db/schema";
 import { cancelByManager } from "@/modules/agenda/actions";
 import { createBusiness } from "@/modules/businesses/businesses";
-import { createBooking, type BookingInput } from "@/modules/booking/create";
+import { createBooking, expireStaleHolds, type BookingInput } from "@/modules/booking/create";
 import { cancelByCustomer, rescheduleByCustomer } from "@/modules/booking/manage";
 import { localToUtc } from "@/modules/booking/time";
 import { saveService } from "@/modules/catalog/services";
@@ -276,6 +276,29 @@ describe.skipIf(!hasTestDatabase)("paiements", () => {
       expect((await appointment(result.appointmentId)).status).toBe("expired");
       await payAndSync(s, result.appointmentId);
       expect((await appointment(result.appointmentId)).status).toBe("confirmed");
+    });
+
+    it("paiement au moment même où le délai expire : le rendez-vous n'est jamais perdu", async () => {
+      const s = await setup();
+      const result = await book(s);
+      let committed!: () => void;
+      const release = new Promise<void>((resolve) => (committed = resolve));
+      let expiredInTx!: () => void;
+      const expiring = new Promise<void>((resolve) => (expiredInTx = resolve));
+      // L'expiration passe le rendez-vous en « expired » mais ne valide qu'après le paiement.
+      const expiry = asTenant(s.id, async (tx) => {
+        await expireStaleHolds(tx, s.id, minutesLater(11));
+        expiredInTx();
+        await release;
+      });
+      await expiring;
+      // Le paiement arrive pendant ce temps : il attend la fin de l'expiration, puis reprend le rendez-vous.
+      const paid = payAndSync(s, result.appointmentId);
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      committed();
+      await Promise.all([expiry, paid]);
+      expect((await appointment(result.appointmentId)).status).toBe("confirmed");
+      expect((await paymentOf(result.appointmentId)).status).toBe("succeeded");
     });
 
     it("paiement après les 10 minutes, créneau repris entre-temps : remboursement automatique", async () => {

@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
 import { appointments, businesses, payments, type PlanFeatures } from "@/db/schema";
 import { sameBooking } from "@/modules/booking/groups";
@@ -128,15 +128,28 @@ export async function applyPaymentIntent(
   }
   if (intent.status !== "succeeded" || !payment.appointmentId) return { outcome: next };
 
-  const [appointment] = await tx
+  const [found] = await tx
     .select()
     .from(appointments)
     .where(and(eq(appointments.tenantId, tenantId), eq(appointments.id, payment.appointmentId)));
-  if (!appointment) return { outcome: "succeeded" as const };
+  if (!found) return { outcome: "succeeded" as const };
+  // Toutes les parties de la réservation sont verrouillées avant de lire leur statut : sinon
+  // l'expiration du délai de paiement (au même instant) pourrait passer le rendez-vous en
+  // « expired » entre la lecture et la confirmation, et l'acompte serait gardé sans rendez-vous.
+  await tx
+    .select({ id: appointments.id })
+    .from(appointments)
+    .where(and(eq(appointments.tenantId, tenantId), sameBooking(found)))
+    .orderBy(asc(appointments.id))
+    .for("update");
+  const [appointment] = await tx
+    .select()
+    .from(appointments)
+    .where(and(eq(appointments.tenantId, tenantId), eq(appointments.id, found.id)));
 
   if (appointment.status === "pending_payment") {
     // Toutes les parties de la réservation (plusieurs collaboratrices) sont confirmées.
-    await tx
+    const confirmed = await tx
       .update(appointments)
       .set({ status: "confirmed", holdExpiresAt: null })
       .where(
@@ -145,9 +158,14 @@ export async function applyPaymentIntent(
           sameBooking(appointment),
           eq(appointments.status, "pending_payment"),
         ),
-      );
-    await queueBookingConfirmed(tx, tenantId, appointment);
-    return { outcome: "confirmed" as const, appointmentId: appointment.id };
+      )
+      .returning({ id: appointments.id });
+    if (confirmed.length > 0) {
+      await queueBookingConfirmed(tx, tenantId, appointment);
+      return { outcome: "confirmed" as const, appointmentId: appointment.id };
+    }
+    // Rien n'a été confirmé (ne devrait pas arriver après le verrou) : traité comme expiré.
+    appointment.status = "expired";
   }
 
   if (appointment.status === "expired") {

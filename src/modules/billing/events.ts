@@ -44,8 +44,14 @@ export async function handleBillingEvent(
 ): Promise<EventOutcome> {
   return processEventOnce(tx, { ...event, account: null }, async () => {
     switch (event.kind) {
-      case "subscription":
-        return (await applySubscription(tx, event.subscription)).outcome;
+      case "subscription": {
+        // État relu chez Stripe : un événement ancien renvoyé en retard (après une résiliation)
+        // ne doit pas rétablir un pack payant. Sans passerelle (tests), la copie de l'événement.
+        const current = gateway
+          ? await gateway.retrieveSubscription(event.subscription.id)
+          : event.subscription;
+        return (await applySubscription(tx, current)).outcome;
+      }
       case "checkout_completed": {
         // Pack de SMS : crédité seulement quand l'argent est reçu.
         if (event.metadata?.kind === "sms_pack") {
@@ -81,17 +87,22 @@ export async function handleBillingEvent(
         );
         return referral?.outcome ?? paid.outcome;
       }
-      case "invoice_failed":
-        return event.subscriptionId
-          ? (
-              await applyPaymentFailed(tx, {
-                subscriptionId: event.subscriptionId,
-                invoiceId: event.invoiceId,
-                attempt: event.attempt,
-                error: event.error,
-              })
-            ).outcome
-          : null;
+      case "invoice_failed": {
+        if (!event.subscriptionId) return null;
+        // Échec ancien reçu après un paiement réussi : l'abonnement est relu, rien à signaler s'il est à jour.
+        if (gateway) {
+          const current = await gateway.retrieveSubscription(event.subscriptionId);
+          if (current.status === "active" || current.status === "trialing") return "already_paid";
+        }
+        return (
+          await applyPaymentFailed(tx, {
+            subscriptionId: event.subscriptionId,
+            invoiceId: event.invoiceId,
+            attempt: event.attempt,
+            error: event.error,
+          })
+        ).outcome;
+      }
       default:
         return null;
     }
