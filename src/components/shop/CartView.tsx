@@ -7,7 +7,7 @@ import { viewCartAction, type CartView as CartData } from "@/app/(tenant)/sites/
 import { useSiteError } from "@/components/booking/hooks";
 import { formatMoney } from "@/lib/format";
 import { SITE_PATHS } from "@/modules/site/paths";
-import { removeItems, setQuantity, useCart, type Cart } from "./cart-store";
+import { clearCart, removeItems, setQuantity, useCart, type Cart } from "./cart-store";
 
 /**
  * Panier : les produits sont relus sur le serveur (prix, stock, encore en vente) à chaque
@@ -26,31 +26,34 @@ export function CartView({
   const [view, setView] = useState<CartData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [removedNotice, setRemovedNotice] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const key = cart ? JSON.stringify(cart) : "";
 
   useEffect(() => {
     if (!cart) return;
     let cancelled = false;
-    void viewCartAction(cart.businessId, cart.items).then((result) => {
-      if (cancelled) return;
-      if (!result.ok) {
-        setError(result.error);
-        return;
-      }
-      setError(null);
-      setView(result.data);
-      // Produits retirés de la vente : enlevés du panier, avec un message.
-      if (result.data.removed.length > 0) {
-        setRemovedNotice(true);
-        removeItems(result.data.removed);
-      }
-    });
+    void viewCartAction(cart.businessId, cart.items)
+      .catch(() => ({ ok: false as const, error: "load_failed" as const }))
+      .then((result) => {
+        if (cancelled) return;
+        if (!result.ok) {
+          setError(result.error);
+          return;
+        }
+        setError(null);
+        setView(result.data);
+        // Produits retirés de la vente : enlevés du panier, avec un message.
+        if (result.data.removed.length > 0) {
+          setRemovedNotice(true);
+          removeItems(result.data.removed);
+        }
+      });
     return () => {
       cancelled = true;
     };
     // Relu seulement quand le contenu du panier change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
+  }, [key, attempt]);
 
   if (!cart) {
     return (
@@ -66,7 +69,38 @@ export function CartView({
       </div>
     );
   }
-  if (error) return <p role="alert">{errorText(error)}</p>;
+  // Panier illisible (connexion, boutique fermée) : réessayer, ou repartir d'un panier vide.
+  if (error)
+    return (
+      <div role="alert" className="space-y-4">
+        <p className="text-lg">
+          {error === "not_found"
+            ? t("itemUnavailable")
+            : error === "load_failed"
+              ? t("loadFailed")
+              : errorText(error)}
+        </p>
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => setAttempt((value) => value + 1)}
+            className="inline-flex min-h-12 items-center rounded-site bg-site-button px-6 font-semibold text-site-on-button"
+          >
+            {t("retry")}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setError(null);
+              clearCart();
+            }}
+            className="inline-flex min-h-12 items-center rounded-site border border-site-border px-6 font-semibold text-site-text"
+          >
+            {t("emptyCart")}
+          </button>
+        </div>
+      </div>
+    );
   if (!view) return <p aria-live="polite">{t("loading")}</p>;
   const money = (cents: number) => formatMoney(cents, view.currency ?? "EUR", locale);
   const step =

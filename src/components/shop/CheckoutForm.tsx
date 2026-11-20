@@ -17,6 +17,30 @@ import { formatMoney } from "@/lib/format";
 import { SITE_PATHS } from "@/modules/site/paths";
 import { clearCart, type Cart } from "./cart-store";
 
+/** Champ du formulaire → libellé (texte de site.shop), pour dire lequel corriger. */
+const FIELD_LABELS: Record<
+  string,
+  | "name"
+  | "email"
+  | "phone"
+  | "note"
+  | "addressLine1"
+  | "addressLine2"
+  | "postalCode"
+  | "city"
+  | "fulfillment"
+> = {
+  customerName: "name",
+  customerEmail: "email",
+  customerPhone: "phone",
+  note: "note",
+  addressLine1: "addressLine1",
+  addressLine2: "addressLine2",
+  postalCode: "postalCode",
+  city: "city",
+  fulfillment: "fulfillment",
+};
+
 const inputClass =
   "block min-h-12 w-full rounded-site border border-site-border bg-site-bg px-4 py-3 text-lg text-site-text";
 
@@ -65,8 +89,13 @@ export function CheckoutForm({
         postalCode: String(form.get("postalCode") ?? ""),
         city: String(form.get("city") ?? ""),
       }),
-    });
+    }).catch(() => null);
     setPending(false);
+    if (!result) {
+      // Connexion coupée : rien n'est payé à ce stade, la cliente peut réessayer.
+      setError({ code: "load_failed" });
+      return;
+    }
     if (!result.ok) {
       setError({ code: result.error, field: result.field });
       return;
@@ -135,6 +164,28 @@ export function CheckoutForm({
   }
 
   const invalid = (field: string) => (error?.field === field ? true : undefined);
+  const fieldLabel = error?.field ? FIELD_LABELS[error.field] : undefined;
+  // Message précis : le champ à corriger, ou un produit qui n'est plus en vente.
+  const errorMessage = !error
+    ? null
+    : error.field === "acceptTerms"
+      ? errorText("terms_required")
+      : error.code === "invalid" && fieldLabel
+        ? t("fieldInvalid", { field: t(fieldLabel) })
+        : error.code === "not_found"
+          ? t("itemUnavailable")
+          : error.code === "load_failed"
+            ? t("loadFailed")
+            : errorText(error.code);
+  /** Message sous le champ refusé. */
+  const fieldHint = (field: string) =>
+    error?.field === field && errorMessage ? (
+      <p id={`shop-${field}-error`} className="mt-1 font-semibold text-site-text">
+        {errorMessage}
+      </p>
+    ) : null;
+  const describedBy = (field: string, extra?: string) =>
+    [error?.field === field ? `shop-${field}-error` : null, extra].filter(Boolean).join(" ") || undefined;
   return (
     <form onSubmit={submit} className="space-y-5 rounded-site bg-site-panel p-6 sm:p-8" noValidate>
       <h2 className="font-site-display text-2xl font-semibold text-site-heading">{t("checkoutTitle")}</h2>
@@ -193,8 +244,10 @@ export function CheckoutForm({
                 required={required}
                 inputMode={field === "postalCode" ? "numeric" : undefined}
                 aria-invalid={invalid(field)}
+                aria-describedby={describedBy(field)}
                 className={inputClass}
               />
+              {fieldHint(field)}
             </div>
           ))}
         </fieldset>
@@ -209,8 +262,10 @@ export function CheckoutForm({
           autoComplete="name"
           required
           aria-invalid={invalid("customerName")}
+          aria-describedby={describedBy("customerName")}
           className={inputClass}
         />
+        {fieldHint("customerName")}
       </div>
       <div>
         <label htmlFor="shop-email" className="mb-1 block font-semibold">
@@ -224,9 +279,10 @@ export function CheckoutForm({
           autoComplete="email"
           required
           aria-invalid={invalid("customerEmail")}
-          aria-describedby="shop-email-hint"
+          aria-describedby={describedBy("customerEmail", "shop-email-hint")}
           className={inputClass}
         />
+        {fieldHint("customerEmail")}
         <p id="shop-email-hint" className="mt-1 text-sm text-site-muted">
           {t("emailHint")}
         </p>
@@ -242,8 +298,10 @@ export function CheckoutForm({
           inputMode="tel"
           autoComplete="tel"
           aria-invalid={invalid("customerPhone")}
+          aria-describedby={describedBy("customerPhone")}
           className={inputClass}
         />
+        {fieldHint("customerPhone")}
       </div>
       <div>
         <label htmlFor="shop-note" className="mb-1 block font-semibold">
@@ -267,9 +325,13 @@ export function CheckoutForm({
           })}
         </span>
       </label>
-      {error && (
-        <p role="alert" className="font-semibold text-red-700">
-          {errorText(error.code)}
+      {errorMessage && (
+        // Couleurs du site (lisible sur un thème sombre comme clair).
+        <p
+          role="alert"
+          className="rounded-site border border-site-border bg-site-surface px-4 py-3 font-semibold"
+        >
+          {errorMessage}
         </p>
       )}
       {delivering && (
