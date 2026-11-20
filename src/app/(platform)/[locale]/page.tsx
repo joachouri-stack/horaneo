@@ -201,6 +201,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     warningPercent: Number(await getPlatformSetting(tx, "sms_warning_percent")),
     goLiveDays: Number(await getPlatformSetting(tx, "go_live_delay_days")),
     trialDays: Number(await getPlatformSetting(tx, "trial_days")),
+    depositCommission: Number(await getPlatformSetting(tx, "deposit_commission_percent")),
     soon: await getPlatformSetting(tx, "features_soon"),
     solutions: await getPlatformSetting(tx, "solutions"),
     demoUrl: String(await getPlatformSetting(tx, "demo_url")),
@@ -257,6 +258,18 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
       return plan ? pickLocalized(plan.name, locale) : "none";
     })(),
   };
+  // Atouts ajoutés à l'accroche, seulement quand ils sont vrais aujourd'hui (réglages et packs) :
+  // l'assistant IA s'il est livré et inclus dans un pack, et l'absence de commission sur les
+  // acomptes tant qu'aucune n'est réglée dans l'admin.
+  const offeredBy = (feature: keyof PlanFeatures) =>
+    !soon.has(String(feature)) && data.plans.some((plan) => plan.features[feature]);
+  const heroExtras = [
+    offeredBy("aiChatbot") && t("hero.pointChatbot", { plan: firstPlanWith("aiChatbot") }),
+    offeredBy("onlinePayment") &&
+      data.depositCommission === 0 &&
+      t("hero.pointCommission", { plan: firstPlanWith("onlinePayment") }),
+  ].filter((point): point is string => Boolean(point));
+
   // Questions affichées seulement quand elles s'appliquent : outils d'IA encore annoncés
   // « Bientôt », offre de lancement ouverte.
   const aiSoon = AI_FEATURES.some((key) => soon.has(key));
@@ -410,7 +423,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   )}
                 </div>
                 <ul className="hn-up-4 mt-6 flex flex-col gap-3 text-mk-body text-white/85 sm:mt-8">
-                  {(t.raw("hero.points") as string[]).map((point) => (
+                  {[...heroExtras, ...(t.raw("hero.points") as string[])].map((point) => (
                     <li key={point} className="flex items-center gap-3">
                       <span className="flex size-6 flex-none items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--color-violet),var(--color-azure-dark))] text-white shadow-[0_6px_16px_-6px_rgba(123,63,228,.9)]">
                         <CheckLine className="size-3.5" />
@@ -830,7 +843,16 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               yearly={data.yearly}
               trialDays={data.trialDays}
             />
-            <p className="mt-6 text-center text-[0.9375rem] text-ink-soft">{t("plans.quotaNote")}</p>
+            <p className="mt-6 text-center">
+              <Link
+                href="/comparatif"
+                className="inline-flex min-h-11 items-center gap-1.5 font-medium text-accent underline-offset-4 hover:underline"
+              >
+                {t("plans.compareAll")}
+                <ArrowLine className="size-4" />
+              </Link>
+            </p>
+            <p className="mt-2 text-center text-[0.9375rem] text-ink-soft">{t("plans.quotaNote")}</p>
           </section>
 
           {/* Autres activités : vente de produits, formations, services (packs qui incluent la boutique). */}

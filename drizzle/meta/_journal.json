@@ -596,6 +596,13 @@
       "when": 1795102390864,
       "tag": "0084_customer_contact_optional",
       "breakpoints": true
+    },
+    {
+      "idx": 85,
+      "version": "7",
+      "when": 1795164367831,
+      "tag": "0085_shop_available",
+      "breakpoints": true
     }
   ]
 }

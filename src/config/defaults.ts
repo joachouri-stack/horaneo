@@ -34,8 +34,8 @@ export const DEFAULT_PLATFORM_SETTINGS = {
    * elles portent l'étiquette au lieu d'être promises. Retirer une clé quand la fonction est prête.
    */
   features_soon: [
-    // Grille Starter, Pro, Business : modules Commerce et Formation, et outils pas encore développés.
-    "commerce",
+    // Grille Starter, Pro, Business : module Formation et outils pas encore développés (la
+    // boutique en ligne est livrée).
     "formation",
     // Chatbot : livré, présenté comme inclus. Site multilingue : pas encore développé.
     "multilingual",

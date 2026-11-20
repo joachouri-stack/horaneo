@@ -100,10 +100,11 @@ describe("valeurs de départ des packs", () => {
     }
   });
 
-  it("annonce « Bientôt » les modules Commerce et Formation, les outils pas encore développés, et l'offre tablette à places limitées", () => {
+  it("annonce « Bientôt » le module Formation, les outils pas encore développés, et l'offre tablette à places limitées", () => {
     // Une fonction pas encore développée (ex. caisse certifiée NF525) n'est jamais présentée comme incluse.
+    // Boutique en ligne : livrée, présentée comme incluse.
+    expect(DEFAULT_PLATFORM_SETTINGS.features_soon).not.toContain("commerce");
     for (const key of [
-      "commerce",
       "formation",
       "whatsappAssistant",
       "aiTexts",
