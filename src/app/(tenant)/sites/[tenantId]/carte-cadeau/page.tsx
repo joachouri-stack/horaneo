@@ -73,6 +73,29 @@ export default async function GiftCardPage({
 
   // Retour après une validation bancaire hors du site (3-D Secure) : la carte part dès la confirmation de Stripe.
   if (typeof query.payment_intent === "string") {
+    // Validation refusée par la banque : rien n'est débité, la cliente peut réessayer.
+    if (query.redirect_status === "failed") {
+      return (
+        <main id="contenu" className="mx-auto max-w-2xl px-4 py-14">
+          {title}
+          <div role="alert">
+            <p className="text-lg">
+              <strong>{t("paymentFailedTitle")}</strong> {t("paymentFailed")}
+            </p>
+            <Link
+              href={
+                chosen && sellers.length > 1
+                  ? `${SITE_PATHS.giftCard}?avec=${chosen.id}`
+                  : SITE_PATHS.giftCard
+              }
+              className="mt-6 inline-flex min-h-12 items-center rounded-site bg-site-button px-6 font-semibold text-site-on-button transition hover:opacity-90"
+            >
+              {t("retry")}
+            </Link>
+          </div>
+        </main>
+      );
+    }
     return (
       <main id="contenu" className="mx-auto max-w-2xl px-4 py-14">
         {title}

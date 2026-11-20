@@ -77,11 +77,11 @@ export function CheckoutForm({
   async function paid() {
     if (!checkout) return;
     setChecking(true);
-    const result = await confirmOrderAction(cart.businessId, checkout.orderId);
+    const result = await confirmOrderAction(cart.businessId, checkout.orderId).catch(() => null);
     setChecking(false);
     clearCart();
     setDone(
-      result.ok
+      result?.ok
         ? result.data
         : { status: "pending_payment", reference: checkout.reference, fulfillment: mode },
     );

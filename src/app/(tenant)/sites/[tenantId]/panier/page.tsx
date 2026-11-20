@@ -34,7 +34,7 @@ export default async function CartPage({ params, searchParams }: PageProps<"/sit
           typeof query.avec === "string" &&
           UUID.test(query.commande) &&
           UUID.test(query.avec)
-            ? { orderId: query.commande, businessId: query.avec }
+            ? { orderId: query.commande, businessId: query.avec, failed: query.redirect_status === "failed" }
             : null
         }
       />

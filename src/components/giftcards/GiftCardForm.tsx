@@ -74,8 +74,8 @@ export function GiftCardForm(props: Props) {
     if (!checkout) return;
     setChecking(true);
     for (let attempt = 0; attempt < 5; attempt += 1) {
-      const result = await confirmGiftCardAction(props.businessId, checkout.giftCardId);
-      if (result.ok && result.data.active) {
+      const result = await confirmGiftCardAction(props.businessId, checkout.giftCardId).catch(() => null);
+      if (result?.ok && result.data.active) {
         const later = recipient.sendOn && recipient.sendOn > props.today;
         setSent({ email: recipient.email, sendAt: later ? result.data.sendAt : null });
         setChecking(false);

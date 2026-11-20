@@ -75,18 +75,27 @@ export function SlotPicker({
   const [pages, setPages] = useState<string[]>(initialDate ? [""] : []);
   const [date, setDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  // Chargement impossible (connexion coupée, erreur) : « Réessayer » relance la même demande.
+  const [failed, setFailed] = useState<{ member: string | null; fromDate?: string } | null>(null);
 
   const load = useCallback(
     async (member: string | null, fromDate?: string) => {
       setLoading(true);
-      const result = await loadDays(member, fromDate);
-      setLoading(false);
-      if (!result.ok) {
-        onError(result.error);
-        return;
+      setFailed(null);
+      try {
+        const result = await loadDays(member, fromDate);
+        if (!result.ok) {
+          setFailed({ member, fromDate });
+          onError(result.error);
+          return;
+        }
+        setDays(result.data);
+        setDate(result.data.find((day) => day.slots.length > 0)?.date ?? null);
+      } catch {
+        setFailed({ member, fromDate });
+      } finally {
+        setLoading(false);
       }
-      setDays(result.data);
-      setDate(result.data.find((day) => day.slots.length > 0)?.date ?? null);
     },
     [loadDays, onError],
   );
@@ -225,6 +234,17 @@ export function SlotPicker({
           <p role="status" className="text-site-muted">
             {t("loading")}
           </p>
+        ) : failed ? (
+          <div role="alert" className="space-y-3">
+            <p className="font-semibold text-site-text">{t("loadFailed")}</p>
+            <button
+              type="button"
+              onClick={() => void load(failed.member, failed.fromDate)}
+              className="min-h-12 rounded-site border border-site-button px-5 font-semibold text-site-text"
+            >
+              {t("retry")}
+            </button>
+          </div>
         ) : !hasAny ? (
           <p className="text-site-muted">{t("noSlots")}</p>
         ) : !current || current.slots.length === 0 ? (

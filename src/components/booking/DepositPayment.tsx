@@ -79,12 +79,15 @@ export function DepositPayment(props: Props) {
     [props.checkout.publishableKey, props.checkout.accountId],
   );
   const remaining = useRemaining(props.holdExpiresAt);
+  // Paiement en cours (validation 3-D Secure comprise) : le formulaire reste affiché même si
+  // le compte à rebours arrive à zéro, pour ne pas annoncer « rien n'a été débité » à tort.
+  const [paying, setPaying] = useState(false);
 
   useEffect(() => {
     setAppearance(siteAppearance(ref.current));
   }, []);
 
-  if (remaining === 0) {
+  if (remaining === 0 && !paying) {
     return (
       <div role="alert" className="rounded-site border border-site-border p-4">
         <p className="font-semibold">{props.labels?.expired ?? t("expired")}</p>
@@ -111,7 +114,7 @@ export function DepositPayment(props: Props) {
           amount: money(props.amountCents, props.currency, props.locale),
         })}
       </p>
-      {remaining !== null && (
+      {remaining !== null && remaining > 0 && (
         <p className="text-site-muted" aria-live="off">
           {t("remaining", {
             time: `${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, "0")}`,
@@ -127,7 +130,12 @@ export function DepositPayment(props: Props) {
             locale: props.locale as StripeElementLocale,
           }}
         >
-          <PaymentForm returnPath={props.returnPath} onPaid={props.onPaid} payLabel={props.labels?.pay} />
+          <PaymentForm
+            returnPath={props.returnPath}
+            onPaid={props.onPaid}
+            payLabel={props.labels?.pay}
+            onPaying={setPaying}
+          />
         </Elements>
       )}
       <p className="text-sm text-site-muted">{props.labels?.secure ?? t("secure")}</p>
@@ -139,7 +147,8 @@ function PaymentForm({
   returnPath,
   onPaid,
   payLabel,
-}: Pick<Props, "returnPath" | "onPaid"> & { payLabel?: string }) {
+  onPaying,
+}: Pick<Props, "returnPath" | "onPaid"> & { payLabel?: string; onPaying: (paying: boolean) => void }) {
   const t = useTranslations("booking.payment");
   const stripe = useStripe();
   const elements = useElements();
@@ -150,20 +159,28 @@ function PaymentForm({
     event.preventDefault();
     if (!stripe || !elements) return;
     setPending(true);
+    onPaying(true);
     setError(null);
-    const result = await stripe.confirmPayment({
-      elements,
-      confirmParams: { return_url: new URL(returnPath, window.location.href).href },
-      redirect: "if_required",
-    });
-    if (result.error) {
-      // Message de Stripe, déjà dans la langue de la cliente (carte refusée, etc.).
-      setError(result.error.message ?? t("failed"));
+    try {
+      const result = await stripe.confirmPayment({
+        elements,
+        confirmParams: { return_url: new URL(returnPath, window.location.href).href },
+        redirect: "if_required",
+      });
+      if (result.error) {
+        // Message de Stripe, déjà dans la langue de la cliente (carte refusée, etc.).
+        setError(result.error.message ?? t("failed"));
+        onPaying(false);
+        return;
+      }
+      // Paiement accepté : le formulaire reste affiché (sans délai dépassé) pendant la vérification.
+      await onPaid();
+    } catch {
+      // Connexion coupée : le paiement a pu aboutir, la page de gestion donne l'état exact.
+      setError(t("interrupted"));
+    } finally {
       setPending(false);
-      return;
     }
-    await onPaid();
-    setPending(false);
   }
 
   return (

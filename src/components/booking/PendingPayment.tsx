@@ -25,8 +25,9 @@ export function PendingPayment(props: {
   async function paid() {
     setChecking(true);
     for (let attempt = 0; attempt < 5; attempt += 1) {
-      const result = await confirmPaymentAction(props.token);
-      if (result.ok && result.data.status !== "pending_payment") break;
+      // Connexion coupée : nouvel essai, puis la page est rechargée quoi qu'il arrive.
+      const result = await confirmPaymentAction(props.token).catch(() => null);
+      if (result?.ok && result.data.status !== "pending_payment") break;
       await new Promise((resolve) => setTimeout(resolve, 1500));
     }
     router.refresh();
