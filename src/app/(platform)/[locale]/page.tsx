@@ -201,7 +201,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     warningPercent: Number(await getPlatformSetting(tx, "sms_warning_percent")),
     goLiveDays: Number(await getPlatformSetting(tx, "go_live_delay_days")),
     trialDays: Number(await getPlatformSetting(tx, "trial_days")),
-    depositCommission: Number(await getPlatformSetting(tx, "deposit_commission_percent")),
     soon: await getPlatformSetting(tx, "features_soon"),
     solutions: await getPlatformSetting(tx, "solutions"),
     demoUrl: String(await getPlatformSetting(tx, "demo_url")),
@@ -258,17 +257,12 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
       return plan ? pickLocalized(plan.name, locale) : "none";
     })(),
   };
-  // Atouts ajoutés à l'accroche, seulement quand ils sont vrais aujourd'hui (réglages et packs) :
-  // l'assistant IA s'il est livré et inclus dans un pack, et l'absence de commission sur les
-  // acomptes tant qu'aucune n'est réglée dans l'admin.
-  const offeredBy = (feature: keyof PlanFeatures) =>
-    !soon.has(String(feature)) && data.plans.some((plan) => plan.features[feature]);
-  const heroExtras = [
-    offeredBy("aiChatbot") && t("hero.pointChatbot", { plan: firstPlanWith("aiChatbot") }),
-    offeredBy("onlinePayment") &&
-      data.depositCommission === 0 &&
-      t("hero.pointCommission", { plan: firstPlanWith("onlinePayment") }),
-  ].filter((point): point is string => Boolean(point));
+  // Atout ajouté à l'accroche, seulement s'il est vrai aujourd'hui : l'assistant IA, livré
+  // (pas « Bientôt ») et inclus dans au moins un pack.
+  const heroExtras =
+    !soon.has("aiChatbot") && data.plans.some((plan) => plan.features.aiChatbot)
+      ? [t("hero.pointChatbot")]
+      : [];
 
   // Questions affichées seulement quand elles s'appliquent : outils d'IA encore annoncés
   // « Bientôt », offre de lancement ouverte.

@@ -79,13 +79,8 @@
       "goLive": "{days, plural, =0 {} one {Site en ligne en # jour ouvré} other {Site en ligne en # jours ouvrés}}",
       "demo": "Voir la démonstration",
       "pricing": "Voir les tarifs",
-      "points": [
-        "Textes, images et logo modifiables",
-        "Hébergement et sécurité inclus",
-        "Assistance humaine sur WhatsApp"
-      ],
-      "pointChatbot": "Un assistant IA répond à vos clients, jour et nuit{plan, select, none {} other { (dès le pack {plan})}}",
-      "pointCommission": "0 % de commission sur vos acomptes{plan, select, none {} other { (dès le pack {plan})}}",
+      "points": ["Hébergement et sécurité inclus", "Assistance humaine sur WhatsApp"],
+      "pointChatbot": "Un assistant IA répond à vos clients, jour et nuit",
       "visualAlt": "Aperçu de l'espace de gestion sur téléphone : rendez-vous du jour (données d'exemple)",
       "float": {
         "bookingTitle": "Nouvelle réservation",
