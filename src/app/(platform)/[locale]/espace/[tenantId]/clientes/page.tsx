@@ -39,7 +39,7 @@ const BADGES = {
   loyal: "bg-[#e8ebfa] text-[#3a4bb8]",
   new: "bg-[#e3f4ee] text-[#1f7a5f]",
   inactive: "bg-[#fdf3e2] text-[#8a5212]",
-  blocked: "bg-[#fdecea] text-[#8f2a20]",
+  blocked: "bg-danger-soft text-danger-ink",
 } as const;
 
 /** Fichier clientes : chiffres clés, filtres par groupe, recherche et liste détaillée. */

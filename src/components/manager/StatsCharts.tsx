@@ -308,7 +308,7 @@ export function GoalRing({
             {percent} %
           </span>
           {ratio >= 1 && (
-            <span className="mt-1 rounded-full bg-[#e7f6ee] px-2 py-px text-[0.8125rem] font-medium text-[#1e7a4c]">
+            <span className="mt-1 rounded-full bg-success-soft px-2 py-px text-[0.8125rem] font-medium text-[#1e7a4c]">
               ✓
             </span>
           )}

@@ -16,8 +16,8 @@ export const ui = {
   fileInput:
     "block w-full text-sm text-ink file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-xl file:border file:border-hairline file:bg-white file:px-4 file:font-medium file:text-night hover:file:border-accent-line",
   card: "rounded-[1.4rem] border border-hairline bg-white p-5 shadow-[0_1px_2px_rgba(15,24,48,.04)] sm:p-6",
-  error: "rounded-xl bg-[#fdecea] px-4 py-3 text-[#8f2a20]",
-  success: "rounded-xl bg-[#e7f6ee] px-4 py-3 text-[#1b5e3d]",
+  error: "rounded-xl bg-danger-soft px-4 py-3 text-danger-ink",
+  success: "rounded-xl bg-success-soft px-4 py-3 text-success-ink",
   /** Enregistré, mais avec un point à vérifier (orangé : ce n'est pas une erreur). */
-  warning: "rounded-xl bg-[#fff4e0] px-4 py-3 text-[#7a4a00]",
+  warning: "rounded-xl bg-warning-soft px-4 py-3 text-warning-ink",
 };

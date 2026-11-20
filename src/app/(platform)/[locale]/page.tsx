@@ -59,7 +59,7 @@ import { Link } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/translator";
 import { SOLUTIONS, type Solution } from "@/modules/billing/grid";
 import { listLaunchOffers } from "@/modules/billing/launch-offers";
-import { listPublicPlans } from "@/modules/billing/plans";
+import { listPublicPlans, planNamesWith } from "@/modules/billing/plans";
 import { getPlatformSetting } from "@/modules/settings";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]">): Promise<Metadata> {
@@ -247,6 +247,12 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     exportPlan: firstPlanWith("dataExport"),
     // Solutions présentées « Bientôt » (question de la FAQ).
     soonCount: soonShown.length,
+    // Packs qui donneront accès aux solutions en préparation (réglages des packs).
+    soonPlans: new Intl.ListFormat(locale, { type: "conjunction" }).format(
+      data.plans
+        .filter((plan) => soonShown.some((code) => plan.features[code as keyof PlanFeatures]))
+        .map((plan) => pickLocalized(plan.name, locale)),
+    ),
     soonNames: new Intl.ListFormat(locale, { type: "conjunction" }).format(
       soonShown.map((code) => t(`solutions.items.${code}.name`)),
     ),
@@ -599,7 +605,9 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                             <ArrowLine className="size-[18px] transition-transform group-hover:translate-x-0.5" />
                           </Link>
                           <p className="mt-3 max-w-[30rem] text-[0.9375rem] text-ink-soft">
-                            {t("solutions.soonNote")}
+                            {t("solutions.soonNote", {
+                              plans: planNamesWith(data.plans, code as keyof PlanFeatures, locale),
+                            })}
                           </p>
                         </div>
                       )}
@@ -822,7 +830,10 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 data-only={code}
                 className="mb-8 rounded-xl border border-accent-line bg-accent-soft px-4 py-3 text-[1.0625rem] text-accent-strong"
               >
-                {t("plans.soonSolution", { solution: t(`solutions.items.${code}.name`) })}
+                {t("plans.soonSolution", {
+                  solution: t(`solutions.items.${code}.name`),
+                  plans: planNamesWith(data.plans, code as keyof PlanFeatures, locale),
+                })}
               </p>
             ))}
             <PlanCards

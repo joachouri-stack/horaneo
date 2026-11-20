@@ -232,7 +232,8 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
                     {
                       value: "yes",
                       title: t("withCommitment", { months: commitment }),
-                      text: t("withCommitmentFree"),
+                      // Essai gratuit : rien n'est prélevé à la commande.
+                      text: trialDays > 0 ? t("withCommitmentTrial") : t("withCommitmentFree"),
                     },
                     {
                       value: "no",
@@ -306,7 +307,7 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
                 ? [t("paidHint"), orderable.some((plan) => plan.priceCents <= 0) && t("freeHint")]
                     .filter(Boolean)
                     .join(" ")
-                : t("commitmentHint", { months: commitment })}
+                : t(trialDays > 0 ? "commitmentHintTrial" : "commitmentHint", { months: commitment })}
             </p>
             {/* Ce qui rassure juste avant de payer. */}
             <ul aria-label={t("reassurance.label")} className="grid gap-2 text-sm text-night sm:grid-cols-3">

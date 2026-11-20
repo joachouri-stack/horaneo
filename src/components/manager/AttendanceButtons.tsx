@@ -26,7 +26,7 @@ export function AttendanceButtons({ tenantId, appointmentId }: { tenantId: strin
         type="button"
         disabled={pending}
         onClick={() => send("attended")}
-        className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-[#e7f6ee] px-4 text-[0.95rem] font-medium text-[#1e7a4c] transition hover:bg-[#d6efe2] disabled:opacity-60"
+        className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-success-soft px-4 text-[0.95rem] font-medium text-[#1e7a4c] transition hover:bg-[#d6efe2] disabled:opacity-60"
       >
         <svg
           aria-hidden="true"
@@ -46,12 +46,12 @@ export function AttendanceButtons({ tenantId, appointmentId }: { tenantId: strin
         type="button"
         disabled={pending}
         onClick={() => send("no_show")}
-        className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#e6b8b2] bg-white px-4 text-[0.95rem] font-medium text-[#b4372a] transition hover:bg-[#fdf1ef] disabled:opacity-60"
+        className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#e6b8b2] bg-white px-4 text-[0.95rem] font-medium text-danger transition hover:bg-[#fdf1ef] disabled:opacity-60"
       >
         {t("manager.appointment.noShow")}
       </button>
       {state && !state.ok && (
-        <p role="alert" className="col-span-2 text-sm text-[#b4372a]">
+        <p role="alert" className="col-span-2 text-sm text-danger">
           {t(`errors.${state.error}`)}
         </p>
       )}

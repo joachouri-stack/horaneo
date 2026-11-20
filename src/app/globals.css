@@ -27,6 +27,16 @@
   --color-ivory: #f7f8fc; /* fonds */
   --color-ink: #2b2b2b; /* textes */
   --color-success: #1f7a5f; /* confirmations (lisible sur blanc et sur fond vert pâle) */
+  --color-success-soft: #e7f6ee; /* fond des messages « enregistré » */
+  --color-success-ink: #1b5e3d; /* texte sur ce fond */
+  /* Alertes : rouge (supprimer, annuler, erreur) et orangé (à vérifier, en attente). */
+  --color-danger: #b4372a;
+  --color-danger-soft: #fdecea;
+  --color-danger-ink: #8f2a20; /* texte sur fond rouge pâle */
+  --color-danger-line: #f1c5bf;
+  --color-warning: #a15c00;
+  --color-warning-soft: #fff4e0;
+  --color-warning-ink: #7a4a00;
   /* Site commercial */
   --color-brick: #d4402f; /* boutons de la page d'accueil */
   --color-rust: #9e2b1e; /* texte sur fond rosé */

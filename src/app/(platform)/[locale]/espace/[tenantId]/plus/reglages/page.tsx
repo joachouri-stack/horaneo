@@ -73,7 +73,7 @@ export default async function SettingsPage({
         {/* Pack « site seul » : pas de réservation en ligne, on propose de changer de pack. */}
         {!planAllowsBooking(page.tenant.features) ? (
           <Section title={t("onlineTitle")}>
-            <p className="font-semibold text-[#b4372a]">{t("onlineNotInPlan")}</p>
+            <p className="font-semibold text-danger">{t("onlineNotInPlan")}</p>
             <Link
               href={`/espace/${page.tenantId}/plus/abonnement`}
               className="font-semibold text-night underline"
@@ -221,7 +221,7 @@ export default async function SettingsPage({
               defaultChecked={settings.reviewRequestEnabled}
             />
             {!page.business.googlePlaceId && (
-              <p className="mt-2 text-sm font-semibold text-[#b4372a]">
+              <p className="mt-2 text-sm font-semibold text-danger">
                 {t.rich("reviewRequestNoPlace", {
                   link: (chunks) => (
                     <Link href={`${page.base}/plus/demandes`} className="underline">

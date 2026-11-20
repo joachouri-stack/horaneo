@@ -14,6 +14,20 @@ export async function listPublicPlans(tx: Transaction) {
     .orderBy(asc(plans.sortOrder), asc(plans.priceCents));
 }
 
+/**
+ * Noms des packs en vente qui incluent une fonction (« Pro et Business »), pour les textes :
+ * jamais écrits en dur, ils suivent les packs réglés dans l'admin. Vide si aucun.
+ */
+export function planNamesWith(
+  list: { features: PlanFeatures; name: Parameters<typeof pickLocalized>[0] }[],
+  feature: keyof PlanFeatures,
+  locale: Locale,
+) {
+  return new Intl.ListFormat(locale, { type: "conjunction" }).format(
+    list.filter((plan) => plan.features[feature]).map((plan) => pickLocalized(plan.name, locale)),
+  );
+}
+
 /** Durée de la formule avec engagement, en mois (0 : aucune formule avec engagement). */
 export async function commitmentMonths(tx: Transaction) {
   return Number(await getPlatformSetting(tx, "commitment_months"));

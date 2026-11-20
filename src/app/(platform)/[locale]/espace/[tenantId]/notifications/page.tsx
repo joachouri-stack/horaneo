@@ -19,14 +19,14 @@ const STYLE: Record<NotificationKind, { icon: string; tone: string }> = {
     icon: "M8 3v4M16 3v4M3 10h18M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2M9 15l2 2 4-4",
     tone: "bg-success/10 text-success",
   },
-  cancelled: { icon: "M18 6 6 18M6 6l12 12", tone: "bg-[#fdecea] text-[#b4372a]" },
+  cancelled: { icon: "M18 6 6 18M6 6l12 12", tone: "bg-danger-soft text-danger" },
   rescheduled: {
     icon: "M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5",
     tone: "bg-navy/10 text-navy",
   },
   gift_card_sold: {
     icon: "M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7",
-    tone: "bg-[#fdecea] text-[#b4372a]",
+    tone: "bg-danger-soft text-danger",
   },
   data_request: {
     icon: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M9 13h6M9 17h4",
