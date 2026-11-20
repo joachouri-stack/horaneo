@@ -473,3 +473,49 @@ export async function cancelShopOrder(
   });
   return { status: "refunded" as const };
 }
+
+/**
+ * Remboursement d'une commande vu par Stripe : remboursement fait depuis le tableau de bord
+ * Stripe (la commande passe en « remboursée », le stock revient si elle n'était pas remise),
+ * ou remboursement refusé (la gérante est prévenue).
+ */
+export async function applyShopOrderRefund(
+  tx: Transaction,
+  tenantId: string,
+  refund: { id: string; status: string; amountCents: number; paymentIntentId: string | null },
+  now = new Date(),
+) {
+  if (!refund.paymentIntentId) return null;
+  const [order] = await tx
+    .select()
+    .from(shopOrders)
+    .where(
+      and(eq(shopOrders.tenantId, tenantId), eq(shopOrders.stripePaymentIntentId, refund.paymentIntentId)),
+    )
+    .for("update");
+  if (!order) return null;
+  if (refund.status === "failed" || refund.status === "canceled") {
+    await queueMessage(tx, {
+      tenantId,
+      businessId: order.businessId,
+      template: "manager.refund_failed",
+      data: {
+        kind: "order",
+        amountCents: refund.amountCents,
+        currency: order.currency,
+        customer: order.customerName,
+      },
+      dedupeKey: `manager.refund_failed:${refund.id}`,
+    });
+    return "shop_refund_failed";
+  }
+  // Remboursement déjà enregistré (annulation faite depuis l'espace) ou pas encore abouti.
+  if (refund.status !== "succeeded" || order.stripeRefundId === refund.id) return "shop_refund_noted";
+  if (!["paid", "ready", "collected"].includes(order.status)) return "shop_refund_noted";
+  await tx
+    .update(shopOrders)
+    .set({ status: "refunded", stripeRefundId: refund.id, cancelledAt: now })
+    .where(eq(shopOrders.id, order.id));
+  if (order.status !== "collected") await restock(tx, order.id);
+  return "shop_refunded";
+}

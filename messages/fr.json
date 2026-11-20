@@ -4706,6 +4706,16 @@
         "title": "Nouvelle commande en boutique",
         "intro": "{name} a commandé et payé en ligne. {mode, select, delivery {À expédier :} other {À préparer pour un retrait sur place :}}",
         "open": "Voir les commandes"
+      },
+      "refund_failed": {
+        "subject": "Remboursement refusé par Stripe : {amount}",
+        "title": "Un remboursement n'a pas abouti",
+        "intro": "Stripe n'a pas pu rembourser {amount} à {customer}. Votre client n'a donc pas reçu cet argent.",
+        "what": "Faites le remboursement depuis votre tableau de bord Stripe, ou contactez votre client pour trouver une solution.",
+        "openDeposit": "Voir le rendez-vous",
+        "openOrder": "Voir les commandes",
+        "openGiftCard": "Voir les cartes cadeaux",
+        "unknownCustomer": "votre client"
       }
     },
     "account": {

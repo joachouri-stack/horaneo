@@ -526,3 +526,44 @@ export async function updateGiftCardSettings(
     })
     .where(eq(businessSettings.businessId, context.business.id));
 }
+
+/**
+ * Remboursement fait par Stripe (depuis le tableau de bord du professionnel) sur l'achat d'une
+ * carte cadeau : le solde baisse d'autant, et la carte est annulée s'il ne reste rien.
+ * Un remboursement refusé est signalé à la gérante.
+ */
+export async function applyGiftCardRefund(
+  tx: Transaction,
+  tenantId: string,
+  refund: { id: string; status: string; amountCents: number; paymentIntentId: string | null },
+) {
+  if (!refund.paymentIntentId) return null;
+  const [card] = await tx
+    .select()
+    .from(giftCards)
+    .where(and(eq(giftCards.tenantId, tenantId), eq(giftCards.stripePaymentIntentId, refund.paymentIntentId)))
+    .for("update");
+  if (!card) return null;
+  if (refund.status === "failed" || refund.status === "canceled") {
+    await queueMessage(tx, {
+      tenantId,
+      businessId: card.businessId,
+      template: "manager.refund_failed",
+      data: {
+        kind: "giftCard",
+        amountCents: refund.amountCents,
+        currency: card.currency,
+        customer: card.purchaserName,
+      },
+      dedupeKey: `manager.refund_failed:${refund.id}`,
+    });
+    return "gift_card_refund_failed";
+  }
+  if (refund.status !== "succeeded" || card.status !== "active") return "gift_card_refund_noted";
+  const balanceCents = Math.max(card.balanceCents - refund.amountCents, 0);
+  await tx
+    .update(giftCards)
+    .set({ balanceCents, ...(balanceCents === 0 ? { status: "cancelled" as const } : {}) })
+    .where(eq(giftCards.id, card.id));
+  return balanceCents === 0 ? "gift_card_cancelled" : "gift_card_reduced";
+}

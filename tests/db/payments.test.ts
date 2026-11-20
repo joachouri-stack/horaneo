@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { withPlatform, withTenant } from "@/db/access";
 import type { Transaction } from "@/db/client";
@@ -6,6 +6,7 @@ import {
   appointments,
   payments,
   promoCodes,
+  messageLog,
   refunds,
   stripeEvents,
   businessSettings,
@@ -519,6 +520,44 @@ describe.skipIf(!hasTestDatabase)("paiements", () => {
         refundDeposit(tx, s.id, result.appointmentId, fake.gateway, { reason: "manager_cancelled" }),
       );
       expect(rest?.amountCents).toBe(1100);
+    });
+
+    it("remboursement refusé ensuite par Stripe : la gérante est prévenue et peut rembourser à nouveau", async () => {
+      const s = await setup();
+      const result = await book(s);
+      const payment = await payAndSync(s, result.appointmentId);
+      await asTenant(s.id, (tx) =>
+        refundDeposit(tx, s.id, result.appointmentId, fake.gateway, { reason: "manager_cancelled" }),
+      );
+      const [first] = await refundsOf(payment!.id);
+      const event = fake.event("refund.failed", s.accountId, {
+        id: first.stripeRefundId,
+        status: "failed",
+        amount: first.amountCents,
+        payment_intent: payment!.stripePaymentIntentId,
+        metadata: { refund_id: first.id },
+      });
+      await platform((tx) => handleEvent(tx, event, fake.gateway));
+      const alerts = await owner
+        .select()
+        .from(messageLog)
+        .where(
+          and(
+            eq(messageLog.tenantId, s.id),
+            eq(messageLog.templateKey, "manager.refund_failed"),
+            eq(messageLog.channel, "email"),
+          ),
+        );
+      expect(alerts).toHaveLength(1);
+      expect(alerts[0].data).toMatchObject({ kind: "deposit", amountCents: 2100 });
+      // Nouvel essai : un nouveau remboursement est créé (pas celui qui a échoué).
+      const again = await asTenant(s.id, (tx) =>
+        refundDeposit(tx, s.id, result.appointmentId, fake.gateway, { reason: "manager_cancelled" }),
+      );
+      expect(again?.amountCents).toBe(2100);
+      const rows = await refundsOf(payment!.id);
+      expect(rows).toHaveLength(2);
+      expect(new Set(rows.map((row) => row.stripeRefundId)).size).toBe(2);
     });
 
     it("événement d'un compte inconnu : ignoré sans erreur", async () => {

@@ -44,6 +44,7 @@ export const MESSAGE_TEMPLATES = [
   "manager.data_request",
   "manager.push_test",
   "manager.stripe_invite",
+  "manager.refund_failed",
   // À un collaborateur invité par la gérante
   "collaborator.invite",
   // Au professionnel avant que son site existe, et à l'administratrice
@@ -74,6 +75,7 @@ export const PUSH_TEMPLATES: readonly MessageTemplate[] = [
   "manager.gift_card_sold",
   "manager.shop_order",
   "manager.data_request",
+  "manager.refund_failed",
 ];
 
 export async function queueMessage(

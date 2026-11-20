@@ -1,6 +1,7 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import type { Transaction } from "@/db/client";
-import { payments, refunds } from "@/db/schema";
+import { appointments, customers, payments, refunds } from "@/db/schema";
+import { queueMessage } from "@/modules/messages/queue";
 import { AppError } from "@/modules/errors";
 import type { GatewayRefund, PaymentGateway } from "./gateway";
 
@@ -54,6 +55,12 @@ export async function refundDeposit(
   if (!refundable || refundable.remainingCents <= 0) return null;
   if (!gateway) throw new AppError("payment_provider_error");
   const { payment, remainingCents } = refundable;
+  // Remboursements déjà refusés par Stripe : comptés dans la clé, pour qu'un nouvel essai
+  // crée un nouveau remboursement au lieu de retrouver celui qui a échoué.
+  const [{ failed }] = await tx
+    .select({ failed: sql<number>`count(*)::int` })
+    .from(refunds)
+    .where(and(eq(refunds.paymentId, payment.id), inArray(refunds.status, ["failed", "canceled"])));
 
   const [row] = await tx
     .insert(refunds)
@@ -74,13 +81,16 @@ export async function refundDeposit(
       metadata: { tenant_id: tenantId, refund_id: row.id, appointment_id: appointmentId },
       // Clé stable (paiement et montant déjà remboursé) : si la transaction échoue après
       // le remboursement chez Stripe, le nouvel essai retrouve le même remboursement.
-      idempotencyKey: `refund-${payment.id}-${payment.amountCents - remainingCents}`,
+      idempotencyKey: `refund-${payment.id}-${payment.amountCents - remainingCents}-${failed}`,
     });
   } catch (error) {
     console.error("[remboursement]", error);
     throw new AppError("payment_provider_error");
   }
   const status = mapRefundStatus(refund.status);
+  // Refus immédiat : l'opération (annulation comprise) n'est pas faite, plutôt que d'annoncer
+  // à la cliente un remboursement qu'elle ne recevra pas.
+  if (status === "failed" || status === "canceled") throw new AppError("payment_provider_error");
   await tx.update(refunds).set({ stripeRefundId: refund.id, status }).where(eq(refunds.id, row.id));
   return { refundId: row.id, amountCents: remainingCents, currency: payment.currency, status };
 }
@@ -101,7 +111,10 @@ export async function applyRefund(tx: Transaction, tenantId: string, refund: Gat
     .from(refunds)
     .where(and(eq(refunds.tenantId, tenantId), eq(refunds.stripeRefundId, refund.id)));
   if (known) {
-    if (known.status !== status) await tx.update(refunds).set({ status }).where(eq(refunds.id, known.id));
+    if (known.status !== status) {
+      await tx.update(refunds).set({ status }).where(eq(refunds.id, known.id));
+      if (status === "failed" || status === "canceled") await alertRefundFailed(tx, tenantId, known);
+    }
     return { outcome: "updated" as const };
   }
   const ownId = refund.metadata.refund_id;
@@ -110,8 +123,11 @@ export async function applyRefund(tx: Transaction, tenantId: string, refund: Gat
       .update(refunds)
       .set({ stripeRefundId: refund.id, status })
       .where(and(eq(refunds.tenantId, tenantId), eq(refunds.id, ownId)))
-      .returning({ id: refunds.id });
-    if (updated.length > 0) return { outcome: "updated" as const };
+      .returning();
+    if (updated.length > 0) {
+      if (status === "failed" || status === "canceled") await alertRefundFailed(tx, tenantId, updated[0]);
+      return { outcome: "updated" as const };
+    }
   }
   if (!refund.paymentIntentId) return { outcome: "unknown_payment" as const };
   const [payment] = await tx
@@ -132,6 +148,36 @@ export async function applyRefund(tx: Transaction, tenantId: string, refund: Gat
     })
     .onConflictDoNothing();
   return { outcome: "recorded" as const };
+}
+
+/** Remboursement d'acompte refusé par Stripe après coup : la gérante est prévenue. */
+async function alertRefundFailed(
+  tx: Transaction,
+  tenantId: string,
+  refund: { id: string; paymentId: string; amountCents: number },
+) {
+  const [payment] = await tx.select().from(payments).where(eq(payments.id, refund.paymentId));
+  if (!payment) return;
+  const [customer] = payment.appointmentId
+    ? await tx
+        .select({ firstName: customers.firstName, lastName: customers.lastName })
+        .from(appointments)
+        .innerJoin(customers, eq(customers.id, appointments.customerId))
+        .where(eq(appointments.id, payment.appointmentId))
+    : [];
+  await queueMessage(tx, {
+    tenantId,
+    businessId: payment.businessId,
+    template: "manager.refund_failed",
+    appointmentId: payment.appointmentId,
+    data: {
+      kind: "deposit",
+      amountCents: refund.amountCents,
+      currency: payment.currency,
+      customer: customer ? [customer.firstName, customer.lastName].filter(Boolean).join(" ") : "",
+    },
+    dedupeKey: `manager.refund_failed:${refund.id}`,
+  });
 }
 
 /** Acompte et remboursements d'un rendez-vous, pour l'affichage. */

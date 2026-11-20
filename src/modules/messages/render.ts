@@ -1270,6 +1270,28 @@ async function renderManager(
       label: t("notifications.manager.data_request.open"),
       url: `${space}/plus/donnees-clientes`,
     };
+  } else if (template === "manager.refund_failed") {
+    const info = row.data as { amountCents?: number; currency?: string; kind?: string; customer?: string };
+    const amount = fmt.money(info.amountCents ?? 0, info.currency ?? tenant.currency);
+    const customer = info.customer || t("notifications.manager.refund_failed.unknownCustomer");
+    subject = t("notifications.manager.refund_failed.subject", { amount });
+    title = t("notifications.manager.refund_failed.title");
+    paragraphs = [
+      t("notifications.manager.refund_failed.intro", { amount, customer }),
+      t("notifications.manager.refund_failed.what"),
+    ];
+    action =
+      info.kind === "order"
+        ? { label: t("notifications.manager.refund_failed.openOrder"), url: `${space}/plus/commandes` }
+        : info.kind === "giftCard"
+          ? {
+              label: t("notifications.manager.refund_failed.openGiftCard"),
+              url: `${space}/plus/cartes-cadeaux`,
+            }
+          : {
+              label: t("notifications.manager.refund_failed.openDeposit"),
+              url: row.appointmentId ? `${space}/rendez-vous/${row.appointmentId}` : `${space}/agenda`,
+            };
   } else if (template === "manager.stripe_invite") {
     const resume = (row.data as { state?: string }).state === "incomplete";
     subject = t("notifications.manager.stripe_invite.subject");
