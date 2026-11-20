@@ -110,7 +110,7 @@ export function BreakSetting({
       {message && (
         <p
           role={message.error ? "alert" : "status"}
-          className={`flex items-center gap-1.5 pb-1 text-sm font-medium ${message.error ? "text-[#8f2a20]" : "text-success"}`}
+          className={`flex items-center gap-1.5 pb-1 text-sm font-medium ${message.error ? "text-danger-ink" : "text-success"}`}
         >
           <svg
             aria-hidden="true"

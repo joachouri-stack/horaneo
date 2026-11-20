@@ -57,7 +57,7 @@ export function MoveButtons({
       {button("up", canUp)}
       {button("down", canDown)}
       {state && !state.ok && (
-        <p role="alert" className="max-w-24 text-xs text-[#8f2a20]">
+        <p role="alert" className="max-w-24 text-xs text-danger-ink">
           {t(`errors.${state.error}`)}
         </p>
       )}

@@ -31,9 +31,10 @@ const shift = (period: string, delta: number) => {
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
 };
 
-const ONLINE = "#3a4bb8";
-const SALON = "#e2708f";
-const REVENUE = "#2fa58b";
+// Couleurs de la charte (dégradé violet → bleu, bleu nuit), pas de rose ni de vert d'eau.
+const ONLINE = "#2f80ff";
+const SALON = "#7b3fe4";
+const REVENUE = "#0b1033";
 const MONDAY = "2024-01-01"; // un lundi, pour nommer les jours de la semaine
 
 /**

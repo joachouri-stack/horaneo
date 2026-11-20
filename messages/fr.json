@@ -100,7 +100,7 @@
       "soon": "Disponible bientôt",
       "available": "Disponible",
       "ctaSoon": "Être prévenu du lancement",
-      "soonNote": "Cette solution est en préparation : la souscription ouvrira à son lancement. Les packs Pro et Business y donneront accès sans frais de plateforme supplémentaires.",
+      "soonNote": "Cette solution est en préparation : la souscription ouvrira à son lancement. Les packs {plans} y donneront accès sans frais de plateforme supplémentaires.",
       "visual": "Aperçu de l'interface {solution} sur ordinateur et téléphone (données d'exemple)",
       "for": "Pour",
       "items": {
@@ -536,7 +536,7 @@
       "perMonthLegacy": "par mois {display}",
       "upcoming": "Bientôt inclus",
       "upcomingMore": "{count, plural, one {+ # autre} other {+ # autres}}",
-      "soonSolution": "La solution {solution} est en préparation. Les packs se souscrivent aujourd'hui avec la solution Réservation ; Pro et Business donneront accès à {solution} dès son lancement, sans frais de plateforme supplémentaires.",
+      "soonSolution": "La solution {solution} est en préparation. Les packs se souscrivent aujourd'hui avec la solution Réservation ; les packs {plans} donneront accès à {solution} dès son lancement, sans frais de plateforme supplémentaires.",
       "perYear": "{display}/an",
       "yearlyDetail": "soit {monthly} {display}/mois",
       "yearlySaving": "{amount} d'économie",
@@ -622,7 +622,7 @@
         "multilingual": {
           "label": "Traduction du site dans d'autres langues",
           "card": "Site en {count, plural, one {# langue} other {# langues}} de plus",
-          "cardUnlimited": "Site multipage dans toutes les langues"
+          "cardUnlimited": "Site multipage en plusieurs langues"
         },
         "bookings": {
           "label": "Réservations en ligne par mois",
@@ -733,8 +733,8 @@
           "cardUnlimited": "Chatbot (questions et réponses illimitées)"
         },
         "aiChatbot": {
-          "label": "Chatbot sur votre site (répond aux questions et propose les créneaux libres) : conversations par mois",
-          "card": "Chatbot IA qui propose les créneaux libres ({count} conversations/mois)"
+          "label": "Assistant IA sur votre site (répond aux questions et propose les créneaux libres) : conversations par mois",
+          "card": "Assistant IA qui propose les créneaux libres ({count} conversations/mois)"
         },
         "aiTexts": {
           "label": "Textes générés par IA (par mois)",
@@ -996,11 +996,11 @@
         },
         "solutions": {
           "q": "{soonCount, plural, one {La solution {soonNames} est-elle disponible ?} other {Les solutions {soonNames} sont-elles disponibles ?}}",
-          "a": "{soonCount, plural, one {Pas encore : elle est en préparation et affichée « Disponible bientôt ».} other {Pas encore : elles sont en préparation et affichées « Disponible bientôt ».}} Les packs Pro et Business y donneront accès à leur lancement, sans frais de plateforme supplémentaires (hors frais Stripe et services tiers)."
+          "a": "{soonCount, plural, one {Pas encore : elle est en préparation et affichée « Disponible bientôt ».} other {Pas encore : elles sont en préparation et affichées « Disponible bientôt ».}} Les packs {soonPlans} y donneront accès à leur lancement, sans frais de plateforme supplémentaires (hors frais Stripe et services tiers)."
         },
         "ai": {
           "q": "Les outils d'intelligence artificielle sont-ils déjà disponibles ?",
-          "a": "Le chatbot de votre site est déjà disponible dans les packs qui l'incluent : il répond aux questions de vos clients et leur propose vos créneaux libres. L'assistant WhatsApp et la génération de textes et d'images sont en préparation et marqués « Bientôt » sur les packs."
+          "a": "L'assistant IA de votre site est déjà disponible dans les packs qui l'incluent : il répond aux questions de vos clients et leur propose vos créneaux libres. L'assistant WhatsApp et la génération de textes et d'images sont en préparation et marqués « Bientôt » sur les packs."
         },
         "tablet": {
           "q": "Comment fonctionne l'offre tablette ?",
@@ -1155,7 +1155,7 @@
       "seeServices": "Voir les prestations",
       "status": {
         "attended": "Effectué",
-        "no_show": "Manqué",
+        "no_show": "Non honoré",
         "confirmed": "Passé"
       },
       "perks": "Mes avantages",
@@ -2910,7 +2910,7 @@
         "confirmed": "Confirmé",
         "pending_payment": "En attente de paiement",
         "cancelled": "Annulé",
-        "attended": "Honoré",
+        "attended": "Effectué",
         "no_show": "Non honoré",
         "expired": "Expiré",
         "moved": "Déplacé"
@@ -3404,7 +3404,7 @@
       "filterHint": {
         "loyal": "Clients venus au moins {visits} fois.",
         "new": "Clients ajoutés il y a moins de {days} jours.",
-        "inactive": "Clients déjà venus, pas revenus depuis {months} mois et sans rendez-vous prévu. Sirine les range ici toute seule.",
+        "inactive": "Clients déjà venus, pas revenus depuis {months} mois et sans rendez-vous prévu. Ils sont rangés ici automatiquement.",
         "blocked": "Clients qui ne peuvent plus réserver en ligne."
       },
       "winbackLink": "Ils peuvent recevoir automatiquement l'e-mail « Vous nous manquez » : régler la relance",
@@ -3579,7 +3579,7 @@
       "unavailability": "Indisponibilités",
       "subscription": "Abonnement",
       "referral": "Parrainage",
-      "assistant": "Assistant du site",
+      "assistant": "Assistant IA",
       "settings": "Réglages",
       "requests": "Demander une modification du site",
       "help": "Aide",
@@ -3932,7 +3932,7 @@
       "exportTitle": "Vos données vous appartiennent",
       "exportHint": "Avant de changer de pack ou de résilier, vous pouvez télécharger toutes vos données : clients, rendez-vous, prestations et paiements.",
       "exportLink": "Exporter mes données",
-      "exportLocked": "L'export de vos données (clients, rendez-vous, paiements) est inclus dans les packs Pro et Business. Si vous résiliez, il s'ouvre pour vous jusqu'à la fin de votre abonnement.",
+      "exportLocked": "L'export de vos données (clients, rendez-vous, paiements) est inclus dans les packs {plans}. Si vous résiliez, il s'ouvre pour vous jusqu'à la fin de votre abonnement.",
       "exportBeforeLeaving": "Avant de partir, téléchargez vos données : clients, rendez-vous, prestations et paiements. L'export reste ouvert jusqu'à la fin de votre abonnement, quel que soit votre pack.",
       "upcoming": "+ {count, plural, one {# fonction bientôt disponible} other {# fonctions bientôt disponibles}}"
     },
@@ -4000,7 +4000,7 @@
       }
     },
     "assistant": {
-      "title": "Assistant du site",
+      "title": "Assistant IA",
       "intro": "Une bulle « Une question ? » sur votre site répond à vos clients 24 h/24, à partir de vos prestations, prix, horaires et informations.",
       "notConfigured": "L'assistant n'est pas encore disponible : il s'affichera dès que le service sera activé par notre équipe.",
       "settingsTitle": "Sur votre site",
@@ -4475,7 +4475,7 @@
         "percent": "Pourcentage",
         "fixed": "Montant"
       },
-      "locked": "L'export de vos données est inclus dans les packs Pro et Business.",
+      "locked": "L'export de vos données est inclus dans les packs {plans}.",
       "lockedLink": "Voir les packs"
     },
     "orders": {
@@ -4689,7 +4689,7 @@
         "intro": "Pour que vos clients puissent payer un acompte en réservant, il reste à relier votre compte bancaire. Cela prend environ 10 minutes, depuis votre téléphone ou votre ordinateur.",
         "introResume": "L'ouverture de votre compte de paiement n'est pas terminée. Reprenez là où vous vous étiez arrêtée : cela ne prend que quelques minutes.",
         "steps": "Touchez le bouton ci-dessous, puis suivez les étapes de Stripe, notre partenaire de paiement : votre identité, votre activité (SIRET) et l'IBAN du compte qui recevra les acomptes.",
-        "money": "Les acomptes arrivent directement sur votre compte bancaire : ils ne passent jamais par nous.",
+        "money": "Les acomptes arrivent directement sur votre compte bancaire, par Stripe.",
         "login": "Si l'espace vous le demande, connectez-vous avec cette adresse e-mail : vous recevrez un code.",
         "open": "Relier mon compte bancaire"
       },
@@ -4718,7 +4718,7 @@
         "noCharge": "Rien n'est jamais facturé sans votre accord : vous pouvez attendre le mois prochain ou ajouter une recharge depuis votre espace.",
         "open": "Voir mon abonnement",
         "keys": {
-          "aiChatConversations": "Chatbot IA",
+          "aiChatConversations": "Assistant IA",
           "whatsappConversations": "Assistant WhatsApp",
           "aiTexts": "Textes IA",
           "aiImages": "Images IA"
@@ -4946,7 +4946,9 @@
     "billingYearlyHint": "Payé en une fois pour 12 mois, renouvelé chaque année.{options, select, yes { Les options se facturent au mois.} other {}} Non remboursable en cas de résiliation : vos services restent actifs jusqu'à la fin de l'année payée.",
     "billingMonthlyHint": "Sans engagement, résiliable chaque mois.",
     "firstCharge": "Premier prélèvement le {date} : {amount}{ttc, select, yes { TTC} other {}}, puis {interval, select, year {chaque année} other {chaque mois}}.",
-    "launchOfferMonthly": "Payez à l'année pour recevoir : {offer} ({remaining, plural, one {# place restante} other {# places restantes}})."
+    "launchOfferMonthly": "Payez à l'année pour recevoir : {offer} ({remaining, plural, one {# place restante} other {# places restantes}}).",
+    "withCommitmentTrial": "Rien n'est prélevé pendant l'essai : le premier mois est réglé à sa fin.",
+    "commitmentHintTrial": "Abonnement avec engagement de {months} mois. Rien n'est prélevé pendant l'essai : le premier mois est réglé à sa fin."
   },
   "callback": {
     "metaTitle": "Être rappelé",

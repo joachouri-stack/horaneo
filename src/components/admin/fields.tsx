@@ -23,7 +23,7 @@ function useFieldError(name: string, id: string) {
   const errorId = `${id}-erreur`;
   return {
     message: error ? (
-      <p id={errorId} className="mt-1 text-sm font-medium text-[#8f2a20]">
+      <p id={errorId} className="mt-1 text-sm font-medium text-danger-ink">
         {error}
       </p>
     ) : null,

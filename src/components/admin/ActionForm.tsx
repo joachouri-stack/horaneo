@@ -124,9 +124,9 @@ export function ActionForm({
         ? `${ui.secondaryButton} sm:w-auto`
         : // Suppression, annulation : en rouge (jamais dans la couleur des actions).
           variant === "danger"
-          ? "inline-flex min-h-11 items-center font-semibold text-[#b4372a] underline disabled:opacity-60"
+          ? "inline-flex min-h-11 items-center font-semibold text-danger underline disabled:opacity-60"
           : variant === "dangerOutline"
-            ? "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#f1c5bf] bg-white px-5 font-semibold text-[#b4372a] transition hover:bg-[#fdecea] disabled:opacity-60 sm:w-auto"
+            ? "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-danger-line bg-white px-5 font-semibold text-danger transition hover:bg-danger-soft disabled:opacity-60 sm:w-auto"
             : "inline-flex min-h-11 items-center font-semibold text-night underline disabled:opacity-60";
 
   const list = new Intl.ListFormat(locale, { type: "conjunction" });

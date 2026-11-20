@@ -30,7 +30,7 @@ const STATUS_BADGE: Record<string, string> = {
   pending_payment: "bg-[#fdf3e2] text-[#8a5212]",
   attended: "bg-success/15 text-[#1e6b48]",
   no_show: "bg-ink/10 text-ink/80",
-  cancelled: "bg-[#fdecea] text-[#b4372a]",
+  cancelled: "bg-danger-soft text-danger",
 };
 
 export default async function AppointmentPage({
@@ -342,7 +342,7 @@ export default async function AppointmentPage({
 
       {active && (
         <details className={ui.card}>
-          <summary className="-m-5 flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 p-5 text-lg font-semibold sm:-m-6 sm:p-6 [&::-webkit-details-marker]:hidden text-[#b4372a]">
+          <summary className="-m-5 flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 p-5 text-lg font-semibold sm:-m-6 sm:p-6 [&::-webkit-details-marker]:hidden text-danger">
             {t("appointment.cancel")}
             <span aria-hidden="true" className="text-ink-soft">
               ▾

@@ -2,13 +2,17 @@ import { getTranslations } from "next-intl/server";
 import { ui } from "@/components/ui/styles";
 import { Link } from "@/i18n/navigation";
 import { managerPage } from "@/lib/manager/page";
+import { listPublicPlans, planNamesWith } from "@/modules/billing/plans";
 import { dataExportAllowed } from "@/modules/export/business-data";
 
 /** Export des données : la gérante récupère ses tableaux (avant de résilier ou à tout moment). */
 export default async function ExportPage({ params }: PageProps<"/[locale]/espace/[tenantId]/plus/exporter">) {
   const page = await managerPage(params, "owner");
   const t = await getTranslations("manager.export");
-  const allowed = await page.db((tx) => dataExportAllowed(tx, page.tenantId, page.tenant.features));
+  const { allowed, plans } = await page.db(async (tx) => ({
+    allowed: await dataExportAllowed(tx, page.tenantId, page.tenant.features),
+    plans: await listPublicPlans(tx),
+  }));
   return (
     <div className="space-y-6">
       <div>
@@ -19,7 +23,9 @@ export default async function ExportPage({ params }: PageProps<"/[locale]/espace
       </div>
       {!allowed ? (
         <section className={`${ui.card} space-y-4`}>
-          <p className="text-ink/80">{t("locked")}</p>
+          <p className="text-ink/80">
+            {t("locked", { plans: planNamesWith(plans, "dataExport", page.locale) })}
+          </p>
           <Link href={`${page.base}/plus/abonnement`} className={`${ui.primaryButton} sm:w-auto`}>
             {t("lockedLink")}
           </Link>

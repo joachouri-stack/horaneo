@@ -288,7 +288,7 @@ export function LoginForm({ providers, callbackPath, errorPath, intro }: Props) 
               aria-invalid={emailInvalid || undefined}
               aria-describedby={emailInvalid ? "login-error" : suggestion ? "email-suggestion" : undefined}
               placeholder={t("emailPlaceholder")}
-              className={`${ui.input} ${emailInvalid ? "border-[#b4372a] ring-2 ring-[#b4372a]/20" : ""}`}
+              className={`${ui.input} ${emailInvalid ? "border-danger ring-2 ring-danger/20" : ""}`}
             />
             {/* Faute de frappe probable (« gmial.com ») : correction d'un toucher. */}
             {suggestion && (

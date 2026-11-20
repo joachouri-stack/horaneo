@@ -44,7 +44,7 @@ const STATUS_TONE: Record<string, string> = {
   confirmed: "bg-accent-soft text-accent-strong",
   pending_payment: "bg-[#fdf3e2] text-[#8a5212]",
   attended: "bg-success/15 text-success",
-  no_show: "bg-[#fdecea] text-[#b4372a]",
+  no_show: "bg-danger-soft text-danger",
   cancelled: "bg-mist-50 text-ink/70",
 };
 

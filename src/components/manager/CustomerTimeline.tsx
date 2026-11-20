@@ -30,7 +30,7 @@ const STYLE: Record<TimelineEvent["kind"], { icon: keyof typeof PATH; tone: stri
   booked_online: { icon: "calendar", tone: "bg-accent-soft text-accent-strong" },
   booked_manual: { icon: "calendar", tone: "bg-accent-soft text-accent-strong" },
   attended: { icon: "check", tone: "bg-success/15 text-success" },
-  no_show: { icon: "cross", tone: "bg-[#fdecea] text-[#b4372a]" },
+  no_show: { icon: "cross", tone: "bg-danger-soft text-danger" },
   cancelled: { icon: "cross", tone: "bg-mist-50 text-ink-soft" },
   "customer.confirmation": { icon: "mail", tone: "bg-mist-50 text-ink-soft" },
   "customer.reminder_email": { icon: "bell", tone: "bg-mist-50 text-ink-soft" },

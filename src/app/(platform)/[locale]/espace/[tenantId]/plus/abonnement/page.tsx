@@ -14,7 +14,7 @@ import { listTenantOptions } from "@/modules/billing/options";
 import { ttcHintCents } from "@/modules/billing/vat";
 import { yearlyPriceCents } from "@/modules/billing/yearly";
 import { gridCard, type CardLine } from "@/modules/billing/grid";
-import { listPublicPlans } from "@/modules/billing/plans";
+import { listPublicPlans, planNamesWith } from "@/modules/billing/plans";
 import { canBuySmsPacks, listSmsPacks, smsPackOffer, syncSmsPackPayment } from "@/modules/billing/sms-packs";
 import { smsUsage } from "@/modules/messages/sms-usage";
 import { freePlan, getSubscription, isLive } from "@/modules/billing/subscriptions";
@@ -212,7 +212,7 @@ export default async function SubscriptionPage({
                 </dd>
               </div>
               {trialing && (
-                <div className="rounded-[var(--radius-card)] bg-[#e7f6ee] px-4 py-3">
+                <div className="rounded-[var(--radius-card)] bg-success-soft px-4 py-3">
                   <dt className="text-sm text-[#1f6f47]">{t("status.trialLabel")}</dt>
                   <dd className="mt-0.5 text-lg font-semibold text-night">{page.fmt.short(periodEnd)}</dd>
                 </div>
@@ -240,7 +240,7 @@ export default async function SubscriptionPage({
                 <input type="hidden" name="tenantId" value={page.tenantId} />
                 <input type="hidden" name="planId" value={data.freePlan.id} />
                 <SubmitButton
-                  className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-[#f1c5bf] bg-white px-5 font-semibold text-[#b4372a] transition hover:bg-[#fdecea] sm:w-auto"
+                  className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-danger-line bg-white px-5 font-semibold text-danger transition hover:bg-danger-soft sm:w-auto"
                   confirm={
                     pausing
                       ? t("stopConfirm", { date: freeDate ? page.fmt.short(freeDate) : "" })
@@ -297,13 +297,13 @@ export default async function SubscriptionPage({
               <li key={row.label} className="py-3">
                 <div className="flex justify-between gap-3">
                   <span>{row.label}</span>
-                  <span className={`text-right font-semibold ${over ? "text-[#b4372a]" : ""}`}>
+                  <span className={`text-right font-semibold ${over ? "text-danger" : ""}`}>
                     {row.limit === null || row.limit === undefined
                       ? `${row.used} · ${t("unlimited")}`
                       : t("of", { used: row.used, limit: row.limit })}
                   </span>
                 </div>
-                {over && <p className="mt-1 text-sm text-[#b4372a]">{t("overLimit")}</p>}
+                {over && <p className="mt-1 text-sm text-danger">{t("overLimit")}</p>}
               </li>
             );
           })}
@@ -623,7 +623,9 @@ export default async function SubscriptionPage({
             {exportButton}
           </>
         ) : (
-          <p className="text-sm text-ink/70">{t("exportLocked")}</p>
+          <p className="text-sm text-ink/70">
+            {t("exportLocked", { plans: planNamesWith(data.plans, "dataExport", page.locale) })}
+          </p>
         )}
       </section>
     </div>

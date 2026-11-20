@@ -729,11 +729,11 @@ export default async function AgendaPage({
   const stateIcons = (item: AgendaAppointment) =>
     [
       item.status === "attended" && { key: "attended", d: CHECK_ICON, className: "text-success" },
-      item.status === "no_show" && { key: "noShow", d: CROSS_ICON, className: "text-[#b4372a]" },
+      item.status === "no_show" && { key: "noShow", d: CROSS_ICON, className: "text-danger" },
       item.status === "pending_payment" && {
         key: "pending",
         d: DASH_ICONS.clock,
-        className: "text-[#a15c00]",
+        className: "text-warning",
       },
       item.depositCents > 0 &&
         (item.status === "confirmed" || item.status === "attended") && {

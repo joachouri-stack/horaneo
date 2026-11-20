@@ -60,13 +60,13 @@ export function StaffPhotoUpload({
           type="button"
           disabled={pending}
           onClick={() => submit(null)}
-          className="inline-flex min-h-10 items-center rounded-full px-3 text-sm font-medium text-ink-soft hover:text-[#b4372a] disabled:opacity-60"
+          className="inline-flex min-h-10 items-center rounded-full px-3 text-sm font-medium text-ink-soft hover:text-danger disabled:opacity-60"
         >
           {t("removePhoto")}
         </button>
       )}
       {(tooLarge || (state && !state.ok)) && (
-        <p role="alert" className="w-full text-sm text-[#b4372a]">
+        <p role="alert" className="w-full text-sm text-danger">
           {tErrors(tooLarge || !state || state.ok ? "image_too_large" : state.error)}
         </p>
       )}

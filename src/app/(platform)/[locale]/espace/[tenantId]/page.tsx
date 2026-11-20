@@ -107,7 +107,7 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
       )}
 
       {smsAlert && (
-        <p role="status" className={`${panel} !py-4 border-[#f3d3cc] bg-[#fdf4f2] text-night`}>
+        <p role="status" className={`${panel} !py-4 border-warning-soft bg-warning-soft text-warning-ink`}>
           {smsAlert}{" "}
           <Link href={`${page.base}/plus/abonnement#sms`} className="font-medium text-accent underline">
             {t("smsOpen")}

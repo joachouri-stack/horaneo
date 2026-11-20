@@ -47,7 +47,7 @@ export function Trend({ value, label }: { value: number | null; label: string })
   return (
     <span
       className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[0.8125rem] font-medium tabular-nums ${
-        up ? "bg-[#e7f6ee] text-[#1e7a4c]" : "bg-[#fdecea] text-[#b4372a]"
+        up ? "bg-success-soft text-[#1e7a4c]" : "bg-danger-soft text-danger"
       }`}
     >
       <span aria-hidden="true">{up ? "↑" : "↓"}</span>
@@ -59,7 +59,7 @@ export function Trend({ value, label }: { value: number | null; label: string })
 
 const TONES = {
   indigo: "bg-[#eef0fb] text-[#3a4bb8]",
-  green: "bg-[#e7f6ee] text-[#1e7a4c]",
+  green: "bg-success-soft text-[#1e7a4c]",
   violet: "bg-[#f1ecfb] text-[#6a45b8]",
   amber: "bg-[#fdf3e2] text-[#8a5212]",
   teal: "bg-[#e5f2f2] text-[#0e6a73]",
