@@ -48,10 +48,18 @@ export function ChatWidget({ businessName, contact }: { businessName: string; co
       // Conversation envoyée : les derniers messages, en commençant par une question.
       let history = next.slice(-MAX_TURNS);
       while (history.length > 0 && history[0].role !== "user") history = history.slice(1);
+      // Connexion coupée : message dans la bulle, la page ne plante pas.
       const result = await askAssistantAction({
         messages: history.map(({ role, content }) => ({ role, content })),
         conversation,
-      });
+      }).catch(() => null);
+      if (!result) {
+        // La question revient dans le champ, prête à être renvoyée.
+        setTurns(turns);
+        setDraft(question);
+        setError(t("networkError"));
+        return;
+      }
       if (!result.ok) {
         setError(tErrors(result.error));
         return;
@@ -65,7 +73,9 @@ export function ChatWidget({ businessName, contact }: { businessName: string; co
   };
 
   return (
-    <div className="fixed right-4 bottom-24 z-40 flex flex-col items-end gap-3 sm:right-6 sm:bottom-6">
+    // Téléphone : bulle masquée tant que la bannière « Installer l'application » est affichée
+    // (elles occupent le même endroit, au-dessus de la barre du bas).
+    <div className="fixed right-4 bottom-24 z-40 flex flex-col items-end gap-3 sm:right-6 sm:bottom-6 max-sm:[body:has(#installer-application)_&]:hidden">
       {open && (
         <section
           role="dialog"

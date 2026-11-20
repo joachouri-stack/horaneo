@@ -39,7 +39,8 @@ export function GiftCardForm(props: Props) {
   const [error, setError] = useState<{ code: string; field?: string } | null>(null);
   const [pending, setPending] = useState(false);
   const [checkout, setCheckout] = useState<GiftCheckout | null>(null);
-  const [sent, setSent] = useState<{ email: string; sendAt: string | null } | null>(null);
+  // `confirmed` : paiement confirmé par Stripe (sinon, la carte part dès sa confirmation).
+  const [sent, setSent] = useState<{ email: string; sendAt: string | null; confirmed: boolean } | null>(null);
   const [recipient, setRecipient] = useState<{ email: string; sendOn: string }>({ email: "", sendOn: "" });
   const [checking, setChecking] = useState(false);
   const fmt = (cents: number) => money(cents, props.currency, props.locale);
@@ -61,8 +62,13 @@ export function GiftCardForm(props: Props) {
       message: String(form.get("message") ?? ""),
       sendOn,
       locale: props.locale,
-    });
+    }).catch(() => null);
     setPending(false);
+    if (!result) {
+      // Connexion coupée : rien n'est payé à ce stade.
+      setError({ code: "network" });
+      return;
+    }
     if (!result.ok) {
       setError({ code: result.error, field: result.field });
       return;
@@ -77,14 +83,14 @@ export function GiftCardForm(props: Props) {
       const result = await confirmGiftCardAction(props.businessId, checkout.giftCardId).catch(() => null);
       if (result?.ok && result.data.active) {
         const later = recipient.sendOn && recipient.sendOn > props.today;
-        setSent({ email: recipient.email, sendAt: later ? result.data.sendAt : null });
+        setSent({ email: recipient.email, sendAt: later ? result.data.sendAt : null, confirmed: true });
         setChecking(false);
         return;
       }
       await new Promise((resolve) => setTimeout(resolve, 1500));
     }
     setChecking(false);
-    setSent({ email: recipient.email, sendAt: null });
+    setSent({ email: recipient.email, sendAt: null, confirmed: false });
   }
 
   if (sent) {
@@ -106,14 +112,16 @@ export function GiftCardForm(props: Props) {
           {t("thanksTitle")}
         </h2>
         <p className="mt-3">
-          {sent.sendAt
-            ? t("thanksLater", {
-                email: sent.email,
-                date: new Intl.DateTimeFormat(props.locale, { day: "numeric", month: "long" }).format(
-                  new Date(sent.sendAt),
-                ),
-              })
-            : t("thanksNow", { email: sent.email })}
+          {!sent.confirmed
+            ? t("thanksPending")
+            : sent.sendAt
+              ? t("thanksLater", {
+                  email: sent.email,
+                  date: new Intl.DateTimeFormat(props.locale, { day: "numeric", month: "long" }).format(
+                    new Date(sent.sendAt),
+                  ),
+                })
+              : t("thanksNow", { email: sent.email })}
         </p>
       </section>
     );
@@ -148,7 +156,14 @@ export function GiftCardForm(props: Props) {
 
   const fieldError = (name: string) => (error?.field === name ? true : undefined);
   return (
-    <form action={submit} className="space-y-8">
+    // Envoi géré ici (et non par l'action du formulaire) : après une erreur, les champs restent remplis.
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (!pending) void submit(new FormData(event.currentTarget));
+      }}
+      className="space-y-8"
+    >
       <fieldset>
         <legend className="mb-3 text-lg font-semibold">{t("amount")}</legend>
         <div className="flex flex-wrap gap-2">
@@ -237,7 +252,7 @@ export function GiftCardForm(props: Props) {
           role="alert"
           className="rounded-site border border-site-border bg-site-panel px-4 py-3 font-semibold"
         >
-          {tErrors(error.code as "invalid")}
+          {error.code === "network" ? t("networkError") : tErrors(error.code as "invalid")}
         </p>
       )}
       <button type="submit" disabled={pending || !chosenCents} className={primaryClass}>

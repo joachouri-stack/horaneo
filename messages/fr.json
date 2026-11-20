@@ -1114,7 +1114,8 @@
       "fallback": "Je ne peux pas répondre à cette question. Le mieux est de contacter directement l'établissement.",
       "contactHint": "Vous pouvez aussi nous joindre au {contact}.",
       "book": "Réserver : {service}",
-      "disclaimer": "Assistant automatique : les réponses peuvent contenir des erreurs. Ne partagez pas d'informations personnelles."
+      "disclaimer": "Assistant automatique : les réponses peuvent contenir des erreurs. Ne partagez pas d'informations personnelles.",
+      "networkError": "La connexion a été interrompue. Vérifiez votre réseau puis renvoyez votre question."
     },
     "account": {
       "title": "Mes rendez-vous",
@@ -1485,7 +1486,12 @@
       "allCategories": "Tout",
       "paymentFailedTitle": "Paiement non abouti",
       "paymentFailed": "Votre banque a refusé le paiement : rien n'a été débité et votre panier est conservé. Vous pouvez réessayer, avec la même carte ou une autre.",
-      "backToCart": "Retour au panier"
+      "backToCart": "Retour au panier",
+      "fieldInvalid": "Vérifiez ce champ : {field}.",
+      "itemUnavailable": "Un produit de votre panier n'est plus disponible. Revenez à la boutique pour mettre votre panier à jour.",
+      "retry": "Réessayer",
+      "emptyCart": "Vider le panier",
+      "loadFailed": "La connexion a été interrompue. Vérifiez votre réseau puis réessayez : rien n'a été débité."
     },
     "giftCard": {
       "navLabel": "Cartes cadeaux",
@@ -1525,7 +1531,8 @@
       "thanksPending": "Dès que votre banque confirme le paiement, la carte est envoyée et vous recevez un reçu par e-mail.",
       "paymentFailedTitle": "Paiement non abouti",
       "paymentFailed": "Votre banque a refusé le paiement : rien n'a été débité et la carte cadeau n'a pas été envoyée. Vous pouvez réessayer, avec la même carte ou une autre.",
-      "retry": "Réessayer"
+      "retry": "Réessayer",
+      "networkError": "La connexion a été interrompue. Vérifiez votre réseau puis réessayez : rien n'a été débité."
     },
     "install": {
       "title": "L'application {name}",
@@ -1561,6 +1568,11 @@
       "confirm": "Ne plus recevoir les offres",
       "done": "C'est fait : vous ne recevrez plus les offres de {name}. Les messages liés à vos rendez-vous continueront d'arriver.",
       "invalid": "Ce lien n'est pas valable. Pour ne plus recevoir les offres de {name}, contactez directement l'établissement."
+    },
+    "errorPage": {
+      "title": "Un petit souci est survenu",
+      "text": "La page n'a pas pu s'afficher. Réessayez dans un instant ; si le problème continue, revenez à l'accueil.",
+      "retry": "Réessayer"
     }
   },
   "emails": {
@@ -2880,7 +2892,8 @@
       "paidTitle": "C'est confirmé",
       "addToCalendar": "Ajouter à mon agenda",
       "emailSent": "Un e-mail de confirmation vient de vous être envoyé.",
-      "googleCalendar": "Ou l'ajouter à Google Agenda"
+      "googleCalendar": "Ou l'ajouter à Google Agenda",
+      "keepLinkLate": "Pour gérer votre rendez-vous, utilisez le bouton « Gérer mon rendez-vous » ou le lien reçu par e-mail. Le délai d'annulation sans frais ({hours} h avant) est déjà passé : en cas d'empêchement, prévenez l'établissement."
     },
     "back": "Retour",
     "continue": "Continuer",

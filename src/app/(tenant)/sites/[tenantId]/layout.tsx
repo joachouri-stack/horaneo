@@ -152,7 +152,10 @@ export default async function TenantLayout({ children, params }: LayoutProps<"/s
             />
           )}
           {chatbotOn && (
-            <HideOnPaths prefixes={[SITE_PATHS.booking, SITE_PATHS.appointment, SITE_PATHS.giftCard]}>
+            // Ni pendant une réservation ou un paiement (panier compris) : la bulle cacherait « Payer ».
+            <HideOnPaths
+              prefixes={[SITE_PATHS.booking, SITE_PATHS.appointment, SITE_PATHS.giftCard, SITE_PATHS.cart]}
+            >
               <ChatWidget
                 businessName={site.tenant.name}
                 contact={site.tenant.phone ? formatPhone(site.tenant.phone) : site.tenant.email}

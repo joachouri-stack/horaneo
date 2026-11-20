@@ -87,6 +87,7 @@ type Props = {
 };
 
 type Step = "services" | "slot" | "details" | "done";
+const STEPS: Step[] = ["services", "slot", "details", "done"];
 
 const CONTACT_FIELDS = [
   "firstName",
@@ -129,6 +130,11 @@ export function BookingFlow(props: Props) {
   const [step, setStep] = useState<Step>(
     props.preselectedServiceId && props.startAtSlot ? "slot" : "services",
   );
+  // Étapes enregistrées dans l'historique du navigateur : le bouton Retour du téléphone
+  // ramène à l'étape précédente au lieu de quitter la réservation (saisie gardée).
+  const trail = useRef<Step[]>([]);
+  const position = useRef(0);
+  const confirmed = useRef(false);
   // Collaboratrice choisie pour chaque prestation (plusieurs prestations), par identifiant.
   const [plan, setPlan] = useState<Record<string, string | null>>(() =>
     props.preselectedStaffId && props.preselectedServiceId
@@ -175,6 +181,49 @@ export function BookingFlow(props: Props) {
     website: "",
   });
   const headingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    trail.current = [step];
+    position.current = 0;
+    window.history.replaceState({ ...window.history.state, bookingStep: step, bookingIndex: 0 }, "");
+    const onPop = (event: PopStateEvent) => {
+      const target = event.state?.bookingStep as Step | undefined;
+      if (!target || !STEPS.includes(target)) return;
+      position.current = Number(event.state.bookingIndex) || 0;
+      // Réservation enregistrée : la confirmation reste affichée (pas de nouvel envoi du formulaire).
+      if (confirmed.current) return;
+      setStep(target);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /** Change d'étape : en avant, une entrée d'historique ; en arrière, retour dans l'historique. */
+  function goTo(next: Step) {
+    if (next === step) return;
+    if (STEPS.indexOf(next) > STEPS.indexOf(step) || confirmed.current) {
+      trail.current = [...trail.current.slice(0, position.current + 1), next];
+      position.current = trail.current.length - 1;
+      window.history.pushState(
+        { ...window.history.state, bookingStep: next, bookingIndex: position.current },
+        "",
+      );
+      setStep(next);
+      return;
+    }
+    const back = trail.current.lastIndexOf(next, position.current);
+    if (back >= 0 && back < position.current) {
+      window.history.go(back - position.current);
+      return;
+    }
+    trail.current[position.current] = next;
+    window.history.replaceState(
+      { ...window.history.state, bookingStep: next, bookingIndex: position.current },
+      "",
+    );
+    setStep(next);
+  }
 
   // À chaque étape, le titre reçoit le focus (lecteurs d'écran, navigation au clavier).
   useEffect(() => {
@@ -316,9 +365,10 @@ export function BookingFlow(props: Props) {
   /** Délai de paiement dépassé : on repart du choix du créneau, prestations gardées. */
   function restart() {
     setConfirmation(null);
+    confirmed.current = false;
     setSlot(null);
     setError(null);
-    setStep("slot");
+    goTo("slot");
   }
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -383,12 +433,13 @@ export function BookingFlow(props: Props) {
       if (result.error === "promo_code_invalid") setPromo(null);
       if (result.error === "slot_unavailable") {
         setSlot(null);
-        setStep("slot");
+        goTo("slot");
       }
       return;
     }
     setConfirmation(result.data);
-    setStep("done");
+    confirmed.current = true;
+    goTo("done");
   }
 
   const fieldLabels: Record<ContactField, string> = {
@@ -504,7 +555,17 @@ export function BookingFlow(props: Props) {
           </div>
         )}
         {props.address && <p className="mt-3 text-sm text-site-muted">{props.address}</p>}
-        <p className="mt-6">{t("confirmation.keepLink", { hours: props.cancellationHours })}</p>
+        <p className="mt-6">
+          {/* Rendez-vous pris après la limite d'annulation sans frais : on ne l'annonce pas. */}
+          {props.cancellationHours > 0 &&
+          isPast(
+            new Date(
+              new Date(confirmation.startsAt).getTime() - props.cancellationHours * 3_600_000,
+            ).toISOString(),
+          )
+            ? t("confirmation.keepLinkLate", { hours: props.cancellationHours })
+            : t("confirmation.keepLink", { hours: props.cancellationHours })}
+        </p>
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
           {!pendingPayment && (
             <>
@@ -641,7 +702,7 @@ export function BookingFlow(props: Props) {
               <button
                 type="button"
                 disabled={chosen.length === 0}
-                onClick={() => setStep("slot")}
+                onClick={() => goTo("slot")}
                 className={primaryClass}
               >
                 {t("continue")}
@@ -666,7 +727,7 @@ export function BookingFlow(props: Props) {
             {/* Une seule prestation : sa durée est déjà dans son nom. */}
             {chosenNames}
             {chosen.length > 1 && <> · {duration(totalMinutes)}</>}{" "}
-            <button type="button" onClick={() => setStep("services")} className={linkClass}>
+            <button type="button" onClick={() => goTo("services")} className={linkClass}>
               {t("change")}
             </button>
           </p>
@@ -674,7 +735,7 @@ export function BookingFlow(props: Props) {
           {props.maxServices > 1 && chosen.length < props.maxServices && (
             <button
               type="button"
-              onClick={() => setStep("services")}
+              onClick={() => goTo("services")}
               className="inline-flex min-h-11 items-center gap-2 rounded-site border border-site-border px-4 font-semibold text-site-text hover:border-site-button"
             >
               <span aria-hidden="true">+</span>
@@ -732,10 +793,10 @@ export function BookingFlow(props: Props) {
             onPick={(picked) => {
               setError(null);
               setSlot(picked);
-              setStep("details");
+              goTo("details");
             }}
           />
-          <button type="button" onClick={() => setStep("services")} className={linkClass}>
+          <button type="button" onClick={() => goTo("services")} className={linkClass}>
             ← {t("back")}
           </button>
         </section>
@@ -765,7 +826,7 @@ export function BookingFlow(props: Props) {
                     .join(", ") || null
                 : null
             }
-            onChangeSlot={() => setStep("slot")}
+            onChangeSlot={() => goTo("slot")}
           />
           <form onSubmit={submit} className="space-y-4">
             {/* Champ piège pour les robots : invisible pour les personnes. */}
