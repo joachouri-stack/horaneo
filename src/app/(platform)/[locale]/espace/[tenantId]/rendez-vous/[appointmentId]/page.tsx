@@ -21,6 +21,7 @@ import {
   updateNoteAction,
   updateTotalAction,
 } from "../../actions";
+import { capitalize } from "@/lib/text";
 
 /** Un rendez-vous : contacter la cliente, venue/absente, déplacer, annuler. */
 /** Couleur de l'étiquette de statut en haut de la fiche. */
@@ -65,12 +66,14 @@ export default async function AppointmentPage({
           </span>
           <span className="uppercase">{t(`source.${item.source}`)}</span>
         </p>
-        <h1 className="mt-1 font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night first-letter:uppercase">
-          {t("appointment.when", {
-            date: page.fmt.day(item.startsAt),
-            time: page.fmt.time(item.startsAt),
-            end: page.fmt.time(item.endsAt),
-          })}
+        <h1 className="mt-1 font-display text-[1.75rem] font-semibold tracking-[-0.025em] text-night">
+          {capitalize(
+            t("appointment.when", {
+              date: page.fmt.day(item.startsAt),
+              time: page.fmt.time(item.startsAt),
+              end: page.fmt.time(item.endsAt),
+            }),
+          )}
         </h1>
         <p className="text-ink/80">{t("appointment.with", { name: item.staffName })}</p>
         {/* Réservation à plusieurs collaboratrices : les autres rendez-vous de la même cliente. */}
@@ -348,7 +351,7 @@ export default async function AppointmentPage({
           <ActionForm
             action={cancelAppointmentAction}
             submitLabel={t("appointment.cancel")}
-            variant="secondary"
+            variant="dangerOutline"
             confirm={t("appointment.cancelConfirm")}
             className="mt-8 space-y-4"
           >

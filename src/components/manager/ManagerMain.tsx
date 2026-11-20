@@ -14,7 +14,9 @@ function parentOf(
   const [first] = segments;
   if (first === "rendez-vous") return { path: "/agenda", label: "agenda" };
   if (first === "notifications") return { path: "", label: "today" };
-  if (first === "indisponibilites") return { path: "/plus", label: "more" };
+  // Indisponibilités : ouvertes depuis l'agenda. La fiche d'une indisponibilité a déjà son lien
+  // vers l'agenda du bon jour (pas de second lien empilé).
+  if (first === "indisponibilites") return segments.length > 1 ? null : { path: "/agenda", label: "agenda" };
   if (first === "plus" && segments[1] === "equipe" && segments.length > 2)
     return { path: "/plus/equipe", label: "team" };
   if (segments.length < 2) return null;

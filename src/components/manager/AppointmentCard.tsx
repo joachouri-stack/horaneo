@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import type { AgendaAppointment } from "@/modules/agenda/queries";
+import { capitalize } from "@/lib/text";
 
 const STATUS_STYLE: Record<string, string> = {
   confirmed: "bg-navy/10 text-night",
@@ -33,11 +34,7 @@ export async function AppointmentCard({
       style={{ borderLeftColor: item.staffColor ?? "#0b1033" }}
     >
       <div className="w-16 shrink-0 font-display text-lg font-semibold text-night">
-        {day && (
-          <span className="block text-[0.8125rem] font-semibold text-ink/70 first-letter:uppercase">
-            {day}
-          </span>
-        )}
+        {day && <span className="block text-[0.8125rem] font-semibold text-ink/70">{capitalize(day)}</span>}
         {time}
       </div>
       <div className="min-w-0 flex-1">

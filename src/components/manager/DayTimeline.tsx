@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { AttendanceButtons } from "@/components/manager/AttendanceButtons";
 import { Link } from "@/i18n/navigation";
 import type { AgendaAppointment } from "@/modules/agenda/queries";
+import { capitalize } from "@/lib/text";
 
 const STATUS_STYLE: Record<string, string> = {
   confirmed: "bg-[#eef0fb] text-[#2b3990]",
@@ -68,8 +69,8 @@ export async function DayTimeline({
             >
               <div className="w-14 shrink-0 pt-0.5 text-right">
                 {day && (
-                  <span className="block text-[0.8125rem] text-ink-soft first-letter:uppercase">
-                    {day(item.startsAt)}
+                  <span className="block text-[0.8125rem] text-ink-soft">
+                    {capitalize(day(item.startsAt))}
                   </span>
                 )}
                 <span className="block font-display text-[1.05rem] font-semibold text-night tabular-nums">

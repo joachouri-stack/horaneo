@@ -5,6 +5,8 @@
  * lecteur d'écran.
  */
 
+import { capitalize } from "@/lib/text";
+
 type Series = { label: string; color: string; values: number[] };
 
 /** Courbe lissée passant par les points (Catmull-Rom converti en courbes de Bézier). */
@@ -359,7 +361,7 @@ export function MiniGoalRing({
           {Math.round(ratio * 100)} %
         </span>
       </div>
-      <p className="mt-2 text-sm font-medium leading-tight text-night first-letter:uppercase">{monthLabel}</p>
+      <p className="mt-2 text-sm font-medium leading-tight text-night">{capitalize(monthLabel)}</p>
       <p className="text-[0.8125rem] text-ink-soft tabular-nums">{valueText}</p>
     </div>
   );

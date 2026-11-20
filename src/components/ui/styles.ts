@@ -18,4 +18,6 @@ export const ui = {
   card: "rounded-[1.4rem] border border-hairline bg-white p-5 shadow-[0_1px_2px_rgba(15,24,48,.04)] sm:p-6",
   error: "rounded-xl bg-[#fdecea] px-4 py-3 text-[#8f2a20]",
   success: "rounded-xl bg-[#e7f6ee] px-4 py-3 text-[#1b5e3d]",
+  /** Enregistré, mais avec un point à vérifier (orangé : ce n'est pas une erreur). */
+  warning: "rounded-xl bg-[#fff4e0] px-4 py-3 text-[#7a4a00]",
 };
