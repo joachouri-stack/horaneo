@@ -60,6 +60,7 @@ import { resolveLocale } from "@/i18n/translator";
 import { SOLUTIONS, type Solution } from "@/modules/billing/grid";
 import { listLaunchOffers } from "@/modules/billing/launch-offers";
 import { listPublicPlans, planNamesWith } from "@/modules/billing/plans";
+import { salesOpen } from "@/modules/legal/documents";
 import { getPlatformSetting } from "@/modules/settings";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]">): Promise<Metadata> {
@@ -201,6 +202,8 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     warningPercent: Number(await getPlatformSetting(tx, "sms_warning_percent")),
     goLiveDays: Number(await getPlatformSetting(tx, "go_live_delay_days")),
     trialDays: Number(await getPlatformSetting(tx, "trial_days")),
+    // Vente ouverte (pages légales publiées) : sinon, les packs payants passent par « Être rappelé ».
+    salesOpen: await salesOpen(tx),
     soon: await getPlatformSetting(tx, "features_soon"),
     solutions: await getPlatformSetting(tx, "solutions"),
     demoUrl: String(await getPlatformSetting(tx, "demo_url")),
@@ -386,8 +389,15 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                   {t("hero.subtitle")}
                 </p>
                 <div className="hn-up-4 mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:items-center">
-                  <Link href={startHref} className={`${HERO_PRIMARY} justify-center`}>
-                    {data.trialDays > 0 ? t("hero.ctaTrial") : t("cta")}
+                  <Link
+                    href={data.salesOpen ? startHref : "/rappel"}
+                    className={`${HERO_PRIMARY} justify-center`}
+                  >
+                    {!data.salesOpen
+                      ? t("plans.callback")
+                      : data.trialDays > 0
+                        ? t("hero.ctaTrial")
+                        : t("cta")}
                     <ArrowLine className="size-[18px] transition-transform group-hover:translate-x-0.5" />
                   </Link>
                   {/* Sur téléphone, un simple lien sous le bouton, vers les tarifs. */}
@@ -422,6 +432,12 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     </a>
                   )}
                 </div>
+                {/* Essai : ce qui se passe vraiment, juste sous le bouton (carte demandée, rien prélevé). */}
+                {data.salesOpen && data.trialDays > 0 && (
+                  <p className="hn-up-4 mt-3 text-mk-note text-white/60">
+                    {t("hero.trialNote", { days: data.trialDays })}
+                  </p>
+                )}
                 <ul className="hn-up-4 mt-6 flex flex-col gap-3 text-mk-body text-white/85 sm:mt-8">
                   {[...heroExtras, ...(t.raw("hero.points") as string[])].map((point) => (
                     <li key={point} className="flex items-center gap-3">

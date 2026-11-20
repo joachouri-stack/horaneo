@@ -74,6 +74,7 @@
       ],
       "subtitle": "Nous créons votre site professionnel, clé en main. Vos clients réservent seuls, et vous gérez tout depuis votre téléphone.",
       "ctaTrial": "Essayer gratuitement",
+      "trialNote": "{days, plural, one {# jour gratuit} other {# jours gratuits}} · carte bancaire demandée, rien n'est prélevé pendant l'essai · annulable avant la fin, sans frais.",
       "offer": "Dès {price} {display} par mois",
       "offerTtc": "soit {price} TTC",
       "goLive": "{days, plural, =0 {} one {Site en ligne en # jour ouvré} other {Site en ligne en # jours ouvrés}}",
@@ -113,7 +114,7 @@
           "text": "Un site où vos clients réservent seuls, et un espace simple pour gérer tout le reste.",
           "floating": {
             "title": "Rappels automatiques",
-            "text": "SMS et e-mail"
+            "text": "E-mail, et SMS selon le pack"
           },
           "cover": {
             "online": {
@@ -134,7 +135,7 @@
             },
             "reminders": {
               "title": "Rappels automatiques",
-              "text": "SMS et e-mail"
+              "text": "E-mail, et SMS selon le pack"
             },
             "newClients": {
               "title": "Nouveaux clients",
@@ -1307,7 +1308,7 @@
       "processor": "Sous-traitant",
       "processorText": "Le site et les réservations sont gérés par le service {product}, qui agit pour le compte de l'établissement. Les paiements sont traités par Stripe, les e-mails et SMS sont envoyés par Brevo, et les questions posées à l'assistant du site sont traitées par Anthropic (États-Unis, avec les garanties prévues par le RGPD). La carte du plan d'accès est fournie par OpenStreetMap.",
       "retention": "Durée de conservation",
-      "retentionText": "Vos données sont conservées pendant la durée de la relation avec l'établissement, puis au maximum 3 ans après votre dernier rendez-vous.",
+      "retentionText": "Vos données sont conservées pendant la durée de la relation avec l'établissement. Vous pouvez demander leur suppression à tout moment, depuis votre espace client ou auprès de l'établissement : vos nom, coordonnées et notes sont alors effacés. Seuls les dates et montants de vos rendez-vous et achats sont gardés, pour la comptabilité.",
       "rights": "Vos droits",
       "rightsText": "Vous pouvez demander l'accès, la correction ou la suppression de vos données en écrivant à l'établissement{email, select, none {} other { : {email}}}. Vous pouvez aussi saisir la CNIL (cnil.fr).",
       "cookies": "Cookies",
@@ -4868,7 +4869,8 @@
         "host": "Hébergeur",
         "vatRegime": "Régime de TVA",
         "consumerMediator": "Médiateur de la consommation"
-      }
+      },
+      "contact": "Contact"
     }
   },
   "order": {
@@ -4963,6 +4965,7 @@
     "emailHint": "Facultatif",
     "message": "Votre message (facultatif)",
     "submit": "Être rappelé",
-    "sent": "Merci ! Votre demande est bien envoyée : nous vous rappelons très vite."
+    "sent": "Merci ! Votre demande est bien envoyée : nous vous rappelons très vite.",
+    "privacy": "Vos coordonnées servent uniquement à vous recontacter au sujet de votre demande : elles ne sont ni revendues ni utilisées pour de la publicité. En savoir plus : <link>politique de confidentialité</link>."
   }
 }

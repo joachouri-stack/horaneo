@@ -6,6 +6,7 @@ import {
   appointments,
   assets,
   businesses,
+  giftCards,
   messageLog,
   pushSubscriptions,
   plans,
@@ -23,6 +24,7 @@ import { createBooking, manageTokenFor, type BookingInput } from "@/modules/book
 import { cancelByCustomer, findByManageToken, rescheduleByCustomer } from "@/modules/booking/manage";
 import { localToUtc } from "@/modules/booking/time";
 import { saveService } from "@/modules/catalog/services";
+import { anonymizeCustomer } from "@/modules/customers/customers";
 import { purgeReplacedAssets } from "@/modules/media/purge";
 import { dispatchMessages } from "@/modules/messages/dispatch";
 import {
@@ -608,6 +610,48 @@ describe.skipIf(!hasTestDatabase)("messages automatiques", () => {
       expect(fake.emails).toHaveLength(ids.length);
       const rows = (await logOf(s.id)).filter((row) => ids.includes(row.id));
       expect(rows.every((row) => row.status === "sent")).toBe(true);
+    });
+
+    it("effacer une cliente efface aussi ses coordonnées dans les messages envoyés et ses cartes cadeaux", async () => {
+      const s = await setup();
+      const booked = await book(s);
+      await dispatch(s.id);
+      const email = `camille-${n}@example.com`;
+      const sent = (await logOf(s.id)).filter((row) => row.recipient === email);
+      expect(sent.length).toBeGreaterThan(0);
+      const [business] = await owner.select().from(businesses).where(eq(businesses.tenantId, s.id));
+      const [card] = await owner
+        .insert(giftCards)
+        .values({
+          tenantId: s.id,
+          businessId: business.id,
+          codeHash: "a".repeat(63) + String(n % 10),
+          codeLast4: "ABCD",
+          status: "active",
+          initialCents: 5000,
+          balanceCents: 5000,
+          purchaserName: "Camille",
+          purchaserEmail: email.toUpperCase(),
+          sendAt: NOW,
+          expiresAt: new Date(NOW.getTime() + 365 * 86_400_000),
+        })
+        .returning();
+      const [appointment] = await owner
+        .select({ customerId: appointments.customerId })
+        .from(appointments)
+        .where(eq(appointments.id, booked.appointmentId));
+      await asTenant(s.id, (tx) =>
+        anonymizeCustomer(tx, s.id, appointment.customerId, "Cliente effacée", NOW),
+      );
+
+      const rows = await logOf(s.id);
+      expect(rows.some((row) => row.recipient === email)).toBe(false);
+      const [after] = await owner.select().from(giftCards).where(eq(giftCards.id, card.id));
+      expect(after).toMatchObject({
+        purchaserName: "Cliente effacée",
+        purchaserEmail: "",
+        balanceCents: 5000,
+      });
     });
 
     it("la gérante ne voit que les messages de son établissement (base)", async () => {

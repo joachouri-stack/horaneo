@@ -30,7 +30,7 @@ export async function LegalPage({ docKey, locale }: { docKey: LegalKey; locale: 
         <h1 className="font-display text-mk-h2 font-semibold tracking-[-0.025em]">
           {doc?.title ?? t(`titles.${docKey}`)}
         </h1>
-        {facts.length > 0 && (
+        {(facts.length > 0 || docKey === "legal_notice") && (
           <section
             aria-labelledby="identite"
             className="mt-8 rounded-[1.25rem] border-2 border-line bg-white p-5"
@@ -45,6 +45,17 @@ export async function LegalPage({ docKey, locale }: { docKey: LegalKey; locale: 
                   <dd className="whitespace-pre-line">{value}</dd>
                 </div>
               ))}
+              {/* Mentions légales : un moyen de contact direct (obligatoire). */}
+              {docKey === "legal_notice" && (
+                <div className="contents">
+                  <dt className="font-semibold text-night">{t("identity.contact")}</dt>
+                  <dd>
+                    <a href={`mailto:${contact}`} className="underline">
+                      {contact}
+                    </a>
+                  </dd>
+                </div>
+              )}
             </dl>
           </section>
         )}
