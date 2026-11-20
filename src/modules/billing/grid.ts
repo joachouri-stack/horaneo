@@ -89,7 +89,8 @@ const ROWS: RowDef[] = [
   { key: "staffPlanning", category: "booking", solution: "booking", feature: "staffPlanning" },
   { key: "customerSpace", category: "booking", solution: "booking", feature: "customerSpace", detail: true },
   // Commerce et Formation : modules en préparation
-  { key: "commerce", category: "commerce", solution: "commerce", feature: "commerce" },
+  // Boutique en ligne : livrée et incluse dans les packs qui l'ont, quelle que soit la solution choisie.
+  { key: "commerce", category: "commerce", feature: "commerce" },
   { key: "stockManagement", category: "commerce", feature: "stockManagement" },
   { key: "formation", category: "formation", solution: "formation", feature: "formation" },
   // Clients et collaborateurs

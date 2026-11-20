@@ -28,11 +28,11 @@ export async function AllFeatures({
   const [t, tGrid] = await Promise.all([getTranslations("home.benefits.all"), getTranslations("home.grid")]);
   const hidden = new Set<string>(SOLUTIONS.filter((code) => !shown.includes(code)));
   const visible = gridComparison(plans, new Set(soon))
-    .filter((group) => !hidden.has(group.category))
     .map((group) => ({
       ...group,
       rows: group.rows.filter((row) => !row.solution || !hidden.has(row.solution)),
-    }));
+    }))
+    .filter((group) => group.rows.length > 0);
   const groups = visible
     .map((group) => ({ ...group, rows: group.rows.filter((row) => !row.soon) }))
     .filter((group) => group.rows.length > 0);

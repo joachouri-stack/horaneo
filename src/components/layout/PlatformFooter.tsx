@@ -153,6 +153,11 @@ export async function PlatformFooter() {
                     </Link>
                   </li>
                 ))}
+                <li>
+                  <Link href="/comparatif" className={LINK}>
+                    {tNav("compare")}
+                  </Link>
+                </li>
               </ul>
             </nav>
             <nav aria-labelledby="pied-pro">

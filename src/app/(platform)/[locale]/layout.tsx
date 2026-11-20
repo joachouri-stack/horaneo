@@ -14,7 +14,9 @@ import "@fontsource/comfortaa/cyrillic-700.css";
 import "../../globals.css";
 
 /** Textes propres aux espaces gérante et admin, envoyés seulement sur leurs pages. */
-const SPACE_NAMESPACES = ["manager", "admin", "notifications", "emails"];
+// Textes des espaces (envoyés par leurs propres layouts) et du site des clients (réservation,
+// boutique : jamais affichés sur le site commercial) : pas envoyés au navigateur ici.
+const SPACE_NAMESPACES = ["manager", "admin", "notifications", "emails", "site", "booking"];
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));

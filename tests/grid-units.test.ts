@@ -50,7 +50,7 @@ describe("grille des packs : une seule source pour les cartes et le comparatif",
       expect(row(key), key).toEqual([{ included: false }, { included: true }, { included: true }]);
   });
 
-  it("range les lignes dans les douze catégories, Commerce et Formation marquées « Bientôt »", () => {
+  it("range les lignes dans les douze catégories : boutique incluse dans les packs, Formation « Bientôt »", () => {
     const groups = gridComparison(GRID, SOON);
     expect(groups.map((group) => group.category)).toEqual([
       "site",
@@ -67,7 +67,9 @@ describe("grille des packs : une seule source pour les cartes et le comparatif",
       "support",
     ]);
     const commerce = groups.find((group) => group.category === "commerce")!.rows[0];
-    expect(commerce).toMatchObject({ solution: "commerce", soon: true });
+    expect(commerce).toMatchObject({ key: "commerce", solution: null, soon: false });
+    const formation = groups.find((group) => group.category === "formation")!.rows[0];
+    expect(formation).toMatchObject({ solution: "formation", soon: true });
   });
 
   it("carte : ce que le pack ajoute au précédent, les fonctions annoncées à part", () => {
@@ -83,7 +85,8 @@ describe("grille des packs : une seule source pour les cartes et le comparatif",
     expect(gridCard(starter, GRID, SOON).missing.length).toBeLessThanOrEqual(3);
     // Pro : « Non inclus » ne liste que des fonctions disponibles aujourd'hui (3 au plus).
     const proCard = gridCard(pro, GRID, SOON);
-    expect(proCard.upcoming.map((line) => line.key)).toEqual(["commerce", "formation"]);
+    expect(proCard.upcoming.map((line) => line.key)).toEqual(["formation"]);
+    expect(proCard.included.map((line) => line.key)).toContain("commerce");
     expect(proCard.missing.every((line) => !line.soon)).toBe(true);
     expect(proCard.missing).toHaveLength(3);
     // Accompagnement à la prise en main : inclus dès le Starter, donc pas répété sur le Pro.

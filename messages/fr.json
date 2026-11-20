@@ -52,6 +52,7 @@
       "pricing": "Tarifs",
       "features": "Fonctionnalités",
       "resources": "Questions",
+      "compare": "Comparatif des packs",
       "menu": "Menu",
       "closeMenu": "Fermer le menu"
     },
@@ -78,11 +79,8 @@
       "goLive": "{days, plural, =0 {} one {Site en ligne en # jour ouvré} other {Site en ligne en # jours ouvrés}}",
       "demo": "Voir la démonstration",
       "pricing": "Voir les tarifs",
-      "points": [
-        "Textes, images et logo modifiables",
-        "Hébergement et sécurité inclus",
-        "Assistance humaine sur WhatsApp"
-      ],
+      "points": ["Hébergement et sécurité inclus", "Assistance humaine sur WhatsApp"],
+      "pointChatbot": "Un assistant IA répond à vos clients, jour et nuit",
       "visualAlt": "Aperçu de l'espace de gestion sur téléphone : rendez-vous du jour (données d'exemple)",
       "float": {
         "bookingTitle": "Nouvelle réservation",
@@ -359,6 +357,7 @@
         "yearlyOnly": "{title} avec le paiement à l'année"
       },
       "compare": "Voir le comparatif détaillé",
+      "compareAll": "Comparer tous les packs en détail",
       "quotaNote": "Tout ce que comprend chaque pack est indiqué sur sa carte. Rien n'est jamais facturé sans votre accord.",
       "toggleBooking": "Avec réservation",
       "toggleSite": "Sans réservation",
@@ -558,7 +557,7 @@
       "categories": {
         "site": "Site web et présence en ligne",
         "booking": "Réservations et agenda",
-        "commerce": "Commerce",
+        "commerce": "Boutique en ligne",
         "formation": "Formation",
         "crm": "Clients et collaborateurs",
         "marketing": "Marketing et fidélisation",
@@ -652,7 +651,7 @@
         },
         "commerce": {
           "label": "Boutique, catalogue, commandes et stocks",
-          "card": "Module Commerce"
+          "card": "Boutique en ligne"
         },
         "stockManagement": {
           "label": "Gestion des stocks de vos produits",
