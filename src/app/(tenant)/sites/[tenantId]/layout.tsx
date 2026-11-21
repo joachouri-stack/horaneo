@@ -21,6 +21,7 @@ import { buildTheme, themeCssVariables } from "@/modules/site/theme";
 // Polices fournies avec le projet : la construction ne dépend pas du réseau.
 import { ChatWidget } from "@/components/site/ChatWidget";
 import { chatModel } from "@/lib/ai/anthropic";
+import { env, publicAppUrl } from "@/config/env";
 import { withTenant } from "@/db/access";
 import { chatbotOffered } from "@/modules/chatbot/chat";
 import { formatPhone } from "@/modules/phone";
@@ -118,6 +119,16 @@ export default async function TenantLayout({ children, params }: LayoutProps<"/s
           {preview && (
             <p role="status" className="bg-[#0b1033] px-4 py-2 text-center text-sm font-semibold text-white">
               {t("previewBanner")}
+            </p>
+          )}
+          {/* Site de démonstration : les visiteurs savent que rien n'est réel, et où créer le leur. */}
+          {site.demo && (
+            <p role="note" className="bg-[#0b1033] px-4 py-2.5 text-center text-sm text-white">
+              <strong className="font-semibold">{t("demo.title", { product: env().PRODUCT_NAME })}</strong>{" "}
+              {t("demo.text")}{" "}
+              <a href={publicAppUrl()} className="font-semibold underline underline-offset-2">
+                {t("demo.cta", { product: env().PRODUCT_NAME })}
+              </a>
             </p>
           )}
           {site.tenant.status !== "suspended" && <OfferBanner site={site} />}

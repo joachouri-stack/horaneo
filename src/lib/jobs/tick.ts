@@ -10,6 +10,7 @@ import { applyPriceChanges } from "@/modules/billing/price-change";
 import { expireAllShopHolds } from "@/modules/shop/orders";
 import { storage } from "@/lib/storage";
 import { purgeReplacedAssets } from "@/modules/media/purge";
+import { cleanDemoBookings } from "@/modules/site/demo";
 import { dispatchMessages } from "@/modules/messages/dispatch";
 import {
   expireAllHolds,
@@ -56,6 +57,8 @@ export async function runTick(now = new Date()) {
     // Clients qui ne sont pas revenus depuis le délai choisi par l'entreprise.
     const winbacks = await platform((tx) => queueWinbacks(tx, now));
     const purged = await purgeReplacedAssets(platform, storage(), now);
+    // Site de démonstration : réservations fictives effacées au bout d'un jour.
+    const demo = await platform((tx) => cleanDemoBookings(tx, now));
     // Avis Google : chaque fiche relue une fois par jour au plus.
     const reviews = await platform((tx) => refreshGoogleReviews(tx, googlePlacesProvider(), now));
     // Nouveaux prix des packs : préavis puis application, abonné par abonné.
@@ -77,6 +80,7 @@ export async function runTick(now = new Date()) {
       birthdays,
       winbacks,
       purged,
+      demo,
       reviews,
       prices,
       messages: sent,

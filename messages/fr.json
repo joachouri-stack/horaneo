@@ -1574,6 +1574,11 @@
       "title": "Un petit souci est survenu",
       "text": "La page n'a pas pu s'afficher. Réessayez dans un instant ; si le problème continue, revenez à l'accueil.",
       "retry": "Réessayer"
+    },
+    "demo": {
+      "title": "Site de démonstration créé avec {product}.",
+      "text": "Essayez tout : les réservations ne sont pas réelles, rien n'est payé ni envoyé.",
+      "cta": "Créer mon site avec {product}"
     }
   },
   "emails": {
@@ -2504,7 +2509,10 @@
       "whatsappHint": "Une bulle WhatsApp apparaît en bas à droite du site commercial. Les visiteurs vous écrivent en un clic. Laissez le numéro vide pour la masquer.",
       "whatsapp_number": "Numéro WhatsApp",
       "whatsapp_message": "Message déjà écrit",
-      "whatsappMessageHint": "Facultatif. Vide : « Bonjour, j'ai une question. »"
+      "whatsappMessageHint": "Facultatif. Vide : « Bonjour, j'ai une question. »",
+      "demo_tenant_id": "Site de démonstration",
+      "demoTenantHint": "Utilisé par le bouton « Voir la démonstration » si l'adresse ci-dessus est vide (site en ligne seulement). Sur ce site, les réservations sont fictives : pas de paiement en ligne, aucun e-mail ni SMS, et les réservations faites en ligne sont effacées au bout d'un jour, avec les clients qui n'ont plus de rendez-vous.",
+      "demoTenantNone": "Aucun"
     },
     "billing": {
       "title": "Paiements des abonnements",

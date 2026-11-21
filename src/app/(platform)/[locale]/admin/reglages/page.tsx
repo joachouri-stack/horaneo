@@ -1,4 +1,5 @@
 import { AdminSubNav } from "@/components/admin/AdminSubNav";
+import { listTenants } from "@/modules/tenants/queries";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ActionForm } from "@/components/admin/ActionForm";
 import { CheckboxField, Hidden, Section, SelectField, TextArea, TextField } from "@/components/admin/fields";
@@ -59,6 +60,9 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
       await Promise.all(keys.map(async (key) => [key, await getPlatformSetting(tx, key)])),
     ) as Record<(typeof keys)[number], string | number>;
   });
+  const [demoTenant, demoChoices] = await adminQuery(
+    async (tx) => [String(await getPlatformSetting(tx, "demo_tenant_id")), await listTenants(tx)] as const,
+  );
   const [showcase, soon, buyoutEnabled, noCommitment, solutions, demoUrl, yearlyEnabled] = await adminQuery(
     async (tx) =>
       [
@@ -180,6 +184,20 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/admi
               label={t("demo_url")}
               hint={t("demoHint")}
               defaultValue={demoUrl}
+            />
+          </div>
+          <div className="mt-4">
+            <SelectField
+              name="demo_tenant_id"
+              label={t("demo_tenant_id")}
+              hint={t("demoTenantHint")}
+              defaultValue={demoTenant}
+              options={[
+                { value: "", label: t("demoTenantNone") },
+                ...demoChoices
+                  .filter((tenant) => tenant.status !== "deleted" && tenant.status !== "cancelled")
+                  .map((tenant) => ({ value: tenant.id, label: `${tenant.name} (${tenant.slug})` })),
+              ]}
             />
           </div>
         </Section>

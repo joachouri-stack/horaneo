@@ -61,6 +61,8 @@ import { SOLUTIONS, type Solution } from "@/modules/billing/grid";
 import { listLaunchOffers } from "@/modules/billing/launch-offers";
 import { listPublicPlans, planNamesWith } from "@/modules/billing/plans";
 import { salesOpen } from "@/modules/legal/documents";
+import { demoSiteHostname } from "@/modules/site/demo";
+import { tenantSiteUrl } from "@/lib/tenancy/urls";
 import { getPlatformSetting } from "@/modules/settings";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]">): Promise<Metadata> {
@@ -206,7 +208,10 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     salesOpen: await salesOpen(tx),
     soon: await getPlatformSetting(tx, "features_soon"),
     solutions: await getPlatformSetting(tx, "solutions"),
-    demoUrl: String(await getPlatformSetting(tx, "demo_url")),
+    // Démonstration : l'adresse réglée, sinon le site de démonstration choisi (s'il est en ligne).
+    demoUrl:
+      String(await getPlatformSetting(tx, "demo_url")) ||
+      ((hostname) => (hostname ? tenantSiteUrl(hostname) : ""))(await demoSiteHostname(tx)),
     offers: await listLaunchOffers(tx, { openOnly: true }),
     showcase: await listShowcase(tx),
   }));

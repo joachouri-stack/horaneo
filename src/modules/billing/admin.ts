@@ -272,6 +272,8 @@ export const settingsInput = z.object({
   solutions_hidden: z.array(z.enum(["booking", "commerce", "formation"])).default([]),
   /** Adresse de la démonstration (vide : bouton masqué). */
   demo_url: z.union([z.literal(""), z.url({ protocol: /^https?$/ }).max(300)]).default(""),
+  /** Site de démonstration (vide : aucun). */
+  demo_tenant_id: z.union([z.literal(""), z.uuid()]).default(""),
   /** WhatsApp du site commercial : numéro (mis au format international) et message de départ. */
   whatsapp_number: z
     .string()
