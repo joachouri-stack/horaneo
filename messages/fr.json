@@ -54,7 +54,8 @@
       "resources": "Questions",
       "compare": "Comparatif des packs",
       "menu": "Menu",
-      "closeMenu": "Fermer le menu"
+      "closeMenu": "Fermer le menu",
+      "trades": "Votre métier"
     },
     "cta": "Créer mon site",
     "hero": {
@@ -5068,5 +5069,252 @@
     "submit": "Être rappelé",
     "sent": "Merci ! Votre demande est bien envoyée : nous vous rappelons très vite.",
     "privacy": "Vos coordonnées servent uniquement à vous recontacter au sujet de votre demande : elles ne sont ni revendues ni utilisées pour de la publicité. En savoir plus : <link>politique de confidentialité</link>."
+  },
+  "trades": {
+    "metaTitle": "Logiciel de réservation pour {name}",
+    "indexTitle": "Un site et un agenda pensés pour votre métier",
+    "indexIntro": "Choisissez votre activité : nous vous montrons ce que votre site et votre espace de gestion font pour vous.",
+    "indexMetaDescription": "Site internet, réservation en ligne et gestion des clients, adaptés à chaque métier : instituts, coiffeurs, bien-être, coachs, cours et photographes.",
+    "badge": "Pour {name}",
+    "benefitsTitle": "Ce qui change pour vous",
+    "servicesTitle": "Des prestations comme les vôtres",
+    "servicesText": "Vos clients choisissent en ligne parmi vos prestations, avec leur durée et leur prix.",
+    "stepsTitle": "Comment ça marche",
+    "pricesTitle": "Des packs simples, adaptés à votre activité",
+    "pricesText": "{price, select, none {Chaque pack est détaillé sur notre page Tarifs.} other {À partir de {price} {display} par mois.}} Certaines fonctions dépendent du pack choisi : tout est indiqué dans le comparatif.",
+    "seePrices": "Voir les tarifs",
+    "compare": "Comparer les packs",
+    "faqTitle": "Vos questions",
+    "finalTitle": "Prêt à recevoir vos réservations en ligne ?",
+    "otherTrades": "Les autres métiers",
+    "items": {
+      "beauty": {
+        "name": "les instituts de beauté",
+        "title": "Votre institut,",
+        "accent": "réservé en ligne, jour et nuit.",
+        "intro": "Soins du visage, épilations, manucure : vos clientes réservent seules sur votre site, reçoivent un rappel avant leur rendez-vous, et vous retrouvez tout dans votre agenda.",
+        "metaDescription": "Site internet et réservation en ligne pour instituts de beauté : agenda, rappels, acomptes, fiches clientes et cartes cadeaux.",
+        "services": [
+          "Soin du visage",
+          "Épilation",
+          "Beauté des mains",
+          "Beauté du regard",
+          "Massage",
+          "Maquillage"
+        ],
+        "benefits": [
+          {
+            "title": "Moins de rendez-vous oubliés",
+            "text": "Un rappel part automatiquement avant chaque rendez-vous, et un acompte en ligne peut être demandé pour les soins les plus longs."
+          },
+          {
+            "title": "Un agenda pour toute l'équipe",
+            "text": "Chaque esthéticienne a ses horaires et ses prestations ; vos clientes réservent avec la personne de leur choix."
+          },
+          {
+            "title": "Des clientes qui reviennent",
+            "text": "Fiche de chaque cliente avec son historique, cartes cadeaux, codes promo et message d'anniversaire."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Mes clientes peuvent-elles réserver plusieurs soins d'affilée ?",
+            "a": "Oui : elles choisissent plusieurs prestations, qui s'enchaînent, avec la même esthéticienne ou des personnes différentes."
+          },
+          {
+            "q": "Puis-je demander un acompte ?",
+            "a": "Oui, avec le paiement en ligne inclus dans le pack : l'acompte est versé directement sur votre compte, et remboursé selon vos conditions d'annulation."
+          }
+        ]
+      },
+      "hair": {
+        "name": "les coiffeurs et barbiers",
+        "title": "Votre salon de coiffure,",
+        "accent": "plein sans répondre au téléphone.",
+        "intro": "Coupe, couleur, barbe : vos clients prennent rendez-vous en ligne avec le coiffeur de leur choix, et le temps de chaque prestation est réservé automatiquement.",
+        "metaDescription": "Site internet et prise de rendez-vous en ligne pour coiffeurs et barbiers : agenda par coiffeur, rappels, fiches clients.",
+        "services": ["Coupe femme", "Coupe homme", "Couleur", "Balayage", "Brushing", "Barbe"],
+        "benefits": [
+          {
+            "title": "Le bon temps pour chaque prestation",
+            "text": "Chaque prestation a sa durée : une couleur et un brushing réservés ensemble occupent juste le temps nécessaire."
+          },
+          {
+            "title": "Un agenda par coiffeur",
+            "text": "Vos clients choisissent leur coiffeur ; chacun voit ses rendez-vous sur son téléphone."
+          },
+          {
+            "title": "L'historique de chaque client",
+            "text": "Notes sur la fiche (couleur utilisée, préférences), rendez-vous passés et à venir."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Mes clients doivent-ils créer un compte ?",
+            "a": "Non : ils réservent avec leur nom, leur téléphone et leur e-mail, sans mot de passe."
+          },
+          {
+            "q": "Puis-je bloquer mes congés ?",
+            "a": "Oui : vous ajoutez vos congés et vos pauses dans l'agenda, et ces créneaux ne sont plus proposés."
+          }
+        ]
+      },
+      "wellness": {
+        "name": "le bien-être",
+        "title": "Votre cabinet de bien-être,",
+        "accent": "réservé en toute sérénité.",
+        "intro": "Massages, sophrologie, réflexologie : vos clients découvrent vos soins sur votre site, réservent le créneau qui leur convient et reçoivent un rappel avant leur séance.",
+        "metaDescription": "Site internet et réservation en ligne pour praticiens du bien-être : massages, sophrologie, réflexologie, avec rappels et cartes cadeaux.",
+        "services": [
+          "Massage relaxant",
+          "Réflexologie",
+          "Sophrologie",
+          "Soin énergétique",
+          "Shiatsu",
+          "Séance découverte"
+        ],
+        "benefits": [
+          {
+            "title": "Un site qui inspire confiance",
+            "text": "Vos soins, vos photos et votre approche présentés clairement, avec la réservation à portée de clic."
+          },
+          {
+            "title": "Des cartes cadeaux toute l'année",
+            "text": "Vos clients offrent une séance en ligne : la carte est envoyée par e-mail, et utilisée à la réservation."
+          },
+          {
+            "title": "Moins d'administratif",
+            "text": "Rappels automatiques, acomptes en ligne et fiche de chaque client, pour vous consacrer à vos séances."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Puis-je proposer des séances à des durées différentes ?",
+            "a": "Oui : chaque prestation a sa durée et son prix, et seuls les créneaux assez longs sont proposés."
+          },
+          {
+            "q": "Mes clients peuvent-ils offrir une séance ?",
+            "a": "Oui, avec les cartes cadeaux incluses dans le pack : elles s'achètent en ligne sur votre site."
+          }
+        ]
+      },
+      "coaching": {
+        "name": "les coachs",
+        "title": "Vos séances de coaching,",
+        "accent": "réservées et rappelées sans effort.",
+        "intro": "Coaching sportif, de vie ou professionnel : vos clients réservent leurs séances en ligne, et vous suivez leur parcours depuis votre téléphone.",
+        "metaDescription": "Site internet et réservation en ligne pour coachs : séances, rappels, suivi des clients et paiement d'acomptes.",
+        "services": [
+          "Séance découverte",
+          "Séance individuelle",
+          "Bilan",
+          "Coaching sportif",
+          "Coaching de vie",
+          "Suivi"
+        ],
+        "benefits": [
+          {
+            "title": "Vos créneaux toujours à jour",
+            "text": "Vos disponibilités sont en ligne : vos clients réservent seuls, sans échanges de messages."
+          },
+          {
+            "title": "Le suivi de chaque client",
+            "text": "Historique des séances et notes sur sa fiche, pour reprendre là où vous vous étiez arrêté."
+          },
+          {
+            "title": "Moins de séances manquées",
+            "text": "Rappels automatiques et acompte en ligne pour sécuriser vos créneaux."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Puis-je recevoir à plusieurs endroits ?",
+            "a": "Vos coordonnées et vos prestations sont présentées sur votre site ; précisez le lieu dans la description de chaque prestation."
+          },
+          {
+            "q": "Mes clients voient-ils leurs rendez-vous ?",
+            "a": "Oui : chaque réservation donne un lien pour retrouver, déplacer ou annuler son rendez-vous."
+          }
+        ]
+      },
+      "lessons": {
+        "name": "les cours particuliers",
+        "title": "Vos cours particuliers,",
+        "accent": "planifiés sans allers-retours.",
+        "intro": "Soutien scolaire, musique, langues : élèves et parents réservent un cours en ligne, reçoivent un rappel, et vous gardez l'historique de chaque élève.",
+        "metaDescription": "Site internet et réservation en ligne pour cours particuliers : soutien scolaire, musique, langues, avec rappels et suivi des élèves.",
+        "services": [
+          "Cours d'essai",
+          "Soutien scolaire",
+          "Cours de musique",
+          "Cours de langue",
+          "Préparation d'examen",
+          "Stage"
+        ],
+        "benefits": [
+          {
+            "title": "Des cours réservés en quelques clics",
+            "text": "Vos créneaux libres sont visibles en ligne, même le soir et le week-end."
+          },
+          {
+            "title": "Des rappels avant chaque cours",
+            "text": "Un rappel automatique limite les oublis et les cours perdus."
+          },
+          {
+            "title": "Le suivi de chaque élève",
+            "text": "Cours passés, notes et coordonnées réunis sur une seule fiche."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Un parent peut-il réserver pour son enfant ?",
+            "a": "Oui : à la réservation, il peut indiquer qu'il réserve pour une autre personne."
+          },
+          {
+            "q": "Puis-je proposer des cours de durées différentes ?",
+            "a": "Oui : chaque cours a sa durée et son prix, et l'agenda en tient compte."
+          }
+        ]
+      },
+      "photo": {
+        "name": "les photographes",
+        "title": "Vos séances photo,",
+        "accent": "réservées directement sur votre site.",
+        "intro": "Portrait, mariage, nouveau-né : vos clients découvrent votre travail sur votre site, réservent leur séance et peuvent régler un acompte en ligne.",
+        "metaDescription": "Site internet et réservation en ligne pour photographes : galerie, prise de rendez-vous, acomptes et cartes cadeaux.",
+        "services": [
+          "Séance portrait",
+          "Séance famille",
+          "Nouveau-né",
+          "Grossesse",
+          "Photo d'identité",
+          "Séance entreprise"
+        ],
+        "benefits": [
+          {
+            "title": "Votre travail mis en valeur",
+            "text": "Une galerie de vos plus belles photos, sur un site à votre image."
+          },
+          {
+            "title": "Des séances sécurisées",
+            "text": "Un acompte en ligne à la réservation, et un rappel avant la séance."
+          },
+          {
+            "title": "Des séances à offrir",
+            "text": "Cartes cadeaux en ligne, idéales pour les fêtes et les naissances."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Puis-je montrer mes photos sur mon site ?",
+            "a": "Oui : vous ajoutez vos photos dans une galerie, que vous mettez à jour vous-même."
+          },
+          {
+            "q": "Les longues séances sont-elles possibles ?",
+            "a": "Oui : chaque séance a sa durée, de quelques minutes à plusieurs heures."
+          }
+        ]
+      }
+    }
   }
 }
