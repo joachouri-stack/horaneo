@@ -429,7 +429,8 @@ export const DEFAULT_SITE_ONLY_PLANS: PlanSeed[] = [
 const GRID_BASIC = {
   ...NONE,
   onlineBooking: true,
-  customDomain: true,
+  // Pack gratuit : adresse en « .domaine du produit » seulement ; son propre nom de domaine
+  // fait partie des packs payants.
   mobileReady: true,
   contactButtons: true,
   localSeo: true,
@@ -445,6 +446,7 @@ const GRID_BASIC = {
 /** Starter : site multipage, paiement par carte, assistance technique 7 j/7. */
 const GRID_STARTER = {
   ...GRID_BASIC,
+  customDomain: true,
   fullSite: true,
   sitePages: true,
   onlinePayment: true,

@@ -5,6 +5,7 @@ import type { Transaction } from "@/db/client";
 import { plans, sitePages, tenantDomains, tenants } from "@/db/schema";
 import { createBusiness } from "@/modules/businesses/businesses";
 import { AppError } from "@/modules/errors";
+import { startSiteSetup } from "@/modules/setup/site-setup";
 import { normalizePhone } from "@/modules/phone";
 import { SITE_PAGE_KEYS } from "@/modules/content/pages";
 import { assertValidSlug } from "./slug";
@@ -89,6 +90,8 @@ export async function createTenant(tx: Transaction, raw: CreateTenantInput) {
     managerName: input.managerName,
   });
   const manager = { id: managerId! };
+  // Pack où l'équipe crée le site : suivi de mise en route (questionnaire, validation…).
+  if (plan.features.fullSite) await startSiteSetup(tx, tenant.id);
 
   return { tenant, business, managerId: manager.id };
 }

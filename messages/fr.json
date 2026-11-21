@@ -2207,6 +2207,26 @@
         "pagesSummary": "Toutes les pages, titres Google, publication",
         "photos": "Toutes les photos",
         "photosSummary": "Photos de l'équipe, des prestations et autres emplacements"
+      },
+      "setup": {
+        "title": "Mise en route du site",
+        "none": "Pas de suivi de mise en route pour ce site.",
+        "start": "Ouvrir le suivi de mise en route",
+        "notSubmitted": "Questionnaire pas encore envoyé par le client.",
+        "submittedAt": "Questionnaire envoyé le {date}.",
+        "requestReview": "Site prêt : demander la validation au client",
+        "requestReviewAgain": "Redemander la validation",
+        "waiting": "Validation demandée le {date} : en attente du client.",
+        "approvedAt": "Site validé par le client le {date}.",
+        "fields": {
+          "activity": "Activité",
+          "services": "Prestations",
+          "hours": "Horaires",
+          "style": "Style souhaité",
+          "domain": "Nom de domaine",
+          "links": "Site actuel et réseaux",
+          "notes": "Autre chose"
+        }
       }
     },
     "requests": {
@@ -4501,6 +4521,74 @@
       "free": "offerte",
       "deliverTo": "À livrer :",
       "pickup": "Retrait sur place"
+    },
+    "setup": {
+      "title": "Mise en route de votre site",
+      "intro": "Nous créons votre site pour vous. Voici où nous en sommes, et ce qu'il nous faut de votre côté.",
+      "introDone": "Votre site est en ligne : la mise en route est terminée.",
+      "none": "Votre site n'a pas de mise en route en cours.",
+      "backHome": "Retour à l'accueil",
+      "stepsTitle": "Les étapes",
+      "card": {
+        "title": "Mise en route de votre site",
+        "step": "Étape {current} sur {total} : {label}",
+        "open": "Voir la mise en route"
+      },
+      "state": {
+        "done": "faite",
+        "current": "en cours",
+        "todo": "à venir"
+      },
+      "steps": {
+        "info": {
+          "title": "Vos informations",
+          "hint": "Remplissez le questionnaire ci-dessous : il nous sert à créer votre site."
+        },
+        "building": {
+          "title": "Création de votre site",
+          "hint": "Nous créons votre site à partir de vos informations. Vous êtes prévenu dès qu'il est prêt."
+        },
+        "review": {
+          "title": "Validation de votre site",
+          "hint": "Votre site est prêt : regardez-le, puis validez-le ou demandez des changements."
+        },
+        "domain": {
+          "title": "Votre nom de domaine",
+          "hint": "Nous branchons votre nom de domaine sur votre site."
+        },
+        "online": {
+          "title": "Mise en ligne",
+          "hint": "Dernière étape : votre site est rendu visible de tous."
+        }
+      },
+      "review": {
+        "title": "Votre site est prêt",
+        "text": "Prenez le temps de le regarder. S'il vous convient, validez-le : nous le mettons en ligne.",
+        "preview": "Voir mon site",
+        "approve": "Je valide mon site",
+        "confirm": "Valider votre site ? Nous pourrons ensuite le mettre en ligne.",
+        "changes": "Un changement à faire ? <link>Envoyez-nous une demande de modification</link>."
+      },
+      "form": {
+        "title": "Questionnaire",
+        "intro": "Quelques questions pour créer un site qui vous ressemble. Vous pourrez corriger vos réponses jusqu'à la validation du site.",
+        "sent": "Merci, vos réponses nous sont bien parvenues. Vous pouvez encore les corriger.",
+        "submit": "Envoyer mes réponses",
+        "update": "Mettre à jour mes réponses",
+        "activity": "Votre activité",
+        "activityHint": "En quelques phrases : ce que vous faites, pour qui, ce qui vous distingue.",
+        "services": "Vos prestations principales",
+        "servicesHint": "Nom, durée et prix si vous les avez (une par ligne).",
+        "hours": "Vos horaires d'ouverture",
+        "style": "Le style souhaité",
+        "styleHint": "Couleurs, ambiance, sites que vous aimez…",
+        "domain": "Nom de domaine",
+        "domainHint": "Celui que vous avez déjà, ou celui que vous aimeriez (ex. : institut-lea.fr).",
+        "links": "Votre site actuel et vos réseaux sociaux",
+        "linksHint": "Adresses de vos pages Instagram, Facebook, Google…",
+        "notes": "Autre chose à nous dire ?",
+        "photos": "Vos photos et votre logo s'ajoutent dans <link>Mon site</link>."
+      }
     }
   },
   "notifications": {

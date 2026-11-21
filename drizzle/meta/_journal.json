@@ -603,6 +603,20 @@
       "when": 1795164367831,
       "tag": "0085_shop_available",
       "breakpoints": true
+    },
+    {
+      "idx": 86,
+      "version": "7",
+      "when": 1795271780086,
+      "tag": "0086_custom_domain_paid_only",
+      "breakpoints": true
+    },
+    {
+      "idx": 87,
+      "version": "7",
+      "when": 1795271801536,
+      "tag": "0087_site_setups",
+      "breakpoints": true
     }
   ]
 }

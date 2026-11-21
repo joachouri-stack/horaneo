@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { siteSetupView } from "@/modules/setup/site-setup";
 import { DASH_ICONS, DashIcon, panel, StatCard, Trend } from "@/components/manager/DashboardWidgets";
 import { DayTimeline } from "@/components/manager/DayTimeline";
 import { InstallAppCard } from "@/components/manager/InstallAppCard";
@@ -36,6 +37,18 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
         await dashboardStats(tx, page.tenantId, tz, now),
       ] as const,
   );
+  // Site créé pour la gérante, pas encore en ligne : où en est la mise en route.
+  const setup = isOwner
+    ? await page.db((tx) =>
+        siteSetupView(tx, page.tenantId, {
+          customDomain: Boolean(page.tenant.features.customDomain),
+          status: page.tenant.status,
+        }),
+      )
+    : null;
+  const setupCurrent =
+    setup && !setup.complete ? setup.steps.findIndex((step) => step.state === "current") : -1;
+  const tSetup = await getTranslations("manager.setup");
   // Commandes de la boutique à traiter : rappel en haut de l'accueil.
   const openOrders =
     page.tenant.features.commerce && canAccess(page.space, "shop")
@@ -96,6 +109,30 @@ export default async function TodayPage({ params }: PageProps<"/[locale]/espace/
           </Link>
         </div>
       </div>
+
+      {setup && setupCurrent >= 0 && (
+        <section
+          aria-labelledby="mise-en-route"
+          className={`${panel} !py-4 border-accent-line bg-accent-soft/60 text-night`}
+        >
+          <h2 id="mise-en-route" className="font-semibold">
+            {tSetup("card.title")}
+          </h2>
+          <p className="mt-1 text-ink-soft">
+            {tSetup("card.step", {
+              current: setupCurrent + 1,
+              total: setup.steps.length,
+              label: tSetup(`steps.${setup.steps[setupCurrent].key}.title`),
+            })}
+          </p>
+          <Link
+            href={`${page.base}/mise-en-route`}
+            className="mt-2 inline-flex min-h-11 items-center font-medium text-accent underline"
+          >
+            {tSetup("card.open")}
+          </Link>
+        </section>
+      )}
 
       {openOrders > 0 && (
         <p role="status" className={`${panel} !py-4 border-accent-line bg-accent-soft/60 text-night`}>

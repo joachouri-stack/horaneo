@@ -232,6 +232,7 @@ export async function createTenantWithData(db: TestDb, label: string) {
     .returning();
   // Parrainage dont ce site est la marraine.
   await db.insert(s.referrals).values({ tenantId, orderId: order.id, rewardMonths: 1, status: "rewarded" });
+  await db.insert(s.siteSetups).values({ tenantId, answers: { activity: "Soins" } });
 
   await db.insert(s.messageLog).values({
     businessId,

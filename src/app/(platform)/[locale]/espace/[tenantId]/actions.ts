@@ -4,6 +4,7 @@ import { categoryFields } from "@/modules/catalog/icons";
 import { redeemOnSite, updateGiftCardSettings } from "@/modules/giftcards/giftcards";
 import { deletePromotion, savePromotion } from "@/modules/promotions/promotions";
 import { assertFeature } from "@/modules/quotas";
+import { approveSite, submitSetupAnswers } from "@/modules/setup/site-setup";
 import { cancelShopOrder, markOrderCollected, markOrderReady } from "@/modules/shop/orders";
 import { updateShopSettings } from "@/modules/shop/settings";
 import {
@@ -1224,4 +1225,26 @@ export async function resendInvitationAction(_previous: Previous, data: FormData
   return managerPlatformMutation(tenantId, "collaborator.invitation_resent", (tx, { businessId }) =>
     resendInvitation(tx, tenantId, { staffId: form.text(data, "staffId"), businessId, locale }),
   );
+}
+
+// ─── Mise en route du site ───────────────────────────────────────────────────
+
+export async function submitSetupAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "owner", "setup.submitted", (tx) =>
+    submitSetupAnswers(tx, tenantId, {
+      activity: form.text(data, "activity"),
+      services: form.optional(data, "services") ?? "",
+      hours: form.optional(data, "hours") ?? "",
+      style: form.optional(data, "style") ?? "",
+      domain: form.optional(data, "domain") ?? "",
+      links: form.optional(data, "links") ?? "",
+      notes: form.optional(data, "notes") ?? "",
+    }),
+  );
+}
+
+export async function approveSiteAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return managerMutation(tenantId, "owner", "setup.approved", (tx) => approveSite(tx, tenantId));
 }
