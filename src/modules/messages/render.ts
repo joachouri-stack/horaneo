@@ -21,6 +21,7 @@ import {
   giftCards,
   giftCardTransactions,
   promoCodes,
+  siteSetups,
   tenants,
   users,
   type PlanFeatures,
@@ -299,6 +300,7 @@ export async function renderMessage(
 ): Promise<Rendered> {
   const template = row.templateKey as MessageTemplate;
   if (template === "admin.callback_request") return renderCallback(tx, row, options);
+  if (template === "admin.setup_submitted") return renderSetupSubmitted(tx, row, options);
   if (template.startsWith("account.") || template.startsWith("admin."))
     return renderAccount(tx, row, template, options);
   if (!row.tenantId) return { kind: "skip", reason: "no_tenant" };
@@ -1292,6 +1294,11 @@ async function renderManager(
               label: t("notifications.manager.refund_failed.openDeposit"),
               url: row.appointmentId ? `${space}/rendez-vous/${row.appointmentId}` : `${space}/agenda`,
             };
+  } else if (template === "manager.site_review") {
+    subject = t("notifications.manager.site_review.subject");
+    title = t("notifications.manager.site_review.title");
+    paragraphs = [t("notifications.manager.site_review.intro"), t("notifications.manager.site_review.what")];
+    action = { label: t("notifications.manager.site_review.open"), url: `${space}/mise-en-route` };
   } else if (template === "manager.stripe_invite") {
     const resume = (row.data as { state?: string }).state === "incomplete";
     subject = t("notifications.manager.stripe_invite.subject");
@@ -1485,6 +1492,50 @@ async function renderCallback(tx: Transaction, row: MessageRow, options: RenderO
     text,
     fromName: options.productName,
     replyTo: data.email || null,
+  };
+}
+
+// ─── Mise en route : questionnaire reçu (à l'administratrice) ────────────────
+
+async function renderSetupSubmitted(
+  tx: Transaction,
+  row: MessageRow,
+  options: RenderOptions,
+): Promise<Rendered> {
+  if (!row.tenantId) return { kind: "skip", reason: "no_tenant" };
+  const admins = await tx.select({ email: users.email }).from(users).where(eq(users.isPlatformAdmin, true));
+  if (admins.length === 0) return { kind: "skip", reason: "no_admin" };
+  const [site] = await tx
+    .select({ name: tenants.name, answers: siteSetups.answers })
+    .from(tenants)
+    .innerJoin(siteSetups, eq(siteSetups.tenantId, tenants.id))
+    .where(eq(tenants.id, row.tenantId));
+  if (!site) return { kind: "skip", reason: "no_tenant" };
+  const locale = resolveLocale("fr");
+  const t = await getTranslator(locale);
+  const details = (["activity", "domain"] as const)
+    .filter((key) => site.answers[key])
+    .map((key) => ({ label: t(`admin.tenant.setup.fields.${key}`), value: site.answers[key] ?? "" }));
+  const { html, text } = renderEmail({
+    locale,
+    brandName: options.productName,
+    title: t("notifications.admin.setup_submitted.title"),
+    paragraphs: [t("notifications.admin.setup_submitted.intro", { name: site.name })],
+    details,
+    action: {
+      label: t("notifications.admin.setup_submitted.open"),
+      url: `${options.appUrl}/${locale}/admin/clients/${row.tenantId}`,
+    },
+    footer: [options.productName],
+  });
+  return {
+    kind: "email",
+    to: admins.map((admin) => admin.email),
+    subject: t("notifications.admin.setup_submitted.subject", { name: site.name }),
+    html,
+    text,
+    fromName: options.productName,
+    replyTo: null,
   };
 }
 

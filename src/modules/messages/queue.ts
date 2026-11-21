@@ -45,6 +45,7 @@ export const MESSAGE_TEMPLATES = [
   "manager.push_test",
   "manager.stripe_invite",
   "manager.refund_failed",
+  "manager.site_review",
   // À un collaborateur invité par la gérante
   "collaborator.invite",
   // Au professionnel avant que son site existe, et à l'administratrice
@@ -53,6 +54,7 @@ export const MESSAGE_TEMPLATES = [
   "account.site_live",
   "admin.new_order",
   "admin.callback_request",
+  "admin.setup_submitted",
 ] as const;
 
 export type MessageTemplate = (typeof MESSAGE_TEMPLATES)[number];

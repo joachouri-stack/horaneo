@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { Transaction } from "@/db/client";
 import { siteSetups, tenantDomains, type SiteSetupAnswers } from "@/db/schema";
 import { AppError } from "@/modules/errors";
+import { queueMessage } from "@/modules/messages/queue";
 
 /**
  * Mise en route d'un site créé pour le client (packs avec site complet) :
@@ -64,6 +65,14 @@ export async function submitSetupAnswers(
     .set({ answers, submittedAt: setup.submittedAt ?? now, updatedAt: now })
     .where(eq(siteSetups.tenantId, tenantId))
     .returning();
+  // Premier envoi : l'équipe est prévenue par e-mail (une seule fois).
+  if (!setup.submittedAt) {
+    await queueMessage(tx, {
+      tenantId,
+      template: "admin.setup_submitted",
+      dedupeKey: `admin.setup_submitted:${tenantId}`,
+    });
+  }
   return updated;
 }
 
@@ -75,6 +84,12 @@ export async function requestSiteReview(tx: Transaction, tenantId: string, now =
     .set({ reviewRequestedAt: now, approvedAt: null, updatedAt: now })
     .where(eq(siteSetups.tenantId, tenantId))
     .returning();
+  // Le client est prévenu par e-mail que son site l'attend (à chaque nouvelle présentation).
+  await queueMessage(tx, {
+    tenantId,
+    template: "manager.site_review",
+    dedupeKey: `manager.site_review:${tenantId}:${now.getTime()}`,
+  });
   return updated;
 }
 

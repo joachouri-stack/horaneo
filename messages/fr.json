@@ -4828,6 +4828,13 @@
         "openOrder": "Voir les commandes",
         "openGiftCard": "Voir les cartes cadeaux",
         "unknownCustomer": "votre client"
+      },
+      "site_review": {
+        "subject": "Votre site est prêt à valider",
+        "title": "Votre site est prêt",
+        "intro": "Bonne nouvelle : nous avons terminé votre site. Prenez le temps de le regarder depuis votre espace.",
+        "what": "S'il vous convient, validez-le : nous le mettons ensuite en ligne. Un changement à faire ? Envoyez-nous une demande de modification.",
+        "open": "Voir et valider mon site"
       }
     },
     "account": {
@@ -4879,6 +4886,12 @@
         "plan": "Pack qui l'intéresse",
         "solution": "Lancement attendu",
         "message": "Message"
+      },
+      "setup_submitted": {
+        "subject": "Questionnaire reçu : {name}",
+        "title": "Nouveau questionnaire de mise en route",
+        "intro": "{name} a rempli son questionnaire : vous pouvez commencer la création de son site.",
+        "open": "Ouvrir la fiche du client"
       }
     },
     "giftCard": {

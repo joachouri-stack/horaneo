@@ -1,7 +1,10 @@
+import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { withPlatform, withTenant } from "@/db/access";
 import type { Transaction } from "@/db/client";
+import { messageLog } from "@/db/schema";
 import { AppError } from "@/modules/errors";
+import { dispatchMessages } from "@/modules/messages/dispatch";
 import {
   approveSite,
   getSiteSetup,
@@ -12,6 +15,7 @@ import {
 import { addCustomDomain } from "@/modules/tenants/domains";
 import { createTenant } from "@/modules/tenants/create";
 import { changeStatus } from "@/modules/tenants/update";
+import { createFakeSenders } from "../setup/fake-senders";
 import { hasTestDatabase, openAppDb, type TestDb } from "../setup/db";
 
 /** Mise en route d'un site créé pour le client : questionnaire, validation, étapes. */
@@ -83,6 +87,31 @@ describe.skipIf(!hasTestDatabase)("mise en route du site", () => {
       siteSetupView(tx, tenant.id, { customDomain: false, status: "active" }),
     );
     expect(live?.complete).toBe(true);
+  });
+
+  it("e-mails : l'équipe à la réception du questionnaire (une fois), le client quand son site est prêt", async () => {
+    const tenant = await newTenant("pro");
+    await asTenant(tenant.id, (tx) => submitSetupAnswers(tx, tenant.id, { activity: "Soins" }));
+    await asTenant(tenant.id, (tx) => submitSetupAnswers(tx, tenant.id, { activity: "Soins du visage" }));
+    await platform((tx) => requestSiteReview(tx, tenant.id));
+    const rows = await platform((tx) =>
+      tx
+        .select({ id: messageLog.id, templateKey: messageLog.templateKey })
+        .from(messageLog)
+        .where(and(eq(messageLog.tenantId, tenant.id), eq(messageLog.channel, "email"))),
+    );
+    expect(rows.filter((row) => row.templateKey === "admin.setup_submitted")).toHaveLength(1);
+    expect(rows.filter((row) => row.templateKey === "manager.site_review")).toHaveLength(1);
+
+    const fake = createFakeSenders();
+    await dispatchMessages(platform, fake.senders, {
+      productName: "Sirine",
+      appUrl: "http://localhost:3000",
+      ids: rows.filter((row) => row.templateKey === "manager.site_review").map((row) => row.id),
+    });
+    const email = fake.emails.find((item) => item.subject.includes("prêt"));
+    expect(email?.to).toEqual([`${tenant.slug}@example.com`]);
+    expect(email?.html).toContain(`/espace/${tenant.id}/mise-en-route`);
   });
 
   it("pack gratuit : pas de suivi ni de nom de domaine propre", async () => {
