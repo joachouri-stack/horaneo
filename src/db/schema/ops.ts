@@ -195,3 +195,33 @@ export const backupRuns = pgTable("backup_runs", {
   storageKey: text(),
   error: text(),
 });
+
+/** Réponses du questionnaire de mise en route (après l'achat d'un pack). */
+export type SiteSetupAnswers = {
+  activity?: string;
+  services?: string;
+  hours?: string;
+  style?: string;
+  domain?: string;
+  links?: string;
+  notes?: string;
+};
+
+/**
+ * Mise en route d'un site créé pour le client (packs avec site complet) : questionnaire
+ * envoyé, site prêt à valider, site validé. Le nom de domaine et la mise en ligne se
+ * lisent ailleurs (domaines, statut du site). Une ligne par site ; sans ligne, pas de suivi.
+ */
+export const siteSetups = pgTable("site_setups", {
+  tenantId: uuid()
+    .primaryKey()
+    .references(() => tenants.id, { onDelete: "cascade" }),
+  answers: jsonb().$type<SiteSetupAnswers>().notNull().default({}),
+  /** Questionnaire envoyé par le client. */
+  submittedAt: utc(),
+  /** Site prêt : l'équipe demande au client de le valider. */
+  reviewRequestedAt: utc(),
+  /** Site validé par le client. */
+  approvedAt: utc(),
+  ...timestamps(),
+});

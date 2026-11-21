@@ -68,7 +68,10 @@ describe("valeurs de départ des packs", () => {
       members: 1,
       smsPerMonth: 0,
     });
-    expect(grid.basic.features).toMatchObject({ onlinePayment: false, customDomain: true });
+    expect(grid.basic.features).toMatchObject({ onlinePayment: false });
+    // Son propre nom de domaine : packs payants seulement.
+    expect(grid.basic.features.customDomain).toBeFalsy();
+    expect(grid.starter.features.customDomain).toBe(true);
     expect(grid.basic.features.aiChatbot).toBeFalsy();
   });
 

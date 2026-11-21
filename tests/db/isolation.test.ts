@@ -22,6 +22,7 @@ const EXPECTED_TENANT_GRANTS: Record<string, string[]> = {
   tenants: ["SELECT"],
   tenant_domains: ["SELECT"],
   memberships: ["SELECT"],
+  site_setups: ["SELECT", "UPDATE"],
   subscriptions: ["SELECT"],
   referrals: ["SELECT"],
   redirects: ["SELECT"],

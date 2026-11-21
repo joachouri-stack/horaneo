@@ -1,5 +1,6 @@
 "use server";
 
+import { requestSiteReview, startSiteSetup } from "@/modules/setup/site-setup";
 import { queueStripeInvite } from "@/modules/payments/connect";
 
 import { categoryFields } from "@/modules/catalog/icons";
@@ -648,5 +649,21 @@ export async function deleteTestimonialAction(_previous: Previous, data: FormDat
   const id = idOf(data)!;
   return adminMutation({ action: "testimonial.deleted", tenantId, targetId: id }, (tx) =>
     deleteTestimonial(tx, tenantId, id),
+  );
+}
+
+// ─── Mise en route du site ───────────────────────────────────────────────────
+
+/** Ouvre le suivi de mise en route (site créé avant ce suivi, ou pack changé). */
+export async function startSiteSetupAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return adminMutation({ action: "setup.started", tenantId }, (tx) => startSiteSetup(tx, tenantId));
+}
+
+/** Site prêt : le client est invité à le valider depuis son espace. */
+export async function requestSiteReviewAction(_previous: Previous, data: FormData) {
+  const tenantId = tenantIdOf(data);
+  return adminMutation({ action: "setup.review_requested", tenantId }, (tx) =>
+    requestSiteReview(tx, tenantId),
   );
 }

@@ -17,13 +17,16 @@ import { connectState } from "@/modules/payments/connect";
 import { formatPhone } from "@/modules/phone";
 import { listPlans } from "@/modules/tenants/queries";
 import { READINESS_KEYS, siteReadiness } from "@/modules/tenants/readiness";
+import { getSiteSetup } from "@/modules/setup/site-setup";
 import { Link } from "@/i18n/navigation";
 import {
   addDomainAction,
   changePlanAction,
   changeStatusAction,
   domainAction,
+  requestSiteReviewAction,
   sendStripeInviteAction,
+  startSiteSetupAction,
 } from "../actions";
 
 /** Fiche d'un client : pack, statut, utilisation du mois, gérante, adresses du site. */
@@ -58,6 +61,9 @@ export default async function TenantOverviewPage({
     Boolean(subscription?.stripeSubscriptionId) &&
     !["canceled", "incomplete_expired", "none"].includes(subscription?.status ?? "none");
   const [readiness] = await adminQuery((tx) => siteReadiness(tx, [tenantId]));
+  // Mise en route du site créé pour le client : questionnaire, validation.
+  const setup = await adminQuery((tx) => getSiteSetup(tx, tenantId));
+  const tSetup = await getTranslations("admin.tenant.setup");
   const tReady = await getTranslations("admin.tenant.ready");
   const tTodo = await getTranslations("admin.dashboard.todo");
   const list = new Intl.ListFormat(locale, { type: "conjunction" });
@@ -146,6 +152,59 @@ export default async function TenantOverviewPage({
           </Link>
         </p>
       )}
+
+      <Section title={tSetup("title")}>
+        {!setup ? (
+          <div className="space-y-3">
+            <p className="text-ink/70">{tSetup("none")}</p>
+            <ActionForm action={startSiteSetupAction} submitLabel={tSetup("start")} variant="secondary">
+              <Hidden values={{ tenantId }} />
+            </ActionForm>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <p>
+              {setup.submittedAt
+                ? tSetup("submittedAt", { date: formatDateTime(setup.submittedAt, locale) })
+                : tSetup("notSubmitted")}
+            </p>
+            {setup.submittedAt && (
+              <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-[auto_1fr]">
+                {(["activity", "services", "hours", "style", "domain", "links", "notes"] as const)
+                  .filter((key) => setup.answers[key])
+                  .map((key) => (
+                    <div key={key} className="contents">
+                      <dt className="font-semibold text-night">{tSetup(`fields.${key}`)}</dt>
+                      <dd className="whitespace-pre-line">{setup.answers[key]}</dd>
+                    </div>
+                  ))}
+              </dl>
+            )}
+            {setup.approvedAt ? (
+              <p className={ui.success}>
+                {tSetup("approvedAt", { date: formatDateTime(setup.approvedAt, locale) })}
+              </p>
+            ) : (
+              <>
+                {setup.reviewRequestedAt && (
+                  <p className="text-ink/70">
+                    {tSetup("waiting", { date: formatDateTime(setup.reviewRequestedAt, locale) })}
+                  </p>
+                )}
+                <ActionForm
+                  action={requestSiteReviewAction}
+                  submitLabel={
+                    setup.reviewRequestedAt ? tSetup("requestReviewAgain") : tSetup("requestReview")
+                  }
+                  variant={setup.reviewRequestedAt ? "secondary" : "primary"}
+                >
+                  <Hidden values={{ tenantId }} />
+                </ActionForm>
+              </>
+            )}
+          </div>
+        )}
+      </Section>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Section
