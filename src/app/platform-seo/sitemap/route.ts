@@ -1,13 +1,24 @@
 import { publicAppUrl } from "@/config/env";
+import { TRADE_PAGES } from "@/config/trades";
 import { ENABLED_LOCALES } from "@/i18n/enabled";
 
 // Recalculé à chaque appel : l'adresse publique et les langues viennent de la configuration du serveur.
 export const dynamic = "force-dynamic";
 
-/** Plan du site commercial (accueil et documents légaux, dans chaque langue activée). */
+/** Plan du site commercial (accueil, métiers et documents légaux, dans chaque langue activée). */
 export function GET() {
   const base = publicAppUrl();
-  const paths = ["", "/comparatif", "/avis", "/mentions-legales", "/confidentialite", "/conditions"];
+  const paths = [
+    "",
+    "/comparatif",
+    "/metiers",
+    // Pages par métier (institut, coiffeur…).
+    ...TRADE_PAGES.map((trade) => `/metiers/${trade.slug}`),
+    "/avis",
+    "/mentions-legales",
+    "/confidentialite",
+    "/conditions",
+  ];
   const urls = ENABLED_LOCALES.flatMap((locale) =>
     paths.map((path) => `  <url><loc>${base}/${locale}${path}</loc></url>`),
   );
