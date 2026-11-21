@@ -10,6 +10,9 @@ export const TRADE_PAGES = [
   { slug: "coach", key: "coaching" },
   { slug: "cours-particuliers", key: "lessons" },
   { slug: "photographe", key: "photo" },
+  { slug: "garage", key: "garage" },
+  { slug: "artisan", key: "craft" },
+  { slug: "consultant", key: "consulting" },
 ] as const;
 
 export type TradeKey = (typeof TRADE_PAGES)[number]["key"];

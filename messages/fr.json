@@ -5074,7 +5074,7 @@
     "metaTitle": "Logiciel de réservation pour {name}",
     "indexTitle": "Un site et un agenda pensés pour votre métier",
     "indexIntro": "Choisissez votre activité : nous vous montrons ce que votre site et votre espace de gestion font pour vous.",
-    "indexMetaDescription": "Site internet, réservation en ligne et gestion des clients, adaptés à chaque métier : instituts, coiffeurs, bien-être, coachs, cours et photographes.",
+    "indexMetaDescription": "Site internet, réservation en ligne et gestion des clients, adaptés à chaque métier : instituts, coiffeurs, bien-être, coachs, cours, photographes, garages, artisans et consultants.",
     "badge": "Pour {name}",
     "benefitsTitle": "Ce qui change pour vous",
     "servicesTitle": "Des prestations comme les vôtres",
@@ -5312,6 +5312,116 @@
           {
             "q": "Les longues séances sont-elles possibles ?",
             "a": "Oui : chaque séance a sa durée, de quelques minutes à plusieurs heures."
+          }
+        ]
+      },
+      "garage": {
+        "name": "les garages",
+        "title": "Votre garage,",
+        "accent": "réservé en ligne, même atelier fermé.",
+        "intro": "Révision, vidange, pneus, diagnostic : vos clients choisissent l'intervention et le créneau sur votre site, et vous retrouvez la journée de l'atelier dans votre agenda.",
+        "metaDescription": "Site internet et prise de rendez-vous en ligne pour garages : révision, vidange, pneus, diagnostic, avec rappels et fiches clients.",
+        "services": ["Révision", "Vidange", "Pneus", "Diagnostic", "Freins", "Climatisation"],
+        "benefits": [
+          {
+            "title": "Moins d'appels pendant l'atelier",
+            "text": "Vos clients réservent seuls, à toute heure : vous restez concentré sur les véhicules."
+          },
+          {
+            "title": "Le bon temps pour chaque intervention",
+            "text": "Chaque intervention a sa durée : l'agenda ne propose que les créneaux où elle tient."
+          },
+          {
+            "title": "Des clients qui reviennent",
+            "text": "Fiche de chaque client avec ses passages et vos notes, et un rappel avant chaque rendez-vous."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Plusieurs mécaniciens peuvent-ils avoir leur agenda ?",
+            "a": "Oui : chaque membre de l'équipe a ses horaires et ses interventions, et l'agenda les montre côte à côte."
+          },
+          {
+            "q": "Mes clients peuvent-ils laisser un message sur leur véhicule ?",
+            "a": "Oui : à la réservation, ils peuvent ajouter un message (modèle, symptôme…) que vous lisez dans le rendez-vous."
+          }
+        ]
+      },
+      "craft": {
+        "name": "les artisans",
+        "title": "Votre activité d'artisan,",
+        "accent": "visible et joignable en ligne.",
+        "intro": "Plombier, électricien, menuisier : un site clair pour présenter votre savoir-faire, et des créneaux de rendez-vous que vos clients réservent seuls.",
+        "metaDescription": "Site internet et prise de rendez-vous en ligne pour artisans : présentation de vos réalisations, rendez-vous et fiches clients.",
+        "services": [
+          "Visite à domicile",
+          "Dépannage",
+          "Intervention",
+          "Rendez-vous conseil",
+          "Entretien",
+          "Mise en service"
+        ],
+        "benefits": [
+          {
+            "title": "Vos réalisations mises en valeur",
+            "text": "Une galerie de vos chantiers et un site à votre image, que vous mettez à jour vous-même."
+          },
+          {
+            "title": "Des rendez-vous sans téléphone",
+            "text": "Vos clients choisissent un créneau libre et précisent leur besoin dans un message."
+          },
+          {
+            "title": "Tous vos clients au même endroit",
+            "text": "Coordonnées, rendez-vous passés et notes réunis sur la fiche de chaque client."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Puis-je bloquer les journées de chantier ?",
+            "a": "Oui : vous ajoutez vos indisponibilités dans l'agenda, et ces créneaux ne sont plus proposés."
+          },
+          {
+            "q": "Mes clients peuvent-ils décrire leur besoin ?",
+            "a": "Oui : à la réservation, ils peuvent laisser un message que vous retrouvez dans le rendez-vous."
+          }
+        ]
+      },
+      "consulting": {
+        "name": "les consultants",
+        "title": "Vos rendez-vous de conseil,",
+        "accent": "pris en ligne, sans allers-retours.",
+        "intro": "Conseil, accompagnement, expertise : vos clients découvrent votre offre sur votre site et réservent un rendez-vous dans vos créneaux, avec un rappel avant la rencontre.",
+        "metaDescription": "Site internet et prise de rendez-vous en ligne pour consultants : présentation de l'offre, réservation de rendez-vous, rappels et suivi des clients.",
+        "services": [
+          "Premier rendez-vous",
+          "Rendez-vous conseil",
+          "Accompagnement",
+          "Audit",
+          "Atelier",
+          "Point de suivi"
+        ],
+        "benefits": [
+          {
+            "title": "Un site professionnel",
+            "text": "Votre offre, votre parcours et vos coordonnées présentés clairement, créés pour vous."
+          },
+          {
+            "title": "Vos créneaux toujours à jour",
+            "text": "Vos clients réservent seuls dans vos disponibilités, sans échanges d'e-mails."
+          },
+          {
+            "title": "Le suivi de chaque client",
+            "text": "Rendez-vous passés et notes sur la fiche de chaque client, pour préparer le suivant."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Puis-je proposer des rendez-vous de durées différentes ?",
+            "a": "Oui : chaque prestation a sa durée et son prix, et l'agenda en tient compte."
+          },
+          {
+            "q": "Puis-je demander un acompte ?",
+            "a": "Oui, avec le paiement en ligne inclus dans le pack : l'acompte est versé directement sur votre compte."
           }
         ]
       }
