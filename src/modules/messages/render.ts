@@ -44,6 +44,7 @@ import { getPlatformSetting } from "@/modules/settings";
 import { monthStats } from "@/modules/stats/month";
 import { writeReviewUrl } from "@/modules/reviews/google";
 import { appointmentCalendarPath, SITE_PATHS } from "@/modules/site/paths";
+import { isDemoTenant } from "@/modules/site/demo";
 import { renderEmail } from "./layout";
 import type { MessageTemplate } from "./queue";
 import { fitSingleSms, smsSenderName, toGsm7 } from "./senders";
@@ -304,6 +305,8 @@ export async function renderMessage(
   if (template.startsWith("account.") || template.startsWith("admin."))
     return renderAccount(tx, row, template, options);
   if (!row.tenantId) return { kind: "skip", reason: "no_tenant" };
+  // Site de démonstration : réservations fictives, aucun e-mail ni SMS envoyé.
+  if (await isDemoTenant(tx, row.tenantId)) return { kind: "skip", reason: "demo" };
   // Message d'une entreprise : seules ses données (agenda, réglages…) sont lues.
   await declareBusiness(tx, row.businessId);
   const tenant = await loadTenant(tx, row.tenantId);

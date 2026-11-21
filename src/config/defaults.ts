@@ -72,6 +72,12 @@ export const DEFAULT_PLATFORM_SETTINGS = {
   ] as SolutionSetting[],
   /** Adresse d'une démonstration en ligne ; vide : le bouton « Voir la démonstration » est masqué. */
   demo_url: "",
+  /**
+   * Site de démonstration (identifiant du site) : il sert au bouton « Voir la démonstration »
+   * quand demo_url est vide. Réservations fictives : ni paiement, ni e-mail, ni SMS, effacées
+   * au bout d'un jour. Vide : pas de site de démonstration.
+   */
+  demo_tenant_id: "",
   /** Numéro WhatsApp du site commercial (format international) ; vide : la bulle mène au formulaire « Être rappelé ». */
   whatsapp_number: "",
   /** Message déjà écrit à l'ouverture de WhatsApp ; vide : message par défaut des traductions. */

@@ -1,4 +1,5 @@
 import { tenantFeatures, tenantLimits } from "@/modules/billing/entitlements";
+import { isDemoTenant } from "@/modules/site/demo";
 import { and, asc, eq, gt, inArray, isNull, lt, or } from "drizzle-orm";
 import { planAllowsBooking } from "@/modules/billing/features";
 import { currentBusinessId } from "@/db/access";
@@ -74,7 +75,10 @@ export async function loadBookingContext(tx: Transaction, tenantId: string, busi
       .orderBy(asc(staffMembers.sortOrder)),
     tx.select().from(staffServices).where(eq(staffServices.businessId, targetId)),
   ]);
-  const features = row.features as PlanFeatures;
+  // Site de démonstration : réservations fictives, jamais de paiement en ligne.
+  const features = (await isDemoTenant(tx, tenantId))
+    ? { ...(row.features as PlanFeatures), onlinePayment: false }
+    : (row.features as PlanFeatures);
   // Promotion en cours : le prix réduit est celui de la réservation (et de l'acompte).
   const promoted = features.promotions
     ? await activePromotionPrices(tx, tenantId, {

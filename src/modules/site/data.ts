@@ -1,4 +1,5 @@
 import { tenantFeatures } from "@/modules/billing/entitlements";
+import { isDemoTenant } from "./demo";
 import { and, asc, desc, eq, gte, inArray, sql } from "drizzle-orm";
 import { POPULAR_SERVICES } from "@/config/site";
 import { planAllowsBooking } from "@/modules/billing/features";
@@ -277,7 +278,9 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
     (service) => !categories.some((category) => category.id === service.categoryId),
   );
 
-  const features = planFeatures;
+  // Site de démonstration : ni carte cadeau ni boutique payables, et un bandeau le signale.
+  const demo = await isDemoTenant(tx, tenantId);
+  const features = demo ? { ...planFeatures, onlinePayment: false } : planFeatures;
   // Bandeau « offre du moment » : une ligne par promotion en cours.
   const offers = [...promoted.values()]
     .filter(
@@ -314,6 +317,7 @@ export async function loadSiteData(tx: Transaction, tenantId: string, locale?: L
       contactBar: tenant.brand.contactBar ?? null,
     },
     locale: lang,
+    demo,
     features: {
       fullSite: Boolean(features.fullSite),
       testimonials: Boolean(features.testimonials),
