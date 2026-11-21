@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PlatformFooter } from "@/components/layout/PlatformFooter";
 import { PlatformHeader } from "@/components/layout/PlatformHeader";
@@ -20,6 +21,8 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/metiers"
 
 /** Liste des pages par métier (liens du pied de page et du plan du site). */
 export default async function TradesIndexPage({ params }: PageProps<"/[locale]/metiers">) {
+  // Pied de page lu en base (réseaux sociaux, avis) : page rendue à la demande.
+  await connection();
   const locale = resolveLocale((await params).locale);
   setRequestLocale(locale);
   const t = await getTranslations("trades");
